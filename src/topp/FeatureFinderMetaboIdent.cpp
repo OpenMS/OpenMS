@@ -104,8 +104,10 @@ The default (60 seconds) is much wider than the elution peaks of a few seconds t
 neighboring peaks at the m/z of a target (e.g. isomers) can then be merged into one feature, so that targets go missing or get the intensity of a neighbor, and the features extend beyond the signal.
 With many targets close to each other (e.g. when the features of an untargeted feature finder are re-quantified), the wider features are also more often removed as overlapping (see below).
 A much smaller value than the width of the peaks picks up noise and gives less reproducible intensities.
-A warning is given if the value is more than four times the width (FWHM) of the elution peaks that were found, together with their median width and a suggested value.
+A warning is given if the value is much larger than the elution peaks that were found, together with their median width (FWHM) and a suggested value: twice that width, but at least eight times the time between two MS1 spectra (a smaller value hardly smooths, and peaks with few data points are lost).
+The warning appears when @p detect:peak_width is more than twice the suggested value.
 This check uses the widths of the elution models, so there is no such warning without them (@p model:type @c none, or no valid model).
+The widths of the elution models depend somewhat on @p detect:peak_width (the models are fitted between the feature borders), so on noisy data, or with few targets (whose models may be those of noise), the warning can come back with a still smaller value after the suggested value was set.
 - @p extract:rt_window (or the @p RetentionTimeRange of a target) is the width of the RT window around the target RT in which a feature is searched.
 It has to cover the elution peak and the expected RT deviation of the target.
 By default it is four times @p detect:peak_width, so set it explicitly when you lower @p detect:peak_width: otherwise the window shrinks as well, and targets that elute a few seconds off their expected RT are missed.

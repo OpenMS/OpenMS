@@ -225,6 +225,7 @@ namespace OpenMS
     std::vector<PeptideIdentification> missing_targets;
     std::set<std::string> missing_refs;
 
+    std::vector<double> group_scan_intervals;
     for (auto& [group_cv, faims_group] : faims_groups)
     {
       OPENMS_LOG_INFO << "Processing FAIMS CV group: " << group_cv << " V ("
@@ -283,7 +284,10 @@ namespace OpenMS
       trafo_.setDataPoints(points);
 
       n_shared_ += ff_group.getNShared();
+      group_scan_intervals.push_back(ff_group.scan_interval_);
     }
+    // each CV group is processed with its own spectra, i.e. its own (longer) scan interval
+    scan_interval_ = Math::median(group_scan_intervals.begin(), group_scan_intervals.end());
 
     // Targets without features are those without a feature at any CV (as without FAIMS, once each)
     std::set<std::string> found_refs;
@@ -338,6 +342,18 @@ namespace OpenMS
     {
       OPENMS_LOG_WARN << "Warning: No MS1 scans in:" << spectra_file << endl;
       return;
+    }
+
+    // median time between MS1 spectra (sorted by RT in prepareMSData_()), for the peak width warning
+    if (ms_data_.size() > 1)
+    {
+      vector<double> intervals;
+      intervals.reserve(ms_data_.size() - 1);
+      for (Size i = 1; i < ms_data_.size(); ++i)
+      {
+        intervals.push_back(ms_data_[i].getRT() - ms_data_[i - 1].getRT());
+      }
+      scan_interval_ = Math::median(intervals.begin(), intervals.end());
     }
 
     for (const auto& c : metaboIdentTable)
@@ -993,17 +1009,22 @@ namespace OpenMS
         fwhms.push_back(feat.getMetaValue("model_FWHM"));
       }
     }
-    if (fwhms.empty()) return; // no elution models ('model:type' is 'none'), or no valid one
+    if (fwhms.empty()) return; // no elution models ('model:type' is 'none'), or no valid ones
 
     // The chromatograms are smoothed with a Gaussian of standard deviation 'detect:peak_width' / 8 (see
-    // GaussFilterAlgorithm) before the peaks are picked: at four times the FWHM of the peaks that kernel is about
-    // 1.2 times as wide as the peaks themselves. The suggested value (twice the FWHM) stays below this limit when
-    // the model widths shrink at the smaller peak width, so the warning does not come back after it is followed.
+    // GaussFilterAlgorithm) before the peaks are picked. The suggested value is twice the FWHM of the peaks, but at
+    // least eight times the time between two MS1 spectra: with few spectra per peak, a kernel narrower than that
+    // interval hardly smooths, and peaks get lost. The warning is given above twice the suggested value (for the
+    // FWHM: a kernel about 1.2 times as wide as the peaks), so it does not come back after the suggestion is followed
+    // unless the median width is about halved - the model widths shrink somewhat at a smaller peak width, as the
+    // feature borders move in, and with few targets the models are often those of noise features of absent targets.
     const double median_fwhm = Math::median(fwhms.begin(), fwhms.end());
-    if (peak_width_ <= 4.0 * median_fwhm) return;
-
     const double shown_fwhm = Math::roundDecimal(median_fwhm, -1);
-    const double suggested_width = 2.0 * shown_fwhm;
+    const double min_width = 8.0 * scan_interval_;
+    const bool by_scans = (min_width > 2.0 * shown_fwhm);
+    const double suggested_width = by_scans ? min_width : 2.0 * shown_fwhm;
+    if (peak_width_ <= 2.0 * suggested_width) return;
+
     OPENMS_LOG_WARN << "Warning: 'detect:peak_width' (" << peak_width_ << " s) is much larger than the elution peaks of the "
                     << "detected features (median width (FWHM): " << shown_fwhm << " s, from "
                     << fwhms.size() << " elution model(s)). The chromatograms are smoothed with this width before peaks "
@@ -1011,7 +1032,8 @@ namespace OpenMS
                     << "wider features of targets that are close to each other are more often removed as overlapping "
                     << "(targets go missing or get the intensity of a neighbor). Consider a 'detect:peak_width' of about "
                     << Math::roundDecimal(suggested_width, (suggested_width >= 10.0) ? 0 : -1)
-                    << " s (twice the median width).";
+                    << (by_scans ? " s (eight times the median time between MS1 spectra, " : " s (twice the median width).")
+                    << (by_scans ? StringUtils::toStr(Math::roundDecimal(scan_interval_, -2)) + " s: a smaller value hardly smooths)." : "");
     if (double(param_.getValue("extract:rt_window")) == 0.0)
     {
       // the RT window follows 'detect:peak_width', and would no longer cover the RT deviations of the targets
