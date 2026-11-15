@@ -2134,6 +2134,93 @@ START_SECTION(([EXTRA] route placement, diagnostics, terminal states, native FDR
 }
 END_SECTION
 
+START_SECTION(([EXTRA] route products follow RNase termini with missed cleavages, cached digests and fixed terminal modifications))
+{
+  std::string fasta, mzml, digest;
+  NEW_TMP_FILE(fasta)
+  NEW_TMP_FILE(mzml)
+  NEW_TMP_FILE(digest)
+  fasta += ".fasta";
+  mzml += ".mzML";
+  digest += ".oms";
+  // RNase T1 products: ACUG | AUCAG | UUACC. The decoy has no product of these compositions.
+  FASTAFile().store(fasta, {{"target", "", "ACUGAUCAGUUACC"}, {"DECOY_target", "", "CCAUUGACUAGUCA"}});
+  NucleicAcidSpectrumGenerator generator;
+  auto parameters = generator.getParameters();
+  for (const auto& ion : {"a", "b", "c", "d", "w", "x", "y", "z", "a-B"})
+  {
+    parameters.setValue("add_" + std::string(ion) + "_ions", std::string(ion) == "c" || std::string(ion) == "y" ? "true" : "false");
+  }
+  parameters.setValue("add_first_prefix_ion", "true");
+  generator.setParameters(parameters);
+  const auto fixture = [&](const std::string& label) {
+    auto parent = survey(false, label);
+    MSSpectrum fragments;
+    generator.getSpectrum(fragments, NASequence::fromString(label), -1, -2);
+    fragments.getStringDataArrays().clear();
+    fragments.getIntegerDataArrays().clear();
+    fragments.sortByPosition();
+    fragments.setMSLevel(2);
+    fragments.setNativeID("scan=3");
+    fragments.setRT(12);
+    Precursor precursor;
+    precursor.setMZ(parent[1].getMZ());
+    precursor.setCharge(2);
+    precursor.setMetaValue("spectrum_ref", parent.getNativeID());
+    fragments.setPrecursors({precursor});
+    MSExperiment experiment;
+    experiment.setSpectra({parent, fragments});
+    MzMLFile().store(mzml, experiment);
+  };
+  const auto search = [&](const std::string& method, bool cached, const std::string& fixed) {
+    std::string output;
+    NEW_TMP_FILE(output)
+    output += ".idXML";
+    std::vector<std::string> arguments {"-in", mzml, "-out", output + ".mzTab", "-id_out", output, "-oligo:enzyme", "RNase_T1",
+                                        "-oligo:min_size", "4", "-oligo:missed_cleavages", "1", "-precursor:max_charge", "-5",
+                                        "-precursor:correct_with_flash", "-preprocessing:deisotoping", "legacy", "-fragment:ions", "c", "y",
+                                        "-fdr:decoy_pattern", "DECOY_", "-threads", "2", "-candidates:method", method};
+    if (cached) { arguments.insert(arguments.end(), {"-digest", digest}); }
+    else
+    {
+      arguments.insert(arguments.end(), {"-database", fasta, "-digest_out", digest});
+    }
+    if (! fixed.empty()) { arguments.insert(arguments.end(), {"-modifications:fixed", fixed}); }
+    TEST_EQUAL(runSearch(arguments), 0)
+    std::vector<ProteinIdentification> proteins;
+    PeptideIdentificationList peptides;
+    IdXMLFile().load(output, proteins, peptides);
+    std::set<std::string> labels;
+    for (const auto& peptide : peptides)
+    {
+      for (const auto& hit : peptide.getHits())
+      {
+        labels.insert(hit.metaValueExists("label") ? hit.getMetaValue("label").toString() : hit.getSequence().toString());
+      }
+    }
+    return labels;
+  };
+  // An interior product spanning one missed cleavage, with the 3' phosphate gained from RNase T1.
+  const std::string missed = "AUCAGUUACC", interior = "ACUGAUCAGp";
+  fixture(interior);
+  TEST_TRUE(search("enumeration", false, "").contains(interior))
+  const auto fresh = search("graph_routes", false, "");
+  TEST_TRUE(fresh.contains(interior))
+  // The cached digest keeps its missed-cleavage budget for modification-aware validation.
+  TEST_TRUE(search("graph_routes", true, "") == fresh)
+  fixture(missed);
+  TEST_TRUE(search("graph_routes", false, "").contains(missed))
+  TEST_TRUE(search("graph_routes", true, "").contains(missed))
+  // A fixed 5' phosphate fills the 5' end; the 3' end keeps the group gained from the RNase.
+  const std::string fixed_interior = "pAUCAGp";
+  fixture(fixed_interior);
+  TEST_TRUE(search("enumeration", false, "5'-p").contains(fixed_interior))
+  const auto fixed_fresh = search("graph_routes", false, "5'-p");
+  TEST_TRUE(fixed_fresh.contains(fixed_interior))
+  TEST_TRUE(search("graph_routes", true, "5'-p") == fixed_fresh)
+}
+END_SECTION
+
 START_SECTION(([EXTRA] diagnostic - labile completion keeps its scored route scaffolds in exported evidence))
 {
   std::string fasta, mzml, output;

@@ -82,7 +82,8 @@ public:
     @param[in] modifications Internal variable modifications.
     @param[in] options Tolerances, unrestricted-budget upper bound and explicit resource limits.
     @param[in] terminal_states Optional bit mask per database entry of permitted terminal assignments; bit
-               @p 3*five+three with five in {OH, P} and three in {OH, P, cyclic-P}. Empty permits all six.
+               @p 3*five+three with five in {OH, P} and three in {OH, P, cyclic-P}. Empty permits all six
+               that agree with the termini stored in @p database; a mask replaces that check.
     @throws Exception::IllegalArgument for invalid options, terminal or linkage ('*') modifications,
             unsupported database termini, or a mask whose size differs from the database.
   */

@@ -551,8 +551,10 @@ RNARouteCandidateGenerator::Result RNARouteCandidateGenerator::generate(const MS
       {
         if (prefix_id == Size(-1) && suffix_id == Size(-1)) { continue; }
         const auto [five, three] = terminal_states[state];
-        if ((database_[id].hasFivePrimeMod() && five != 1)
-            || (database_[id].hasThreePrimeMod() && three != (database_[id].getThreePrimeMod()->getCode() == "3'-p" ? 1 : 2)))
+        // A mask already accounts for the stored termini and where the enzyme replaces them.
+        if (terminal_states_.empty()
+            && ((database_[id].hasFivePrimeMod() && five != 1)
+                || (database_[id].hasThreePrimeMod() && three != (database_[id].getThreePrimeMod()->getCode() == "3'-p" ? 1 : 2))))
         {
           continue;
         }

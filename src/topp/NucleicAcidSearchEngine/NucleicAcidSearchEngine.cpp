@@ -2136,6 +2136,8 @@ protected:
         return ILLEGAL_PARAMETERS;
       }
       search_param.digestion_enzyme = search_ref->digestion_enzyme;
+      // Route validation re-digests products with the cached budget.
+      search_param.missed_cleavages = search_ref->missed_cleavages;
       cleavage_sensitive_groups = {};
       cleavage_sensitive_modifications.clear();
       cleavage_sensitive_mod_codes.clear();
@@ -2563,6 +2565,13 @@ protected:
       options.max_supports = getIntOption_("routes:max_supports");
       options.min_route_nodes = getIntOption_("routes:min_nodes");
       const auto completion = getStringOption_("routes:completion");
+      if ((completion == "labile" || completion == "bounded_labile") && ! variable_modifications.empty()
+          && getStringList_("diagnostic:fixed_ions").empty())
+      {
+        OPENMS_LOG_WARN << "Warning: 'routes:completion " << completion << "' completes uncovered positions only with labile modifications, "
+                        << "and no 'diagnostic:fixed_ions' rule declares one. Variable modifications without an intact graph placement "
+                        << "are not searched; set 'diagnostic:fixed_ions' or use 'routes:completion bounded'.\n";
+      }
       options.complete_unanchored_modifications = completion == "bounded" || completion == "all";
       if (completion == "bounded" || completion == "bounded_labile")
       {
@@ -2599,10 +2608,13 @@ protected:
         const Size three = ! sequence.hasThreePrimeMod() ? 0 : (sequence.getThreePrimeMod()->getCode() == "3'-p" ? 1 : 2);
         return 3 * Size(sequence.hasFivePrimeMod()) + three;
       };
-      // Products at a parent end keep the terminal group stored with the digest.
+      // As in enumeration, an end takes the group gained from the RNase. An
+      // end without one (a parent end, or no gain) keeps the group stored
+      // with the digest: the parent's own or a fixed terminal modification.
       const auto enzymeTerminalState = [&](const NASequence& stored, const IdentificationData::ParentMatch& match, Size parent_size) {
         const Size own = ownTerminalState(stored);
-        return 3 * (match.start_pos == 0 ? own / 3 : five_gain) + (match.end_pos + 1 >= parent_size ? own % 3 : three_gain);
+        return 3 * (match.start_pos == 0 || five_gain == 0 ? own / 3 : five_gain)
+               + (match.end_pos + 1 >= parent_size || three_gain == 0 ? own % 3 : three_gain);
       };
       // Parse each parent once; products are validated against it below.
       std::map<IdentificationData::ParentSequenceRef, NASequence> route_parents;
@@ -2900,7 +2912,13 @@ protected:
           {
             // Emit root causes from the main thread: worker-local log buffers
             // can otherwise hide the reason while only cancellation is visible.
-            OPENMS_LOG_ERROR << "Incomplete route search for " << spectra[scan].getNativeID() << ": " << failures[scan] << '\n';
+            static const std::map<std::string, std::string> limit_options {{"route_state_limit", "routes:max_states"},
+                                                                            {"support_limit", "routes:max_supports"},
+                                                                            {"candidate_limit", "routes:max_candidates"},
+                                                                            {"completion_node_limit", "routes:max_completion_nodes"}};
+            const auto limit = limit_options.find(failures[scan]);
+            OPENMS_LOG_ERROR << "Incomplete route search for " << spectra[scan].getNativeID() << ": " << failures[scan]
+                             << (limit == limit_options.end() ? "" : " (raise '" + limit->second + "')") << '\n';
           }
           complete = false;
         }

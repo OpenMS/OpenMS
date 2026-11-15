@@ -85,13 +85,17 @@ limits. Graph-placed modifications still consume the full per-oligo budget.
 
 The default modification-aware cleavage model uses `RNaseDigestion` to validate
 each completed product against its parent and missed-cleavage budget.
+Cuts created by a modification (e.g. RNase T1 after inosine) count against
+that budget, so such a product at the full budget is dropped here although
+enumeration keeps it. A cached digest supplies its own missed-cleavage budget.
 `oligo:cleavage_model=canonical` is an explicit alternative for `graph_routes`.
 Cached digests must match the database and digestion model. Enumeration/tag modes
 reject route digests because cleavage-sensitive placements have not been pre-expanded. Route generation
 requires monoisotopic masses. By default (`routes:terminal_states=enzyme`) each
 product receives the terminal groups of the configured RNase at its parent
 position, as in enumeration; a parent match is retained only if the candidate's
-termini agree with it. `routes:terminal_states=all` additionally tries all six
+termini agree with it. A fixed terminal modification fills only an end without
+an RNase group, again as in enumeration. `routes:terminal_states=all` additionally tries all six
 physical assignments for every oligonucleotide: OH/OH, OH/P, OH/cyclic-P, P/OH,
 P/P and P/cyclic-P. Linkage modifications (codes ending in `*`) have
 neighbor-dependent masses and are rejected. Explicit input/fixed termini
