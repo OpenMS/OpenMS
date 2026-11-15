@@ -607,10 +607,13 @@ RNARouteCandidateGenerator::Result RNARouteCandidateGenerator::generate(const MS
     }
     // Complete each unique placement pattern once after collecting all of its
     // side-specific labile witnesses. A duplicate pattern can add evidence.
-    for (const auto& [pattern, support_masks] : patterns)
+    for (const auto& pattern_entry : patterns)
     {
       if (cancelledNow()) { return result; }
-      const auto& [five, three, fixed] = pattern;
+      const auto& support_masks = pattern_entry.second;
+      const auto five = std::get<0>(pattern_entry.first);
+      const auto three = std::get<1>(pattern_entry.first);
+      const auto& fixed = std::get<2>(pattern_entry.first);
       std::vector<std::vector<const Ribonucleotide*>> choices(fixed.size());
       for (Size pos = 0; pos < fixed.size(); ++pos)
       {
@@ -689,7 +692,7 @@ RNARouteCandidateGenerator::Result RNARouteCandidateGenerator::generate(const MS
         const auto label = candidate.toString();
         std::vector<std::shared_ptr<const Scaffold>> scaffold_variants;
         const bool has_labile
-          = std::any_of(candidate.begin(), candidate.end(), [&](const auto& residue) { return evidence.labile.contains(residue.getCode()); });
+          = std::any_of(candidate.cbegin(), candidate.cend(), [&](const auto& residue) { return evidence.labile.contains(residue.getCode()); });
         if (has_labile)
         {
           for (const auto& intact : support_masks)

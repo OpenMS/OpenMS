@@ -497,7 +497,8 @@ RNATagCandidateFilter::Evidence RNATagCandidateFilter::matchReference(const NASe
   const Size stride = nodes * width;
   for (auto& [key, found] : matches)
   {
-    const auto& layer = *std::find_if(graph.layers.begin(), graph.layers.end(), [&key](const auto& item) { return item.charge == key.second; });
+    const auto charge = key.second;
+    const auto& layer = *std::find_if(graph.layers.begin(), graph.layers.end(), [charge](const auto& item) { return item.charge == charge; });
     for (auto& row : found)
     {
       std::sort(row.begin(), row.end());
