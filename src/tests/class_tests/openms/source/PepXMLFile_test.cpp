@@ -609,7 +609,7 @@ END_SECTION
 
 START_SECTION(([EXTRA] store and load X! Tandem results read from pepXML - expect scores, issue #10570))
 {
-  // X! Tandem results as written by IDFileConverter (from idXML; header of IDFileConverter_17_output.pepXML), three PSMs:
+  // X! Tandem results as written by IDFileConverter (from idXML; header of IDFileConverter_17_output.pepXML before fixed modifications were written as variable="N"), three PSMs:
   std::string filename = OPENMS_GET_TEST_DATA_PATH("PepXMLFile_test_xtandem.pepxml");
   vector<ProteinIdentification> proteins;
   PeptideIdentificationList peptides;
@@ -719,6 +719,131 @@ START_SECTION(([EXTRA] store and load Mascot results - expect scores survive rep
     TEST_EQUAL(hit_new.metaValueExists("MS:1001172"), true)
     TEST_REAL_SIMILAR(static_cast<double>(hit_new.getMetaValue("MS:1001172", 0.0)), 0.01)
   }
+}
+END_SECTION
+
+START_SECTION(([EXTRA] store - fixed and variable modifications of the search parameters, issue #2096))
+{
+  vector<ProteinIdentification> proteins(1);
+  proteins[0].setIdentifier("Mascot_run");
+  proteins[0].setSearchEngine("Mascot");
+  ProteinIdentification::SearchParameters params;
+  params.fixed_modifications = {"Carbamidomethyl (C)", "TMT6plex (N-term)", "Amidated (C-term)"};
+  params.variable_modifications = {"Oxidation (M)"};
+  proteins[0].setSearchParameters(params);
+
+  // every peptide carries the three fixed modifications; "Phospho (S)" is not part of the search parameters
+  const vector<std::string> sequences = {".(TMT6plex)AC(Carbamidomethyl)DM(Oxidation)K.(Amidated)",
+                                         ".(TMT6plex)PEPS(Phospho)C(Carbamidomethyl)K.(Amidated)"};
+  PeptideIdentificationList peptides(sequences.size());
+  for (Size i = 0; i < sequences.size(); ++i)
+  {
+    peptides[i].setIdentifier("Mascot_run");
+    peptides[i].setRT(100.0 + i);
+    peptides[i].setMZ(464.2347);
+    peptides[i].setScoreType("Mascot");
+    peptides[i].setHigherScoreBetter(true);
+    PeptideHit hit(35.0, 0, 2, AASequence::fromString(sequences[i]));
+    PeptideEvidence evidence;
+    evidence.setProteinAccession("PROT1");
+    evidence.setAABefore('K');
+    evidence.setAAAfter('A');
+    hit.addPeptideEvidence(evidence);
+    hit.setMetaValue("MS:1001172", 0.01); // Mascot:expectation value
+    peptides[i].insertHit(hit);
+  }
+
+  std::string file_out;
+  NEW_TMP_FILE(file_out);
+  PepXMLFile().store(file_out, proteins, peptides);
+
+  // fixed modifications are written as 'variable="N"' (they used to be 'variable="Y"' like all others):
+  std::ifstream written(file_out);
+  const std::string content((std::istreambuf_iterator<char>(written)), std::istreambuf_iterator<char>());
+  TEST_EQUAL(StringUtils::hasSubstring(content, "variable=\"N\" binary=\"N\" description=\"Carbamidomethyl (C)\""), true)
+  TEST_EQUAL(StringUtils::hasSubstring(content, "variable=\"N\" description=\"TMT6plex (N-term)\""), true)
+  TEST_EQUAL(StringUtils::hasSubstring(content, "variable=\"N\" description=\"Amidated (C-term)\""), true)
+  // variable modifications, and modifications that the search parameters do not list, are written as 'variable="Y"':
+  TEST_EQUAL(StringUtils::hasSubstring(content, "variable=\"Y\" binary=\"N\" description=\"Oxidation (M)\""), true)
+  TEST_EQUAL(StringUtils::hasSubstring(content, "variable=\"Y\" binary=\"N\" description=\"Phospho (S)\""), true)
+
+  // reading the file back tells fixed from variable modifications again, and the peptides are unchanged
+  // (modifications are listed in the order of the file: residue, N-terminal and C-terminal ones)
+  vector<ProteinIdentification> proteins_new;
+  PeptideIdentificationList peptides_new;
+  PepXMLFile().load(file_out, proteins_new, peptides_new);
+  ABORT_IF(proteins_new.size() != 1)
+  const ProteinIdentification::SearchParameters& params_new = proteins_new[0].getSearchParameters();
+  ABORT_IF(params_new.fixed_modifications.size() != 3)
+  TEST_EQUAL(params_new.fixed_modifications[0], "Carbamidomethyl (C)")
+  TEST_EQUAL(params_new.fixed_modifications[1], "TMT6plex (N-term)")
+  TEST_EQUAL(params_new.fixed_modifications[2], "Amidated (C-term)")
+  ABORT_IF(params_new.variable_modifications.size() != 2)
+  TEST_EQUAL(params_new.variable_modifications[0], "Oxidation (M)")
+  TEST_EQUAL(params_new.variable_modifications[1], "Phospho (S)")
+  ABORT_IF(peptides_new.size() != sequences.size())
+  for (Size i = 0; i < sequences.size(); ++i)
+  {
+    ABORT_IF(peptides_new[i].getHits().size() != 1)
+    const AASequence& seq = peptides[i].getHits()[0].getSequence();
+    const AASequence& seq_new = peptides_new[i].getHits()[0].getSequence();
+    TEST_EQUAL(seq_new.toUnmodifiedString(), seq.toUnmodifiedString())
+    TEST_REAL_SIMILAR(seq_new.getMonoWeight(), seq.getMonoWeight())
+  }
+
+  // A lower-ranked hit with another modification on C: only the modifications of the best hits are declared
+  // in the header, so a reader cannot be relied on to restore 'Methylthio (C)' and would put a fixed
+  // 'Carbamidomethyl (C)' on that C instead. 'Carbamidomethyl (C)' is thus written as variable; the fixed
+  // terminal modifications, which both hits carry, stay fixed.
+  PeptideIdentificationList peptides_lower_rank = peptides;
+  PeptideHit lower_rank_hit = peptides[0].getHits()[0];
+  lower_rank_hit.setScore(20.0);
+  lower_rank_hit.setRank(1);
+  lower_rank_hit.setSequence(AASequence::fromString(".(TMT6plex)AC(Methylthio)DM(Oxidation)K.(Amidated)"));
+  peptides_lower_rank[0].insertHit(lower_rank_hit);
+  NEW_TMP_FILE(file_out);
+  PepXMLFile().store(file_out, proteins, peptides_lower_rank);
+  std::ifstream written_lower_rank(file_out);
+  const std::string content_lower_rank((std::istreambuf_iterator<char>(written_lower_rank)), std::istreambuf_iterator<char>());
+  TEST_EQUAL(StringUtils::hasSubstring(content_lower_rank, "variable=\"Y\" binary=\"N\" description=\"Carbamidomethyl (C)\""), true)
+  TEST_EQUAL(StringUtils::hasSubstring(content_lower_rank, "description=\"Methylthio (C)\""), false)
+  TEST_EQUAL(StringUtils::hasSubstring(content_lower_rank, "variable=\"N\" description=\"TMT6plex (N-term)\""), true)
+  TEST_EQUAL(StringUtils::hasSubstring(content_lower_rank, "variable=\"N\" description=\"Amidated (C-term)\""), true)
+
+  // A second search run without fixed modifications adds a peptide that carries none of them. The one
+  // "search_summary" describes the hits of all runs, and a reader puts a fixed modification on every site
+  // that a hit leaves unmodified. So none of the three may be written as fixed any more, and the new
+  // peptide has to come back unchanged.
+  proteins.push_back(proteins[0]);
+  proteins[1].setIdentifier("Mascot_run_2");
+  proteins[1].setSearchParameters(ProteinIdentification::SearchParameters());
+  PeptideIdentification unmodified = peptides[0];
+  unmodified.setIdentifier("Mascot_run_2");
+  unmodified.setRT(200.0);
+  unmodified.getHits()[0].setSequence(AASequence::fromString("ACDEK"));
+  peptides.push_back(unmodified);
+
+  NEW_TMP_FILE(file_out);
+  PepXMLFile().store(file_out, proteins, peptides);
+  std::ifstream written_runs(file_out);
+  const std::string content_runs((std::istreambuf_iterator<char>(written_runs)), std::istreambuf_iterator<char>());
+  TEST_EQUAL(StringUtils::hasSubstring(content_runs, "variable=\"Y\" binary=\"N\" description=\"Carbamidomethyl (C)\""), true)
+  TEST_EQUAL(StringUtils::hasSubstring(content_runs, "variable=\"Y\" description=\"TMT6plex (N-term)\""), true)
+  TEST_EQUAL(StringUtils::hasSubstring(content_runs, "variable=\"Y\" description=\"Amidated (C-term)\""), true)
+  TEST_EQUAL(StringUtils::hasSubstring(content_runs, "variable=\"N\""), false)
+
+  PepXMLFile().load(file_out, proteins_new, peptides_new);
+  ABORT_IF(peptides_new.size() != 3)
+  Size unchanged = 0; // hits that are exactly the unmodified peptide (the order of the peptides is not checked)
+  for (const PeptideIdentification& pep : peptides_new)
+  {
+    ABORT_IF(pep.getHits().size() != 1)
+    if (pep.getHits()[0].getSequence().toString() == "ACDEK")
+    {
+      ++unchanged;
+    }
+  }
+  TEST_EQUAL(unchanged, 1)
 }
 END_SECTION
 

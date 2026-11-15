@@ -4386,6 +4386,13 @@ various options
 )doc")
         .def(nb::init<>())
         .def(nb::init<const OpenMS::SpectrumAnnotator &>())
+        .def_static(
+          "compute_longest_ion_series",
+          [](const std::vector<bool>& matches, OpenMS::Size max_missing) {
+            return OpenMS::SpectrumAnnotator::computeLongestIonSeries(matches, max_missing);
+          },
+          "matched_positions"_a, "max_missing"_a = 0,
+          "Count matched positions in the longest ion series, allowing a bounded number of consecutive missing rungs.")
         .def("__copy__", [](const OpenMS::SpectrumAnnotator& self) { return OpenMS::SpectrumAnnotator(self); })
         .def("__deepcopy__", [](const OpenMS::SpectrumAnnotator& self, nb::dict) { return OpenMS::SpectrumAnnotator(self); }, "memo"_a)
         .def("annotateMatches", [](const OpenMS::SpectrumAnnotator& self, OpenMS::MSSpectrum& spec, const OpenMS::PeptideHit& ph, const OpenMS::TheoreticalSpectrumGenerator& tg, const OpenMS::SpectrumAlignment& sa) { return self.annotateMatches(spec, ph, tg, sa); }, "spec"_a, "ph"_a, "tg"_a, "sa"_a, 
