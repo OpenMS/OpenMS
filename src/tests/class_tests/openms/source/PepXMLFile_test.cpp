@@ -743,7 +743,15 @@ START_SECTION([EXTRA] void load(const std::string& filename, std::vector<Protein
   PeptideIdentificationList peptides;
   std::ostringstream errors;
   getGlobalLogError().insert(errors);
-  PepXMLFile().load(OPENMS_GET_TEST_DATA_PATH("PepXMLFile_test_merged_scans.pepxml"), proteins, peptides);
+  try
+  {
+    PepXMLFile().load(OPENMS_GET_TEST_DATA_PATH("PepXMLFile_test_merged_scans.pepxml"), proteins, peptides);
+  }
+  catch (...)
+  {
+    getGlobalLogError().remove(errors);
+    throw;
+  }
   getGlobalLogError().remove(errors);
   TEST_EQUAL(peptides.size(), 2)
   ABORT_IF(peptides.size() != 2)
