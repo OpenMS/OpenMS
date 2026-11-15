@@ -43,6 +43,14 @@ namespace OpenMS
       if (names.size() > max_listed) result += ", ... (" + StringUtils::toStr(names.size()) + " in total)";
       return result;
     }
+
+    /// Can terminal modification @p mod be at a terminus whose residue is @p residue ('?' for unknown)?
+    /// Modifications of a particular terminal residue (e.g. 'Gln->pyro-Glu (N-term Q)') can only be there.
+    bool fitsTerminalResidue(const ResidueModification& mod, char residue)
+    {
+      const char origin = mod.getOrigin();
+      return origin == 'X' || origin == '\0' || residue == '?' || origin == residue;
+    }
   }
 
   std::string PepXMLFile::AminoAcidModification::toUnimodLikeString() const
@@ -1651,110 +1659,61 @@ namespace OpenMS
     }
     else if (element == "modification_info") // parent: "search_hit" (in "search result")
     {
-      // Has N-Term Modification
-      double mod_nterm_mass;
-      if (optionalAttributeAsDouble_(mod_nterm_mass, attributes, "mod_nterm_mass")) // this specifies a terminal modification
+      // terminal modifications, given as the mass of the modified terminus
+      for (const bool n_term : {true, false})
       {
-        // look up the modification in the search_summary by mass
-        bool found = false;
-        for (const AminoAcidModification& it : variable_modifications_)
+        double terminus_mass;
+        if (!optionalAttributeAsDouble_(terminus_mass, attributes, n_term ? "mod_nterm_mass" : "mod_cterm_mass"))
         {
-          if ((fabs(mod_nterm_mass - it.getMass()) < mod_tol_) && it.getTerminus() == "n")
-          {
-            current_modifications_.emplace_back(it.getRegisteredMod(), Size(-1)); // position not needed for terminus
-            found = true;
-            break; // only one modification should match, so we can stop the loop here
-          }
+          continue;
         }
-        if (!found)
+        const std::string terminus = n_term ? "n" : "c";
+        const char residue = current_sequence_.empty() ? '?' : (n_term ? current_sequence_.front() : current_sequence_.back());
+
+        // look up the modification in the search_summary by mass (variable ones first); it has to fit the terminal residue
+        const AminoAcidModification* header_mod = nullptr;
+        for (const vector<AminoAcidModification>* header_mods : {&variable_modifications_, &fixed_modifications_})
         {
-          for (const AminoAcidModification& it : fixed_modifications_)
+          for (const AminoAcidModification& m : *header_mods)
           {
-            if ((fabs(mod_nterm_mass - it.getMass()) < mod_tol_) && it.getTerminus() == "n")
+            if ((fabs(terminus_mass - m.getMass()) < mod_tol_) && m.getTerminus() == terminus &&
+                fitsTerminalResidue(*m.getRegisteredMod(), residue))
             {
-              current_modifications_.emplace_back(it.getRegisteredMod(), Size(-1)); // position not needed for terminus
-              found = true;
+              header_mod = &m;
               break; // only one modification should match, so we can stop the loop here
             }
           }
+          if (header_mod != nullptr)
+          {
+            break;
+          }
         }
-
-        if (!found)
+        if (header_mod != nullptr)
         {
-          // It was not registered in the pepXML header. Search it in DB by massdiff = mod_nterm_mass - orig_nterm_mass.
-          std::vector<const ResidueModification*> mods;
-          try
-          {
-            ModificationsDB::getInstance()->searchModificationsByDiffMonoMass(mods, mod_nterm_mass - Residue::getInternalToNTerm().getMonoWeight(), mod_tol_, "", ResidueModification::N_TERM);
-          }
-          catch(...)
-          {
-            ModificationsDB::getInstance()->searchModificationsByDiffMonoMass(mods, mod_nterm_mass - Residue::getInternalToNTerm().getMonoWeight(), mod_tol_, "", ResidueModification::PROTEIN_N_TERM);
-          }
-
-          if (!mods.empty())
-          {
-            current_modifications_.emplace_back(mods[0], Size(-1)); // -1, because position does not matter
-          }
-          else
-          {
-            error(LOAD,std::string("Cannot find N-terminal modification with mass " + StringUtils::toStr(mod_nterm_mass) + "."));
-          }
-          //TODO we should create and register a mod here
+          current_modifications_.emplace_back(header_mod->getRegisteredMod(), Size(-1)); // position not needed for terminus
+          continue;
         }
-      }
 
-      // Has C-Term Modification
-      double mod_cterm_mass;
-      if (optionalAttributeAsDouble_(mod_cterm_mass, attributes, "mod_cterm_mass")) // this specifies a terminal modification
-      {
-        // look up the modification in the search_summary by mass
-        bool found = false;
-        for (const AminoAcidModification& amino : variable_modifications_)
+        // It was not registered in the pepXML header. Search it in DB by its mass difference to the unmodified
+        // terminus, among the modifications of this terminus that fit its residue, and then of the protein terminus.
+        const double diff_mass = terminus_mass - (n_term ? Residue::getInternalToNTerm() : Residue::getInternalToCTerm()).getMonoWeight();
+        std::vector<const ResidueModification*> mods;
+        ModificationsDB::getInstance()->searchModificationsByDiffMonoMass(mods, diff_mass, mod_tol_, std::string(1, residue),
+                                                                          n_term ? ResidueModification::N_TERM : ResidueModification::C_TERM);
+        if (mods.empty())
         {
-          if ((fabs(mod_cterm_mass - amino.getMass()) < mod_tol_) && amino.getTerminus() == "c")
-          {
-            current_modifications_.emplace_back(amino.getRegisteredMod(), Size(-1)); // position not needed for terminus
-            found = true;
-            break; // only one modification should match, so we can stop the loop here
-          }
+          ModificationsDB::getInstance()->searchModificationsByDiffMonoMass(mods, diff_mass, mod_tol_, std::string(1, residue),
+                                                                            n_term ? ResidueModification::PROTEIN_N_TERM : ResidueModification::PROTEIN_C_TERM);
         }
-        if (!found)
+        if (!mods.empty())
         {
-          for (const AminoAcidModification& amino : fixed_modifications_)
-          {
-            if ((fabs(mod_cterm_mass - amino.getMass()) < mod_tol_) && amino.getTerminus() == "c")
-            {
-              current_modifications_.emplace_back(amino.getRegisteredMod(), Size(-1)); // position not needed for terminus
-              found = true;
-              break; // only one modification should match, so we can stop the loop here
-            }
-          }
+          current_modifications_.emplace_back(mods[0], Size(-1)); // -1, because position does not matter
         }
-
-        if (!found)
+        else
         {
-          // It was not registered in the pepXML header. Search it in DB.
-          std::vector<const ResidueModification*> mods;
-          try
-          {
-            ModificationsDB::getInstance()->searchModificationsByDiffMonoMass(mods, mod_cterm_mass - Residue::getInternalToCTerm().getMonoWeight(), mod_tol_, "", ResidueModification::C_TERM);
-          }
-          catch(...)
-          {
-            ModificationsDB::getInstance()->searchModificationsByDiffMonoMass(mods, mod_cterm_mass - Residue::getInternalToCTerm().getMonoWeight(), mod_tol_, "", ResidueModification::PROTEIN_C_TERM);
-          }
-
-          if (!mods.empty())
-          {
-            current_modifications_.emplace_back(mods[0], Size(-1)); // -1, because position does not matter
-          }
-          else
-          {
-            error(LOAD,std::string("Cannot find N-terminal modification with mass " + StringUtils::toStr(mod_nterm_mass) + "."));
-          }
-          //TODO we should create and register a mod here
+          error(LOAD, std::string("Cannot find ") + (n_term ? "N" : "C") + "-terminal modification with mass " + StringUtils::toStr(terminus_mass) + ".");
         }
+        //TODO we should create and register a mod here
       }
     }
     else if (element == "alternative_protein") // parent: "search_hit"
@@ -1859,8 +1818,8 @@ namespace OpenMS
               warning(LOAD,"Modification '" + StringUtils::toStr(modification_mass) + "' of residue " + std::string(origin) + " at position "
               + StringUtils::toStr(modification_position) + " in '" + current_sequence_ + "' not registered in pepXML header nor uniquely defined in DB." +
               " Using " + mods[0]->getFullId());
-              current_modifications_.emplace_back(mods[0], modification_position - 1);
             }
+            current_modifications_.emplace_back(mods[0], modification_position - 1);
           }
           else
           {
@@ -2256,26 +2215,33 @@ namespace OpenMS
       // Now apply implicit fixed modifications at positions where there is no modification yet.
       for (const auto& mod : fixed_modifications_)
       {
-        if (mod.getRegisteredMod()->getTermSpecificity() == ResidueModification::N_TERM ||
-            mod.getRegisteredMod()->getTermSpecificity() == ResidueModification::PROTEIN_N_TERM)
+        const ResidueModification* fixed_mod = mod.getRegisteredMod();
+        const ResidueModification::TermSpecificity term_spec = fixed_mod->getTermSpecificity();
+        const bool n_term = (term_spec == ResidueModification::N_TERM || term_spec == ResidueModification::PROTEIN_N_TERM);
+        if (n_term || term_spec == ResidueModification::C_TERM || term_spec == ResidueModification::PROTEIN_C_TERM)
         {
-          if (!temp_aa_sequence.hasNTerminalModification())
+          // a modification of a particular terminal residue (e.g. 'Gln->pyro-Glu (N-term Q)') only applies to peptides with it
+          if (current_sequence_.empty() ||
+              !fitsTerminalResidue(*fixed_mod, n_term ? current_sequence_.front() : current_sequence_.back()))
           {
-            temp_aa_sequence.setNTerminalModification(mod.getRegisteredMod());
+            continue;
           }
-        }
-        else if (mod.getRegisteredMod()->getTermSpecificity() == ResidueModification::C_TERM ||
-            mod.getRegisteredMod()->getTermSpecificity() == ResidueModification::PROTEIN_N_TERM)
-        {
-          if (!temp_aa_sequence.hasCTerminalModification())
+          const ResidueModification* present = n_term ? temp_aa_sequence.getNTerminalModification() : temp_aa_sequence.getCTerminalModification();
+          if (present == nullptr)
           {
-            temp_aa_sequence.setCTerminalModification(mod.getRegisteredMod());
+            if (n_term)
+            {
+              temp_aa_sequence.setNTerminalModification(fixed_mod);
+            }
+            else
+            {
+              temp_aa_sequence.setCTerminalModification(fixed_mod);
+            }
           }
-          else
+          else if (present->getFullId() != fixed_mod->getFullId())
           {
-            warning(LOAD, "Trying to add a fixed C-term modification from the search_summary to an already"
-                          " annotated and modified N-terminus of " + current_sequence_
-                          + " ... skipping.");
+            warning(LOAD, std::string("The ") + (n_term ? "N" : "C") + "-terminus of " + current_sequence_ + " carries '" + present->getFullId() +
+                          "', so the fixed modification '" + fixed_mod->getFullId() + "' from the search_summary is not added.");
           }
         }
         else // go through the sequence and look for unmodified residues that match:

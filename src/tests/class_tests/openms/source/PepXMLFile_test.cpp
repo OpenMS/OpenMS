@@ -847,6 +847,151 @@ START_SECTION(([EXTRA] store - fixed and variable modifications of the search pa
 }
 END_SECTION
 
+START_SECTION(([EXTRA] store and load - declarations and lookup of terminal, protein-terminal and lower-ranked modifications, issue #10915))
+{
+  vector<ProteinIdentification> proteins(1);
+  proteins[0].setIdentifier("Mascot_run");
+  proteins[0].setSearchEngine("Mascot");
+
+  // hits in rank order, one entry per peptide identification
+  AASequence protein_c_term = AASequence::fromString("PEPK");
+  protein_c_term.setCTerminalModification("Amidated (Protein C-term)");
+  const vector<vector<AASequence>> hits_per_id = {
+    {AASequence::fromString(".(Ammonia-loss)CPEPK")},  // same mass difference as 'Gln->pyro-Glu (N-term Q)'
+    {AASequence::fromString(".(Gln->pyro-Glu)QPEPK")},
+    {AASequence::fromString(".(Met-loss)MPEPK")},      // 'Met-loss (Protein N-term M)'
+    {AASequence::fromString("PEPTIDEK"), AASequence::fromString("PEPM(Oxidation)IDEK")}, // modification of a lower-ranked hit only
+    {protein_c_term},
+    {AASequence::fromString("AC(Methylthio)DEK")}};
+  PeptideIdentificationList peptides(hits_per_id.size());
+  vector<AASequence> sequences; // all hits, in the order in which they are written
+  for (Size i = 0; i < hits_per_id.size(); ++i)
+  {
+    peptides[i].setIdentifier("Mascot_run");
+    peptides[i].setRT(100.0 + i);
+    peptides[i].setMZ(500.0);
+    peptides[i].setScoreType("Mascot");
+    peptides[i].setHigherScoreBetter(true);
+    for (Size rank = 0; rank < hits_per_id[i].size(); ++rank)
+    {
+      PeptideHit hit(35.0 - rank, rank, 2, hits_per_id[i][rank]);
+      PeptideEvidence evidence;
+      evidence.setProteinAccession("PROT1");
+      evidence.setAABefore('K');
+      evidence.setAAAfter('A');
+      hit.addPeptideEvidence(evidence);
+      hit.setMetaValue("MS:1001172", 0.01); // Mascot:expectation value
+      peptides[i].insertHit(hit);
+      sequences.push_back(hits_per_id[i][rank]);
+    }
+  }
+  // each hit is written as a "spectrum_query" of its own and read back as a peptide identification of its own
+  auto readHits = [](const std::string& file)
+  {
+    vector<ProteinIdentification> proteins_new;
+    PeptideIdentificationList peptides_new;
+    PepXMLFile().load(file, proteins_new, peptides_new);
+    vector<AASequence> hits;
+    for (const PeptideIdentification& pep : peptides_new)
+    {
+      for (const PeptideHit& hit : pep.getHits())
+      {
+        hits.push_back(hit.getSequence());
+      }
+    }
+    return hits;
+  };
+  auto readContent = [](const std::string& file)
+  {
+    std::ifstream in(file);
+    return std::string((std::istreambuf_iterator<char>(in)), std::istreambuf_iterator<char>());
+  };
+  // position and length of the line in 'content' that declares modification 'name' in the "search_summary"
+  auto declaration = [](const std::string& content, const std::string& name)
+  {
+    const Size pos = content.find("description=\"" + name + "\"");
+    if (pos == std::string::npos) return std::make_pair(Size(0), Size(0));
+    const Size begin = content.rfind('\n', pos) + 1;
+    return std::make_pair(begin, content.find('\n', pos) + 1 - begin);
+  };
+  auto setFixed = [&declaration](std::string& content, const std::string& name)
+  {
+    const auto [begin, length] = declaration(content, name);
+    std::string line = content.substr(begin, length);
+    const Size pos = line.find("variable=\"Y\"");
+    if (pos != std::string::npos) line.replace(pos, 12, "variable=\"N\"");
+    content.replace(begin, length, line);
+  };
+
+  // protein-terminal modifications can be written (store() used to throw for them):
+  std::string file_out;
+  NEW_TMP_FILE(file_out);
+  PepXMLFile().store(file_out, proteins, peptides);
+  const std::string content = readContent(file_out);
+
+  // terminal modifications are declared with the mass of the modified terminus (as "mod_nterm_mass"/"mod_cterm_mass"
+  // of the hits), not with mass 0; protein-terminal ones with "protein_terminus"; and the modification of the
+  // lower-ranked hit is declared, too:
+  TEST_EQUAL(StringUtils::hasSubstring(content, "mass=\"0.0\""), false)
+  TEST_EQUAL(StringUtils::hasSubstring(content, "description=\"Met-loss (Protein N-term M)\" protein_terminus=\"n\""), true)
+  TEST_EQUAL(StringUtils::hasSubstring(content, "description=\"Amidated (Protein C-term)\" protein_terminus=\"c\""), true)
+  TEST_EQUAL(StringUtils::hasSubstring(content, "description=\"Ammonia-loss (N-term C)\" protein_terminus=\"\""), true)
+  TEST_EQUAL(StringUtils::hasSubstring(content, "description=\"Oxidation (M)\""), true)
+
+  // reading the file back gives the same peptides; in particular, of the two N-terminal modifications with the same
+  // mass, each is assigned to the peptide whose N-terminal residue it fits:
+  vector<AASequence> hits_new = readHits(file_out);
+  ABORT_IF(hits_new.size() != sequences.size())
+  for (Size i = 0; i < sequences.size(); ++i)
+  {
+    TEST_EQUAL(hits_new[i].toString(), sequences[i].toString())
+    TEST_EQUAL(hits_new[i] == sequences[i], true) // also tells protein-terminal from other terminal modifications
+  }
+
+  // a modification that the header does not declare, but that the database knows only one of, is kept
+  // (it used to be dropped when there was exactly one match):
+  {
+    std::string undeclared = content;
+    const auto [begin, length] = declaration(undeclared, "Methylthio (C)");
+    ABORT_IF(length == 0)
+    undeclared.erase(begin, length);
+    std::string file_undeclared;
+    NEW_TMP_FILE(file_undeclared);
+    std::ofstream(file_undeclared) << undeclared;
+    hits_new = readHits(file_undeclared);
+    ABORT_IF(hits_new.size() != sequences.size())
+    TEST_EQUAL(hits_new.back().toString(), "AC(Methylthio)DEK")
+  }
+
+  // fixed terminal modifications (as declared by other software): one of a particular N-terminal residue is only put
+  // on peptides that start with it, and a protein C-terminal one is put on the C-terminus of all hits without one
+  // (it used to be ignored):
+  {
+    std::string fixed = content;
+    setFixed(fixed, "Gln->pyro-Glu (N-term Q)");
+    setFixed(fixed, "Amidated (Protein C-term)");
+    TEST_EQUAL(StringUtils::hasSubstring(fixed, "variable=\"N\" description=\"Gln->pyro-Glu (N-term Q)\""), true)
+    TEST_EQUAL(StringUtils::hasSubstring(fixed, "variable=\"N\" description=\"Amidated (Protein C-term)\""), true)
+    std::string file_fixed;
+    NEW_TMP_FILE(file_fixed);
+    std::ofstream(file_fixed) << fixed;
+    hits_new = readHits(file_fixed);
+    ABORT_IF(hits_new.size() != sequences.size())
+    for (Size i = 0; i < sequences.size(); ++i)
+    {
+      // N-terminus as written, 'Gln->pyro-Glu (N-term Q)' only where it was (QPEPK):
+      TEST_EQUAL(hits_new[i].hasNTerminalModification(), sequences[i].hasNTerminalModification())
+      if (sequences[i].hasNTerminalModification() && hits_new[i].hasNTerminalModification())
+      {
+        TEST_EQUAL(hits_new[i].getNTerminalModification()->getFullId(), sequences[i].getNTerminalModification()->getFullId())
+      }
+      ABORT_IF(!hits_new[i].hasCTerminalModification())
+      TEST_EQUAL(hits_new[i].getCTerminalModification()->getFullId(), "Amidated (Protein C-term)")
+    }
+  }
+}
+END_SECTION
+
 START_SECTION([EXTRA] void load(const std::string& filename, std::vector<ProteinIdentification>& proteins, PeptideIdentificationList& peptides, const std::string& experiment_name = "") - enzyme synonyms with uppercase letters)
 {
   // "sample_enzyme" and "enzymatic_search_constraint" give the enzyme as "Glu-C", a synonym of "glutamyl endopeptidase" (#10571)
