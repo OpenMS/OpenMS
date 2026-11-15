@@ -1,0 +1,200 @@
+acc/raw01_s1.log:Reading library /home/singjc/Documents/github/OpenMS-r1-benchmark-20261107/gap-20261114/armE_raw01/library.pqp
+acc/raw01_s1.log:Library: precursors=603421 pairs=302479
+acc/raw01_s1.log:Run 1/1: /home/singjc/Documents/datasets/proteobench-astral-entrapment/raw/LFQ_Astral_DIA_15min_50ng_Human_01.raw
+acc/raw01_s1.log:  Calibration: reused /home/singjc/Documents/github/OpenMS-r1-benchmark-20261107/gap-20261114/armE_raw01/cal/cal.json, used anchors=601
+acc/raw01_s1.log:  Calibration: rt_tolerance_s=90.849556 ms2_offset_ppm=-3.267384 ms2_tolerance_ppm=7.302880 boundary_half_widths=1.661381 seconds=0.590957
+acc/raw01_s1.log:  Search: candidates=2827007 seconds=87.689596
+acc/raw01_s1.log:  Extraction: windows=1628266 precursors=327994 isolation_windows=300 peak_open_grids=92331 seconds=677.520245
+acc/raw01_s1.log:  Features: 24 per window, noise=1119.689941 seconds=25.719230
+acc/raw01_s1.log:  Seeds: positives=601 negatives=6600
+acc/raw01_s1.log:  Scorer fold 0: r0 4817 14 ep crit 3527.825408 | r1 pos 1528 neg 108983 29 ep crit 4172.460497 | r2 pos 1423 neg 108983 29 ep crit 4984.377870
+acc/raw01_s1.log:  Scorer fold 1: r0 4814 9 ep crit 2789.797623 | r1 pos 1494 neg 109683 30 ep crit 4581.573543 | r2 pos 1450 neg 109683 26 ep crit 4985.656977
+acc/raw01_s1.log:  Scorer fold 2: r0 4771 12 ep crit 5362.955224 | r1 pos 1423 neg 109128 28 ep crit 3953.301127 | r2 pos 1365 neg 109128 30 ep crit 4957.781417
+acc/raw01_s1.log:  Scoring: target precursors at q <= 0.01: 1652 seconds=79.185796; run total seconds=871.929101
+acc/raw01_s1.log:Combined: 1652 target precursors at global q <= 0.010000, 1652 run-level rows; seconds=988.708421
+acc/raw01_s1.log:OpenDIAWorkflow took 16:29 m (wall), 24:36 m (CPU), 32.90 s (system), 24:03 m (user); Peak Memory Usage: 9573 MB.
+acc/raw01_s1.log:	Elapsed (wall clock) time (h:mm:ss or m:ss): 16:29.58
+acc/raw01_s1.log:	Maximum resident set size (kbytes): 9803232
+acc/raw01_s2.log:Reading library /home/singjc/Documents/github/OpenMS-r1-benchmark-20261107/gap-20261114/armE_raw01/library.pqp
+acc/raw01_s2.log:Library: precursors=603421 pairs=302479
+acc/raw01_s2.log:Run 1/1: /home/singjc/Documents/datasets/proteobench-astral-entrapment/raw/LFQ_Astral_DIA_15min_50ng_Human_01.raw
+acc/raw01_s2.log:  Calibration: reused /home/singjc/Documents/github/OpenMS-r1-benchmark-20261107/gap-20261114/armE_raw01/cal/cal.json, used anchors=601
+acc/raw01_s2.log:  Calibration: rt_tolerance_s=90.849556 ms2_offset_ppm=-3.267384 ms2_tolerance_ppm=7.302880 boundary_half_widths=1.661381 seconds=0.535947
+acc/raw01_s2.log:  Search: candidates=2827007 seconds=33.472588
+acc/raw01_s2.log:  Extraction: windows=1628266 precursors=327994 isolation_windows=300 peak_open_grids=92331 seconds=270.257970
+acc/raw01_s2.log:  Features: 24 per window, noise=1119.689941 seconds=25.699641
+acc/raw01_s2.log:  Seeds: positives=601 negatives=6600
+acc/raw01_s2.log:  Scorer fold 0: r0 4794 13 ep crit 4610.351357 | r1 pos 1529 neg 108983 29 ep crit 4172.468606 | r2 pos 1416 neg 108983 30 ep crit 4794.897596
+acc/raw01_s2.log:  Scorer fold 1: r0 4782 14 ep crit 5554.687621 | r1 pos 1445 neg 109683 23 ep crit 4025.172057 | r2 pos 1485 neg 109683 30 ep crit 4322.879037
+acc/raw01_s2.log:  Scorer fold 2: r0 4826 30 ep crit 11995.109176 | r1 pos 1403 neg 109128 30 ep crit 4331.504292 | r2 pos 1464 neg 109128 30 ep crit 4462.597013
+acc/raw01_s2.log:  Scoring: target precursors at q <= 0.01: 1713 seconds=243.606363; run total seconds=573.828010
+acc/raw01_s2.log:Combined: 1713 target precursors at global q <= 0.010000, 1713 run-level rows; seconds=622.540978
+acc/raw01_s2.log:OpenDIAWorkflow took 10:23 m (wall), 19:57 m (CPU), 21.94 s (system), 19:35 m (user); Peak Memory Usage: 9578 MB.
+acc/raw01_s2.log:	Elapsed (wall clock) time (h:mm:ss or m:ss): 10:23.80
+acc/raw01_s2.log:	Maximum resident set size (kbytes): 9808104
+acc/raw01_s3.log:Reading library /home/singjc/Documents/github/OpenMS-r1-benchmark-20261107/gap-20261114/armE_raw01/library.pqp
+acc/raw01_s3.log:Library: precursors=603421 pairs=302479
+acc/raw01_s3.log:Run 1/1: /home/singjc/Documents/datasets/proteobench-astral-entrapment/raw/LFQ_Astral_DIA_15min_50ng_Human_01.raw
+acc/raw01_s3.log:  Calibration: reused /home/singjc/Documents/github/OpenMS-r1-benchmark-20261107/gap-20261114/armE_raw01/cal/cal.json, used anchors=601
+acc/raw01_s3.log:  Calibration: rt_tolerance_s=90.849556 ms2_offset_ppm=-3.267384 ms2_tolerance_ppm=7.302880 boundary_half_widths=1.661381 seconds=1.084996
+acc/raw01_s3.log:  Search: candidates=2827007 seconds=110.918963
+acc/raw01_s3.log:  Extraction: windows=1628266 precursors=327994 isolation_windows=300 peak_open_grids=92331 seconds=678.560116
+acc/raw01_s3.log:  Features: 24 per window, noise=1119.689941 seconds=26.230950
+acc/raw01_s3.log:  Seeds: positives=601 negatives=6600
+acc/raw01_s3.log:  Scorer fold 0: r0 4817 25 ep crit 6513.317958 | r1 pos 1409 neg 108983 30 ep crit 4712.183009 | r2 pos 1416 neg 108983 25 ep crit 4842.750508
+acc/raw01_s3.log:  Scorer fold 1: r0 4815 11 ep crit 2655.200284 | r1 pos 1523 neg 109683 30 ep crit 3703.697319 | r2 pos 1481 neg 109683 28 ep crit 5126.414516
+acc/raw01_s3.log:  Scorer fold 2: r0 4770 30 ep crit 13972.268999 | r1 pos 1447 neg 109128 25 ep crit 3783.430883 | r2 pos 1467 neg 109128 29 ep crit 4449.511445
+acc/raw01_s3.log:  Scoring: target precursors at q <= 0.01: 1698 seconds=88.326268; run total seconds=905.998174
+acc/raw01_s3.log:Combined: 1698 target precursors at global q <= 0.010000, 1698 run-level rows; seconds=1025.667779
+acc/raw01_s3.log:OpenDIAWorkflow took 17:06 m (wall), 25:44 m (CPU), 34.07 s (system), 25:10 m (user); Peak Memory Usage: 9573 MB.
+acc/raw01_s3.log:	Elapsed (wall clock) time (h:mm:ss or m:ss): 17:06.51
+acc/raw01_s3.log:	Maximum resident set size (kbytes): 9802856
+acc/raw01_s4.log:Reading library /home/singjc/Documents/github/OpenMS-r1-benchmark-20261107/gap-20261114/armE_raw01/library.pqp
+acc/raw01_s4.log:Library: precursors=603421 pairs=302479
+acc/raw01_s4.log:Run 1/1: /home/singjc/Documents/datasets/proteobench-astral-entrapment/raw/LFQ_Astral_DIA_15min_50ng_Human_01.raw
+acc/raw01_s4.log:  Calibration: reused /home/singjc/Documents/github/OpenMS-r1-benchmark-20261107/gap-20261114/armE_raw01/cal/cal.json, used anchors=601
+acc/raw01_s4.log:  Calibration: rt_tolerance_s=90.849556 ms2_offset_ppm=-3.267384 ms2_tolerance_ppm=7.302880 boundary_half_widths=1.661381 seconds=0.535959
+acc/raw01_s4.log:  Search: candidates=2827007 seconds=33.692720
+acc/raw01_s4.log:  Extraction: windows=1628266 precursors=327994 isolation_windows=300 peak_open_grids=92331 seconds=349.434625
+acc/raw01_s4.log:  Features: 24 per window, noise=1119.689941 seconds=50.601673
+acc/raw01_s4.log:  Seeds: positives=601 negatives=6600
+acc/raw01_s4.log:  Scorer fold 0: r0 4817 24 ep crit 4942.861022 | r1 pos 1423 neg 108983 30 ep crit 4987.972283 | r2 pos 1437 neg 108983 30 ep crit 4704.314054
+acc/raw01_s4.log:  Scorer fold 1: r0 4798 8 ep crit 2564.643880 | r1 pos 1563 neg 109683 28 ep crit 4352.567222 | r2 pos 1483 neg 109683 30 ep crit 5271.889369
+acc/raw01_s4.log:  Scorer fold 2: r0 4787 19 ep crit 6219.884016 | r1 pos 1500 neg 109128 22 ep crit 3660.087603 | r2 pos 1429 neg 109128 25 ep crit 4302.193663
+acc/raw01_s4.log:  Scoring: target precursors at q <= 0.01: 1678 seconds=241.608241; run total seconds=676.153293
+acc/raw01_s4.log:Combined: 1678 target precursors at global q <= 0.010000, 1678 run-level rows; seconds=725.012473
+acc/raw01_s4.log:OpenDIAWorkflow took 12:06 m (wall), 23:27 m (CPU), 22.11 s (system), 23:05 m (user); Peak Memory Usage: 9575 MB.
+acc/raw01_s4.log:	Elapsed (wall clock) time (h:mm:ss or m:ss): 12:07.05
+acc/raw01_s4.log:	Maximum resident set size (kbytes): 9805324
+acc/raw02_s0.log:Reading library /home/singjc/Documents/github/OpenMS-r1-benchmark-20261107/gap-20261114/armE_raw02/library.pqp
+acc/raw02_s0.log:Library: precursors=603421 pairs=302479
+acc/raw02_s0.log:Run 1/1: /home/singjc/Documents/datasets/proteobench-astral-entrapment/raw/LFQ_Astral_DIA_15min_50ng_Human_02.raw
+acc/raw02_s0.log:  Calibration: reused /home/singjc/Documents/github/OpenMS-r1-benchmark-20261107/gap-20261114/armE_raw02/cal/cal.json, used anchors=646
+acc/raw02_s0.log:  Calibration: rt_tolerance_s=79.367693 ms2_offset_ppm=-2.504538 ms2_tolerance_ppm=6.927184 boundary_half_widths=1.630826 seconds=0.545932
+acc/raw02_s0.log:  Search: candidates=2774315 seconds=41.348513
+acc/raw02_s0.log:  Extraction: windows=1503845 precursors=303995 isolation_windows=300 peak_open_grids=86540 seconds=334.772186
+acc/raw02_s0.log:  Features: 24 per window, noise=1108.996338 seconds=22.343591
+acc/raw02_s0.log:  Seeds: positives=646 negatives=6643
+acc/raw02_s0.log:  Scorer fold 0: r0 4900 8 ep crit 5259.614072 | r1 pos 1527 neg 101130 16 ep crit 2572.570686 | r2 pos 1492 neg 101130 20 ep crit 2775.386007
+acc/raw02_s0.log:  Scorer fold 1: r0 4853 10 ep crit 5052.496322 | r1 pos 1635 neg 101627 30 ep crit 3288.831141 | r2 pos 1562 neg 101627 24 ep crit 4005.909443
+acc/raw02_s0.log:  Scorer fold 2: r0 4825 20 ep crit 12191.235242 | r1 pos 1469 neg 101019 17 ep crit 2821.071968 | r2 pos 1444 neg 101019 18 ep crit 2736.689589
+acc/raw02_s0.log:  Scoring: target precursors at q <= 0.01: 1651 seconds=133.363139; run total seconds=532.623152
+acc/raw02_s0.log:Combined: 1651 target precursors at global q <= 0.010000, 1651 run-level rows; seconds=580.707905
+acc/raw02_s0.log:OpenDIAWorkflow took 09:41 m (wall), 18:04 m (CPU), 21.21 s (system), 17:43 m (user); Peak Memory Usage: 9353 MB.
+acc/raw02_s0.log:	Elapsed (wall clock) time (h:mm:ss or m:ss): 9:41.51
+acc/raw02_s0.log:	Maximum resident set size (kbytes): 9578252
+acc/raw02_s1.log:Reading library /home/singjc/Documents/github/OpenMS-r1-benchmark-20261107/gap-20261114/armE_raw02/library.pqp
+acc/raw02_s1.log:Library: precursors=603421 pairs=302479
+acc/raw02_s1.log:Run 1/1: /home/singjc/Documents/datasets/proteobench-astral-entrapment/raw/LFQ_Astral_DIA_15min_50ng_Human_02.raw
+acc/raw02_s1.log:  Calibration: reused /home/singjc/Documents/github/OpenMS-r1-benchmark-20261107/gap-20261114/armE_raw02/cal/cal.json, used anchors=646
+acc/raw02_s1.log:  Calibration: rt_tolerance_s=79.367693 ms2_offset_ppm=-2.504538 ms2_tolerance_ppm=6.927184 boundary_half_widths=1.630826 seconds=0.513456
+acc/raw02_s1.log:  Search: candidates=2774315 seconds=68.592741
+acc/raw02_s1.log:  Extraction: windows=1503845 precursors=303995 isolation_windows=300 peak_open_grids=86540 seconds=565.765169
+acc/raw02_s1.log:  Features: 24 per window, noise=1108.996338 seconds=29.370179
+acc/raw02_s1.log:  Seeds: positives=646 negatives=6643
+acc/raw02_s1.log:  Scorer fold 0: r0 4834 29 ep crit 8817.820446 | r1 pos 1492 neg 101130 20 ep crit 2827.238085 | r2 pos 1406 neg 101130 18 ep crit 3169.151862
+acc/raw02_s1.log:  Scorer fold 1: r0 4867 12 ep crit 6230.544287 | r1 pos 1590 neg 101627 30 ep crit 3201.179164 | r2 pos 1565 neg 101627 25 ep crit 3799.260733
+acc/raw02_s1.log:  Scorer fold 2: r0 4877 19 ep crit 9443.837244 | r1 pos 1436 neg 101019 25 ep crit 2707.877548 | r2 pos 1395 neg 101019 26 ep crit 3604.104685
+acc/raw02_s1.log:  Scoring: target precursors at q <= 0.01: 1640 seconds=187.426113; run total seconds=852.561417
+acc/raw02_s1.log:Combined: 1640 target precursors at global q <= 0.010000, 1640 run-level rows; seconds=899.404902
+acc/raw02_s1.log:OpenDIAWorkflow took 15:00 m (wall), 25:42 m (CPU), 27.84 s (system), 25:14 m (user); Peak Memory Usage: 9349 MB.
+acc/raw02_s1.log:	Elapsed (wall clock) time (h:mm:ss or m:ss): 15:00.65
+acc/raw02_s1.log:	Maximum resident set size (kbytes): 9574160
+acc/raw02_s2.log:Reading library /home/singjc/Documents/github/OpenMS-r1-benchmark-20261107/gap-20261114/armE_raw02/library.pqp
+acc/raw02_s2.log:Library: precursors=603421 pairs=302479
+acc/raw02_s2.log:Run 1/1: /home/singjc/Documents/datasets/proteobench-astral-entrapment/raw/LFQ_Astral_DIA_15min_50ng_Human_02.raw
+acc/raw02_s2.log:  Calibration: reused /home/singjc/Documents/github/OpenMS-r1-benchmark-20261107/gap-20261114/armE_raw02/cal/cal.json, used anchors=646
+acc/raw02_s2.log:  Calibration: rt_tolerance_s=79.367693 ms2_offset_ppm=-2.504538 ms2_tolerance_ppm=6.927184 boundary_half_widths=1.630826 seconds=0.561051
+acc/raw02_s2.log:  Search: candidates=2774315 seconds=37.740887
+acc/raw02_s2.log:  Extraction: windows=1503845 precursors=303995 isolation_windows=300 peak_open_grids=86540 seconds=367.712468
+acc/raw02_s2.log:  Features: 24 per window, noise=1108.996338 seconds=29.929108
+acc/raw02_s2.log:  Seeds: positives=646 negatives=6643
+acc/raw02_s2.log:  Scorer fold 0: r0 4917 11 ep crit 5797.130859 | r1 pos 1509 neg 101130 18 ep crit 2738.679567 | r2 pos 1466 neg 101130 26 ep crit 3011.007016
+acc/raw02_s2.log:  Scorer fold 1: r0 4912 9 ep crit 3843.238092 | r1 pos 1581 neg 101627 25 ep crit 3218.561830 | r2 pos 1573 neg 101627 30 ep crit 3704.763861
+acc/raw02_s2.log:  Scorer fold 2: r0 4749 11 ep crit 2409.388138 | r1 pos 1511 neg 101019 26 ep crit 2887.429031 | r2 pos 1432 neg 101019 26 ep crit 3664.355244
+acc/raw02_s2.log:  Scoring: target precursors at q <= 0.01: 1669 seconds=84.416826; run total seconds=520.653160
+acc/raw02_s2.log:Combined: 1669 target precursors at global q <= 0.010000, 1669 run-level rows; seconds=601.010459
+acc/raw02_s2.log:OpenDIAWorkflow took 10:01 m (wall), 18:47 m (CPU), 20.65 s (system), 18:26 m (user); Peak Memory Usage: 9355 MB.
+acc/raw02_s2.log:	Elapsed (wall clock) time (h:mm:ss or m:ss): 10:01.97
+acc/raw02_s2.log:	Maximum resident set size (kbytes): 9579604
+acc/raw02_s3.log:Reading library /home/singjc/Documents/github/OpenMS-r1-benchmark-20261107/gap-20261114/armE_raw02/library.pqp
+acc/raw02_s3.log:Library: precursors=603421 pairs=302479
+acc/raw02_s3.log:Run 1/1: /home/singjc/Documents/datasets/proteobench-astral-entrapment/raw/LFQ_Astral_DIA_15min_50ng_Human_02.raw
+acc/raw02_s3.log:  Calibration: reused /home/singjc/Documents/github/OpenMS-r1-benchmark-20261107/gap-20261114/armE_raw02/cal/cal.json, used anchors=646
+acc/raw02_s3.log:  Calibration: rt_tolerance_s=79.367693 ms2_offset_ppm=-2.504538 ms2_tolerance_ppm=6.927184 boundary_half_widths=1.630826 seconds=0.651063
+acc/raw02_s3.log:  Search: candidates=2774315 seconds=40.079143
+acc/raw02_s3.log:  Extraction: windows=1503845 precursors=303995 isolation_windows=300 peak_open_grids=86540 seconds=717.131446
+acc/raw02_s3.log:  Features: 24 per window, noise=1108.996338 seconds=25.915275
+acc/raw02_s3.log:  Seeds: positives=646 negatives=6643
+acc/raw02_s3.log:  Scorer fold 0: r0 4863 8 ep crit 5240.081164 | r1 pos 1394 neg 101130 15 ep crit 2891.300950 | r2 pos 1440 neg 101130 17 ep crit 2886.871786
+acc/raw02_s3.log:  Scorer fold 1: r0 4896 15 ep crit 5793.825508 | r1 pos 1592 neg 101627 30 ep crit 3110.407133 | r2 pos 1557 neg 101627 30 ep crit 3938.078588
+acc/raw02_s3.log:  Scorer fold 2: r0 4819 30 ep crit 11416.849079 | r1 pos 1337 neg 101019 23 ep crit 3338.704784 | r2 pos 1360 neg 101019 21 ep crit 3485.109044
+acc/raw02_s3.log:  Scoring: target precursors at q <= 0.01: 1676 seconds=243.834132; run total seconds=1027.929763
+acc/raw02_s3.log:Combined: 1676 target precursors at global q <= 0.010000, 1676 run-level rows; seconds=1090.895505
+acc/raw02_s3.log:OpenDIAWorkflow took 18:11 m (wall), 26:28 m (CPU), 23.25 s (system), 26:05 m (user); Peak Memory Usage: 9357 MB.
+acc/raw02_s3.log:	Elapsed (wall clock) time (h:mm:ss or m:ss): 18:12.94
+acc/raw02_s3.log:	Maximum resident set size (kbytes): 9581792
+acc/raw02_s4.log:Reading library /home/singjc/Documents/github/OpenMS-r1-benchmark-20261107/gap-20261114/armE_raw02/library.pqp
+acc/raw02_s4.log:Library: precursors=603421 pairs=302479
+acc/raw02_s4.log:Run 1/1: /home/singjc/Documents/datasets/proteobench-astral-entrapment/raw/LFQ_Astral_DIA_15min_50ng_Human_02.raw
+acc/raw02_s4.log:  Calibration: reused /home/singjc/Documents/github/OpenMS-r1-benchmark-20261107/gap-20261114/armE_raw02/cal/cal.json, used anchors=646
+acc/raw02_s4.log:  Calibration: rt_tolerance_s=79.367693 ms2_offset_ppm=-2.504538 ms2_tolerance_ppm=6.927184 boundary_half_widths=1.630826 seconds=1.440141
+acc/raw02_s4.log:  Search: candidates=2774315 seconds=103.701010
+acc/raw02_s4.log:  Extraction: windows=1503845 precursors=303995 isolation_windows=300 peak_open_grids=86540 seconds=825.105226
+acc/raw02_s4.log:  Features: 24 per window, noise=1108.996338 seconds=27.963317
+acc/raw02_s4.log:  Seeds: positives=646 negatives=6643
+acc/raw02_s4.log:  Scorer fold 0: r0 4830 11 ep crit 4553.676228 | r1 pos 1429 neg 101130 17 ep crit 2888.041431 | r2 pos 1464 neg 101130 20 ep crit 2727.433841
+acc/raw02_s4.log:  Scorer fold 1: r0 4911 10 ep crit 5448.461939 | r1 pos 1570 neg 101627 23 ep crit 3137.840848 | r2 pos 1546 neg 101627 30 ep crit 3589.835556
+acc/raw02_s4.log:  Scorer fold 2: r0 4837 25 ep crit 9498.584005 | r1 pos 1485 neg 101019 23 ep crit 2723.775495 | r2 pos 1445 neg 101019 18 ep crit 2817.908476
+acc/raw02_s4.log:  Scoring: target precursors at q <= 0.01: 1610 seconds=103.405201; run total seconds=1062.490799
+acc/raw02_s4.log:Combined: 1610 target precursors at global q <= 0.010000, 1610 run-level rows; seconds=1211.553434
+acc/raw02_s4.log:OpenDIAWorkflow took 20:14 m (wall), 29:17 m (CPU), 34.96 s (system), 28:42 m (user); Peak Memory Usage: 9346 MB.
+acc/raw02_s4.log:	Elapsed (wall clock) time (h:mm:ss or m:ss): 20:17.03
+acc/raw02_s4.log:	Maximum resident set size (kbytes): 9570700
+w1/log.txt:Reading library /home/singjc/Documents/github/OpenMS-r1-benchmark-20261107/gap-20261114/armE_raw01/library.pqp
+w1/log.txt:Library: precursors=603421 pairs=302479
+w1/log.txt:Run 1/1: /home/singjc/Documents/datasets/proteobench-astral-entrapment/raw/LFQ_Astral_DIA_15min_50ng_Human_01.raw
+w1/log.txt:  Calibration: reused /home/singjc/Documents/github/OpenMS-r1-benchmark-20261107/gap-20261114/armE_raw01/cal/cal.json, used anchors=601
+w1/log.txt:  Calibration: rt_tolerance_s=90.849556 ms2_offset_ppm=-3.267384 ms2_tolerance_ppm=7.302880 boundary_half_widths=1.661381 seconds=0.495305
+w1/log.txt:  Search: candidates=2827007 seconds=30.892456
+w1/log.txt:  Extraction: windows=1628266 precursors=327994 isolation_windows=300 peak_open_grids=92331 seconds=285.449648
+w1/log.txt:  Features: 24 per window, noise=1119.689941 seconds=25.338633
+w1/log.txt:  Seeds: positives=601 negatives=6600
+w1/log.txt:  Scorer fold 0: r0 4731 10 ep crit 2123.673664 | r1 pos 1422 neg 108983 28 ep crit 4503.565112 | r2 pos 1393 neg 108983 23 ep crit 4988.751369
+w1/log.txt:  Scorer fold 1: r0 4809 14 ep crit 2296.969984 | r1 pos 1445 neg 109683 18 ep crit 3799.066863 | r2 pos 1462 neg 109683 30 ep crit 5525.796584
+w1/log.txt:  Scorer fold 2: r0 4862 13 ep crit 4164.770368 | r1 pos 1403 neg 109128 25 ep crit 4022.064034 | r2 pos 1372 neg 109128 28 ep crit 4651.665469
+w1/log.txt:  Scoring: target precursors at q <= 0.01: 1641 seconds=72.399338; run total seconds=414.916869
+w1/log.txt:Combined: 1641 target precursors at global q <= 0.010000, 1641 run-level rows; seconds=460.413477
+w1/log.txt:OpenDIAWorkflow took 07:40 m (wall), 14:58 m (CPU), 17.19 s (system), 14:41 m (user); Peak Memory Usage: 9576 MB.
+w1/log.txt:	Elapsed (wall clock) time (h:mm:ss or m:ss): 7:41.19
+w1/log.txt:	Maximum resident set size (kbytes): 9806736
+multi/log.txt:Reading library /home/singjc/Documents/github/OpenMS-r1-benchmark-20261107/gap-20261114/armE_raw01/library.pqp
+multi/log.txt:Library: precursors=603421 pairs=302479
+multi/log.txt:Run 1/2: /home/singjc/Documents/datasets/proteobench-astral-entrapment/raw/LFQ_Astral_DIA_15min_50ng_Human_01.raw
+multi/log.txt:  Calibration: whole-run pass failed (Calibration found only 0 anchors at the anchor FDR (stage1 kept 49, stage1 sigma 27.683700 s, EM peak responsibility 0.598711, stage3 half window 110.734799 s, scored 16570, decoys in top 100 26)); windowed pass with up to 300000 targets.
+multi/log.txt:  Calibration: passes=2 used anchors=426
+multi/log.txt:  Calibration: rt_tolerance_s=150.914116 ms2_offset_ppm=-3.262437 ms2_tolerance_ppm=6.913080 boundary_half_widths=1.719848 seconds=319.262808
+multi/log.txt:  Search: candidates=2914196 seconds=100.597000
+multi/log.txt:  Extraction: windows=1858769 precursors=372638 isolation_windows=300 peak_open_grids=96495 seconds=704.633857
+multi/log.txt:  Features: 24 per window, noise=1178.178497 seconds=32.857160
+multi/log.txt:  Seeds: positives=426 negatives=6425
+multi/log.txt:  Scorer fold 0: r0 4586 10 ep crit 3981.670947 | r1 pos 1339 neg 123889 30 ep crit 5739.769341 | r2 pos 1345 neg 123889 18 ep crit 5115.644607
+multi/log.txt:  Scorer fold 1: r0 4590 9 ep crit 2741.163189 | r1 pos 1403 neg 124661 26 ep crit 4318.204217 | r2 pos 1484 neg 124661 21 ep crit 5128.393756
+multi/log.txt:  Scorer fold 2: r0 4526 30 ep crit 8260.859237 | r1 pos 1457 neg 123830 30 ep crit 4146.907674 | r2 pos 1404 neg 123830 30 ep crit 5034.043472
+multi/log.txt:  Scoring: target precursors at q <= 0.01: 1723 seconds=102.415440; run total seconds=1260.328022
+multi/log.txt:Run 2/2: /home/singjc/Documents/datasets/proteobench-astral-entrapment/raw/LFQ_Astral_DIA_15min_50ng_Human_02.raw
+multi/log.txt:  Calibration: whole-run pass failed (Calibration found only 0 anchors at the anchor FDR (stage1 kept 61, stage1 sigma 24.405728 s, EM peak responsibility 0.601285, stage3 half window 97.622911 s, scored 15483, decoys in top 100 27)); windowed pass with up to 300000 targets.
+multi/log.txt:  Calibration: passes=2 used anchors=546
+multi/log.txt:  Calibration: rt_tolerance_s=123.624391 ms2_offset_ppm=-2.498879 ms2_tolerance_ppm=6.945667 boundary_half_widths=1.650053 seconds=345.958585
+multi/log.txt:  Search: candidates=2873228 seconds=93.806058
+multi/log.txt:  Extraction: windows=1710242 precursors=343416 isolation_windows=300 peak_open_grids=93244 seconds=1033.676758
+multi/log.txt:  Features: 24 per window, noise=1144.969818 seconds=29.522288
+multi/log.txt:  Seeds: positives=546 negatives=6544
+multi/log.txt:  Scorer fold 0: r0 4746 13 ep crit 8337.829997 | r1 pos 1550 neg 114171 23 ep crit 3132.471002 | r2 pos 1538 neg 114171 23 ep crit 3502.772585
+multi/log.txt:  Scorer fold 1: r0 4783 10 ep crit 7793.309387 | r1 pos 1645 neg 114844 30 ep crit 3621.730245 | r2 pos 1533 neg 114844 30 ep crit 5317.355424
+multi/log.txt:  Scorer fold 2: r0 4651 30 ep crit 13345.444035 | r1 pos 1569 neg 114161 24 ep crit 3087.933494 | r2 pos 1486 neg 114161 24 ep crit 3456.419413
+multi/log.txt:  Scoring: target precursors at q <= 0.01: 1777 seconds=232.813586; run total seconds=1736.155945
+multi/log.txt:Combined: 1839 target precursors at global q <= 0.010000, 3317 run-level rows; seconds=3124.504660
+multi/log.txt:OpenDIAWorkflow took 52:05 m (wall), 01:13:42 h (CPU), 01:10 m (system), 01:12:31 h (user); Peak Memory Usage: 21935 MB.
+multi/log.txt:	Elapsed (wall clock) time (h:mm:ss or m:ss): 52:08.97
+multi/log.txt:	Maximum resident set size (kbytes): 22462056

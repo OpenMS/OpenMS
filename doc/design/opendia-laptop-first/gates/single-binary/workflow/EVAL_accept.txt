@@ -1,0 +1,9 @@
+LFQ_Astral_DIA_15min_50ng_Human_01.precursors.tsv N@FDP_c 0.5/1/2%: [1652, 1854, 2035] | q<=0.01 1652 FDP_c 0.0048 | tool q<=0.01 1652 FDP_c 0.0048
+LFQ_Astral_DIA_15min_50ng_Human_01.precursors.tsv N@FDP_c 0.5/1/2%: [1672, 1817, 2008] | q<=0.01 1713 FDP_c 0.0082 | tool q<=0.01 1713 FDP_c 0.0082
+LFQ_Astral_DIA_15min_50ng_Human_01.precursors.tsv N@FDP_c 0.5/1/2%: [1666, 1821, 1986] | q<=0.01 1698 FDP_c 0.0059 | tool q<=0.01 1698 FDP_c 0.0059
+LFQ_Astral_DIA_15min_50ng_Human_01.precursors.tsv N@FDP_c 0.5/1/2%: [1611, 1803, 1990] | q<=0.01 1678 FDP_c 0.0071 | tool q<=0.01 1678 FDP_c 0.0071
+LFQ_Astral_DIA_15min_50ng_Human_02.precursors.tsv N@FDP_c 0.5/1/2%: [1737, 1816, 1985] | q<=0.01 1651 FDP_c 0.0036 | tool q<=0.01 1651 FDP_c 0.0036
+LFQ_Astral_DIA_15min_50ng_Human_02.precursors.tsv N@FDP_c 0.5/1/2%: [1747, 1902, 2025] | q<=0.01 1640 FDP_c 0.0037 | tool q<=0.01 1640 FDP_c 0.0037
+LFQ_Astral_DIA_15min_50ng_Human_02.precursors.tsv N@FDP_c 0.5/1/2%: [1793, 1940, 2074] | q<=0.01 1669 FDP_c 0.0024 | tool q<=0.01 1669 FDP_c 0.0024
+LFQ_Astral_DIA_15min_50ng_Human_02.precursors.tsv N@FDP_c 0.5/1/2%: [1711, 1860, 2019] | q<=0.01 1676 FDP_c 0.0036 | tool q<=0.01 1676 FDP_c 0.0036
+LFQ_Astral_DIA_15min_50ng_Human_02.precursors.tsv N@FDP_c 0.5/1/2%: [1725, 1870, 2035] | q<=0.01 1610 FDP_c 0.0025 | tool q<=0.01 1610 FDP_c 0.0025
