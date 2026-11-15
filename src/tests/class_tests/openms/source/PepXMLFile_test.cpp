@@ -985,6 +985,50 @@ START_SECTION(([EXTRA] store and load - declarations and lookup of terminal, pro
     TEST_EQUAL(hits_new.back().toString(), "AC(Methylthio)DEK")
   }
 
+  // terminal modifications that the header does not declare (or declares with mass="0.0", as OpenMS did before
+  // issue #10915) are looked up in the database among those that fit the terminal residue, then among protein-terminal
+  // ones ('Met-loss (Protein N-term M)'):
+  {
+    std::string undeclared = content;
+    for (const std::string name : {"Ammonia-loss (N-term C)", "Gln->pyro-Glu (N-term Q)", "Met-loss (Protein N-term M)"})
+    {
+      const auto [begin, length] = declaration(undeclared, name);
+      TEST_NOT_EQUAL(length, Size(0))
+      undeclared.erase(begin, length);
+    }
+    std::string file_undeclared;
+    NEW_TMP_FILE(file_undeclared);
+    std::ofstream(file_undeclared) << undeclared;
+    hits_new = readHits(file_undeclared);
+    ABORT_IF(hits_new.size() != expected.size())
+    for (Size i = 0; i < 3; ++i) // .(Ammonia-loss)CPEPK, .(Gln->pyro-Glu)QPEPK, .(Met-loss)MPEPK
+    {
+      TEST_EQUAL(hits_new[i].toString(), expected[i].toString())
+      TEST_EQUAL(hits_new[i] == expected[i], true)
+    }
+  }
+
+  // a terminal modification that fits no declaration or database entry of its terminal residue keeps its mass: the
+  // declaration with that mass for another residue is used (here 'Gln->pyro-Glu (N-term Q)' on APEPK, after removing
+  // the other declaration with that mass, 'Ammonia-loss (N-term C)'):
+  {
+    std::string other_residue = content;
+    const auto [begin, length] = declaration(other_residue, "Ammonia-loss (N-term C)");
+    ABORT_IF(length == 0)
+    other_residue.erase(begin, length);
+    for (Size pos = other_residue.find("QPEPK"); pos != std::string::npos; pos = other_residue.find("QPEPK", pos))
+    {
+      other_residue[pos] = 'A';
+    }
+    std::string file_other_residue;
+    NEW_TMP_FILE(file_other_residue);
+    std::ofstream(file_other_residue) << other_residue;
+    hits_new = readHits(file_other_residue);
+    ABORT_IF(hits_new.size() != expected.size())
+    TEST_EQUAL(hits_new[1].toUnmodifiedString(), "APEPK")
+    TEST_EQUAL(hits_new[1].hasNTerminalModification() ? hits_new[1].getNTerminalModification()->getFullId() : "", "Gln->pyro-Glu (N-term Q)")
+  }
+
   // fixed terminal modifications (as declared by other software): one of a particular N-terminal residue is only put
   // on peptides that start with it, and a protein C-terminal one on the C-terminus of the hits without C-terminal
   // modification that are at the protein C-terminus in one of their proteins or whose position is unknown in one of
@@ -1015,6 +1059,46 @@ START_SECTION(([EXTRA] store and load - declarations and lookup of terminal, pro
                                           (next_aa[i].find_first_of(terminal_or_unknown) != std::string::npos ? "Amidated (Protein C-term)" : "");
       TEST_EQUAL(hits_new[i].hasCTerminalModification() ? hits_new[i].getCTerminalModification()->getFullId() : "", expected_c_term)
     }
+  }
+
+  // a fixed protein N-terminal modification is also put on hits after an 'M', which may be a removed initiator
+  // methionine, but not on hits after another residue:
+  {
+    AASequence acetylated = AASequence::fromString("SAMPLEK");
+    acetylated.setNTerminalModification("Acetyl (Protein N-term)");
+    const vector<std::pair<AASequence, char>> hits_met = { // with the residue before the peptide
+      {acetylated, PeptideEvidence::N_TERMINAL_AA}, {AASequence::fromString("SAMPLER"), 'M'}, {AASequence::fromString("SAMPLEH"), 'K'}};
+    PeptideIdentificationList peptides_met(hits_met.size());
+    for (Size i = 0; i < hits_met.size(); ++i)
+    {
+      peptides_met[i].setIdentifier("Mascot_run");
+      peptides_met[i].setRT(100.0 + i);
+      peptides_met[i].setMZ(500.0);
+      peptides_met[i].setScoreType("Mascot");
+      peptides_met[i].setHigherScoreBetter(true);
+      PeptideHit hit(35.0, 0, 2, hits_met[i].first);
+      PeptideEvidence evidence;
+      evidence.setProteinAccession("PROT1");
+      evidence.setAABefore(hits_met[i].second);
+      evidence.setAAAfter('A');
+      hit.addPeptideEvidence(evidence);
+      hit.setMetaValue("MS:1001172", 0.01); // Mascot:expectation value
+      peptides_met[i].insertHit(hit);
+    }
+    std::string file_met;
+    NEW_TMP_FILE(file_met);
+    PepXMLFile().store(file_met, proteins, peptides_met);
+    std::string met = readContent(file_met);
+    setFixed(met, "Acetyl (Protein N-term)");
+    TEST_EQUAL(StringUtils::hasSubstring(met, "variable=\"N\" description=\"Acetyl (Protein N-term)\""), true)
+    std::string file_met_fixed;
+    NEW_TMP_FILE(file_met_fixed);
+    std::ofstream(file_met_fixed) << met;
+    hits_new = readHits(file_met_fixed);
+    ABORT_IF(hits_new.size() != hits_met.size())
+    TEST_EQUAL(hits_new[0] == acetylated, true)
+    TEST_EQUAL(hits_new[1].hasNTerminalModification() ? hits_new[1].getNTerminalModification()->getFullId() : "", "Acetyl (Protein N-term)")
+    TEST_EQUAL(hits_new[2].hasNTerminalModification(), false)
   }
 }
 END_SECTION

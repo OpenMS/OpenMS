@@ -53,7 +53,9 @@ namespace OpenMS
     }
 
     /// Is a peptide with @p evidences at a protein N-terminus (@p n_term) or C-terminus? 1: yes (according to some
-    /// evidence), 0: no (all evidences give the neighbouring residue), -1: unknown
+    /// evidence), 0: no (all evidences give the neighbouring residue), -1: unknown.
+    /// A preceding 'M' counts as unknown: it may be the initiator methionine, which search engines (e.g. MSFragger)
+    /// and OpenMS' PeptideIndexer report as the preceding residue of a protein N-terminal peptide after its removal.
     int atProteinTerminus(const std::vector<PeptideEvidence>& evidences, bool n_term)
     {
       bool unknown = evidences.empty();
@@ -64,7 +66,7 @@ namespace OpenMS
         {
           return 1;
         }
-        unknown = unknown || aa == PeptideEvidence::UNKNOWN_AA;
+        unknown = unknown || aa == PeptideEvidence::UNKNOWN_AA || (n_term && aa == 'M');
       }
       return unknown ? -1 : 0;
     }
@@ -1699,14 +1701,19 @@ namespace OpenMS
         // and 'Amidated (Protein C-term)'), the one that fits the protein terminus evidence of the hit is taken.
         const bool protein_terminus = (atProteinTerminus(peptide_hit_.getPeptideEvidences(), n_term) == 1);
         const AminoAcidModification* header_mod = nullptr; // first match, replaced by the first one of the right kind
+        const AminoAcidModification* other_residue_mod = nullptr; // first match with the mass that does not fit the residue
         bool right_kind = false;
         for (const vector<AminoAcidModification>* header_mods : {&variable_modifications_, &fixed_modifications_})
         {
           for (const AminoAcidModification& m : *header_mods)
           {
-            if (right_kind || (fabs(terminus_mass - m.getMass()) >= mod_tol_) || m.getTerminus() != terminus ||
-                !fitsTerminalResidue(*m.getRegisteredMod(), residue))
+            if (right_kind || (fabs(terminus_mass - m.getMass()) >= mod_tol_) || m.getTerminus() != terminus)
             {
+              continue;
+            }
+            if (!fitsTerminalResidue(*m.getRegisteredMod(), residue))
+            {
+              if (other_residue_mod == nullptr) other_residue_mod = &m;
               continue;
             }
             right_kind = (isProteinTerminal(*m.getRegisteredMod()) == protein_terminus);
@@ -1736,6 +1743,15 @@ namespace OpenMS
         if (!mods.empty())
         {
           current_modifications_.emplace_back(mods[0], Size(-1)); // -1, because position does not matter
+        }
+        else if (other_residue_mod != nullptr)
+        {
+          // keep the mass: take the declaration with this mass, although it is meant for another terminal residue
+          const ResidueModification* mod = other_residue_mod->getRegisteredMod();
+          warning(LOAD, std::string("The ") + (n_term ? "N" : "C") + "-terminal modification with mass " + StringUtils::toStr(terminus_mass) +
+                        " of " + current_sequence_ + " fits no modification of its terminal residue; using '" + mod->getFullId() +
+                        "' from the search_summary.");
+          current_modifications_.emplace_back(mod, Size(-1));
         }
         else
         {
