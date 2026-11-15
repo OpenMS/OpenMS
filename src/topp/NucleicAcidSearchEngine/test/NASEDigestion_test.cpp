@@ -17,6 +17,9 @@
 class TestNASE : public NucleicAcidSearchEngine
 {
 public:
+  using NucleicAcidSearchEngine::completeRNAScoreColumns_;
+  using NucleicAcidSearchEngine::deisotopeAndSingleChargeMSSpectrum_;
+  using NucleicAcidSearchEngine::preprocessSpectra_;
   using NucleicAcidSearchEngine::getModifications_;
   using NucleicAcidSearchEngine::calculatePrecursorPercentage_;
   using NucleicAcidSearchEngine::flashMassUpperBound_;
@@ -170,6 +173,15 @@ namespace
   }
 }
 
+const MSSpectrum::IntegerDataArray* legacyCharges(const MSSpectrum& spectrum)
+{
+  for (const auto& array : spectrum.getIntegerDataArrays())
+  {
+    if (array.getName() == "NASE:legacy_fragment_charge" && array.size() == spectrum.size()) { return &array; }
+  }
+  return nullptr;
+}
+
 START_TEST(NASEDigestion, "$Id$")
 
 START_SECTION(([EXTRA] variable-only ambiguity setup preserves terminal hypotheses))
@@ -190,6 +202,71 @@ START_SECTION(([EXTRA] variable-only ambiguity setup preserves terminal hypothes
   hits.emplace(10.0, three);
   tool.resolveAmbiguousMods_(hits);
   TEST_EQUAL(hits.size(), 2)
+}
+END_SECTION
+
+START_SECTION(([EXTRA] legacy fragment isotope thresholds and envelope intensity aggregation))
+{
+  MSSpectrum raw;
+  raw.emplace_back(500, 10);
+  raw.emplace_back(500 + Constants::C13C12_MASSDIFF_U / 2, 4);
+  auto unchanged = raw;
+  TestNASE tool;
+  tool.deisotopeAndSingleChargeMSSpectrum_(unchanged, -1, -2, 10, true, false, 3, 20, false, true);
+  TEST_EQUAL(unchanged.size(), 2)
+  TEST_EQUAL((*legacyCharges(unchanged))[0], 0)
+  auto monoisotopic = raw;
+  tool.deisotopeAndSingleChargeMSSpectrum_(monoisotopic, -1, -2, 10, true, false, 2, 20, false, true);
+  TEST_EQUAL(monoisotopic.size(), 1)
+  TEST_REAL_SIMILAR(monoisotopic[0].getIntensity(), 10)
+  TEST_EQUAL((*legacyCharges(monoisotopic))[0], 2)
+  auto summed = raw;
+  tool.deisotopeAndSingleChargeMSSpectrum_(summed, -1, -2, 10, true, false, 2, 20, false, true, true);
+  TEST_EQUAL(summed.size(), 1)
+  TEST_REAL_SIMILAR(summed[0].getIntensity(), 14)
+  TEST_REAL_SIMILAR(summed[0].getMZ(), 500)
+  auto decharged = raw;
+  tool.deisotopeAndSingleChargeMSSpectrum_(decharged, -1, -2, 10, true, false, 2, 20, true, true, true);
+  TEST_EQUAL(decharged.size(), 1)
+  TEST_REAL_SIMILAR(decharged[0].getIntensity(), 14)
+  TEST_REAL_SIMILAR(decharged[0].getMZ(), 1000 + Constants::PROTON_MASS_U)
+  TEST_EQUAL((*legacyCharges(decharged))[0], 1)
+}
+END_SECTION
+
+START_SECTION(([EXTRA] optional legacy isotope detection retains unknown precursor charge))
+{
+  TestNASE tool;
+  const auto process = [&](Int precursor_charge, Size fragment_bound) {
+    MSExperiment experiment;
+    MSSpectrum raw;
+    raw.setMSLevel(2);
+    raw.emplace_back(500, 10);
+    raw.emplace_back(500 + Constants::C13C12_MASSDIFF_U / 2, 4);
+    Precursor precursor;
+    precursor.setMZ(600);
+    precursor.setCharge(precursor_charge);
+    raw.getPrecursors().push_back(precursor);
+    raw.setMetaValue("legacy_unknown_fragment_charge_bound", 99);
+    experiment.addSpectrum(raw);
+    tool.preprocessSpectra_(experiment, 20, true, false, true, -1, -6, true, false, 100, 50, "slide", false, 1000, false, 0.01, false, 2, "legacy",
+                            0.85, 0.25, true, 2, 10, false, fragment_bound);
+    return experiment[0];
+  };
+  const auto unchanged = process(0, 0);
+  TEST_EQUAL(unchanged.size(), 2)
+  TEST_EQUAL(unchanged.getPrecursors()[0].getCharge(), 0)
+  TEST_FALSE(unchanged.metaValueExists("legacy_unknown_fragment_charge_bound"))
+  const auto assigned = process(0, 2);
+  TEST_EQUAL(assigned.size(), 1)
+  TEST_EQUAL((*legacyCharges(assigned))[0], 2)
+  TEST_EQUAL(assigned.getPrecursors()[0].getCharge(), 0)
+  TEST_EQUAL(Int(assigned.getMetaValue("legacy_unknown_fragment_charge_bound")), 2)
+  // A known precursor bounds fragment charge even with a larger unknown bound.
+  const auto known = process(1, 6);
+  TEST_EQUAL(known.size(), 2)
+  TEST_EQUAL(known.getPrecursors()[0].getCharge(), 1)
+  TEST_FALSE(known.metaValueExists("legacy_unknown_fragment_charge_bound"))
 }
 END_SECTION
 
@@ -235,12 +312,18 @@ START_SECTION(([EXTRA] searchable RNA candidates and cached digest provenance))
   };
   fixture("ACGUAC", "ACGUAC", 2);
   auto args = arguments();
-  args.insert(args.end(), {"-digest_out", digest});
+  args.insert(args.end(), {"-digest_out", digest, "-scoring:method", "mvh"});
   TEST_EQUAL(runSearch(args), 0)
   TEST_EQUAL(hitCount(output), 1)
 
+  // A later-sorting filename distinguishes current input from cached provenance.
+  const std::string replay_mzml = mzml + ".z.mzML";
+  {
+    std::ifstream original(mzml, std::ios::binary);
+    std::ofstream(replay_mzml, std::ios::binary) << original.rdbuf();
+  }
   // Reuse the digest with different search tolerances while preserving its database.
-  args = {"-in", mzml, "-digest", digest, "-id_out", output, "-out", output + ".mzTab",
+  args = {"-in", replay_mzml, "-digest", digest, "-id_out", output, "-out", output + ".mzTab",
     "-precursor:mass_tolerance", "20", "-fragment:mass_tolerance", "25", "-threads", "1",
     "-db_out", output + ".oms"};
   TEST_EQUAL(runSearch(args), 0)
@@ -257,6 +340,7 @@ START_SECTION(([EXTRA] searchable RNA candidates and cached digest provenance))
   bool current_identification = false;
   for (const auto& match : result.getObservationMatches())
   {
+    TEST_STRING_EQUAL(match.observation_ref->input_file->name, replay_mzml)
     for (const auto& applied : match.steps_and_scores)
     {
       if (!applied.processing_step_opt ||
@@ -270,6 +354,28 @@ START_SECTION(([EXTRA] searchable RNA candidates and cached digest provenance))
     }
   }
   TEST_TRUE(current_identification)
+
+  // A digest produced by a different scorer must not replace this run's primary score.
+  for (const std::string method : {"hyperscore", "mvh"})
+  {
+    auto fresh_arguments = arguments();
+    fresh_arguments.insert(fresh_arguments.end(), {"-scoring:method", method});
+    TEST_EQUAL(runSearch(fresh_arguments), 0)
+    IdXMLFile().load(output, proteins, peptides);
+    TEST_EQUAL(peptides.size(), 1)
+    ABORT_IF(peptides.empty())
+    const auto expected_type = peptides[0].getScoreType();
+    const double expected_score = peptides[0].getHits()[0].getScore();
+    std::vector<std::string> cached_arguments {
+      "-in", replay_mzml,          "-digest", digest, "-id_out", output, "-out", output + ".mzTab", "-scoring:method", method, "-threads",
+      "1"};
+    TEST_EQUAL(runSearch(cached_arguments), 0)
+    IdXMLFile().load(output, proteins, peptides);
+    TEST_EQUAL(peptides.size(), 1)
+    ABORT_IF(peptides.empty())
+    TEST_STRING_EQUAL(peptides[0].getScoreType(), expected_type)
+    TEST_REAL_SIMILAR(peptides[0].getHits()[0].getScore(), expected_score)
+  }
 
   for (const std::string credit : {"true", "false"})
   {
@@ -1665,6 +1771,48 @@ START_SECTION((NASE directed deconvolution preserves ordinary FLASH and clears q
   TEST_EQUAL(fd_algo.getDeconvolvedSpectrum().size(), original.size())
   fd_algo.deconvolve(input[3], 4, {});
   TEST_EQUAL(fd_algo.getDeconvolvedSpectrum().size(), original.size())
+}
+END_SECTION
+
+START_SECTION(([EXTRA] unavailable RNA scores keep declared mzTab columns without fabricated values))
+{
+  MzTab table;
+  MzTabMetaData metadata;
+  for (Size index : {Size(1), Size(2)})
+  {
+    metadata.ms_run[index] = MzTabMSRunMetaData();
+    metadata.nucleic_acid_search_engine_score[index] = MzTabParameter();
+    metadata.oligonucleotide_search_engine_score[index] = MzTabParameter();
+    metadata.osm_search_engine_score[index] = MzTabParameter();
+  }
+  table.setMetaData(metadata);
+  MzTabNucleicAcidSectionRow nucleic;
+  nucleic.best_search_engine_score[1] = MzTabDouble(42.0);
+  nucleic.search_engine_score_ms_run[1][2] = MzTabDouble(12.0);
+  table.setNucleicAcidSectionRows({nucleic});
+  MzTabOligonucleotideSectionRow oligo;
+  oligo.best_search_engine_score[2] = MzTabDouble(7.0);
+  table.setOligonucleotideSectionRows({oligo});
+  MzTabOSMSectionRow match;
+  match.search_engine_score[1] = MzTabDouble(42.0);
+  table.setOSMSectionRows({match});
+  TestNASE::completeRNAScoreColumns_(table);
+  const auto& row = table.getNucleicAcidSectionRows()[0];
+  TEST_EQUAL(row.best_search_engine_score.size(), 2)
+  TEST_REAL_SIMILAR(row.best_search_engine_score.at(1).get(), 42.0)
+  TEST_TRUE(row.best_search_engine_score.at(2).isNull())
+  TEST_TRUE(row.search_engine_score_ms_run.at(1).at(1).isNull())
+  TEST_REAL_SIMILAR(row.search_engine_score_ms_run.at(1).at(2).get(), 12.0)
+  TEST_TRUE(row.search_engine_score_ms_run.at(2).at(1).isNull())
+  TEST_TRUE(row.search_engine_score_ms_run.at(2).at(2).isNull())
+  const auto& oligo_row = table.getOligonucleotideSectionRows()[0];
+  TEST_TRUE(oligo_row.best_search_engine_score.at(1).isNull())
+  TEST_REAL_SIMILAR(oligo_row.best_search_engine_score.at(2).get(), 7.0)
+  TEST_EQUAL(oligo_row.search_engine_score_ms_run.size(), 2)
+  TEST_TRUE(table.getOSMSectionRows()[0].search_engine_score.at(2).isNull())
+  TestNASE::completeRNAScoreColumns_(table);
+  TEST_EQUAL(table.getOSMSectionRows()[0].search_engine_score.size(), 2)
+  TEST_REAL_SIMILAR(table.getOSMSectionRows()[0].search_engine_score.at(1).get(), 42.0)
 }
 END_SECTION
 
