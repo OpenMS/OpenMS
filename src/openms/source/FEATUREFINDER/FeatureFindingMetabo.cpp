@@ -283,6 +283,11 @@ namespace OpenMS
     defaults_.setValue("isotope_filtering_missing_traces", "unknown", "How isotope traces that were not detected enter the metabolite isotope filtering models (the models expect the monoisotopic and the first three isotopic traces; ignored for 'peptides' and 'none'): 'unknown' (default) regards the intensity of a missing trace as unknown but not higher than the weakest detected trace of the candidate assembly, and accepts the assembly if the model accepts any such intensity. 'zero' sets the intensity of a missing trace to zero (historic behavior). This rejects correct assemblies of larger molecules whose higher isotopic traces fall below the detection limit (see issue #1942).", {"advanced"});
     defaults_.setValidStrings("isotope_filtering_missing_traces", {"unknown", "zero"});
 
+    defaults_.setValue("mz_scoring_trace_uncertainty", "standard_error", "Uncertainty of the m/z of a mass trace in the m/z score of two traces: 'standard_error' (default) is the standard error of the intensity-weighted mean m/z of the trace (the spread of its peaks divided by the square root of their effective number), combined with 'mz_scoring_min_ppm'. 'spread' is the intensity-weighted spread of the peaks of the trace (historic behavior). The spread does not shrink with the number of peaks, so it lets pairs with a wrong isotope spacing pass on data of lower mass accuracy (e.g. QTOF data with a low noise threshold).", {"advanced"});
+    defaults_.setValidStrings("mz_scoring_trace_uncertainty", {"standard_error", "spread"});
+    defaults_.setValue("mz_scoring_min_ppm", 2.0, "Minimum m/z uncertainty of a mass trace in ppm, combined (in quadrature) with the standard error of its m/z. It covers errors the spread of the peaks does not show, e.g. of the calibration across the m/z range. Only used if 'mz_scoring_trace_uncertainty' is 'standard_error'.", {"advanced"});
+    defaults_.setMinFloat("mz_scoring_min_ppm", 0.0);
+
     defaults_.setValue("mz_scoring_13C", "false", "Use the 13C isotope peak position (~1.003355 Da) as the expected shift in m/z for isotope mass traces (highly recommended for lipidomics!). Disable for general metabolites (as described in Kenar et al. 2014, MCP.).");
     defaults_.setValidStrings("mz_scoring_13C", {"false","true"});
 
@@ -341,6 +346,8 @@ namespace OpenMS
     use_smoothed_intensities_ = use_smoothed;
     report_smoothed_intensities_ = report_smoothed;
 
+    mz_scoring_trace_se_ = (param_.getValue("mz_scoring_trace_uncertainty") == "standard_error");
+    mz_scoring_min_ppm_ = (double)param_.getValue("mz_scoring_min_ppm");
     use_mz_scoring_C13_ = param_.getValue("mz_scoring_13C").toBool();
     report_convex_hulls_ = param_.getValue("report_convex_hulls").toBool();
     report_chromatograms_ = param_.getValue("report_chromatograms").toBool();
@@ -551,7 +558,34 @@ namespace OpenMS
     }
   }
 
-  double FeatureFindingMetabo::scoreMZ_(const MassTrace& tr1, const MassTrace& tr2, Size iso_pos, Size charge, Range isotope_window) const
+  double FeatureFindingMetabo::traceMZVariance_(const MassTrace& mt) const
+  {
+    // historic: spread of the peaks (exp/log form kept so results stay identical)
+    double spread_variance(std::exp(2 * std::log(mt.getCentroidSD())));
+    if (!mz_scoring_trace_se_)
+    {
+      return spread_variance;
+    }
+
+    // The centroid m/z is the intensity-weighted mean of the peaks, so its variance is the
+    // variance of the peaks divided by their effective number (sum w)^2 / sum w^2.
+    double sum_w(0.0), sum_w2(0.0);
+    for (const auto& p : mt)
+    {
+      const double w(p.getIntensity());
+      sum_w += w;
+      sum_w2 += w * w;
+    }
+    double variance(spread_variance);
+    if (sum_w > 0.0)
+    {
+      variance *= sum_w2 / (sum_w * sum_w);
+    }
+    const double min_sd(mz_scoring_min_ppm_ * 1e-6 * mt.getCentroidMZ());
+    return variance + min_sd * min_sd;
+  }
+
+  double FeatureFindingMetabo::scoreMZ_(const MassTrace& tr1, const MassTrace& tr2, double mt_variances, Size iso_pos, Size charge, Range isotope_window) const
   {
 
     double mz1(tr1.getCentroidMZ());
@@ -559,14 +593,6 @@ namespace OpenMS
 
     // double centered_mz(std::fabs(mz2 - mz1) - mu);
     double diff_mz(std::fabs(mz2 - mz1));
-
-    double mt_sigma1(tr1.getCentroidSD());
-    double mt_sigma2(tr2.getCentroidSD());
-    // double mt_variances1(mt_sigma1*mt_sigma1 + mt_sigma2*mt_sigma2);
-    double mt_variances(std::exp(2 * std::log(mt_sigma1)) + std::exp(2 * std::log(mt_sigma2)));
-    // std::cout << "mt1: " << mt_sigma1 << " mt2: " << mt_sigma2 << " mt_variances: " << mt_variances << " old " << mt_variances1 <<  std::endl;
-
-    // double score_sigma_old(std::sqrt(sd*sd + mt_variances));
 
     double mz_score(0.0);
 
@@ -806,7 +832,7 @@ namespace OpenMS
   }
 
 
-  void FeatureFindingMetabo::findLocalFeatures_(const std::vector<const MassTrace*>& candidates, const double total_intensity, std::vector<FeatureHypothesis>& output_hypotheses) const
+  void FeatureFindingMetabo::findLocalFeatures_(const std::vector<const MassTrace*>& candidates, const std::vector<double>& mz_variances, const double total_intensity, std::vector<FeatureHypothesis>& output_hypotheses) const
   {
     // single Mass trace hypothesis
     FeatureHypothesis tmp_hypo;
@@ -854,7 +880,7 @@ namespace OpenMS
 
           // Score current mass trace candidates against hypothesis
           double rt_score(scoreRT_(*candidates[0], *candidates[mt_idx]));
-          double mz_score(scoreMZ_(*candidates[0], *candidates[mt_idx], iso_pos, charge, isotope_window));
+          double mz_score(scoreMZ_(*candidates[0], *candidates[mt_idx], mz_variances[0] + mz_variances[mt_idx], iso_pos, charge, isotope_window));
 
           // disable intensity scoring for now...
           double int_score(1.0);
@@ -964,6 +990,13 @@ namespace OpenMS
       total_intensity += input_mtraces[i].getIntensity(use_smoothed_intensities_);
     }
 
+    // m/z uncertainty (variance) of each trace for the m/z score, in the order of input_mtraces
+    std::vector<double> trace_mz_variances(input_mtraces.size());
+    for (Size i = 0; i < input_mtraces.size(); ++i)
+    {
+      trace_mz_variances[i] = traceMZVariance_(input_mtraces[i]);
+    }
+
     // *********************************************************** //
     // Step 2 Iterate through all mass traces to find likely matches 
     // and generate isotopic / charge hypotheses
@@ -983,10 +1016,12 @@ namespace OpenMS
       ++progress;
 
       std::vector<const MassTrace*> local_traces;
+      std::vector<double> local_mz_variances;
       double ref_trace_mz(input_mtraces[i].getCentroidMZ());
       double ref_trace_rt(input_mtraces[i].getCentroidRT());
 
       local_traces.push_back(&input_mtraces[i]);
+      local_mz_variances.push_back(trace_mz_variances[i]);
 
       for (Size ext_idx = i + 1; ext_idx < input_mtraces.size(); ++ext_idx)
       {
@@ -1001,9 +1036,10 @@ namespace OpenMS
             && (!has_im_data_ || std::fabs(input_mtraces[ext_idx].getCentroidIM() - input_mtraces[i].getCentroidIM()) <= local_im_range_))
         {
           local_traces.push_back(&input_mtraces[ext_idx]);
+          local_mz_variances.push_back(trace_mz_variances[ext_idx]);
         }
       }
-      findLocalFeatures_(local_traces, total_intensity, feat_hypos);
+      findLocalFeatures_(local_traces, local_mz_variances, total_intensity, feat_hypos);
     }
     this->endProgress();
 

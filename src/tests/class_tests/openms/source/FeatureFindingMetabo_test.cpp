@@ -30,7 +30,7 @@ namespace
 {
   /// A mass trace with a Gaussian elution profile, sampled once per second and
   /// prepared the way ElutionPeakDetection hands traces to FeatureFindingMetabo.
-  MassTrace makeGaussianTrace(double mz, double apex_rt, double height, double sigma, const std::string& label)
+  MassTrace makeGaussianTrace(double mz, double apex_rt, double height, double sigma, const std::string& label, double mz_sd = 0.001)
   {
     std::vector<Peak2D> peaks;
     std::vector<double> intensities;
@@ -47,7 +47,7 @@ namespace
     mt.setLabel(label);
     mt.updateWeightedMeanRT();
     mt.updateWeightedMeanMZ();
-    mt.setCentroidSD(0.001);
+    mt.setCentroidSD(mz_sd);
     mt.setSmoothedIntensities(intensities);
     mt.estimateFWHM(true);
     return mt;
@@ -171,27 +171,33 @@ START_SECTION((void run(std::vector< MassTrace > &, FeatureMap &, chromatograms 
   p.setValue("mz_scoring_13C", "false");
   test_ffm.setParameters(p);
   test_ffm.run(splitted_mt, test_fm, chromatograms);
-  TEST_EQUAL(test_fm.size(), 76);
+  // one feature more than with 'mz_scoring_trace_uncertainty' = "spread": the pair at m/z 177.0575
+  // and 178.0538 (spacing 0.9963, 5.6 mDa off the expected one) is no longer assembled
+  TEST_EQUAL(test_fm.size(), 77);
   // --> this gives less features, i.e. more isotope clusters (but the input data is simulated and highly weird -- should be replaced at some point)
 
   //todo the new isotope m/z scoring should produce similar results, but still has to be tested.
   p.setValue("mz_scoring_by_elements", "true");
   test_ffm.setParameters(p);
   test_ffm.run(splitted_mt, test_fm, chromatograms);
-  TEST_EQUAL(test_fm.size(), 75);
+  // one feature less than with "spread": the simulated traces have an m/z spread of only 0.1 ppm, so
+  // 'mz_scoring_min_ppm' widens the tolerance, and two pairs at m/z 171.07 and 173.08 join (the
+  // element window for the second isotope reaches 2.0126, two 2H; their spacing is 2.0129)
+  TEST_EQUAL(test_fm.size(), 74);
   // --> this gives less features, i.e. more isotope clusters (but the input data is simulated and highly weird -- should be replaced at some point)
 }
 END_SECTION
 
 START_SECTION(([EXTRA] run with historic settings))
 {
-  // The RT overlap measured against the longer trace and missing isotope traces
-  // counted as zero intensity (the behavior before issue #1942) assemble fewer
-  // traces: the features of each run below are 4 to 5 more than with the defaults.
+  // The behavior before issue #1942: the RT overlap measured against the longer trace,
+  // missing isotope traces counted as zero intensity, and the spread of the peaks as
+  // m/z uncertainty of a trace.
   FeatureFindingMetabo test_ffm;
   Param p = test_ffm.getParameters();
   p.setValue("isotope_rt_overlap_reference", "longer");
   p.setValue("isotope_filtering_missing_traces", "zero");
+  p.setValue("mz_scoring_trace_uncertainty", "spread");
 
   // C13 isotope distance
   p.setValue("mz_scoring_13C", "true");
@@ -299,6 +305,8 @@ START_SECTION(([EXTRA] defaults))
   Param p = FeatureFindingMetabo().getParameters();
   TEST_EQUAL(p.getValue("isotope_rt_overlap_reference"), "shorter")
   TEST_EQUAL(p.getValue("isotope_filtering_missing_traces"), "unknown")
+  TEST_EQUAL(p.getValue("mz_scoring_trace_uncertainty"), "standard_error")
+  TEST_REAL_SIMILAR(double(p.getValue("mz_scoring_min_ppm")), 2.0)
 }
 END_SECTION
 
@@ -374,6 +382,71 @@ START_SECTION(([EXTRA] isotope_filtering_missing_traces))
 }
 END_SECTION
 
+START_SECTION(([EXTRA] isotope_filtering_missing_traces: only the third isotopic trace is missing))
+{
+  // Three detected traces of an 850 Da molecule: M+1 at 45% and M+2 at 70% of M (e.g. two
+  // chlorine atoms). With M+3 counted as zero, the 5% RMS model rejects the pattern, and only
+  // M and M+1 are assembled; with M+3 unknown (at most as intense as M+1), all three are.
+  std::vector<MassTrace> traces;
+  traces.push_back(makeGaussianTrace(850.5, 100.0, 1.0e5, 3.0, "mono"));
+  traces.push_back(makeGaussianTrace(851.502, 100.0, 0.45e5, 3.0, "iso1"));
+  traces.push_back(makeGaussianTrace(852.503, 100.0, 0.7e5, 3.0, "iso2"));
+  Param zero;
+  zero.setValue("isotope_filtering_missing_traces", "zero");
+
+  FeatureMap fm = assemble(traces, Param());
+  const Feature* f = findFeature(fm, 850.5);
+  TEST_NOT_EQUAL(f, nullptr)
+  ABORT_IF(f == nullptr)
+  TEST_EQUAL(f->getCharge(), 1)
+  TEST_EQUAL(f->getMetaValue(Constants::UserParam::NUM_OF_MASSTRACES), 3)
+
+  fm = assemble(traces, zero);
+  f = findFeature(fm, 850.5);
+  TEST_NOT_EQUAL(f, nullptr)
+  ABORT_IF(f == nullptr)
+  TEST_EQUAL(f->getCharge(), 1)
+  TEST_EQUAL(f->getMetaValue(Constants::UserParam::NUM_OF_MASSTRACES), 2)
+
+  // an M+2 more intense than M is impossible at this mass, whatever M+3 is
+  traces[2] = makeGaussianTrace(852.503, 100.0, 1.1e5, 3.0, "iso2");
+  fm = assemble(traces, Param());
+  f = findFeature(fm, 850.5);
+  TEST_NOT_EQUAL(f, nullptr)
+  ABORT_IF(f == nullptr)
+  TEST_EQUAL(f->getMetaValue(Constants::UserParam::NUM_OF_MASSTRACES), 2)
+}
+END_SECTION
+
+START_SECTION(([EXTRA] mz_scoring_trace_uncertainty and mz_scoring_min_ppm))
+{
+  // Two co-eluting traces of 21 peaks whose peaks spread by 10 mDa around the centroid,
+  // 15 mDa off the expected isotope spacing. The spread itself lets the pair pass (about
+  // one standard deviation); the standard error of the centroids (about 3 mDa, the spread
+  // divided by the square root of the effective number of peaks) does not.
+  const double expected_spacing = 1.000857 + 0.001091; // Kenar et al., first isotope, charge 1
+  std::vector<MassTrace> traces;
+  traces.push_back(makeGaussianTrace(300.1, 100.0, 1.0e5, 3.0, "mono", 0.01));
+  traces.push_back(makeGaussianTrace(300.1 + expected_spacing + 0.015, 100.0, 2.0e4, 3.0, "iso1", 0.01));
+
+  FeatureMap fm = assemble(traces, Param());
+  TEST_EQUAL(fm.size(), 2)
+
+  Param spread;
+  spread.setValue("mz_scoring_trace_uncertainty", "spread");
+  fm = assemble(traces, spread);
+  TEST_EQUAL(fm.size(), 1)
+  TEST_EQUAL(fm[0].getCharge(), 1)
+
+  // a minimum uncertainty of 10 ppm (3 mDa per trace) widens the tolerance enough
+  Param min_ppm;
+  min_ppm.setValue("mz_scoring_min_ppm", 10.0);
+  fm = assemble(traces, min_ppm);
+  TEST_EQUAL(fm.size(), 1)
+  TEST_EQUAL(fm[0].getCharge(), 1)
+}
+END_SECTION
+
 START_SECTION(([EXTRA] isotope traces of low intensity (issue #1942)))
 {
   // Excerpts (m/z 518-529, RT 160-240 s) of two runs of the same study, taken from
@@ -387,6 +460,7 @@ START_SECTION(([EXTRA] isotope traces of low intensity (issue #1942)))
   zero.setValue("isotope_filtering_missing_traces", "zero");
   historic.setValue("isotope_rt_overlap_reference", "longer");
   historic.setValue("isotope_filtering_missing_traces", "zero");
+  historic.setValue("mz_scoring_trace_uncertainty", "spread");
 
   // the ion is found in both runs
   FeatureMap fm = runPipeline(low, Param());
