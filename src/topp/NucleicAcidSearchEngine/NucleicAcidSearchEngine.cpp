@@ -45,6 +45,8 @@
 #include "ModifiedNASequenceGenerator.h"
 #include "RNADeisotoper.h"
 #include "RNAPrecursorCorrector.h"
+#include "RNASpectrumGraph.h"
+#include "RNATagCandidateFilter.h"
 #include <OpenMS/CHEMISTRY/NASequence.h>
 
 // preprocessing and filtering of spectra
@@ -118,6 +120,11 @@ When using @p digest, search tolerances and modifications in the output describe
 the current run while database and digestion provenance remain from the cache.
 LFQ targets use a finite intensity-weighted retention time, falling back to the
 median of finite observations when no valid positive intensity weights exist.
+
+Experimental RNA mass-tag filtering is available with @p candidates:method=graph.
+Use @p candidates:method=graph_audit to measure tag support while retaining all
+enumerated candidates and the existing scoring. See @ref TOPP_NASE_GraphSearch
+for supported ion series, bounds, fallback, and the FLASH MS1 / legacy MS2 workflow.
 
 <B>The command line parameters of this tool are:</B>
 @verbinclude TOPP_NucleicAcidSearchEngine.cli
@@ -298,6 +305,39 @@ protected:
     registerDoubleOption_("scoring:blacklist_tolerance", "<ppm>", 10.0, "Tolerance (in ppm) for matching peaks to blacklisted m/z values", false, true);
     setMinFloat_("scoring:blacklist_tolerance", 0.0);
 
+    registerTOPPSubsection_("candidates", "Candidate selection options");
+    registerStringOption_("candidates:method", "<method>", "enumeration",
+                          "enumeration; graph_audit (score all variants); graph (filter enumerated variants); graph_generate "
+                          "(constrain modification placement); graph_generate_audit (compare placement recall with exhaustive graph filtering)",
+                          false, true);
+    setValidStrings_("candidates:method", {"enumeration", "graph", "graph_audit", "graph_generate", "graph_generate_audit"});
+    registerTOPPSubsection_("graph", "Bounded RNA mass tags; full-spectrum scoring and native FDR are retained");
+    registerFlag_("graph:verify_matches", "Compare every prepared graph decision and witness with the reference matcher; fail on any mismatch", true);
+    registerIntOption_("graph:min_tag_length", "<num>", 2, "Minimum tag length in residues (1 allows a single-residue anchor)", false, true);
+    setMinInt_("graph:min_tag_length", 1);
+    registerIntOption_("graph:max_tag_length", "<num>", 4, "Maximum tag length in residues", false, true);
+    setMinInt_("graph:max_tag_length", 1);
+    setMaxInt_("graph:max_tag_length", 32);
+    registerIntOption_("graph:max_step", "<num>", 2, "Maximum residues per graph edge (2 bridges one missing ladder peak)", false, true);
+    setMinInt_("graph:max_step", 1);
+    setMaxInt_("graph:max_step", 2);
+    for (const auto& [name, value] : vector<pair<std::string, Int>> {{"max_peaks", 100},
+                                                                     {"max_charge", 3},
+                                                                     {"max_edges", 20000},
+                                                                     {"max_query_edges", 20000},
+                                                                     {"max_query_states", 100000},
+                                                                     {"max_placement_nodes", 100000},
+                                                                     {"max_total_edges", 50000000}})
+    {
+      const std::string description = (name == "max_peaks" || name == "max_charge")
+                                        ? "Graph evidence selection limit: " + name
+                                        : "Graph exploration/cache bound: " + name + "; exceeding it uses enumeration fallback";
+      registerIntOption_("graph:" + name, "<num>", value, description, false, true);
+      setMinInt_("graph:" + name, name == "max_peaks" ? 2 : 1);
+    }
+    registerOutputFile_("out_graph", "<file>", "",
+                        "Tab-delimited per-spectrum graph sizes and enumeration fallback reasons (requires a graph candidate mode)", false, true);
+
     registerTOPPSubsection_("modifications", "Modification options");
 
     // add modified ribos from database
@@ -406,6 +446,8 @@ protected:
     double precursor_error_ppm = 0.0; // precursor mass error in ppm
     vector<PeptideHit::PeakAnnotation> annotations; // peak/ion annotations
     const PrecursorInfo* precursor_ref = nullptr; // precursor information
+    bool graph_evaluated = false;
+    RNATagCandidateFilter::Evidence graph_evidence;
   };
 
   typedef multimap<double, AnnotatedHit, greater<double>> HitsByScore;
@@ -1126,6 +1168,7 @@ protected:
                         IdentificationData::ScoreTypeRef score_ref)
   {
     // Use the current run references; cached entries may sort before them.
+    const std::string graph_method = getStringOption_("candidates:method");
 
 // @TODO: change OpenMP schedule from default ("static") to "dynamic"/"guided"?
 #pragma omp parallel for
@@ -1182,6 +1225,24 @@ protected:
         match.setMetaValue(Constants::UserParam::PRECURSOR_ERROR_PPM_USERPARAM,
                            hit.precursor_error_ppm);
         match.setMetaValue("isotope_offset", hit.precursor_ref->isotope);
+        if (hit.graph_evaluated)
+        {
+          match.setMetaValue("graph_candidate_method", graph_method);
+          match.setMetaValue("graph_candidate_status", hit.graph_evidence.supported ? "supported"
+                                                                                    : (hit.graph_evidence.fallback_reason.empty()
+                                                                                         ? "rejected_in_audit"
+                                                                                         : "fallback:" + hit.graph_evidence.fallback_reason));
+          match.setMetaValue("graph_tag_length", static_cast<unsigned int>(hit.graph_evidence.length));
+          match.setMetaValue("graph_ion_series", hit.graph_evidence.ion_series);
+          match.setMetaValue("graph_fragment_charge", static_cast<unsigned int>(hit.graph_evidence.charge));
+          match.setMetaValue("graph_start_ion", static_cast<unsigned int>(hit.graph_evidence.start_ion));
+          if (hit.graph_evidence.supported)
+          {
+            const bool prefix = std::string("abcd").find(hit.graph_evidence.ion_series) != std::string::npos;
+            const Size start = prefix ? hit.graph_evidence.start_ion : hit.sequence.size() - hit.graph_evidence.start_ion - hit.graph_evidence.length;
+            match.setMetaValue("graph_tag_sequence", hit.sequence.getSubsequence(start, hit.graph_evidence.length).toString());
+          }
+        }
         match.adduct_opt = hit.precursor_ref->adduct;
         for (const auto& key : {"flash_precursor_status", "flash_precursor_original_mz",
              "flash_precursor_original_charge", "flash_precursor_parent", "flash_precursor_parent_source",
@@ -1474,6 +1535,20 @@ protected:
     std::string theo_ms2_out = getStringOption_("theo_ms2_out");
     std::string exp_ms2_out = getStringOption_("exp_ms2_out");
     bool use_avg_mass = getFlag_("precursor:use_avg_mass");
+    const std::string candidate_method = getStringOption_("candidates:method");
+    const bool graph_enabled = candidate_method != "enumeration";
+    const bool graph_generate = candidate_method == "graph_generate" || candidate_method == "graph_generate_audit";
+    const bool placement_audit = candidate_method == "graph_generate_audit";
+    const bool verify_graph_matches = getFlag_("graph:verify_matches");
+    const bool graph_filter = candidate_method == "graph" || graph_generate;
+    const Size max_placement_nodes = getIntOption_("graph:max_placement_nodes");
+    const std::string graph_out = getStringOption_("out_graph");
+    if ((! graph_enabled && (! graph_out.empty() || verify_graph_matches))
+        || (graph_enabled && getIntOption_("graph:min_tag_length") > getIntOption_("graph:max_tag_length")))
+    {
+      OPENMS_LOG_ERROR << "Graph output and match verification require graph candidates; minimum tag length must not exceed maximum tag length.\n";
+      return ILLEGAL_PARAMETERS;
+    }
     Int min_charge = getIntOption_("precursor:min_charge");
     Int max_charge = getIntOption_("precursor:max_charge");
 
@@ -2008,12 +2083,98 @@ protected:
     param.setValue("add_precursor_peaks", "false");
     spectrum_generator.setParameters(param);
 
+    vector<RNASpectrumGraph::Result> spectrum_graphs;
+    std::shared_ptr<const RNASpectrumGraph::Alphabet> graph_alphabet;
+    if (graph_enabled)
+    {
+      RNASpectrumGraph::Options graph_options;
+      graph_options.tolerance = search_param.fragment_mass_tolerance;
+      graph_options.tolerance_ppm = search_param.fragment_tolerance_ppm;
+      graph_options.min_tag_length = getIntOption_("graph:min_tag_length");
+      graph_options.max_tag_length = getIntOption_("graph:max_tag_length");
+      graph_options.max_step = getIntOption_("graph:max_step");
+      graph_options.max_peaks = getIntOption_("graph:max_peaks");
+      graph_options.max_charge = getIntOption_("graph:max_charge");
+      graph_options.max_edges = getIntOption_("graph:max_edges");
+      graph_options.max_query_edges = getIntOption_("graph:max_query_edges");
+      graph_options.max_query_states = getIntOption_("graph:max_query_states");
+      const Size total_edge_budget = getIntOption_("graph:max_total_edges");
+      set<ConstRibonucleotidePtr> alphabet = variable_modifications;
+      alphabet.insert(fixed_modifications.begin(), fixed_modifications.end());
+      for (const auto& code : {"A", "C", "G", "U"})
+      {
+        alphabet.insert(RibonucleotideDB::getInstance()->getRibonucleotide(code));
+      }
+      const RNASpectrumGraph graph_builder(alphabet, graph_options);
+      spectrum_graphs.resize(spectra.size());
+      Size total_edges = 0;
+      map<std::string, Size> fallbacks;
+      progresslogger.startProgress(0, spectra.size(), "building RNA mass-tag graphs...");
+      // Deterministic spectrum order makes the shared cache budget independent
+      // of thread scheduling and applies the same graph to targets and decoys.
+      for (Size scan = 0; scan < spectra.size(); ++scan)
+      {
+        progresslogger.setProgress(scan);
+        auto& graph = spectrum_graphs[scan];
+        if (spectra[scan].getMSLevel() != 2 || spectra[scan].getPrecursors().size() != 1) { graph.fallback_reason = "invalid_ms2_precursor"; }
+        else if (total_edges >= total_edge_budget) { graph.fallback_reason = "total_edge_budget"; }
+        else
+        {
+          Size charge = std::abs(spectra[scan].getPrecursors()[0].getCharge());
+          if (charge == 0)
+          {
+            charge = std::max(std::abs(min_charge), std::abs(max_charge));
+          }
+          graph = graph_builder.build(spectra[scan], single_charge_spectra ? 1 : charge);
+          if (graph.fallback_reason.empty())
+          {
+            if (graph.edges > total_edge_budget - total_edges)
+            {
+              graph.layers.clear();
+              graph.peak_indices.clear();
+              graph.fallback_reason = "total_edge_budget";
+            }
+            else
+            {
+              total_edges += graph.edges;
+            }
+          }
+        }
+        if (! graph.fallback_reason.empty())
+        {
+          ++fallbacks[graph.fallback_reason];
+        }
+        if (! graph_alphabet && graph.alphabet) { graph_alphabet = graph.alphabet; }
+      }
+      progresslogger.endProgress();
+      OPENMS_LOG_INFO << "RNA graph cached edges: " << total_edges << '\n';
+      for (const auto& [reason, count] : fallbacks)
+      {
+        OPENMS_LOG_INFO << "RNA graph fallback " << reason << ": " << count << '\n';
+      }
+      if (! graph_out.empty())
+      {
+        SVOutStream output(graph_out, "\t", "_");
+        output << "spectrum" << "peaks" << "vertices" << "edges" << "alphabet" << "fallback" << endl;
+        for (Size scan = 0; scan < spectra.size(); ++scan)
+        {
+          const auto& graph = spectrum_graphs[scan];
+          output << spectra[scan].getNativeID() << graph.peaks << graph.vertices << graph.edges
+                 << (graph.alphabet ? graph.alphabet->code_ids.size() : 0) << graph.fallback_reason << endl;
+        }
+      }
+    }
+
     vector<HitsByScore> annotated_hits(spectra.size());
     MSExperiment exp_ms2_spectra, theo_ms2_spectra; // debug output
 
     std::string msg = "scoring oligonucleotide models against spectra...";
     progresslogger.startProgress(0, id_data.getIdentifiedOligos().size(), msg);
     Size hit_counter = 0;
+    Size graph_prefiltered = 0, graph_rejected = 0, graph_supported = 0, graph_fallback = 0;
+    Size graph_verified = 0, graph_mismatches = 0;
+    Size placement_nodes = 0, placement_pruned = 0, placement_emitted = 0, placement_fallbacks = 0;
+    Size placement_reference = 0, placement_expected = 0, placement_missing = 0, placement_extra = 0;
 
     // keep a list of (references to) oligos in the original digest:
     vector<IdentificationData::IdentifiedOligoRef> digest;
@@ -2026,11 +2187,20 @@ protected:
     }
 
     Int base_charge = negative_mode ? -1 : 1;
+    const auto blacklist_mz = getDoubleList_("scoring:blacklist_mz");
+    const double blacklist_tolerance = getDoubleOption_("scoring:blacklist_tolerance");
+    const Size num_intensity_classes = getIntOption_("scoring:num_intensity_classes");
+    const double tic_fraction = getDoubleOption_("scoring:tic_fraction");
+    const bool use_mass_accuracy = getFlag_("scoring:use_mass_accuracy");
+    const bool single_peak_credit = getStringOption_("scoring:single_peak_credit") == "true";
+    const double min_coverage = getDoubleOption_("report:require_coverage");
 
 // shorter oligos take (possibly much) less time to process than longer ones;
 // due to the sorting order of "NASequence", they also appear earlier in the
 // container - therefore use dynamic scheduling to distribute work evenly:
-#pragma omp parallel for schedule(dynamic)
+#pragma omp parallel for schedule(dynamic) reduction(                                                                                          \
+    + : placement_nodes, placement_pruned, placement_emitted, placement_fallbacks, placement_reference, placement_expected, placement_missing, \
+      placement_extra, graph_prefiltered, graph_rejected, graph_supported, graph_fallback, graph_verified, graph_mismatches, hit_counter)
     for (SignedSize index = 0; index < SignedSize(digest.size()); ++index)
     {
       IF_MASTERTHREAD
@@ -2053,9 +2223,73 @@ protected:
         max_variable_mods_per_oligo - consumed_cleavage_sensitive_mods;
       ModifiedNASequenceGenerator::applyFixedModifications(
         fixed_modifications, ns);
-      ModifiedNASequenceGenerator::applyVariableModifications(
+      if (graph_generate)
+      {
+        ModifiedNASequenceGenerator::PlacementConstraints constraints;
+        constraints.use_average_mass = use_avg_mass;
+        constraints.max_nodes = max_placement_nodes;
+        constraints.accepts = [&](double lower_mass, double upper_mass, const auto& alternatives) {
+          auto first = precursor_mass_map.begin(), past = precursor_mass_map.end();
+          if (std::isfinite(lower_mass) && std::isfinite(upper_mass))
+          {
+            const double tolerance = search_param.precursor_mass_tolerance;
+            double low = lower_mass - tolerance, high = upper_mass + tolerance;
+            if (search_param.precursor_tolerance_ppm)
+            {
+              const double fraction = tolerance * 1e-6;
+              low = std::min(lower_mass * (1.0 - fraction), upper_mass * (1.0 - fraction));
+              high = std::max(lower_mass * (1.0 + fraction), upper_mass * (1.0 + fraction));
+            }
+            first = precursor_mass_map.lower_bound(low);
+            past = precursor_mass_map.upper_bound(high);
+          }
+          return std::any_of(first, past, [&](const auto& precursor) {
+            return RNATagCandidateFilter::isCompatible(alternatives, spectrum_graphs[precursor.second.scan_index], selected_ions,
+                                                       precursor.second.charge);
+          });
+        };
+        const auto statistics = ModifiedNASequenceGenerator::applyVariableModificationsConstrained(
+          post_digest_variable_modifications, ns, remaining_variable_mods, all_modified_oligos, constraints, true);
+        placement_nodes += statistics.visited_nodes;
+        placement_pruned += statistics.pruned_branches;
+        placement_emitted += statistics.emitted_variants;
+        placement_fallbacks += statistics.enumeration_fallback;
+        if (placement_audit)
+        {
+          vector<NASequence> reference;
+          ModifiedNASequenceGenerator::applyVariableModifications(post_digest_variable_modifications, ns, remaining_variable_mods, reference, true);
+          placement_reference += reference.size();
+          const auto eligible = [&](const NASequence& candidate) {
+            const double mass = use_avg_mass ? candidate.getAverageWeight() : candidate.getMonoWeight();
+            const double tolerance = search_param.precursor_mass_tolerance * (search_param.precursor_tolerance_ppm ? mass * 1e-6 : 1.0);
+            const auto first = precursor_mass_map.lower_bound(mass - tolerance), past = precursor_mass_map.upper_bound(mass + tolerance);
+            return std::any_of(first, past, [&](const auto& precursor) {
+              return RNATagCandidateFilter::isCompatible(candidate, spectrum_graphs[precursor.second.scan_index], selected_ions,
+                                                         precursor.second.charge);
+            });
+          };
+          vector<NASequence> expected, actual;
+          std::copy_if(reference.begin(), reference.end(), std::back_inserter(expected), eligible);
+          std::copy_if(all_modified_oligos.begin(), all_modified_oligos.end(), std::back_inserter(actual), eligible);
+          std::sort(expected.begin(), expected.end());
+          std::sort(actual.begin(), actual.end());
+          placement_expected += expected.size();
+          vector<NASequence> differences;
+          std::set_difference(expected.begin(), expected.end(), actual.begin(), actual.end(), std::back_inserter(differences));
+          placement_missing += differences.size();
+          differences.clear();
+          std::set_difference(actual.begin(), actual.end(), expected.begin(), expected.end(), std::back_inserter(differences));
+          placement_extra += differences.size();
+          // Audit scores the exhaustive reference through the phase-one filter.
+          all_modified_oligos = std::move(reference);
+        }
+      }
+      else
+      {
+        ModifiedNASequenceGenerator::applyVariableModifications(
         post_digest_variable_modifications, ns, remaining_variable_mods,
         all_modified_oligos, true);
+      }
       OPENMS_LOG_DEBUG << "Oligo: " << ns.toString() << endl;
 
       // group modified oligos by precursor mass - oligos with the same
@@ -2094,6 +2328,17 @@ protected:
         for (const NASequence* seq_ptr : pair.second)
         {
           const NASequence& candidate = *seq_ptr;
+          // A cheap residue/tag check can avoid theoretical-spectrum generation.
+          // Existing modification placement and cleavage-dependent digestion are
+          // deliberately shared with enumeration in this first graph stage.
+          if (graph_filter && std::none_of(low_it, up_it, [&](const auto& precursor) {
+                return RNATagCandidateFilter::isCompatible(candidate, spectrum_graphs[precursor.second.scan_index], selected_ions,
+                                                           precursor.second.charge);
+              }))
+          {
+            ++graph_prefiltered;
+            continue;
+          }
           OPENMS_LOG_DEBUG << "Candidate: " << candidate.toString() << " ("
                            << float(candidate_mass) << " Da)" << endl;
 
@@ -2103,12 +2348,19 @@ protected:
                                                 candidate, precursor_charges,
                                                 base_charge);
 
-          const auto blacklist_mz = getDoubleList_("scoring:blacklist_mz");
           if (!blacklist_mz.empty())
           {
             for (auto& [charge, spectrum] : theo_spectra_by_charge)
             {
-              filterBlacklistedIons_(spectrum, blacklist_mz, getDoubleOption_("scoring:blacklist_tolerance"));
+              filterBlacklistedIons_(spectrum, blacklist_mz, blacklist_tolerance);
+            }
+          }
+          map<Int, RNATagCandidateFilter::PreparedQuery> graph_queries;
+          if (graph_enabled)
+          {
+            for (const auto& [charge, model] : theo_spectra_by_charge)
+            {
+              graph_queries.emplace(charge, RNATagCandidateFilter::prepare(candidate, graph_alphabet, model, selected_ions));
             }
           }
 
@@ -2124,15 +2376,42 @@ protected:
 
             Size scan_index = prec_it->second.scan_index;
             const MSSpectrum& exp_spectrum = spectra[scan_index];
+            RNATagCandidateFilter::Evidence graph_evidence;
+            if (graph_enabled)
+            {
+              graph_evidence = RNATagCandidateFilter::match(graph_queries.at(charge * base_charge), spectrum_graphs[scan_index], exp_spectrum,
+                                                            search_param.fragment_mass_tolerance, search_param.fragment_tolerance_ppm);
+              if (verify_graph_matches)
+              {
+                const auto reference
+                  = RNATagCandidateFilter::matchReference(candidate, spectrum_graphs[scan_index], exp_spectrum, theo_spectrum, selected_ions,
+                                                          search_param.fragment_mass_tolerance, search_param.fragment_tolerance_ppm);
+                ++graph_verified;
+                graph_mismatches += graph_evidence != reference;
+                graph_evidence = reference;
+              }
+              if (graph_evidence.supported)
+              {
+                ++graph_supported;
+              }
+              else if (! graph_evidence.fallback_reason.empty())
+              {
+                ++graph_fallback;
+              }
+              else
+              {
+                ++graph_rejected;
+                if (graph_filter)
+                {
+                  continue;
+                }
+              }
+            }
             vector<PeptideHit::PeakAnnotation> annotations;
             // Compute score using selected method
             double score;
             if (scoring_method == "mvh")
             {
-              Size num_intensity_classes = getIntOption_("scoring:num_intensity_classes");
-              double tic_fraction = getDoubleOption_("scoring:tic_fraction");
-              bool use_mass_accuracy = getFlag_("scoring:use_mass_accuracy");
-              bool single_peak_credit = getStringOption_("scoring:single_peak_credit") == "true";
               score = MetaboliteSpectralMatching::computeMVHScore(
                 search_param.fragment_mass_tolerance,
                 search_param.fragment_tolerance_ppm, exp_spectrum, theo_spectrum,
@@ -2140,7 +2419,6 @@ protected:
             }
             else // hyperscore
             {
-              bool use_mass_accuracy = getFlag_("scoring:use_mass_accuracy");
               score = MetaboliteSpectralMatching::computeHyperScore(
                 search_param.fragment_mass_tolerance,
                 search_param.fragment_tolerance_ppm, exp_spectrum, theo_spectrum,
@@ -2166,7 +2444,6 @@ protected:
             }
 
             // Check fragment coverage if required
-            double min_coverage = getDoubleOption_("report:require_coverage");
             if (min_coverage > 0.0)
             {
               double actual_coverage = calculateFragmentCoverage_(candidate, annotations);
@@ -2179,7 +2456,6 @@ protected:
               }
             }
 
-#pragma omp atomic
             ++hit_counter;
 
             OPENMS_LOG_DEBUG << "Score: " << score << endl;
@@ -2196,6 +2472,8 @@ protected:
                   (prec_it->first - candidate_mass) / candidate_mass * 1.0e6;
                 new_hit.annotations = annotations;
                 new_hit.precursor_ref = &(prec_it->second);
+                new_hit.graph_evaluated = graph_enabled;
+                new_hit.graph_evidence = graph_evidence;
                 retainTopHit_(scan_hits, score, std::move(new_hit), report_top_hits);
               }
             }
@@ -2205,6 +2483,36 @@ protected:
     }
     progresslogger.endProgress();
 
+    if (verify_graph_matches)
+    {
+      OPENMS_LOG_INFO << "RNA graph verified pairs: " << graph_verified << "; mismatches: " << graph_mismatches << '\n';
+      if (graph_mismatches)
+      {
+        OPENMS_LOG_ERROR << "Prepared graph matching disagrees with the reference matcher.\n";
+        return UNEXPECTED_RESULT;
+      }
+    }
+    if (graph_generate)
+    {
+      OPENMS_LOG_INFO << "RNA placement nodes: " << placement_nodes << "; pruned branches: " << placement_pruned
+                      << "; emitted variants: " << placement_emitted << "; enumeration fallback oligos: " << placement_fallbacks << '\n';
+      if (placement_audit)
+      {
+        OPENMS_LOG_INFO << "RNA placement audit reference variants: " << placement_reference << "; eligible variants: " << placement_expected
+                        << "; missing variants: " << placement_missing << "; extra variants: " << placement_extra << '\n';
+        if (placement_missing || placement_extra)
+        {
+          OPENMS_LOG_ERROR << "Constrained modification placement disagrees with exhaustive graph filtering.\n";
+          return UNEXPECTED_RESULT;
+        }
+      }
+    }
+    if (graph_enabled)
+    {
+      OPENMS_LOG_INFO << "RNA graph prefiltered variants: " << graph_prefiltered << "; supported pairs: " << graph_supported
+                      << "; enumeration fallback pairs: " << graph_fallback << "; rejected pairs after theoretical validation: " << graph_rejected
+                      << '\n';
+    }
     OPENMS_LOG_INFO << "Undigested nucleic acids: " << n_nucleic_acids
                     << "\nOligonucleotides: "
                     << id_data.getIdentifiedOligos().size()
