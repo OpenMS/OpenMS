@@ -1749,6 +1749,16 @@ namespace OpenMS
       std::string protein = attributeAsString_(attributes, "protein");
       PeptideEvidence pe;
       pe.setProteinAccession(protein);
+      // the residues around the peptide in this protein (used e.g. to tell whether the peptide is at a protein terminus)
+      std::string prev_aa, next_aa;
+      if (optionalAttributeAsString_(prev_aa, attributes, "peptide_prev_aa") && !prev_aa.empty())
+      {
+        pe.setAABefore(prev_aa[0]);
+      }
+      if (optionalAttributeAsString_(next_aa, attributes, "peptide_next_aa") && !next_aa.empty())
+      {
+        pe.setAAAfter(next_aa[0]);
+      }
 
       ProteinHit hit;
       hit.setAccession(protein);

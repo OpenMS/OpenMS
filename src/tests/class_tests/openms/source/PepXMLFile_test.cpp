@@ -853,21 +853,24 @@ START_SECTION(([EXTRA] store and load - declarations and lookup of terminal, pro
   proteins[0].setIdentifier("Mascot_run");
   proteins[0].setSearchEngine("Mascot");
 
-  // hits in rank order, one entry per peptide identification, with the residue after the peptide (']': protein C-terminus)
+  // hits in rank order, one entry per peptide identification, with the residue after the peptide in each protein it
+  // maps to (']': protein C-terminus; further proteins are written as "alternative_protein")
   AASequence protein_c_term = AASequence::fromString("PEPK");
   protein_c_term.setCTerminalModification("Amidated (Protein C-term)");
   const char at_end = PeptideEvidence::C_TERMINAL_AA;
-  const vector<vector<std::pair<AASequence, char>>> hits_per_id = {
-    {{AASequence::fromString(".(Ammonia-loss)CPEPK"), 'A'}},  // same mass difference as 'Gln->pyro-Glu (N-term Q)'
-    {{AASequence::fromString(".(Gln->pyro-Glu)QPEPK"), 'A'}},
-    {{AASequence::fromString(".(Met-loss)MPEPK"), 'A'}},      // 'Met-loss (Protein N-term M)'
-    {{AASequence::fromString("PEPTIDEK"), at_end}, {AASequence::fromString("PEPM(Oxidation)IDEK"), 'A'}}, // modification of a lower-ranked hit only
-    {{protein_c_term, at_end}},
-    {{AASequence::fromString("PEPR.(Amidated)"), 'A'}},       // 'Amidated (C-term)': same mass as 'Amidated (Protein C-term)'
-    {{AASequence::fromString("AC(Methylthio)DEK"), 'A'}}};
+  const vector<vector<std::pair<AASequence, std::string>>> hits_per_id = {
+    {{AASequence::fromString(".(Ammonia-loss)CPEPK"), "A"}},  // same mass difference as 'Gln->pyro-Glu (N-term Q)'
+    {{AASequence::fromString(".(Gln->pyro-Glu)QPEPK"), "A"}},
+    {{AASequence::fromString(".(Met-loss)MPEPK"), "A"}},      // 'Met-loss (Protein N-term M)'
+    {{AASequence::fromString("PEPTIDEK"), std::string(1, at_end)}, {AASequence::fromString("PEPM(Oxidation)IDEK"), "A"}}, // modification of a lower-ranked hit only
+    {{protein_c_term, std::string(1, at_end)}},
+    {{AASequence::fromString("PEPR.(Amidated)"), "A"}},       // 'Amidated (C-term)': same mass as 'Amidated (Protein C-term)'
+    {{AASequence::fromString("SAMPLEK"), std::string("A") + at_end}}, // at the protein C-terminus in the alternative protein only
+    {{AASequence::fromString("SAMPLER"), "AG"}},              // inside both proteins
+    {{AASequence::fromString("AC(Methylthio)DEK"), "A"}}};
   PeptideIdentificationList peptides(hits_per_id.size());
   vector<AASequence> sequences; // all hits, in the order in which they are written
-  vector<char> next_aa;         // their residues after the peptide
+  vector<std::string> next_aa;  // their residues after the peptide
   for (Size i = 0; i < hits_per_id.size(); ++i)
   {
     peptides[i].setIdentifier("Mascot_run");
@@ -878,11 +881,14 @@ START_SECTION(([EXTRA] store and load - declarations and lookup of terminal, pro
     for (Size rank = 0; rank < hits_per_id[i].size(); ++rank)
     {
       PeptideHit hit(35.0 - rank, rank, 2, hits_per_id[i][rank].first);
-      PeptideEvidence evidence;
-      evidence.setProteinAccession("PROT1");
-      evidence.setAABefore('K');
-      evidence.setAAAfter(hits_per_id[i][rank].second);
-      hit.addPeptideEvidence(evidence);
+      for (Size p = 0; p < hits_per_id[i][rank].second.size(); ++p)
+      {
+        PeptideEvidence evidence;
+        evidence.setProteinAccession("PROT" + StringUtils::toStr(p + 1));
+        evidence.setAABefore('K');
+        evidence.setAAAfter(hits_per_id[i][rank].second[p]);
+        hit.addPeptideEvidence(evidence);
+      }
       hit.setMetaValue("MS:1001172", 0.01); // Mascot:expectation value
       peptides[i].insertHit(hit);
       sequences.push_back(hits_per_id[i][rank].first);
@@ -970,7 +976,7 @@ START_SECTION(([EXTRA] store and load - declarations and lookup of terminal, pro
 
   // fixed terminal modifications (as declared by other software): one of a particular N-terminal residue is only put
   // on peptides that start with it, and a protein C-terminal one on the C-terminus of the hits at the protein
-  // C-terminus that have no C-terminal modification (it used to be ignored):
+  // C-terminus in one of their proteins that have no C-terminal modification (it used to be ignored):
   {
     std::string fixed = content;
     setFixed(fixed, "Gln->pyro-Glu (N-term Q)");
@@ -990,9 +996,9 @@ START_SECTION(([EXTRA] store and load - declarations and lookup of terminal, pro
       {
         TEST_EQUAL(hits_new[i].getNTerminalModification()->getFullId(), sequences[i].getNTerminalModification()->getFullId())
       }
-      // C-terminus as written, plus 'Amidated (Protein C-term)' at the protein C-terminus (PEPTIDEK):
+      // C-terminus as written, plus 'Amidated (Protein C-term)' at a protein C-terminus (PEPTIDEK, SAMPLEK):
       const std::string expected_c_term = sequences[i].hasCTerminalModification() ? sequences[i].getCTerminalModification()->getFullId() :
-                                          (next_aa[i] == at_end ? "Amidated (Protein C-term)" : "");
+                                          (next_aa[i].find(at_end) != std::string::npos ? "Amidated (Protein C-term)" : "");
       TEST_EQUAL(hits_new[i].hasCTerminalModification() ? hits_new[i].getCTerminalModification()->getFullId() : "", expected_c_term)
     }
   }
