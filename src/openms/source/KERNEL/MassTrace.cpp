@@ -68,8 +68,17 @@ namespace OpenMS
 
     double MassTrace::computeSmoothedPeakArea() const
     {
+      if (smoothed_intensities_.size() != trace_peaks_.size())
+      {
+        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "MassTrace was not smoothed before! Aborting...", StringUtils::toStr(smoothed_intensities_.size()));
+      }
+
       // sum all smoothed intensities in MassTrace which are non-negative
       double peak_area(0.0);
+      if (trace_peaks_.empty())
+      {
+        return peak_area;
+      }
 
       double int_before = smoothed_intensities_[0];
       double rt_before = trace_peaks_.begin()->getRT();
@@ -142,7 +151,10 @@ namespace OpenMS
       {
         return 0;
       }
-      OPENMS_PRECONDITION(fwhm_end_idx_ < smoothed_intensities_.size(), "MassTrace was not smoothed before")
+      if (smoothed_intensities_.size() != trace_peaks_.size())
+      {
+        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "MassTrace was not smoothed before! Aborting...", StringUtils::toStr(smoothed_intensities_.size()));
+      }
 
       // note that fwhm_end_idx_ is inclusive
       const Size count = fwhm_end_idx_ - fwhm_start_idx_ + 1;

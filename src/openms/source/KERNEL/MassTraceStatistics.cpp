@@ -11,6 +11,7 @@
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/Macros.h>
 #include <OpenMS/DATASTRUCTURES/StringUtils.h>
+#include <OpenMS/MATH/StatisticFunctions.h>
 
 #include <algorithm>
 #include <cmath>
@@ -21,12 +22,15 @@ namespace OpenMS::MassTraceStatistics
 {
   namespace
   {
-    /// Median of @p values (which get sorted). @pre values is not empty
-    double medianOf(std::vector<double>& values)
+    /// @throw Exception::InvalidValue unless there is one smoothed intensity per peak
+    void checkSmoothedSize(PeakRange peaks, IntensityRange smoothed, const char* function)
     {
-      std::sort(values.begin(), values.end());
-      const Size mid = values.size() / 2;
-      return (values.size() % 2 == 0) ? (values[mid - 1] + values[mid]) / 2 : values[mid];
+      if (smoothed.size() != peaks.size())
+      {
+        throw Exception::InvalidValue(__FILE__, __LINE__, function,
+          "Number of smoothed intensities (" + StringUtils::toStr(smoothed.size()) + ") deviates from the number of peaks!",
+          StringUtils::toStr(peaks.size()));
+      }
     }
 
     /// Index of the first maximum of intensity(0), ..., intensity(size - 1). @pre size > 0
@@ -213,7 +217,7 @@ namespace OpenMS::MassTraceStatistics
       mzs.push_back(peak.getMZ());
     }
 
-    return medianOf(mzs);
+    return Math::median(mzs.begin(), mzs.end());
   }
 
   double weightedMeanMZ(PeakRange peaks)
@@ -325,7 +329,7 @@ namespace OpenMS::MassTraceStatistics
     {
       throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "MassTrace was not smoothed before! Aborting...", StringUtils::toStr(smoothed.size()));
     }
-    OPENMS_PRECONDITION(smoothed.size() == peaks.size(), "Number of smoothed intensities deviates from the number of peaks")
+    checkSmoothedSize(peaks, smoothed, OPENMS_PRETTY_FUNCTION);
 
     // support single peak traces
     if (peaks.size() == 1)
@@ -358,7 +362,7 @@ namespace OpenMS::MassTraceStatistics
     {
       throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "MassTrace was not smoothed before! Aborting...", StringUtils::toStr(smoothed.size()));
     }
-    OPENMS_PRECONDITION(smoothed.size() == peaks.size(), "Number of smoothed intensities deviates from the number of peaks")
+    checkSmoothedSize(peaks, smoothed, OPENMS_PRETTY_FUNCTION);
 
     // Handle single-peak traces: the centroid RT is the RT of the only peak
     if (peaks.size() == 1)
@@ -405,7 +409,7 @@ namespace OpenMS::MassTraceStatistics
       rts.push_back(peak.getRT());
     }
 
-    return medianOf(rts);
+    return Math::median(rts.begin(), rts.end());
   }
 
   Size apexIndex(PeakRange peaks)
@@ -429,7 +433,7 @@ namespace OpenMS::MassTraceStatistics
     {
       throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "MassTrace appears to be empty! Aborting...", StringUtils::toStr(peaks.size()));
     }
-    OPENMS_PRECONDITION(smoothed.size() == peaks.size(), "Number of smoothed intensities deviates from the number of peaks")
+    checkSmoothedSize(peaks, smoothed, OPENMS_PRETTY_FUNCTION);
 
     return indexOfMax(peaks.size(), [&smoothed](Size i) { return smoothed[i]; });
   }
@@ -484,7 +488,10 @@ namespace OpenMS::MassTraceStatistics
 
   double medianIntensity(PeakRange peaks)
   {
-    OPENMS_PRECONDITION(!peaks.empty(), "Median intensity of an empty mass trace is undefined")
+    if (peaks.empty())
+    {
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "MassTrace is empty... median intensity undefined!", StringUtils::toStr(peaks.size()));
+    }
 
     std::vector<double> ints;
     ints.reserve(peaks.size());
@@ -493,7 +500,7 @@ namespace OpenMS::MassTraceStatistics
       ints.push_back(peak.getIntensity());
     }
 
-    return medianOf(ints);
+    return Math::median(ints.begin(), ints.end());
   }
 
   double peakArea(PeakRange peaks)
@@ -503,7 +510,7 @@ namespace OpenMS::MassTraceStatistics
 
   double peakArea(PeakRange peaks, IntensityRange smoothed)
   {
-    OPENMS_PRECONDITION(smoothed.size() == peaks.size(), "Number of smoothed intensities deviates from the number of peaks")
+    checkSmoothedSize(peaks, smoothed, OPENMS_PRETTY_FUNCTION);
     return trapezoidArea(peaks, [&smoothed](Size i) { return smoothed[i]; });
   }
 } // namespace OpenMS::MassTraceStatistics

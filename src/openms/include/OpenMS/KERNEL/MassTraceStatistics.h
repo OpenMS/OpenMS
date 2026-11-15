@@ -33,7 +33,7 @@ namespace OpenMS
     compute*() members and caches the results.
 
     Functions taking @p smoothed expect one smoothed intensity per peak, i.e.
-    <tt>smoothed.size() == peaks.size()</tt>.
+    <tt>smoothed.size() == peaks.size()</tt>, and throw Exception::InvalidValue otherwise.
 
     @ingroup Kernel
   */
@@ -83,11 +83,11 @@ namespace OpenMS
     OPENMS_DLLAPI double weightedMeanRT(PeakRange peaks);
 
     /// Mean of the RTs, weighted by the positive @p smoothed intensities.
-    /// @throw Exception::InvalidValue if @p smoothed is empty, or @p peaks holds several peaks and no smoothed intensity is positive
+    /// @throw Exception::InvalidValue if @p smoothed is empty or of a different size than @p peaks, or @p peaks holds several peaks and no smoothed intensity is positive
     OPENMS_DLLAPI double smoothedWeightedMeanRT(PeakRange peaks, IntensityRange smoothed);
 
     /// RT of the peak with the highest @p smoothed intensity.
-    /// @throw Exception::InvalidValue if @p smoothed is empty, or @p peaks holds several peaks and no smoothed intensity is positive
+    /// @throw Exception::InvalidValue if @p smoothed is empty or of a different size than @p peaks, or @p peaks holds several peaks and no smoothed intensity is positive
     OPENMS_DLLAPI double smoothedMaxRT(PeakRange peaks, IntensityRange smoothed);
 
     /// Median of the RTs.
@@ -104,7 +104,7 @@ namespace OpenMS
     OPENMS_DLLAPI Size apexIndex(PeakRange peaks);
 
     /// Index of the peak with the highest @p smoothed intensity (the first one, if several share the maximum).
-    /// @throw Exception::InvalidValue if @p smoothed or @p peaks is empty
+    /// @throw Exception::InvalidValue if @p smoothed or @p peaks is empty, or their sizes differ
     OPENMS_DLLAPI Size apexIndex(PeakRange peaks, IntensityRange smoothed);
 
     /**
@@ -120,7 +120,7 @@ namespace OpenMS
     OPENMS_DLLAPI FWHM estimateFWHM(PeakRange peaks);
 
     /// As estimateFWHM(PeakRange), but based on the @p smoothed intensities.
-    /// @throw Exception::InvalidValue if @p smoothed or @p peaks is empty
+    /// @throw Exception::InvalidValue if @p smoothed or @p peaks is empty, or their sizes differ
     OPENMS_DLLAPI FWHM estimateFWHM(PeakRange peaks, IntensityRange smoothed);
     ///@}
 
@@ -138,13 +138,14 @@ namespace OpenMS
     OPENMS_DLLAPI double maxIntensity(IntensityRange intensities);
 
     /// Median of the peak intensities.
-    /// @pre @p peaks is not empty
+    /// @throw Exception::InvalidValue if @p peaks is empty
     OPENMS_DLLAPI double medianIntensity(PeakRange peaks);
 
     /// Area under the peaks over RT (trapezoidal rule); 0 for less than two peaks
     OPENMS_DLLAPI double peakArea(PeakRange peaks);
 
-    /// Area under the @p smoothed intensities over the RTs of @p peaks (trapezoidal rule); 0 for less than two peaks
+    /// Area under the @p smoothed intensities over the RTs of @p peaks (trapezoidal rule); 0 for less than two peaks.
+    /// @throw Exception::InvalidValue if the sizes of @p smoothed and @p peaks differ
     OPENMS_DLLAPI double peakArea(PeakRange peaks, IntensityRange smoothed);
     ///@}
   } // namespace MassTraceStatistics

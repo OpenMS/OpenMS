@@ -112,6 +112,7 @@ START_SECTION((double smoothedWeightedMeanRT(PeakRange peaks, IntensityRange smo
   TEST_REAL_SIMILAR(MassTraceStatistics::smoothedWeightedMeanRT(one_peak, one_smoothed), 3.0)
   TEST_EXCEPTION(Exception::InvalidValue, MassTraceStatistics::smoothedWeightedMeanRT(peaks, no_smoothed))
   TEST_EXCEPTION(Exception::InvalidValue, MassTraceStatistics::smoothedWeightedMeanRT(peaks, vector<double>(5, 0.0)))
+  TEST_EXCEPTION(Exception::InvalidValue, MassTraceStatistics::smoothedWeightedMeanRT(center, smoothed))
 }
 END_SECTION
 
@@ -122,6 +123,7 @@ START_SECTION((double smoothedMaxRT(PeakRange peaks, IntensityRange smoothed)))
   TEST_REAL_SIMILAR(MassTraceStatistics::smoothedMaxRT(one_peak, one_smoothed), 3.0)
   TEST_EXCEPTION(Exception::InvalidValue, MassTraceStatistics::smoothedMaxRT(peaks, no_smoothed))
   TEST_EXCEPTION(Exception::InvalidValue, MassTraceStatistics::smoothedMaxRT(peaks, vector<double>(5, 0.0)))
+  TEST_EXCEPTION(Exception::InvalidValue, MassTraceStatistics::smoothedMaxRT(center, smoothed))
 }
 END_SECTION
 
@@ -151,6 +153,8 @@ START_SECTION((Size apexIndex(PeakRange peaks, IntensityRange smoothed)))
   TEST_EQUAL(MassTraceStatistics::apexIndex(MassTraceStatistics::PeakRange(peaks).last(2), MassTraceStatistics::IntensityRange(smoothed).last(2)), 0)
   TEST_EXCEPTION(Exception::InvalidValue, MassTraceStatistics::apexIndex(peaks, no_smoothed))
   TEST_EXCEPTION(Exception::InvalidValue, MassTraceStatistics::apexIndex(no_peaks, smoothed))
+  TEST_EXCEPTION(Exception::InvalidValue, MassTraceStatistics::apexIndex(center, smoothed))
+  TEST_EXCEPTION(Exception::InvalidValue, MassTraceStatistics::apexIndex(peaks, center_smoothed))
 }
 END_SECTION
 
@@ -216,6 +220,9 @@ START_SECTION((FWHM estimateFWHM(PeakRange peaks, IntensityRange smoothed)))
 
   TEST_EXCEPTION(Exception::InvalidValue, MassTraceStatistics::estimateFWHM(peaks, no_smoothed))
   TEST_EXCEPTION(Exception::InvalidValue, MassTraceStatistics::estimateFWHM(no_peaks, smoothed))
+  // one smoothed intensity per peak is required
+  TEST_EXCEPTION(Exception::InvalidValue, MassTraceStatistics::estimateFWHM(center, smoothed))
+  TEST_EXCEPTION(Exception::InvalidValue, MassTraceStatistics::estimateFWHM(peaks, center_smoothed))
 
   // same result as the caching member of MassTrace
   MassTrace mt(peaks);
@@ -255,6 +262,8 @@ START_SECTION((double medianIntensity(PeakRange peaks)))
   TEST_REAL_SIMILAR(MassTraceStatistics::medianIntensity(peaks), 10.0)
   TEST_REAL_SIMILAR(MassTraceStatistics::medianIntensity(MassTraceStatistics::PeakRange(peaks).first(4)), 10.0)
   TEST_REAL_SIMILAR(MassTraceStatistics::medianIntensity(MassTraceStatistics::PeakRange(peaks).first(2)), 5.0)
+  TEST_REAL_SIMILAR(MassTraceStatistics::medianIntensity(one_peak), 20.0)
+  TEST_EXCEPTION(Exception::InvalidValue, MassTraceStatistics::medianIntensity(no_peaks))
 }
 END_SECTION
 
@@ -279,6 +288,8 @@ START_SECTION((double peakArea(PeakRange peaks, IntensityRange smoothed)))
   TEST_REAL_SIMILAR(MassTraceStatistics::peakArea(center, center_smoothed), 26.0)
   TEST_REAL_SIMILAR(MassTraceStatistics::peakArea(one_peak, one_smoothed), 0.0)
   TEST_REAL_SIMILAR(MassTraceStatistics::peakArea(no_peaks, no_smoothed), 0.0)
+  TEST_EXCEPTION(Exception::InvalidValue, MassTraceStatistics::peakArea(peaks, no_smoothed))
+  TEST_EXCEPTION(Exception::InvalidValue, MassTraceStatistics::peakArea(center, smoothed))
 }
 END_SECTION
 

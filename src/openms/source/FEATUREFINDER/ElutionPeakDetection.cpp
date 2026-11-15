@@ -498,7 +498,7 @@ namespace OpenMS
         const std::span<const MassTrace::PeakType> sub_peaks = peaks.subspan(first_idx, last_idx - first_idx);
         const std::span<const double> sub_smoothed = smoothed.subspan(first_idx, last_idx - first_idx);
 
-        // check filter criteria (on the peaks of the sub-trace, so that no mass trace is created for a rejected one)
+        // check filter criteria before creating a mass trace for the sub-trace
         bool pw_ok = true;
         bool snr_ok = true;
 
@@ -516,6 +516,7 @@ namespace OpenMS
 
         // *********************************************************************
         // Step 3.3: check mass trace signal to noise filter criteria
+        // (note: this tests the apex SNR of the whole trace 'mt', not of the sub-trace)
         // *********************************************************************
         if (mt_snr_filtering_)
         {

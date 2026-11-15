@@ -492,6 +492,9 @@ START_SECTION((double getIntensity(bool smoothed, MT_QUANTMETHOD method) const))
   TEST_REAL_SIMILAR(raw_mt.getIntensity(false, MassTrace::MT_QUANT_HEIGHT), 33329535.0);
   TEST_EQUAL(raw_mt.getQuantMethod(), MassTrace::MT_QUANT_AREA);
 
+  // median of an empty mass trace
+  TEST_EXCEPTION(Exception::InvalidValue, MassTrace().getIntensity(false, MassTrace::MT_QUANT_MEDIAN));
+
   raw_mt.setQuantMethod(MassTrace::MT_QUANT_MEDIAN);
   TEST_REAL_SIMILAR(raw_mt.getIntensity(false, MassTrace::MT_QUANT_HEIGHT), 33329535.0);
   TEST_REAL_SIMILAR(raw_mt.getIntensity(false), raw_mt.getIntensity(false, MassTrace::MT_QUANT_MEDIAN));
@@ -529,6 +532,10 @@ START_SECTION((void clearSmoothedIntensities()))
   TEST_EQUAL(tmp_mt.getFWHMborders().second, fwhm_borders.second);
   TEST_REAL_SIMILAR(tmp_mt.getIntensity(false), raw_area);
   TEST_EXCEPTION(Exception::InvalidValue, tmp_mt.findMaxByIntPeak(true));
+  // reading the smoothed intensities that were cleared throws (instead of reading out of bounds)
+  TEST_EXCEPTION(Exception::InvalidValue, tmp_mt.getIntensity(true));
+  TEST_EXCEPTION(Exception::InvalidValue, tmp_mt.computeFwhmAreaSmooth());
+  TEST_EXCEPTION(Exception::InvalidValue, tmp_mt.computeSmoothedPeakArea());
 
   // smoothed intensities can be set again
   tmp_mt.setSmoothedIntensities(smoothed_ints);
@@ -598,6 +605,11 @@ START_SECTION((double computeSmoothedPeakArea() const))
 {
   double peak_area = test_mt.computeSmoothedPeakArea();
   TEST_REAL_SIMILAR(peak_area, 70303689.0475001)
+
+  // not smoothed
+  TEST_EXCEPTION(Exception::InvalidValue, MassTrace(peak_vec).computeSmoothedPeakArea())
+  // empty mass trace
+  TEST_REAL_SIMILAR(MassTrace().computeSmoothedPeakArea(), 0.0)
 }
 END_SECTION
 

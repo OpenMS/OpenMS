@@ -285,6 +285,7 @@ public:
     ///@{
 
     /// Sum all non-negative (smoothed!) intensities in the mass trace
+    /// @throw Exception::InvalidValue if the mass trace has no smoothed intensities (see setSmoothedIntensities())
     double computeSmoothedPeakArea() const;
 
     /// Compute area of peaks in the mass trace
@@ -307,7 +308,9 @@ public:
     /// check if area or median is used for quantification
     MT_QUANTMETHOD getQuantMethod() const;
 
-    /// Compute chromatographic peak area within the FWHM range.
+    /// Compute chromatographic peak area within the FWHM range (0 if no FWHM was estimated, see estimateFWHM()).
+    /// computeFwhmAreaSmooth() uses the smoothed intensities and throws Exception::InvalidValue if the mass trace has none
+    /// (but a FWHM range).
     double computeFwhmAreaSmooth() const;
     double computeFwhmArea() const;
     // double computeFwhmAreaSmoothRobust() const;
