@@ -1096,22 +1096,19 @@ namespace OpenMS
   }
 
   void FeatureFinderAlgorithmMetaboIdent::setMSData(const PeakMap& m)
-  { 
-    ms_data_ = m; 
-    
-    vector<MSSpectrum>& specs = ms_data_.getSpectra();
-
-    // keep only MS1
-    specs.erase(
-      std::remove_if(specs.begin(), specs.end(),
-        [](const MSSpectrum & s) { return s.getMSLevel() != 1; }),
-      specs.end());
+  {
+    ms_data_ = m;
+    prepareMSData_();
   }
 
   void FeatureFinderAlgorithmMetaboIdent::setMSData(PeakMap&& m)
   {
     ms_data_ = std::move(m);
+    prepareMSData_();
+  }
 
+  void FeatureFinderAlgorithmMetaboIdent::prepareMSData_()
+  {
     vector<MSSpectrum>& specs = ms_data_.getSpectra();
 
     // keep only MS1
@@ -1119,6 +1116,14 @@ namespace OpenMS
       std::remove_if(specs.begin(), specs.end(),
         [](const MSSpectrum & s) { return s.getMSLevel() != 1; }),
       specs.end());
+
+    // The chromatograms are extracted in the order of the spectra, and the peak picking requires them sorted by RT.
+    // Spectra can be out of order, e.g. in Waters files that store a second MS1 function (lock mass) after the first.
+    if (!ms_data_.isSorted(true))
+    {
+      OPENMS_LOG_INFO << "Sorting the MS1 spectra by retention time (and their peaks by m/z)." << endl;
+      ms_data_.sortSpectra(true);
+    }
   }
 
 }

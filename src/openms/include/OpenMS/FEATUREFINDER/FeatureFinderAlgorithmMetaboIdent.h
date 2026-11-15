@@ -254,6 +254,9 @@ protected:
   /// too much
   void warnIfPeakWidthTooLarge_(const FeatureMap& features) const;
 
+  /// Keep only the MS1 spectra of ms_data_, sorted by RT (and their peaks by m/z)
+  void prepareMSData_();
+
   /// Core processing logic for a single (non-FAIMS or single FAIMS group) dataset
   /// Called by run() either directly or for each FAIMS CV group
   void runSingleGroup_(const std::vector<FeatureFinderMetaboIdentCompound>& metaboIdentTable,

@@ -7737,6 +7737,18 @@ add_test("TOPP_FeatureFinderMetaboIdent_8_out1" ${CMAKE_COMMAND}
   "-DEXPECTED=<featureList count=\"2\">"
   -P ${DATA_DIR_TOPP}/check_file_contains.cmake)
 set_tests_properties("TOPP_FeatureFinderMetaboIdent_8_out1" PROPERTIES DEPENDS "TOPP_FeatureFinderMetaboIdent_8")
+# Spectra out of RT order (as in Waters files that store a second MS1 function after the first): the tool sorts them
+# instead of failing in the chromatogram peak picking ("Chromatogram must be sorted by position")
+add_test(NAME "TOPP_FeatureFinderMetaboIdent_9" COMMAND ${CMAKE_COMMAND}
+  "-DCOMMAND=${TOPP_BIN_PATH}/FeatureFinderMetaboIdent;-test;-in;${DATA_DIR_TOPP}/FeatureFinderMetaboIdent_9_input.mzML;-id;${DATA_DIR_TOPP}/FeatureFinderMetaboIdent_9_input.tsv;-out;${TESTS_TEMP_DIR}/FeatureFinderMetaboIdent_9_output.tmp.featureXML;-extract:mz_window;5;-extract:rt_window;20;-detect:peak_width;3"
+  -DEXPECTED_CODE=0
+  "-DEXPECTED_OUTPUT_REGEX=Sorting the MS1 spectra by retention time"
+  -P ${DATA_DIR_TOPP}/check_exit_code.cmake)
+add_test("TOPP_FeatureFinderMetaboIdent_9_out1" ${CMAKE_COMMAND}
+  -DINPUT_FILE=${TESTS_TEMP_DIR}/FeatureFinderMetaboIdent_9_output.tmp.featureXML
+  "-DEXPECTED=<featureList count=\"2\">;-O-methylcytidine\";name=\"label\" value=\"adenosine\""
+  -P ${DATA_DIR_TOPP}/check_file_contains.cmake)
+set_tests_properties("TOPP_FeatureFinderMetaboIdent_9_out1" PROPERTIES DEPENDS "TOPP_FeatureFinderMetaboIdent_9")
 
 # MzMLSplitter test:
 # specify number of parts directly:
