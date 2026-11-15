@@ -444,6 +444,17 @@ START_SECTION(([EXTRA] mz_scoring_trace_uncertainty and mz_scoring_min_ppm))
   fm = assemble(traces, min_ppm);
   TEST_EQUAL(fm.size(), 1)
   TEST_EQUAL(fm[0].getCharge(), 1)
+
+  // The standard error divides by the effective number of peaks, (sum w)^2 / sum w^2 (about 10.6
+  // for these Gaussian traces), not by the number of peaks (21). At 11 mDa off and without the
+  // minimum, the tolerance (3 sigma) is 13.5 mDa with the effective number and 9.9 mDa with 21.
+  traces[1] = makeGaussianTrace(300.1 + expected_spacing + 0.011, 100.0, 2.0e4, 3.0, "iso1", 0.01);
+  Param no_min;
+  no_min.setValue("mz_scoring_min_ppm", 0.0);
+  no_min.setValue("isotope_filtering_model", "none");
+  fm = assemble(traces, no_min);
+  TEST_EQUAL(fm.size(), 1)
+  TEST_EQUAL(fm[0].getCharge(), 1)
 }
 END_SECTION
 
