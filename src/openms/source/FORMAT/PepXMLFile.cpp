@@ -51,6 +51,30 @@ namespace OpenMS
       const char origin = mod.getOrigin();
       return origin == 'X' || origin == '\0' || residue == '?' || origin == residue;
     }
+
+    /// Is a peptide with @p evidences at a protein N-terminus (@p n_term) or C-terminus? 1: yes (according to some
+    /// evidence), 0: no (all evidences give the neighbouring residue), -1: unknown
+    int atProteinTerminus(const std::vector<PeptideEvidence>& evidences, bool n_term)
+    {
+      bool unknown = evidences.empty();
+      for (const PeptideEvidence& pe : evidences)
+      {
+        const char aa = n_term ? pe.getAABefore() : pe.getAAAfter();
+        if (aa == '-' || aa == (n_term ? PeptideEvidence::N_TERMINAL_AA : PeptideEvidence::C_TERMINAL_AA))
+        {
+          return 1;
+        }
+        unknown = unknown || aa == PeptideEvidence::UNKNOWN_AA;
+      }
+      return unknown ? -1 : 0;
+    }
+
+    /// Is @p mod a protein-terminal modification?
+    bool isProteinTerminal(const ResidueModification& mod)
+    {
+      return mod.getTermSpecificity() == ResidueModification::PROTEIN_N_TERM ||
+             mod.getTermSpecificity() == ResidueModification::PROTEIN_C_TERM;
+    }
   }
 
   std::string PepXMLFile::AminoAcidModification::toUnimodLikeString() const
@@ -1670,22 +1694,26 @@ namespace OpenMS
         const std::string terminus = n_term ? "n" : "c";
         const char residue = current_sequence_.empty() ? '?' : (n_term ? current_sequence_.front() : current_sequence_.back());
 
-        // look up the modification in the search_summary by mass (variable ones first); it has to fit the terminal residue
-        const AminoAcidModification* header_mod = nullptr;
+        // look up the modification in the search_summary by mass (variable ones first); it has to fit the terminal
+        // residue. Of a peptide-terminal and a protein-terminal declaration with the same mass (e.g. 'Amidated (C-term)'
+        // and 'Amidated (Protein C-term)'), the one that fits the protein terminus evidence of the hit is taken.
+        const bool protein_terminus = (atProteinTerminus(peptide_hit_.getPeptideEvidences(), n_term) == 1);
+        const AminoAcidModification* header_mod = nullptr; // first match, replaced by the first one of the right kind
+        bool right_kind = false;
         for (const vector<AminoAcidModification>* header_mods : {&variable_modifications_, &fixed_modifications_})
         {
           for (const AminoAcidModification& m : *header_mods)
           {
-            if ((fabs(terminus_mass - m.getMass()) < mod_tol_) && m.getTerminus() == terminus &&
-                fitsTerminalResidue(*m.getRegisteredMod(), residue))
+            if (right_kind || (fabs(terminus_mass - m.getMass()) >= mod_tol_) || m.getTerminus() != terminus ||
+                !fitsTerminalResidue(*m.getRegisteredMod(), residue))
+            {
+              continue;
+            }
+            right_kind = (isProteinTerminal(*m.getRegisteredMod()) == protein_terminus);
+            if (header_mod == nullptr || right_kind)
             {
               header_mod = &m;
-              break; // only one modification should match, so we can stop the loop here
             }
-          }
-          if (header_mod != nullptr)
-          {
-            break;
           }
         }
         if (header_mod != nullptr)
@@ -2167,9 +2195,8 @@ namespace OpenMS
       //TODO one might argue that mods from XML attributes are better specified and should be preferred
 
       // Modifications explicitly annotated at the current search_hit take preference over
-      // implicit fixed mods
-      //TODO use peptide_hit_.getPeptideEvidences().back().getAAAfter()/Before() to see if Protein term is applicable at all
-      // But: Leave it out for now since I bet there is software out there, not adhering to the specification
+      // implicit fixed mods. Explicitly annotated protein-terminal modifications are kept whatever the evidences
+      // say about the protein terminus, since some software does not fill "peptide_prev_aa"/"peptide_next_aa" correctly.
       for (const auto& mod : current_modifications_)
       {
         if (mod.first->getTermSpecificity() == ResidueModification::N_TERM ||
@@ -2220,9 +2247,12 @@ namespace OpenMS
         const bool n_term = (term_spec == ResidueModification::N_TERM || term_spec == ResidueModification::PROTEIN_N_TERM);
         if (n_term || term_spec == ResidueModification::C_TERM || term_spec == ResidueModification::PROTEIN_C_TERM)
         {
-          // a modification of a particular terminal residue (e.g. 'Gln->pyro-Glu (N-term Q)') only applies to peptides with it
+          // a modification of a particular terminal residue (e.g. 'Gln->pyro-Glu (N-term Q)') only applies to peptides
+          // with it, and a protein-terminal one not to peptides that the evidences place away from that protein terminus
+          // (it does apply if the evidences do not tell)
           if (current_sequence_.empty() ||
-              !fitsTerminalResidue(*fixed_mod, n_term ? current_sequence_.front() : current_sequence_.back()))
+              !fitsTerminalResidue(*fixed_mod, n_term ? current_sequence_.front() : current_sequence_.back()) ||
+              (isProteinTerminal(*fixed_mod) && atProteinTerminus(peptide_hit_.getPeptideEvidences(), n_term) == 0))
           {
             continue;
           }
