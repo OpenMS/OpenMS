@@ -45,7 +45,7 @@ RNASpectrumGraph::RNASpectrumGraph(const std::set<const Ribonucleotide*>& residu
     if (std::isfinite(mass) && mass > 0) { masses.emplace(residue->getCode(), mass); }
   }
   if (masses.empty()) { fallback_reason_ = "empty_alphabet"; }
-  else if (masses.size() > (options.max_step == 2 ? 255 : 65535)) { fallback_reason_ = "alphabet_limit"; }
+  else if (masses.size() > (options.max_step == 2 ? 1023 : 65535)) { fallback_reason_ = "alphabet_limit"; }
   else
   {
     // Integer IDs are stable by code, and never collapse isobaric labels.

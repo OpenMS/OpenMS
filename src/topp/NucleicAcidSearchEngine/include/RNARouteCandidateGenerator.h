@@ -81,8 +81,14 @@ public:
     @param[in] database Digested database; order defines Candidate::database_index.
     @param[in] modifications Internal variable modifications.
     @param[in] options Tolerances, unrestricted-budget upper bound and explicit resource limits.
+    @param[in] terminal_states Optional per-database-entry permissions for the six terminal assignments, indexed 3 * five + three
+               (five: 0 = OH, 1 = phosphate; three: 0 = OH, 1 = phosphate, 2 = cyclic phosphate). Empty permits all six for every entry.
+    @throws Exception::IllegalArgument For invalid options, terminal/linkage modifications, unsupported termini or a mismatched permission table.
   */
-  RNARouteCandidateGenerator(const std::vector<NASequence>& database, const std::set<const Ribonucleotide*>& modifications, const Options& options);
+  RNARouteCandidateGenerator(const std::vector<NASequence>& database,
+                             const std::set<const Ribonucleotide*>& modifications,
+                             const Options& options,
+                             const std::vector<std::array<bool, 6>>& terminal_states = {});
 
   /**
     @brief Search one spectrum with the same evidence/rules for targets and decoys.
@@ -111,6 +117,7 @@ private:
   std::set<const Ribonucleotide*> modifications_;
   std::array<std::vector<TrieNode>, 2> tries_;
   std::vector<double> minimum_masses_;
+  std::vector<std::array<bool, 6>> terminal_states_;
   Options options_;
 };
 } // namespace OpenMS

@@ -31,11 +31,19 @@ namespace
 
 RNARouteCandidateGenerator::RNARouteCandidateGenerator(const std::vector<NASequence>& database,
                                                        const std::set<const Ribonucleotide*>& modifications,
-                                                       const Options& options):
+                                                       const Options& options,
+                                                       const std::vector<std::array<bool, 6>>& terminal_states):
     database_(database),
     modifications_(modifications),
+    terminal_states_(terminal_states),
     options_(options)
 {
+  if (! terminal_states.empty() && terminal_states.size() != database.size())
+  {
+    throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Terminal-state permissions must cover every database entry");
+  }
+  // The residue-mass graph has no model for linkage-dependent increments.
+  const auto linkage = [](const Ribonucleotide* residue) { return residue->getCode().empty() || residue->getCode().back() == '*'; };
   if (! std::isfinite(options.tolerance) || options.tolerance <= 0 || ! std::isfinite(options.precursor_tolerance) || options.precursor_tolerance <= 0
       || options.max_length == 0 || options.max_length > 32 || options.max_states == 0 || options.max_completion_nodes == 0
       || options.max_candidates == 0 || options.max_supports == 0 || options.min_route_nodes == 0)
@@ -48,6 +56,11 @@ RNARouteCandidateGenerator::RNARouteCandidateGenerator(const std::vector<NASeque
     if (! residue || residue->getTermSpecificity() != Ribonucleotide::ANYWHERE)
     {
       throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "graph_routes requires internal variable modifications");
+    }
+    if (linkage(residue))
+    {
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                       "graph_routes does not support linkage modifications: " + residue->getCode());
     }
   }
   for (const auto& sequence : database)
@@ -90,6 +103,11 @@ RNARouteCandidateGenerator::RNARouteCandidateGenerator(const std::vector<NASeque
         if (base >= 4)
         {
           throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Route database requires A/C/G/U residue origins");
+        }
+        if (linkage(residue))
+        {
+          throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                           "graph_routes does not support linkage modifications: " + residue->getCode());
         }
         if (trie[node].next[base] < 0)
         {
@@ -525,6 +543,7 @@ RNARouteCandidateGenerator::Result RNARouteCandidateGenerator::generate(const MS
       for (const auto& [suffix_id, state] : pairs)
       {
         if (prefix_id == Size(-1) && suffix_id == Size(-1)) { continue; }
+        if (! terminal_states_.empty() && ! terminal_states_[id][state]) { continue; }
         const auto [five, three] = terminal_states[state];
         if ((database_[id].hasFivePrimeMod() && five != 1)
             || (database_[id].hasThreePrimeMod() && three != (database_[id].getThreePrimeMod()->getCode() == "3'-p" ? 1 : 2)))

@@ -89,7 +89,11 @@ each completed product against its parent and missed-cleavage budget.
 Cached digests must match the database and digestion model. Enumeration/tag modes
 reject route digests because cleavage-sensitive placements have not been pre-expanded. Route generation
 requires monoisotopic masses and supports six physical terminal assignments:
-OH/OH, OH/P, OH/cyclic-P, P/OH, P/P and P/cyclic-P. Explicit input/fixed termini
+OH/OH, OH/P, OH/cyclic-P, P/OH, P/P and P/cyclic-P. By default every oligo is
+tried with all six, which is a wider space than enumeration searches.
+`routes:terminal_states=enzyme` restricts each oligo to the end groups the RNase
+leaves at a cleaved end and OH at a parent terminus, per occurrence in its
+parents. Explicit input/fixed termini
 remain constrained; variable terminal/linkage modifications use enumeration/tag
 modes.
 
