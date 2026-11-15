@@ -384,6 +384,14 @@ namespace OpenMS{
     {
       path = StringUtils::substr(path, 1);
     }
+    else if (!path.empty() && path[0] != '/')
+    {
+      // No leading slash left: the authority stripped off with "file://" was a
+      // UNC server name (toFileURI() encodes "\\server\share\..." as exactly
+      // two slashes before it), not a scheme separator. Put the UNC form back
+      // so this isn't mistaken for a path relative to the current directory.
+      path = "//" + path;
+    }
     return path;
   }
 
