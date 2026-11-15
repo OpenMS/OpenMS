@@ -45,7 +45,9 @@ which produces all y single charged ions:
     y7+ is generated at m/z 756.3998821574709
     y8+ is generated at m/z 903.4682964445709
 
-which you could plot with :py:meth:`pyopenms.plotting.plot_spectrum`, automatically showing annotated ions.:
+which you could plot with :py:meth:`pyopenms.plotting.plot_spectrum`, automatically showing annotated ions
+(requires matplotlib, which is not installed with pyOpenMS by default; install it with
+``pip install "pyopenms[plotting]"``, see :doc:`installation`):
 
 .. code-block:: python
     :linenos:
