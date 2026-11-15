@@ -1,0 +1,10 @@
+v2_armA_raw01        n  27025 anchors_excl  524 it  165 | sigma 20.75 (pi 0.156 mu  +0.6, fit) | written 23.43 | DIA-NN 25.73 ratio 0.806 FAIL | cover 0.949 FAIL
+v2_armA_raw02        n  34662 anchors_excl  466 it  305 | sigma 13.95 (pi 0.073 mu  +6.0, fit) | written 24.20 | DIA-NN 24.91 ratio 0.560 FAIL | cover 0.890 FAIL
+v2_armC_raw01        n  29719 anchors_excl  372 it  570 | sigma  4.55 (pi 0.009 mu  +3.0, fit) | written 23.06 | DIA-NN 25.88 ratio 0.176 FAIL | cover 0.515 FAIL
+v2_armC_raw02        n  32977 anchors_excl  409 it  281 | sigma 15.01 (pi 0.042 mu  +6.9, fit) | written 25.68 | DIA-NN 25.69 ratio 0.584 FAIL | cover 0.929 FAIL
+v2_armD_raw01        n  30120 anchors_excl  442 it  274 | sigma 14.95 (pi 0.033 mu  +4.3, fit) | written 25.50 | DIA-NN 24.44 ratio 0.611 FAIL | cover 0.941 FAIL
+v2_armD_raw02        n  31130 anchors_excl  652 it  251 | sigma 16.48 (pi 0.050 mu  +3.4, fit) | written 26.72 | DIA-NN 25.32 ratio 0.651 FAIL | cover 0.941 FAIL
+v2_armB_raw02        n  29516 anchors_excl  275 it  299 | sigma 14.25 (pi 0.000 mu  +2.4, fallback) | written 23.69 | DIA-NN 27.06 ratio 0.526 FAIL | cover 0.915 FAIL
+v2_pairlib_raw01     n  32596 anchors_excl  752 it  325 | sigma 14.06 (pi 0.035 mu  -0.8, fit) | written 27.43 | DIA-NN 25.87 ratio 0.543 FAIL | cover 0.903 FAIL
+v2_pairlib_raw02     n  33565 anchors_excl  806 it  237 | sigma 19.24 (pi 0.085 mu +11.5, fit) | written 27.97 | DIA-NN 24.77 ratio 0.777 FAIL | cover 0.943 FAIL
+cal_armE01           n  38298 anchors_excl  430 it  327 | sigma 25.78 (pi 0.080 mu  +7.8, fit) | written 37.73 | DIA-NN 27.17 ratio 0.949 ok | cover 0.952 ok
