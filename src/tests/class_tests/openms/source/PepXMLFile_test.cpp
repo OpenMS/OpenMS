@@ -791,10 +791,10 @@ START_SECTION(([EXTRA] store - fixed and variable modifications of the search pa
     TEST_REAL_SIMILAR(seq_new.getMonoWeight(), seq.getMonoWeight())
   }
 
-  // A lower-ranked hit with another modification on C: only the modifications of the best hits are declared
-  // in the header, so a reader cannot be relied on to restore 'Methylthio (C)' and would put a fixed
-  // 'Carbamidomethyl (C)' on that C instead. 'Carbamidomethyl (C)' is thus written as variable; the fixed
-  // terminal modifications, which both hits carry, stay fixed.
+  // A lower-ranked hit with another modification on C: 'Carbamidomethyl (C)' is then not the only modification
+  // of C, and LuciPHOr2 would take 'Methylthio (C)' for it if it were declared as fixed. So it is written as
+  // variable, and 'Methylthio (C)' is declared, too (the modifications of all hits are, issue #10915). The
+  // fixed terminal modifications, which both hits carry, stay fixed.
   PeptideIdentificationList peptides_lower_rank = peptides;
   PeptideHit lower_rank_hit = peptides[0].getHits()[0];
   lower_rank_hit.setScore(20.0);
@@ -806,7 +806,7 @@ START_SECTION(([EXTRA] store - fixed and variable modifications of the search pa
   std::ifstream written_lower_rank(file_out);
   const std::string content_lower_rank((std::istreambuf_iterator<char>(written_lower_rank)), std::istreambuf_iterator<char>());
   TEST_EQUAL(StringUtils::hasSubstring(content_lower_rank, "variable=\"Y\" binary=\"N\" description=\"Carbamidomethyl (C)\""), true)
-  TEST_EQUAL(StringUtils::hasSubstring(content_lower_rank, "description=\"Methylthio (C)\""), false)
+  TEST_EQUAL(StringUtils::hasSubstring(content_lower_rank, "variable=\"Y\" binary=\"N\" description=\"Methylthio (C)\""), true)
   TEST_EQUAL(StringUtils::hasSubstring(content_lower_rank, "variable=\"N\" description=\"TMT6plex (N-term)\""), true)
   TEST_EQUAL(StringUtils::hasSubstring(content_lower_rank, "variable=\"N\" description=\"Amidated (C-term)\""), true)
 

@@ -500,63 +500,37 @@ namespace OpenMS
     f << "\t\t<search_database local_path=\"" << search_params.db << R"(" type="AA"/>)" << "\n";
 
 
-    // register modifications
-    set<std::string> aa_mods;
-    set<std::string> n_term_mods, c_term_mods;
-    for (PeptideIdentificationList::const_iterator it = peptide_ids.begin();
-         it != peptide_ids.end(); ++it)
-    {
-      if (!it->getHits().empty())
-      {
-        PeptideHit h = *it->getHits().begin();
-
-        if (h.getSequence().isModified())
-        {
-          const AASequence& p = h.getSequence();
-          if (p.hasNTerminalModification())
-          {
-            n_term_mods.insert(p.getNTerminalModification()->getFullId());
-          }
-          if (p.hasCTerminalModification())
-          {
-            c_term_mods.insert(p.getCTerminalModification()->getFullId());
-          }
-
-          for (Size i = 0; i != p.size(); ++i)
-          {
-            if (p[i].isModified())
-            {
-              aa_mods.insert(p[i].getModification()->getFullId());
-            }
-          }
-        }
-      }
-    }
-
-    // Sites that a reader may find unmodified in the hits to be written (all of them, not only the best
-    // ones): one-letter codes of such residues, and whether a hit has such an N- or C-terminus. A site
-    // counts if it is unmodified, or if its modification is not declared above (it occurs in lower-ranked
-    // hits only): a reader may not restore an undeclared modification.
-    std::string unmodified_residues;
-    bool unmodified_n_term = false;
-    bool unmodified_c_term = false;
+    // register modifications: those of all peptide hits (all of them are written, not only the best ones),
+    // by full ID; the declarations below give their masses and tell fixed from variable ones
+    std::map<std::string, const ResidueModification*> aa_mods, n_term_mods, c_term_mods;
+    // the modifications found at the sites of each kind ("" for an unmodified site), see 'variableFlag' below
+    std::map<char, std::set<std::string>> residue_site_mods;
+    std::set<std::string> n_term_site_mods, c_term_site_mods;
     for (const PeptideIdentification& pep : peptide_ids)
     {
       for (const PeptideHit& hit : pep.getHits())
       {
         const AASequence& seq = hit.getSequence();
-        unmodified_n_term = unmodified_n_term || !seq.hasNTerminalModification() || !n_term_mods.contains(seq.getNTerminalModification()->getFullId());
-        unmodified_c_term = unmodified_c_term || !seq.hasCTerminalModification() || !c_term_mods.contains(seq.getCTerminalModification()->getFullId());
+        if (seq.hasNTerminalModification())
+        {
+          n_term_mods[seq.getNTerminalModification()->getFullId()] = seq.getNTerminalModification();
+        }
+        n_term_site_mods.insert(seq.hasNTerminalModification() ? seq.getNTerminalModification()->getFullId() : "");
+        if (seq.hasCTerminalModification())
+        {
+          c_term_mods[seq.getCTerminalModification()->getFullId()] = seq.getCTerminalModification();
+        }
+        c_term_site_mods.insert(seq.hasCTerminalModification() ? seq.getCTerminalModification()->getFullId() : "");
         for (Size i = 0; i != seq.size(); ++i)
         {
           const std::string& code = seq[i].getOneLetterCode();
-          if (code.empty() || unmodified_residues.find(code[0]) != std::string::npos)
+          if (seq[i].isModified())
           {
-            continue;
+            aa_mods[seq[i].getModification()->getFullId()] = seq[i].getModification();
           }
-          if (!seq[i].isModified() || !aa_mods.contains(seq[i].getModification()->getFullId()))
+          if (!code.empty())
           {
-            unmodified_residues += code[0];
+            residue_site_mods[code[0]].insert(seq[i].isModified() ? seq[i].getModification()->getFullId() : "");
           }
         }
       }
@@ -566,30 +540,29 @@ namespace OpenMS
     // <aminoacid_modification aminoacid="C" massdiff="+58.01" mass="161.014664" variable="Y" binary="N" description="Carboxymethyl (C)"/>
     // The "variable" attribute tells fixed (static, "N") from variable ("Y") modifications (issue #2096).
     // "N" states that only the modified form of a site occurs in the file, and readers (PepXMLFile::load,
-    // LuciPHOr2) put such a modification on every site that a hit leaves unmodified. A modification is
-    // therefore written as fixed only if the search parameters list it as fixed AND a reader finds none of
-    // its sites unmodified in any hit ('on_all_sites', see above). The latter fails e.g. for hits of a further
-    // search run that did not use the modification (only the first run's search parameters are written).
-    // All other modifications are variable, also those that the search parameters do not list at all.
-    auto variableFlag = [this, &search_params](const std::string& mod_full_id, bool on_all_sites)
+    // LuciPHOr2) put such a modification on every site that a hit leaves unmodified, or take a site that
+    // carries another modification for one with the fixed one (LuciPHOr2). A modification is therefore
+    // written as fixed only if the search parameters list it as fixed AND it is the only modification found
+    // at its sites ('site_mods': all residues of its origin, or all N- or C-termini, in all hits). This
+    // fails e.g. for hits of a further search run that did not use the modification (only the first run's
+    // search parameters are written). All other modifications are variable, also those that the search
+    // parameters do not list at all.
+    auto variableFlag = [this, &search_params](const std::string& mod_full_id, const std::set<std::string>& site_mods)
     {
       if (!ListUtils::contains(search_params.fixed_modifications, mod_full_id))
       {
         return "Y";
       }
-      if (!on_all_sites)
+      if (site_mods.size() != 1)
       {
-        warning(STORE, "Fixed modification '" + mod_full_id + "' is missing at some of its sites in the peptide hits, or a site carries a modification of lower-ranked hits only; it is written as a variable modification.");
+        warning(STORE, "Fixed modification '" + mod_full_id + "' is missing at some of its sites in the peptide hits (they are unmodified or carry another modification); it is written as a variable modification.");
         return "Y";
       }
       return "N";
     };
 
-    for (set<std::string>::const_iterator it = aa_mods.begin();
-         it != aa_mods.end(); ++it)
+    for (const auto& [full_id, mod] : aa_mods)
     {
-      const ResidueModification* mod = ModificationsDB::getInstance()->getModification(*it, "", ResidueModification::ANYWHERE);
-
       // compute mass of modified residue
       EmpiricalFormula ef = ResidueDB::getInstance()->getResidue(mod->getOrigin())->getFormula(Residue::Internal);
       ef += mod->getDiffFormula();
@@ -598,29 +571,31 @@ namespace OpenMS
         << "<aminoacid_modification aminoacid=\"" << mod->getOrigin()
         << "\" massdiff=\"" << precisionWrapper(mod->getDiffMonoMass()) << "\" mass=\""
         << precisionWrapper(ef.getMonoWeight())
-        << "\" variable=\"" << variableFlag(*it, unmodified_residues.find(mod->getOrigin()) == std::string::npos)
-        << R"(" binary="N" description=")" << *it << "\"/>"
+        << "\" variable=\"" << variableFlag(full_id, residue_site_mods[mod->getOrigin()])
+        << R"(" binary="N" description=")" << full_id << "\"/>"
         << "\n";
     }
 
-    for (set<std::string>::const_iterator it = n_term_mods.begin(); it != n_term_mods.end(); ++it)
+    // "mass" is the mass of the modified terminus, as "mod_nterm_mass"/"mod_cterm_mass" of the hits below;
+    // "protein_terminus" tells modifications that can only be at a protein terminus
+    for (const auto& [full_id, mod] : n_term_mods)
     {
-      const ResidueModification* mod = ModificationsDB::getInstance()->getModification(*it, "", ResidueModification::N_TERM);
       f << "\t\t"
-        << R"(<terminal_modification terminus="n" massdiff=")"
-        << precisionWrapper(mod->getDiffMonoMass()) << "\" mass=\"" << precisionWrapper(mod->getMonoMass())
-        << "\" variable=\"" << variableFlag(*it, !unmodified_n_term) << R"(" description=")" << *it
-        << R"(" protein_terminus=""/>)" << "\n";
+        << R"(<terminal_modification terminus="n" massdiff=")" << precisionWrapper(mod->getDiffMonoMass())
+        << "\" mass=\"" << precisionWrapper(Residue::getInternalToNTerm().getMonoWeight() + mod->getDiffMonoMass())
+        << "\" variable=\"" << variableFlag(full_id, n_term_site_mods) << R"(" description=")" << full_id
+        << "\" protein_terminus=\"" << (mod->getTermSpecificity() == ResidueModification::PROTEIN_N_TERM ? "n" : "")
+        << "\"/>" << "\n";
     }
 
-    for (set<std::string>::const_iterator it = c_term_mods.begin(); it != c_term_mods.end(); ++it)
+    for (const auto& [full_id, mod] : c_term_mods)
     {
-      const ResidueModification* mod = ModificationsDB::getInstance()->getModification(*it, "", ResidueModification::C_TERM);
       f << "\t\t"
-        << R"(<terminal_modification terminus="c" massdiff=")"
-        << precisionWrapper(mod->getDiffMonoMass()) << "\" mass=\"" << precisionWrapper(mod->getMonoMass())
-        << "\" variable=\"" << variableFlag(*it, !unmodified_c_term) << R"(" description=")" << *it
-        << R"(" protein_terminus=""/>)" << "\n";
+        << R"(<terminal_modification terminus="c" massdiff=")" << precisionWrapper(mod->getDiffMonoMass())
+        << "\" mass=\"" << precisionWrapper(Residue::getInternalToCTerm().getMonoWeight() + mod->getDiffMonoMass())
+        << "\" variable=\"" << variableFlag(full_id, c_term_site_mods) << R"(" description=")" << full_id
+        << "\" protein_terminus=\"" << (mod->getTermSpecificity() == ResidueModification::PROTEIN_C_TERM ? "c" : "")
+        << "\"/>" << "\n";
     }
 
     f << "\t</search_summary>" << "\n";
