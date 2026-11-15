@@ -8,6 +8,7 @@
 #include "RNASpectrumGraph.h"
 #include "RNATagCandidateFilter.h"
 
+#include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
 #include <OpenMS/CHEMISTRY/NucleicAcidSpectrumGenerator.h>
 #include <OpenMS/CHEMISTRY/RibonucleotideDB.h>
 #include <OpenMS/CONCEPT/ClassTest.h>
@@ -20,21 +21,26 @@ using namespace OpenMS;
 
 namespace
 {
-MSSpectrum theoretical(const NASequence& sequence, const std::string& ion, Int charge = -1)
+MSSpectrum theoretical(const NASequence& sequence, const std::set<std::string>& ions, Int charge = -1, Int max_charge = 0)
 {
   NucleicAcidSpectrumGenerator generator;
   auto parameters = generator.getParameters();
   for (const auto& code : {"a", "b", "c", "d", "w", "x", "y", "z", "a-B"})
   {
-    parameters.setValue("add_" + std::string(code) + "_ions", code == ion ? "true" : "false");
+    parameters.setValue("add_" + std::string(code) + "_ions", ions.contains(code) ? "true" : "false");
   }
   parameters.setValue("add_first_prefix_ion", "true");
   parameters.setValue("add_metainfo", "true");
   parameters.setValue("add_precursor_peaks", "false");
   generator.setParameters(parameters);
   MSSpectrum spectrum;
-  generator.getSpectrum(spectrum, sequence, charge, charge);
+  generator.getSpectrum(spectrum, sequence, charge, max_charge ? max_charge : charge);
   return spectrum;
+}
+
+MSSpectrum theoretical(const NASequence& sequence, const std::string& ion, Int charge = -1)
+{
+  return theoretical(sequence, std::set<std::string> {ion}, charge);
 }
 
 MSSpectrum ladder(const MSSpectrum& spectrum, const std::set<std::string>& names)
@@ -396,6 +402,144 @@ START_SECTION((partial domains preserve singleton query limit fallback))
 }
 END_SECTION
 
+
+START_SECTION((prefilter preserves matcher budgets for terminal and out-of-span edges across all ion series))
+{
+  const std::set<std::string> ions {"a", "b", "c", "d", "w", "x", "y", "z"};
+  Size fallbacks = 0, rejections = 0, lost_fallbacks = 0;
+  for (const auto& text : {std::string("GAG"), std::string("GAGAG")})
+  {
+    const auto candidate = NASequence::fromString(text);
+    const auto source = NASequence::fromString(text + "G");
+    const auto model = theoretical(candidate, ions);
+    std::set<std::string> names;
+    for (const auto& ion : ions)
+    {
+      for (Size position = 1; position < source.size(); position += 2)
+      {
+        names.insert(ion + std::to_string(position));
+      }
+    }
+    // The missing even ions leave bridged edges. An unrelated C ladder keeps
+    // the graph usable even when the maximum tag span excludes those edges.
+    auto observed = ladder(theoretical(source, ions), names);
+    observed.getStringDataArrays().clear();
+    observed.getIntegerDataArrays().clear();
+    const auto c = NASequence::fromString("C").getMonoWeight() + EmpiricalFormula("H-1PO2").getMonoWeight();
+    for (double offset : {0.0, c})
+    {
+      observed.push_back(Peak1D(5000 + offset, 1));
+    }
+    observed.sortByPosition();
+    RNASpectrumGraph::Options options;
+    options.min_tag_length = 1;
+    options.max_tag_length = text.size() == 3 ? 4 : 1;
+    const auto graph = RNASpectrumGraph::build(observed, alphabet(), options, 1);
+    TEST_TRUE(graph.fallback_reason.empty())
+    ModifiedNASequenceGenerator::ResidueAlternatives alternatives;
+    for (const auto& residue : candidate)
+    {
+      alternatives.push_back({&residue});
+    }
+    alternatives[1].push_back(RibonucleotideDB::getInstance()->getRibonucleotide("mA"));
+    for (Size budget : {1, 8, 16, 50, 200, 20000})
+    {
+      auto bounded = graph;
+      bounded.options.max_query_edges = budget;
+      const auto reference = checkedMatch(candidate, bounded, observed, model, ions, 10, true);
+      const bool keep = RNATagCandidateFilter::isCompatible(candidate, bounded, ions, candidate.size() - 1);
+      const bool keep_domain = RNATagCandidateFilter::isCompatible(alternatives, bounded, ions, candidate.size() - 1);
+      if (reference.fallback_reason == "query_limit")
+      {
+        ++fallbacks;
+        if (! keep || ! keep_domain)
+        {
+          STATUS("Lost query_limit fallback for " << text << ", max_tag_length=" << options.max_tag_length << ", budget=" << budget)
+          ++lost_fallbacks;
+        }
+      }
+      if (! keep) { ++rejections; }
+    }
+  }
+  TEST_NOT_EQUAL(fallbacks, 0)
+  TEST_NOT_EQUAL(rejections, 0)
+  TEST_EQUAL(lost_fallbacks, 0)
+}
+END_SECTION
+
+START_SECTION((randomized prefilter rejections exclude supported tags and query fallback for every domain completion))
+{
+  std::mt19937 random(10912);
+  const std::set<std::string> all_ions {"a", "b", "c", "d", "w", "x", "y", "z"};
+  const std::vector<std::set<std::string>> ion_sets {all_ions, {"a", "b", "c", "d"}, {"w", "x", "y", "z"}, {"b", "y"}};
+  const auto* db = RibonucleotideDB::getInstance();
+  Size rejections = 0, domain_rejections = 0, query_fallbacks = 0, supported = 0;
+  for (Size sample = 0; sample < 96; ++sample)
+  {
+    std::string text;
+    for (Size i = 0, length = 3 + random() % 6; i < length; ++i)
+    {
+      text += "ACGU"[random() % 4];
+    }
+    const auto source = NASequence::fromString(text);
+    const auto& ions = ion_sets[sample % ion_sets.size()];
+    const Int charge = 1 + sample % 3;
+    auto observed = theoretical(source, ions, -1, -charge);
+    std::vector<Size> kept;
+    for (Size i = 0; i < observed.size(); ++i)
+    {
+      if (random() % 3) { kept.push_back(i); }
+    }
+    observed.select(kept);
+    RNASpectrumGraph::Options options;
+    options.min_tag_length = sample % 2 ? 1 : 2;
+    options.max_tag_length = sample % 4 == 1 ? 1 : 4;
+    options.max_step = sample % 3 ? 2 : 1;
+    const auto graph = RNASpectrumGraph::build(observed, alphabet(), options, charge);
+    // Include both observed candidates and unrelated residue orders. The domain
+    // has four completions, all of which must survive if any matcher accepts.
+    auto candidate = source;
+    if (sample % 3 == 0)
+    {
+      for (Size i = 0; i < candidate.size(); ++i)
+      {
+        candidate.set(i, db->getRibonucleotide(std::string(1, "ACGU"[random() % 4])));
+      }
+    }
+    ModifiedNASequenceGenerator::ResidueAlternatives alternatives;
+    for (const auto& residue : candidate)
+    {
+      alternatives.push_back({&residue});
+    }
+    alternatives[1].push_back(db->getRibonucleotide(candidate[1]->getCode() == "A" ? "Am" : "A"));
+    alternatives[candidate.size() - 1].push_back(db->getRibonucleotide(candidate[candidate.size() - 1]->getCode() == "A" ? "mA" : "A"));
+    for (Size budget : {1, 8, 16, 50, 200, 20000})
+    {
+      auto bounded = graph;
+      bounded.options.max_query_edges = budget;
+      const bool keep_domain = RNATagCandidateFilter::isCompatible(alternatives, bounded, ions, charge);
+      if (! keep_domain) { ++domain_rejections; }
+      for (Size choice = 0; choice < 4; ++choice)
+      {
+        auto completion = candidate;
+        completion.set(1, alternatives[1][choice & 1]);
+        completion.set(candidate.size() - 1, alternatives.back()[choice >> 1]);
+        const auto evidence = checkedMatch(completion, bounded, observed, theoretical(completion, ions, -1, -charge), ions, 10, true);
+        const bool keep = RNATagCandidateFilter::isCompatible(completion, bounded, ions, charge);
+        if (! keep) { ++rejections; }
+        if (evidence.fallback_reason == "query_limit") { ++query_fallbacks; }
+        if (evidence.supported) { ++supported; }
+        TEST_TRUE(keep || ! evidence.accepted())
+        TEST_TRUE(keep_domain || ! evidence.accepted())
+      }
+    }
+  }
+  TEST_NOT_EQUAL(rejections, 0)
+  TEST_NOT_EQUAL(domain_rejections, 0)
+  TEST_NOT_EQUAL(query_fallbacks, 0)
+  TEST_NOT_EQUAL(supported, 0)
+}
+END_SECTION
 
 START_SECTION((prepared sparse matching preserves witnesses, query limits and tolerance endpoints))
 {

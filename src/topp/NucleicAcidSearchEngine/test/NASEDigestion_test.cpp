@@ -1815,7 +1815,7 @@ START_SECTION(([EXTRA] graph audit and fallback preserve scoring with FLASH MS1 
   };
   fixture({"ACGUAC", "AGCUAC"});
   using Key = std::tuple<std::string, std::string, Int>;
-  const auto search = [&](const std::string& method, bool force_fallback, bool modified = false) {
+  const auto search = [&](const std::string& method, bool force_fallback, bool modified = false, bool post_digest_mods = false) {
     std::string output;
     NEW_TMP_FILE(output)
     output += ".idXML";
@@ -1848,6 +1848,10 @@ START_SECTION(([EXTRA] graph audit and fallback preserve scoring with FLASH MS1 
                                         "1"};
     if (force_fallback) { arguments.insert(arguments.end(), {"-graph:max_edges", "1"}); }
     if (modified) { arguments.insert(arguments.end(), {"-modifications:variable", "m22G", "-modifications:variable_max_per_oligo", "1"}); }
+    if (post_digest_mods)
+    {
+      arguments.insert(arguments.end(), {"-modifications:variable", "Am", "m5C", "-modifications:variable_max_per_oligo", "2"});
+    }
     if (force_fallback && method.starts_with("graph_generate")) { arguments.insert(arguments.end(), {"-graph:max_placement_nodes", "1"}); }
     if (method != "enumeration") { arguments.push_back("-graph:verify_matches"); }
     TEST_EQUAL(runSearch(arguments), 0)
@@ -1888,6 +1892,15 @@ START_SECTION(([EXTRA] graph audit and fallback preserve scoring with FLASH MS1 
   TEST_TRUE(search("graph_generate_audit", false, true) == modified_baseline)
   TEST_TRUE(search("graph_generate", false, true) == modified_baseline)
   TEST_TRUE(search("graph_generate", true, true) == modified_baseline)
+  // These non-cleavage-sensitive modifications require post-digest placement,
+  // including branches with two modified residues and isobaric alternatives.
+  fixture({"[Am]CGU[Am]C", "[Am]GCU[Am]C"});
+  const auto placement_baseline = search("enumeration", false, false, true);
+  TEST_EQUAL(placement_baseline.size(), 2)
+  TEST_TRUE(search("graph", false, false, true) == placement_baseline)
+  TEST_TRUE(search("graph_generate_audit", false, false, true) == placement_baseline)
+  TEST_TRUE(search("graph_generate", false, false, true) == placement_baseline)
+  TEST_TRUE(search("graph_generate", true, false, true) == placement_baseline)
 }
 END_SECTION
 

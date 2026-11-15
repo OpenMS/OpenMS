@@ -72,6 +72,13 @@ namespace
     LIMIT
   };
 
+  bool consumeWork(Size& work, Size limit, Size amount = 1)
+  {
+    if (amount > limit - work) { return false; }
+    work += amount;
+    return true;
+  }
+
   bool containsResidue(UInt code, UInt residue)
   {
     return code == residue;
@@ -88,12 +95,13 @@ namespace
                       Size position,
                       bool suffix,
                       Size& work,
-                      Size limit)
+                      Size limit,
+                      Size series_count = 1)
   {
     bool matched = false;
     for (Size i = edge.first_transition; i < edge.past_transition; ++i)
     {
-      if (++work > limit) { return StepMatch::LIMIT; }
+      if (! consumeWork(work, limit, series_count)) { return StepMatch::LIMIT; }
       const auto& transition = alphabet.transitions[i];
       if (transition.length != edge.length) { continue; }
       bool same = true;
@@ -131,11 +139,14 @@ namespace
     Size work = 0;
     for (bool suffix : {false, true})
     {
-      if (std::none_of(ions.begin(), ions.end(), [suffix](const auto& ion) { return suffix ? suffixIon(ion) : prefixIon(ion); })) { continue; }
+      const Size series_count
+        = std::count_if(ions.begin(), ions.end(), [suffix](const auto& ion) { return suffix ? suffixIon(ion) : prefixIon(ion); });
+      if (! series_count) { continue; }
       for (const auto& layer : graph.layers)
       {
         if (max_charge && layer.charge > max_charge) { continue; }
-        for (Size start = 1; start + options.min_tag_length < codes.size(); ++start)
+        // Matchers visit even terminal positions that cannot complete a tag.
+        for (Size start = 1; start < codes.size(); ++start)
         {
           // Most observed steps (plus one; zero is unreachable) per node and residue span.
           std::vector<unsigned char> steps(nodes * width, 0);
@@ -149,14 +160,16 @@ namespace
               for (const auto& edge : layer.outgoing[node])
               {
                 const Size next = length + edge.length;
-                if (next >= width || start + next >= codes.size()) { continue; }
-                if (++work > options.max_query_edges)
+                // Bound every enabled series separately, including edges the
+                // matcher counts before checking sequence and tag-span bounds.
+                if (! consumeWork(work, options.max_query_edges, series_count))
                 {
                   return true; // Incomplete query fails open.
                 }
-                const auto matched = matchStep(*graph.alphabet, edge, codes, start + length, suffix, work, options.max_query_edges);
+                if (start + next >= codes.size()) { continue; }
+                const auto matched = matchStep(*graph.alphabet, edge, codes, start + length, suffix, work, options.max_query_edges, series_count);
                 if (matched == StepMatch::LIMIT) { return true; }
-                if (matched == StepMatch::NONE) { continue; }
+                if (matched == StepMatch::NONE || next >= width) { continue; }
                 if (taken >= options.min_tag_length) { return true; }
                 auto& best = steps[edge.to * width + next];
                 best = std::max<unsigned char>(best, taken + 1);
@@ -382,7 +395,7 @@ RNATagCandidateFilter::Evidence RNATagCandidateFilter::match(const PreparedQuery
         steps[index * width] = 1;
         for (const auto& edge : layer.outgoing[node])
         {
-          if (++work > graph.options.max_query_edges)
+          if (! consumeWork(work, graph.options.max_query_edges))
           {
             if (! evidence.supported) { evidence.fallback_reason = "query_limit"; }
             return evidence;
@@ -521,7 +534,7 @@ RNATagCandidateFilter::Evidence RNATagCandidateFilter::matchReference(const NASe
         steps[position * stride + node * width] = 1;
         for (const auto& edge : layer.outgoing[node])
         {
-          if (++work > graph.options.max_query_edges)
+          if (! consumeWork(work, graph.options.max_query_edges))
           {
             if (! evidence.supported) { evidence.fallback_reason = "query_limit"; }
             return evidence;

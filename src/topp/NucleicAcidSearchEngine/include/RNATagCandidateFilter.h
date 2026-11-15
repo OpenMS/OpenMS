@@ -90,6 +90,10 @@ public:
 
   /**
     @brief Test residue compatibility before theoretical-spectrum generation.
+
+    Reject only after bounding matcher work over all eligible positions, charge
+    layers and enabled ion series. Potential query-limit fallback fails open.
+
     @param[in] candidate Fully placed RNA candidate; modification labels are preserved.
     @param[in] graph Compact experimental mass DAG.
     @param[in] ions Enabled theoretical ion series.
