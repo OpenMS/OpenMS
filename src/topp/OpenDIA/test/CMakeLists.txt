@@ -145,4 +145,25 @@ if(EXISTS "${CMAKE_SOURCE_DIR}/src/tests/topp/OpenSwathWorkflow_17_input.mzML" A
       -out_xipm ${CMAKE_CURRENT_BINARY_DIR}/OpenDIA_xipm_shared.xipm
       -rt_window 100000 -min_transitions 1)
   set_tests_properties(OpenDIA_xipm_rejects_shared_path PROPERTIES WILL_FAIL TRUE)
+  # OpenDIAWorkflow fails closed: a library too small to calibrate, two inputs with one file name (outputs would
+  # collide), and -calibration without one -anchors file per run.
+  add_test(NAME OpenDIAWorkflow_fails_closed_on_tiny_library
+    COMMAND $<TARGET_FILE:OpenDIAWorkflow>
+      -in ${CMAKE_SOURCE_DIR}/src/tests/topp/OpenSwathWorkflow_17_input.mzML
+      -lib ${CMAKE_SOURCE_DIR}/src/tests/topp/TargetedFileConverter_10_input.pqp
+      -out_dir ${CMAKE_CURRENT_BINARY_DIR}/OpenDIAWorkflow_tiny)
+  set_tests_properties(OpenDIAWorkflow_fails_closed_on_tiny_library PROPERTIES WILL_FAIL TRUE)
+  add_test(NAME OpenDIAWorkflow_rejects_duplicate_run_names
+    COMMAND $<TARGET_FILE:OpenDIAWorkflow>
+      -in ${CMAKE_SOURCE_DIR}/src/tests/topp/OpenSwathWorkflow_17_input.mzML ${CMAKE_SOURCE_DIR}/src/tests/topp/OpenSwathWorkflow_17_input.mzML
+      -lib ${CMAKE_SOURCE_DIR}/src/tests/topp/TargetedFileConverter_10_input.pqp
+      -out_dir ${CMAKE_CURRENT_BINARY_DIR}/OpenDIAWorkflow_duplicate)
+  set_tests_properties(OpenDIAWorkflow_rejects_duplicate_run_names PROPERTIES WILL_FAIL TRUE)
+  add_test(NAME OpenDIAWorkflow_rejects_calibration_without_anchors
+    COMMAND $<TARGET_FILE:OpenDIAWorkflow>
+      -in ${CMAKE_SOURCE_DIR}/src/tests/topp/OpenSwathWorkflow_17_input.mzML
+      -lib ${CMAKE_SOURCE_DIR}/src/tests/topp/TargetedFileConverter_10_input.pqp
+      -calibration ${CMAKE_CURRENT_BINARY_DIR}/OpenDIA_invalid_calibration.json
+      -out_dir ${CMAKE_CURRENT_BINARY_DIR}/OpenDIAWorkflow_no_anchors)
+  set_tests_properties(OpenDIAWorkflow_rejects_calibration_without_anchors PROPERTIES WILL_FAIL TRUE)
 endif()
