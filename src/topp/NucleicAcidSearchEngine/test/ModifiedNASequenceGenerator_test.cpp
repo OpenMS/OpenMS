@@ -14,8 +14,10 @@
 #include <OpenMS/CHEMISTRY/RibonucleotideDB.h>
 ///////////////////////////
 
-#include <string>
+#include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
+#include <cmath>
 #include <set>
+#include <string>
 
 using namespace OpenMS;
 using namespace std;
@@ -134,6 +136,87 @@ END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
+
+
+START_SECTION(([EXTRA] constrained placement preserves exhaustive compatibility, budgets and terminals))
+{
+  const std::set<const Ribonucleotide*> mods {db->getRibonucleotide("mA"),  db->getRibonucleotide("Am"),    db->getRibonucleotide("m3U"),
+                                              db->getRibonucleotide("s4U"), db->getRibonucleotide("m2,2G"), db->getRibonucleotide("5'-p"),
+                                              db->getRibonucleotide("3'-p")};
+  for (const auto& text : {"", "ACGU", "pA[mA]GUp", "AC[m2,2G]UA"})
+  {
+    const auto source = NASequence::fromString(text);
+    for (Size budget : {0, 1, 2, 3})
+    {
+      for (bool keep : {false, true})
+      {
+        std::vector<NASequence> reference, actual;
+        ModifiedNASequenceGenerator::applyVariableModifications(mods, source, budget, reference, keep);
+        ModifiedNASequenceGenerator::PlacementConstraints constraints;
+        constraints.accepts = [](double, double, const auto&) { return true; };
+        const auto statistics = ModifiedNASequenceGenerator::applyVariableModificationsConstrained(mods, source, budget, actual, constraints, keep);
+        std::sort(reference.begin(), reference.end());
+        std::sort(actual.begin(), actual.end());
+        TEST_TRUE(actual == reference)
+        TEST_FALSE(statistics.enumeration_fallback)
+        TEST_EQUAL(statistics.emitted_variants, actual.size())
+      }
+    }
+  }
+}
+END_SECTION
+
+START_SECTION(([EXTRA] conservative mass bounds prune partial placements and retain negative mass shifts))
+{
+  Ribonucleotide loss = *db->getRibonucleotide("A");
+  loss.setCode("test_loss");
+  loss.setOrigin('A');
+  loss.setFormula(loss.getFormula() - EmpiricalFormula("H2"));
+  const std::set<const Ribonucleotide*> mods {&loss,
+                                              db->getRibonucleotide("mA"),
+                                              db->getRibonucleotide("Am"),
+                                              db->getRibonucleotide("m3U"),
+                                              db->getRibonucleotide("5'-p"),
+                                              db->getRibonucleotide("3'-p")};
+  const auto source = NASequence::fromString("AAAAUU");
+  std::vector<NASequence> reference;
+  ModifiedNASequenceGenerator::applyVariableModifications(mods, source, 3, reference);
+  for (bool average : {false, true})
+  {
+    const auto massOf = [average](const NASequence& sequence) { return average ? sequence.getAverageWeight() : sequence.getMonoWeight(); };
+    NASequence desired = source;
+    desired.set(1, &loss);
+    const double target = massOf(desired);
+    ModifiedNASequenceGenerator::PlacementConstraints constraints;
+    constraints.use_average_mass = average;
+    constraints.accepts = [target](double low, double high, const auto&) { return low <= target && target <= high; };
+    std::vector<NASequence> actual, expected;
+    const auto statistics = ModifiedNASequenceGenerator::applyVariableModificationsConstrained(mods, source, 3, actual, constraints);
+    for (const auto& candidate : reference)
+    {
+      if (std::abs(massOf(candidate) - target) < 1e-7) { expected.push_back(candidate); }
+    }
+    std::sort(actual.begin(), actual.end());
+    std::sort(expected.begin(), expected.end());
+    TEST_TRUE(actual == expected)
+    TEST_TRUE(statistics.pruned_branches > 0)
+    TEST_TRUE(statistics.emitted_variants < reference.size())
+    TEST_FALSE(statistics.enumeration_fallback)
+  }
+  ModifiedNASequenceGenerator::PlacementConstraints bounded;
+  bounded.max_nodes = 1;
+  bounded.accepts = [](double, double, const auto&) { return true; };
+  std::vector<NASequence> output {NASequence::fromString("C")};
+  const auto statistics = ModifiedNASequenceGenerator::applyVariableModificationsConstrained(mods, source, 3, output, bounded);
+  TEST_TRUE(statistics.enumeration_fallback)
+  TEST_EQUAL(output.size(), reference.size() + 1)
+  TEST_STRING_EQUAL(output.front().toString(), "C")
+  output.erase(output.begin());
+  std::sort(output.begin(), output.end());
+  std::sort(reference.begin(), reference.end());
+  TEST_TRUE(output == reference)
+}
+END_SECTION
 
 END_TEST
 

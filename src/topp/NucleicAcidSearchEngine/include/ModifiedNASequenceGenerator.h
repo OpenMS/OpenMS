@@ -8,12 +8,13 @@
 
 #pragma once
 
-#include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/CHEMISTRY/NASequence.h>
 #include <OpenMS/CHEMISTRY/Ribonucleotide.h>
-#include <vector>
+#include <OpenMS/KERNEL/StandardTypes.h>
+#include <functional>
 #include <map>
 #include <set>
+#include <vector>
 
 namespace OpenMS
 {
@@ -39,6 +40,25 @@ namespace OpenMS
   {
   public:
     using ConstRibonucleotidePtr = const Ribonucleotide*;
+
+    /// Alternatives at each internal residue; terminal choices enter the mass bounds.
+    using ResidueAlternatives = std::vector<std::vector<ConstRibonucleotidePtr>>;
+
+    struct PlacementConstraints
+    {
+      bool use_average_mass = false;
+      Size max_nodes = 100000;
+      /// Must accept every branch containing a desired completion; uncertainty must return true.
+      std::function<bool(double, double, const ResidueAlternatives&)> accepts;
+    };
+
+    struct PlacementStatistics
+    {
+      Size visited_nodes = 0;
+      Size pruned_branches = 0;
+      Size emitted_variants = 0;
+      bool enumeration_fallback = false;
+    };
 
     /**
       @brief Apply all compatible fixed modifications from @p fixed_mods to @p sequence in place.
@@ -90,7 +110,34 @@ namespace OpenMS
       std::vector<NASequence>& all_modified_NASequences,
       bool keep_original = true);
 
+    /**
+      @brief Prune partial variable-modification placements using conservative completion bounds.
+
+      Reuses the exhaustive generator's compatibility map and site subsets.
+      The predicate receives inclusive neutral-mass bounds and the remaining
+      residue alternatives, without collapsing isobaric modification labels.
+      Exceeding max_nodes discards this call's partial output and invokes the
+      exhaustive generator, preserving entries already in the output vector.
+
+      @param[in] var_mods Allowed variable modifications.
+      @param[in] seq Source after fixed and cleavage-sensitive modifications.
+      @param[in] max_variable_mods Maximum additional placements.
+      @param[out] output Accepted complete variants are appended here.
+      @param[in] constraints Completion predicate, mass type and exploration bound.
+      @param[in] keep_original Whether the unchanged source may be emitted.
+      @return Exploration, pruning, emission and enumeration-fallback statistics.
+    */
+    static PlacementStatistics applyVariableModificationsConstrained(const std::set<ConstRibonucleotidePtr>& var_mods,
+                                                                     const NASequence& seq,
+                                                                     Size max_variable_mods,
+                                                                     std::vector<NASequence>& output,
+                                                                     const PlacementConstraints& constraints,
+                                                                     bool keep_original = true);
+
   protected:
+    /// Shared site compatibility, including unoccupied terminal slots.
+    static std::map<int, std::vector<ConstRibonucleotidePtr>> compatibleModifications_(const std::set<ConstRibonucleotidePtr>& var_mods,
+                                                                                       const NASequence& seq);
     /**
       @brief Recursive helper for @ref applyVariableModifications — enumerate every assignment of compatible modifications to a fixed subset of sequence sites.
 

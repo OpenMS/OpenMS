@@ -28,4 +28,26 @@ target_sources(NASEDigestion_test PRIVATE
   ${CMAKE_CURRENT_SOURCE_DIR}/../source/RNAPrecursorCorrector.cpp)
 
 target_sources(NASEDigestion_test PRIVATE
-  ${CMAKE_CURRENT_SOURCE_DIR}/../source/RNADirectedDeconvolution.cpp)
+  ${CMAKE_CURRENT_SOURCE_DIR}/../source/RNADirectedDeconvolution.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/../source/RNASpectrumGraph.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/../source/RNATagCandidateFilter.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/../source/RNAModificationDiagnostics.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/../source/RNARouteScorer.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/../source/RNARouteCandidateGenerator.cpp)
+
+openms_add_tool_class_test(RNASpectrumGraph_test
+  SOURCES
+    ${CMAKE_CURRENT_SOURCE_DIR}/../source/RNASpectrumGraph.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/../source/RNATagCandidateFilter.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/../source/ModifiedNASequenceGenerator.cpp
+  INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/../include)
+
+openms_add_tool_class_test(RNASensitivity_test
+  SOURCES
+    ${CMAKE_CURRENT_SOURCE_DIR}/../source/ModifiedNASequenceGenerator.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/../source/RNASpectrumGraph.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/../source/RNATagCandidateFilter.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/../source/RNAModificationDiagnostics.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/../source/RNARouteScorer.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/../source/RNARouteCandidateGenerator.cpp
+  INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/../include)

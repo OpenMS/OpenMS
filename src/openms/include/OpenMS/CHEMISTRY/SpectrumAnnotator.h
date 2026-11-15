@@ -3,22 +3,21 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Mathias Walzer $
-// $Authors: Mathias Walzer $
+// $Authors: Mathias Walzer, Samuel Wein $
 // --------------------------------------------------------------------------
 
 #pragma once
 
-#include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
-#include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
 #include <OpenMS/COMPARISON/SpectrumAlignment.h>
-
+#include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
+#include <OpenMS/DATASTRUCTURES/RegularExpression.h>
+#include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/KERNEL/Peak1D.h>
-
 #include <OpenMS/METADATA/PeptideHit.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
-
-#include <OpenMS/DATASTRUCTURES/RegularExpression.h>
+#include <algorithm>
+#include <vector>
 
 namespace OpenMS
 {
@@ -98,6 +97,65 @@ namespace OpenMS
       The parameters of SpectrumAlignment define the matching tolerance.
     */
     void addPeakAnnotationsToPeptideHit(PeptideHit& ph, const PeakSpectrum& spec, const TheoreticalSpectrumGenerator& tg, const SpectrumAlignment& sa, bool include_unmatched_peaks = false) const;
+
+    /**
+      @brief Count matched rungs in the longest connected ion series.
+
+      Positions refer to one ion series, independently of molecule type, charge,
+      and neutral-loss annotation. A missing rung does not contribute to the
+      returned count. With the default gap limit, only consecutive matches are
+      connected. Callers must keep distinct ion series and fragment models
+      separate before calling this function.
+
+      @param[in] matched_positions Whether each ordinal position was matched.
+      @param[in] max_missing Maximum consecutive missing positions allowed between matches.
+      @return Number of matched positions in the longest connected series, or zero.
+    */
+    static Size computeLongestIonSeries(const std::vector<bool>& matched_positions, Size max_missing = 0)
+    {
+      Size longest = 0, current = 0, missing = 0;
+      for (bool matched : matched_positions)
+      {
+        if (matched)
+        {
+          ++current;
+          missing = 0;
+          longest = std::max(longest, current);
+        }
+        else if (current != 0 && ++missing > max_missing) { current = 0; }
+      }
+      return longest;
+    }
+
+    /**
+      @brief Count connected matched ordinals without materializing a position mask.
+
+      Ordinals must be sorted in ascending order. Duplicate positions contribute
+      once, even when several charges or peaks match the same rung. The caller
+      supplies a projection so existing annotation or match records can be used
+      directly without copying them.
+
+      @param[in] first First match record.
+      @param[in] last Past-the-end match record.
+      @param[in] max_missing Maximum consecutive missing positions between matches.
+      @param[in] position Projection from a match record to its ordinal position.
+      @return Number of distinct matched ordinals in the longest connected series.
+    */
+    template<typename Iterator, typename Position>
+    static Size computeLongestIonSeries(Iterator first, Iterator last, Size max_missing, Position position)
+    {
+      Size longest = 0, current = 0, previous = 0;
+      for (; first != last; ++first)
+      {
+        const Size ordinal = position(*first);
+        OPENMS_PRECONDITION(current == 0 || ordinal >= previous, "Ion ordinals must be sorted");
+        if (current != 0 && ordinal == previous) { continue; }
+        current = current != 0 && ordinal - previous - 1 <= max_missing ? current + 1 : 1;
+        previous = ordinal;
+        longest = std::max(longest, current);
+      }
+      return longest;
+    }
 
     /// overwrite
     void updateMembers_() override;

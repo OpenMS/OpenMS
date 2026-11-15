@@ -4378,18 +4378,30 @@ Note: Intensity is ignored.
     // -----------------------------------------------------------------------
     // SpectrumAnnotator
     // -----------------------------------------------------------------------
-    nb::class_<OpenMS::SpectrumAnnotator, OpenMS::DefaultParamHandler>(m, "SpectrumAnnotator", 
-        R"doc(
+    nb::class_<OpenMS::SpectrumAnnotator, OpenMS::DefaultParamHandler>(m, "SpectrumAnnotator",
+                                                                       R"doc(
 Annotates spectra from identifications and theoretical spectra or
 identifications from spectra and theoretical spectra matching with
 various options
 )doc")
-        .def(nb::init<>())
-        .def(nb::init<const OpenMS::SpectrumAnnotator &>())
-        .def("__copy__", [](const OpenMS::SpectrumAnnotator& self) { return OpenMS::SpectrumAnnotator(self); })
-        .def("__deepcopy__", [](const OpenMS::SpectrumAnnotator& self, nb::dict) { return OpenMS::SpectrumAnnotator(self); }, "memo"_a)
-        .def("annotateMatches", [](const OpenMS::SpectrumAnnotator& self, OpenMS::MSSpectrum& spec, const OpenMS::PeptideHit& ph, const OpenMS::TheoreticalSpectrumGenerator& tg, const OpenMS::SpectrumAlignment& sa) { return self.annotateMatches(spec, ph, tg, sa); }, "spec"_a, "ph"_a, "tg"_a, "sa"_a, 
-            R"doc(
+      .def(nb::init<>())
+      .def(nb::init<const OpenMS::SpectrumAnnotator&>())
+      .def_static(
+        "compute_longest_ion_series",
+        [](const std::vector<bool>& matches, OpenMS::Size max_missing) {
+          return OpenMS::SpectrumAnnotator::computeLongestIonSeries(matches, max_missing);
+        },
+        "matched_positions"_a, "max_missing"_a = 0,
+        "Count matched positions in the longest ion series, allowing a bounded number of consecutive missing rungs.")
+      .def("__copy__", [](const OpenMS::SpectrumAnnotator& self) { return OpenMS::SpectrumAnnotator(self); })
+      .def(
+        "__deepcopy__", [](const OpenMS::SpectrumAnnotator& self, nb::dict) { return OpenMS::SpectrumAnnotator(self); }, "memo"_a)
+      .def(
+        "annotateMatches",
+        [](const OpenMS::SpectrumAnnotator& self, OpenMS::MSSpectrum& spec, const OpenMS::PeptideHit& ph,
+           const OpenMS::TheoreticalSpectrumGenerator& tg, const OpenMS::SpectrumAlignment& sa) { return self.annotateMatches(spec, ph, tg, sa); },
+        "spec"_a, "ph"_a, "tg"_a, "sa"_a,
+        R"doc(
 Adds ion match annotation to the `spec` input spectrum
 
 :param spec: A PeakSpectrum containing the peaks from which the `pi` identifications are made
@@ -4397,8 +4409,13 @@ Adds ion match annotation to the `spec` input spectrum
 :param tg: A TheoreticalSpectrumGenerator to infer the theoretical spectrum. Its own parameters define which ion types are referred
 :param sa: A SpectrumAlignment to match the theoretical spectrum with the measured. Its own parameters define the match tolerance
 )doc")
-        .def("addIonMatchStatistics", [](const OpenMS::SpectrumAnnotator& self, OpenMS::PeptideIdentification& pi, OpenMS::MSSpectrum& spec, const OpenMS::TheoreticalSpectrumGenerator& tg, const OpenMS::SpectrumAlignment& sa) { return self.addIonMatchStatistics(pi, spec, tg, sa); }, "pi"_a, "spec"_a, "tg"_a, "sa"_a, 
-            R"doc(
+      .def(
+        "addIonMatchStatistics",
+        [](const OpenMS::SpectrumAnnotator& self, OpenMS::PeptideIdentification& pi, OpenMS::MSSpectrum& spec,
+           const OpenMS::TheoreticalSpectrumGenerator& tg,
+           const OpenMS::SpectrumAlignment& sa) { return self.addIonMatchStatistics(pi, spec, tg, sa); },
+        "pi"_a, "spec"_a, "tg"_a, "sa"_a,
+        R"doc(
 Adds ion match statistics to `pi` PeptideIdentifcation
 
 :param pi: A spectrum identifications to be annotated, looking up matches from a spectrum and the theoretical spectrum inferred from the identifications sequence
@@ -4406,8 +4423,13 @@ Adds ion match statistics to `pi` PeptideIdentifcation
 :param tg: A TheoreticalSpectrumGenerator to infer the theoretical spectrum. Its own parameters define which ion types are referred
 :param sa: A SpectrumAlignment to match the theoretical spectrum with the measured. Its own parameters define the match tolerance
 )doc")
-        .def("addPeakAnnotationsToPeptideHit", [](const OpenMS::SpectrumAnnotator& self, OpenMS::PeptideHit& ph, const OpenMS::MSSpectrum& spec, const OpenMS::TheoreticalSpectrumGenerator& tg, const OpenMS::SpectrumAlignment& sa, bool include_unmatched_peaks) { return self.addPeakAnnotationsToPeptideHit(ph, spec, tg, sa, include_unmatched_peaks); }, "ph"_a, "spec"_a, "tg"_a, "sa"_a, "include_unmatched_peaks"_a = false, 
-            R"doc(
+      .def(
+        "addPeakAnnotationsToPeptideHit",
+        [](const OpenMS::SpectrumAnnotator& self, OpenMS::PeptideHit& ph, const OpenMS::MSSpectrum& spec,
+           const OpenMS::TheoreticalSpectrumGenerator& tg, const OpenMS::SpectrumAlignment& sa,
+           bool include_unmatched_peaks) { return self.addPeakAnnotationsToPeptideHit(ph, spec, tg, sa, include_unmatched_peaks); },
+        "ph"_a, "spec"_a, "tg"_a, "sa"_a, "include_unmatched_peaks"_a = false,
+        R"doc(
 Adds peak annotations to the `ph` PeptideHit
 
 :param ph: A PeptideHit whose PeakAnnotations vector will be filled with the ion matches
@@ -4415,8 +4437,7 @@ Adds peak annotations to the `ph` PeptideHit
 :param tg: A TheoreticalSpectrumGenerator to infer the theoretical spectrum. Its own parameters define which ion types are referred
 :param sa: A SpectrumAlignment to match the theoretical spectrum with the measured. Its own parameters define the match tolerance
 :param include_unmatched_peaks: If true, all spectrum peaks will be included in the PeakAnnotations vector. Unmatched peaks will have empty annotation strings. If false, only matched peaks are included.
-)doc")
-        ;
+)doc");
 
     // -----------------------------------------------------------------------
     // SqrtScaler

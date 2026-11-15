@@ -1,9 +1,9 @@
 // Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
 // SPDX-License-Identifier: BSD-3-Clause
-// 
+//
 // --------------------------------------------------------------------------
 // $Maintainer: Mathias Walzer $
-// $Authors: Mathias Walzer $
+// $Authors: Mathias Walzer, Samuel Wein $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/ClassTest.h>
@@ -24,6 +24,51 @@ START_TEST(SpectrumAnnotator, "$Id$")
 
 SpectrumAnnotator* ptr = nullptr;
 SpectrumAnnotator* null_ptr = nullptr;
+START_SECTION((static Size computeLongestIonSeries(const std::vector<bool>& matched_positions, Size max_missing)))
+{
+  TEST_EQUAL(SpectrumAnnotator::computeLongestIonSeries({}), 0)
+  TEST_EQUAL(SpectrumAnnotator::computeLongestIonSeries({false, false}), 0)
+  TEST_EQUAL(SpectrumAnnotator::computeLongestIonSeries({false, true, true, false, true}), 2)
+  TEST_EQUAL(SpectrumAnnotator::computeLongestIonSeries({true, false, true, false, true}), 1)
+  TEST_EQUAL(SpectrumAnnotator::computeLongestIonSeries({true, false, true, false, true}, 1), 3)
+  TEST_EQUAL(SpectrumAnnotator::computeLongestIonSeries({true, false, false, true, true}, 1), 2)
+  TEST_EQUAL(SpectrumAnnotator::computeLongestIonSeries({true, false, false, true, true}, 2), 3)
+  TEST_EQUAL(SpectrumAnnotator::computeLongestIonSeries({false, false, true, false, false}, 2), 1)
+  // Alternative peak/charge matches at one ordinal still count only once.
+  const std::vector<Size> duplicated {1, 1, 3, 3, 4, 8};
+  TEST_EQUAL(SpectrumAnnotator::computeLongestIonSeries(duplicated.begin(), duplicated.end(), 1, [](Size ordinal) { return ordinal; }), 3)
+  // Exhaustively compare the shared counter with an independent ordinal-path oracle.
+  for (unsigned mask = 0; mask < 256; ++mask)
+  {
+    std::vector<bool> present(8, false);
+    std::vector<Size> positions;
+    for (Size i = 0; i < present.size(); ++i)
+    {
+      present[i] = (mask & (1u << i)) != 0;
+      if (present[i]) { positions.push_back(i); }
+    }
+    for (Size gap = 0; gap <= 2; ++gap)
+    {
+      Size expected = 0;
+      for (Size first = 0; first < positions.size(); ++first)
+      {
+        for (Size past = first + 1; past <= positions.size(); ++past)
+        {
+          bool connected = true;
+          for (Size i = first + 1; i < past; ++i)
+          {
+            connected = connected && positions[i] - positions[i - 1] <= gap + 1;
+          }
+          if (connected) { expected = std::max(expected, past - first); }
+        }
+      }
+      TEST_EQUAL(SpectrumAnnotator::computeLongestIonSeries(present, gap), expected)
+      TEST_EQUAL(SpectrumAnnotator::computeLongestIonSeries(positions.begin(), positions.end(), gap, [](Size ordinal) { return ordinal; }), expected)
+    }
+  }
+}
+END_SECTION
+
 START_SECTION(SpectrumAnnotator())
 {
 	ptr = new SpectrumAnnotator();

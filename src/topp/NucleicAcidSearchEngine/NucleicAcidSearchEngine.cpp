@@ -40,12 +40,18 @@
 #include <OpenMS/SYSTEM/File.h>
 
 // ribonucleotides
-#include <OpenMS/CHEMISTRY/RibonucleotideDB.h>
-#include <OpenMS/CHEMISTRY/ElementDB.h>
 #include "ModifiedNASequenceGenerator.h"
 #include "RNADeisotoper.h"
+#include "RNAModificationDiagnostics.h"
 #include "RNAPrecursorCorrector.h"
+#include "RNARouteCandidateGenerator.h"
+#include "RNARouteScorer.h"
+#include "RNASpectrumGraph.h"
+#include "RNATagCandidateFilter.h"
+
+#include <OpenMS/CHEMISTRY/ElementDB.h>
 #include <OpenMS/CHEMISTRY/NASequence.h>
+#include <OpenMS/CHEMISTRY/RibonucleotideDB.h>
 
 // preprocessing and filtering of spectra
 #include <OpenMS/PROCESSING/FILTERING/ThresholdMower.h>
@@ -61,13 +67,13 @@
 // post-processing of results
 #include <OpenMS/ANALYSIS/ID/FalseDiscoveryRate.h>
 #include <OpenMS/PROCESSING/ID/IDFilter.h>
-
-
 #include <algorithm>
+#include <atomic>
+#include <fstream>
 #include <iostream>
-#include <vector>
 #include <map>
 #include <regex>
+#include <vector>
 
 // multithreading
 #ifdef _OPENMP
@@ -96,19 +102,20 @@ Given a FASTA file containing RNA sequences (and optionally decoys) and an mzML 
 - Score the resulting matches
 
 Output is in the form of an mzTab-like text file containing the search results.
-Optionally, an idXML file suitable for visualizing search results in TOPPView (parameter @p id_out) and a "target coordinates" file for label-free quantification using FeatureFinderMetaboIdent (parameter @p lfq_out) can be generated.
+Optionally, an idXML file suitable for visualizing search results in TOPPView (parameter @p id_out) and a "target coordinates" file for label-free
+quantification using FeatureFinderMetaboIdent (parameter @p lfq_out) can be generated.
 
-Modified ribonucleotides can either be specified in the FASTA input file if they are expected at a specific site. As globally replacing the unmodified base (as @e fixed modifications), or set as @e variable modifications in the tool options.
-Information on available modifications is taken from the Modomics database (http://modomics.genesilico.pl/).
-In addition to these "standard" modifications, OpenMS defines "generic" and "ambiguous" ones:
-<br>
+Modified ribonucleotides can either be specified in the FASTA input file if they are expected at a specific site. As globally replacing the unmodified
+base (as @e fixed modifications), or set as @e variable modifications in the tool options. Information on available modifications is taken from the
+Modomics database (http://modomics.genesilico.pl/). In addition to these "standard" modifications, OpenMS defines "generic" and "ambiguous" ones: <br>
 A generic modification represents a group of modifications that cannot be distinguished by tandem mass spectrometry.
-For example, "mA" stands for any methyladenosine (could be "m1A", "m2A", "m6A" or "m8A"), "mmA" for any dimethyladenosine (with two methyl groups on the base), and "mAm" for any 2'-O-dimethyladenosine (with one methyl group each on base and ribose).
-There is no technical difference between searching for "mA" or e.g. "m1A", but the generic code better represents that no statement can be made about the position of the methyl group on the base.
-<br>
-In contrast, an ambiguous modification represents two isobaric modifications (or modification groups) with a methyl group on either the base or the ribose, that could in principle be distinguished based on a-B ions.
-For example, "mA?" stands for methyladenosine ("mA", see above) or 2'-O-methyladenosine ("Am").
-When using ambiguous modifications in a search, NucleicAcidSearchEngine can optionally try to assign the alternative that generates better a-B ion matches in a spectrum (see parameter @p modifications:resolve_ambiguities).
+For example, "mA" stands for any methyladenosine (could be "m1A", "m2A", "m6A" or "m8A"), "mmA" for any dimethyladenosine (with two methyl groups on
+the base), and "mAm" for any 2'-O-dimethyladenosine (with one methyl group each on base and ribose). There is no technical difference between
+searching for "mA" or e.g. "m1A", but the generic code better represents that no statement can be made about the position of the methyl group on the
+base. <br> In contrast, an ambiguous modification represents two isobaric modifications (or modification groups) with a methyl group on either the
+base or the ribose, that could in principle be distinguished based on a-B ions. For example, "mA?" stands for methyladenosine ("mA", see above) or
+2'-O-methyladenosine ("Am"). When using ambiguous modifications in a search, NucleicAcidSearchEngine can optionally try to assign the alternative that
+generates better a-B ion matches in a spectrum (see parameter @p modifications:resolve_ambiguities).
 
 
 Exact score ties at @p report:top_hits remain a complete group. Exported ties use
@@ -118,6 +125,12 @@ When using @p digest, search tolerances and modifications in the output describe
 the current run while database and digestion provenance remain from the cache.
 LFQ targets use a finite intensity-weighted retention time, falling back to the
 median of finite observations when no valid positive intensity weights exist.
+
+Experimental RNA mass-tag filtering is available with @p candidates:method=graph.
+Use @p candidates:method=graph_audit to measure tag support while retaining all
+enumerated candidates and the existing scoring. See @ref TOPP_NASE_GraphSearch
+for supported ion series, bounds, fallback, spectrum-specific route generation,
+optional route/scaffold scoring, and the FLASH MS1 / legacy MS2 workflow.
 
 <B>The command line parameters of this tool are:</B>
 @verbinclude TOPP_NucleicAcidSearchEngine.cli
@@ -240,6 +253,21 @@ protected:
     registerTOPPSubsection_("preprocessing", "Spectrum preprocessing options");
     registerStringOption_("preprocessing:deisotoping", "<method>", "legacy", "Isotope removal: legacy spacing detector, none, or FLASHDeconv RNA averagine (profile or centroided input; requires ppm fragment tolerance)", false, true);
     setValidStrings_("preprocessing:deisotoping", {"legacy", "none", "flash"});
+    registerTOPPSubsection_("preprocessing:legacy", "Legacy isotope-spacing detector options");
+    registerIntOption_("preprocessing:legacy:min_isopeaks", "<num>", 3, "Minimum isotope peaks required for a legacy fragment charge assignment",
+                       false, true);
+    setMinInt_("preprocessing:legacy:min_isopeaks", 2);
+    setMaxInt_("preprocessing:legacy:min_isopeaks", 20);
+    registerDoubleOption_("preprocessing:legacy:mass_tolerance", "<ppm>", 0.0,
+                          "Legacy isotope-spacing tolerance in ppm; zero uses the fragment matching tolerance and unit", false, true);
+    setMinFloat_("preprocessing:legacy:mass_tolerance", 0.0);
+    registerFlag_("preprocessing:legacy:sum_intensities", "Sum assigned isotope-envelope intensities into each retained monoisotopic peak", true);
+    registerIntOption_("preprocessing:legacy:unknown_max_charge", "<num>", 0,
+                       "Optional maximum fragment charge for legacy isotope detection when precursor charge is unknown; zero preserves skipping "
+                       "this detection. Does not assign a precursor charge.",
+                       false, true);
+    setMinInt_("preprocessing:legacy:unknown_max_charge", 0);
+    setMaxInt_("preprocessing:legacy:unknown_max_charge", 20);
     registerTOPPSubsection_("preprocessing:flash", "FLASHDeconv RNA isotope detection options");
     registerDoubleOption_("preprocessing:flash:min_cos", "<value>", 0.85, "Minimum charge-specific RNA averagine isotope cosine", false, true);
     setMinFloat_("preprocessing:flash:min_cos", 0.5);
@@ -268,7 +296,46 @@ protected:
 
     registerTOPPSubsection_("scoring", "Scoring Options");
     registerStringOption_("scoring:method", "<method>", "hyperscore", "Scoring method to use for spectrum matching", false);
-    setValidStrings_("scoring:method", ListUtils::create<std::string>("hyperscore,mvh"));
+    setValidStrings_("scoring:method", ListUtils::create<std::string>("hyperscore,mvh,route"));
+    registerFlag_("scoring:labile_scaffolds",
+                  "For graph_routes with MVH/HyperScore, score diagnostic-supported labile scaffolds as alternative full-spectrum models. Retain the "
+                  "full modified precursor and export the selected model.",
+                  true);
+    registerFlag_("scoring:route_base_loss",
+                  "Include coherent a-B ladders in route scoring as a separate ion series; graph generation keeps conventional residue edges", true);
+    registerDoubleOption_("scoring:route_mass_accuracy_tolerance", "<ppm_or_Da>", 0.0,
+                          "Gaussian mass-accuracy weighting scale in fragment-tolerance units; zero uses the fragment matching tolerance. "
+                          "This changes intensity weights without changing fragment matches or graph edges.",
+                          false, true);
+    setMinFloat_("scoring:route_mass_accuracy_tolerance", 0.0);
+    registerDoubleOption_("scoring:route_local_radius", "<Da>", 50.0, "Neutral-mass radius of the local background around route nodes", false, true);
+    setMinFloat_("scoring:route_local_radius", 0.001);
+    registerIntOption_("scoring:route_local_peaks", "<num>", 10, "Strongest local peaks per route node; unioned by observed peak identity", false,
+                       true);
+    setMinInt_("scoring:route_local_peaks", 1);
+    registerIntOption_("scoring:route_min_nodes", "<num>", 2, "Minimum observed nodes in each anchored route", false, true);
+    setMinInt_("scoring:route_min_nodes", 1);
+    registerTOPPSubsection_("diagnostic", "Spectrum-specific modification filtering from raw MS2 evidence");
+    registerFlag_("diagnostic:filter", "Require raw single-nucleotide or explicit diagnostic evidence for variable residue modifications", true);
+    registerStringOption_("diagnostic:filter_scope", "<scope>", "all",
+                          "all requires every variable modification diagnostic; explicit gates only residues with fixed diagnostic ions, "
+                          "allowing intact graph-supported modifications without a terminal single-nucleotide ion",
+                          false, true);
+    setValidStrings_("diagnostic:filter_scope", {"all", "explicit"});
+    registerStringList_(
+      "diagnostic:fixed_ions", "<code=mz>", {},
+      "Explicit diagnostic m/z values for labile modifications, e.g. t6A=279.08418; may repeat a residue code. Values are polarity-specific.", false,
+      true);
+    registerDoubleOption_("diagnostic:min_relative_intensity", "<fraction>", 0.0, "Minimum diagnostic intensity relative to the raw MS2 base peak",
+                          false, true);
+    setMinFloat_("diagnostic:min_relative_intensity", 0.0);
+    setMaxFloat_("diagnostic:min_relative_intensity", 1.0);
+    registerIntOption_("diagnostic:max_charge", "<num>", 1,
+                       "Largest absolute charge for generic single-nucleotide diagnostics; charges above one require a raw isotope partner. "
+                       "Explicit diagnostic m/z rules remain unchanged.",
+                       false, true);
+    setMinInt_("diagnostic:max_charge", 1);
+    setMaxInt_("diagnostic:max_charge", 6);
     registerIntOption_("scoring:num_intensity_classes", "<num>", 3, "Number of intensity classes for peak stratification in MVH scoring (only used if scoring:method is 'mvh')", false, true);
     setMinInt_("scoring:num_intensity_classes", 1);
     setMaxInt_("scoring:num_intensity_classes", 7);
@@ -282,6 +349,77 @@ protected:
     registerDoubleList_("scoring:blacklist_mz", "<values>", DoubleList(), "List of m/z values to exclude from theoretical spectra during scoring (e.g., uninformative c1/d1 ions from unmodified bases). Peaks matching these values within the blacklist tolerance will be removed before scoring.", false, true);
     registerDoubleOption_("scoring:blacklist_tolerance", "<ppm>", 10.0, "Tolerance (in ppm) for matching peaks to blacklisted m/z values", false, true);
     setMinFloat_("scoring:blacklist_tolerance", 0.0);
+
+    registerTOPPSubsection_("candidates", "Candidate selection options");
+    registerStringOption_("candidates:method", "<method>", "enumeration",
+                          "enumeration; graph_audit (score all variants); graph (filter enumerated variants); graph_generate "
+                          "(constrain modification placement); graph_generate_audit (compare placement recall with exhaustive graph filtering); "
+                          "graph_routes (generate spectrum-specific placements from anchored database-compatible routes)",
+                          false, true);
+    setValidStrings_("candidates:method", {"enumeration", "graph", "graph_audit", "graph_generate", "graph_generate_audit", "graph_routes"});
+    registerTOPPSubsection_("routes", "Anchored, spectrum-specific graph placement (graph_routes); explicit limits fail the run");
+    registerStringOption_(
+      "routes:completion", "<mode>", "labile",
+      "Uncovered positions: labile adds diagnostic-supported labile modifications; bounded_labile limits their unsupported placements; "
+      "bounded also permits a limited number of "
+      "nonlabile modifications; all enumerates all permitted "
+      "modifications under explicit resource limits",
+      false, true);
+    setValidStrings_("routes:completion", {"labile", "bounded_labile", "bounded", "all"});
+    registerIntOption_("routes:max_unanchored_modifications", "<num>", 2,
+                       "Maximum variable modifications without intact modified graph placements in bounded completion; graph-placed "
+                       "modifications still use the full variable modification budget",
+                       false, true);
+    setMinInt_("routes:max_unanchored_modifications", 0);
+    registerStringOption_(
+      "routes:precursor_index", "<choice>", "true",
+      "Index disjoint route pairs and attainable completion masses with conservative intervals; false retains the exhaustive oracle", false, true);
+    setValidStrings_("routes:precursor_index", {"true", "false"});
+    registerStringOption_("routes:allow_full_length", "<choice>", "true",
+                          "Permit a full-length mass route to constrain terminal placements; precursor nodes remain excluded from scoring", false,
+                          true);
+    setValidStrings_("routes:allow_full_length", {"true", "false"});
+    registerFlag_("routes:verify_candidates",
+                  "Compare every generated candidate multiset with exhaustive route pairing; fail if either search is incomplete or differs", true);
+    registerIntOption_("routes:max_length", "<num>", 25, "Maximum route length in residues", false, true);
+    setMinInt_("routes:max_length", 2);
+    setMaxInt_("routes:max_length", 32);
+    for (const auto& [name, value] : vector<pair<std::string, Int>> {{"max_peaks", 200},
+                                                                     {"max_states", 200000},
+                                                                     {"max_completion_nodes", 5000000},
+                                                                     {"max_candidates", 200000},
+                                                                     {"max_supports", 400000},
+                                                                     {"min_nodes", 2}})
+    {
+      registerIntOption_("routes:" + name, "<num>", value, "Route search setting: " + name, false, true);
+      setMinInt_("routes:" + name, 1);
+    }
+    registerTOPPSubsection_("graph", "Bounded RNA mass tags; full-spectrum scoring and native FDR are retained");
+    registerFlag_("graph:verify_matches", "Compare every prepared graph decision and witness with the reference matcher; fail on any mismatch", true);
+    registerIntOption_("graph:min_tag_length", "<num>", 2, "Minimum tag length in residues (1 allows a single-residue anchor)", false, true);
+    setMinInt_("graph:min_tag_length", 1);
+    registerIntOption_("graph:max_tag_length", "<num>", 4, "Maximum tag length in residues", false, true);
+    setMinInt_("graph:max_tag_length", 1);
+    setMaxInt_("graph:max_tag_length", 32);
+    registerIntOption_("graph:max_step", "<num>", 2, "Maximum residues per graph edge (2 bridges one missing ladder peak)", false, true);
+    setMinInt_("graph:max_step", 1);
+    setMaxInt_("graph:max_step", 2);
+    for (const auto& [name, value] : vector<pair<std::string, Int>> {{"max_peaks", 100},
+                                                                     {"max_charge", 3},
+                                                                     {"max_edges", 20000},
+                                                                     {"max_query_edges", 20000},
+                                                                     {"max_query_states", 100000},
+                                                                     {"max_placement_nodes", 100000},
+                                                                     {"max_total_edges", 50000000}})
+    {
+      const std::string description = (name == "max_peaks" || name == "max_charge")
+                                        ? "Graph evidence selection limit: " + name
+                                        : "Graph exploration/cache bound: " + name + "; exceeding it uses enumeration fallback";
+      registerIntOption_("graph:" + name, "<num>", value, description, false, true);
+      setMinInt_("graph:" + name, name == "max_peaks" ? 2 : 1);
+    }
+    registerOutputFile_("out_graph", "<file>", "",
+                        "Tab-delimited per-spectrum graph sizes and enumeration fallback reasons (requires a graph candidate mode)", false, true);
 
     registerTOPPSubsection_("modifications", "Modification options");
 
@@ -301,6 +439,7 @@ protected:
     registerStringList_("modifications:variable", "<mods>", ListUtils::create<std::string>(""), "Variable modifications", false);
     setValidStrings_("modifications:variable", all_mods);
     registerIntOption_("modifications:variable_max_per_oligo", "<num>", 2, "Maximum number of residues carrying a variable modification per candidate oligonucleotide", false, false);
+    setMinInt_("modifications:variable_max_per_oligo", 0);
     registerFlag_("modifications:resolve_ambiguities", "Attempt to resolve ambiguous modifications (e.g. 'mA?' for 'mA'/'Am') based on a-B ions.\nThis incurs a performance cost because two modifications have to be considered for each case.\nRequires a-B ions to be enabled in parameter 'fragment:ions'.");
 
     registerTOPPSubsection_("oligo", "Oligonucleotide (digestion) options (ignored if 'digest' input is used)");
@@ -308,6 +447,11 @@ protected:
     registerIntOption_("oligo:max_size", "<num>", 0, "Maximum size an oligonucleotide must have after digestion to be considered in the search, leave at 0 for no limit", false);
 
     registerIntOption_("oligo:missed_cleavages", "<num>", 1, "Number of missed cleavages", false, false);
+    registerStringOption_("oligo:cleavage_model", "<model>", "modification_aware",
+                          "modification_aware preserves modification-dependent RNase cleavage; canonical reproduces digestion in unmodified-sequence "
+                          "space (graph_routes only)",
+                          false, true);
+    setValidStrings_("oligo:cleavage_model", {"modification_aware", "canonical"});
 
     StringList all_enzymes;
     RNaseDB::getInstance()->getAllNames(all_enzymes);
@@ -391,9 +535,35 @@ protected:
     double precursor_error_ppm = 0.0; // precursor mass error in ppm
     vector<PeptideHit::PeakAnnotation> annotations; // peak/ion annotations
     const PrecursorInfo* precursor_ref = nullptr; // precursor information
+    bool graph_evaluated = false;
+    RNATagCandidateFilter::Evidence graph_evidence;
+    RNARouteScorer::Result route_evidence;
+    std::string native_scoring_scaffold;
+    std::optional<IdentificationData::IdentifiedOligo> parent_override;
   };
 
   typedef multimap<double, AnnotatedHit, greater<double>> HitsByScore;
+
+  /// Score both enumerated and graph-generated models through the existing OpenMS scorers.
+  static double scoreNativeSpectrum_(const std::string& method,
+                                     double tolerance,
+                                     bool tolerance_ppm,
+                                     const MSSpectrum& experimental,
+                                     const MSSpectrum& theoretical,
+                                     vector<PeptideHit::PeakAnnotation>& annotations,
+                                     Size intensity_classes,
+                                     double tic_fraction,
+                                     bool mass_accuracy,
+                                     bool single_peak_credit)
+  {
+    if (method == "mvh")
+    {
+      return MetaboliteSpectralMatching::computeMVHScore(tolerance, tolerance_ppm, experimental, theoretical, annotations, intensity_classes,
+                                                         tic_fraction, 0.0, mass_accuracy, single_peak_credit);
+    }
+    OPENMS_PRECONDITION(method == "hyperscore", "A native scoring method is required");
+    return MetaboliteSpectralMatching::computeHyperScore(tolerance, tolerance_ppm, experimental, theoretical, annotations, 0.0, mass_accuracy);
+  }
 
   // query modified residues from database
   set<ConstRibonucleotidePtr> getModifications_(const set<std::string>& mod_names)
@@ -515,16 +685,17 @@ protected:
   }
 
   // spectrum must not contain 0 intensity peaks and must be sorted by m/z
-  void deisotopeAndSingleChargeMSSpectrum_(
-    MSSpectrum& in,
-    Int min_charge,
-    Int max_charge,
-    double fragment_tolerance,
-    bool fragment_unit_ppm,
-    bool keep_only_deisotoped = false,
-    Size min_isopeaks = 3,
-    Size max_isopeaks = 10,
-    bool make_single_charged = true)
+  void deisotopeAndSingleChargeMSSpectrum_(MSSpectrum& in,
+                                           Int min_charge,
+                                           Int max_charge,
+                                           double fragment_tolerance,
+                                           bool fragment_unit_ppm,
+                                           bool keep_only_deisotoped = false,
+                                           Size min_isopeaks = 3,
+                                           Size max_isopeaks = 10,
+                                           bool make_single_charged = true,
+                                           bool annotate_charge = false,
+                                           bool sum_intensities = false)
   {
     if (in.empty()) return;
 
@@ -602,7 +773,22 @@ protected:
       }
     }
 
+    std::vector<double> feature_intensities(feature_number, 0.0);
+    if (sum_intensities)
+    {
+      for (Size i = 0; i < old_spectrum.size(); ++i)
+      {
+        if (features[i] >= 0) { feature_intensities[features[i]] += old_spectrum[i].getIntensity(); }
+      }
+    }
     in.clear(false);
+    MSSpectrum::IntegerDataArray charge_labels;
+    charge_labels.setName("NASE:legacy_fragment_charge");
+    const auto append = [&](const Peak1D& peak, Int charge, Size index) {
+      in.push_back(peak);
+      if (sum_intensities && charge != 0) { in.back().setIntensity(feature_intensities[features[index]]); }
+      if (annotate_charge) { charge_labels.push_back(make_single_charged && charge != 0 ? 1 : std::abs(charge)); }
+    };
     for (Size i = 0; i != old_spectrum.size(); ++i)
     {
       Int z = mono_isotopic_peak[i];
@@ -614,10 +800,7 @@ protected:
         }
 
         // if already single charged or no decharging selected keep peak as it is
-        if (!make_single_charged)
-        {
-          in.push_back(old_spectrum[i]);
-        }
+        if (! make_single_charged) { append(old_spectrum[i], z, i); }
         else // make singly charged
         {
           Peak1D p = old_spectrum[i];
@@ -630,7 +813,7 @@ protected:
           {
             p.setMZ(p.getMZ() * z - (z - 1) * Constants::PROTON_MASS_U);
           }
-          in.push_back(p);
+          append(p, z, i);
         }
       }
       else
@@ -638,17 +821,14 @@ protected:
         // keep all unassigned peaks
         if (features[i] < 0)
         {
-          in.push_back(old_spectrum[i]);
+          append(old_spectrum[i], 0, i);
           continue;
         }
 
         // convert mono-isotopic peak with charge assigned by deisotoping
         if (z != 0)
         {
-          if (!make_single_charged)
-          {
-            in.push_back(old_spectrum[i]);
-          }
+          if (! make_single_charged) { append(old_spectrum[i], z, i); }
           else // make singly charged
           {
             Peak1D p = old_spectrum[i];
@@ -661,12 +841,13 @@ protected:
             {
               p.setMZ(p.getMZ() * z - (z - 1) * Constants::PROTON_MASS_U);
             }
-            in.push_back(p);
+            append(p, z, i);
           }
         }
       }
     }
 
+    if (annotate_charge) { in.getIntegerDataArrays().push_back(std::move(charge_labels)); }
     in.sortByPosition();
   }
 
@@ -716,7 +897,32 @@ protected:
     }
   }
 
-  void preprocessSpectra_(PeakMap& exp, double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm, bool single_charge_spectra, bool negative_mode, Int min_charge, Int max_charge, bool include_unknown_charge, bool use_window_mower, double window_size, int window_peakcount, const std::string& window_movetype, bool use_nlargest, int nlargest_n, bool remove_precursor, double precursor_mass_tolerance, bool precursor_tolerance_ppm, int precursor_peak_isotopes, const std::string& deisotoping, double flash_min_cos, double flash_min_snr)
+  void preprocessSpectra_(PeakMap& exp,
+                          double fragment_mass_tolerance,
+                          bool fragment_mass_tolerance_unit_ppm,
+                          bool single_charge_spectra,
+                          bool negative_mode,
+                          Int min_charge,
+                          Int max_charge,
+                          bool include_unknown_charge,
+                          bool use_window_mower,
+                          double window_size,
+                          int window_peakcount,
+                          const std::string& window_movetype,
+                          bool use_nlargest,
+                          int nlargest_n,
+                          bool remove_precursor,
+                          double precursor_mass_tolerance,
+                          bool precursor_tolerance_ppm,
+                          int precursor_peak_isotopes,
+                          const std::string& deisotoping,
+                          double flash_min_cos,
+                          double flash_min_snr,
+                          bool annotate_legacy_charge = false,
+                          Size legacy_min_isopeaks = 3,
+                          double legacy_mass_tolerance = 0.0,
+                          bool legacy_sum_intensities = false,
+                          Size legacy_unknown_max_charge = 0)
   {
     // filter MS2 map
     // remove 0 intensities
@@ -770,6 +976,7 @@ protected:
          ++exp_index)
     {
       MSSpectrum& spec = exp[exp_index];
+      spec.removeMetaValue("legacy_unknown_fragment_charge_bound");
       // Keep the post-ThresholdMower base peak as the normalization divisor.
       // FLASH must see raw intensities; native IDs need not be unique or present.
       double normalization_scale = 0.0;
@@ -878,7 +1085,14 @@ protected:
       // @TODO: what happens here if "precursor_charge" is zero?
       if (deisotoping == "legacy")
       {
-        deisotopeAndSingleChargeMSSpectrum_(spec, coef, coef * precursor_charge, fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, false, 3, 20, single_charge_spectra);
+        // Fragment isotope spacings can establish their own charges while the
+        // precursor charge remains unknown. The opt-in bound limits these tests.
+        const Int fragment_charge_bound = precursor_charge ? precursor_charge : Int(legacy_unknown_max_charge);
+        if (! precursor_charge && fragment_charge_bound) { spec.setMetaValue("legacy_unknown_fragment_charge_bound", fragment_charge_bound); }
+        deisotopeAndSingleChargeMSSpectrum_(spec, coef, coef * fragment_charge_bound,
+                                            legacy_mass_tolerance > 0 ? legacy_mass_tolerance : fragment_mass_tolerance,
+                                            legacy_mass_tolerance > 0 || fragment_mass_tolerance_unit_ppm, false, legacy_min_isopeaks, 20,
+                                            single_charge_spectra, annotate_legacy_charge, legacy_sum_intensities);
       }
       else if (flash && (spec.getPrecursors()[0].getCharge() != 0 || include_unknown_charge))
       {
@@ -1076,11 +1290,13 @@ protected:
   void postProcessHits_(const PeakMap& exp,
                         vector<HitsByScore>& annotated_hits,
                         IdentificationData& id_data,
-                        bool negative_mode)
+                        bool negative_mode,
+                        IdentificationData::InputFileRef file_ref,
+                        IdentificationData::ScoreTypeRef score_ref)
   {
-    IdentificationData::InputFileRef file_ref = id_data.getInputFiles().begin();
-    IdentificationData::ScoreTypeRef score_ref =
-      id_data.getScoreTypes().begin();
+    // Cache provenance may sort before this run's input and score. Use the
+    // registered current references rather than the first cached entries.
+    const std::string graph_method = getStringOption_("candidates:method");
 
 // @TODO: change OpenMP schedule from default ("static") to "dynamic"/"guided"?
 #pragma omp parallel for
@@ -1121,7 +1337,7 @@ protected:
         OPENMS_LOG_DEBUG << "Hit sequence: " << hit.sequence.toString() << endl;
 
         // transfer parent matches from unmodified oligo:
-        IdentificationData::IdentifiedOligo oligo = *hit.oligo_ref;
+        IdentificationData::IdentifiedOligo oligo = hit.parent_override ? *hit.parent_override : *hit.oligo_ref;
         oligo.sequence = hit.sequence;
         IdentificationData::IdentifiedOligoRef oligo_ref;
 #pragma omp critical (id_data_access)
@@ -1137,6 +1353,53 @@ protected:
         match.setMetaValue(Constants::UserParam::PRECURSOR_ERROR_PPM_USERPARAM,
                            hit.precursor_error_ppm);
         match.setMetaValue("isotope_offset", hit.precursor_ref->isotope);
+        if (graph_method == "graph_routes") { match.setMetaValue("candidate_method", graph_method); }
+        if (getStringOption_("scoring:method") == "route")
+        {
+          match.setMetaValue("route_score", hit.route_evidence.score);
+          match.setMetaValue("route_unique_nodes", static_cast<unsigned int>(hit.route_evidence.nodes));
+          match.setMetaValue("route_matched_intensity", hit.route_evidence.matched_intensity);
+          match.setMetaValue("route_local_intensity", hit.route_evidence.local_intensity);
+          match.setMetaValue("route_prefix_length", static_cast<unsigned int>(hit.route_evidence.prefix_length));
+          match.setMetaValue("route_prefix_scaffold", hit.route_evidence.prefix_length && hit.route_evidence.prefix_scaffold.empty()
+                                                        ? hit.sequence.toString()
+                                                        : hit.route_evidence.prefix_scaffold);
+          match.setMetaValue("route_suffix_scaffold", hit.route_evidence.suffix_length && hit.route_evidence.suffix_scaffold.empty()
+                                                        ? hit.sequence.toString()
+                                                        : hit.route_evidence.suffix_scaffold);
+          match.setMetaValue("route_suffix_length", static_cast<unsigned int>(hit.route_evidence.suffix_length));
+        }
+        if (! hit.native_scoring_scaffold.empty()) { match.setMetaValue("native_scoring_scaffold", hit.native_scoring_scaffold); }
+        if (spectrum.metaValueExists("diagnostic_allowed_mods"))
+        {
+          match.setMetaValue("diagnostic_allowed_mods", spectrum.getMetaValue("diagnostic_allowed_mods"));
+          match.setMetaValue("diagnostic_labile_mods", spectrum.getMetaValue("diagnostic_labile_mods"));
+          match.setMetaValue("diagnostic_matches", spectrum.getMetaValue("diagnostic_matches"));
+          match.setMetaValue("diagnostic_match_charges", spectrum.getMetaValue("diagnostic_match_charges"));
+          match.setMetaValue("diagnostic_isotope_matches", spectrum.getMetaValue("diagnostic_isotope_matches"));
+        }
+        if (spectrum.metaValueExists("legacy_unknown_fragment_charge_bound"))
+        {
+          match.setMetaValue("legacy_unknown_fragment_charge_bound", spectrum.getMetaValue("legacy_unknown_fragment_charge_bound"));
+        }
+        if (hit.graph_evaluated)
+        {
+          match.setMetaValue("graph_candidate_method", graph_method);
+          match.setMetaValue("graph_candidate_status", hit.graph_evidence.supported ? "supported"
+                                                                                    : (hit.graph_evidence.fallback_reason.empty()
+                                                                                         ? "rejected_in_audit"
+                                                                                         : "fallback:" + hit.graph_evidence.fallback_reason));
+          match.setMetaValue("graph_tag_length", static_cast<unsigned int>(hit.graph_evidence.length));
+          match.setMetaValue("graph_ion_series", hit.graph_evidence.ion_series);
+          match.setMetaValue("graph_fragment_charge", static_cast<unsigned int>(hit.graph_evidence.charge));
+          match.setMetaValue("graph_start_ion", static_cast<unsigned int>(hit.graph_evidence.start_ion));
+          if (hit.graph_evidence.supported)
+          {
+            const bool prefix = std::string("abcd").find(hit.graph_evidence.ion_series) != std::string::npos;
+            const Size start = prefix ? hit.graph_evidence.start_ion : hit.sequence.size() - hit.graph_evidence.start_ion - hit.graph_evidence.length;
+            match.setMetaValue("graph_tag_sequence", hit.sequence.getSubsequence(start, hit.graph_evidence.length).toString());
+          }
+        }
         match.adduct_opt = hit.precursor_ref->adduct;
         for (const auto& key : {"flash_precursor_status", "flash_precursor_original_mz",
              "flash_precursor_original_charge", "flash_precursor_parent", "flash_precursor_parent_source",
@@ -1252,7 +1515,8 @@ protected:
   void calculateAndFilterFDR_(IdentificationData& id_data, bool only_top_hits)
   {
     const std::string scoring_method = getStringOption_("scoring:method");
-    IdentificationData::ScoreTypeRef score_ref = id_data.findScoreType(scoring_method == "mvh" ? "MVH score" : "hyperscore");
+    IdentificationData::ScoreTypeRef score_ref
+      = id_data.findScoreType(scoring_method == "route" ? "RNA route score" : (scoring_method == "mvh" ? "MVH score" : "hyperscore"));
     FalseDiscoveryRate fdr;
     Param fdr_params = fdr.getDefaults();
     fdr_params.setValue("use_all_hits", only_top_hits ? "false" : "true");
@@ -1274,6 +1538,42 @@ protected:
                       << "\nIdentified spectra after FDR filtering: "
                       << id_data.getObservations().size() << endl;
     }
+  }
+
+  /// @brief Represent unavailable RNA scores as null columns, never fabricated q-values.
+  static void completeRNAScoreColumns_(MzTab& table)
+  {
+    const auto& metadata = table.getMetaData();
+    const auto complete = [&](auto& rows, const auto& scores) {
+      for (auto& row : rows)
+      {
+        for (const auto& [score, definition] : scores)
+        {
+          row.best_search_engine_score.try_emplace(score);
+          for (const auto& [run, info] : metadata.ms_run)
+          {
+            row.search_engine_score_ms_run[score].try_emplace(run);
+          }
+        }
+      }
+    };
+    // Some core versions serialize only present score-map entries. Mixed target/
+    // decoy and tied results can have unavailable parent/alternative q-values.
+    auto nucleic_acids = table.getNucleicAcidSectionRows();
+    complete(nucleic_acids, metadata.nucleic_acid_search_engine_score);
+    table.setNucleicAcidSectionRows(nucleic_acids);
+    auto oligos = table.getOligonucleotideSectionRows();
+    complete(oligos, metadata.oligonucleotide_search_engine_score);
+    table.setOligonucleotideSectionRows(oligos);
+    auto matches = table.getOSMSectionRows();
+    for (auto& row : matches)
+    {
+      for (const auto& [score, definition] : metadata.osm_search_engine_score)
+      {
+        row.search_engine_score.try_emplace(score);
+      }
+    }
+    table.setOSMSectionRows(matches);
   }
 
 
@@ -1393,6 +1693,27 @@ protected:
     std::string theo_ms2_out = getStringOption_("theo_ms2_out");
     std::string exp_ms2_out = getStringOption_("exp_ms2_out");
     bool use_avg_mass = getFlag_("precursor:use_avg_mass");
+    const std::string candidate_method = getStringOption_("candidates:method");
+    const bool route_generation = candidate_method == "graph_routes";
+    const bool canonical_cleavage = getStringOption_("oligo:cleavage_model") == "canonical";
+    const bool graph_enabled = candidate_method != "enumeration" && ! route_generation;
+    const bool graph_generate = candidate_method == "graph_generate" || candidate_method == "graph_generate_audit";
+    const bool placement_audit = candidate_method == "graph_generate_audit";
+    const bool verify_graph_matches = getFlag_("graph:verify_matches");
+    const bool graph_filter = candidate_method == "graph" || graph_generate;
+    const Size max_placement_nodes = getIntOption_("graph:max_placement_nodes");
+    const std::string graph_out = getStringOption_("out_graph");
+    if ((! graph_enabled && ((! route_generation && ! graph_out.empty()) || verify_graph_matches))
+        || (graph_enabled && getIntOption_("graph:min_tag_length") > getIntOption_("graph:max_tag_length")))
+    {
+      OPENMS_LOG_ERROR << "Graph output and match verification require graph candidates; minimum tag length must not exceed maximum tag length.\n";
+      return ILLEGAL_PARAMETERS;
+    }
+    if ((canonical_cleavage && ! route_generation) || (route_generation && use_avg_mass))
+    {
+      OPENMS_LOG_ERROR << "Canonical cleavage requires graph_routes; graph_routes requires monoisotopic masses.\n";
+      return ILLEGAL_PARAMETERS;
+    }
     Int min_charge = getIntOption_("precursor:min_charge");
     Int max_charge = getIntOption_("precursor:max_charge");
 
@@ -1635,9 +1956,8 @@ protected:
       id_data.registerInputFile(input);
     // processing software meta data:
     const std::string scoring_method = getStringOption_("scoring:method");
-    IdentificationData::ScoreType score(scoring_method == "mvh" ? "MVH score" : "hyperscore", true);
-    IdentificationData::ScoreTypeRef hyperscore_ref =
-      id_data.registerScoreType(score);
+    IdentificationData::ScoreType score(scoring_method == "route" ? "RNA route score" : (scoring_method == "mvh" ? "MVH score" : "hyperscore"), true);
+    IdentificationData::ScoreTypeRef search_score_ref = id_data.registerScoreType(score);
     CVTerm qvalue("MS:1002354", "PSM-level q-value", "MS");
     score = IdentificationData::ScoreType(qvalue, false);
     IdentificationData::ScoreTypeRef qvalue_ref =
@@ -1646,12 +1966,19 @@ protected:
     // in test mode just overwrite with a generic version:
     if (test_mode_) software.setVersion("test");
     // @TODO: which should be the "primary" (first) score?
-    software.assigned_scores.push_back(hyperscore_ref);
+    software.assigned_scores.push_back(search_score_ref);
     software.assigned_scores.push_back(qvalue_ref);
     IdentificationData::ProcessingSoftwareRef software_ref =
       id_data.registerProcessingSoftware(software);
     // @TODO: add suitable data processing action
     IdentificationData::ProcessingStep step(software_ref, {file_ref});
+    if (route_generation)
+    {
+      // OMS stores ProcessingStep metadata, but does not persist DBSearchParam
+      // metadata. Keep the cache contract on the processing step as well.
+      step.setMetaValue("digestion:placement_model", canonical_cleavage ? "route_canonical" : "route_deferred");
+      step.setMetaValue("digestion:route_max_modifications", static_cast<unsigned int>(max_variable_mods_per_oligo));
+    }
     step.actions.insert(DataProcessing::IDENTIFICATION);
     IdentificationData::ProcessingStepRef step_ref;
 
@@ -1664,6 +1991,11 @@ protected:
       search_param.digestion_enzyme = configured_enzyme;
       search_param.min_length = getIntOption_("oligo:min_size");
       search_param.max_length = getIntOption_("oligo:max_size");
+      if (route_generation)
+      {
+        search_param.setMetaValue("digestion:placement_model", canonical_cleavage ? "route_canonical" : "route_deferred");
+        search_param.setMetaValue("digestion:route_max_modifications", static_cast<unsigned int>(max_variable_mods_per_oligo));
+      }
       IdentificationData::SearchParamRef search_ref =
         id_data.registerDBSearchParam(search_param);
       step_ref = id_data.registerProcessingStep(step, search_ref);
@@ -1705,8 +2037,33 @@ protected:
         NASequence parent = NASequence::fromString(parent_ref->sequence);
         ModifiedNASequenceGenerator::applyFixedModifications(internal_fixed, parent);
         vector<RNaseDigestion::DigestionProduct> products;
-        digestor.digestWithCleavageSensitiveMods(parent, cleavage_sensitive_groups,
-          max_variable_mods_per_oligo, products, min_oligo_length, max_oligo_length);
+        if (route_generation)
+        {
+          // Store nucleotide sequences once. Modification-dependent products
+          // are validated against their full parent after focused placement.
+          const auto* rnase = dynamic_cast<const DigestionEnzymeRNA*>(search_param.digestion_enzyme);
+          StringList after, before;
+          StringUtils::split(rnase->getCutsAfterRegEx(), ',', after);
+          StringUtils::split(rnase->getCutsBeforeRegEx(), ',', before);
+          const Size width = std::max<Size>(1, after.size() + before.size());
+          const Size extra_cuts = std::min(parent.size(), max_variable_mods_per_oligo) * width;
+          digestor.setMissedCleavages(search_param.missed_cleavages + (canonical_cleavage ? 0 : extra_cuts));
+          digestor.digest(parent, products, min_oligo_length, max_oligo_length);
+          for (auto& product : products)
+          {
+            if (product.position.first != 0 || ! parent.hasFivePrimeMod()) { product.fragment.setFivePrimeMod(nullptr); }
+            if (product.position.first + product.position.second != parent.size() || ! parent.hasThreePrimeMod())
+            {
+              product.fragment.setThreePrimeMod(nullptr);
+            }
+            ModifiedNASequenceGenerator::applyFixedModifications(fixed_modifications, product.fragment);
+          }
+        }
+        else
+        {
+          digestor.digestWithCleavageSensitiveMods(parent, cleavage_sensitive_groups, max_variable_mods_per_oligo, products, min_oligo_length,
+                                                   max_oligo_length);
+        }
         for (const auto& product : products)
         {
           registerDigestedOligo_(id_data, parent_ref, parent, product);
@@ -1731,6 +2088,43 @@ protected:
 
       IdentificationData::SearchParamRef search_ref =
         id_data.getDBSearchParams().begin();
+      const std::string required_digest = route_generation ? (canonical_cleavage ? "route_canonical" : "route_deferred") : "preexpanded";
+      bool matching_route_digest = false;
+      bool has_route_digest = false;
+      Size cached_route_budget = 0;
+      for (const auto& cached_step : id_data.getProcessingSteps())
+      {
+        if (cached_step.metaValueExists("digestion:placement_model"))
+        {
+          const auto model = cached_step.getMetaValue("digestion:placement_model").toString();
+          has_route_digest |= model == "route_canonical" || model == "route_deferred";
+        }
+        if (cached_step.metaValueExists("digestion:placement_model") && cached_step.getMetaValue("digestion:placement_model") == required_digest)
+        {
+          matching_route_digest = true;
+          if (cached_step.metaValueExists("digestion:route_max_modifications"))
+          {
+            cached_route_budget
+              = std::max(cached_route_budget, Size(static_cast<unsigned int>(cached_step.getMetaValue("digestion:route_max_modifications"))));
+          }
+        }
+      }
+      if (! route_generation && has_route_digest)
+      {
+        OPENMS_LOG_ERROR << "Enumeration/tag modes require a pre-expanded digest; create a fresh digest from the FASTA.\n";
+        return ILLEGAL_PARAMETERS;
+      }
+      if (route_generation && ! matching_route_digest)
+      {
+        OPENMS_LOG_ERROR << "graph_routes requires a matching deferred/canonical digest; create a fresh digest from the FASTA.\n";
+        return ILLEGAL_PARAMETERS;
+      }
+      if (route_generation
+          && (search_ref->fixed_mods != search_param.fixed_mods || (! canonical_cleavage && cached_route_budget < max_variable_mods_per_oligo)))
+      {
+        OPENMS_LOG_ERROR << "Deferred digest fixed modifications/budget do not cover this search; create a fresh digest.\n";
+        return ILLEGAL_PARAMETERS;
+      }
       search_param.digestion_enzyme = search_ref->digestion_enzyme;
       cleavage_sensitive_groups = {};
       cleavage_sensitive_modifications.clear();
@@ -1807,15 +2201,92 @@ protected:
     std::string precursor_tolerance_unit = getStringOption_("preprocessing:precursor_mass_tolerance_unit");
     bool precursor_tolerance_ppm = (precursor_tolerance_unit == "ppm");
     int precursor_peak_isotopes = getIntOption_("preprocessing:precursor_peak_isotopes");
-    preprocessSpectra_(spectra, search_param.fragment_mass_tolerance,
-                       search_param.fragment_tolerance_ppm,
-                       single_charge_spectra, negative_mode, min_charge,
-                       max_charge, include_unknown_charge,
-                       use_window_mower, window_size, window_peakcount, window_movetype,
-                       use_nlargest, nlargest_n,
-                       remove_precursor, precursor_mass_tolerance,
-                       precursor_tolerance_ppm, precursor_peak_isotopes,
-                       deisotoping, flash_min_cos, flash_min_snr);
+    const bool native_labile_scaffolds = getFlag_("scoring:labile_scaffolds");
+    if (native_labile_scaffolds && (! route_generation || scoring_method == "route"))
+    {
+      OPENMS_LOG_ERROR << "scoring:labile_scaffolds requires graph_routes with MVH or HyperScore.\n";
+      return ILLEGAL_PARAMETERS;
+    }
+    const bool diagnostic_filter = getFlag_("diagnostic:filter");
+    const bool diagnostic_evaluate = diagnostic_filter || route_generation || scoring_method == "route";
+    const bool explicit_diagnostic_filter = getStringOption_("diagnostic:filter_scope") == "explicit";
+    std::set<std::string> explicit_diagnostic_codes;
+    std::vector<RNAModificationDiagnostics::Evidence> diagnostic_evidence;
+    if (diagnostic_evaluate)
+    {
+      std::map<std::string, std::vector<double>> fixed_diagnostics;
+      for (const auto& item : getStringList_("diagnostic:fixed_ions"))
+      {
+        const auto separator = item.find('=');
+        if (separator == std::string::npos || separator == 0)
+        {
+          throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Diagnostic rules require code=mz");
+        }
+        explicit_diagnostic_codes.insert(item.substr(0, separator));
+        fixed_diagnostics[item.substr(0, separator)].push_back(StringUtils::toDouble(item.substr(separator + 1)));
+      }
+      RNAModificationDiagnostics diagnostics(variable_modifications, fixed_diagnostics, negative_mode, search_param.fragment_mass_tolerance,
+                                             search_param.fragment_tolerance_ppm, getDoubleOption_("diagnostic:min_relative_intensity"),
+                                             getIntOption_("diagnostic:max_charge"));
+      // Sort once before attaching evidence; preprocessing keeps spectrum order.
+      spectra.sortSpectra(false);
+      for (auto& spectrum : spectra)
+      {
+        auto evidence = diagnostics.evaluate(spectrum);
+        spectrum.setMetaValue("diagnostic_allowed_mods", StringList(evidence.allowed.begin(), evidence.allowed.end()));
+        spectrum.setMetaValue("diagnostic_labile_mods", StringList(evidence.labile.begin(), evidence.labile.end()));
+        StringList diagnostic_matches;
+        for (const auto& [code, mz] : evidence.matched_mz)
+        {
+          diagnostic_matches.push_back(code + "=" + StringUtils::toStr(mz));
+        }
+        spectrum.setMetaValue("diagnostic_matches", diagnostic_matches);
+        StringList diagnostic_charges, diagnostic_isotopes;
+        for (const auto& [code, charge] : evidence.matched_charge)
+        {
+          diagnostic_charges.push_back(code + "=" + StringUtils::toStr(charge));
+        }
+        for (const auto& [code, mz] : evidence.isotope_mz)
+        {
+          diagnostic_isotopes.push_back(code + "=" + StringUtils::toStr(mz));
+        }
+        spectrum.setMetaValue("diagnostic_match_charges", diagnostic_charges);
+        spectrum.setMetaValue("diagnostic_isotope_matches", diagnostic_isotopes);
+        diagnostic_evidence.push_back(std::move(evidence));
+      }
+    }
+    preprocessSpectra_(spectra, search_param.fragment_mass_tolerance, search_param.fragment_tolerance_ppm, single_charge_spectra, negative_mode,
+                       min_charge, max_charge, include_unknown_charge, use_window_mower, window_size, window_peakcount, window_movetype, use_nlargest,
+                       nlargest_n, remove_precursor, precursor_mass_tolerance, precursor_tolerance_ppm, precursor_peak_isotopes, deisotoping,
+                       flash_min_cos, flash_min_snr, route_generation || (scoring_method == "route"),
+                       getIntOption_("preprocessing:legacy:min_isopeaks"), getDoubleOption_("preprocessing:legacy:mass_tolerance"),
+                       getFlag_("preprocessing:legacy:sum_intensities"), getIntOption_("preprocessing:legacy:unknown_max_charge"));
+    if (diagnostic_evaluate)
+    {
+      // Recover evidence from spectrum-owned metadata after preprocessing sorts;
+      // equal-RT spectra and duplicate native IDs must not exchange permissions.
+      diagnostic_evidence.clear();
+      for (const auto& spectrum : spectra)
+      {
+        RNAModificationDiagnostics::Evidence evidence;
+        for (const auto* residue : variable_modifications)
+        {
+          if (diagnostic_filter && (! explicit_diagnostic_filter || explicit_diagnostic_codes.contains(residue->getCode())))
+          {
+            evidence.tested.insert(residue->getCode());
+          }
+        }
+        for (const auto& code : spectrum.getMetaValue("diagnostic_allowed_mods").toStringList())
+        {
+          evidence.allowed.insert(code);
+        }
+        for (const auto& code : spectrum.getMetaValue("diagnostic_labile_mods").toStringList())
+        {
+          evidence.labile.insert(code);
+        }
+        diagnostic_evidence.push_back(std::move(evidence));
+      }
+    }
     const std::string out_preprocessed = getStringOption_("out_preprocessed");
     if (!out_preprocessed.empty())
     {
@@ -1925,12 +2396,92 @@ protected:
     param.setValue("add_precursor_peaks", "false");
     spectrum_generator.setParameters(param);
 
+    vector<RNASpectrumGraph::Result> spectrum_graphs;
+    std::shared_ptr<const RNASpectrumGraph::Alphabet> graph_alphabet;
+    if (graph_enabled)
+    {
+      RNASpectrumGraph::Options graph_options;
+      graph_options.tolerance = search_param.fragment_mass_tolerance;
+      graph_options.tolerance_ppm = search_param.fragment_tolerance_ppm;
+      graph_options.min_tag_length = getIntOption_("graph:min_tag_length");
+      graph_options.max_tag_length = getIntOption_("graph:max_tag_length");
+      graph_options.max_step = getIntOption_("graph:max_step");
+      graph_options.max_peaks = getIntOption_("graph:max_peaks");
+      graph_options.max_charge = getIntOption_("graph:max_charge");
+      graph_options.max_edges = getIntOption_("graph:max_edges");
+      graph_options.max_query_edges = getIntOption_("graph:max_query_edges");
+      graph_options.max_query_states = getIntOption_("graph:max_query_states");
+      const Size total_edge_budget = getIntOption_("graph:max_total_edges");
+      set<ConstRibonucleotidePtr> alphabet = variable_modifications;
+      alphabet.insert(fixed_modifications.begin(), fixed_modifications.end());
+      for (const auto& code : {"A", "C", "G", "U"})
+      {
+        alphabet.insert(RibonucleotideDB::getInstance()->getRibonucleotide(code));
+      }
+      const RNASpectrumGraph graph_builder(alphabet, graph_options);
+      spectrum_graphs.resize(spectra.size());
+      Size total_edges = 0;
+      map<std::string, Size> fallbacks;
+      progresslogger.startProgress(0, spectra.size(), "building RNA mass-tag graphs...");
+      // Deterministic spectrum order makes the shared cache budget independent
+      // of thread scheduling and applies the same graph to targets and decoys.
+      for (Size scan = 0; scan < spectra.size(); ++scan)
+      {
+        progresslogger.setProgress(scan);
+        auto& graph = spectrum_graphs[scan];
+        if (spectra[scan].getMSLevel() != 2 || spectra[scan].getPrecursors().size() != 1) { graph.fallback_reason = "invalid_ms2_precursor"; }
+        else if (total_edges >= total_edge_budget) { graph.fallback_reason = "total_edge_budget"; }
+        else
+        {
+          Size charge = std::abs(spectra[scan].getPrecursors()[0].getCharge());
+          if (charge == 0) { charge = std::max(std::abs(min_charge), std::abs(max_charge)); }
+          graph = graph_builder.build(spectra[scan], single_charge_spectra ? 1 : charge);
+          if (graph.fallback_reason.empty())
+          {
+            if (graph.edges > total_edge_budget - total_edges)
+            {
+              graph.layers.clear();
+              graph.peak_indices.clear();
+              graph.fallback_reason = "total_edge_budget";
+            }
+            else
+            {
+              total_edges += graph.edges;
+            }
+          }
+        }
+        if (! graph.fallback_reason.empty()) { ++fallbacks[graph.fallback_reason]; }
+        if (! graph_alphabet && graph.alphabet) { graph_alphabet = graph.alphabet; }
+      }
+      progresslogger.endProgress();
+      OPENMS_LOG_INFO << "RNA graph cached edges: " << total_edges << '\n';
+      for (const auto& [reason, count] : fallbacks)
+      {
+        OPENMS_LOG_INFO << "RNA graph fallback " << reason << ": " << count << '\n';
+      }
+      if (! graph_out.empty())
+      {
+        SVOutStream output(graph_out, "\t", "_");
+        output << "spectrum" << "peaks" << "vertices" << "edges" << "alphabet" << "fallback" << endl;
+        for (Size scan = 0; scan < spectra.size(); ++scan)
+        {
+          const auto& graph = spectrum_graphs[scan];
+          output << spectra[scan].getNativeID() << graph.peaks << graph.vertices << graph.edges
+                 << (graph.alphabet ? graph.alphabet->code_ids.size() : 0) << graph.fallback_reason << endl;
+        }
+      }
+    }
+
     vector<HitsByScore> annotated_hits(spectra.size());
     MSExperiment exp_ms2_spectra, theo_ms2_spectra; // debug output
 
     std::string msg = "scoring oligonucleotide models against spectra...";
     progresslogger.startProgress(0, id_data.getIdentifiedOligos().size(), msg);
     Size hit_counter = 0;
+    Size graph_prefiltered = 0, graph_rejected = 0, graph_supported = 0, graph_fallback = 0;
+    Size graph_verified = 0, graph_mismatches = 0;
+    Size placement_nodes = 0, placement_pruned = 0, placement_emitted = 0, placement_fallbacks = 0;
+    Size placement_reference = 0, placement_expected = 0, placement_missing = 0, placement_extra = 0;
 
     // keep a list of (references to) oligos in the original digest:
     vector<IdentificationData::IdentifiedOligoRef> digest;
@@ -1943,132 +2494,526 @@ protected:
     }
 
     Int base_charge = negative_mode ? -1 : 1;
+    const auto blacklist_mz = getDoubleList_("scoring:blacklist_mz");
+    const double blacklist_tolerance = getDoubleOption_("scoring:blacklist_tolerance");
+    const Size num_intensity_classes = getIntOption_("scoring:num_intensity_classes");
+    const double tic_fraction = getDoubleOption_("scoring:tic_fraction");
+    const bool use_mass_accuracy = getFlag_("scoring:use_mass_accuracy");
+    const bool route_base_loss = getFlag_("scoring:route_base_loss");
+    const bool single_peak_credit = getStringOption_("scoring:single_peak_credit") == "true";
+    const double min_coverage = getDoubleOption_("report:require_coverage");
+    const Size route_max_charge = getIntOption_("graph:max_charge");
+    RNARouteScorer::Options route_score_options;
+    route_score_options.tolerance = search_param.fragment_mass_tolerance;
+    route_score_options.tolerance_ppm = search_param.fragment_tolerance_ppm;
+    route_score_options.local_radius = getDoubleOption_("scoring:route_local_radius");
+    route_score_options.mass_accuracy_tolerance = getDoubleOption_("scoring:route_mass_accuracy_tolerance");
+    route_score_options.local_peaks = getIntOption_("scoring:route_local_peaks");
+    route_score_options.min_nodes = getIntOption_("scoring:route_min_nodes");
+    route_score_options.max_unknown_charge = single_charge_spectra ? 1 : route_max_charge;
+    vector<MSSpectrum> route_scoring_spectra;
+    vector<RNARouteScorer::PreparedSpectrum> route_scoring_contexts;
+    if (scoring_method == "route")
+    {
+      route_scoring_spectra.assign(spectra.begin(), spectra.end());
+      const Size max_peaks = getIntOption_(route_generation ? "routes:max_peaks" : "graph:max_peaks");
+      for (auto& spectrum : route_scoring_spectra)
+      {
+        spectrum.select(RNASpectrumGraph::selectPeakIndices(spectrum, max_peaks));
+        route_scoring_contexts.push_back(RNARouteScorer::prepareSpectrum(spectrum, negative_mode, route_score_options));
+      }
+    }
+
+    if (route_generation)
+    {
+      vector<NASequence> route_database;
+      for (const auto& reference : digest)
+      {
+        route_database.push_back(reference->sequence);
+      }
+      RNARouteCandidateGenerator::Options options;
+      options.tolerance = search_param.fragment_mass_tolerance;
+      options.tolerance_ppm = search_param.fragment_tolerance_ppm;
+      options.precursor_tolerance = search_param.precursor_mass_tolerance;
+      options.precursor_tolerance_ppm = search_param.precursor_tolerance_ppm;
+      options.max_modifications = max_variable_mods_per_oligo;
+      options.max_length = getIntOption_("routes:max_length");
+      options.max_peaks = getIntOption_("routes:max_peaks");
+      options.max_states = getIntOption_("routes:max_states");
+      options.max_completion_nodes = getIntOption_("routes:max_completion_nodes");
+      options.max_candidates = getIntOption_("routes:max_candidates");
+      options.max_supports = getIntOption_("routes:max_supports");
+      options.min_route_nodes = getIntOption_("routes:min_nodes");
+      const auto completion = getStringOption_("routes:completion");
+      options.complete_unanchored_modifications = completion == "bounded" || completion == "all";
+      if (completion == "bounded" || completion == "bounded_labile")
+      {
+        options.max_unanchored_modifications = getIntOption_("routes:max_unanchored_modifications");
+      }
+      options.index_precursor_mass = getStringOption_("routes:precursor_index") == "true";
+      options.allow_full_length_routes = getStringOption_("routes:allow_full_length") == "true";
+      const RNARouteCandidateGenerator generator(route_database, variable_modifications, options);
+      std::unique_ptr<RNARouteCandidateGenerator> route_reference;
+      if (getFlag_("routes:verify_candidates"))
+      {
+        auto reference_options = options;
+        reference_options.index_precursor_mass = false;
+        reference_options.compress_route_states = false;
+        route_reference = std::make_unique<RNARouteCandidateGenerator>(route_database, variable_modifications, reference_options);
+      }
+      using PrecursorEntry = std::pair<const double, PrecursorInfo>;
+      vector<vector<const PrecursorEntry*>> by_scan(spectra.size());
+      for (const auto& precursor : precursor_mass_map)
+      {
+        by_scan[precursor.second.scan_index].push_back(&precursor);
+      }
+      vector<RNARouteCandidateGenerator::Result> route_results(spectra.size());
+      vector<std::string> failures(spectra.size());
+      std::atomic<bool> route_incomplete {false};
+#pragma omp parallel for schedule(dynamic) reduction(+ : hit_counter)
+      for (SignedSize scan = 0; scan < SignedSize(spectra.size()); ++scan)
+      {
+        if (by_scan[scan].empty()) { continue; }
+        if (route_incomplete.load(std::memory_order_relaxed))
+        {
+          failures[scan] = "not_attempted_after_incomplete_search";
+          route_results[scan].complete = false;
+          route_results[scan].reason = failures[scan];
+          continue;
+        }
+        try
+        {
+          vector<double> masses;
+          Size max_fragment_charge = 1;
+          for (const auto* precursor : by_scan[scan])
+          {
+            masses.push_back(precursor->first);
+            max_fragment_charge = std::max(max_fragment_charge, Size(precursor->second.charge));
+          }
+          const auto& evidence = diagnostic_evidence[scan];
+          auto generated = generator.generate(spectra[scan], masses, evidence, negative_mode,
+                                              single_charge_spectra ? 1 : std::min(max_fragment_charge, route_max_charge), &route_incomplete);
+          if (generated.complete && route_reference)
+          {
+            const auto reference
+              = route_reference->generate(spectra[scan], masses, evidence, negative_mode,
+                                          single_charge_spectra ? 1 : std::min(max_fragment_charge, route_max_charge), &route_incomplete);
+            const auto keys = [](const auto& candidates) {
+              std::vector<std::tuple<Size, Size, std::string, std::vector<std::string>>> result;
+              for (const auto& candidate : candidates)
+              {
+                std::vector<std::string> scaffolds;
+                for (const auto& scaffold : candidate.support_scaffolds)
+                {
+                  scaffolds.push_back(scaffold->label);
+                }
+                std::sort(scaffolds.begin(), scaffolds.end());
+                result.emplace_back(candidate.database_index, candidate.precursor_index, candidate.sequence.toString(), std::move(scaffolds));
+              }
+              std::sort(result.begin(), result.end());
+              return result;
+            };
+            if (! reference.complete || keys(reference.candidates) != keys(generated.candidates))
+            {
+              generated.complete = false;
+              generated.reason = reference.complete ? "candidate_multiset_mismatch" : "reference:" + reference.reason;
+            }
+          }
+          if (! generated.complete)
+          {
+            failures[scan] = generated.reason;
+            route_incomplete.store(true, std::memory_order_relaxed);
+          }
+          else
+          {
+            std::map<std::pair<const RNARouteCandidateGenerator::Scaffold*, Size>, RNARouteScorer::PreparedRoutes> support_routes;
+            struct NativeModel
+            {
+              double score;
+              std::vector<PeptideHit::PeakAnnotation> annotations;
+            };
+            std::map<std::pair<const RNARouteCandidateGenerator::Scaffold*, Size>, NativeModel> native_support_models;
+            const auto score_native = [&](const MSSpectrum& model) {
+              NativeModel result;
+              result.score
+                = scoreNativeSpectrum_(scoring_method, search_param.fragment_mass_tolerance, search_param.fragment_tolerance_ppm, spectra[scan],
+                                       model, result.annotations, num_intensity_classes, tic_fraction, use_mass_accuracy, single_peak_credit);
+              return result;
+            };
+            for (const auto& placed : generated.candidates)
+            {
+              if (route_incomplete.load(std::memory_order_relaxed))
+              {
+                failures[scan] = "cancelled_after_incomplete_search";
+                break;
+              }
+              const auto* precursor = by_scan[scan][placed.precursor_index];
+              const auto& candidate = placed.sequence;
+              std::optional<IdentificationData::IdentifiedOligo> parent_override;
+              if (! canonical_cleavage)
+              {
+                parent_override = *digest[placed.database_index];
+                parent_override->parent_matches.clear();
+                RNaseDigestion validator;
+                validator.setEnzyme(search_param.digestion_enzyme);
+                validator.setMissedCleavages(search_param.missed_cleavages);
+                for (const auto& [parent_ref, matches] : digest[placed.database_index]->parent_matches)
+                {
+                  for (const auto& match : matches)
+                  {
+                    NASequence parent = NASequence::fromString(parent_ref->sequence);
+                    ModifiedNASequenceGenerator::applyFixedModifications(fixed_modifications, parent);
+                    for (Size pos = 0; pos < candidate.size(); ++pos)
+                    {
+                      parent.set(match.start_pos + pos, candidate[pos]);
+                    }
+                    const auto positions = validator.getFragmentPositions(parent, candidate.size(), candidate.size());
+                    if (std::find(positions.begin(), positions.end(), std::pair<Size, Size> {match.start_pos, candidate.size()}) != positions.end())
+                    {
+                      parent_override->parent_matches[parent_ref].insert(match);
+                    }
+                  }
+                }
+                if (parent_override->parent_matches.empty()) { continue; }
+              }
+              MSSpectrum model;
+              spectrum_generator.getSpectrum(model, candidate, base_charge, precursor->second.charge * base_charge);
+              filterBlacklistedIons_(model, blacklist_mz, blacklist_tolerance);
+              vector<PeptideHit::PeakAnnotation> annotations;
+              RNARouteScorer::Result route_evidence;
+              std::string native_scoring_scaffold;
+              double score;
+              if (scoring_method == "route")
+              {
+                const auto query = RNATagCandidateFilter::prepare(candidate, nullptr, model, selected_ions, route_base_loss);
+                const auto intact = RNARouteScorer::match(query, route_scoring_spectra[scan], route_scoring_contexts[scan], negative_mode,
+                                                          route_score_options, candidate.toString());
+                std::vector<const RNARouteScorer::PreparedRoutes*> routes {&intact};
+                for (const auto& scaffold : placed.support_scaffolds)
+                {
+                  const auto key = std::pair(scaffold.get(), precursor->second.charge);
+                  auto found = support_routes.find(key);
+                  if (found == support_routes.end())
+                  {
+                    MSSpectrum support_model;
+                    spectrum_generator.getSpectrum(support_model, scaffold->sequence, base_charge, precursor->second.charge * base_charge);
+                    filterBlacklistedIons_(support_model, blacklist_mz, blacklist_tolerance);
+                    const auto support_query
+                      = RNATagCandidateFilter::prepare(scaffold->sequence, nullptr, support_model, selected_ions, route_base_loss);
+                    auto matched = RNARouteScorer::match(support_query, route_scoring_spectra[scan], route_scoring_contexts[scan], negative_mode,
+                                                         route_score_options, scaffold->label);
+                    found = support_routes.emplace(key, std::move(matched)).first;
+                  }
+                  routes.push_back(&found->second);
+                }
+                route_evidence = RNARouteScorer::score(routes, route_scoring_spectra[scan], route_scoring_contexts[scan], negative_mode);
+                score = route_evidence.score;
+                annotations = route_evidence.annotations;
+              }
+              else
+              {
+                auto best = score_native(model);
+                if (native_labile_scaffolds)
+                {
+                  native_scoring_scaffold = candidate.toString();
+                  for (const auto& scaffold : placed.support_scaffolds)
+                  {
+                    const auto key = std::pair(scaffold.get(), precursor->second.charge);
+                    auto found = native_support_models.find(key);
+                    if (found == native_support_models.end())
+                    {
+                      MSSpectrum support_model;
+                      spectrum_generator.getSpectrum(support_model, scaffold->sequence, base_charge, precursor->second.charge * base_charge);
+                      filterBlacklistedIons_(support_model, blacklist_mz, blacklist_tolerance);
+                      found = native_support_models.emplace(key, score_native(support_model)).first;
+                    }
+                    // Keep one coherent model. Do not pool ions from mutually
+                    // incompatible scaffold interpretations.
+                    if (std::isfinite(found->second.score) && (! std::isfinite(best.score) || found->second.score > best.score))
+                    {
+                      best = found->second;
+                      native_scoring_scaffold = scaffold->label;
+                    }
+                  }
+                }
+                score = best.score;
+                annotations = std::move(best.annotations);
+              }
+              if (! std::isfinite(score) || score < 1e-16 || (min_coverage > 0 && calculateFragmentCoverage_(candidate, annotations) < min_coverage))
+              {
+                continue;
+              }
+              ++hit_counter;
+              AnnotatedHit hit;
+              hit.oligo_ref = digest[placed.database_index];
+              hit.sequence = candidate;
+              hit.annotations = std::move(annotations);
+              hit.precursor_error_ppm = (precursor->first - candidate.getMonoWeight()) / candidate.getMonoWeight() * 1e6;
+              hit.precursor_ref = &precursor->second;
+              hit.route_evidence = std::move(route_evidence);
+              hit.native_scoring_scaffold = std::move(native_scoring_scaffold);
+              hit.parent_override = std::move(parent_override);
+              retainTopHit_(annotated_hits[scan], score, std::move(hit), report_top_hits);
+            }
+          }
+          generated.candidates.clear();
+          generated.candidates.shrink_to_fit();
+          route_results[scan] = std::move(generated);
+        }
+        catch (const std::exception& error)
+        {
+          failures[scan] = error.what();
+          route_incomplete.store(true, std::memory_order_relaxed);
+        }
+      }
+      std::ofstream diagnostics;
+      if (! graph_out.empty())
+      {
+        diagnostics.open(graph_out);
+        diagnostics << "scan_index\tnative_id\tgraph_nodes\tgraph_edges\troute_states\troutes\tcompletion_nodes\tsupport_variants\tstatus\n";
+      }
+      bool complete = true;
+      Size cancelled_scans = 0;
+      for (Size scan = 0; scan < spectra.size(); ++scan)
+      {
+        if (by_scan[scan].empty()) { continue; }
+        const auto& result = route_results[scan];
+        if (diagnostics)
+        {
+          diagnostics << scan << '\t' << spectra[scan].getNativeID() << '\t' << result.graph_nodes << '\t' << result.graph_edges << '\t'
+                      << result.route_states << '\t' << result.routes << '\t' << result.completion_nodes << '\t' << result.support_variants << '\t'
+                      << (failures[scan].empty() ? "complete" : failures[scan]) << '\n';
+        }
+        if (! failures[scan].empty())
+        {
+          if (failures[scan] == "not_attempted_after_incomplete_search" || failures[scan].ends_with("cancelled_after_incomplete_search"))
+          {
+            ++cancelled_scans;
+          }
+          else
+          {
+            // Emit root causes from the main thread: worker-local log buffers
+            // can otherwise hide the reason while only cancellation is visible.
+            OPENMS_LOG_ERROR << "Incomplete route search for " << spectra[scan].getNativeID() << ": " << failures[scan] << '\n';
+          }
+          complete = false;
+        }
+      }
+      if (cancelled_scans) { OPENMS_LOG_INFO << "Cancelled/unattempted route spectra after incomplete search: " << cancelled_scans << '\n'; }
+      if (! complete) { return UNEXPECTED_RESULT; }
+    }
+    else
+    {
 
 // shorter oligos take (possibly much) less time to process than longer ones;
 // due to the sorting order of "NASequence", they also appear earlier in the
 // container - therefore use dynamic scheduling to distribute work evenly:
-#pragma omp parallel for schedule(dynamic)
-    for (SignedSize index = 0; index < SignedSize(digest.size()); ++index)
-    {
-      IF_MASTERTHREAD
+#pragma omp parallel for schedule(dynamic) reduction(                                                                                          \
+    + : placement_nodes, placement_pruned, placement_emitted, placement_fallbacks, placement_reference, placement_expected, placement_missing, \
+      placement_extra, graph_prefiltered, graph_rejected, graph_supported, graph_fallback, graph_verified, graph_mismatches, hit_counter)
+      for (SignedSize index = 0; index < SignedSize(digest.size()); ++index)
       {
-        progresslogger.setProgress(index);
-      }
-
-      IdentificationData::IdentifiedOligoRef oligo_ref = digest[index];
-      vector<NASequence> all_modified_oligos;
-      NASequence ns = oligo_ref->sequence;
-      // Only a known digest enzyme can classify existing modifications as
-      // cleavage-sensitive placements that consume the variable-modification budget.
-      Size consumed_cleavage_sensitive_mods = search_param.digestion_enzyme ?
-        countCleavageSensitiveMods_(ns, cleavage_sensitive_mod_codes) : 0;
-      if (consumed_cleavage_sensitive_mods > max_variable_mods_per_oligo)
-      {
-        continue;
-      }
-      Size remaining_variable_mods =
-        max_variable_mods_per_oligo - consumed_cleavage_sensitive_mods;
-      ModifiedNASequenceGenerator::applyFixedModifications(
-        fixed_modifications, ns);
-      ModifiedNASequenceGenerator::applyVariableModifications(
-        post_digest_variable_modifications, ns, remaining_variable_mods,
-        all_modified_oligos, true);
-      OPENMS_LOG_DEBUG << "Oligo: " << ns.toString() << endl;
-
-      // group modified oligos by precursor mass - oligos with the same
-      // combination of mods (just different placements) will have same mass:
-      map<double, vector<const NASequence*>> modified_oligos_by_mass;
-      for (const NASequence& seq : all_modified_oligos)
-      {
-        double mass = (use_avg_mass ? seq.getAverageWeight() :
-                       seq.getMonoWeight());
-        modified_oligos_by_mass[mass].push_back(&seq);
-      }
-
-      for (const auto& pair : modified_oligos_by_mass)
-      {
-        double candidate_mass = pair.first;
-
-        // determine MS2 precursors that match to the current mass:
-        double tol = search_param.precursor_mass_tolerance;
-        if (search_param.precursor_tolerance_ppm)
+        IF_MASTERTHREAD
         {
-          tol *= candidate_mass * 1e-6;
-        }
-        multimap<double, PrecursorInfo>::const_iterator low_it =
-          precursor_mass_map.lower_bound(candidate_mass - tol), up_it =
-          precursor_mass_map.upper_bound(candidate_mass + tol);
-
-        if (low_it == up_it) continue; // no matching precursor in data
-
-        // collect all relevant charge states for theoret. spectrum generation:
-        set<Int> precursor_charges;
-        for (auto prec_it = low_it; prec_it != up_it; ++prec_it) // OMS_CODING_TEST_EXCLUDE
-        {
-          precursor_charges.insert(prec_it->second.charge * base_charge);
+          progresslogger.setProgress(index);
         }
 
-        for (const NASequence* seq_ptr : pair.second)
+        IdentificationData::IdentifiedOligoRef oligo_ref = digest[index];
+        vector<NASequence> all_modified_oligos;
+        NASequence ns = oligo_ref->sequence;
+        // Only a known digest enzyme can classify existing modifications as
+        // cleavage-sensitive placements that consume the variable-modification budget.
+        Size consumed_cleavage_sensitive_mods = search_param.digestion_enzyme ? countCleavageSensitiveMods_(ns, cleavage_sensitive_mod_codes) : 0;
+        if (consumed_cleavage_sensitive_mods > max_variable_mods_per_oligo) { continue; }
+        Size remaining_variable_mods = max_variable_mods_per_oligo - consumed_cleavage_sensitive_mods;
+        ModifiedNASequenceGenerator::applyFixedModifications(fixed_modifications, ns);
+        if (graph_generate)
         {
-          const NASequence& candidate = *seq_ptr;
-          OPENMS_LOG_DEBUG << "Candidate: " << candidate.toString() << " ("
-                           << float(candidate_mass) << " Da)" << endl;
-
-          // pre-generate spectra:
-          map<Int, MSSpectrum> theo_spectra_by_charge;
-          spectrum_generator.getMultipleSpectra(theo_spectra_by_charge,
-                                                candidate, precursor_charges,
-                                                base_charge);
-
-          const auto blacklist_mz = getDoubleList_("scoring:blacklist_mz");
-          if (!blacklist_mz.empty())
-          {
-            for (auto& [charge, spectrum] : theo_spectra_by_charge)
+          ModifiedNASequenceGenerator::PlacementConstraints constraints;
+          constraints.use_average_mass = use_avg_mass;
+          constraints.max_nodes = max_placement_nodes;
+          constraints.accepts = [&](double lower_mass, double upper_mass, const auto& alternatives) {
+            auto first = precursor_mass_map.begin(), past = precursor_mass_map.end();
+            if (std::isfinite(lower_mass) && std::isfinite(upper_mass))
             {
-              filterBlacklistedIons_(spectrum, blacklist_mz, getDoubleOption_("scoring:blacklist_tolerance"));
+              const double tolerance = search_param.precursor_mass_tolerance;
+              double low = lower_mass - tolerance, high = upper_mass + tolerance;
+              if (search_param.precursor_tolerance_ppm)
+              {
+                const double fraction = tolerance * 1e-6;
+                low = std::min(lower_mass * (1.0 - fraction), upper_mass * (1.0 - fraction));
+                high = std::max(lower_mass * (1.0 + fraction), upper_mass * (1.0 + fraction));
+              }
+              first = precursor_mass_map.lower_bound(low);
+              past = precursor_mass_map.upper_bound(high);
             }
+            return std::any_of(first, past, [&](const auto& precursor) {
+              return RNATagCandidateFilter::isCompatible(alternatives, spectrum_graphs[precursor.second.scan_index], selected_ions,
+                                                         precursor.second.charge);
+            });
+          };
+          const auto statistics = ModifiedNASequenceGenerator::applyVariableModificationsConstrained(
+            post_digest_variable_modifications, ns, remaining_variable_mods, all_modified_oligos, constraints, true);
+          placement_nodes += statistics.visited_nodes;
+          placement_pruned += statistics.pruned_branches;
+          placement_emitted += statistics.emitted_variants;
+          placement_fallbacks += statistics.enumeration_fallback;
+          if (placement_audit)
+          {
+            vector<NASequence> reference;
+            ModifiedNASequenceGenerator::applyVariableModifications(post_digest_variable_modifications, ns, remaining_variable_mods, reference, true);
+            placement_reference += reference.size();
+            const auto eligible = [&](const NASequence& candidate) {
+              const double mass = use_avg_mass ? candidate.getAverageWeight() : candidate.getMonoWeight();
+              const double tolerance = search_param.precursor_mass_tolerance * (search_param.precursor_tolerance_ppm ? mass * 1e-6 : 1.0);
+              const auto first = precursor_mass_map.lower_bound(mass - tolerance), past = precursor_mass_map.upper_bound(mass + tolerance);
+              return std::any_of(first, past, [&](const auto& precursor) {
+                return RNATagCandidateFilter::isCompatible(candidate, spectrum_graphs[precursor.second.scan_index], selected_ions,
+                                                           precursor.second.charge);
+              });
+            };
+            vector<NASequence> expected, actual;
+            std::copy_if(reference.begin(), reference.end(), std::back_inserter(expected), eligible);
+            std::copy_if(all_modified_oligos.begin(), all_modified_oligos.end(), std::back_inserter(actual), eligible);
+            std::sort(expected.begin(), expected.end());
+            std::sort(actual.begin(), actual.end());
+            placement_expected += expected.size();
+            vector<NASequence> differences;
+            std::set_difference(expected.begin(), expected.end(), actual.begin(), actual.end(), std::back_inserter(differences));
+            placement_missing += differences.size();
+            differences.clear();
+            std::set_difference(actual.begin(), actual.end(), expected.begin(), expected.end(), std::back_inserter(differences));
+            placement_extra += differences.size();
+            // Audit scores the exhaustive reference through the phase-one filter.
+            all_modified_oligos = std::move(reference);
           }
+        }
+        else
+        {
+          ModifiedNASequenceGenerator::applyVariableModifications(post_digest_variable_modifications, ns, remaining_variable_mods,
+                                                                  all_modified_oligos, true);
+        }
+        OPENMS_LOG_DEBUG << "Oligo: " << ns.toString() << endl;
 
+        // group modified oligos by precursor mass - oligos with the same
+        // combination of mods (just different placements) will have same mass:
+        map<double, vector<const NASequence*>> modified_oligos_by_mass;
+        for (const NASequence& seq : all_modified_oligos)
+        {
+          double mass = (use_avg_mass ? seq.getAverageWeight() : seq.getMonoWeight());
+          modified_oligos_by_mass[mass].push_back(&seq);
+        }
+
+        for (const auto& pair : modified_oligos_by_mass)
+        {
+          double candidate_mass = pair.first;
+
+          // determine MS2 precursors that match to the current mass:
+          double tol = search_param.precursor_mass_tolerance;
+          if (search_param.precursor_tolerance_ppm) { tol *= candidate_mass * 1e-6; }
+          multimap<double, PrecursorInfo>::const_iterator low_it = precursor_mass_map.lower_bound(candidate_mass - tol),
+                                                          up_it = precursor_mass_map.upper_bound(candidate_mass + tol);
+
+          if (low_it == up_it) continue; // no matching precursor in data
+
+          // collect all relevant charge states for theoret. spectrum generation:
+          set<Int> precursor_charges;
           for (auto prec_it = low_it; prec_it != up_it; ++prec_it) // OMS_CODING_TEST_EXCLUDE
           {
-            OPENMS_LOG_DEBUG << "Matching precursor mass: "
-                             << float(prec_it->first) << endl;
+            precursor_charges.insert(prec_it->second.charge * base_charge);
+          }
 
-            Size charge = prec_it->second.charge;
-            // look up theoretical spectrum for this charge:
-            MSSpectrum& theo_spectrum =
-              theo_spectra_by_charge[charge * base_charge];
-
-            Size scan_index = prec_it->second.scan_index;
-            const MSSpectrum& exp_spectrum = spectra[scan_index];
-            vector<PeptideHit::PeakAnnotation> annotations;
-            // Compute score using selected method
-            double score;
-            if (scoring_method == "mvh")
+          for (const NASequence* seq_ptr : pair.second)
+          {
+            const NASequence& candidate = *seq_ptr;
+            // A cheap residue/tag check can avoid theoretical-spectrum generation.
+            // Existing modification placement and cleavage-dependent digestion are
+            // deliberately shared with enumeration in this first graph stage.
+            if (graph_filter && std::none_of(low_it, up_it, [&](const auto& precursor) {
+                  return RNATagCandidateFilter::isCompatible(candidate, spectrum_graphs[precursor.second.scan_index], selected_ions,
+                                                             precursor.second.charge);
+                }))
             {
-              Size num_intensity_classes = getIntOption_("scoring:num_intensity_classes");
-              double tic_fraction = getDoubleOption_("scoring:tic_fraction");
-              bool use_mass_accuracy = getFlag_("scoring:use_mass_accuracy");
-              bool single_peak_credit = getStringOption_("scoring:single_peak_credit") == "true";
-              score = MetaboliteSpectralMatching::computeMVHScore(
-                search_param.fragment_mass_tolerance,
-                search_param.fragment_tolerance_ppm, exp_spectrum, theo_spectrum,
-                annotations, num_intensity_classes, tic_fraction, 0.0, use_mass_accuracy, single_peak_credit);
+              ++graph_prefiltered;
+              continue;
             }
-            else // hyperscore
+            OPENMS_LOG_DEBUG << "Candidate: " << candidate.toString() << " (" << float(candidate_mass) << " Da)" << endl;
+
+            // pre-generate spectra:
+            map<Int, MSSpectrum> theo_spectra_by_charge;
+            spectrum_generator.getMultipleSpectra(theo_spectra_by_charge, candidate, precursor_charges, base_charge);
+
+            if (! blacklist_mz.empty())
             {
-              bool use_mass_accuracy = getFlag_("scoring:use_mass_accuracy");
-              score = MetaboliteSpectralMatching::computeHyperScore(
-                search_param.fragment_mass_tolerance,
-                search_param.fragment_tolerance_ppm, exp_spectrum, theo_spectrum,
-                annotations, 0.0, use_mass_accuracy);
+              for (auto& [charge, spectrum] : theo_spectra_by_charge)
+              {
+                filterBlacklistedIons_(spectrum, blacklist_mz, blacklist_tolerance);
+              }
+            }
+            map<Int, RNATagCandidateFilter::PreparedQuery> graph_queries;
+            if (graph_enabled || (scoring_method == "route"))
+            {
+              for (const auto& [charge, model] : theo_spectra_by_charge)
+              {
+                graph_queries.emplace(charge, RNATagCandidateFilter::prepare(candidate, graph_alphabet, model, selected_ions, route_base_loss));
+              }
             }
 
-            if (!exp_ms2_out.empty())
+            for (auto prec_it = low_it; prec_it != up_it; ++prec_it) // OMS_CODING_TEST_EXCLUDE
             {
+              OPENMS_LOG_DEBUG << "Matching precursor mass: " << float(prec_it->first) << endl;
+
+              Size charge = prec_it->second.charge;
+              // look up theoretical spectrum for this charge:
+              MSSpectrum& theo_spectrum = theo_spectra_by_charge[charge * base_charge];
+
+              Size scan_index = prec_it->second.scan_index;
+              const MSSpectrum& exp_spectrum = spectra[scan_index];
+              if (diagnostic_filter && ! diagnostic_evidence[scan_index].accepts(candidate)) { continue; }
+              RNATagCandidateFilter::Evidence graph_evidence;
+              if (graph_enabled)
+              {
+                graph_evidence = RNATagCandidateFilter::match(graph_queries.at(charge * base_charge), spectrum_graphs[scan_index], exp_spectrum,
+                                                              search_param.fragment_mass_tolerance, search_param.fragment_tolerance_ppm);
+                if (verify_graph_matches)
+                {
+                  const auto reference
+                    = RNATagCandidateFilter::matchReference(candidate, spectrum_graphs[scan_index], exp_spectrum, theo_spectrum, selected_ions,
+                                                            search_param.fragment_mass_tolerance, search_param.fragment_tolerance_ppm);
+                  ++graph_verified;
+                  graph_mismatches += graph_evidence != reference;
+                  graph_evidence = reference;
+                }
+                if (graph_evidence.supported) { ++graph_supported; }
+                else if (! graph_evidence.fallback_reason.empty()) { ++graph_fallback; }
+                else
+                {
+                  ++graph_rejected;
+                  if (graph_filter) { continue; }
+                }
+              }
+              vector<PeptideHit::PeakAnnotation> annotations;
+              // Compute score using selected method
+              double score;
+              RNARouteScorer::Result route_evidence;
+              if (scoring_method == "route")
+              {
+                route_evidence = RNARouteScorer::score(graph_queries.at(charge * base_charge), route_scoring_spectra[scan_index],
+                                                       route_scoring_contexts[scan_index], negative_mode, route_score_options);
+                score = route_evidence.score;
+                annotations = route_evidence.annotations;
+              }
+              else
+              {
+                score = scoreNativeSpectrum_(scoring_method, search_param.fragment_mass_tolerance, search_param.fragment_tolerance_ppm, exp_spectrum,
+                                             theo_spectrum, annotations, num_intensity_classes, tic_fraction, use_mass_accuracy, single_peak_credit);
+              }
+
+              if (! exp_ms2_out.empty())
+              {
 #pragma omp critical (exp_ms2_out)
               exp_ms2_spectra.addSpectrum(exp_spectrum);
-            }
+              }
             if (!theo_ms2_out.empty())
             {
               theo_spectrum.setName(candidate.toString());
@@ -2083,7 +3028,6 @@ protected:
             }
 
             // Check fragment coverage if required
-            double min_coverage = getDoubleOption_("report:require_coverage");
             if (min_coverage > 0.0)
             {
               double actual_coverage = calculateFragmentCoverage_(candidate, annotations);
@@ -2096,7 +3040,6 @@ protected:
               }
             }
 
-#pragma omp atomic
             ++hit_counter;
 
             OPENMS_LOG_DEBUG << "Score: " << score << endl;
@@ -2113,15 +3056,49 @@ protected:
                   (prec_it->first - candidate_mass) / candidate_mass * 1.0e6;
                 new_hit.annotations = annotations;
                 new_hit.precursor_ref = &(prec_it->second);
+                new_hit.graph_evaluated = graph_enabled;
+                new_hit.graph_evidence = graph_evidence;
+                new_hit.route_evidence = std::move(route_evidence);
                 retainTopHit_(scan_hits, score, std::move(new_hit), report_top_hits);
               }
             }
+          }
           }
         }
       }
     }
     progresslogger.endProgress();
 
+    if (verify_graph_matches)
+    {
+      OPENMS_LOG_INFO << "RNA graph verified pairs: " << graph_verified << "; mismatches: " << graph_mismatches << '\n';
+      if (graph_mismatches)
+      {
+        OPENMS_LOG_ERROR << "Prepared graph matching disagrees with the reference matcher.\n";
+        return UNEXPECTED_RESULT;
+      }
+    }
+    if (graph_generate)
+    {
+      OPENMS_LOG_INFO << "RNA placement nodes: " << placement_nodes << "; pruned branches: " << placement_pruned
+                      << "; emitted variants: " << placement_emitted << "; enumeration fallback oligos: " << placement_fallbacks << '\n';
+      if (placement_audit)
+      {
+        OPENMS_LOG_INFO << "RNA placement audit reference variants: " << placement_reference << "; eligible variants: " << placement_expected
+                        << "; missing variants: " << placement_missing << "; extra variants: " << placement_extra << '\n';
+        if (placement_missing || placement_extra)
+        {
+          OPENMS_LOG_ERROR << "Constrained modification placement disagrees with exhaustive graph filtering.\n";
+          return UNEXPECTED_RESULT;
+        }
+      }
+    }
+    if (graph_enabled)
+    {
+      OPENMS_LOG_INFO << "RNA graph prefiltered variants: " << graph_prefiltered << "; supported pairs: " << graph_supported
+                      << "; enumeration fallback pairs: " << graph_fallback << "; rejected pairs after theoretical validation: " << graph_rejected
+                      << '\n';
+    }
     OPENMS_LOG_INFO << "Undigested nucleic acids: " << n_nucleic_acids
                     << "\nOligonucleotides: "
                     << id_data.getIdentifiedOligos().size()
@@ -2138,7 +3115,7 @@ protected:
     }
 
     progresslogger.startProgress(0, 1, "post-processing search hits...");
-    postProcessHits_(spectra, annotated_hits, id_data, negative_mode);
+    postProcessHits_(spectra, annotated_hits, id_data, negative_mode, file_ref, search_score_ref);
     progresslogger.endProgress();
     OPENMS_LOG_INFO << "Identified spectra: " << id_data.getObservations().size()
                     << endl;
@@ -2160,6 +3137,7 @@ protected:
     MzTab results = IdentificationDataConverter::exportMzTab(id_data,
       getFlag_("report:precursor_percentage") ? set<std::string>{"precursor_percentage"} : set<std::string>{},
       {"isotope_offset"});
+    completeRNAScoreColumns_(results);
     OPENMS_LOG_DEBUG << "Nucleic acid rows: "
                      << results.getNucleicAcidSectionRows().size()
                      << "\nOligonucleotide rows: "
