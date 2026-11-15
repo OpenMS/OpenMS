@@ -635,8 +635,14 @@ else()
   # was never actually built (#10141).
   _copy_assets("${PROJECT_SOURCE_DIR}/pyopenms/" "*.py" "${PYOPENMS_BUILD_DIR}/pyopenms/")
 
-  file(GENERATE OUTPUT "${PYOPENMS_BUILD_DIR}/pyopenms/_library_names.py"
+  # Multi-config generators may use different library names for Debug and Release.
+  file(GENERATE OUTPUT "${PYOPENMS_BUILD_DIR}/$<CONFIG>/_library_names.py"
     CONTENT "OPENMS_LIBRARY = '$<TARGET_FILE_NAME:${OPENMS_TARGET}>'\nOPENSWATH_LIBRARY = '$<TARGET_FILE_NAME:${OPENSWATHALGO_TARGET}>'\n")
+  add_custom_command(TARGET pyopenms_compile POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different
+      "${PYOPENMS_BUILD_DIR}/$<CONFIG>/_library_names.py"
+      "${PYOPENMS_BUILD_DIR}/pyopenms/_library_names.py"
+    VERBATIM)
 
   # Addon files
   _copy_assets("${PROJECT_SOURCE_DIR}/pyopenms/addons/" "*.py" "${PYOPENMS_BUILD_DIR}/pyopenms/addons/")
@@ -1008,6 +1014,8 @@ if((DEFINED OPENMS_TARGET AND TARGET ${OPENMS_TARGET}) OR TARGET OpenMS)
   # from the source tree (which would also expose the unbuilt Python package).
   configure_file(${PROJECT_SOURCE_DIR}/fix_stubs.py
                  ${PYOPENMS_BUILD_DIR}/fix_stubs.py COPYONLY)
+  configure_file(${PROJECT_SOURCE_DIR}/pyopenms_clean_old_libs.cmake
+                 ${PYOPENMS_BUILD_DIR}/pyopenms_clean_old_libs.cmake COPYONLY)
 
   enable_testing()
 
