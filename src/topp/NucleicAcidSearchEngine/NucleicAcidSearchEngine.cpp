@@ -357,7 +357,7 @@ protected:
                           "graph_routes (generate spectrum-specific placements from anchored database-compatible routes)",
                           false, true);
     setValidStrings_("candidates:method", {"enumeration", "graph", "graph_audit", "graph_generate", "graph_generate_audit", "graph_routes"});
-    registerTOPPSubsection_("routes", "Anchored, spectrum-specific graph placement (graph_routes); explicit limits fail the run");
+    registerTOPPSubsection_("routes", "Anchored graph placement (graph_routes) and route-scoring bounds; explicit limits fail the run");
     registerStringOption_(
       "routes:completion", "<mode>", "labile",
       "Uncovered positions: labile adds diagnostic-supported labile modifications; bounded_labile limits their unsupported placements; "
@@ -391,7 +391,10 @@ protected:
                                                                      {"max_supports", 400000},
                                                                      {"min_nodes", 2}})
     {
-      registerIntOption_("routes:" + name, "<num>", value, "Route search setting: " + name, false, true);
+      const std::string description = name == "max_states"
+        ? "Maximum states per route-generation or route-scoring model query; exceeding it fails the search"
+        : "Route search setting: " + name;
+      registerIntOption_("routes:" + name, "<num>", value, description, false, true);
       setMinInt_("routes:" + name, 1);
     }
     registerTOPPSubsection_("graph", "Bounded RNA mass tags; full-spectrum scoring and native FDR are retained");
@@ -2513,6 +2516,7 @@ protected:
     route_score_options.local_peaks = getIntOption_("scoring:route_local_peaks");
     route_score_options.min_nodes = getIntOption_("scoring:route_min_nodes");
     route_score_options.max_unknown_charge = single_charge_spectra ? 1 : route_max_charge;
+    route_score_options.max_states = getIntOption_("routes:max_states");
     vector<MSSpectrum> route_scoring_spectra;
     vector<RNARouteScorer::PreparedSpectrum> route_scoring_contexts;
     if (scoring_method == "route")
@@ -2526,6 +2530,7 @@ protected:
       }
     }
 
+    std::atomic<bool> route_score_limit_exceeded {false};
     if (route_generation)
     {
       vector<NASequence> route_database;
@@ -2816,6 +2821,7 @@ protected:
       placement_extra, graph_prefiltered, graph_rejected, graph_supported, graph_fallback, graph_verified, graph_mismatches, hit_counter)
     for (SignedSize index = 0; index < SignedSize(digest.size()); ++index)
     {
+      if (route_score_limit_exceeded.load(std::memory_order_relaxed)) { continue; }
       IF_MASTERTHREAD
       {
         progresslogger.setProgress(index);
@@ -3039,8 +3045,17 @@ protected:
             RNARouteScorer::Result route_evidence;
             if (scoring_method == "route")
             {
-              route_evidence = RNARouteScorer::score(graph_queries.at(charge * base_charge), route_scoring_spectra[scan_index],
-                                                     route_scoring_contexts[scan_index], negative_mode, route_score_options);
+              if (route_score_limit_exceeded.load(std::memory_order_relaxed)) { continue; }
+              try
+              {
+                route_evidence = RNARouteScorer::score(graph_queries.at(charge * base_charge), route_scoring_spectra[scan_index],
+                                                       route_scoring_contexts[scan_index], negative_mode, route_score_options);
+              }
+              catch (const Exception::InvalidValue&)
+              {
+                route_score_limit_exceeded.store(true, std::memory_order_relaxed);
+                continue;
+              }
               score = route_evidence.score;
               annotations = route_evidence.annotations;
             }
@@ -3110,6 +3125,12 @@ protected:
     }
     }
     progresslogger.endProgress();
+
+    if (route_score_limit_exceeded.load(std::memory_order_relaxed))
+    {
+      OPENMS_LOG_ERROR << "RNA route scoring exceeded routes:max_states. No search results were exported.\n";
+      return UNEXPECTED_RESULT;
+    }
 
     if (verify_graph_matches)
     {

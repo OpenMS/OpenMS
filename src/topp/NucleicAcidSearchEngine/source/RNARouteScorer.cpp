@@ -93,7 +93,7 @@ RNARouteScorer::PreparedRoutes RNARouteScorer::match(const RNATagCandidateFilter
                                                      const std::string& scaffold)
 {
   if (! std::isfinite(options.tolerance) || options.tolerance <= 0 || ! std::isfinite(options.local_radius) || options.local_radius <= 0
-      || options.local_peaks == 0 || options.max_step == 0 || options.min_nodes == 0 || options.max_unknown_charge == 0
+      || options.local_peaks == 0 || options.max_step == 0 || options.min_nodes == 0 || options.max_unknown_charge == 0 || options.max_states == 0
       || ! std::isfinite(options.mass_accuracy_tolerance) || options.mass_accuracy_tolerance < 0)
   {
     throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Invalid RNA route score options");
@@ -126,6 +126,7 @@ RNARouteScorer::PreparedRoutes RNARouteScorer::match(const RNATagCandidateFilter
       }
     }
   }
+  Size states = 0;
   for (auto& [series, matches] : by_series)
   {
     std::sort(matches.begin(), matches.end(),
@@ -140,44 +141,111 @@ RNARouteScorer::PreparedRoutes RNARouteScorer::match(const RNATagCandidateFilter
     {
       continue;
     }
-    std::vector<Route> paths(matches.size());
-    Route selected;
+    // Extension choices depend on used observed peaks, not just the endpoint.
+    // Retain the best prefix for each still-relevant peak set. As in candidate
+    // generation, identities can expire after their last possible occurrence.
+    std::vector<Size> last_position(experimental.size(), 0);
+    for (const auto& match : matches)
+    {
+      last_position[match.peak] = std::max(last_position[match.peak], match.position);
+    }
+    constexpr Size no_prefix = std::numeric_limits<Size>::max();
+    struct Prefix
+    {
+      Size match, previous, nodes;
+      double weight;
+    };
+    std::vector<Prefix> prefixes;
+    std::vector<std::map<std::vector<Size>, Size>> frontier(matches.size());
+    // Preserve the original tie order: earliest endpoint, then earliest
+    // predecessor recursively. Backpointers avoid copying complete routes.
+    const auto earlier = [&](Size left, Size right) {
+      while (left != right && left != no_prefix && right != no_prefix)
+      {
+        if (prefixes[left].match != prefixes[right].match) { return prefixes[left].match < prefixes[right].match; }
+        left = prefixes[left].previous;
+        right = prefixes[right].previous;
+      }
+      return false;
+    };
+    Size selected = no_prefix;
     for (Size i = 0; i < matches.size(); ++i)
     {
       const auto& current = matches[i];
-      if (current.position <= 2) { paths[i] = {{current}, current.position, current.weighted}; }
+      const auto retain = [&](const std::vector<Size>& used, Size previous) {
+        const Size nodes = previous == no_prefix ? 1 : prefixes[previous].nodes + 1;
+        const double weight = current.weighted + (previous == no_prefix ? 0 : prefixes[previous].weight);
+        const auto found = frontier[i].find(used);
+        if (found == frontier[i].end())
+        {
+          if (states == options.max_states)
+          {
+            throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "RNA route scoring exceeded routes:max_states",
+                                          std::to_string(options.max_states));
+          }
+          ++states;
+          frontier[i].emplace(used, prefixes.size());
+          prefixes.push_back({i, previous, nodes, weight});
+        }
+        else
+        {
+          auto& stored = prefixes[found->second];
+          if (nodes > stored.nodes
+              || (nodes == stored.nodes && (weight > stored.weight || (weight == stored.weight && earlier(previous, stored.previous)))))
+          {
+            stored = {i, previous, nodes, weight};
+          }
+        }
+      };
+      if (current.position <= 2)
+      {
+        std::vector<Size> used;
+        if (last_position[current.peak] > current.position) { used.push_back(current.peak); }
+        retain(used, no_prefix);
+      }
       for (Size j = 0; j < i; ++j)
       {
-        if (paths[j].matches.empty() || matches[j].position >= current.position || current.position - matches[j].position > options.max_step
-            || current.neutral <= matches[j].neutral
-            || std::any_of(paths[j].matches.begin(), paths[j].matches.end(), [&](const auto& match) { return match.peak == current.peak; }))
+        if (matches[j].position >= current.position || current.position - matches[j].position > options.max_step
+            || current.neutral <= matches[j].neutral)
         {
           continue;
         }
-        if (paths[j].matches.size() + 1 > paths[i].matches.size()
-            || (paths[j].matches.size() + 1 == paths[i].matches.size()
-                && paths[j].weighted_intensity + current.weighted > paths[i].weighted_intensity))
+        for (const auto& entry : frontier[j])
         {
-          paths[i] = paths[j];
-          paths[i].matches.push_back(current);
-          paths[i].length = current.position;
-          paths[i].weighted_intensity += current.weighted;
+          if (std::binary_search(entry.first.begin(), entry.first.end(), current.peak)) { continue; }
+          auto used = entry.first;
+          std::erase_if(used, [&](Size peak) { return last_position[peak] <= current.position; });
+          if (last_position[current.peak] > current.position) { used.insert(std::lower_bound(used.begin(), used.end(), current.peak), current.peak); }
+          retain(used, entry.second);
         }
       }
-      if (paths[i].matches.size() >= options.min_nodes)
+      for (const auto& entry : frontier[i])
       {
-        if (paths[i].matches.size() > selected.matches.size()
-            || (paths[i].matches.size() == selected.matches.size() && paths[i].weighted_intensity > selected.weighted_intensity))
+        const Size index = entry.second;
+        const auto& candidate = prefixes[index];
+        if (candidate.nodes >= options.min_nodes
+            && (selected == no_prefix || candidate.nodes > prefixes[selected].nodes
+                || (candidate.nodes == prefixes[selected].nodes
+                    && (candidate.weight > prefixes[selected].weight
+                        || (candidate.weight == prefixes[selected].weight && earlier(index, selected))))))
         {
-          selected = paths[i];
+          selected = index;
         }
       }
     }
-    if (! selected.matches.empty())
+    if (selected != no_prefix)
     {
-      selected.series = series;
-      selected.scaffold = scaffold;
-      result.routes.push_back(std::move(selected));
+      Route route;
+      route.length = matches[prefixes[selected].match].position;
+      route.weighted_intensity = prefixes[selected].weight;
+      route.series = series;
+      route.scaffold = scaffold;
+      for (Size index = selected; index != no_prefix; index = prefixes[index].previous)
+      {
+        route.matches.push_back(matches[prefixes[index].match]);
+      }
+      std::reverse(route.matches.begin(), route.matches.end());
+      result.routes.push_back(std::move(route));
     }
   }
   return result;

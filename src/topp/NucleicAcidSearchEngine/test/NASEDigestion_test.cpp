@@ -375,6 +375,24 @@ START_SECTION(([EXTRA] searchable RNA candidates and cached digest provenance))
     ABORT_IF(peptides.empty())
     TEST_STRING_EQUAL(peptides[0].getScoreType(), expected_type)
     TEST_REAL_SIMILAR(peptides[0].getHits()[0].getScore(), expected_score)
+    if (method == "route")
+    {
+      // Enumeration also uses the route scorer. Its OpenMP workers must report
+      // an exhausted exact search instead of returning partial identifications.
+      std::string incomplete_output;
+      NEW_TMP_FILE(incomplete_output)
+      incomplete_output += ".idXML";
+      auto limited = cached_arguments;
+      for (Size i = 0; i + 1 < limited.size(); ++i)
+      {
+        if (limited[i] == "-id_out") { limited[i + 1] = incomplete_output; }
+        if (limited[i] == "-out") { limited[i + 1] = incomplete_output + ".mzTab"; }
+      }
+      limited.insert(limited.end(), {"-routes:max_states", "1"});
+      TEST_EQUAL(runSearch(limited), TOPPBase::UNEXPECTED_RESULT)
+      TEST_FALSE(File::exists(incomplete_output))
+      TEST_FALSE(File::exists(incomplete_output + ".mzTab"))
+    }
   }
 
   for (const std::string credit : {"true", "false"})

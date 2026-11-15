@@ -103,6 +103,12 @@ including alternative charge hypotheses. Models never mix within a ladder;
 prefix and suffix may use distinct diagnostic-supported labile scaffolds.
 The reported precursor retains its full modification composition.
 
+Route matching retains alternative prefixes with distinct still-relevant used
+peak identities. A peak identity expires only after its last possible rung;
+the full route is reconstructed from backpointers for scoring and annotation.
+`routes:max_states` also bounds retained scoring prefixes per model query.
+Exhaustion fails the search instead of silently selecting an incomplete result.
+
 Defaults are a 50-Da local radius, ten local peaks, two matched nodes per route,
 and at most one missing intermediate rung. `scoring:route_mass_accuracy_tolerance`
 can separate Gaussian weighting from the matching tolerance; zero inherits it.

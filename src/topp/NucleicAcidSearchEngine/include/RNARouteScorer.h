@@ -40,6 +40,8 @@ public:
     Size max_step = 2;
     Size min_nodes = 2;
     Size max_unknown_charge = 3;
+    /// Maximum prefix states constructed across ion series in one match query.
+    Size max_states = 200000;
   };
   struct Result
   {
@@ -87,6 +89,7 @@ public:
     @param[in] options Fragment tolerances and route rules.
     @param[in] scaffold Sequence label retained for evidence provenance.
     @return Longest supported route per conventional series.
+    @throws Exception::InvalidValue if the prefix-state limit is exceeded; no partial route set is returned.
   */
   static PreparedRoutes match(const RNATagCandidateFilter::PreparedQuery& query,
                               const MSSpectrum& experimental,

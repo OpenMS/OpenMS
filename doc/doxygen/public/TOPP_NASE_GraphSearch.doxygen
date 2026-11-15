@@ -162,6 +162,13 @@ one missing intermediate rung. These are experimental NASE implementation choice
 Gaussian intensity weighting from the fragment matching window if nonzero.
 @p scoring:route_base_loss includes coherent a-B ladders when those ions are enabled.
 
+Route scoring retains distinct used-peak histories while they affect future
+extensions, and merges prefixes only when their remaining choices are identical.
+Expired identities can be forgotten for traversal; reconstructed routes retain
+all original peaks for scoring. @p routes:max_states also bounds scoring-prefix
+states per model query. Exhaustion fails the search without exporting partial
+identifications.
+
 The ordinal-series statistic is shared with peptide SpectrumAnnotator through
 @p SpectrumAnnotator::computeLongestIonSeries. It provides a conservative
 upper bound; RNA anchoring, peak identity and scaffold validation remain

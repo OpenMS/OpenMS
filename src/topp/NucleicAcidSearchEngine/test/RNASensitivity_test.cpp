@@ -147,6 +147,238 @@ START_SECTION((route scoring requires anchored coherent ladders and unique obser
 }
 END_SECTION
 
+START_SECTION((route scoring retains lighter prefixes needed by a later charge hypothesis))
+{
+  for (bool negative_mode : {true, false})
+  {
+    RNARouteScorer::Options options;
+    options.min_nodes = 3;
+    options.max_unknown_charge = 2;
+    const auto sequence = NASequence::fromString("AAAAA");
+    const auto model = theory(sequence, negative_mode ? -2 : 2, {"c"});
+    const auto query = RNATagCandidateFilter::prepare(sequence, nullptr, model, {"c"});
+    TEST_TRUE(query.valid_metadata)
+    double first_mz = 0, third_mz = 0;
+    for (const auto& group : query.groups)
+    {
+      if (group.charge != 1) { continue; }
+      for (const auto& ion : group.ions)
+      {
+        if (ion.position == 2) { first_mz = ion.mz; }
+        if (ion.position == 3) { third_mz = ion.mz; }
+      }
+    }
+    TEST_TRUE(first_mz > 0)
+    TEST_TRUE(third_mz > first_mz)
+    const double delta = first_mz * options.tolerance * 1e-6;
+    MSSpectrum observed;
+    observed.emplace_back(first_mz, 10);
+    observed.emplace_back(first_mz + 0.001, 2 / std::exp(-2 * std::pow(0.001 / delta, 2)));
+    observed.emplace_back(third_mz, 3);
+    // The poly-A c2/charge-1 and c4/charge-2 ions share peak 0. Only
+    // peak 0 has ambiguous charge; the nearby alternative is singly charged.
+    auto& charges = observed.getIntegerDataArrays().emplace_back();
+    charges.setName("NASE:legacy_fragment_charge");
+    for (Int charge : {0, 1, 1})
+    {
+      charges.push_back(charge);
+    }
+    const auto prepared = RNARouteScorer::prepareSpectrum(observed, negative_mode, options);
+    const auto matched = RNARouteScorer::match(query, observed, prepared, negative_mode, options);
+    TEST_EQUAL(matched.routes.size(), 1)
+    ABORT_IF(matched.routes.empty())
+    const auto& route = matched.routes[0];
+    TEST_EQUAL(route.matches.size(), 3)
+    ABORT_IF(route.matches.size() != 3)
+    TEST_EQUAL(route.matches[0].peak, 1)
+    TEST_EQUAL(route.matches[1].peak, 2)
+    TEST_EQUAL(route.matches[2].peak, 0)
+    TEST_EQUAL(route.matches[2].charge, 2)
+    TEST_EQUAL(route.length, 4)
+    TEST_REAL_SIMILAR(route.weighted_intensity, 15)
+    const auto scored = RNARouteScorer::score(query, observed, prepared, negative_mode, options);
+    TEST_EQUAL(scored.nodes, 3)
+    TEST_EQUAL(scored.annotations.size(), 3)
+  }
+}
+END_SECTION
+
+START_SECTION((route scoring retains a shorter anchored prefix when a used peak recurs))
+{
+  RNARouteScorer::Options options;
+  options.min_nodes = 4;
+  options.max_step = 1;
+  options.max_unknown_charge = 4;
+  MSSpectrum observed;
+  for (double mass : {300.0, 600.0, 900.0, 1500.0})
+  {
+    observed.emplace_back(mass - Constants::PROTON_MASS_U, 1);
+  }
+  RNATagCandidateFilter::PreparedQuery query;
+  query.valid_metadata = true;
+  query.sequence_length = 6;
+  query.groups = {{'c', 1, {{1, observed[0].getMZ()}, {2, observed[1].getMZ()}, {3, observed[2].getMZ()}, {5, observed[3].getMZ()}}, true},
+                  {'c', 4, {{4, observed[0].getMZ()}}, true}};
+  const auto prepared = RNARouteScorer::prepareSpectrum(observed, true, options);
+  const auto matched = RNARouteScorer::match(query, observed, prepared, true, options);
+  TEST_EQUAL(matched.routes.size(), 1)
+  ABORT_IF(matched.routes.empty())
+  const auto& route = matched.routes[0];
+  TEST_EQUAL(route.matches.size(), 4)
+  ABORT_IF(route.matches.size() != 4)
+  for (Size i = 0; i < route.matches.size(); ++i)
+  {
+    TEST_EQUAL(route.matches[i].position, i + 2)
+  }
+  TEST_EQUAL(route.matches[0].peak, 1)
+  TEST_EQUAL(route.matches[1].peak, 2)
+  TEST_EQUAL(route.matches[2].peak, 0)
+  TEST_EQUAL(route.matches[3].peak, 3)
+}
+END_SECTION
+
+START_SECTION((route scoring agrees with exhaustive paths for small charge-ambiguous spectra))
+{
+  for (unsigned mask = 0; mask < 16; ++mask)
+  {
+    for (const std::vector<double>& intensities : {std::vector<double> {1, 1, 1, 1}, {1, 2, 3, 4}, {10, 2, 3, 8}})
+    {
+      MSSpectrum observed;
+      for (Size peak = 0; peak < 4; ++peak)
+      {
+        if (mask & (1u << peak)) { observed.emplace_back(300.0 * (peak + 1) - Constants::PROTON_MASS_U, intensities[peak]); }
+      }
+      RNATagCandidateFilter::PreparedQuery query;
+      query.valid_metadata = true;
+      query.sequence_length = 7;
+      std::vector<RNARouteScorer::MatchedNode> nodes;
+      for (Size charge = 1; charge <= 3; ++charge)
+      {
+        RNATagCandidateFilter::PreparedQuery::Group group;
+        group.series = 'c';
+        group.charge = charge;
+        for (Size position = 1; position <= 6; ++position)
+        {
+          group.ions.push_back({position, 300.0 * position / charge - Constants::PROTON_MASS_U});
+          Size index = 0;
+          for (Size peak = 0; peak < 4; ++peak)
+          {
+            if (! (mask & (1u << peak))) { continue; }
+            if ((peak + 1) * charge == position) { nodes.push_back({index, position, charge, intensities[peak], 300.0 * position, {}}); }
+            ++index;
+          }
+        }
+        query.groups.push_back(std::move(group));
+      }
+      std::sort(nodes.begin(), nodes.end(),
+                [](const auto& a, const auto& b) { return std::tie(a.position, a.peak, a.charge) < std::tie(b.position, b.peak, b.charge); });
+      for (Size step : {Size(1), Size(2)})
+      {
+        for (Size minimum = 1; minimum <= 6; ++minimum)
+        {
+          std::vector<Size> path, expected;
+          double expected_weight = 0;
+          std::set<Size> used;
+          // Enumerate every complete path with the full peak history. This
+          // oracle does not share the scorer's DP or expired-identity pruning.
+          const auto visit = [&](const auto& self, double weight) -> void {
+            if (path.size() >= minimum
+                && (path.size() > expected.size()
+                    || (path.size() == expected.size()
+                        && (weight > expected_weight
+                            || (weight == expected_weight
+                                && std::lexicographical_compare(path.rbegin(), path.rend(), expected.rbegin(), expected.rend()))))))
+            {
+              expected = path;
+              expected_weight = weight;
+            }
+            for (Size next = 0; next < nodes.size(); ++next)
+            {
+              const auto& node = nodes[next];
+              if (used.contains(node.peak)) { continue; }
+              if (path.empty())
+              {
+                if (node.position > 2) { continue; }
+              }
+              else
+              {
+                const auto& previous = nodes[path.back()];
+                if (node.position <= previous.position || node.position - previous.position > step || node.neutral <= previous.neutral) { continue; }
+              }
+              path.push_back(next);
+              used.insert(node.peak);
+              self(self, weight + node.weighted);
+              used.erase(node.peak);
+              path.pop_back();
+            }
+          };
+          visit(visit, 0);
+          RNARouteScorer::Options options;
+          options.tolerance = 1e-6;
+          options.tolerance_ppm = false;
+          options.max_unknown_charge = 3;
+          options.max_step = step;
+          options.min_nodes = minimum;
+          const auto prepared = RNARouteScorer::prepareSpectrum(observed, true, options);
+          const auto actual = RNARouteScorer::match(query, observed, prepared, true, options);
+          TEST_EQUAL(actual.routes.size(), expected.empty() ? 0 : 1)
+          if (expected.empty() || actual.routes.empty()) { continue; }
+          const auto& route = actual.routes[0];
+          TEST_EQUAL(route.matches.size(), expected.size())
+          TEST_REAL_SIMILAR(route.weighted_intensity, expected_weight)
+          if (route.matches.size() != expected.size()) { continue; }
+          for (Size i = 0; i < expected.size(); ++i)
+          {
+            TEST_EQUAL(route.matches[i].peak, nodes[expected[i]].peak)
+            TEST_EQUAL(route.matches[i].position, nodes[expected[i]].position)
+            TEST_EQUAL(route.matches[i].charge, nodes[expected[i]].charge)
+          }
+        }
+      }
+    }
+  }
+}
+END_SECTION
+
+START_SECTION((route scoring expires irrelevant peak identities and fails on state exhaustion))
+{
+  MSSpectrum observed;
+  RNATagCandidateFilter::PreparedQuery query;
+  query.valid_metadata = true;
+  query.sequence_length = 13;
+  RNATagCandidateFilter::PreparedQuery::Group group;
+  group.series = 'c';
+  group.charge = 1;
+  for (Size position = 1; position <= 12; ++position)
+  {
+    const double mz = 300.0 * position - Constants::PROTON_MASS_U;
+    observed.emplace_back(mz, 2);
+    observed.emplace_back(mz + 0.001, 1);
+    group.ions.push_back({position, mz});
+  }
+  query.groups.push_back(std::move(group));
+  RNARouteScorer::Options options;
+  options.tolerance = 0.01;
+  options.tolerance_ppm = false;
+  options.min_nodes = 12;
+  options.max_step = 1;
+  options.max_unknown_charge = 1;
+  // There are 2^12 valid histories, but expired peak identities permit one
+  // state per endpoint. The exact search fits into 24 retained states.
+  options.max_states = 24;
+  const auto prepared = RNARouteScorer::prepareSpectrum(observed, true, options);
+  const auto matched = RNARouteScorer::match(query, observed, prepared, true, options);
+  TEST_EQUAL(matched.routes.size(), 1)
+  ABORT_IF(matched.routes.empty())
+  TEST_EQUAL(matched.routes[0].matches.size(), 12)
+  TEST_REAL_SIMILAR(matched.routes[0].weighted_intensity, 24)
+  options.max_states = 1;
+  TEST_EXCEPTION(Exception::InvalidValue, RNARouteScorer::match(query, observed, prepared, true, options))
+  options.max_states = 0;
+  TEST_EXCEPTION(Exception::IllegalArgument, RNARouteScorer::match(query, observed, prepared, true, options))
+}
+END_SECTION
+
 START_SECTION((mass accuracy calibration preserves matching and the default score))
 {
   const auto candidate = NASequence::fromString("ACUGUACGp");
