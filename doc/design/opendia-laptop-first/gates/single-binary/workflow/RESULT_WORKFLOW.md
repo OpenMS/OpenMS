@@ -90,3 +90,26 @@ The C++ scorer was run offline on the arm-E arrays, with one block replaced by t
   - Decoys relative to the final map: the spread falls to 17.7-23.3 s and coverage to 0.93-0.98, below the current fit on every run.
   - Window frame with a per-target shift: unstable, collapsing to 0-5 s on two runs.
 - **Status:** the calibration code is unchanged and needs a new design (for example a background that is shifted per member), with its own plan.
+
+## Further validation (15 November)
+
+- **Inventory checked against the chain scripts.** The validated chain (arm E + PLAN_GAP) runs 4 C++ tools and reads the raw file 6 times:
+  - OpenDIA three times;
+  - OpenDIACNN once;
+  - OpenDIAInterference once;
+  - OpenDIACalibrate once, on the PAIRLIB library, whose calibration arm E reused.
+
+  It also runs 7 Python data steps, the Python interference prototype and 3 Python scoring steps.
+  OpenDIAWorkflow reads the raw file 3-4 times: calibration takes 1-2 passes, then one for the search and one for the evidence.
+- **Determinism:**
+  - Four self-calibrated runs give run tables byte-identical to runs that reuse the same calibration file. The calibration itself is byte-identical to a standalone OpenDIACalibrate run.
+  - A repeated raw02 run is byte-identical, and so are 1 and 8 threads (raw02, arm-E calibration).
+- **Report:**
+  - The run table has one row per precursor. RT, area and support equal the search feature table exactly (candidate_row join).
+  - The run q-values equal an independent pooled paired TDC recompute, with 0 differences on 2 runs.
+  - The global q recomputed from the two run tables gives 1839 targets, equal to the tool's. The 3317 combined rows are exactly the expected set, with no decoys.
+  - Calibrated scores share one decoy-tail scale across runs: the decoy median is 0.693 (ln 2) and p99 4.602 (−ln 0.01) in both runs. So pooling best scores over runs is sound.
+- **Fail-closed CLI ctests** (OpenMS 9d6bf16f10):
+  - a library too small to calibrate;
+  - duplicate run file names;
+  - `-calibration` without `-anchors`.
