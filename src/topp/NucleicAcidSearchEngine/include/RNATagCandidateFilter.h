@@ -27,7 +27,8 @@ public:
     bool supported = false;
     std::string fallback_reason;
     std::string ion_series;
-    Size length = 0;
+    Size length = 0; ///< Residues spanned by the witness tag.
+    Size steps = 0;  ///< Observed ladder steps (edges) on the witness tag.
     Size charge = 0;
     Size start_ion = 0;
     bool accepted() const

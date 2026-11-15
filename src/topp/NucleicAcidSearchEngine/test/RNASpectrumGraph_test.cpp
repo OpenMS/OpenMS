@@ -131,14 +131,31 @@ START_SECTION((one - and two - residue anchors can start after missing initial i
   auto evidence = checkedMatch(sequence, graph, observed, model, {"b"}, 10, true);
   TEST_TRUE(evidence.supported)
   TEST_EQUAL(evidence.length, 1)
+  TEST_EQUAL(evidence.steps, 1)
   TEST_EQUAL(evidence.start_ion, 2)
+  // One bridged step spans two residues but is still a single observed step.
   observed = ladder(model, {"b2", "b4"});
-  options.min_tag_length = 2;
   graph = RNASpectrumGraph::build(observed, alphabet(), options, 1);
   evidence = checkedMatch(sequence, graph, observed, model, {"b"}, 10, true);
   TEST_TRUE(evidence.supported)
   TEST_EQUAL(evidence.length, 2)
+  TEST_EQUAL(evidence.steps, 1)
   TEST_EQUAL(evidence.start_ion, 2)
+  // Two matched peaks never satisfy a minimum of two steps, bridged or not.
+  options.min_tag_length = 2;
+  graph = RNASpectrumGraph::build(observed, alphabet(), options, 1);
+  TEST_TRUE(graph.layers.empty())
+  TEST_EQUAL(graph.fallback_reason, "no_tags")
+  observed = ladder(model, {"b1", "b2", "b4"});
+  graph = RNASpectrumGraph::build(observed, alphabet(), options, 1);
+  evidence = checkedMatch(sequence, graph, observed, model, {"b"}, 10, true);
+  TEST_TRUE(evidence.supported)
+  TEST_EQUAL(evidence.length, 3)
+  TEST_EQUAL(evidence.steps, 2)
+  TEST_EQUAL(evidence.start_ion, 1)
+  TEST_FALSE(checkedMatch(NASequence::fromString("AGCUA"), graph, observed, theoretical(NASequence::fromString("AGCUA"), "b"), {"b"}, 10, true).accepted())
+  observed = ladder(model, {"b2", "b4"});
+  options.min_tag_length = 1;
   options.max_step = 1;
   graph = RNASpectrumGraph::build(observed, alphabet(), options, 1);
   TEST_TRUE(graph.layers.empty())
@@ -156,7 +173,7 @@ START_SECTION((endpoint tolerances and mixed one / two - residue steps preserve 
     observed[i].setMZ(observed[i].getMZ() * (1.0 + (i % 2 ? -9.9 : 9.9) * 1e-6));
   }
   RNASpectrumGraph::Options options;
-  options.min_tag_length = 3;
+  options.min_tag_length = 2; // two observed steps spanning three residues
   options.max_tag_length = 3;
   const RNASpectrumGraph builder(alphabet(), options);
   const auto graph = builder.build(observed, 1);
@@ -165,6 +182,7 @@ START_SECTION((endpoint tolerances and mixed one / two - residue steps preserve 
   const auto evidence = checkedMatch(sequence, graph, observed, model, {"b"}, 10, true);
   TEST_TRUE(evidence.supported)
   TEST_EQUAL(evidence.length, 3)
+  TEST_EQUAL(evidence.steps, 2)
   TEST_EQUAL(evidence.start_ion, 1)
 }
 END_SECTION
@@ -212,6 +230,36 @@ START_SECTION((graph and candidate - query bounds retain enumeration fallback))
   evidence = checkedMatch(sequence, graph, model, model, {"b"}, 10, true);
   TEST_EQUAL(evidence.fallback_reason, "query_state_limit")
   TEST_TRUE(evidence.accepted())
+
+  // The prefilter must fail open wherever the matcher falls back: here the
+  // state bound holds the graph but not graph times candidate length.
+  const auto other = NASequence::fromString("UUUUU");
+  options = {};
+  graph = RNASpectrumGraph::build(model, alphabet(), options, 1);
+  TEST_TRUE(graph.fallback_reason.empty())
+  TEST_FALSE(RNATagCandidateFilter::isCompatible(other, graph, {"b"}))
+  options.max_query_states = graph.peak_indices.size() * (options.max_tag_length + 1) * (other.size() - 1);
+  graph = RNASpectrumGraph::build(model, alphabet(), options, 1);
+  evidence = checkedMatch(other, graph, model, theoretical(other, "b"), {"b"}, 10, true);
+  TEST_EQUAL(evidence.fallback_reason, "query_state_limit")
+  TEST_TRUE(RNATagCandidateFilter::isCompatible(other, graph, {"b"}))
+  const std::vector<std::vector<const Ribonucleotide*>> domains(other.size(), {RibonucleotideDB::getInstance()->getRibonucleotide("U")});
+  TEST_TRUE(RNATagCandidateFilter::isCompatible(domains, graph, {"b"}))
+
+  // Edges of a charge layer without tags do not count towards the edge bound.
+  const auto doubly = theoretical(sequence, "b", -2);
+  options = {};
+  graph = RNASpectrumGraph::build(doubly, alphabet(), options, 2);
+  TEST_TRUE(graph.fallback_reason.empty())
+  TEST_EQUAL(graph.layers.size(), 1)
+  const Size kept_edges = graph.edges;
+  options.max_edges = kept_edges;
+  graph = RNASpectrumGraph::build(doubly, alphabet(), options, 2);
+  TEST_TRUE(graph.fallback_reason.empty())
+  TEST_EQUAL(graph.edges, kept_edges)
+  options.max_edges = kept_edges - 1;
+  graph = RNASpectrumGraph::build(doubly, alphabet(), options, 2);
+  TEST_EQUAL(graph.fallback_reason, "edge_limit")
 }
 END_SECTION
 

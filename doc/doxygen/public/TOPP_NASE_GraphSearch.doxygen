@@ -45,8 +45,9 @@ observed m/z range. The full existing theoretical spectrum remains available
 to the unchanged score and annotations.
 
 Use @p graph:verify_matches to compare every prepared graph decision, fallback
-reason and tag witness with the reference matcher. Any difference fails the
-run. This can be combined with @p graph_generate_audit to check both placement
+reason and tag witness with the reference matcher, and to check that no
+candidate rejected before theoretical-spectrum generation would have been
+supported or kept through fallback by it. Any difference fails the run. This can be combined with @p graph_generate_audit to check both placement
 recall and matching equivalence in one search.
 
 @section nase_graph_reuse Reused chemistry and scoring
@@ -63,6 +64,12 @@ The graph uses residue increments including the RNA backbone mass. A step of two
 residues bridges one missing fragment peak, with both residue orders retained
 when mass alone cannot distinguish them. One- and two-residue anchors are
 supported, including anchors after missing initial fragments.
+
+@p graph:min_tag_length counts observed ladder steps, not residues: every step
+joins two matched peaks, so the default of two steps needs three peaks of one
+series and charge. A single bridged step never forms a tag on its own, because
+its two peaks are already required to match the candidate's theoretical ions.
+@p graph:max_tag_length bounds the residues a tag may span.
 
 A mass-difference path is only a hypothesis. Each accepted path must also match
 one enabled a/b/c/d or w/x/y/z ladder in the candidate's annotated
@@ -88,12 +95,14 @@ unsupported model, or a graph exceeding its storage bound uses enumeration.
 Candidate queries have separate state/work bounds. A completed valid path is a
 witness of support; an incomplete query without a witness uses enumeration.
 This avoids rejecting candidates based on a partially explored graph or query.
-The cache budget is applied in deterministic input order. None of these rules
-inspect target/decoy status.
+Exceeding the cache budget over all spectra (@p graph:max_total_edges) aborts
+the run instead of enumerating the remaining spectra, so that candidate
+selection never depends on spectrum order. None of these rules inspect
+target/decoy status.
 
 The @p out_graph table records spectrum IDs, selected peaks, cached vertices and
 edges, alphabet size and graph-level fallback reasons. Retained idXML/OMS
-matches record @p graph_candidate_status, @p graph_tag_length,
+matches record @p graph_candidate_status, @p graph_tag_length (residues),
 @p graph_ion_series and @p graph_fragment_charge. Supported matches also record
 @p graph_start_ion and the @p graph_tag_sequence in 5'-to-3' orientation;
 @p graph_candidate_method distinguishes audit from filtering. The reported tag

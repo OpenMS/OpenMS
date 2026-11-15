@@ -32,8 +32,8 @@ public:
   {
     double tolerance = 10.0;
     bool tolerance_ppm = true;
-    Size min_tag_length = 2;
-    Size max_tag_length = 4;
+    Size min_tag_length = 2; ///< Minimum observed steps (edges); each spans up to max_step residues.
+    Size max_tag_length = 4; ///< Maximum residues spanned by a tag.
     Size max_step = 2;
     Size max_peaks = 100;
     Size max_charge = 3;

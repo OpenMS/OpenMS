@@ -8,7 +8,6 @@
 
 #include <OpenMS/CONCEPT/Constants.h>
 #include <algorithm>
-#include <bit>
 #include <limits>
 #include <charconv>
 #include <cmath>
@@ -55,6 +54,15 @@ namespace
       result.push_back(alphabet.code_ids.at(residue.getCode()));
     }
     return result;
+  }
+
+  /// One state bound for the prefilter and both matchers: a candidate that a
+  /// matcher keeps through "query_state_limit" must not be rejected earlier.
+  bool exceedsQueryStates(const RNASpectrumGraph::Result& graph, Size sequence_length)
+  {
+    const Size nodes = graph.peak_indices.size(), width = graph.options.max_tag_length + 1;
+    if (nodes == 0) { return false; }
+    return nodes > graph.options.max_query_states / width || sequence_length > graph.options.max_query_states / (nodes * width);
   }
 
   enum class StepMatch
@@ -117,9 +125,9 @@ namespace
       return true;
     }
     const auto& options = graph.options;
-    const Size width = std::min(options.max_tag_length, options.min_tag_length + options.max_step - 1) + 1;
+    const Size width = options.max_tag_length + 1;
     const Size nodes = graph.peak_indices.size();
-    if (nodes > options.max_query_states / width) { return true; }
+    if (exceedsQueryStates(graph, codes.size())) { return true; } // The matcher would fall back.
     Size work = 0;
     for (bool suffix : {false, true})
     {
@@ -129,13 +137,15 @@ namespace
         if (max_charge && layer.charge > max_charge) { continue; }
         for (Size start = 1; start + options.min_tag_length < codes.size(); ++start)
         {
-          std::vector<unsigned char> reachable(nodes * width, 0);
+          // Most observed steps (plus one; zero is unreachable) per node and residue span.
+          std::vector<unsigned char> steps(nodes * width, 0);
           for (Size node = 0; node < nodes; ++node)
           {
-            reachable[node * width] = 1; // Any observed ion may start an internal tag.
+            steps[node * width] = 1; // Any observed ion may start an internal tag.
             for (Size length = 0; length < width; ++length)
             {
-              if (! reachable[node * width + length]) { continue; }
+              const Size taken = steps[node * width + length];
+              if (! taken) { continue; }
               for (const auto& edge : layer.outgoing[node])
               {
                 const Size next = length + edge.length;
@@ -147,8 +157,9 @@ namespace
                 const auto matched = matchStep(*graph.alphabet, edge, codes, start + length, suffix, work, options.max_query_edges);
                 if (matched == StepMatch::LIMIT) { return true; }
                 if (matched == StepMatch::NONE) { continue; }
-                if (next >= options.min_tag_length) { return true; }
-                reachable[edge.to * width + next] = 1;
+                if (taken >= options.min_tag_length) { return true; }
+                auto& best = steps[edge.to * width + next];
+                best = std::max<unsigned char>(best, taken + 1);
               }
             }
           }
@@ -290,11 +301,8 @@ RNATagCandidateFilter::Evidence RNATagCandidateFilter::match(const PreparedQuery
   if (query.sequence_length <= graph.options.min_tag_length + 1) { return fallbackTo("short_candidate"); }
   if (! query.supported_series) { return fallbackTo("no_supported_ion_series"); }
   if (! query.supported_residues) { return fallbackTo("unsupported_residue"); }
-  const Size nodes = graph.peak_indices.size(), width = graph.options.max_tag_length + 1;
-  if (nodes > graph.options.max_query_states / width || query.sequence_length > graph.options.max_query_states / (nodes * width))
-  {
-    return fallbackTo("query_state_limit");
-  }
+  const Size width = graph.options.max_tag_length + 1;
+  if (exceedsQueryStates(graph, query.sequence_length)) { return fallbackTo("query_state_limit"); }
   if (std::any_of(graph.peak_indices.begin(), graph.peak_indices.end(), [&experimental](Size index) { return index >= experimental.size(); }))
   {
     return fallbackTo("invalid_peak_index");
@@ -312,8 +320,8 @@ RNATagCandidateFilter::Evidence RNATagCandidateFilter::match(const PreparedQuery
   // the reference's traversal order and query-work accounting exactly.
   std::vector<std::pair<Size, UInt>> matches;
   std::vector<Size> row_offsets;
-  std::vector<UInt64> reachable;
-  const UInt64 length_mask = (UInt64(1) << width) - 1;
+  // Most observed steps (plus one; zero is unreachable) per match and residue span.
+  std::vector<unsigned char> steps;
   Size work = 0;
   for (const auto& group : query.groups)
   {
@@ -364,14 +372,14 @@ RNATagCandidateFilter::Evidence RNATagCandidateFilter::match(const PreparedQuery
     {
       row_offsets[i] += row_offsets[i - 1];
     }
-    reachable.assign(matches.size(), 0);
+    steps.assign(matches.size() * width, 0);
     const bool suffix = group.series >= 'w';
     for (Size position = 1; position < query.sequence_length; ++position)
     {
       for (Size index = row_offsets[position]; index < row_offsets[position + 1]; ++index)
       {
         const UInt node = matches[index].second;
-        reachable[index] |= 1;
+        steps[index * width] = 1;
         for (const auto& edge : layer.outgoing[node])
         {
           if (++work > graph.options.max_query_edges)
@@ -391,19 +399,25 @@ RNATagCandidateFilter::Evidence RNATagCandidateFilter::match(const PreparedQuery
             return evidence;
           }
           if (matched == StepMatch::NONE) { continue; }
-          const UInt64 next_states = (reachable[index] << edge.length) & length_mask;
-          reachable[next - matches.begin()] |= next_states;
-          if (next_states == 0) { continue; }
-          const Size longest = std::bit_width(next_states) - 1;
-          if (longest >= graph.options.min_tag_length && longest > evidence.length)
+          const Size next_index = next - matches.begin();
+          for (Size length = 0; length + edge.length < width; ++length)
           {
-            evidence.supported = true;
-            evidence.length = longest;
-            evidence.charge = layer.charge;
-            evidence.ion_series.assign(1, group.series);
-            evidence.start_ion = next_position - longest;
-            if (longest == graph.options.max_tag_length) { return evidence; }
+            const Size taken = steps[index * width + length];
+            if (! taken) { continue; }
+            const Size next_length = length + edge.length;
+            auto& best = steps[next_index * width + next_length];
+            best = std::max<unsigned char>(best, taken + 1);
+            if (taken >= graph.options.min_tag_length && next_length > evidence.length)
+            {
+              evidence.supported = true;
+              evidence.length = next_length;
+              evidence.steps = taken;
+              evidence.charge = layer.charge;
+              evidence.ion_series.assign(1, group.series);
+              evidence.start_ion = next_position - next_length;
+            }
           }
+          if (evidence.length == graph.options.max_tag_length) { return evidence; }
         }
       }
     }
@@ -423,7 +437,7 @@ RNATagCandidateFilter::Evidence RNATagCandidateFilter::matchReference(const NASe
   evidence.fallback_reason = fallback(candidate, graph, ions);
   if (! evidence.fallback_reason.empty()) { return evidence; }
   const Size nodes = graph.peak_indices.size(), width = graph.options.max_tag_length + 1;
-  if (nodes > graph.options.max_query_states / width || candidate.size() > graph.options.max_query_states / (nodes * width))
+  if (exceedsQueryStates(graph, candidate.size()))
   {
     evidence.fallback_reason = "query_state_limit";
     return evidence;
@@ -498,12 +512,13 @@ RNATagCandidateFilter::Evidence RNATagCandidateFilter::matchReference(const NASe
       std::sort(row.begin(), row.end());
       row.erase(std::unique(row.begin(), row.end()), row.end());
     }
-    std::vector<unsigned char> reachable(candidate.size() * stride, 0);
+    // Most observed steps (plus one; zero is unreachable) per position, node and residue span.
+    std::vector<unsigned char> steps(candidate.size() * stride, 0);
     for (Size position = 1; position < candidate.size(); ++position)
     {
       for (UInt node : found[position])
       {
-        reachable[position * stride + node * width] = 1;
+        steps[position * stride + node * width] = 1;
         for (const auto& edge : layer.outgoing[node])
         {
           if (++work > graph.options.max_query_edges)
@@ -525,13 +540,16 @@ RNATagCandidateFilter::Evidence RNATagCandidateFilter::matchReference(const NASe
           if (matched == StepMatch::NONE) { continue; }
           for (Size length = 0; length + edge.length < width; ++length)
           {
-            if (! reachable[position * stride + node * width + length]) { continue; }
+            const Size taken = steps[position * stride + node * width + length];
+            if (! taken) { continue; }
             const Size next_length = length + edge.length;
-            reachable[next_position * stride + edge.to * width + next_length] = 1;
-            if (next_length >= graph.options.min_tag_length && next_length > evidence.length)
+            auto& best = steps[next_position * stride + edge.to * width + next_length];
+            best = std::max<unsigned char>(best, taken + 1);
+            if (taken >= graph.options.min_tag_length && next_length > evidence.length)
             {
               evidence.supported = true;
               evidence.length = next_length;
+              evidence.steps = taken;
               evidence.charge = layer.charge;
               evidence.ion_series = key.first;
               evidence.start_ion = next_position - next_length;

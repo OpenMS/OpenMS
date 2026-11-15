@@ -312,10 +312,10 @@ protected:
                           false, true);
     setValidStrings_("candidates:method", {"enumeration", "graph", "graph_audit", "graph_generate", "graph_generate_audit"});
     registerTOPPSubsection_("graph", "Bounded RNA mass tags; full-spectrum scoring and native FDR are retained");
-    registerFlag_("graph:verify_matches", "Compare every prepared graph decision and witness with the reference matcher; fail on any mismatch", true);
-    registerIntOption_("graph:min_tag_length", "<num>", 2, "Minimum tag length in residues (1 allows a single-residue anchor)", false, true);
+    registerFlag_("graph:verify_matches", "Compare every prefilter rejection, prepared graph decision and witness with the reference matcher; fail on any mismatch", true);
+    registerIntOption_("graph:min_tag_length", "<num>", 2, "Minimum number of observed ladder steps in a tag; each step joins two matched peaks and spans up to graph:max_step residues", false, true);
     setMinInt_("graph:min_tag_length", 1);
-    registerIntOption_("graph:max_tag_length", "<num>", 4, "Maximum tag length in residues", false, true);
+    registerIntOption_("graph:max_tag_length", "<num>", 4, "Maximum residues spanned by a tag (at least graph:min_tag_length)", false, true);
     setMinInt_("graph:max_tag_length", 1);
     setMaxInt_("graph:max_tag_length", 32);
     registerIntOption_("graph:max_step", "<num>", 2, "Maximum residues per graph edge (2 bridges one missing ladder peak)", false, true);
@@ -329,14 +329,16 @@ protected:
                                                                      {"max_placement_nodes", 100000},
                                                                      {"max_total_edges", 50000000}})
     {
-      const std::string description = (name == "max_peaks" || name == "max_charge")
-                                        ? "Graph evidence selection limit: " + name
-                                        : "Graph exploration/cache bound: " + name + "; exceeding it uses enumeration fallback";
+      const std::string description = (name == "max_peaks" || name == "max_charge") ? "Graph evidence selection limit: " + name
+                                      : name == "max_total_edges"                     ? "Graph cache bound over all spectra; exceeding it aborts the run"
+                                                                                      : "Graph exploration/cache bound: " + name
+                                                                                          + "; exceeding it uses enumeration fallback";
       registerIntOption_("graph:" + name, "<num>", value, description, false, true);
       setMinInt_("graph:" + name, name == "max_peaks" ? 2 : 1);
     }
     registerOutputFile_("out_graph", "<file>", "",
                         "Tab-delimited per-spectrum graph sizes and enumeration fallback reasons (requires a graph candidate mode)", false, true);
+    setValidFormats_("out_graph", {"tsv"});
 
     registerTOPPSubsection_("modifications", "Modification options");
 
@@ -1543,10 +1545,14 @@ protected:
     const bool graph_filter = candidate_method == "graph" || graph_generate;
     const Size max_placement_nodes = getIntOption_("graph:max_placement_nodes");
     const std::string graph_out = getStringOption_("out_graph");
-    if ((! graph_enabled && (! graph_out.empty() || verify_graph_matches))
-        || (graph_enabled && getIntOption_("graph:min_tag_length") > getIntOption_("graph:max_tag_length")))
+    if (! graph_enabled && (! graph_out.empty() || verify_graph_matches))
     {
-      OPENMS_LOG_ERROR << "Graph output and match verification require graph candidates; minimum tag length must not exceed maximum tag length.\n";
+      OPENMS_LOG_ERROR << "'out_graph' and 'graph:verify_matches' require a graph mode in 'candidates:method'.\n";
+      return ILLEGAL_PARAMETERS;
+    }
+    if (graph_enabled && getIntOption_("graph:min_tag_length") > getIntOption_("graph:max_tag_length"))
+    {
+      OPENMS_LOG_ERROR << "'graph:min_tag_length' must not exceed 'graph:max_tag_length'.\n";
       return ILLEGAL_PARAMETERS;
     }
     Int min_charge = getIntOption_("precursor:min_charge");
@@ -1595,6 +1601,11 @@ protected:
          (getStringOption_("scoring:method") == "mvh" || getFlag_("scoring:use_mass_accuracy"))))
     {
       OPENMS_LOG_ERROR << "Mass tolerances must be finite and nonnegative; MVH and mass-accuracy weighting require positive fragment tolerance." << endl;
+      return ILLEGAL_PARAMETERS;
+    }
+    if (graph_enabled && search_param.fragment_mass_tolerance == 0.0)
+    {
+      OPENMS_LOG_ERROR << "Graph candidate modes require a positive 'fragment:mass_tolerance'." << endl;
       return ILLEGAL_PARAMETERS;
     }
     search_param.min_length = getIntOption_("oligo:min_size");
@@ -2117,7 +2128,6 @@ protected:
         progresslogger.setProgress(scan);
         auto& graph = spectrum_graphs[scan];
         if (spectra[scan].getMSLevel() != 2 || spectra[scan].getPrecursors().size() != 1) { graph.fallback_reason = "invalid_ms2_precursor"; }
-        else if (total_edges >= total_edge_budget) { graph.fallback_reason = "total_edge_budget"; }
         else
         {
           Size charge = std::abs(spectra[scan].getPrecursors()[0].getCharge());
@@ -2128,16 +2138,16 @@ protected:
           graph = graph_builder.build(spectra[scan], single_charge_spectra ? 1 : charge);
           if (graph.fallback_reason.empty())
           {
+            // Enumerating only the remaining spectra would make candidate
+            // selection, and therefore FDR, depend on the spectrum order.
             if (graph.edges > total_edge_budget - total_edges)
             {
-              graph.layers.clear();
-              graph.peak_indices.clear();
-              graph.fallback_reason = "total_edge_budget";
+              progresslogger.endProgress();
+              OPENMS_LOG_ERROR << "RNA graphs exceed 'graph:max_total_edges' (" << total_edge_budget << ") at spectrum " << (scan + 1) << " of "
+                               << spectra.size() << ". Raise the bound, lower 'graph:max_peaks' or use 'candidates:method enumeration'.\n";
+              return ILLEGAL_PARAMETERS;
             }
-            else
-            {
-              total_edges += graph.edges;
-            }
+            total_edges += graph.edges;
           }
         }
         if (! graph.fallback_reason.empty())
@@ -2331,13 +2341,15 @@ protected:
           // A cheap residue/tag check can avoid theoretical-spectrum generation.
           // Existing modification placement and cleavage-dependent digestion are
           // deliberately shared with enumeration in this first graph stage.
-          if (graph_filter && std::none_of(low_it, up_it, [&](const auto& precursor) {
-                return RNATagCandidateFilter::isCompatible(candidate, spectrum_graphs[precursor.second.scan_index], selected_ions,
-                                                           precursor.second.charge);
-              }))
+          const bool prefilter_rejected = graph_filter && std::none_of(low_it, up_it, [&](const auto& precursor) {
+            return RNATagCandidateFilter::isCompatible(candidate, spectrum_graphs[precursor.second.scan_index], selected_ions,
+                                                       precursor.second.charge);
+          });
+          if (prefilter_rejected)
           {
             ++graph_prefiltered;
-            continue;
+            // Verification still builds the theory to check the rejection below.
+            if (! verify_graph_matches) { continue; }
           }
           OPENMS_LOG_DEBUG << "Candidate: " << candidate.toString() << " ("
                            << float(candidate_mass) << " Da)" << endl;
@@ -2376,6 +2388,17 @@ protected:
 
             Size scan_index = prec_it->second.scan_index;
             const MSSpectrum& exp_spectrum = spectra[scan_index];
+            if (prefilter_rejected)
+            {
+              // Verification only: the prefilter must not drop a pair that the
+              // reference matcher supports or keeps through enumeration fallback.
+              ++graph_verified;
+              graph_mismatches += RNATagCandidateFilter::matchReference(candidate, spectrum_graphs[scan_index], exp_spectrum, theo_spectrum,
+                                                                        selected_ions, search_param.fragment_mass_tolerance,
+                                                                        search_param.fragment_tolerance_ppm)
+                                    .accepted();
+              continue;
+            }
             RNATagCandidateFilter::Evidence graph_evidence;
             if (graph_enabled)
             {
@@ -2488,7 +2511,7 @@ protected:
       OPENMS_LOG_INFO << "RNA graph verified pairs: " << graph_verified << "; mismatches: " << graph_mismatches << '\n';
       if (graph_mismatches)
       {
-        OPENMS_LOG_ERROR << "Prepared graph matching disagrees with the reference matcher.\n";
+        OPENMS_LOG_ERROR << "Graph prefiltering or prepared matching disagrees with the reference matcher.\n";
         return UNEXPECTED_RESULT;
       }
     }

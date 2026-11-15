@@ -104,7 +104,6 @@ RNASpectrumGraph::Result RNASpectrumGraph::build(const MSSpectrum& spectrum, Siz
             [&spectrum](Size a, Size b) { return std::tuple(spectrum[a].getMZ(), a) < std::tuple(spectrum[b].getMZ(), b); });
   result.peaks = peaks.size();
   const auto& transitions = alphabet_->transitions;
-  Size built_edges = 0;
   for (Size charge = 1; charge <= std::min(max_charge, options_.max_charge); ++charge)
   {
     Layer layer;
@@ -128,16 +127,18 @@ RNASpectrumGraph::Result RNASpectrumGraph::build(const MSSpectrum& spectrum, Siz
         for (UInt length = 1; length <= options_.max_step; ++length)
         {
           if (std::none_of(first, past, [length](const auto& transition) { return transition.length == length; })) { continue; }
-          if (++built_edges > options_.max_edges)
+          // Only layers that are kept count towards the bound. A layer that
+          // overflows it by itself cannot be tested for tags and falls back.
+          ++layer_edges;
+          if (layer_edges > options_.max_edges - result.edges)
           {
             result.layers.clear();
             result.peak_indices.clear();
-            result.edges = built_edges;
+            result.edges += layer_edges;
             result.vertices = 0;
             result.fallback_reason = "edge_limit";
             return result;
           }
-          ++layer_edges;
           layer.outgoing[i].push_back(
             {static_cast<UInt>(j), static_cast<UInt>(first - transitions.begin()), static_cast<UInt>(past - transitions.begin()), length});
         }
@@ -146,19 +147,22 @@ RNASpectrumGraph::Result RNASpectrumGraph::build(const MSSpectrum& spectrum, Siz
     bool layer_has_tag = false;
     {
       const Size width = options_.max_tag_length + 1;
-      std::vector<unsigned char> reachable(peaks.size() * width, 0);
+      // Most observed steps (plus one; zero is unreachable) per node and residue span.
+      std::vector<unsigned char> steps(peaks.size() * width, 0);
       for (Size node = 0; node < peaks.size() && ! layer_has_tag; ++node)
       {
-        reachable[node * width] = 1;
+        steps[node * width] = 1;
         for (Size length = 0; length < width && ! layer_has_tag; ++length)
         {
-          if (! reachable[node * width + length]) { continue; }
+          const Size taken = steps[node * width + length];
+          if (! taken) { continue; }
           for (const auto& edge : layer.outgoing[node])
           {
             const Size next = length + edge.length;
             if (next >= width) { continue; }
-            reachable[edge.to * width + next] = 1;
-            if (next >= options_.min_tag_length)
+            auto& best = steps[edge.to * width + next];
+            best = std::max<unsigned char>(best, taken + 1);
+            if (taken >= options_.min_tag_length)
             {
               layer_has_tag = true;
               break;
