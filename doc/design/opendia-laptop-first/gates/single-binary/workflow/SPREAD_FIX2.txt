@@ -1,0 +1,10 @@
+v2_armA_raw01          hw  73.5 shift p50   +1.0 | written 23.43 | window-frame 20.23 (pi 0.173 mu +0.5) | DIA-NN robust 25.73 | cover 4*s 0.949 vs written 0.957
+v2_armA_raw02          hw  95.5 shift p50   +3.6 | written 24.20 | window-frame 13.57 (pi 0.083 mu +5.0) | DIA-NN robust 24.91 | cover 4*s 0.884 vs written 0.957
+v2_armC_raw01          hw  71.3 shift p50   +1.4 | written 23.06 | window-frame  5.18 (pi 0.016 mu +2.4) | DIA-NN robust 25.88 | cover 4*s 0.569 vs written 0.976
+v2_armC_raw02          hw  85.9 shift p50   +2.3 | written 25.68 | window-frame 14.25 (pi 0.052 mu +5.0) | DIA-NN robust 25.69 | cover 4*s 0.918 vs written 0.981
+v2_armD_raw01          hw  81.1 shift p50   -0.5 | written 25.50 | window-frame 14.78 (pi 0.046 mu +3.0) | DIA-NN robust 24.44 | cover 4*s 0.939 vs written 0.983
+v2_armD_raw02          hw  83.0 shift p50   +1.2 | written 26.72 | window-frame 16.22 (pi 0.067 mu +2.1) | DIA-NN robust 25.32 | cover 4*s 0.937 vs written 0.976
+v2_armB_raw02          hw  65.9 shift p50   +3.7 | written 23.69 | window-frame  0.00 (pi 0.001 mu -0.0) | DIA-NN robust 27.06 | cover 4*s 0.000 vs written 0.981
+v2_pairlib_raw01       hw  85.1 shift p50   +1.5 | written 27.43 | window-frame 14.55 (pi 0.054 mu -0.4) | DIA-NN robust 25.87 | cover 4*s 0.908 vs written 0.961
+v2_pairlib_raw02       hw  94.9 shift p50   +4.1 | written 27.97 | window-frame 19.20 (pi 0.105 mu +9.0) | DIA-NN robust 24.77 | cover 4*s 0.942 vs written 0.961
+cal_armE01             hw 110.7 shift p50  -11.4 | written 37.73 | window-frame 24.39 (pi 0.089 mu +6.4) | DIA-NN robust 27.17 | cover 4*s 0.949 vs written 0.965

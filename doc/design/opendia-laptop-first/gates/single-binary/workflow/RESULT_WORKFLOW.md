@@ -56,3 +56,37 @@ N@FDP_c 1 %:
 - `accept.sh`
 - `eval_run.py`
 - `eval_workflow.py`
+
+## Diagnosis after the verdict (descriptive; the frozen verdict above is unchanged)
+
+### raw02 shortfall: block swap (`swap.sh`, `SWAP_EVAL.txt`)
+The C++ scorer was run offline on the arm-E arrays, with one block replaced by the OpenDIAWorkflow block (seeds 0-4).
+
+| Raw | arm-E arrays (step 1) | all workflow blocks | workflow f12 only | workflow deficit only | in-binary (C++ seed rows) | Python D11FDC |
+|---|---|---|---|---|---|---|
+| raw01 median N@1 % | 1822 | 1787 | 1808 | 1831 | 1819 | 1848 |
+| raw02 median N@1 % | 1905 | 1881 | 1889 | 1927 | 1870 | 1925 |
+
+- **Size of the differences:** all medians lie within 25-55 IDs of each other.
+  - The per-seed range of every arm is 50-200 IDs (raw02 WF 1849-1916, step 1 1826-2021).
+- **No single cause:** no block explains the raw02 shortfall on its own.
+  - The f12 apex-bin change costs about 15 IDs at the median, and the deficit change none.
+  - Building the training rows in C++ costs about 10 more.
+  - These are smaller than seed noise, so the suspected cause ("apex-bin rule") is not confirmed.
+- **What remains:** a scorer-level gap to the Python trainer of about 20-55 IDs at the median, comparable to its seed spread.
+
+### Self-calibration: inflated RT spread (`spread_fix*.py`, `SPREAD_FIX*.txt`)
+- **Map accuracy:** the workflow's arm-E raw01 calibration is as accurate as before against DIA-NN 1 % IDs.
+  - |err| p50 is 18.3 s (16.9 s before).
+  - p95 is 95.2 s (80.8 s before).
+- **Inflated spread:** the selection-free spread fit gave 37.7 s on raw01, against a robust spread of 27.2 s for DIA-NN around the same map.
+  - On raw02 it gave 30.9 s against 25.4 s.
+  - Hence the tolerances of 151 s and 124 s, the larger populations and the raw01 FDP_c of 0.0104.
+- **Cause:** the fit takes target residuals relative to the final map, but decoy (background) residuals relative to the stage-3 window centre.
+  - On arm E raw01 the two differ by a median 11.4 s, and the half window is 110.7 s.
+  - The background edges then do not line up with the targets', and the Gaussian absorbs the mismatch.
+  - On the earlier calibration runs the shift is 0.5-4 s and the spread matched DIA-NN (23-28 s against 24-27 s).
+- **Two offline fixes tried, neither adopted** (coverage of DIA-NN IDs is the criterion):
+  - Decoys relative to the final map: the spread falls to 17.7-23.3 s and coverage to 0.93-0.98, below the current fit on every run.
+  - Window frame with a per-target shift: unstable, collapsing to 0-5 s on two runs.
+- **Status:** the calibration code is unchanged and needs a new design (for example a background that is shifted per member), with its own plan.

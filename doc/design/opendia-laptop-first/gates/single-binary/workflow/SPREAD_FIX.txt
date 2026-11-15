@@ -1,0 +1,10 @@
+v2_armA_raw01          windowed True hw  73.5 | written spread 23.43 | offline old 24.39 new 20.15 (pi 0.096) | DIA-NN robust 25.73 | cover 4*new 0.949 4*old 0.959
+v2_armA_raw02          windowed True hw  95.5 | written spread 24.20 | offline old 23.88 new 22.77 (pi 0.084) | DIA-NN robust 24.91 | cover 4*new 0.953 4*old 0.956
+v2_armC_raw01          windowed True hw  71.3 | written spread 23.06 | offline old 23.40 new 17.73 (pi 0.087) | DIA-NN robust 25.88 | cover 4*new 0.951 4*old 0.976
+v2_armC_raw02          windowed True hw  85.9 | written spread 25.68 | offline old 26.04 new 22.39 (pi 0.090) | DIA-NN robust 25.69 | cover 4*new 0.974 4*old 0.982
+v2_armD_raw01          windowed True hw  81.1 | written spread 25.50 | offline old 26.21 new 21.91 (pi 0.098) | DIA-NN robust 24.44 | cover 4*new 0.978 4*old 0.984
+v2_armD_raw02          windowed True hw  83.0 | written spread 26.72 | offline old 25.86 new 23.15 (pi 0.103) | DIA-NN robust 25.32 | cover 4*new 0.970 4*old 0.975
+v2_armB_raw02          windowed True hw  65.9 | written spread 23.69 | offline old 22.84 new 18.89 (pi 0.069) | DIA-NN robust 27.06 | cover 4*new 0.965 4*old 0.980
+v2_pairlib_raw01       windowed True hw  85.1 | written spread 27.43 | offline old 27.61 new 23.25 (pi 0.095) | DIA-NN robust 25.87 | cover 4*new 0.955 4*old 0.961
+v2_pairlib_raw02       windowed True hw  94.9 | written spread 27.97 | offline old 27.74 new 21.46 (pi 0.078) | DIA-NN robust 24.77 | cover 4*new 0.950 4*old 0.961
+cal_armE01             windowed True hw 110.7 | written spread 37.73 | offline old 37.71 new 21.82 (pi 0.068) | DIA-NN robust 27.17 | cover 4*new 0.929 4*old 0.965
