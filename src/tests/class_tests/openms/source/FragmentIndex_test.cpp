@@ -3176,6 +3176,204 @@ START_SECTION(([EXTRA] Peptide-mass mode: finds the candidates of the fragment i
 }
 END_SECTION
 
+START_SECTION(([EXTRA] Peptide-mass mode: keeps the candidates of the fragment index at the scoring:max_candidates_per_spectrum cut))
+{
+  // Peptides of one protein with the same precursor m/z (site isomers of a variable modification, windows of equal
+  // composition) match the same peaks of a spectrum that holds only the fragments they share. The cut at
+  // scoring:max_candidates_per_spectrum goes through such ties by the tie order: the peptide index in the fragment
+  // index (trimHits()), (precursor m/z, protein, start, length, modification subset) in the peptide-mass query. Both
+  // modes must keep the same candidates, in the same order, at every cut. The groups are tied candidates of PXD019643
+  // (class I) that the two modes cut differently before generatePeptides() ordered the peptides of such a tie.
+  // With peptide:deduplicate, both modes must also keep the same occurrence of a repeated peptidoform: the one with
+  // the smallest (protein, start).
+  const std::vector<FASTAFile::FASTAEntry> db{
+    {"P1", "", "GWELRQMTMALTDPIAKEMKMKIFKDPLVNENGMSIMVPDGHLLLGRSMEEQLLVDHKSSVAQIKPSSDGWMLILITTFYLVDP"},
+    {"P2", "", "WDRLQVEKERLQIHGPWDNHGRLQLEKDRLQFHWP"}};
+  // The same with repeats: P1 holds LRQMTMAL and SSVAQIKPSS a second time, and P0 is a copy of P2
+  const std::vector<FASTAFile::FASTAEntry> db_repeats{
+    {"P0", "", "WDRLQVEKERLQIHGPWDNHGRLQLEKDRLQFHWP"},
+    {"P1", "", "GWELRQMTMALTDPIAKEMKMKIFKDPLVNENGMSIMVPDGHLLLGRSMEEQLLVDHKSSVAQIKPSSDGWMLILITTFYLVDPGWELRQMTMALTDPKSSVAQIKPSSD"},
+    {"P2", "", "WDRLQVEKERLQIHGPWDNHGRLQLEKDRLQFHWP"}};
+  const std::vector<std::vector<std::string>> groups{
+    {"LRQM(Oxidation)TMAL", "LRQMTM(Oxidation)AL"}, // site isomers
+    {"AKEM(Oxidation)KMKIF", "AKEMKM(Oxidation)KIF"},
+    {"VNENGM(Oxidation)SIMV", "VNENGMSIM(Oxidation)V"},
+    {"LLLGRSM(Oxidation)EEQ", "LLGRSM(Oxidation)EEQL", "LGRSM(Oxidation)EEQLL"}, // windows of equal composition
+    {"SSVAQIKP", "SVAQIKPS", "VAQIKPSS"},
+    {"LILITTFY", "ILITTFYL"},
+    {"LQVEKERLQ", "LQLEKDRLQ"}}; // of equal formula (V + E = L + D), far apart
+
+  auto make_index = [](FragmentIndex& fi, const std::vector<FASTAFile::FASTAEntry>& database, bool low_memory,
+                       size_t max_candidates, bool deduplicate)
+  {
+    Param p = fi.getParameters();
+    p.setValue("peptide:enzyme_specificity", "none");
+    p.setValue("peptide:min_size", 8);
+    p.setValue("peptide:max_size", 12);
+    p.setValue("peptide:min_mass", 500);
+    p.setValue("peptide:max_mass", 5000);
+    p.setValue("precursor:mass_tolerance_lower", 10.0);
+    p.setValue("precursor:mass_tolerance_upper", 10.0);
+    p.setValue("precursor:mass_tolerance_unit", "ppm");
+    p.setValue("precursor:isotope_error_min", 0);
+    p.setValue("precursor:isotope_error_max", 0);
+    p.setValue("precursor:min_charge", 2);
+    p.setValue("precursor:max_charge", 3);
+    p.setValue("fragment:mass_tolerance", 20.0);
+    p.setValue("fragment:max_charge", 1); // no peak matches as a doubly charged fragment of another peptidoform
+    p.setValue("fragment:min_matched_ions", 3);
+    p.setValue("scoring:max_candidates_per_spectrum", static_cast<int>(max_candidates));
+    p.setValue("modifications:fixed", std::vector<std::string>{});
+    p.setValue("modifications:variable", std::vector<std::string>{"Oxidation (M)"});
+    p.setValue("modifications:variable_max_per_peptide", 1);
+    p.setValue("peptide:deduplicate", deduplicate ? "true" : "false");
+    p.setValue("low_memory", low_memory ? "true" : "false");
+    fi.setParameters(p);
+    fi.build(database);
+  };
+  // (protein, start, length, peptidoform, charge, isotope error, matched fragments) of every candidate, in rank order
+  using Candidate = std::tuple<UInt32, uint16_t, uint16_t, std::string, uint16_t, int16_t, uint32_t>;
+  auto candidates = [](FragmentIndex& fi, const std::vector<FASTAFile::FASTAEntry>& database,
+                       const MSSpectrum& spectrum)
+  {
+    FragmentIndex::SpectrumMatchesTopN sms;
+    fi.querySpectrum(spectrum, database, sms);
+    std::vector<Candidate> result;
+    for (const auto& hit : sms.hits_)
+    {
+      const FragmentIndex::Peptide& peptide = fi.getPeptides()[hit.peptide_idx_];
+      const bool masses = fi.isPeptideMassMode();
+      const uint16_t length = masses ? hit.realized_length_ : peptide.sequence_.second;
+      const AASequence seq = masses ? fi.reconstructRealizedSubSequence(peptide, database, hit.realized_length_, hit.subset_bitmask_)
+                                    : fi.reconstructModifiedSequence(peptide, database);
+      result.emplace_back(peptide.protein_idx, peptide.sequence_.first, length, seq.toString(), hit.precursor_charge_,
+                          hit.isotope_error_, hit.num_matched_);
+    }
+    return result;
+  };
+
+  FragmentIndex conventional;
+  make_index(conventional, db, false, 100000, false);
+  // The peptides of one protein with equal precursor m/z are ordered by start, length and modification subset
+  const std::vector<FragmentIndex::Peptide>& peptides = conventional.getPeptides();
+  size_t ties = 0, misordered = 0;
+  for (size_t i = 1; i < peptides.size(); ++i)
+  {
+    const FragmentIndex::Peptide& a = peptides[i - 1];
+    const FragmentIndex::Peptide& b = peptides[i];
+    if (a.precursor_mz_ != b.precursor_mz_ || a.protein_idx != b.protein_idx) continue;
+    ++ties;
+    misordered += !(std::tie(a.sequence_.first, a.sequence_.second, a.mod_bitmask_) < std::tie(b.sequence_.first, b.sequence_.second, b.mod_bitmask_));
+  }
+  TEST_EQUAL(ties > 0, true)
+  TEST_EQUAL(misordered, 0)
+
+  // One spectrum per group: the singly charged b and y ions of all of its peptidoforms, so that each of them matches
+  // all of its fragments in the index (the same number: they have the same length)
+  std::vector<MSSpectrum> spectra;
+  for (const std::vector<std::string>& group : groups)
+  {
+    // the peptidoforms of the group are one tie of the fragment index: one protein, one precursor m/z
+    std::set<std::pair<UInt32, float>> keys;
+    std::vector<size_t> members;
+    for (size_t i = 0; i < peptides.size(); ++i)
+    {
+      const std::string seq = conventional.reconstructModifiedSequence(peptides[i], db).toString();
+      if (std::find(group.begin(), group.end(), seq) == group.end()) continue;
+      members.push_back(i);
+      keys.emplace(peptides[i].protein_idx, peptides[i].precursor_mz_);
+    }
+    TEST_EQUAL(members.size(), group.size())
+    TEST_EQUAL(keys.size(), 1)
+
+    TheoreticalSpectrumGenerator tsg;
+    std::map<long long, double> peaks; // m/z in 1e-4 -> m/z
+    for (const std::string& member : group)
+    {
+      PeakSpectrum theo;
+      tsg.getSpectrum(theo, AASequence::fromString(member), 1, 1);
+      for (const auto& peak : theo) peaks.emplace(std::llround(peak.getMZ() * 1e4), peak.getMZ());
+    }
+    MSSpectrum spectrum;
+    for (const auto& [key, mz] : peaks) spectrum.push_back(Peak1D(mz, 100.0f));
+    Precursor precursor;
+    precursor.setMZ(AASequence::fromString(group.front()).getMZ(2));
+    precursor.setCharge(2);
+    spectrum.setPrecursors({precursor});
+    spectrum.setMSLevel(2);
+    spectrum.sortByPosition();
+    spectra.push_back(spectrum);
+  }
+
+  // Every group ties at some cut: two of its peptidoforms next to each other in the ranking, with the same keys of trimHits()
+  for (size_t g = 0; g < groups.size(); ++g)
+  {
+    const std::vector<Candidate> all = candidates(conventional, db, spectra[g]);
+    const auto in_group = [&](const Candidate& c) { return std::find(groups[g].begin(), groups[g].end(), std::get<3>(c)) != groups[g].end(); };
+    bool tied_cut = false;
+    for (size_t k = 1; k < all.size(); ++k)
+    {
+      tied_cut |= in_group(all[k - 1]) && in_group(all[k]) && std::get<4>(all[k - 1]) == std::get<4>(all[k])
+                  && std::get<5>(all[k - 1]) == std::get<5>(all[k]) && std::get<6>(all[k - 1]) == std::get<6>(all[k]);
+    }
+    TEST_EQUAL(tied_cut, true)
+  }
+
+  for (const auto& [database, deduplicate] :
+       {std::pair{&db, false}, std::pair{&db, true}, std::pair{&db_repeats, false}, std::pair{&db_repeats, true}})
+  {
+    FragmentIndex uncut;
+    make_index(uncut, *database, false, 100000, deduplicate);
+    if (deduplicate)
+    {
+      // The fragment index holds every peptidoform once, at its occurrence with the smallest (protein, start)
+      FragmentIndex all_occurrences;
+      make_index(all_occurrences, *database, false, 100000, false);
+      std::map<std::string, std::pair<UInt32, uint16_t>> first_occurrence; // peptidoform -> smallest (protein, start)
+      for (const FragmentIndex::Peptide& peptide : all_occurrences.getPeptides())
+      {
+        const std::pair<UInt32, uint16_t> occurrence{peptide.protein_idx, peptide.sequence_.first};
+        const std::string peptidoform = all_occurrences.reconstructModifiedSequence(peptide, *database).toString();
+        const auto it = first_occurrence.emplace(peptidoform, occurrence).first;
+        it->second = std::min(it->second, occurrence);
+      }
+      size_t not_first = 0;
+      for (const FragmentIndex::Peptide& peptide : uncut.getPeptides())
+      {
+        const std::pair<UInt32, uint16_t> occurrence{peptide.protein_idx, peptide.sequence_.first};
+        const std::string peptidoform = uncut.reconstructModifiedSequence(peptide, *database).toString();
+        not_first += first_occurrence.at(peptidoform) != occurrence;
+      }
+      TEST_EQUAL(uncut.getPeptides().size(), first_occurrence.size())
+      TEST_EQUAL(not_first, 0)
+    }
+
+    // At every cut up to the longest uncut list, both modes keep the same candidates (the same occurrences) in the
+    // same order
+    size_t max_candidates = 0;
+    for (const MSSpectrum& spectrum : spectra)
+    {
+      max_candidates = std::max(max_candidates, candidates(uncut, *database, spectrum).size());
+    }
+    for (size_t cap = 1; cap <= max_candidates; ++cap)
+    {
+      FragmentIndex cut_conventional, cut_masses;
+      make_index(cut_conventional, *database, false, cap, deduplicate);
+      make_index(cut_masses, *database, true, cap, deduplicate);
+      TEST_EQUAL(cut_masses.isPeptideMassMode(), true)
+      for (const MSSpectrum& spectrum : spectra)
+      {
+        const std::vector<Candidate> from_conventional = candidates(cut_conventional, *database, spectrum);
+        const std::vector<Candidate> from_masses = candidates(cut_masses, *database, spectrum);
+        TEST_EQUAL(from_conventional.empty(), false)
+        TEST_EQUAL(from_masses.size(), from_conventional.size())
+        TEST_EQUAL(from_masses == from_conventional, true)
+      }
+    }
+  }
+}
+END_SECTION
+
 START_SECTION((peptide-mass query honors multi-charge precursor when charge is unset))
 {
   // A spectrum whose precursor has charge == 0 should trigger iteration
