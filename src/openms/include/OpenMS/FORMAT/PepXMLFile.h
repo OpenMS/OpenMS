@@ -61,6 +61,11 @@ public:
         "run1", "data/run1" and "C:\\data\\run1.mzML" all select the run with "base_name" "C:/data/run1", but "un1" does not.
         Runs with different "base_name"s must not match at the same time (e.g. "run1" for "C:/light/run1" and "C:/heavy/run1").
 
+        The hits give terminal modifications only as the mass of the modified terminus. If the "search_summary" declares
+        a peptide-terminal and a protein-terminal modification with the same mass (e.g. 'Amidated (C-term)' and
+        'Amidated (Protein C-term)'), hits at a protein terminus (according to "peptide_prev_aa"/"peptide_next_aa")
+        get the protein-terminal one, and a warning is issued.
+
         @exception Exception::FileNotFound is thrown if the file could not be opened
         @exception Exception::ParseError is thrown if an error occurs during parsing, or if no run or runs with different "base_name"s match @p experiment_name
     */

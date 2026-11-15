@@ -2324,6 +2324,36 @@ namespace OpenMS
 
       current_proteins_.back()->setSearchParameters(params_);
       search_summary_ = false;
+
+      // A hit gives a terminal modification only as the mass of the modified terminus. Of a peptide-terminal and a
+      // protein-terminal declaration with the same mass (e.g. 'Amidated (C-term)' and 'Amidated (Protein C-term)'),
+      // hits at a protein terminus get the protein-terminal one (see "modification_info"), even if the software that
+      // wrote the file meant the other one. Point that out once per search:
+      std::vector<const AminoAcidModification*> terminal_mods;
+      for (const vector<AminoAcidModification>* header_mods : {&variable_modifications_, &fixed_modifications_})
+      {
+        for (const AminoAcidModification& m : *header_mods)
+        {
+          if (!m.getTerminus().empty()) terminal_mods.push_back(&m);
+        }
+      }
+      for (const AminoAcidModification* peptide_term : terminal_mods)
+      {
+        const ResidueModification& peptide_mod = *peptide_term->getRegisteredMod();
+        if (isProteinTerminal(peptide_mod)) continue;
+        for (const AminoAcidModification* protein_term : terminal_mods)
+        {
+          const ResidueModification& protein_mod = *protein_term->getRegisteredMod();
+          if (isProteinTerminal(protein_mod) && protein_term->getTerminus() == peptide_term->getTerminus() &&
+              fabs(protein_term->getMass() - peptide_term->getMass()) < mod_tol_ &&
+              (fitsTerminalResidue(protein_mod, peptide_mod.getOrigin()) || fitsTerminalResidue(peptide_mod, protein_mod.getOrigin())))
+          {
+            warning(LOAD, "The search_summary declares '" + peptide_mod.getFullId() + "' and '" + protein_mod.getFullId() +
+                          "' with the same mass, which pepXML cannot tell apart in the hits. Hits at a protein terminus are read with '" +
+                          protein_mod.getFullId() + "'.");
+          }
+        }
+      }
     }
   }
 

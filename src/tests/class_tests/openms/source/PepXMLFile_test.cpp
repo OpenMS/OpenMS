@@ -864,9 +864,11 @@ START_SECTION(([EXTRA] store and load - declarations and lookup of terminal, pro
     {{AASequence::fromString(".(Met-loss)MPEPK"), "A"}},      // 'Met-loss (Protein N-term M)'
     {{AASequence::fromString("PEPTIDEK"), std::string(1, at_end)}, {AASequence::fromString("PEPM(Oxidation)IDEK"), "A"}}, // modification of a lower-ranked hit only
     {{protein_c_term, std::string(1, at_end)}},
+    {{AASequence::fromString("PEPK.(Amidated)"), std::string(1, at_end)}}, // 'Amidated (C-term)' at a protein C-terminus (see below)
     {{AASequence::fromString("PEPR.(Amidated)"), "A"}},       // 'Amidated (C-term)': same mass as 'Amidated (Protein C-term)'
     {{AASequence::fromString("SAMPLEK"), std::string("A") + at_end}}, // at the protein C-terminus in the alternative protein only
     {{AASequence::fromString("SAMPLER"), "AG"}},              // inside both proteins
+    {{AASequence::fromString("SAMPLEH"), std::string("A") + PeptideEvidence::UNKNOWN_AA}}, // unknown position in the alternative protein
     {{AASequence::fromString("AC(Methylthio)DEK"), "A"}}};
   PeptideIdentificationList peptides(hits_per_id.size());
   vector<AASequence> sequences; // all hits, in the order in which they are written
@@ -894,6 +896,15 @@ START_SECTION(([EXTRA] store and load - declarations and lookup of terminal, pro
       sequences.push_back(hits_per_id[i][rank].first);
       next_aa.push_back(hits_per_id[i][rank].second);
     }
+  }
+  // what is read back: the same, except that the hits give a terminal modification only as the mass of the modified
+  // terminus, so a peptide-terminal one at a protein terminus becomes the protein-terminal one with the same mass if
+  // that is declared, too (load() warns about this):
+  const AASequence ambiguous = AASequence::fromString("PEPK.(Amidated)");
+  vector<AASequence> expected = sequences;
+  for (AASequence& seq : expected)
+  {
+    if (seq == ambiguous) seq = protein_c_term;
   }
   // each hit is written as a "spectrum_query" of its own and read back as a peptide identification of its own
   auto readHits = [](const std::string& file)
@@ -948,15 +959,15 @@ START_SECTION(([EXTRA] store and load - declarations and lookup of terminal, pro
   TEST_EQUAL(StringUtils::hasSubstring(content, "description=\"Ammonia-loss (N-term C)\" protein_terminus=\"\""), true)
   TEST_EQUAL(StringUtils::hasSubstring(content, "description=\"Oxidation (M)\""), true)
 
-  // reading the file back gives the same peptides; in particular, of the two N-terminal modifications with the same
-  // mass, each is assigned to the peptide whose N-terminal residue it fits, and of the two C-terminal ones, each to
-  // the peptide whose position in the protein it fits:
+  // reading the file back gives the same peptides (see 'expected'); in particular, of the two N-terminal modifications
+  // with the same mass, each is assigned to the peptide whose N-terminal residue it fits, and of the two C-terminal
+  // ones, each to the peptide whose position in the protein it fits:
   vector<AASequence> hits_new = readHits(file_out);
-  ABORT_IF(hits_new.size() != sequences.size())
-  for (Size i = 0; i < sequences.size(); ++i)
+  ABORT_IF(hits_new.size() != expected.size())
+  for (Size i = 0; i < expected.size(); ++i)
   {
-    TEST_EQUAL(hits_new[i].toString(), sequences[i].toString())
-    TEST_EQUAL(hits_new[i] == sequences[i], true) // also tells protein-terminal from other terminal modifications
+    TEST_EQUAL(hits_new[i].toString(), expected[i].toString())
+    TEST_EQUAL(hits_new[i] == expected[i], true) // also tells protein-terminal from other terminal modifications
   }
 
   // a modification that the header does not declare, but that the database knows only one of, is kept
@@ -970,13 +981,14 @@ START_SECTION(([EXTRA] store and load - declarations and lookup of terminal, pro
     NEW_TMP_FILE(file_undeclared);
     std::ofstream(file_undeclared) << undeclared;
     hits_new = readHits(file_undeclared);
-    ABORT_IF(hits_new.size() != sequences.size())
+    ABORT_IF(hits_new.size() != expected.size())
     TEST_EQUAL(hits_new.back().toString(), "AC(Methylthio)DEK")
   }
 
   // fixed terminal modifications (as declared by other software): one of a particular N-terminal residue is only put
-  // on peptides that start with it, and a protein C-terminal one on the C-terminus of the hits at the protein
-  // C-terminus in one of their proteins that have no C-terminal modification (it used to be ignored):
+  // on peptides that start with it, and a protein C-terminal one on the C-terminus of the hits without C-terminal
+  // modification that are at the protein C-terminus in one of their proteins or whose position is unknown in one of
+  // them (it used to be ignored):
   {
     std::string fixed = content;
     setFixed(fixed, "Gln->pyro-Glu (N-term Q)");
@@ -987,18 +999,20 @@ START_SECTION(([EXTRA] store and load - declarations and lookup of terminal, pro
     NEW_TMP_FILE(file_fixed);
     std::ofstream(file_fixed) << fixed;
     hits_new = readHits(file_fixed);
-    ABORT_IF(hits_new.size() != sequences.size())
-    for (Size i = 0; i < sequences.size(); ++i)
+    ABORT_IF(hits_new.size() != expected.size())
+    const std::string terminal_or_unknown{at_end, PeptideEvidence::UNKNOWN_AA};
+    for (Size i = 0; i < expected.size(); ++i)
     {
       // N-terminus as written, 'Gln->pyro-Glu (N-term Q)' only where it was (QPEPK):
-      TEST_EQUAL(hits_new[i].hasNTerminalModification(), sequences[i].hasNTerminalModification())
-      if (sequences[i].hasNTerminalModification() && hits_new[i].hasNTerminalModification())
+      TEST_EQUAL(hits_new[i].hasNTerminalModification(), expected[i].hasNTerminalModification())
+      if (expected[i].hasNTerminalModification() && hits_new[i].hasNTerminalModification())
       {
-        TEST_EQUAL(hits_new[i].getNTerminalModification()->getFullId(), sequences[i].getNTerminalModification()->getFullId())
+        TEST_EQUAL(hits_new[i].getNTerminalModification()->getFullId(), expected[i].getNTerminalModification()->getFullId())
       }
-      // C-terminus as written, plus 'Amidated (Protein C-term)' at a protein C-terminus (PEPTIDEK, SAMPLEK):
-      const std::string expected_c_term = sequences[i].hasCTerminalModification() ? sequences[i].getCTerminalModification()->getFullId() :
-                                          (next_aa[i].find(at_end) != std::string::npos ? "Amidated (Protein C-term)" : "");
+      // C-terminus as written, plus 'Amidated (Protein C-term)' at a protein C-terminus or an unknown position
+      // (PEPTIDEK, SAMPLEK, SAMPLEH), but not inside the proteins (SAMPLER):
+      const std::string expected_c_term = expected[i].hasCTerminalModification() ? expected[i].getCTerminalModification()->getFullId() :
+                                          (next_aa[i].find_first_of(terminal_or_unknown) != std::string::npos ? "Amidated (Protein C-term)" : "");
       TEST_EQUAL(hits_new[i].hasCTerminalModification() ? hits_new[i].getCTerminalModification()->getFullId() : "", expected_c_term)
     }
   }
