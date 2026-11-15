@@ -17,6 +17,8 @@
 class TestNASE : public NucleicAcidSearchEngine
 {
 public:
+  using NucleicAcidSearchEngine::deisotopeAndSingleChargeMSSpectrum_;
+  using NucleicAcidSearchEngine::preprocessSpectra_;
   using NucleicAcidSearchEngine::getModifications_;
   using NucleicAcidSearchEngine::calculatePrecursorPercentage_;
   using NucleicAcidSearchEngine::flashMassUpperBound_;
@@ -170,6 +172,15 @@ namespace
   }
 }
 
+const MSSpectrum::IntegerDataArray* legacyCharges(const MSSpectrum& spectrum)
+{
+  for (const auto& array : spectrum.getIntegerDataArrays())
+  {
+    if (array.getName() == "NASE:legacy_fragment_charge" && array.size() == spectrum.size()) { return &array; }
+  }
+  return nullptr;
+}
+
 START_TEST(NASEDigestion, "$Id$")
 
 START_SECTION(([EXTRA] variable-only ambiguity setup preserves terminal hypotheses))
@@ -190,6 +201,71 @@ START_SECTION(([EXTRA] variable-only ambiguity setup preserves terminal hypothes
   hits.emplace(10.0, three);
   tool.resolveAmbiguousMods_(hits);
   TEST_EQUAL(hits.size(), 2)
+}
+END_SECTION
+
+START_SECTION(([EXTRA] legacy fragment isotope thresholds and envelope intensity aggregation))
+{
+  MSSpectrum raw;
+  raw.emplace_back(500, 10);
+  raw.emplace_back(500 + Constants::C13C12_MASSDIFF_U / 2, 4);
+  auto unchanged = raw;
+  TestNASE tool;
+  tool.deisotopeAndSingleChargeMSSpectrum_(unchanged, -1, -2, 10, true, false, 3, 20, false, true);
+  TEST_EQUAL(unchanged.size(), 2)
+  TEST_EQUAL((*legacyCharges(unchanged))[0], 0)
+  auto monoisotopic = raw;
+  tool.deisotopeAndSingleChargeMSSpectrum_(monoisotopic, -1, -2, 10, true, false, 2, 20, false, true);
+  TEST_EQUAL(monoisotopic.size(), 1)
+  TEST_REAL_SIMILAR(monoisotopic[0].getIntensity(), 10)
+  TEST_EQUAL((*legacyCharges(monoisotopic))[0], 2)
+  auto summed = raw;
+  tool.deisotopeAndSingleChargeMSSpectrum_(summed, -1, -2, 10, true, false, 2, 20, false, true, true);
+  TEST_EQUAL(summed.size(), 1)
+  TEST_REAL_SIMILAR(summed[0].getIntensity(), 14)
+  TEST_REAL_SIMILAR(summed[0].getMZ(), 500)
+  auto decharged = raw;
+  tool.deisotopeAndSingleChargeMSSpectrum_(decharged, -1, -2, 10, true, false, 2, 20, true, true, true);
+  TEST_EQUAL(decharged.size(), 1)
+  TEST_REAL_SIMILAR(decharged[0].getIntensity(), 14)
+  TEST_REAL_SIMILAR(decharged[0].getMZ(), 1000 + Constants::PROTON_MASS_U)
+  TEST_EQUAL((*legacyCharges(decharged))[0], 1)
+}
+END_SECTION
+
+START_SECTION(([EXTRA] optional legacy isotope detection retains unknown precursor charge))
+{
+  TestNASE tool;
+  const auto process = [&](Int precursor_charge, Size fragment_bound) {
+    MSExperiment experiment;
+    MSSpectrum raw;
+    raw.setMSLevel(2);
+    raw.emplace_back(500, 10);
+    raw.emplace_back(500 + Constants::C13C12_MASSDIFF_U / 2, 4);
+    Precursor precursor;
+    precursor.setMZ(600);
+    precursor.setCharge(precursor_charge);
+    raw.getPrecursors().push_back(precursor);
+    raw.setMetaValue("legacy_unknown_fragment_charge_bound", 99);
+    experiment.addSpectrum(raw);
+    tool.preprocessSpectra_(experiment, 20, true, false, true, -1, -6, true, false, 100, 50, "slide", false, 1000, false, 0.01, false, 2, "legacy",
+                            0.85, 0.25, true, 2, 10, false, fragment_bound);
+    return experiment[0];
+  };
+  const auto unchanged = process(0, 0);
+  TEST_EQUAL(unchanged.size(), 2)
+  TEST_EQUAL(unchanged.getPrecursors()[0].getCharge(), 0)
+  TEST_FALSE(unchanged.metaValueExists("legacy_unknown_fragment_charge_bound"))
+  const auto assigned = process(0, 2);
+  TEST_EQUAL(assigned.size(), 1)
+  TEST_EQUAL((*legacyCharges(assigned))[0], 2)
+  TEST_EQUAL(assigned.getPrecursors()[0].getCharge(), 0)
+  TEST_EQUAL(Int(assigned.getMetaValue("legacy_unknown_fragment_charge_bound")), 2)
+  // A known precursor bounds fragment charge even with a larger unknown bound.
+  const auto known = process(1, 6);
+  TEST_EQUAL(known.size(), 2)
+  TEST_EQUAL(known.getPrecursors()[0].getCharge(), 1)
+  TEST_FALSE(known.metaValueExists("legacy_unknown_fragment_charge_bound"))
 }
 END_SECTION
 
