@@ -8,6 +8,24 @@
 # The patch is boostorg/locale@1d07074 + boostorg/locale@f51b58c from develop.
 # Remove this overlay once the vcpkg baseline has a Boost.Locale release with
 # that fix.
+#
+# An overlay port wins over the baseline, so this pins boost-locale to
+# ${VERSION} (1.91.0). If the baseline moves to another Boost release, the rest
+# of Boost would move while boost-locale stayed behind, so stop here instead:
+# boost-config (a direct dependency) installs boost/version.hpp of the baseline.
+file(STRINGS "${CURRENT_INSTALLED_DIR}/include/boost/version.hpp" boost_version_line
+     REGEX "^#define BOOST_VERSION [0-9]+")
+string(REGEX REPLACE "^#define BOOST_VERSION ([0-9]+).*" "\\1" boost_version "${boost_version_line}")
+math(EXPR boost_major "${boost_version} / 100000")
+math(EXPR boost_minor "${boost_version} / 100 % 1000")
+math(EXPR boost_patch "${boost_version} % 100")
+set(boost_version "${boost_major}.${boost_minor}.${boost_patch}")
+if(NOT boost_version VERSION_EQUAL VERSION)
+    message(FATAL_ERROR
+        "The boost-locale overlay in vcpkg-overlays/ports/boost-locale is ${VERSION}, "
+        "but the vcpkg baseline has Boost ${boost_version}. Update the overlay to "
+        "that release, or remove it if that release has the CMake 4.5 fix.")
+endif()
 
 vcpkg_from_github(
     OUT_SOURCE_PATH SOURCE_PATH
