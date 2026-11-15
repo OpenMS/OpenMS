@@ -1,14 +1,16 @@
 /**
-@page TOPP_NASE_GraphSearch Experimental RNA graph filtering in NASE
+@page TOPP_NASE_GraphSearch Experimental RNA graph search and scoring in NASE
 
 @brief Bounded RNA mass tags for selecting precursor-matched candidates before full-spectrum scoring.
 
-NucleicAcidSearchEngine offers five candidate modes:
+NucleicAcidSearchEngine offers six candidate modes:
 - @p enumeration keeps the existing search.
 - @p graph_audit scores all enumerated candidates and records whether a validated graph path supports each retained hit.
 - @p graph filters precursor-matched candidates using RNA tags, then applies the existing full-spectrum score, coverage requirement, hit competition and native FDR calculation.
 - @p graph_generate constrains variable-modification placement using precursor-mass completion bounds and graph-compatible residue alternatives, then applies the same graph validation and scoring as @p graph.
 - @p graph_generate_audit compares generated candidates with exhaustive phase-one graph filtering, checks for missing or extra eligible variants, and scores the exhaustive reference. A candidate mismatch fails the run.
+
+- @p graph_routes generates spectrum-specific placements from anchored database-compatible routes, followed by exact precursor validation and the selected native or route score. Explicit resource exhaustion fails the run rather than exporting a partial search.
 
 An example workflow uses FLASH to correct the MS1 precursor and retains legacy MS2 processing:
 @code
@@ -18,7 +20,7 @@ NucleicAcidSearchEngine -in spectra.mzML -database targets_decoys.fasta \
   -candidates:method graph_audit -out_graph graphs.tsv
 @endcode
 
-Graph filtering is an experimental candidate-selection stage. The modification-aware
+Graph filtering and route generation are experimental candidate-selection stages. The modification-aware
 RNase digestion determines allowed products and consumes cleavage-sensitive modification
 budgets before placement. The @p graph mode retains exhaustive placement as a reference.
 The @p graph_generate mode extends ModifiedNASequenceGenerator's site compatibility
@@ -67,7 +69,7 @@ alternative instead of choosing a single label for isobaric masses. NASequence
 labels, pre-existing modifications, parent mappings and cleavage-dependent
 modification budgets remain part of NASE's existing candidate generation.
 
-Paths are built in separate fragment-charge layers from the processed MS2 m/z
+In tag/filter modes, paths are built in separate fragment-charge layers from the processed MS2 m/z
 values; the scoring spectrum is not decharged or otherwise changed by the graph.
 The graph uses residue increments including the RNA backbone mass. A step of two
 residues bridges one missing fragment peak, with both residue orders retained
@@ -121,8 +123,55 @@ matches record @p graph_candidate_status, @p graph_tag_length (residues),
 @p graph_start_ion and the @p graph_tag_sequence in 5'-to-3' orientation;
 @p graph_candidate_method distinguishes audit from filtering. The reported tag
 is a validated witness within the configured query bounds. Candidate-specific
-fallback is recorded on each hit. Graph and fallback candidates are calibrated
+fallback is recorded on each hit. For tag/filter modes, graph and fallback candidates are calibrated
 together by NASE's existing FDR path. Nominal q-value yields must be assessed
 with candidate recall and target/decoy behavior; ladder support alone does not
 establish identification accuracy.
+@section nase_routes Spectrum-specific route generation and scoring
+
+@p graph_routes uses a neutral-mass view of the selected MS2 peaks, preserving
+original peak identities and legacy-assigned charges. Database prefix/suffix
+tries constrain one-/two-residue edges and anchored routes. Exact precursor
+validation follows modification completion. @p routes:completion selects labile,
+bounded-labile, bounded general, or full completion under explicit resource
+limits. The bounded modes limit variable placements without intact modified
+graph evidence. @p routes:verify_candidates compares the complete candidates and
+scaffold witnesses with an unindexed pairing/completion oracle; mismatches fail.
+
+Raw-MS2 diagnostics are evaluated before filtering/deisotoping. Explicit
+polarity-specific @p diagnostic:fixed_ions rules permit labile completions;
+generic single-nucleotide diagnostics reuse NASequence chemistry. Gating is
+optional via @p diagnostic:filter. @p diagnostic:filter_scope=explicit gates only
+explicit rules. Generic diagnostics above charge one require an isotope partner.
+Diagnostic permission alone does not establish localization.
+
+The default modification-aware cleavage model validates completed products with
+RNaseDigestion. @p oligo:cleavage_model=canonical explicitly selects canonical
+cleavage in route mode. Digestion caches must match the selected model.
+Route generation requires monoisotopic masses. Its state, completion, candidate
+and support limits abort the entire run on exhaustion. Unlike tag/filter modes,
+it does not silently replace incomplete route generation with enumeration.
+
+@p scoring:method=route selects coherent anchored ladders per ion series and the
+best prefix/suffix pair using n*(1+I_matched/I_local). An original peak earns
+credit once across ion series and charge hypotheses. Intact and labile scaffold
+models remain separate within a ladder; the precursor stays fully modified.
+The defaults are a 50-Da local radius, ten local peaks, two observed nodes and
+one missing intermediate rung. These are experimental NASE implementation choices.
+@p scoring:route_mass_accuracy_tolerance separates
+Gaussian intensity weighting from the fragment matching window if nonzero.
+@p scoring:route_base_loss includes coherent a-B ladders when those ions are enabled.
+
+The ordinal-series statistic is shared with peptide SpectrumAnnotator through
+@p SpectrumAnnotator::computeLongestIonSeries. It provides a conservative
+upper bound; RNA anchoring, peak identity and scaffold validation remain
+in the RNA scorer. MVH and HyperScore reuse the existing core implementation.
+@p scoring:labile_scaffolds optionally selects the best complete native-scoring
+fragment model with @p graph_routes; it is off by default. The chosen model is
+recorded in @p native_scoring_scaffold.
+
+All modes share NASE hit competition and native FDR. All candidate and scoring
+rules treat targets and decoys identically. Candidate generation defaults to
+@p enumeration and scoring defaults to @p hyperscore; enabling graph generation
+does not implicitly select the route score.
 */

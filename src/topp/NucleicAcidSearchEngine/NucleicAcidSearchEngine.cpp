@@ -47,6 +47,9 @@
 #include "RNAPrecursorCorrector.h"
 #include "RNASpectrumGraph.h"
 #include "RNATagCandidateFilter.h"
+#include "RNAModificationDiagnostics.h"
+#include "RNARouteScorer.h"
+#include "RNARouteCandidateGenerator.h"
 #include <OpenMS/CHEMISTRY/NASequence.h>
 
 // preprocessing and filtering of spectra
@@ -66,7 +69,9 @@
 
 
 #include <algorithm>
+#include <atomic>
 #include <iostream>
+#include <fstream>
 #include <vector>
 #include <map>
 #include <regex>
@@ -124,7 +129,8 @@ median of finite observations when no valid positive intensity weights exist.
 Experimental RNA mass-tag filtering is available with @p candidates:method=graph.
 Use @p candidates:method=graph_audit to measure tag support while retaining all
 enumerated candidates and the existing scoring. See @ref TOPP_NASE_GraphSearch
-for supported ion series, bounds, fallback, and the FLASH MS1 / legacy MS2 workflow.
+for supported ion series, bounds, fallback, spectrum-specific route generation,
+optional route/scaffold scoring, and the FLASH MS1 / legacy MS2 workflow.
 
 <B>The command line parameters of this tool are:</B>
 @verbinclude TOPP_NucleicAcidSearchEngine.cli
@@ -290,7 +296,46 @@ protected:
 
     registerTOPPSubsection_("scoring", "Scoring Options");
     registerStringOption_("scoring:method", "<method>", "hyperscore", "Scoring method to use for spectrum matching", false);
-    setValidStrings_("scoring:method", ListUtils::create<std::string>("hyperscore,mvh"));
+    setValidStrings_("scoring:method", ListUtils::create<std::string>("hyperscore,mvh,route"));
+    registerFlag_("scoring:labile_scaffolds",
+                  "For graph_routes with MVH/HyperScore, score diagnostic-supported labile scaffolds as alternative full-spectrum models. Retain the "
+                  "full modified precursor and export the selected model.",
+                  true);
+    registerFlag_("scoring:route_base_loss",
+                  "Include coherent a-B ladders in route scoring as a separate ion series; graph generation keeps conventional residue edges", true);
+    registerDoubleOption_("scoring:route_mass_accuracy_tolerance", "<ppm_or_Da>", 0.0,
+                          "Gaussian mass-accuracy weighting scale in fragment-tolerance units; zero uses the fragment matching tolerance. "
+                          "This changes intensity weights without changing fragment matches or graph edges.",
+                          false, true);
+    setMinFloat_("scoring:route_mass_accuracy_tolerance", 0.0);
+    registerDoubleOption_("scoring:route_local_radius", "<Da>", 50.0, "Neutral-mass radius of the local background around route nodes", false, true);
+    setMinFloat_("scoring:route_local_radius", 0.001);
+    registerIntOption_("scoring:route_local_peaks", "<num>", 10, "Strongest local peaks per route node; unioned by observed peak identity", false,
+                       true);
+    setMinInt_("scoring:route_local_peaks", 1);
+    registerIntOption_("scoring:route_min_nodes", "<num>", 2, "Minimum observed nodes in each anchored route", false, true);
+    setMinInt_("scoring:route_min_nodes", 1);
+    registerTOPPSubsection_("diagnostic", "Spectrum-specific modification filtering from raw MS2 evidence");
+    registerFlag_("diagnostic:filter", "Require raw single-nucleotide or explicit diagnostic evidence for variable residue modifications", true);
+    registerStringOption_("diagnostic:filter_scope", "<scope>", "all",
+                          "all requires every variable modification diagnostic; explicit gates only residues with fixed diagnostic ions, "
+                          "allowing intact graph-supported modifications without a terminal single-nucleotide ion",
+                          false, true);
+    setValidStrings_("diagnostic:filter_scope", {"all", "explicit"});
+    registerStringList_(
+      "diagnostic:fixed_ions", "<code=mz>", {},
+      "Explicit diagnostic m/z values for labile modifications, e.g. t6A=279.08418; may repeat a residue code. Values are polarity-specific.", false,
+      true);
+    registerDoubleOption_("diagnostic:min_relative_intensity", "<fraction>", 0.0, "Minimum diagnostic intensity relative to the raw MS2 base peak",
+                          false, true);
+    setMinFloat_("diagnostic:min_relative_intensity", 0.0);
+    setMaxFloat_("diagnostic:min_relative_intensity", 1.0);
+    registerIntOption_("diagnostic:max_charge", "<num>", 1,
+                       "Largest absolute charge for generic single-nucleotide diagnostics; charges above one require a raw isotope partner. "
+                       "Explicit diagnostic m/z rules remain unchanged.",
+                       false, true);
+    setMinInt_("diagnostic:max_charge", 1);
+    setMaxInt_("diagnostic:max_charge", 6);
     registerIntOption_("scoring:num_intensity_classes", "<num>", 3, "Number of intensity classes for peak stratification in MVH scoring (only used if scoring:method is 'mvh')", false, true);
     setMinInt_("scoring:num_intensity_classes", 1);
     setMaxInt_("scoring:num_intensity_classes", 7);
@@ -308,9 +353,47 @@ protected:
     registerTOPPSubsection_("candidates", "Candidate selection options");
     registerStringOption_("candidates:method", "<method>", "enumeration",
                           "enumeration; graph_audit (score all variants); graph (filter enumerated variants); graph_generate "
-                          "(constrain modification placement); graph_generate_audit (compare placement recall with exhaustive graph filtering)",
+                          "(constrain modification placement); graph_generate_audit (compare placement recall with exhaustive graph filtering); "
+                          "graph_routes (generate spectrum-specific placements from anchored database-compatible routes)",
                           false, true);
-    setValidStrings_("candidates:method", {"enumeration", "graph", "graph_audit", "graph_generate", "graph_generate_audit"});
+    setValidStrings_("candidates:method", {"enumeration", "graph", "graph_audit", "graph_generate", "graph_generate_audit", "graph_routes"});
+    registerTOPPSubsection_("routes", "Anchored, spectrum-specific graph placement (graph_routes); explicit limits fail the run");
+    registerStringOption_(
+      "routes:completion", "<mode>", "labile",
+      "Uncovered positions: labile adds diagnostic-supported labile modifications; bounded_labile limits their unsupported placements; "
+      "bounded also permits a limited number of "
+      "nonlabile modifications; all enumerates all permitted "
+      "modifications under explicit resource limits",
+      false, true);
+    setValidStrings_("routes:completion", {"labile", "bounded_labile", "bounded", "all"});
+    registerIntOption_("routes:max_unanchored_modifications", "<num>", 2,
+                       "Maximum variable modifications without intact modified graph placements in bounded completion; graph-placed "
+                       "modifications still use the full variable modification budget",
+                       false, true);
+    setMinInt_("routes:max_unanchored_modifications", 0);
+    registerStringOption_(
+      "routes:precursor_index", "<choice>", "true",
+      "Index disjoint route pairs and attainable completion masses with conservative intervals; false retains the exhaustive oracle", false, true);
+    setValidStrings_("routes:precursor_index", {"true", "false"});
+    registerStringOption_("routes:allow_full_length", "<choice>", "true",
+                          "Permit a full-length mass route to constrain terminal placements; precursor nodes remain excluded from scoring", false,
+                          true);
+    setValidStrings_("routes:allow_full_length", {"true", "false"});
+    registerFlag_("routes:verify_candidates",
+                  "Compare every generated candidate multiset with exhaustive route pairing; fail if either search is incomplete or differs", true);
+    registerIntOption_("routes:max_length", "<num>", 25, "Maximum route length in residues", false, true);
+    setMinInt_("routes:max_length", 2);
+    setMaxInt_("routes:max_length", 32);
+    for (const auto& [name, value] : vector<pair<std::string, Int>> {{"max_peaks", 200},
+                                                                     {"max_states", 200000},
+                                                                     {"max_completion_nodes", 5000000},
+                                                                     {"max_candidates", 200000},
+                                                                     {"max_supports", 400000},
+                                                                     {"min_nodes", 2}})
+    {
+      registerIntOption_("routes:" + name, "<num>", value, "Route search setting: " + name, false, true);
+      setMinInt_("routes:" + name, 1);
+    }
     registerTOPPSubsection_("graph", "Bounded RNA mass tags; full-spectrum scoring and native FDR are retained");
     registerFlag_("graph:verify_matches", "Compare every prefilter rejection, prepared graph decision and witness with the reference matcher; fail on any mismatch", true);
     registerIntOption_("graph:min_tag_length", "<num>", 2, "Minimum number of observed ladder steps in a tag; each step joins two matched peaks and spans up to graph:max_step residues", false, true);
@@ -358,6 +441,7 @@ protected:
     registerStringList_("modifications:variable", "<mods>", ListUtils::create<std::string>(""), "Variable modifications", false);
     setValidStrings_("modifications:variable", all_mods);
     registerIntOption_("modifications:variable_max_per_oligo", "<num>", 2, "Maximum number of residues carrying a variable modification per candidate oligonucleotide", false, false);
+    setMinInt_("modifications:variable_max_per_oligo", 0);
     registerFlag_("modifications:resolve_ambiguities", "Attempt to resolve ambiguous modifications (e.g. 'mA?' for 'mA'/'Am') based on a-B ions.\nThis incurs a performance cost because two modifications have to be considered for each case.\nRequires a-B ions to be enabled in parameter 'fragment:ions'.");
 
     registerTOPPSubsection_("oligo", "Oligonucleotide (digestion) options (ignored if 'digest' input is used)");
@@ -365,6 +449,11 @@ protected:
     registerIntOption_("oligo:max_size", "<num>", 0, "Maximum size an oligonucleotide must have after digestion to be considered in the search, leave at 0 for no limit", false);
 
     registerIntOption_("oligo:missed_cleavages", "<num>", 1, "Number of missed cleavages", false, false);
+    registerStringOption_("oligo:cleavage_model", "<model>", "modification_aware",
+                          "modification_aware preserves modification-dependent RNase cleavage; canonical reproduces digestion in unmodified-sequence "
+                          "space (graph_routes only)",
+                          false, true);
+    setValidStrings_("oligo:cleavage_model", {"modification_aware", "canonical"});
 
     StringList all_enzymes;
     RNaseDB::getInstance()->getAllNames(all_enzymes);
@@ -450,9 +539,33 @@ protected:
     const PrecursorInfo* precursor_ref = nullptr; // precursor information
     bool graph_evaluated = false;
     RNATagCandidateFilter::Evidence graph_evidence;
+    RNARouteScorer::Result route_evidence;
+    std::string native_scoring_scaffold;
+    std::optional<IdentificationData::IdentifiedOligo> parent_override;
   };
 
   typedef multimap<double, AnnotatedHit, greater<double>> HitsByScore;
+
+  /// Score both enumerated and graph-generated models through the existing OpenMS scorers.
+  static double scoreNativeSpectrum_(const std::string& method,
+                                     double tolerance,
+                                     bool tolerance_ppm,
+                                     const MSSpectrum& experimental,
+                                     const MSSpectrum& theoretical,
+                                     vector<PeptideHit::PeakAnnotation>& annotations,
+                                     Size intensity_classes,
+                                     double tic_fraction,
+                                     bool mass_accuracy,
+                                     bool single_peak_credit)
+  {
+    if (method == "mvh")
+    {
+      return MetaboliteSpectralMatching::computeMVHScore(tolerance, tolerance_ppm, experimental, theoretical, annotations, intensity_classes,
+                                                         tic_fraction, 0.0, mass_accuracy, single_peak_credit);
+    }
+    OPENMS_PRECONDITION(method == "hyperscore", "A native scoring method is required");
+    return MetaboliteSpectralMatching::computeHyperScore(tolerance, tolerance_ppm, experimental, theoretical, annotations, 0.0, mass_accuracy);
+  }
 
   // query modified residues from database
   set<ConstRibonucleotidePtr> getModifications_(const set<std::string>& mod_names)
@@ -1211,7 +1324,7 @@ protected:
         OPENMS_LOG_DEBUG << "Hit sequence: " << hit.sequence.toString() << endl;
 
         // transfer parent matches from unmodified oligo:
-        IdentificationData::IdentifiedOligo oligo = *hit.oligo_ref;
+        IdentificationData::IdentifiedOligo oligo = hit.parent_override ? *hit.parent_override : *hit.oligo_ref;
         oligo.sequence = hit.sequence;
         IdentificationData::IdentifiedOligoRef oligo_ref;
 #pragma omp critical (id_data_access)
@@ -1227,6 +1340,35 @@ protected:
         match.setMetaValue(Constants::UserParam::PRECURSOR_ERROR_PPM_USERPARAM,
                            hit.precursor_error_ppm);
         match.setMetaValue("isotope_offset", hit.precursor_ref->isotope);
+        if (graph_method == "graph_routes") { match.setMetaValue("candidate_method", graph_method); }
+        if (getStringOption_("scoring:method") == "route")
+        {
+          match.setMetaValue("route_score", hit.route_evidence.score);
+          match.setMetaValue("route_unique_nodes", static_cast<unsigned int>(hit.route_evidence.nodes));
+          match.setMetaValue("route_matched_intensity", hit.route_evidence.matched_intensity);
+          match.setMetaValue("route_local_intensity", hit.route_evidence.local_intensity);
+          match.setMetaValue("route_prefix_length", static_cast<unsigned int>(hit.route_evidence.prefix_length));
+          match.setMetaValue("route_prefix_scaffold", hit.route_evidence.prefix_length && hit.route_evidence.prefix_scaffold.empty()
+                                                        ? hit.sequence.toString()
+                                                        : hit.route_evidence.prefix_scaffold);
+          match.setMetaValue("route_suffix_scaffold", hit.route_evidence.suffix_length && hit.route_evidence.suffix_scaffold.empty()
+                                                        ? hit.sequence.toString()
+                                                        : hit.route_evidence.suffix_scaffold);
+          match.setMetaValue("route_suffix_length", static_cast<unsigned int>(hit.route_evidence.suffix_length));
+        }
+        if (! hit.native_scoring_scaffold.empty()) { match.setMetaValue("native_scoring_scaffold", hit.native_scoring_scaffold); }
+        if (spectrum.metaValueExists("diagnostic_allowed_mods"))
+        {
+          match.setMetaValue("diagnostic_allowed_mods", spectrum.getMetaValue("diagnostic_allowed_mods"));
+          match.setMetaValue("diagnostic_labile_mods", spectrum.getMetaValue("diagnostic_labile_mods"));
+          match.setMetaValue("diagnostic_matches", spectrum.getMetaValue("diagnostic_matches"));
+          match.setMetaValue("diagnostic_match_charges", spectrum.getMetaValue("diagnostic_match_charges"));
+          match.setMetaValue("diagnostic_isotope_matches", spectrum.getMetaValue("diagnostic_isotope_matches"));
+        }
+        if (spectrum.metaValueExists("legacy_unknown_fragment_charge_bound"))
+        {
+          match.setMetaValue("legacy_unknown_fragment_charge_bound", spectrum.getMetaValue("legacy_unknown_fragment_charge_bound"));
+        }
         if (hit.graph_evaluated)
         {
           match.setMetaValue("graph_candidate_method", graph_method);
@@ -1360,7 +1502,8 @@ protected:
   void calculateAndFilterFDR_(IdentificationData& id_data, bool only_top_hits)
   {
     const std::string scoring_method = getStringOption_("scoring:method");
-    IdentificationData::ScoreTypeRef score_ref = id_data.findScoreType(scoring_method == "mvh" ? "MVH score" : "hyperscore");
+    IdentificationData::ScoreTypeRef score_ref
+      = id_data.findScoreType(scoring_method == "route" ? "RNA route score" : (scoring_method == "mvh" ? "MVH score" : "hyperscore"));
     FalseDiscoveryRate fdr;
     Param fdr_params = fdr.getDefaults();
     fdr_params.setValue("use_all_hits", only_top_hits ? "false" : "true");
@@ -1383,7 +1526,6 @@ protected:
                       << id_data.getObservations().size() << endl;
     }
   }
-
 
   /// @brief Emit null columns for unavailable RNA scores.
   static void completeRNAScoreColumns_(MzTab& table)
@@ -1420,6 +1562,7 @@ protected:
     }
     table.setOSMSectionRows(matches);
   }
+
 
   void generateLFQInput_(IdentificationData& id_data, const std::string& out_file)
   {
@@ -1538,14 +1681,16 @@ protected:
     std::string exp_ms2_out = getStringOption_("exp_ms2_out");
     bool use_avg_mass = getFlag_("precursor:use_avg_mass");
     const std::string candidate_method = getStringOption_("candidates:method");
-    const bool graph_enabled = candidate_method != "enumeration";
+    const bool route_generation = candidate_method == "graph_routes";
+    const bool canonical_cleavage = getStringOption_("oligo:cleavage_model") == "canonical";
+    const bool graph_enabled = candidate_method != "enumeration" && ! route_generation;
     const bool graph_generate = candidate_method == "graph_generate" || candidate_method == "graph_generate_audit";
     const bool placement_audit = candidate_method == "graph_generate_audit";
     const bool verify_graph_matches = getFlag_("graph:verify_matches");
     const bool graph_filter = candidate_method == "graph" || graph_generate;
     const Size max_placement_nodes = getIntOption_("graph:max_placement_nodes");
     const std::string graph_out = getStringOption_("out_graph");
-    if (! graph_enabled && (! graph_out.empty() || verify_graph_matches))
+    if (! graph_enabled && ((! route_generation && ! graph_out.empty()) || verify_graph_matches))
     {
       OPENMS_LOG_ERROR << "'out_graph' and 'graph:verify_matches' require a graph mode in 'candidates:method'.\n";
       return ILLEGAL_PARAMETERS;
@@ -1553,6 +1698,11 @@ protected:
     if (graph_enabled && getIntOption_("graph:min_tag_length") > getIntOption_("graph:max_tag_length"))
     {
       OPENMS_LOG_ERROR << "'graph:min_tag_length' must not exceed 'graph:max_tag_length'.\n";
+      return ILLEGAL_PARAMETERS;
+    }
+    if ((canonical_cleavage && ! route_generation) || (route_generation && use_avg_mass))
+    {
+      OPENMS_LOG_ERROR << "Canonical cleavage requires graph_routes; graph_routes requires monoisotopic masses.\n";
       return ILLEGAL_PARAMETERS;
     }
     Int min_charge = getIntOption_("precursor:min_charge");
@@ -1802,7 +1952,7 @@ protected:
       id_data.registerInputFile(input);
     // processing software meta data:
     const std::string scoring_method = getStringOption_("scoring:method");
-    IdentificationData::ScoreType score(scoring_method == "mvh" ? "MVH score" : "hyperscore", true);
+    IdentificationData::ScoreType score(scoring_method == "route" ? "RNA route score" : (scoring_method == "mvh" ? "MVH score" : "hyperscore"), true);
     IdentificationData::ScoreTypeRef search_score_ref =
       id_data.registerScoreType(score);
     CVTerm qvalue("MS:1002354", "PSM-level q-value", "MS");
@@ -1819,6 +1969,13 @@ protected:
       id_data.registerProcessingSoftware(software);
     // @TODO: add suitable data processing action
     IdentificationData::ProcessingStep step(software_ref, {file_ref});
+    if (route_generation)
+    {
+      // OMS stores ProcessingStep metadata, but does not persist DBSearchParam
+      // metadata. Keep the cache contract on the processing step as well.
+      step.setMetaValue("digestion:placement_model", canonical_cleavage ? "route_canonical" : "route_deferred");
+      step.setMetaValue("digestion:route_max_modifications", static_cast<unsigned int>(max_variable_mods_per_oligo));
+    }
     step.actions.insert(DataProcessing::IDENTIFICATION);
     IdentificationData::ProcessingStepRef step_ref;
 
@@ -1831,6 +1988,11 @@ protected:
       search_param.digestion_enzyme = configured_enzyme;
       search_param.min_length = getIntOption_("oligo:min_size");
       search_param.max_length = getIntOption_("oligo:max_size");
+      if (route_generation)
+      {
+        search_param.setMetaValue("digestion:placement_model", canonical_cleavage ? "route_canonical" : "route_deferred");
+        search_param.setMetaValue("digestion:route_max_modifications", static_cast<unsigned int>(max_variable_mods_per_oligo));
+      }
       IdentificationData::SearchParamRef search_ref =
         id_data.registerDBSearchParam(search_param);
       step_ref = id_data.registerProcessingStep(step, search_ref);
@@ -1872,8 +2034,33 @@ protected:
         NASequence parent = NASequence::fromString(parent_ref->sequence);
         ModifiedNASequenceGenerator::applyFixedModifications(internal_fixed, parent);
         vector<RNaseDigestion::DigestionProduct> products;
-        digestor.digestWithCleavageSensitiveMods(parent, cleavage_sensitive_groups,
-          max_variable_mods_per_oligo, products, min_oligo_length, max_oligo_length);
+        if (route_generation)
+        {
+          // Store nucleotide sequences once. Modification-dependent products
+          // are validated against their full parent after focused placement.
+          const auto* rnase = dynamic_cast<const DigestionEnzymeRNA*>(search_param.digestion_enzyme);
+          StringList after, before;
+          StringUtils::split(rnase->getCutsAfterRegEx(), ',', after);
+          StringUtils::split(rnase->getCutsBeforeRegEx(), ',', before);
+          const Size width = std::max<Size>(1, after.size() + before.size());
+          const Size extra_cuts = std::min(parent.size(), max_variable_mods_per_oligo) * width;
+          digestor.setMissedCleavages(search_param.missed_cleavages + (canonical_cleavage ? 0 : extra_cuts));
+          digestor.digest(parent, products, min_oligo_length, max_oligo_length);
+          for (auto& product : products)
+          {
+            if (product.position.first != 0 || ! parent.hasFivePrimeMod()) { product.fragment.setFivePrimeMod(nullptr); }
+            if (product.position.first + product.position.second != parent.size() || ! parent.hasThreePrimeMod())
+            {
+              product.fragment.setThreePrimeMod(nullptr);
+            }
+            ModifiedNASequenceGenerator::applyFixedModifications(fixed_modifications, product.fragment);
+          }
+        }
+        else
+        {
+          digestor.digestWithCleavageSensitiveMods(parent, cleavage_sensitive_groups, max_variable_mods_per_oligo, products, min_oligo_length,
+                                                   max_oligo_length);
+        }
         for (const auto& product : products)
         {
           registerDigestedOligo_(id_data, parent_ref, parent, product);
@@ -1898,6 +2085,43 @@ protected:
 
       IdentificationData::SearchParamRef search_ref =
         id_data.getDBSearchParams().begin();
+      const std::string required_digest = route_generation ? (canonical_cleavage ? "route_canonical" : "route_deferred") : "preexpanded";
+      bool matching_route_digest = false;
+      bool has_route_digest = false;
+      Size cached_route_budget = 0;
+      for (const auto& cached_step : id_data.getProcessingSteps())
+      {
+        if (cached_step.metaValueExists("digestion:placement_model"))
+        {
+          const auto model = cached_step.getMetaValue("digestion:placement_model").toString();
+          has_route_digest |= model == "route_canonical" || model == "route_deferred";
+        }
+        if (cached_step.metaValueExists("digestion:placement_model") && cached_step.getMetaValue("digestion:placement_model") == required_digest)
+        {
+          matching_route_digest = true;
+          if (cached_step.metaValueExists("digestion:route_max_modifications"))
+          {
+            cached_route_budget
+              = std::max(cached_route_budget, Size(static_cast<unsigned int>(cached_step.getMetaValue("digestion:route_max_modifications"))));
+          }
+        }
+      }
+      if (! route_generation && has_route_digest)
+      {
+        OPENMS_LOG_ERROR << "Enumeration/tag modes require a pre-expanded digest; create a fresh digest from the FASTA.\n";
+        return ILLEGAL_PARAMETERS;
+      }
+      if (route_generation && ! matching_route_digest)
+      {
+        OPENMS_LOG_ERROR << "graph_routes requires a matching deferred/canonical digest; create a fresh digest from the FASTA.\n";
+        return ILLEGAL_PARAMETERS;
+      }
+      if (route_generation
+          && (search_ref->fixed_mods != search_param.fixed_mods || (! canonical_cleavage && cached_route_budget < max_variable_mods_per_oligo)))
+      {
+        OPENMS_LOG_ERROR << "Deferred digest fixed modifications/budget do not cover this search; create a fresh digest.\n";
+        return ILLEGAL_PARAMETERS;
+      }
       search_param.digestion_enzyme = search_ref->digestion_enzyme;
       cleavage_sensitive_groups = {};
       cleavage_sensitive_modifications.clear();
@@ -1974,17 +2198,92 @@ protected:
     std::string precursor_tolerance_unit = getStringOption_("preprocessing:precursor_mass_tolerance_unit");
     bool precursor_tolerance_ppm = (precursor_tolerance_unit == "ppm");
     int precursor_peak_isotopes = getIntOption_("preprocessing:precursor_peak_isotopes");
-    preprocessSpectra_(spectra, search_param.fragment_mass_tolerance,
-                       search_param.fragment_tolerance_ppm,
-                       single_charge_spectra, negative_mode, min_charge,
-                       max_charge, include_unknown_charge,
-                       use_window_mower, window_size, window_peakcount, window_movetype,
-                       use_nlargest, nlargest_n,
-                       remove_precursor, precursor_mass_tolerance,
-                       precursor_tolerance_ppm, precursor_peak_isotopes,
-                       deisotoping, flash_min_cos, flash_min_snr, false,
+    const bool native_labile_scaffolds = getFlag_("scoring:labile_scaffolds");
+    if (native_labile_scaffolds && (! route_generation || scoring_method == "route"))
+    {
+      OPENMS_LOG_ERROR << "scoring:labile_scaffolds requires graph_routes with MVH or HyperScore.\n";
+      return ILLEGAL_PARAMETERS;
+    }
+    const bool diagnostic_filter = getFlag_("diagnostic:filter");
+    const bool diagnostic_evaluate = diagnostic_filter || route_generation || scoring_method == "route";
+    const bool explicit_diagnostic_filter = getStringOption_("diagnostic:filter_scope") == "explicit";
+    std::set<std::string> explicit_diagnostic_codes;
+    std::vector<RNAModificationDiagnostics::Evidence> diagnostic_evidence;
+    if (diagnostic_evaluate)
+    {
+      std::map<std::string, std::vector<double>> fixed_diagnostics;
+      for (const auto& item : getStringList_("diagnostic:fixed_ions"))
+      {
+        const auto separator = item.find('=');
+        if (separator == std::string::npos || separator == 0)
+        {
+          throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Diagnostic rules require code=mz");
+        }
+        explicit_diagnostic_codes.insert(item.substr(0, separator));
+        fixed_diagnostics[item.substr(0, separator)].push_back(StringUtils::toDouble(item.substr(separator + 1)));
+      }
+      RNAModificationDiagnostics diagnostics(variable_modifications, fixed_diagnostics, negative_mode, search_param.fragment_mass_tolerance,
+                                             search_param.fragment_tolerance_ppm, getDoubleOption_("diagnostic:min_relative_intensity"),
+                                             getIntOption_("diagnostic:max_charge"));
+      // Sort once before attaching evidence; preprocessing keeps spectrum order.
+      spectra.sortSpectra(false);
+      for (auto& spectrum : spectra)
+      {
+        auto evidence = diagnostics.evaluate(spectrum);
+        spectrum.setMetaValue("diagnostic_allowed_mods", StringList(evidence.allowed.begin(), evidence.allowed.end()));
+        spectrum.setMetaValue("diagnostic_labile_mods", StringList(evidence.labile.begin(), evidence.labile.end()));
+        StringList diagnostic_matches;
+        for (const auto& [code, mz] : evidence.matched_mz)
+        {
+          diagnostic_matches.push_back(code + "=" + StringUtils::toStr(mz));
+        }
+        spectrum.setMetaValue("diagnostic_matches", diagnostic_matches);
+        StringList diagnostic_charges, diagnostic_isotopes;
+        for (const auto& [code, charge] : evidence.matched_charge)
+        {
+          diagnostic_charges.push_back(code + "=" + StringUtils::toStr(charge));
+        }
+        for (const auto& [code, mz] : evidence.isotope_mz)
+        {
+          diagnostic_isotopes.push_back(code + "=" + StringUtils::toStr(mz));
+        }
+        spectrum.setMetaValue("diagnostic_match_charges", diagnostic_charges);
+        spectrum.setMetaValue("diagnostic_isotope_matches", diagnostic_isotopes);
+        diagnostic_evidence.push_back(std::move(evidence));
+      }
+    }
+    preprocessSpectra_(spectra, search_param.fragment_mass_tolerance, search_param.fragment_tolerance_ppm, single_charge_spectra, negative_mode,
+                       min_charge, max_charge, include_unknown_charge, use_window_mower, window_size, window_peakcount, window_movetype, use_nlargest,
+                       nlargest_n, remove_precursor, precursor_mass_tolerance, precursor_tolerance_ppm, precursor_peak_isotopes, deisotoping,
+                       flash_min_cos, flash_min_snr, route_generation || (scoring_method == "route"),
                        getIntOption_("preprocessing:legacy:min_isopeaks"), getDoubleOption_("preprocessing:legacy:mass_tolerance"),
                        getFlag_("preprocessing:legacy:sum_intensities"), getIntOption_("preprocessing:legacy:unknown_max_charge"));
+    if (diagnostic_evaluate)
+    {
+      // Recover evidence from spectrum-owned metadata after preprocessing sorts;
+      // equal-RT spectra and duplicate native IDs must not exchange permissions.
+      diagnostic_evidence.clear();
+      for (const auto& spectrum : spectra)
+      {
+        RNAModificationDiagnostics::Evidence evidence;
+        for (const auto* residue : variable_modifications)
+        {
+          if (diagnostic_filter && (! explicit_diagnostic_filter || explicit_diagnostic_codes.contains(residue->getCode())))
+          {
+            evidence.tested.insert(residue->getCode());
+          }
+        }
+        for (const auto& code : spectrum.getMetaValue("diagnostic_allowed_mods").toStringList())
+        {
+          evidence.allowed.insert(code);
+        }
+        for (const auto& code : spectrum.getMetaValue("diagnostic_labile_mods").toStringList())
+        {
+          evidence.labile.insert(code);
+        }
+        diagnostic_evidence.push_back(std::move(evidence));
+      }
+    }
     const std::string out_preprocessed = getStringOption_("out_preprocessed");
     if (!out_preprocessed.empty())
     {
@@ -2202,8 +2501,312 @@ protected:
     const Size num_intensity_classes = getIntOption_("scoring:num_intensity_classes");
     const double tic_fraction = getDoubleOption_("scoring:tic_fraction");
     const bool use_mass_accuracy = getFlag_("scoring:use_mass_accuracy");
+    const bool route_base_loss = getFlag_("scoring:route_base_loss");
     const bool single_peak_credit = getStringOption_("scoring:single_peak_credit") == "true";
     const double min_coverage = getDoubleOption_("report:require_coverage");
+    const Size route_max_charge = getIntOption_("graph:max_charge");
+    RNARouteScorer::Options route_score_options;
+    route_score_options.tolerance = search_param.fragment_mass_tolerance;
+    route_score_options.tolerance_ppm = search_param.fragment_tolerance_ppm;
+    route_score_options.local_radius = getDoubleOption_("scoring:route_local_radius");
+    route_score_options.mass_accuracy_tolerance = getDoubleOption_("scoring:route_mass_accuracy_tolerance");
+    route_score_options.local_peaks = getIntOption_("scoring:route_local_peaks");
+    route_score_options.min_nodes = getIntOption_("scoring:route_min_nodes");
+    route_score_options.max_unknown_charge = single_charge_spectra ? 1 : route_max_charge;
+    vector<MSSpectrum> route_scoring_spectra;
+    vector<RNARouteScorer::PreparedSpectrum> route_scoring_contexts;
+    if (scoring_method == "route")
+    {
+      route_scoring_spectra.assign(spectra.begin(), spectra.end());
+      const Size max_peaks = getIntOption_(route_generation ? "routes:max_peaks" : "graph:max_peaks");
+      for (auto& spectrum : route_scoring_spectra)
+      {
+        spectrum.select(RNASpectrumGraph::selectPeakIndices(spectrum, max_peaks));
+        route_scoring_contexts.push_back(RNARouteScorer::prepareSpectrum(spectrum, negative_mode, route_score_options));
+      }
+    }
+
+    if (route_generation)
+    {
+      vector<NASequence> route_database;
+      for (const auto& reference : digest)
+      {
+        route_database.push_back(reference->sequence);
+      }
+      RNARouteCandidateGenerator::Options options;
+      options.tolerance = search_param.fragment_mass_tolerance;
+      options.tolerance_ppm = search_param.fragment_tolerance_ppm;
+      options.precursor_tolerance = search_param.precursor_mass_tolerance;
+      options.precursor_tolerance_ppm = search_param.precursor_tolerance_ppm;
+      options.max_modifications = max_variable_mods_per_oligo;
+      options.max_length = getIntOption_("routes:max_length");
+      options.max_peaks = getIntOption_("routes:max_peaks");
+      options.max_states = getIntOption_("routes:max_states");
+      options.max_completion_nodes = getIntOption_("routes:max_completion_nodes");
+      options.max_candidates = getIntOption_("routes:max_candidates");
+      options.max_supports = getIntOption_("routes:max_supports");
+      options.min_route_nodes = getIntOption_("routes:min_nodes");
+      const auto completion = getStringOption_("routes:completion");
+      options.complete_unanchored_modifications = completion == "bounded" || completion == "all";
+      if (completion == "bounded" || completion == "bounded_labile")
+      {
+        options.max_unanchored_modifications = getIntOption_("routes:max_unanchored_modifications");
+      }
+      options.index_precursor_mass = getStringOption_("routes:precursor_index") == "true";
+      options.allow_full_length_routes = getStringOption_("routes:allow_full_length") == "true";
+      const RNARouteCandidateGenerator generator(route_database, variable_modifications, options);
+      std::unique_ptr<RNARouteCandidateGenerator> route_reference;
+      if (getFlag_("routes:verify_candidates"))
+      {
+        auto reference_options = options;
+        reference_options.index_precursor_mass = false;
+        reference_options.compress_route_states = false;
+        route_reference = std::make_unique<RNARouteCandidateGenerator>(route_database, variable_modifications, reference_options);
+      }
+      using PrecursorEntry = std::pair<const double, PrecursorInfo>;
+      vector<vector<const PrecursorEntry*>> by_scan(spectra.size());
+      for (const auto& precursor : precursor_mass_map)
+      {
+        by_scan[precursor.second.scan_index].push_back(&precursor);
+      }
+      vector<RNARouteCandidateGenerator::Result> route_results(spectra.size());
+      vector<std::string> failures(spectra.size());
+      std::atomic<bool> route_incomplete {false};
+#pragma omp parallel for schedule(dynamic) reduction(+ : hit_counter)
+      for (SignedSize scan = 0; scan < SignedSize(spectra.size()); ++scan)
+      {
+        if (by_scan[scan].empty()) { continue; }
+        if (route_incomplete.load(std::memory_order_relaxed))
+        {
+          failures[scan] = "not_attempted_after_incomplete_search";
+          route_results[scan].complete = false;
+          route_results[scan].reason = failures[scan];
+          continue;
+        }
+        try
+        {
+          vector<double> masses;
+          Size max_fragment_charge = 1;
+          for (const auto* precursor : by_scan[scan])
+          {
+            masses.push_back(precursor->first);
+            max_fragment_charge = std::max(max_fragment_charge, Size(precursor->second.charge));
+          }
+          const auto& evidence = diagnostic_evidence[scan];
+          auto generated = generator.generate(spectra[scan], masses, evidence, negative_mode,
+                                              single_charge_spectra ? 1 : std::min(max_fragment_charge, route_max_charge), &route_incomplete);
+          if (generated.complete && route_reference)
+          {
+            const auto reference
+              = route_reference->generate(spectra[scan], masses, evidence, negative_mode,
+                                          single_charge_spectra ? 1 : std::min(max_fragment_charge, route_max_charge), &route_incomplete);
+            const auto keys = [](const auto& candidates) {
+              std::vector<std::tuple<Size, Size, std::string, std::vector<std::string>>> result;
+              for (const auto& candidate : candidates)
+              {
+                std::vector<std::string> scaffolds;
+                for (const auto& scaffold : candidate.support_scaffolds)
+                {
+                  scaffolds.push_back(scaffold->label);
+                }
+                std::sort(scaffolds.begin(), scaffolds.end());
+                result.emplace_back(candidate.database_index, candidate.precursor_index, candidate.sequence.toString(), std::move(scaffolds));
+              }
+              std::sort(result.begin(), result.end());
+              return result;
+            };
+            if (! reference.complete || keys(reference.candidates) != keys(generated.candidates))
+            {
+              generated.complete = false;
+              generated.reason = reference.complete ? "candidate_multiset_mismatch" : "reference:" + reference.reason;
+            }
+          }
+          if (! generated.complete)
+          {
+            failures[scan] = generated.reason;
+            route_incomplete.store(true, std::memory_order_relaxed);
+          }
+          else
+          {
+            std::map<std::pair<const RNARouteCandidateGenerator::Scaffold*, Size>, RNARouteScorer::PreparedRoutes> support_routes;
+            struct NativeModel
+            {
+              double score;
+              std::vector<PeptideHit::PeakAnnotation> annotations;
+            };
+            std::map<std::pair<const RNARouteCandidateGenerator::Scaffold*, Size>, NativeModel> native_support_models;
+            const auto score_native = [&](const MSSpectrum& model) {
+              NativeModel result;
+              result.score
+                = scoreNativeSpectrum_(scoring_method, search_param.fragment_mass_tolerance, search_param.fragment_tolerance_ppm,
+                                                                           spectra[scan], model, result.annotations, num_intensity_classes,
+                                                                           tic_fraction, use_mass_accuracy, single_peak_credit);
+              return result;
+            };
+            for (const auto& placed : generated.candidates)
+            {
+              if (route_incomplete.load(std::memory_order_relaxed))
+              {
+                failures[scan] = "cancelled_after_incomplete_search";
+                break;
+              }
+              const auto* precursor = by_scan[scan][placed.precursor_index];
+              const auto& candidate = placed.sequence;
+              std::optional<IdentificationData::IdentifiedOligo> parent_override;
+              if (! canonical_cleavage)
+              {
+                parent_override = *digest[placed.database_index];
+                parent_override->parent_matches.clear();
+                RNaseDigestion validator;
+                validator.setEnzyme(search_param.digestion_enzyme);
+                validator.setMissedCleavages(search_param.missed_cleavages);
+                for (const auto& [parent_ref, matches] : digest[placed.database_index]->parent_matches)
+                {
+                  for (const auto& match : matches)
+                  {
+                    NASequence parent = NASequence::fromString(parent_ref->sequence);
+                    ModifiedNASequenceGenerator::applyFixedModifications(fixed_modifications, parent);
+                    for (Size pos = 0; pos < candidate.size(); ++pos)
+                    {
+                      parent.set(match.start_pos + pos, candidate[pos]);
+                    }
+                    const auto positions = validator.getFragmentPositions(parent, candidate.size(), candidate.size());
+                    if (std::find(positions.begin(), positions.end(), std::pair<Size, Size> {match.start_pos, candidate.size()}) != positions.end())
+                    {
+                      parent_override->parent_matches[parent_ref].insert(match);
+                    }
+                  }
+                }
+                if (parent_override->parent_matches.empty()) { continue; }
+              }
+              MSSpectrum model;
+              spectrum_generator.getSpectrum(model, candidate, base_charge, precursor->second.charge * base_charge);
+              filterBlacklistedIons_(model, blacklist_mz, blacklist_tolerance);
+              vector<PeptideHit::PeakAnnotation> annotations;
+              RNARouteScorer::Result route_evidence;
+              std::string native_scoring_scaffold;
+              double score;
+              if (scoring_method == "route")
+              {
+                const auto query = RNATagCandidateFilter::prepare(candidate, nullptr, model, selected_ions, route_base_loss);
+                const auto intact = RNARouteScorer::match(query, route_scoring_spectra[scan], route_scoring_contexts[scan], negative_mode,
+                                                          route_score_options, candidate.toString());
+                std::vector<const RNARouteScorer::PreparedRoutes*> routes {&intact};
+                for (const auto& scaffold : placed.support_scaffolds)
+                {
+                  const auto key = std::pair(scaffold.get(), precursor->second.charge);
+                  auto found = support_routes.find(key);
+                  if (found == support_routes.end())
+                  {
+                    MSSpectrum support_model;
+                    spectrum_generator.getSpectrum(support_model, scaffold->sequence, base_charge, precursor->second.charge * base_charge);
+                    filterBlacklistedIons_(support_model, blacklist_mz, blacklist_tolerance);
+                    const auto support_query
+                      = RNATagCandidateFilter::prepare(scaffold->sequence, nullptr, support_model, selected_ions, route_base_loss);
+                    auto matched = RNARouteScorer::match(support_query, route_scoring_spectra[scan], route_scoring_contexts[scan], negative_mode,
+                                                         route_score_options, scaffold->label);
+                    found = support_routes.emplace(key, std::move(matched)).first;
+                  }
+                  routes.push_back(&found->second);
+                }
+                route_evidence = RNARouteScorer::score(routes, route_scoring_spectra[scan], route_scoring_contexts[scan], negative_mode);
+                score = route_evidence.score;
+                annotations = route_evidence.annotations;
+              }
+              else
+              {
+                auto best = score_native(model);
+                if (native_labile_scaffolds)
+                {
+                  native_scoring_scaffold = candidate.toString();
+                  for (const auto& scaffold : placed.support_scaffolds)
+                  {
+                    const auto key = std::pair(scaffold.get(), precursor->second.charge);
+                    auto found = native_support_models.find(key);
+                    if (found == native_support_models.end())
+                    {
+                      MSSpectrum support_model;
+                      spectrum_generator.getSpectrum(support_model, scaffold->sequence, base_charge, precursor->second.charge * base_charge);
+                      filterBlacklistedIons_(support_model, blacklist_mz, blacklist_tolerance);
+                      found = native_support_models.emplace(key, score_native(support_model)).first;
+                    }
+                    // Keep one coherent model. Do not pool ions from mutually
+                    // incompatible scaffold interpretations.
+                    if (std::isfinite(found->second.score) && (! std::isfinite(best.score) || found->second.score > best.score))
+                    {
+                      best = found->second;
+                      native_scoring_scaffold = scaffold->label;
+                    }
+                  }
+                }
+                score = best.score;
+                annotations = std::move(best.annotations);
+              }
+              if (! std::isfinite(score) || score < 1e-16 || (min_coverage > 0 && calculateFragmentCoverage_(candidate, annotations) < min_coverage))
+              {
+                continue;
+              }
+              ++hit_counter;
+              AnnotatedHit hit;
+              hit.oligo_ref = digest[placed.database_index];
+              hit.sequence = candidate;
+              hit.annotations = std::move(annotations);
+              hit.precursor_error_ppm = (precursor->first - candidate.getMonoWeight()) / candidate.getMonoWeight() * 1e6;
+              hit.precursor_ref = &precursor->second;
+              hit.route_evidence = std::move(route_evidence);
+              hit.native_scoring_scaffold = std::move(native_scoring_scaffold);
+              hit.parent_override = std::move(parent_override);
+              retainTopHit_(annotated_hits[scan], score, std::move(hit), report_top_hits);
+            }
+          }
+          generated.candidates.clear();
+          generated.candidates.shrink_to_fit();
+          route_results[scan] = std::move(generated);
+        }
+        catch (const std::exception& error)
+        {
+          failures[scan] = error.what();
+          route_incomplete.store(true, std::memory_order_relaxed);
+        }
+      }
+      std::ofstream diagnostics;
+      if (! graph_out.empty())
+      {
+        diagnostics.open(graph_out);
+        diagnostics << "scan_index\tnative_id\tgraph_nodes\tgraph_edges\troute_states\troutes\tcompletion_nodes\tsupport_variants\tstatus\n";
+      }
+      bool complete = true;
+      Size cancelled_scans = 0;
+      for (Size scan = 0; scan < spectra.size(); ++scan)
+      {
+        if (by_scan[scan].empty()) { continue; }
+        const auto& result = route_results[scan];
+        if (diagnostics)
+        {
+          diagnostics << scan << '\t' << spectra[scan].getNativeID() << '\t' << result.graph_nodes << '\t' << result.graph_edges << '\t'
+                      << result.route_states << '\t' << result.routes << '\t' << result.completion_nodes << '\t' << result.support_variants << '\t'
+                      << (failures[scan].empty() ? "complete" : failures[scan]) << '\n';
+        }
+        if (! failures[scan].empty())
+        {
+          if (failures[scan] == "not_attempted_after_incomplete_search" || failures[scan].ends_with("cancelled_after_incomplete_search"))
+          {
+            ++cancelled_scans;
+          }
+          else
+          {
+            // Emit root causes from the main thread: worker-local log buffers
+            // can otherwise hide the reason while only cancellation is visible.
+            OPENMS_LOG_ERROR << "Incomplete route search for " << spectra[scan].getNativeID() << ": " << failures[scan] << '\n';
+          }
+          complete = false;
+        }
+      }
+      if (cancelled_scans) { OPENMS_LOG_INFO << "Cancelled/unattempted route spectra after incomplete search: " << cancelled_scans << '\n'; }
+      if (! complete) { return UNEXPECTED_RESULT; }
+    }
+    else
+    {
 
 // shorter oligos take (possibly much) less time to process than longer ones;
 // due to the sorting order of "NASequence", they also appear earlier in the
@@ -2296,9 +2899,8 @@ protected:
       }
       else
       {
-        ModifiedNASequenceGenerator::applyVariableModifications(
-        post_digest_variable_modifications, ns, remaining_variable_mods,
-        all_modified_oligos, true);
+        ModifiedNASequenceGenerator::applyVariableModifications(post_digest_variable_modifications, ns, remaining_variable_mods, all_modified_oligos,
+                                                                true);
       }
       OPENMS_LOG_DEBUG << "Oligo: " << ns.toString() << endl;
 
@@ -2368,11 +2970,11 @@ protected:
             }
           }
           map<Int, RNATagCandidateFilter::PreparedQuery> graph_queries;
-          if (graph_enabled)
+          if (graph_enabled || (scoring_method == "route"))
           {
             for (const auto& [charge, model] : theo_spectra_by_charge)
             {
-              graph_queries.emplace(charge, RNATagCandidateFilter::prepare(candidate, graph_alphabet, model, selected_ions));
+              graph_queries.emplace(charge, RNATagCandidateFilter::prepare(candidate, graph_alphabet, model, selected_ions, route_base_loss));
             }
           }
 
@@ -2388,6 +2990,7 @@ protected:
 
             Size scan_index = prec_it->second.scan_index;
             const MSSpectrum& exp_spectrum = spectra[scan_index];
+            if (diagnostic_filter && ! diagnostic_evidence[scan_index].accepts(candidate)) { continue; }
             if (prefilter_rejected)
             {
               // Verification only: the prefilter must not drop a pair that the
@@ -2433,19 +3036,19 @@ protected:
             vector<PeptideHit::PeakAnnotation> annotations;
             // Compute score using selected method
             double score;
-            if (scoring_method == "mvh")
+            RNARouteScorer::Result route_evidence;
+            if (scoring_method == "route")
             {
-              score = MetaboliteSpectralMatching::computeMVHScore(
-                search_param.fragment_mass_tolerance,
-                search_param.fragment_tolerance_ppm, exp_spectrum, theo_spectrum,
-                annotations, num_intensity_classes, tic_fraction, 0.0, use_mass_accuracy, single_peak_credit);
+              route_evidence = RNARouteScorer::score(graph_queries.at(charge * base_charge), route_scoring_spectra[scan_index],
+                                                     route_scoring_contexts[scan_index], negative_mode, route_score_options);
+              score = route_evidence.score;
+              annotations = route_evidence.annotations;
             }
-            else // hyperscore
-            {
-              score = MetaboliteSpectralMatching::computeHyperScore(
-                search_param.fragment_mass_tolerance,
+            else
+              {
+                score = scoreNativeSpectrum_(scoring_method, search_param.fragment_mass_tolerance,
                 search_param.fragment_tolerance_ppm, exp_spectrum, theo_spectrum,
-                annotations, 0.0, use_mass_accuracy);
+                annotations, num_intensity_classes, tic_fraction, use_mass_accuracy, single_peak_credit);
             }
 
             if (!exp_ms2_out.empty())
@@ -2497,12 +3100,14 @@ protected:
                 new_hit.precursor_ref = &(prec_it->second);
                 new_hit.graph_evaluated = graph_enabled;
                 new_hit.graph_evidence = graph_evidence;
+                new_hit.route_evidence = std::move(route_evidence);
                 retainTopHit_(scan_hits, score, std::move(new_hit), report_top_hits);
               }
             }
           }
         }
       }
+    }
     }
     progresslogger.endProgress();
 

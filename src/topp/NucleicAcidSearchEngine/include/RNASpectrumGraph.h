@@ -110,6 +110,21 @@ public:
   */
   static Result build(const MSSpectrum& spectrum, const std::set<const Ribonucleotide*>& alphabet, const Options& options, Size max_charge);
 
+  /**
+    @brief Select finite positive peaks by intensity, retaining deterministic m/z order.
+    @param[in] spectrum Read-only processed MS2.
+    @param[in] max_peaks Maximum retained peaks.
+    @return Original peak indices shared by graph construction and route scoring.
+  */
+  static std::vector<Size> selectPeakIndices(const MSSpectrum& spectrum, Size max_peaks);
+
+  /**
+    @brief Find aligned charge assignments from legacy RNA deisotoping.
+    @param[in] spectrum Read-only processed MS2.
+    @return Aligned charge-magnitude array, or nullptr when unavailable; zero denotes unknown.
+  */
+  static const MSSpectrum::IntegerDataArray* legacyCharges(const MSSpectrum& spectrum);
+
 private:
   std::shared_ptr<const Alphabet> alphabet_;
   Options options_;
