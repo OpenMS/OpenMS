@@ -235,12 +235,18 @@ START_SECTION(([EXTRA] searchable RNA candidates and cached digest provenance))
   };
   fixture("ACGUAC", "ACGUAC", 2);
   auto args = arguments();
-  args.insert(args.end(), {"-digest_out", digest});
+  args.insert(args.end(), {"-digest_out", digest, "-scoring:method", "mvh"});
   TEST_EQUAL(runSearch(args), 0)
   TEST_EQUAL(hitCount(output), 1)
 
+  // A later-sorting filename distinguishes current input from cached provenance.
+  const std::string replay_mzml = mzml + ".z.mzML";
+  {
+    std::ifstream original(mzml, std::ios::binary);
+    std::ofstream(replay_mzml, std::ios::binary) << original.rdbuf();
+  }
   // Reuse the digest with different search tolerances while preserving its database.
-  args = {"-in", mzml, "-digest", digest, "-id_out", output, "-out", output + ".mzTab",
+  args = {"-in", replay_mzml, "-digest", digest, "-id_out", output, "-out", output + ".mzTab",
     "-precursor:mass_tolerance", "20", "-fragment:mass_tolerance", "25", "-threads", "1",
     "-db_out", output + ".oms"};
   TEST_EQUAL(runSearch(args), 0)
@@ -257,6 +263,7 @@ START_SECTION(([EXTRA] searchable RNA candidates and cached digest provenance))
   bool current_identification = false;
   for (const auto& match : result.getObservationMatches())
   {
+    TEST_STRING_EQUAL(match.observation_ref->input_file->name, replay_mzml)
     for (const auto& applied : match.steps_and_scores)
     {
       if (!applied.processing_step_opt ||
@@ -270,6 +277,28 @@ START_SECTION(([EXTRA] searchable RNA candidates and cached digest provenance))
     }
   }
   TEST_TRUE(current_identification)
+
+  // A digest produced by a different scorer must not replace this run's primary score.
+  for (const std::string method : {"hyperscore", "mvh"})
+  {
+    auto fresh_arguments = arguments();
+    fresh_arguments.insert(fresh_arguments.end(), {"-scoring:method", method});
+    TEST_EQUAL(runSearch(fresh_arguments), 0)
+    IdXMLFile().load(output, proteins, peptides);
+    TEST_EQUAL(peptides.size(), 1)
+    ABORT_IF(peptides.empty())
+    const auto expected_type = peptides[0].getScoreType();
+    const double expected_score = peptides[0].getHits()[0].getScore();
+    std::vector<std::string> cached_arguments {
+      "-in", replay_mzml,          "-digest", digest, "-id_out", output, "-out", output + ".mzTab", "-scoring:method", method, "-threads",
+      "1"};
+    TEST_EQUAL(runSearch(cached_arguments), 0)
+    IdXMLFile().load(output, proteins, peptides);
+    TEST_EQUAL(peptides.size(), 1)
+    ABORT_IF(peptides.empty())
+    TEST_STRING_EQUAL(peptides[0].getScoreType(), expected_type)
+    TEST_REAL_SIMILAR(peptides[0].getHits()[0].getScore(), expected_score)
+  }
 
   for (const std::string credit : {"true", "false"})
   {
