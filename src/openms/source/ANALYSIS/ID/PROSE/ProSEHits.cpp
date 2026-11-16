@@ -49,14 +49,14 @@ namespace OpenMS
 {
   using namespace Internal::ProSEAlgorithmHelpers;
 
-  double ProSEAlgorithm::CandidatePoolStats_::zScore() const
+  double ProSEAlgorithm::CandidatePoolStats_::zScore(double score) const
   {
     if (count < 2) return 0.0;
     const double n = static_cast<double>(count);
     const double mean = sum / n;
     const double var = std::max(0.0, sumsq / n - mean * mean);
-    if (var <= 0.0) return 0.0; // every candidate scored the same: the best one is not an outlier
-    return (best - mean) / std::sqrt(var);
+    if (var <= 0.0) return 0.0; // every candidate scored the same: none of them is an outlier
+    return (score - mean) / std::sqrt(var);
   }
 
   void ProSEAlgorithm::annotatePeptDeepFeatures_(const PeakMap& spectra,
@@ -320,8 +320,9 @@ namespace OpenMS
         "Candidate-pool statistics must hold one entry per spectrum.");
     }
 
-    // One value per spectrum, kept in side vectors so scoring does not have to carry
-    // them on every AnnotatedHit_ candidate.
+    // The values of the best hit of each spectrum (ln_num_candidates: of every hit), kept in side vectors so scoring
+    // does not have to carry them on every AnnotatedHit_ candidate. A hit below the best one gets its own delta score
+    // and z-score in the loop below.
     std::vector<float> delta_scores(annotated_hits.size(), 0.0f);
     std::vector<float> hyperscore_zscores(annotated_hits.size(), 0.0f);
     std::vector<float> ln_num_candidates(annotated_hits.size(), 0.0f);
@@ -567,8 +568,11 @@ namespace OpenMS
         // this function)
         vector<PeptideHit> phs;
         phs.reserve(annotated_hits[scan_index].size());
+        const CandidatePoolStats_& stats = pool_stats[scan_index];
         for (auto& ah : annotated_hits[scan_index])
         {
+          // (the hits are sorted above, best first)
+          const bool best_hit = &ah == &annotated_hits[scan_index].front();
           PeptideHit ph;
           ph.reserveMetaValues(hit_meta_values); // (one block instead of growing by doubling)
           // Prefer spectrum charge; if absent (0), fall back to the charge actually used by FI for this candidate
@@ -656,11 +660,17 @@ namespace OpenMS
             ph.setMetaValue(mv_matched_suffix_ions, static_cast<int>(ah.matched_suffix_ions));
           }
 
-          ph.setMetaValue(mv_delta_score, delta_scores[scan_index]);
+          // The pool features describe the hit they are on: the best hit gets best minus runner-up and the z-score of
+          // the best score; a hit below it (the runner-up that rescoring:top_hits 2 gives Percolator, or a hit of
+          // report:top_hits > 1) gets its own score minus the best (<= 0, as Sage's delta_best) and the z-score of
+          // its own score against the same pool. With the values of the best hit, the runner-up looked as well
+          // separated from the other candidates as the best hit to Percolator. (The best score of the pool is that of
+          // the best hit, except for a co-isolated precursor, whose hits leave out the peptide of its spectrum.)
+          ph.setMetaValue(mv_delta_score, best_hit ? delta_scores[scan_index] : static_cast<float>(ah.score - stats.best));
 
           if (annotation_hyperscore_zscore)
           {
-            ph.setMetaValue(mv_hyperscore_zscore, hyperscore_zscores[scan_index]);
+            ph.setMetaValue(mv_hyperscore_zscore, best_hit ? hyperscore_zscores[scan_index] : static_cast<float>(stats.zScore(ah.score)));
           }
           if (annotation_ln_num_candidates)
           {

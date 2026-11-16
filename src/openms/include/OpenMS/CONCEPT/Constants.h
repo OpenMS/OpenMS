@@ -393,9 +393,9 @@ namespace OpenMS
       */
       inline const std::string   ISOTOPE_ERROR = "isotope_error";
 
-      // User parameter name for the standard score of the best candidate's score within
-      // the pool of all candidates scored for the same spectrum. 0 when fewer than two
-      // candidates were scored or when all of them tied.
+      // User parameter name for the standard score of a hit's score within the pool of all
+      // candidates scored for the same spectrum (ProSE: each reported hit gets the z-score of
+      // its own score). 0 when fewer than two candidates were scored or when all of them tied.
       inline const std::string HYPERSCORE_ZSCORE = "hyperscore_zscore";
 
       // User parameter name for ln(1 + number of candidates scored for a spectrum).
