@@ -219,6 +219,17 @@ START_SECTION((FWHM estimateFWHM(PeakRange peaks, IntensityRange smoothed)))
   TEST_EQUAL(fwhm.end_idx, 2)
 
   TEST_EXCEPTION(Exception::InvalidValue, MassTraceStatistics::estimateFWHM(peaks, no_smoothed))
+
+  // a negative apex has no FWHM; the same shape with positive intensities has one
+  vector<Peak2D> three(peaks.begin(), peaks.begin() + 3);
+  fwhm = MassTraceStatistics::estimateFWHM(three, vector<double>{-3.0, -1.0, -3.0});
+  TEST_REAL_SIMILAR(fwhm.fwhm, 0.0)
+  TEST_EQUAL(fwhm.start_idx, 0)
+  TEST_EQUAL(fwhm.end_idx, 0)
+  fwhm = MassTraceStatistics::estimateFWHM(three, vector<double>{1.0, 3.0, 1.0});
+  TEST_REAL_SIMILAR(fwhm.fwhm, 1.5)
+  TEST_EQUAL(fwhm.start_idx, 0)
+  TEST_EQUAL(fwhm.end_idx, 2)
   TEST_EXCEPTION(Exception::InvalidValue, MassTraceStatistics::estimateFWHM(no_peaks, smoothed))
   // one smoothed intensity per peak is required
   TEST_EXCEPTION(Exception::InvalidValue, MassTraceStatistics::estimateFWHM(center, smoothed))
@@ -254,6 +265,8 @@ START_SECTION((double maxIntensity(IntensityRange intensities)))
   TEST_REAL_SIMILAR(MassTraceStatistics::maxIntensity(smoothed), 16.0)
   TEST_REAL_SIMILAR(MassTraceStatistics::maxIntensity(MassTraceStatistics::IntensityRange(smoothed).last(2)), 12.0)
   TEST_REAL_SIMILAR(MassTraceStatistics::maxIntensity(no_smoothed), 0.0)
+  // at least 0, as MassTrace::getMaxIntensity() has always returned
+  TEST_REAL_SIMILAR(MassTraceStatistics::maxIntensity(vector<double>{-3.0, -1.0, -3.0}), 0.0)
 }
 END_SECTION
 

@@ -108,6 +108,13 @@ namespace OpenMS::MassTraceStatistics
         return result;
       }
 
+      // a negative apex (possible for smoothed intensities) puts the half maximum above every
+      // other intensity, so there is no FWHM to interpolate
+      if (intensity(max_idx) < 0)
+      {
+        return result;
+      }
+
       const double half_max_int(intensity(max_idx) / 2.0);
 
       Size left_border(max_idx), right_border(max_idx);

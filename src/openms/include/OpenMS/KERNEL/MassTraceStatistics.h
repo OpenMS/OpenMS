@@ -112,7 +112,9 @@ namespace OpenMS
 
       The RTs at half maximum are linearly interpolated between the two peaks
       enclosing the half maximum on either flank. If a flank does not drop
-      below the half maximum, the RT of its outermost peak is used.
+      below the half maximum, the RT of its outermost peak is used. The result is
+      empty (0, with both indices 0) if the apex is the first or last peak, or if
+      its intensity is negative.
 
       @pre @p peaks is sorted by RT
       @throw Exception::InvalidValue if @p peaks is empty
@@ -131,10 +133,10 @@ namespace OpenMS
     /// Sum of the peak intensities
     OPENMS_DLLAPI double intensitySum(PeakRange peaks);
 
-    /// Highest peak intensity (0 for an empty range)
+    /// Highest peak intensity, but at least 0 (also for an empty range)
     OPENMS_DLLAPI double maxIntensity(PeakRange peaks);
 
-    /// Highest of the @p intensities (0 for an empty range)
+    /// Highest of the @p intensities, but at least 0 (also for an empty range or if all smoothed intensities are negative)
     OPENMS_DLLAPI double maxIntensity(IntensityRange intensities);
 
     /// Median of the peak intensities.
