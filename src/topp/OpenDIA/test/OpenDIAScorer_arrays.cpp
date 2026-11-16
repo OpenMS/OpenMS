@@ -167,6 +167,12 @@ int main(int argc, char** argv)
             << " pairs " << pair_index.size() << '\n';
   const auto result = CrossFitScorer::run(input, options, [](const std::string& l) { std::cerr << l << '\n'; });
   writeNpy(out_path, result.score);
+  // Optional diagnostics: every window's fold-model score and linear part (the W rule's input).
+  if (std::getenv("OPENDIA_WRITE_RAW"))
+  {
+    writeNpy(out_path + ".raw.npy", result.raw_score);
+    writeNpy(out_path + ".linear.npy", result.linear);
+  }
   std::size_t at1 = 0;
   for (std::size_t r = 0; r < n; ++r) at1 += !input.decoy[r] && result.q_value[r] <= 0.01;
   std::cerr << "targets at q <= 0.01: " << at1 << ", seconds "
