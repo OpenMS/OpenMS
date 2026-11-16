@@ -596,6 +596,30 @@ namespace OpenMS::OpenDIA
       windows[i].score = scored.score[i];
       windows[i].q_value = scored.q_value[i];
     }
+    if (options_.rt_width_selection)
+    {
+      // PLAN_RTWIN2: per-fold RT half width chosen on the other folds of this run; the full-window result is kept.
+      for (std::size_t i = 0; i < n; ++i)
+      {
+        windows[i].full_score = windows[i].score;
+        windows[i].full_q_value = windows[i].q_value;
+      }
+      CrossFitScorer::Result selected = scored;
+      std::vector<double> rt_error(n);
+      for (std::size_t i = 0; i < n; ++i) rt_error[i] = lib.precursors[windows[i].precursor].has_library_rt ? windows[i].peak.apex_rt_error_seconds : 0.0;
+      std::vector<double> grid;
+      for (int k = 8; k <= 20; ++k) grid.push_back(0.05 * k);
+      const auto width = CrossFitScorer::selectWidth(input, selected, rt_error, cal.tolerance_s, grid);
+      std::string line = "RT width selection (tolerance " + std::to_string(cal.tolerance_s) + " s):";
+      for (std::size_t k = 0; k < width.size(); ++k) line += " fold " + std::to_string(k) + " " + std::to_string(width[k]) + " s";
+      say(line);
+      result.rt_widths = width;
+      for (std::size_t i = 0; i < n; ++i)
+      {
+        windows[i].score = selected.score[i];
+        windows[i].q_value = selected.q_value[i];
+      }
+    }
     std::size_t at1 = 0;
     for (std::size_t i = 0; i < n; ++i) at1 += !lib.precursors[windows[i].precursor].decoy && windows[i].q_value <= 0.01;
     say("Scoring: target precursors at q <= 0.01: " + std::to_string(at1) + " seconds=" + std::to_string(seconds(t_score)) +

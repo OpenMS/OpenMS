@@ -191,6 +191,48 @@ int main()
     check(threw, "rejects a pair spanning two folds");
   }
 
+  // 7. RT width selection: true windows sit within +-10 s of the library RT, every other window (decoys, targets'
+  // chance windows) is uniform over +-100 s. Narrowing the window removes chance competition, so the chosen width must
+  // be below the full tolerance, cover the true windows, and keep at least the full-window target count.
+  {
+    std::vector<bool> truth;
+    auto in = synthetic(3000, 3, 2.0, 23, truth);
+    std::mt19937_64 rng(4);
+    std::uniform_real_distribution<double> wide(-100.0, 100.0), near(-10.0, 10.0);
+    std::vector<double> rt(in.rows());
+    for (std::size_t r = 0; r < in.rows(); ++r) rt[r] = truth[r] ? near(rng) : wide(rng);
+    CrossFitScorer::Options o;
+    o.max_epochs = 6;
+    o.steps_per_epoch = 20;
+    o.batch_positive = 64;
+    o.batch_negative = 256;
+    o.hidden = 16;
+    o.embed = 4;
+    o.seed = 5;
+    auto res = CrossFitScorer::run(in, o);
+    std::size_t full = 0;
+    for (std::size_t r = 0; r < in.rows(); ++r) full += !in.decoy[r] && res.q_value[r] <= 0.01;
+    std::vector<double> grid;
+    for (int k = 8; k <= 20; ++k) grid.push_back(0.05 * k);
+    auto selected = res;
+    const auto width = CrossFitScorer::selectWidth(in, selected, rt, 100.0, grid);
+    std::size_t narrow = 0, outside = 0;
+    for (std::size_t r = 0; r < in.rows(); ++r)
+    {
+      narrow += !in.decoy[r] && selected.q_value[r] <= 0.01;
+      outside += selected.score[r] > CrossFitScorer::NOT_KEPT && std::abs(rt[r]) > width[in.fold[r]];
+    }
+    std::cerr << "width selection: widths " << width[0] << " " << width[1] << " " << width[2] << ", targets " << full << " -> " << narrow << '\n';
+    check(width.size() == 3, "one width per fold");
+    bool below = true;
+    for (double w : width) below = below && w < 100.0 && w >= 10.0;
+    check(below, "chosen widths below the tolerance and covering the true windows");
+    check(outside == 0, "no kept window outside its fold's width");
+    check(narrow >= full, "width selection keeps at least the full-window target count");
+    auto again = res;
+    check(CrossFitScorer::selectWidth(in, again, rt, 100.0, grid) == width && again.q_value == selected.q_value, "width selection is deterministic");
+  }
+
   if (failures) return EXIT_FAILURE;
   std::cerr << "OpenDIAScorer_test passed\n";
   return EXIT_SUCCESS;
