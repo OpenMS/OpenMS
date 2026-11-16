@@ -187,4 +187,46 @@ START_SECTION(computeSpectrum)
 }
 END_SECTION
 
+START_SECTION(computeRow)
+{
+  RNARescoringFeatures::Options all = options;
+  all.route = all.graph = all.diagnostics = all.flash = true;
+  RNARescoringFeatures features(all);
+  const std::vector<PeptideHit::PeakAnnotation> annotations = {annotation("c1", 100.0, 1.0), annotation("w1", 300.0, 3.0)};
+
+  RNARescoringFeatures::HitInput best;
+  best.native_score = 10.0;
+  best.sequence = NASequence::fromString("[m1A]UCGG");
+  best.charge = -2;
+  best.annotations = &annotations;
+  RNARescoringFeatures::HitInput same_sequence = best;
+  same_sequence.native_score = 8.0;
+  same_sequence.charge = -3;
+  RNARescoringFeatures::HitInput runner_up;
+  runner_up.native_score = 7.0;
+  runner_up.sequence = NASequence::fromString("AUC[m5C]G");
+  runner_up.charge = -1;
+  RNARescoringFeatures::HitInput tie = runner_up;
+  tie.native_score = 10.0;
+
+  RNARescoringFeatures::SpectrumInput spectrum;
+  spectrum.total_intensity = 20.0;
+  spectrum.flash_cosine = 0.5;
+  // Every row equals the corresponding row of computeSpectrum, in any hit order
+  for (const auto& hits : std::vector<std::vector<RNARescoringFeatures::HitInput>>{
+         {best, same_sequence, runner_up}, {runner_up, same_sequence, best}, {best, tie}, {best}})
+  {
+    const auto rows = features.computeSpectrum(hits, spectrum);
+    for (Size index = 0; index < hits.size(); ++index)
+    {
+      const auto row = features.computeRow(hits, index, spectrum);
+      TEST_EQUAL(row.size(), rows[index].size())
+      for (Size column = 0; column < row.size(); ++column) { TEST_REAL_SIMILAR(row[column], rows[index][column]) }
+    }
+  }
+  TEST_REAL_SIMILAR(feature(features, features.computeRow({best, same_sequence, runner_up}, 0, spectrum), "delta_next"), 3.0)
+  TEST_REAL_SIMILAR(feature(features, features.computeRow({best}, 0, spectrum), "delta_next"), 10.0)
+}
+END_SECTION
+
 END_TEST

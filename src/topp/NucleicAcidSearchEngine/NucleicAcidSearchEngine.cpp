@@ -1423,8 +1423,8 @@ protected:
         input.graph_tag_length = (hit.graph_evaluated && hit.graph_evidence.supported) ? hit.graph_evidence.length : 0;
         inputs.push_back(std::move(input));
       }
-      // All retained hits give the margins; only the best one is rescored.
-      scan_rows[scan_index] = std::move(builder.computeSpectrum(inputs, spectrum_input).front());
+      // All retained hits give the margins; only the best one is rescored (linear in the number of hits).
+      scan_rows[scan_index] = builder.computeRow(inputs, 0, spectrum_input);
     }
 
     RescoreInput input;

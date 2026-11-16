@@ -115,6 +115,26 @@ void RNARescoringFeatures::appendIonFeatures_(const HitInput& hit, const Spectru
   row.push_back(covered.size() / denominator);
 }
 
+std::vector<double> RNARescoringFeatures::computeRow(const std::vector<HitInput>& hits, Size index,
+                                                    const SpectrumInput& spectrum) const
+{
+  OPENMS_PRECONDITION(index < hits.size(), "The hit must be one of the hits of the spectrum");
+  double best = 0.0;
+  for (const auto& hit : hits) { best = std::max(best, hit.native_score); }
+  // The margin compares one hit with all others: linear in the number of hits.
+  const std::string sequence = hits[index].sequence.toString();
+  double next = 0.0;
+  for (Size other = 0; other < hits.size(); ++other)
+  {
+    const double score = hits[other].native_score;
+    if ((score <= hits[index].native_score) && (score > next) && (hits[other].sequence.toString() != sequence))
+    {
+      next = score;
+    }
+  }
+  return buildRow_(hits[index], next, best, spectrum);
+}
+
 std::vector<std::vector<double>> RNARescoringFeatures::computeSpectrum(const std::vector<HitInput>& hits,
                                                                        const SpectrumInput& spectrum) const
 {
@@ -128,47 +148,51 @@ std::vector<std::vector<double>> RNARescoringFeatures::computeSpectrum(const std
   rows.reserve(hits.size());
   for (Size index = 0; index < hits.size(); ++index)
   {
-    const HitInput& hit = hits[index];
     double next = 0.0;
     for (Size other = 0; other < hits.size(); ++other)
     {
       const double score = hits[other].native_score;
-      if (sequences[other] != sequences[index] && score <= hit.native_score) { next = std::max(next, score); }
+      if (sequences[other] != sequences[index] && score <= hits[index].native_score) { next = std::max(next, score); }
     }
-
-    std::vector<double> row;
-    row.reserve(names_.size());
-    row.insert(row.end(), {hit.native_score, hit.native_score - next, hit.native_score - best,
-                           std::fabs(hit.precursor_error_ppm), double(hit.isotope_offset)});
-    const Size charge = static_cast<Size>(std::abs(hit.charge));
-    for (Size z = options_.min_charge; z <= options_.max_charge; ++z) { row.push_back(charge == z ? 1.0 : 0.0); }
-
-    Size modifications = 0, supported = 0;
-    for (const Ribonucleotide& residue : hit.sequence)
-    {
-      if (! residue.isModified()) { continue; }
-      ++modifications;
-      if (spectrum.diagnostic_allowed.count(residue.getCode())) { ++supported; }
-    }
-    row.insert(row.end(), {double(hit.sequence.size()), double(modifications), hit.adduct ? 1.0 : 0.0});
-    appendIonFeatures_(hit, spectrum, row);
-
-    if (options_.route)
-    {
-      row.insert(row.end(), {hit.route_score, double(hit.route_nodes),
-                             hit.route_local_intensity > 0.0 ? hit.route_matched_intensity / hit.route_local_intensity : 0.0,
-                             double(hit.route_prefix_length), double(hit.route_suffix_length)});
-    }
-    if (options_.graph) { row.push_back(double(hit.graph_tag_length)); }
-    if (options_.diagnostics) { row.insert(row.end(), {double(supported), double(modifications - supported)}); }
-    if (options_.flash)
-    {
-      const bool corrected = spectrum.flash_cosine.has_value();
-      row.insert(row.end(), {corrected ? 1.0 : 0.0, spectrum.flash_cosine.value_or(0.0), spectrum.flash_snr.value_or(0.0)});
-    }
-    OPENMS_POSTCONDITION(row.size() == names_.size(), "Every feature row must match the feature names");
-    rows.push_back(std::move(row));
+    rows.push_back(buildRow_(hits[index], next, best, spectrum));
   }
   return rows;
+}
+
+std::vector<double> RNARescoringFeatures::buildRow_(const HitInput& hit, double next, double best,
+                                                    const SpectrumInput& spectrum) const
+{
+  std::vector<double> row;
+  row.reserve(names_.size());
+  row.insert(row.end(), {hit.native_score, hit.native_score - next, hit.native_score - best,
+                         std::fabs(hit.precursor_error_ppm), double(hit.isotope_offset)});
+  const Size charge = static_cast<Size>(std::abs(hit.charge));
+  for (Size z = options_.min_charge; z <= options_.max_charge; ++z) { row.push_back(charge == z ? 1.0 : 0.0); }
+
+  Size modifications = 0, supported = 0;
+  for (const Ribonucleotide& residue : hit.sequence)
+  {
+    if (! residue.isModified()) { continue; }
+    ++modifications;
+    if (spectrum.diagnostic_allowed.count(residue.getCode())) { ++supported; }
+  }
+  row.insert(row.end(), {double(hit.sequence.size()), double(modifications), hit.adduct ? 1.0 : 0.0});
+  appendIonFeatures_(hit, spectrum, row);
+
+  if (options_.route)
+  {
+    row.insert(row.end(), {hit.route_score, double(hit.route_nodes),
+                           hit.route_local_intensity > 0.0 ? hit.route_matched_intensity / hit.route_local_intensity : 0.0,
+                           double(hit.route_prefix_length), double(hit.route_suffix_length)});
+  }
+  if (options_.graph) { row.push_back(double(hit.graph_tag_length)); }
+  if (options_.diagnostics) { row.insert(row.end(), {double(supported), double(modifications - supported)}); }
+  if (options_.flash)
+  {
+    const bool corrected = spectrum.flash_cosine.has_value();
+    row.insert(row.end(), {corrected ? 1.0 : 0.0, spectrum.flash_cosine.value_or(0.0), spectrum.flash_snr.value_or(0.0)});
+  }
+  OPENMS_POSTCONDITION(row.size() == names_.size(), "Every feature row must match the feature names");
+  return row;
 }
 } // namespace OpenMS

@@ -23,7 +23,7 @@ namespace OpenMS
   Every row has the same columns (featureNames()); which columns exist depends
   only on the Options, never on a hit, so targets and decoys are described
   identically. Rows are computed for all hits of one spectrum together, because
-  the delta features compare each hit with its competitors:
+  the delta features compare each hit with its competitors (computeRow() for one hit):
 
   - native_score: the search score the hits were ranked by
   - delta_next: score minus the best lower score of a hit with a different
@@ -97,7 +97,15 @@ public:
   /// Column names, aligned with every row of computeSpectrum().
   const StringList& featureNames() const { return names_; }
 
-  /// One feature row per hit of one spectrum, in the order of @p hits.
+  /**
+    @brief The feature row of hit @p index of one spectrum; the other @p hits only give its score margins.
+
+    Linear in the number of hits. Equal to computeSpectrum(hits, spectrum)[index].
+  */
+  std::vector<double> computeRow(const std::vector<HitInput>& hits, Size index, const SpectrumInput& spectrum) const;
+
+  /// One feature row per hit of one spectrum, in the order of @p hits (quadratic in the number of hits; use
+  /// computeRow() if only some rows are needed).
   std::vector<std::vector<double>> computeSpectrum(const std::vector<HitInput>& hits,
                                                    const SpectrumInput& spectrum) const;
 
@@ -108,6 +116,9 @@ public:
   static bool isPrefixSeries(const std::string& series);
 
 private:
+  /// The row of @p hit, given the best lower score of a different sequence (@p next) and the spectrum's best score
+  std::vector<double> buildRow_(const HitInput& hit, double next, double best, const SpectrumInput& spectrum) const;
+
   void appendIonFeatures_(const HitInput& hit, const SpectrumInput& spectrum, std::vector<double>& row) const;
 
   Options options_;
