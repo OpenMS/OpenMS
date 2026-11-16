@@ -51,3 +51,20 @@ The width is chosen inconsistently across folds and seeds: from 0.55 T to T, for
   - Earlier, with `library12_pop`, seed 0 was 1718 at FDP_c 0.0104.
 
 Raw 03 (held out) follows below, reported descriptively against criteria 1-2.
+
+## Raw 03 (held out, run once after the verdict above was committed, docs 8230e2aa3b)
+| arm | s0 | s1 | s2 | s3 | s4 | median |
+|---|---|---|---|---|---|---|
+| CUR | 1907 (.0096) | 1831 (.0058) | 1864 (.0068) | 1913 (.0084) | 1957 (.0076) | **1907** |
+| RTWIN | 1863 (.0105) | 1834 (.0057) | 1819 (.0069) | 1915 (.0084) | 1923 (.0087) | **1863** |
+
+Widths: T = 107.4 s; the chosen widths range from 0.55 T to T, varying across folds and seeds.
+- Criterion 1: 1863 against the 1888 needed (−2.3 %), **fail**.
+- Criterion 2: seed 0 has FDP_c 0.0105, **fail**.
+
+The held-out run confirms the verdict: RT width selection stays off by default.
+
+CUR (the current default with `library12_full.pqp`, self-calibrating) on all three raws:
+- FDP_c ≤ 0.0096 on all 15 runs.
+- Medians: 1804 / 1909 / 1907.
+- These are 87 % / 83 % of DIA-NN's 2067 / 2301 on raws 01/02.

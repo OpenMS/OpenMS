@@ -27,18 +27,20 @@ Cost: about 8-10 min and 9.6 GB per Astral raw on 8 threads. Output is byte-iden
 | N at entrapment FDP_c 1 % (median of 5 seeds) | raw 01 | raw 02 | FDP_c at q ≤ 0.01 |
 |---|---|---|---|
 | OpenDIAWorkflow, reused calibration | 1819 | 1870 | 0.0024-0.0082 |
-| OpenDIAWorkflow, self-calibrating | 1718 | 1941 | raw 01 0.0048-0.0104, raw 02 0.0023-0.0045 |
+| OpenDIAWorkflow, self-calibrating, `library12_pop` scoring library | 1718 | 1941 | raw 01 0.0048-0.0104, raw 02 0.0023-0.0045 |
+| OpenDIAWorkflow, self-calibrating, full 12-fragment scoring library `library12_full.pqp` (current setup; held-out raw 03: 1907) | 1804 | 1909 | 0.0012-0.0096 on all 15 runs (raws 01-03) |
 | Python chain it replaces (D11FDI, C++ interference features) | 1848 | 1925 | ≤ 0.0071 |
 | DIA-NN 2.2, same targets, its own decoys (reference) | 2067 | 2301 | |
 | Former native base (CNN + LDA) | 1029 | 1298 | |
 
 - **Decoys.** Since PLAN_DECOYGEN, the decoys come from OpenSwathDecoyGenerator `-predict_decoys`, which gives each decoy its own predicted spectrum and RT. This removed the entrapment excess that failed every earlier arm.
 - **Interference features** (PLAN_GAP arm I). These gave +118 to +185 on raw 01 and +199 to +351 on raw 02 at 1 % over seeds. About a third of the raw 02 gain comes from entrapment pairs that only exist in this benchmark.
-- **Open: the self-calibrated RT window.**
-  - On raw 01 it is too wide (151 s), which explains the FDP_c up to 0.0104.
+- **Self-calibrated RT window.**
+  - On raw 01 it is wide (151 s).
   - A refined spread fit gets the spread right, but over five seeds it scores +5.8 % on raw 01 and -3.1 % on raw 02, so it fails (PLAN_CALREFINE2).
-  - Two label-free width rules are undefined or point the wrong way (`gates/single-binary/rtwin/`).
-  - The width needs a decision.
+  - Two label-free width rules are undefined or point the wrong way.
+  - A cross-fitted per-run width chosen on IDs (PLAN_RTWIN2) scores −2.2 % on raw 01 and −2.3 % on held-out raw 03, so it fails. It stays as `-rt_width_selection`, off by default (`gates/single-binary/rtwin/`).
+  - With the full 12-fragment scoring library, the wide window keeps FDP_c ≤ 0.0096 on all 15 runs, so the width is no longer an FDR problem.
 - **Gap to DIA-NN.** It is about 12-21 %, almost entirely in score formation on the right peak (`gates/extraction-parity/gap/`).
 
 **Direction.** The single voxel model was replaced in practice by the heuristic-feature network (D11 line, R-WP3). That network is now in C++ as `OpenDIA::CrossFitScorer`. OpenDIACNN and LibTorch are no longer on the default path.
