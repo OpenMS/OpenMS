@@ -15,10 +15,8 @@
 #include <OpenMS/OPENSWATHALGO/DATAACCESS/TransitionExperiment.h>
 
 #include <array>
-#include <chrono>
 #include <cstddef>
 #include <cstdint>
-#include <functional>
 #include <string>
 #include <unordered_map>
 #include <vector>
@@ -88,9 +86,6 @@ namespace OpenMS::OpenDIA
     std::uint64_t seed = 0;
     int threads = 1;
     bool im_array_as_vssc = false;
-    /// PLAN_RTPROFILE (experimental): a second search, feature and scoring pass centred and sized by cross-fitted RT maps
-    /// fitted on the first pass's identifications (run q <= 0.01), with a window width that follows their local RT error.
-    bool id_recalibration = false;
     /// Optional: reuse an OpenDIACalibrate JSON and anchor TSV instead of calibrating (reproduction of earlier runs).
     std::string calibration_json;
     std::string anchors_tsv;
@@ -114,7 +109,6 @@ namespace OpenMS::OpenDIA
     std::vector<RunWindow> windows;
     std::vector<std::string> feature_names;
     std::vector<float> features;  ///< windows x feature_names, row-major.
-    std::vector<RunWindow> pass1_windows;  ///< With id_recalibration: the first pass's windows (empty otherwise).
     std::vector<std::string> log;
   };
 
@@ -144,15 +138,6 @@ namespace OpenMS::OpenDIA
     RunResult run(const std::string& path);
 
   private:
-    /// Steps 2-6 with the calibration; centre and width (per library precursor, empty = calibration map and tolerance).
-    void analyse_(const std::string& path, const OpenSwath::LightTargetedExperiment& library_search, const CalibrationRT& cal,
-                  const std::vector<std::pair<std::string, double>>& anchors, const std::vector<double>& centre,
-                  const std::vector<double>& width, RunResult& result, const std::function<void(const std::string&)>& say,
-                  std::chrono::steady_clock::time_point t_run);
-    /// PLAN_RTPROFILE second pass (keeps the first in RunResult::pass1_windows); no-op when a fold lacks anchors.
-    void recalibrate_(const std::string& path, const CalibrationRT& cal, const std::vector<std::pair<std::string, double>>& anchors,
-                      RunResult& result, const std::function<void(const std::string&)>& say, std::chrono::steady_clock::time_point t_run);
-
     AnalysisLibrary& library_;
     RunOptions options_;
     Log log_;
