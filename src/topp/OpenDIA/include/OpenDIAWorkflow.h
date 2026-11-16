@@ -86,6 +86,7 @@ namespace OpenMS::OpenDIA
     std::uint64_t seed = 0;
     int threads = 1;
     bool im_array_as_vssc = false;
+    std::size_t ensemble = 1;  ///< CrossFitScorer::Options::ensemble (PLAN_ENSEMBLE).
     /// Optional: reuse an OpenDIACalibrate JSON and anchor TSV instead of calibrating (reproduction of earlier runs).
     std::string calibration_json;
     std::string anchors_tsv;

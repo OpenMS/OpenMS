@@ -576,71 +576,109 @@ namespace OpenMS::OpenDIA
     };
     std::vector<float> raw(n, 0.0f), linear(n, 0.0f), round_score(n, 0.0f);
     std::vector<float> z(n * d);
-    for (std::uint8_t k = 0; k < n_folds; ++k)
+    // Ensemble members: each is a full cross-fitted training with its own seed; their scores are combined below.
+    const std::size_t members = std::max<std::size_t>(1, o.ensemble);
+    std::vector<double> sum_raw(members > 1 ? n : 0, 0.0), sum_linear(members > 1 ? n : 0, 0.0);
+    for (std::size_t member = 0; member < members; ++member)
     {
-      std::vector<std::uint32_t> train, test;
-      for (std::uint32_t r = 0; r < n; ++r) (in.fold[r] == k ? test : train).push_back(r);
-      // Standardise by the training folds (population SD; constant columns keep SD 1).
-      std::vector<double> mu(d, 0.0), sd(d, 0.0);
-      for (std::uint32_t r : train)
-        for (std::size_t j = 0; j < d; ++j) mu[j] += in.features[r * d + j];
-      for (auto& v : mu) v /= static_cast<double>(train.size());
-      for (std::uint32_t r : train)
-        for (std::size_t j = 0; j < d; ++j)
-        {
-          const double x = in.features[r * d + j] - mu[j];
-          sd[j] += x * x;
-        }
-      for (auto& v : sd)
+      const std::uint64_t seed = o.seed + 1000 * member;
+      for (std::uint8_t k = 0; k < n_folds; ++k)
       {
-        v = std::sqrt(v / static_cast<double>(train.size()));
-        if (v == 0.0) v = 1.0;
-      }
-#pragma omp parallel for num_threads(o.threads) schedule(static)
-      for (std::ptrdiff_t r = 0; r < static_cast<std::ptrdiff_t>(n); ++r)
-        for (std::size_t j = 0; j < d; ++j) z[r * d + j] = static_cast<float>((in.features[r * d + j] - mu[j]) / sd[j]);
-
-      // Round 0: seed rows of the training folds.
-      std::vector<std::uint32_t> rows;
-      std::vector<std::uint8_t> label;
-      std::vector<bool> valid;
-      for (const auto& s : in.seeds)
-      {
-        if (in.fold[s.row] == k) continue;
-        rows.push_back(s.row);
-        label.push_back(s.positive);
-        valid.push_back(s.group_hash % 100 < o.validation_percent);
-      }
-      Fit model = fit(z, d, rows, label, valid, o.seed + 100 + k, o);
-      std::string line = "fold " + std::to_string(k) + ": r0 " + std::to_string(rows.size()) + " " + std::to_string(model.epochs) +
-                         " ep crit " + std::to_string(model.criterion);
-      for (std::size_t r = 0; r < o.self_q.size(); ++r)
-      {
-        scoreRows(model, z, d, train, round_score, nullptr, o.threads);
-        const auto comp = pooledPairedTDC(in, round_score, train);
-        rows.clear();
-        label.clear();
-        valid.clear();
-        std::size_t positives = 0;
-        for (std::size_t i = 0; i < comp.ranked.size(); ++i)
-        {
-          if (comp.q[i] <= o.self_q[r] && !in.decoy[comp.ranked[i]])
+        std::vector<std::uint32_t> train, test;
+        for (std::uint32_t r = 0; r < n; ++r) (in.fold[r] == k ? test : train).push_back(r);
+        // Standardise by the training folds (population SD; constant columns keep SD 1).
+        std::vector<double> mu(d, 0.0), sd(d, 0.0);
+        for (std::uint32_t r : train)
+          for (std::size_t j = 0; j < d; ++j) mu[j] += in.features[r * d + j];
+        for (auto& v : mu) v /= static_cast<double>(train.size());
+        for (std::uint32_t r : train)
+          for (std::size_t j = 0; j < d; ++j)
           {
-            rows.push_back(comp.ranked[i]);
-            ++positives;
+            const double x = in.features[r * d + j] - mu[j];
+            sd[j] += x * x;
+          }
+        for (auto& v : sd)
+        {
+          v = std::sqrt(v / static_cast<double>(train.size()));
+          if (v == 0.0) v = 1.0;
+        }
+  #pragma omp parallel for num_threads(o.threads) schedule(static)
+        for (std::ptrdiff_t r = 0; r < static_cast<std::ptrdiff_t>(n); ++r)
+          for (std::size_t j = 0; j < d; ++j) z[r * d + j] = static_cast<float>((in.features[r * d + j] - mu[j]) / sd[j]);
+
+        // Round 0: seed rows of the training folds.
+        std::vector<std::uint32_t> rows;
+        std::vector<std::uint8_t> label;
+        std::vector<bool> valid;
+        for (const auto& s : in.seeds)
+        {
+          if (in.fold[s.row] == k) continue;
+          rows.push_back(s.row);
+          label.push_back(s.positive);
+          valid.push_back(s.group_hash % 100 < o.validation_percent);
+        }
+        Fit model = fit(z, d, rows, label, valid, seed + 100 + k, o);
+        std::string line = (members > 1 ? "member " + std::to_string(member) + " " : std::string()) + "fold " + std::to_string(k) +
+                           ": r0 " + std::to_string(rows.size()) + " " + std::to_string(model.epochs) +
+                           " ep crit " + std::to_string(model.criterion);
+        for (std::size_t r = 0; r < o.self_q.size(); ++r)
+        {
+          scoreRows(model, z, d, train, round_score, nullptr, o.threads);
+          const auto comp = pooledPairedTDC(in, round_score, train);
+          rows.clear();
+          label.clear();
+          valid.clear();
+          std::size_t positives = 0;
+          for (std::size_t i = 0; i < comp.ranked.size(); ++i)
+          {
+            if (comp.q[i] <= o.self_q[r] && !in.decoy[comp.ranked[i]])
+            {
+              rows.push_back(comp.ranked[i]);
+              ++positives;
+            }
+          }
+          for (std::uint32_t w : comp.winners)
+            if (in.decoy[w]) rows.push_back(w);
+          label.assign(rows.size(), 0);
+          std::fill(label.begin(), label.begin() + positives, 1);
+          for (std::uint32_t row : rows) valid.push_back(in.pair_hash[row] % 100 < o.validation_percent);
+          model = fit(z, d, rows, label, valid, seed + 200 + 10 * k + r + 1, o);
+          line += " | r" + std::to_string(r + 1) + " pos " + std::to_string(positives) + " neg " + std::to_string(rows.size() - positives) +
+                  " " + std::to_string(model.epochs) + " ep crit " + std::to_string(model.criterion);
+        }
+        scoreRows(model, z, d, test, raw, &linear, o.threads);
+        say(line);
+      }
+      if (members > 1)
+      {
+        // Per fold, express this member's raw score and linear part in its own decoy units (median, 1.4826 MAD of the
+        // fold's decoy rows) so the members' scales are comparable, then accumulate.
+        for (std::uint8_t k = 0; k < n_folds; ++k)
+        {
+          for (auto* v : {&raw, &linear})
+          {
+            std::vector<double> dv;
+            for (std::uint32_t r = 0; r < n; ++r)
+              if (in.fold[r] == k && in.decoy[r]) dv.push_back((*v)[r]);
+            if (dv.size() < 2) throw std::invalid_argument("CrossFitScorer: ensemble needs decoy rows in every fold.");
+            const double centre = median(dv);
+            for (auto& x : dv) x = std::abs(x - centre);
+            double spread = 1.4826 * median(dv);
+            if (!(spread > 0.0)) spread = 1.0;
+            auto& sum = v == &raw ? sum_raw : sum_linear;
+            for (std::uint32_t r = 0; r < n; ++r)
+              if (in.fold[r] == k) sum[r] += ((*v)[r] - centre) / spread;
           }
         }
-        for (std::uint32_t w : comp.winners)
-          if (in.decoy[w]) rows.push_back(w);
-        label.assign(rows.size(), 0);
-        std::fill(label.begin(), label.begin() + positives, 1);
-        for (std::uint32_t row : rows) valid.push_back(in.pair_hash[row] % 100 < o.validation_percent);
-        model = fit(z, d, rows, label, valid, o.seed + 200 + 10 * k + r + 1, o);
-        line += " | r" + std::to_string(r + 1) + " pos " + std::to_string(positives) + " neg " + std::to_string(rows.size() - positives) +
-                " " + std::to_string(model.epochs) + " ep crit " + std::to_string(model.criterion);
       }
-      scoreRows(model, z, d, test, raw, &linear, o.threads);
-      say(line);
+    }
+    if (members > 1)
+    {
+      for (std::uint32_t r = 0; r < n; ++r)
+      {
+        raw[r] = static_cast<float>(sum_raw[r] / static_cast<double>(members));
+        linear[r] = static_cast<float>(sum_linear[r] / static_cast<double>(members));
+      }
     }
 
     // W rule: per precursor the window with the largest linear part (ties: lower row) keeps its full score.

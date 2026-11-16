@@ -109,6 +109,10 @@ namespace OpenMS::OpenDIA
       double learning_rate = 1e-3;
       unsigned validation_percent = 15; ///< Rows whose group hash % 100 is below this validate.
       std::vector<double> self_q = {0.15, 0.05}; ///< One self-training round per entry.
+      /// Ensemble size m: the whole cross-fitted training is repeated with seeds seed + 1000 i (i < m), each member's raw
+      /// score and linear part are put in that fold's decoy units (median, 1.4826 MAD of the fold's decoy rows) and
+      /// averaged before the W rule. 1 = a single model (unchanged behaviour).
+      std::size_t ensemble = 1;
     };
 
     struct Seed
