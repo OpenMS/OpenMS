@@ -89,6 +89,9 @@ public:
     std::vector<Modification> modifications;
     /// fragment charges are capped by this charge (<= 0: only by min_mass_per_charge)
     int precursor_charge = 0;
+    /// isolation target m/z of the precursor (0: unknown). 1000 / precursor_mz is its charge density in charges per kDa, whatever
+    /// its oligomer state; above internal_charge_switch the internal-ion thresholds after Asp and before Pro are exchanged
+    double precursor_mz = 0;
     /// if false (undetermined start or end position), prefix or suffix fragments are not annotated
     bool known_n_term = true;
     bool known_c_term = true;
@@ -337,15 +340,16 @@ private:
     Internal fragments of one world (the target, or the pieces moved by @p shift): every piece is tested at all its charges (an
     envelope whose most abundant peak is a peak of an accepted terminal envelope, @p terminal_peaks, is not used). The cleavage after
     residue a is authentic if, for one internal ion type, pieces of consecutive lengths that all end with a, or all start right after
-    it, are accepted: at least min_tag_length_asp + 1 of them if a is Asp, else min_tag_length + 1 (a tag of that length). Ladder
-    pieces count. Beyond the ladders, accepted pieces with an end at an authentic cleavage (found here or given in @p given_authentic:
+    it, are accepted: at least min_tag_length_asp + 1 of them if a is Asp, min_tag_length_pro + 1 if the next residue is Pro
+    (the two exchanged if @p high_charge: with mobile protons the cleavage before Pro takes over from the one after Asp), else
+    min_tag_length + 1 (a tag of that length). Ladder pieces count. Beyond the ladders, accepted pieces with an end at an authentic cleavage (found here or given in @p given_authentic:
     a decoy world gets the target's, so that chance matches of the extension at real cleavages are measured too) count if they lie
     in a run of at least @p extension_min_run consecutive lengths there (1: every piece, 2: a tag of length one; 0: none). Returns
     the counted pieces as (first, last); their envelopes are added to @p envelopes if @p record; @p authentic (one flag per residue)
     receives the authentic cleavages found in this world.
   */
   std::set<std::pair<int, int>> annotateInternal_(const PeakArrays& spec, const PeakOccupancy& occupancy, const std::vector<double>& sorted_intensities,
-                                                  const InternalPieces& pieces, const std::string& sequence,
+                                                  const InternalPieces& pieces, const std::string& sequence, bool high_charge,
                                                   const std::vector<char>& terminal_peaks, double cal_factor, double shift, bool record,
                                                   int extension_min_run, const std::vector<char>& given_authentic,
                                                   std::vector<Envelope>& envelopes, std::vector<char>& authentic) const;
@@ -380,11 +384,15 @@ private:
   bool internal_on_ = true;
   int internal_max_length_ = 150;
   /// pieces in a ladder that make a cleavage authentic: after Asp, elsewhere, and before Pro (tag length + 1)
-  int min_run_asp_ = 2;
-  int min_run_other_ = 4;
+  int min_run_asp_ = 4;
+  int min_run_other_ = 6;
   int min_run_pro_ = 5;
+  /// charges per kDa of the precursor above which the thresholds after Asp and before Pro are exchanged (0: never)
+  double charge_switch_ = 0.45;
+  /// only internal pieces of the b/y type (two collisional cleavages)
+  bool internal_by_only_ = true;
   /// minimum run of consecutive lengths for pieces beyond the ladders: 0 none, 1 all, 2 a tag of length one
-  int extension_min_run_ = 2;
+  int extension_min_run_ = 0;
   /// internal ion types: mass added to the residue sum (C-end prefix shift + N-end suffix shift - H2O), and their names
   std::vector<double> internal_offsets_;
   std::vector<std::string> internal_ion_types_;

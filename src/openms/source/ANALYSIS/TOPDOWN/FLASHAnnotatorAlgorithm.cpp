@@ -177,9 +177,9 @@ void FLASHAnnotatorAlgorithm::setDefaultParams_()
   defaults_.setValue("internal_max_length", 150, "Longest internal piece (residues) that is tested.");
   defaults_.setMinInt("internal_max_length", 2);
 
-  defaults_.setValue("internal_min_tag_length_asp", 2,
-                     "Tag length (consecutive pieces - 1) that makes a cleavage after Asp authentic (aspartic acid effect). On raw peaks "
-                     "of the 20260715 targeted set, 1 adds chance coverage of ~2.4 points, 2 ~0.7.");
+  defaults_.setValue("internal_min_tag_length_asp", 3,
+                     "Tag length (consecutive pieces - 1) that makes a cleavage after Asp authentic (aspartic acid effect). On native "
+                     "spectra of 34 E. coli proteins, tag sites of length 3 after Asp are 4% chance (12 decoy mass shifts), length 2 14%.");
   defaults_.setMinInt("internal_min_tag_length_asp", 1);
 
   defaults_.setValue("internal_min_tag_length_pro", 4,
@@ -193,10 +193,25 @@ void FLASHAnnotatorAlgorithm::setDefaultParams_()
                      "coverage of ~1.1 points, 5 ~0.02.");
   defaults_.setMinInt("internal_min_tag_length", 1);
 
-  defaults_.setValue("internal_extension", "tag1",
-                     "With internal_asp, which accepted internal pieces with an end at an authentic Asp cleavage count beyond its ladders: "
-                     "'none', 'tag1' (pieces with a neighbor one residue longer or shorter sharing the Asp end, i.e. a tag of length "
-                     "one) or 'all'. For a PrSM whose start or end position is undetermined (-1), 'none' is used.");
+  defaults_.setValue("internal_charge_switch", 0.45,
+                     "Charge density of the precursor, in charges per kDa (1000 / isolation target m/z, whatever the oligomer state), "
+                     "above which the thresholds after Asp and before Pro are exchanged. With few charges (native precursors) the "
+                     "cleavage after Asp dominates; with mobile protons (denatured or small precursors) the cleavage before Pro takes "
+                     "over. 0: never exchanged. Without a precursor m/z the thresholds are used as given.");
+  defaults_.setMinFloat("internal_charge_switch", 0.0);
+
+  defaults_.setValue("internal_piece_types", "by",
+                     "Internal ion types that are tested. 'by': only pieces with a b-type C-end and a y-type N-end, the product of two "
+                     "collisional cleavages; b and y must be among the ion types, else no internal piece is tested. 'all': every pair "
+                     "of a prefix and a suffix ion type given. In EChcD spectra of native proteins only the b/y type exceeded chance "
+                     "(27 tag sites after Asp against 2.1), and c/z+1 pieces lie one hydrogen above b/y pieces.");
+  defaults_.setValidStrings("internal_piece_types", {"by", "all"});
+
+  defaults_.setValue("internal_extension", "none",
+                     "Which accepted internal pieces with an end at an authentic cleavage count beyond its tags: 'none', 'tag1' (pieces "
+                     "with a neighbor one residue longer or shorter sharing that end, i.e. a tag of length one) or 'all'. For a PrSM "
+                     "whose start or end position is undetermined (-1), 'none' is used. Over 196 native identifications 'tag1' added "
+                     "341 bonds, 284 of them expected by chance.");
   defaults_.setValidStrings("internal_extension", {"none", "tag1", "all"});
 
   defaultsToParam_();
@@ -226,6 +241,8 @@ void FLASHAnnotatorAlgorithm::updateMembers_()
   min_run_asp_ = (int)param_.getValue("internal_min_tag_length_asp") + 1;
   min_run_other_ = (int)param_.getValue("internal_min_tag_length") + 1;
   min_run_pro_ = (int)param_.getValue("internal_min_tag_length_pro") + 1;
+  charge_switch_ = param_.getValue("internal_charge_switch");
+  internal_by_only_ = param_.getValue("internal_piece_types").toString() == "by";
   const std::string extension = param_.getValue("internal_extension").toString();
   extension_min_run_ = extension == "all" ? 1 : (extension == "tag1" ? 2 : 0);
 
@@ -303,6 +320,7 @@ void FLASHAnnotatorAlgorithm::updateMembers_()
     for (int n = 0; n < ion_count; n++)
     {
       if (ion_is_prefix_[n]) continue;
+      if (internal_by_only_ && ! (ion_types_[c] == "b" && ion_types_[n] == "y")) continue;
       const double off = ion_shifts_[c] + ion_shifts_[n] - water;
       if (std::any_of(internal_offsets_.begin(), internal_offsets_.end(), [off](double o) { return std::abs(o - off) < 1e-4; })) continue;
       internal_offsets_.push_back(off);
@@ -1065,7 +1083,8 @@ void FLASHAnnotatorAlgorithm::annotateOne_(const PeakArrays& spec, const std::ve
   // no extension where the proteoform's start or end is undetermined: its "internal" pieces may touch the real terminus
   const int extension_min_run = (prsm.known_n_term && prsm.known_c_term) ? extension_min_run_ : 0;
   std::vector<char> authentic, decoy_authentic;
-  const auto counted = annotateInternal_(spec, occupancy, sorted_intensities, pieces, prsm.sequence, terminal_peaks, cal_factor, 0.0, true,
+  const bool high_charge = charge_switch_ > 0 && prsm.precursor_mz > 0 && 1000.0 / prsm.precursor_mz > charge_switch_;
+  const auto counted = annotateInternal_(spec, occupancy, sorted_intensities, pieces, prsm.sequence, high_charge, terminal_peaks, cal_factor, 0.0, true,
                                          extension_min_run, std::vector<char>(length, 0), result.envelopes, authentic);
   // the decoy worlds of the internal fragments are only needed to study chance (the internal p-value comes from the calibration
   // model): they run with report_decoy_envelopes only
@@ -1073,7 +1092,7 @@ void FLASHAnnotatorAlgorithm::annotateOne_(const PeakArrays& spec, const std::ve
   for (Size s = 0; report_decoys_ && s < decoy_shifts_.size(); s++)
   {
     decoy_counted = std::max(0, decoy_counted);
-    decoy_counted += (int)annotateInternal_(spec, occupancy, sorted_intensities, pieces, prsm.sequence, terminal_peaks, cal_factor, decoy_shifts_[s],
+    decoy_counted += (int)annotateInternal_(spec, occupancy, sorted_intensities, pieces, prsm.sequence, high_charge, terminal_peaks, cal_factor, decoy_shifts_[s],
                                             true, extension_min_run, authentic, result.envelopes, decoy_authentic)
                        .size();
   }
@@ -1099,7 +1118,7 @@ void FLASHAnnotatorAlgorithm::annotateOne_(const PeakArrays& spec, const std::ve
 
 std::set<std::pair<int, int>> FLASHAnnotatorAlgorithm::annotateInternal_(const PeakArrays& spec, const PeakOccupancy& occupancy,
                                                                          const std::vector<double>& sorted_intensities,
-                                                                         const InternalPieces& pieces, const std::string& sequence,
+                                                                         const InternalPieces& pieces, const std::string& sequence, bool high_charge,
                                                                          const std::vector<char>& terminal_peaks, double cal_factor, double shift,
                                                                          bool record, int extension_min_run, const std::vector<char>& given_authentic,
                                                                          std::vector<Envelope>& envelopes, std::vector<char>& authentic) const
@@ -1162,12 +1181,15 @@ std::set<std::pair<int, int>> FLASHAnnotatorAlgorithm::annotateInternal_(const P
   // a, or all start right after it. run_end / run_start: the size of a piece's run in the group of its last / first residue.
   authentic.assign(length, 0);
   // threshold by the residues around the cleavage after residue a: after Asp, before Pro (the smaller one where both hold), other
-  auto min_run = [&sequence, length, this](int a) {
+  // (the two exchanged for a precursor of high charge density)
+  const int run_asp = high_charge ? min_run_pro_ : min_run_asp_;
+  const int run_pro = high_charge ? min_run_asp_ : min_run_pro_;
+  auto min_run = [&sequence, length, run_asp, run_pro, this](int a) {
     const bool asp = sequence[a] == 'D' || sequence[a] == 'd';
     const bool pro = a + 1 < length && (sequence[a + 1] == 'P' || sequence[a + 1] == 'p');
-    if (asp && pro) return std::min(min_run_asp_, min_run_pro_);
-    if (asp) return min_run_asp_;
-    return pro ? min_run_pro_ : min_run_other_;
+    if (asp && pro) return std::min(run_asp, run_pro);
+    if (asp) return run_asp;
+    return pro ? run_pro : min_run_other_;
   };
   std::vector<int> run_end(accepted.size(), 0), run_start(accepted.size(), 0);
   std::vector<int> run;

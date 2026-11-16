@@ -419,6 +419,9 @@ protected:
     {
       auto& prsm = prsms[r];
       if (prsm.spectrum_index < 0) continue;
+      // the isolation target m/z: its charge density selects the internal-ion thresholds
+      const auto& precursors = raw_spectra[prsm.spectrum_index].getPrecursors();
+      if (! precursors.empty()) prsm.precursor_mz = precursors[0].getMZ();
       if (fixed_precursor_charge > 0)
       {
         prsm.precursor_charge = fixed_precursor_charge;
