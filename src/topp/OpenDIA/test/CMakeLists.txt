@@ -40,6 +40,10 @@ add_test(NAME OpenDIAScorer_test COMMAND OpenDIAScorer_test)
 add_executable(OpenDIAFragmentGrid_test OpenDIAFragmentGrid_test.cpp)
 target_link_libraries(OpenDIAFragmentGrid_test PRIVATE OpenDIA_impl)
 add_test(NAME OpenDIAFragmentGrid_test COMMAND OpenDIAFragmentGrid_test)
+
+add_executable(OpenDIAMS1_test OpenDIAMS1_test.cpp)
+target_link_libraries(OpenDIAMS1_test PRIVATE OpenDIA_impl)
+add_test(NAME OpenDIAMS1_test COMMAND OpenDIAMS1_test)
 # Validation driver on the PLAN_GAP scoring arrays (not a ctest).
 add_executable(OpenDIAScorer_arrays OpenDIAScorer_arrays.cpp)
 target_link_libraries(OpenDIAScorer_arrays PRIVATE OpenDIA_impl)

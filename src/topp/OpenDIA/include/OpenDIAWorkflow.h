@@ -86,6 +86,7 @@ namespace OpenMS::OpenDIA
     std::uint64_t seed = 0;
     int threads = 1;
     bool im_array_as_vssc = false;
+    bool ms1_features = false;  ///< PLAN_MS1: append the 5 MS1 isotope evidence features (MS1Evidence).
     /// Optional: reuse an OpenDIACalibrate JSON and anchor TSV instead of calibrating (reproduction of earlier runs).
     std::string calibration_json;
     std::string anchors_tsv;
@@ -143,6 +144,6 @@ namespace OpenMS::OpenDIA
     Log log_;
   };
 
-  /// Feature names of RunAnalysis, in column order.
-  const std::vector<std::string>& runFeatureNames();
+  /// Feature names of RunAnalysis, in column order (with the PLAN_MS1 block when @p ms1).
+  std::vector<std::string> runFeatureNames(bool ms1 = false);
 }
