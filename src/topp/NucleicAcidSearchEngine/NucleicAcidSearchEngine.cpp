@@ -3595,7 +3595,9 @@ protected:
     if (!decoy_pattern.empty())
     {
       OPENMS_LOG_INFO << "Performing FDR calculations..." << endl;
-      calculateAndFilterFDR_(id_data, report_top_hits == 1, rescored ? rescoring_scores->score_ref : search_score_ref);
+      // Percolator scored one row per spectrum; hits tied with it share its score. Count each spectrum once, whatever
+      // 'report:top_hits' is, so that a reporting limit cannot change the q-values.
+      calculateAndFilterFDR_(id_data, (report_top_hits == 1) || rescored, rescored ? rescoring_scores->score_ref : search_score_ref);
     }
     id_data.calculateCoverages();
 

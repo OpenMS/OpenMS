@@ -22,7 +22,8 @@ NASE's q-values refer to the same competition: the best hit of each spectrum. Co
 - the order of the hits of a spectrum stays the native order; a runner-up is never promoted,
 - hits tied with the best native score share its Percolator score and PEP,
 - with @p report:top_hits above 1, lower-ranked hits get no Percolator score and therefore no q-value
-  (with @p fdr:cutoff below 1, they are removed).
+  (with @p fdr:cutoff below 1, they are removed),
+- the q-values count each spectrum once (its best hit), whatever @p report:top_hits is.
 
 Runner-ups are not rescored as rows of their own. Every RNA target has an isobaric reversed decoy, so most
 spectra have a strong decoy runner-up. Without Percolator's target-decoy competition, its training q-values and

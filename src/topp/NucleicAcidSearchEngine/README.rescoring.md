@@ -28,6 +28,8 @@ As a consequence:
 - Hits tied with the best native score share its Percolator score and PEP.
 - With `report:top_hits` above 1, the lower-ranked hits get no Percolator
   score and therefore no q-value; with `fdr:cutoff` below 1 they are removed.
+- The q-values count each spectrum once (its best hit), whatever
+  `report:top_hits` is, so the reporting limit does not change them.
 
 Runner-ups are not rescored as rows of their own. Every RNA target has an
 isobaric reversed decoy, so most spectra have a strong decoy runner-up.

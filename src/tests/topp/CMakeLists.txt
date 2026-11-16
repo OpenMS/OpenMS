@@ -9168,6 +9168,13 @@ add_test("TOPP_NucleicAcidSearchEngine_rescoring_out" ${DIFF} -in1 ${TESTS_TEMP_
 add_test("TOPP_NucleicAcidSearchEngine_rescoring_features_out" ${DIFF} -in1 ${TESTS_TEMP_DIR}/NucleicAcidSearchEngine_rescoring_features.tmp.tsv -in2 ${DATA_DIR_TOPP}/NucleicAcidSearchEngine_rescoring_features_out.tsv)
 set_tests_properties("TOPP_NucleicAcidSearchEngine_rescoring_out" PROPERTIES DEPENDS "TOPP_NucleicAcidSearchEngine_rescoring")
 set_tests_properties("TOPP_NucleicAcidSearchEngine_rescoring_features_out" PROPERTIES DEPENDS "TOPP_NucleicAcidSearchEngine_rescoring")
+# The q-values of rescored searches count one match per spectrum: with an FDR cutoff, reporting two hits per
+# spectrum must give the same result as one (lower hits have no Percolator score; tied hits share one).
+foreach(top 1 2)
+  add_test("TOPP_NucleicAcidSearchEngine_rescoring_top${top}" ${TOPP_BIN_PATH}/NucleicAcidSearchEngine -test -in ${DATA_DIR_TOPP}/NucleicAcidSearchEngine_rescoring.mzML.gz -database ${DATA_DIR_TOPP}/NucleicAcidSearchEngine_rescoring.fasta -oligo:enzyme "no cleavage" -precursor:min_charge -2 -precursor:max_charge -3 -fdr:decoy_pattern DECOY_ -threads 1 -rescoring:enable -report:top_hits ${top} -fdr:cutoff 0.05 -out ${TESTS_TEMP_DIR}/NucleicAcidSearchEngine_rescoring_top${top}.tmp.mzTab)
+endforeach()
+add_test("TOPP_NucleicAcidSearchEngine_rescoring_top_out" ${DIFF} -in1 ${TESTS_TEMP_DIR}/NucleicAcidSearchEngine_rescoring_top2.tmp.mzTab -in2 ${TESTS_TEMP_DIR}/NucleicAcidSearchEngine_rescoring_top1.tmp.mzTab)
+set_tests_properties("TOPP_NucleicAcidSearchEngine_rescoring_top_out" PROPERTIES DEPENDS "TOPP_NucleicAcidSearchEngine_rescoring_top1;TOPP_NucleicAcidSearchEngine_rescoring_top2")
 # 'rescoring_rejected' (110 + 260 spectra): Percolator's sanity check rejects the learned model, so the result must be
 # that of the native score.
 add_test("TOPP_NucleicAcidSearchEngine_rescoring_rejected" ${TOPP_BIN_PATH}/NucleicAcidSearchEngine -test -in ${DATA_DIR_TOPP}/NucleicAcidSearchEngine_rescoring_rejected.mzML.gz -database ${DATA_DIR_TOPP}/NucleicAcidSearchEngine_rescoring_rejected.fasta -oligo:enzyme "no cleavage" -precursor:min_charge -2 -precursor:max_charge -3 -fdr:decoy_pattern DECOY_ -threads 1 -rescoring:enable -out ${TESTS_TEMP_DIR}/NucleicAcidSearchEngine_rescoring_rejected.tmp.mzTab)
