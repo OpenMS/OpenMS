@@ -7,6 +7,9 @@
 default and requires decoy sequences (@p fdr:decoy_pattern). The search, the candidate methods and the native
 scores are unchanged; only the score that the q-values are calculated on changes.
 
+@warning Experimental: the rescored q-values can understate the FDR when an analyte produces several spectra (see
+@ref nase_rescoring_fdr). Check them with an entrapment experiment, and prefer shuffled decoys.
+
 @code
 NucleicAcidSearchEngine -in spectra.mzML -database targets_decoys.fasta \
   -out results.mzTab -fdr:decoy_pattern DECOY_ \
@@ -65,10 +68,25 @@ score with its best single feature, which can rank far worse than the native sco
 (default 0.01) sets the FDR at which Percolator selects positive training examples and checks the learned model; a
 higher value, e.g. 0.05, can let hard searches train.
 
-Results are reproducible for the same @p rescoring:seed, input order and number of threads. The tests use
+@section nase_rescoring_fdr FDR control
+
+Percolator trains with three-fold cross-validation, and NASE puts every spectrum in a fold of its own. When one
+analyte produces several spectra, some of them train the model that scores the others. Freestone, Noble and Keich
+(2024, "Re-investigating the correctness of decoy-based false discovery rate control in proteomics tandem mass
+spectrometry") showed that this lets Percolator's PSM-level q-values understate the FDR: repeated spectra of a
+wrongly explained analyte pull each other up when the wrong match is a target and push each other down when it is a
+decoy. Entrapment checks of NASE on HAP1 files with simplified settings showed the same pattern: accepted entrapment
+matches clustered on a few repeated oligos, with estimated FDPs of about 7-13% at q <= 1% in one check and about 12%
+at q <= 5% on one file in another; with the full HAP1 recipe the estimates stayed near nominal. Until rescoring groups
+the spectra of one analyte (e.g. oligo-level training, or Percolator-RESET by Freestone, Käll, Noble and Keich), the
+rescored q-values are experimental. Shuffled decoys (DecoyDatabase with @p type RNA and @p method shuffle) gave the
+lower estimated FDP in these checks and are recommended over reversed ones.
+
+Results are reproducible for the same @p rescoring:seed and input order; with 1 and 4 threads, the scores and q-values
+were identical in our checks and only the PEPs differed slightly (core Percolator's PEP estimation). The tests use
 synthetic data (one set on which Percolator trains a model, one on which it rejects it) and check the wiring, not
 the model. Reversed RNA decoys share many fragment masses with their
-targets; shuffled decoys (DecoyDatabase with @p type RNA and @p method shuffle) may separate better. Neither a
+targets; shuffled decoys separated better in the entrapment checks. Neither a
 nominal q-value yield nor these tests show FDR control on real data; an entrapment experiment is the appropriate
 check.
 */

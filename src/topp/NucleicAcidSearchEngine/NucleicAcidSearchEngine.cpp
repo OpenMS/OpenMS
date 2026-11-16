@@ -501,7 +501,10 @@ protected:
                   "error, ion-series coverage, matched intensity and the evidence of the candidate method). The q-values are then "
                   "calculated on the Percolator score; the native score, Percolator score and PEP are reported. The order of the hits of a "
                   "spectrum is unchanged, and hits below the best one get no Percolator score or q-value. If Percolator cannot run (e.g. "
-                  "too few decoys) or rejects its learned model, the native score is used with a warning.");
+                  "too few decoys) or rejects its learned model, the native score is used with a warning. Experimental: when an analyte "
+                  "produces several spectra, the rescored q-values can understate the FDR (spectra of one analyte fall into different "
+                  "cross-validation folds; Freestone, Noble and Keich 2024); check them with an entrapment experiment. Shuffled "
+                  "decoys (DecoyDatabase -type RNA -method shuffle) are recommended over reversed ones.");
     registerFlag_("rescoring:route_features",
                   "Add the route evidence of the rescored hit (route score, nodes, intensity ratio, prefix and suffix length) to the "
                   "features of a hyperscore or MVH search. The route score is that of 'scoring:method route' for the intact model "
@@ -2859,13 +2862,13 @@ protected:
     vector<RNARouteScorer::PreparedSpectrum> route_scoring_contexts;
     // Route evidence of the rescored hits of a hyperscore or MVH search (route-scored hits already have it).
     const bool rescoring_route_features = rescoring_enabled && getFlag_("rescoring:route_features") && (scoring_method != "route");
-    if ((scoring_method == "route") || rescoring_route_features)
+    const Size route_max_peaks = getIntOption_(route_generation ? "routes:max_peaks" : "graph:max_peaks");
+    if (scoring_method == "route")
     {
       route_scoring_spectra.assign(spectra.begin(), spectra.end());
-      const Size max_peaks = getIntOption_(route_generation ? "routes:max_peaks" : "graph:max_peaks");
       for (auto& spectrum : route_scoring_spectra)
       {
-        spectrum.select(RNASpectrumGraph::selectPeakIndices(spectrum, max_peaks));
+        spectrum.select(RNASpectrumGraph::selectPeakIndices(spectrum, route_max_peaks));
         route_scoring_contexts.push_back(RNARouteScorer::prepareSpectrum(spectrum, negative_mode, route_score_options));
       }
     }
@@ -2873,14 +2876,17 @@ protected:
     RouteEvidence rescoring_route_evidence;
     if (rescoring_route_features)
     {
-      // As 'scoring:method route' for the intact model of the hit (no support scaffolds).
+      // As 'scoring:method route' for the intact model of the hit (no support scaffolds). Only the rescored hit of a
+      // spectrum is scored, so its peaks are selected and its context prepared here instead of for all spectra up front.
       rescoring_route_evidence = [&](Size scan_index, const AnnotatedHit& hit) {
+        MSSpectrum spectrum = spectra[scan_index];
+        spectrum.select(RNASpectrumGraph::selectPeakIndices(spectrum, route_max_peaks));
+        const auto context = RNARouteScorer::prepareSpectrum(spectrum, negative_mode, route_score_options);
         MSSpectrum model;
         spectrum_generator.getSpectrum(model, hit.sequence, base_charge, hit.precursor_ref->charge * base_charge);
         filterBlacklistedIons_(model, blacklist_mz, blacklist_tolerance);
         const auto query = RNATagCandidateFilter::prepare(hit.sequence, nullptr, model, selected_ions, route_base_loss);
-        return RNARouteScorer::score(query, route_scoring_spectra[scan_index], route_scoring_contexts[scan_index], negative_mode,
-                                     route_score_options);
+        return RNARouteScorer::score(query, spectrum, context, negative_mode, route_score_options);
       };
     }
     std::atomic<bool> route_score_limit_exceeded {false};
