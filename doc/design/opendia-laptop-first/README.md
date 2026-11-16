@@ -3,15 +3,74 @@
 **Status, 16 November 2026.** This plan replaced the laptop-first WP-00 to WP-10 plan on 7 November 2026. The old plan is closed and kept unchanged under [archive/legacy-wp-plan-20261107](archive/legacy-wp-plan-20261107/README.md).
 
 The rewrite lives on [`OpenMS/OpenMS:feature/opendia-clean-rewrite`](https://github.com/OpenMS/OpenMS/tree/feature/opendia-clean-rewrite).
-All of its code is under `src/topp/OpenDIA/`, and it makes no changes to the shared OpenMS API. The branch tip is `9d6bf16f10`.
+All of its code is under `src/topp/OpenDIA/`, and it makes no changes to the shared OpenMS API. The branch tip is `ab46f97ad4`.
 It is an experimental branch, not a pull request. It must not merge into `develop` until the acceptance gates of R-WP6 pass.
 The branch's [`src/topp/OpenDIA/README.md`](https://github.com/OpenMS/OpenMS/blob/feature/opendia-clean-rewrite/src/topp/OpenDIA/README.md) describes the tools. The evidence is in [`gates/`](gates/).
 
 ## Current state, 16 November 2026
 
+### Snapshot against DIA-NN (16 Nov, `gates/single-binary/STATUS_vs_DIANN.txt`)
+- **Setup:**
+  - Current `OpenDIAWorkflow`: self-calibrating, arm-E search library, `library12_full.pqp` scoring library, seeds 0-4,
+    codon on 8 threads. Code `ab46f97ad4`.
+  - DIA-NN 2.2.0 on the same 302,480 targets with its own decoys (`--gen-decoys`).
+  - Both cut at their own run q ≤ 0.01. Entrapment FDP_c is computed only for evaluation.
+
+| | raw 01 | raw 02 | raw 03 (held out) |
+|---|---|---|---|
+| OpenDIA N at FDP_c 1 % (median, range) | 1804 (1728-1827) | 1909 (1867-1935) | 1907 (1831-1957) |
+| DIA-NN N at FDP_c 1 % | 2067 | 2283 | not run |
+| OpenDIA / DIA-NN | 87 % | 84 % | |
+| OpenDIA IDs at q ≤ 0.01 (median), FDP_c | 1709, 0.0047-0.0095 | 1811, 0.0012-0.0088 | 1849, 0.0058-0.0096 |
+| DIA-NN IDs at q ≤ 0.01, FDP_c | 2361, **0.0144** | 2322, **0.0112** | |
+| DIA-NN's q ≤ 0.01 IDs that OpenDIA also reports | 67 % (1588) | 72 % (1676) | |
+| Same, human (non-entrapment) IDs only | 68 % | 73 % | |
+| OpenDIA's q ≤ 0.01 IDs that DIA-NN also reports | 93 % | 93 % | |
+| OpenDIA only / DIA-NN only (q ≤ 0.01) | 121 / 773 | 128 / 646 | |
+| Overlap at each tool's own FDP_c 1 % cut | 75 % of DIA-NN's | 76 % of DIA-NN's | |
+
+- **At equal true error (FDP_c 1 %)**, OpenDIA reaches 84-87 % of DIA-NN.
+- **At each tool's own q ≤ 0.01**, the gap looks larger: 72-78 %. One reason is that DIA-NN's q ≤ 0.01 is
+  anti-conservative on this benchmark (FDP_c 1.1-1.4 %), while OpenDIA's is conservative (≤ 1 %).
+- **93 % of what OpenDIA reports is also in DIA-NN's list.** The disagreement is mostly DIA-NN IDs that OpenDIA does
+  not reach.
+- **Where the missed DIA-NN IDs are lost** (current funnel, `gates/extraction-parity/gap/FUNNEL_workflow_library12full.txt`,
+  medians, raw 01 / 02):
+
+  | stage | raw 01 | raw 02 |
+  |---|---|---|
+  | not scored | 8 | 10 |
+  | wrong peak | 116 | 106 |
+  | right peak, below the cut | 570 | 463 |
+
+  So about 80 % is ranking.
+
+**Run time and resources, one Astral 15-min raw (3.1 GB .raw).** OpenDIA medians come from the 15 codon runs (one per
+seed, 3 raws).
+
+| OpenDIA stage | seconds |
+|---|---|
+| calibration (2 passes) | 128-153 |
+| search | 15-19 |
+| one evidence pass | 148-240 |
+| features | 7-9 |
+| scoring | 17-25 |
+| **total wall** | **6:08-7:35** |
+
+| | OpenDIA | DIA-NN 2.2 (local docker, same library) |
+|---|---|---|
+| Wall time | 6:08-7:35 (8 threads) | 13:27 raw 01 (14 threads); 8:48 raw 02 (9 threads, run beside another job) |
+| CPU time | 586-714 s | not recorded |
+| Peak memory | **21.9-22.7 GB** | not recorded (the docker run hid it) |
+| Input | Thermo .raw read directly | mzML (FileConverter, about 5.8 GB per raw), conversion time not included |
+
+- OpenDIA is about 1.3-2× faster than DIA-NN here.
+- OpenDIA's memory rose from 9.6 GB (with `library12_pop`) to about 22 GB with the full 12-fragment scoring library.
+  That is an open efficiency item.
+
 **Goal.** OpenDIA must identify as many precursors as DIA-NN on the same library, with honest error control and no teacher. The earlier goal was the OpenSWATH + Percolator level, and it is passed.
 
-**Design data.** ProteoBench Astral entrapment raws 01 and 02 are the design runs. Raw 03 is held back for the final check. Raw 03 needs the user's approval.
+**Design data.** ProteoBench Astral entrapment raws 01 and 02 are the design runs. Raw 03 is the held-out run: it is evaluated only after a plan's verdict on raws 01/02 is committed (approved by the user on 16 November 2026).
 
 **Metric.** N is the number of target precursors at an entrapment FDP_c of 1 %, with FDP_c = N_e (1 + 1/r) / N. Every count below is a median over five scorer seeds. The seed range is 50-200 IDs.
 
@@ -22,7 +81,7 @@ The branch's [`src/topp/OpenDIA/README.md`](https://github.com/OpenMS/OpenMS/blo
 - a cross-fitted C++ scorer (a small network with a decoy-whitened readout and self-training);
 - pooled paired TDC q-values per run, and a global q-value over runs.
 
-Cost: about 8-10 min and 9.6 GB per Astral raw on 8 threads. Output is byte-identical across repeats and thread counts.
+Cost: about 6-7.5 min and 22 GB per Astral raw on 8 threads with the full 12-fragment scoring library (9.6 GB with `library12_pop`). Output is byte-identical across repeats and thread counts.
 
 | N at entrapment FDP_c 1 % (median of 5 seeds) | raw 01 | raw 02 | FDP_c at q ≤ 0.01 |
 |---|---|---|---|

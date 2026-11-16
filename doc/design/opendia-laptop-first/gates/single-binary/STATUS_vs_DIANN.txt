@@ -1,0 +1,18 @@
+raw01 DIA-NN: q<=0.01 2361 (human 2344, FDP_c 0.0144); N@FDP_c 1 % 2067
+ seed  ours_q01  ours_fdp1  both_q01  share_of_diann  share_of_diann_human  ours_in_diann  ours_only  diann_only  both_fdp1  share_fdp1
+    0      1772       1815      1639           0.694                 0.699          0.925        133         722       1564       0.757
+    1      1709       1804      1588           0.673                 0.677          0.929        121         773       1558       0.754
+    2      1702       1784      1586           0.672                 0.677          0.932        116         775       1545       0.747
+    3      1686       1728      1571           0.665                 0.670          0.932        115         790       1511       0.731
+    4      1744       1827      1608           0.681                 0.686          0.922        136         753       1567       0.758
+median: {'ours_q01': 1709.0, 'ours_fdp1': 1804.0, 'both_q01': 1588.0, 'share_of_diann': 0.673, 'share_of_diann_human': 0.677, 'ours_in_diann': 0.929, 'ours_only': 121.0, 'diann_only': 773.0, 'both_fdp1': 1558.0, 'share_fdp1': 0.754}
+
+raw02 DIA-NN: q<=0.01 2322 (human 2309, FDP_c 0.0112); N@FDP_c 1 % 2283
+ seed  ours_q01  ours_fdp1  both_q01  share_of_diann  share_of_diann_human  ours_in_diann  ours_only  diann_only  both_fdp1  share_fdp1
+    0      1814       1894      1677           0.722                 0.726          0.924        137         645       1719       0.753
+    1      1811       1928      1676           0.722                 0.726          0.925        135         646       1737       0.761
+    2      1811       1935      1683           0.725                 0.729          0.929        128         639       1746       0.765
+    3      1751       1867      1633           0.703                 0.707          0.933        118         689       1700       0.745
+    4      1671       1909      1571           0.677                 0.680          0.940        100         751       1727       0.756
+median: {'ours_q01': 1811.0, 'ours_fdp1': 1909.0, 'both_q01': 1676.0, 'share_of_diann': 0.722, 'share_of_diann_human': 0.726, 'ours_in_diann': 0.929, 'ours_only': 128.0, 'diann_only': 646.0, 'both_fdp1': 1727.0, 'share_fdp1': 0.756}
+
