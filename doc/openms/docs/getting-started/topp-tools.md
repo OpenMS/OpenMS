@@ -1,5 +1,5 @@
-OpenMS-tools
-============
+OpenMS-tools (TOPP)
+===================
 
 
 **OpenMS-tools** are the command-line tools that ship with OpenMS for the analysis of LC-MS data. They were

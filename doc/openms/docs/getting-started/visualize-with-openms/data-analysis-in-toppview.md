@@ -6,7 +6,7 @@ sections. The functionality presented here can be found in the **Tools** menu:
 
 ![TOPPView Tools Menu](/_images/tutorials/topp/TOPPView_tools_menu.png)
 
-## OpenMS tools
+## OpenMS tools (TOPP)
 
 Single {term}`OpenMS tools <OpenMS tool>` can be applied to the data of the currently selected layer or to the visible data of the current layer.
 The following example image shows the tools dialog:
