@@ -1,0 +1,8 @@
+raw01: CUR N@1% 1815; R 559; E 188 (188 scored in NEW), ED 287 (287)
+raw01: AUC(E > ED) under CUR 0.5074, under NEW 0.5307; criterion 4 (NEW <= CUR + 0.02): FAIL
+raw01 CUR: supplementary AUC(entrapment winners > decoy winners, below own cut) 0.5011
+raw01 NEW: supplementary AUC(entrapment winners > decoy winners, below own cut) 0.4996
+raw02: CUR N@1% 1894; R 469; E 138 (138 scored in NEW), ED 197 (197)
+raw02: AUC(E > ED) under CUR 0.5193, under NEW 0.5086; criterion 4 (NEW <= CUR + 0.02): pass
+raw02 CUR: supplementary AUC(entrapment winners > decoy winners, below own cut) 0.4996
+raw02 NEW: supplementary AUC(entrapment winners > decoy winners, below own cut) 0.4999
