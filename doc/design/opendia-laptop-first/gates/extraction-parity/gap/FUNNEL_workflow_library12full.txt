@@ -1,0 +1,18 @@
+raw01
+ seed   N1  diann_human  not_scored  wrong_peak  right_peak_below_cut  accepted_right  accepted_wrong  ours_not_diann
+    0 1815         2344           8         116                   559            1661               7             147
+    1 1804         2344           8         116                   570            1650               7             147
+    2 1784         2344           8         114                   587            1635               7             142
+    3 1728         2344           8         118                   624            1594               7             127
+    4 1827         2344           8         112                   563            1661               7             159
+median {'seed': 2.0, 'N1': 1804.0, 'diann_human': 2344.0, 'not_scored': 8.0, 'wrong_peak': 116.0, 'right_peak_below_cut': 570.0, 'accepted_right': 1650.0, 'accepted_wrong': 7.0, 'ours_not_diann': 147.0}
+
+raw02
+ seed   N1  diann_human  not_scored  wrong_peak  right_peak_below_cut  accepted_right  accepted_wrong  ours_not_diann
+    0 1894         2309          10         106                   469            1724               8             162
+    1 1928         2309          10         106                   450            1743               8             177
+    2 1935         2309          10         107                   441            1751               8             176
+    3 1867         2309          10         106                   489            1704               9             154
+    4 1909         2309          10         106                   463            1730               9             170
+median {'seed': 2.0, 'N1': 1909.0, 'diann_human': 2309.0, 'not_scored': 10.0, 'wrong_peak': 106.0, 'right_peak_below_cut': 463.0, 'accepted_right': 1730.0, 'accepted_wrong': 8.0, 'ours_not_diann': 170.0}
+
