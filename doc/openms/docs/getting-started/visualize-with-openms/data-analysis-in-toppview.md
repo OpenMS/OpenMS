@@ -6,16 +6,16 @@ sections. The functionality presented here can be found in the **Tools** menu:
 
 ![TOPPView Tools Menu](/_images/tutorials/topp/TOPPView_tools_menu.png)
 
-## TOPP Tools
+## OpenMS tools
 
-Single {term}`TOPP tools` can be applied to the data of the currently selected layer or to the visible data of the current layer.
-The following example image shows the TOPP tools dialog:
+Single {term}`OpenMS tools <OpenMS tool>` can be applied to the data of the currently selected layer or to the visible data of the current layer.
+The following example image shows the tools dialog:
 
 ![TOPPView Tools](/_images/tutorials/topp/TOPPView_tools.png)
 
-To apply a {term}`TOPP tool`, follow the instructions below:
+To apply an {term}`OpenMS tool`, follow the instructions below:
 
-1. Select a {term}`TOPP tool` and if necessary a type.
+1. Select an {term}`OpenMS tool` and if necessary a type.
 2. Specify the command line option of the tool, that takes the input file name.
 3. Specify the command line option of the tool, that takes the output file name.
 4. Set the algorithm parameters manually or load them from an INI file.

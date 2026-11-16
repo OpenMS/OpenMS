@@ -2,7 +2,7 @@ Feature Grouping
 ================
 
 In order to quantify differences across maps (label-free) or within a map (isotope-labeled), groups of corresponding
-features have to be found. The **FeatureLinker** TOPP tools support both approaches. These groups are represented by
+features have to be found. The **FeatureLinker** tools support both approaches. These groups are represented by
 consensus features, which contain information about the constituting features in the maps as well as average position,
 intensity, and charge.
 

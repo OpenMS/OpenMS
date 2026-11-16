@@ -7,8 +7,8 @@ Users without programming experience or those who want to quickly run common pip
 Those who want to have more control over the settings in their pipeline can pick a pre-defined workflow or create a new one themselves with one
 of our supported workflow systems.
 
-If you want to develop high performance pipelines including a large amount of data, you can use our TOPP
-tools either in the command line or create a new Nextflow workflow.
+If you want to develop high performance pipelines including a large amount of data, you can use the
+OpenMS-tools (TOPP) either in the command line or create a new Nextflow workflow.
 
 Should you be missing something you can also add new functions or classes to the OpenMS C++ core library.
 
@@ -68,7 +68,7 @@ Should you be missing something you can also add new functions or classes to the
                 Use applications such as Nextflow, Galaxy or our tool TOPPAS, to apply predefined workflows or custom workflows you have designed on your data.
 
 
-            .. grid-item-card:: :octicon:`terminal;5em;sd-text-info` **TOPP Tools**
+            .. grid-item-card:: :octicon:`terminal;5em;sd-text-info` **OpenMS-tools**
                 :link: /getting-started/topp-tools
                 :link-type: doc
 

@@ -21,7 +21,7 @@ Before opening a pull request, check the following:
 5. **Have you completed regression testing?**
    Make sure that you include a test in the test suite for:
    - Public methods of a class
-   - TOPP tools
+   - OpenMS-tools (TOPP)
    - Bug fixes
 
 Make sure to:

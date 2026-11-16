@@ -72,7 +72,8 @@ collision-induced dissociation (CID)
   induced dissociation.
 
 TOPP
-  The OpenMS Pipeline, see TOPP Tools.
+  The OpenMS Pipeline, the former name of the {term}`OpenMS-tools`, still used in publications and in the
+  graphical applications.
 
 MSGFPlusAdapter
   Adapter for the MS-GF+ protein identification (database search) engine. More information is available in the [OpenMS API reference documentation](https://openms.de/current_doxygen/html/TOPP_MSGFPlusAdapter.html).
@@ -85,11 +86,17 @@ pyOpenMS
   pyOpenMS is an open-source Python library for mass spectrometry, specifically for the analysis of proteomics and
   metabolomics data in Python. For pyOpenMS documentaion visit [this](https://pyopenms.readthedocs.io/en/latest/) link.
 
+OpenMS-tools
+  The command-line programs that ship with OpenMS and process mass spectrometry data, formerly called TOPP tools. More information on the OpenMS-tools can be found in the [OpenMS API reference documentation](https://openms.de/current_doxygen/html/TOPP_documentation.html).
+
+OpenMS tool
+  A single program of the {term}`OpenMS-tools`.
+
 TOPP Tools
-  OpenMS provides a number of programs, called TOPP tools, that process mass spectrometry data. More information on TOPP tools can be found in the [OpenMS API reference documentation](https://openms.de/current_doxygen/html/TOPP_documentation.html).
+  see {term}`OpenMS-tools`
 
 TOPP tool
-  see {term}`TOPP Tools`
+  see {term}`OpenMS tool`
 
 TOPPView
   TOPPView is a viewer for MS and HPLC-MS data, one of the graphical tools of OpenMS (installed separately from [OpenMS-TOPP-GUI](https://github.com/OpenMS/OpenMS-TOPP-GUI)). More information is available in [TOPPView documentation](/getting-started/visualize-with-openms.md).

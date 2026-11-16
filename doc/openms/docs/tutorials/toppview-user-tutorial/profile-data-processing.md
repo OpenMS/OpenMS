@@ -20,7 +20,7 @@ using the **Resampler** tool.
 
 ## Picking peaks with a PeakPicker
 
-The **PeakPicker** tools allow for picking peaks in profile data. Currently, there are two different TOPP tools
+The **PeakPicker** tools allow for picking peaks in profile data. Currently, there are two different tools
 available, PeakPickerWavelet and PeakPickerHiRes.
 
 ### PeakPickerWavelet

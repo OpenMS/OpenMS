@@ -2,14 +2,14 @@ TOPPAS
 ======
 
 TOPPAS is the build-in workflow editor of OpenMS.
-All TOPP tools can be chained, configured and executed.
+All OpenMS tools can be chained, configured and executed.
 
 TOPPAS workflows run on the local machine where TOPPAS is executed and thus only scale according to the hardware at hand. No automatic distribution across a cluster is supported.
-TOPPAS runs OpenMS TOPP tools only, including the adapters that wrap search engines and other third-party programs;
+TOPPAS runs OpenMS tools only, including the adapters that wrap search engines and other third-party programs;
 other external tools cannot be called from a TOPPAS workflow. Hand the resulting data to such tools, or use a workflow
 system such as Nextflow or Galaxy, which can integrate any tool.
 
-The strong point of TOPPAS is that it is made for OpenMS: it runs the TOPP tools of the OpenMS installation it is
+The strong point of TOPPAS is that it is made for OpenMS: it runs the OpenMS tools of the OpenMS installation it is
 installed into, and the same workflows run on the command line with ExecutePipeline.
 It also has a very shallow learning curve, making it very intuitive to create workflows.
 

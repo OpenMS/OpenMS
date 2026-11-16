@@ -2,7 +2,7 @@ Feature Detection
 =================
 
 For quantitation, the **FeatureFinder** tools are used. They extract the features from profile data or centroided data.
-TOPP offers different types of **FeatureFinders**:
+OpenMS offers different types of **FeatureFinders**:
 
 ## FeatureFinderIsotopeWavelet
 

@@ -5,7 +5,7 @@ Workflow Editor
 
 Which workflow environment to choose for running OpenMS tools?
 
-You can run OpenMS TOPP tools from the command line using your custom scripts, or use powerful
+You can run the OpenMS-tools (TOPP) from the command line using your custom scripts, or use powerful
 workflow systems designed to make workflow creation and maintenance more fun:
 
 
@@ -62,7 +62,7 @@ workflow systems designed to make workflow creation and maintenance more fun:
         :class-img-top: halfwidth
         :columns: 12
 
-        OpenMS' build-in workflow system, with limited capabilities but easy to use and tailored to TOPP tools.
+        OpenMS' build-in workflow system, with limited capabilities but easy to use and tailored to the OpenMS-tools.
 
     .. grid-item-card:: TOPPAS
         :img-top: /_images/introduction/TOPPAS_logo_dark.png
@@ -72,7 +72,7 @@ workflow systems designed to make workflow creation and maintenance more fun:
         :class-img-top: halfwidth
         :columns: 12
 
-        OpenMS' build-in workflow system, with limited capabilities but easy to use and tailored to TOPP tools.
+        OpenMS' build-in workflow system, with limited capabilities but easy to use and tailored to the OpenMS-tools.
 
     .. grid-item-card:: CWL
         :img-top: /_images/introduction/CWL-4K.png

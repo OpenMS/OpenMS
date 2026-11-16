@@ -30,7 +30,7 @@ Components include:
   You can visualize several datasets by creating **layers**. In the **Layers window** (dock window in the upper right
   corner), layers can be hidden and shown using the check box in front of each layer name.
 - **Data filtering window**
-- **Log window** to view textual output of applying TOPP tools to data.
+- **Log window** to view textual output of applying OpenMS tools to data.
 - **Views windows** that show tabulated information about the dataset.
 
 ## Import a file
@@ -51,25 +51,25 @@ You should be able to see your data in the **Viewer**.
 
 ## Process data in TOPPView
 
-The following section details how to apply TOPP tools and filter data in TOPPView.
+The following section details how to apply OpenMS tools and filter data in TOPPView.
 
-### Apply TOPP tool
+### Apply an OpenMS tool
 
-OpenMS provides a number of TOPP tools that can be applied to your data.
+OpenMS provides a number of tools that can be applied to your data.
 
-To apply a TOPP tool to your dataset:
+To apply an OpenMS tool to your dataset:
 
 1. Select a layer in the **Layers window**. The selected layer will be highlighted blue.
 
   ![display selected layer](/_images/tutorials/toppview/layers-window.png)
 
-2. Go to **Tools** > **Apply TOPP tool to whole layer**. This will open a panel to select and configure your TOPP tool.
+2. Go to **Tools** > **Apply TOPP tool to whole layer**. This will open a panel to select and configure the tool.
 
-3. Select a **TOPP tool** from the dropdown menu. A description of the TOPP tool will be displayed on the right. You may have to also specify the **input argument** as well though TOPPView might automatically select this option for you. To save the output to a file, specify the **output argument**.
+3. Select a **TOPP tool** from the dropdown menu. A description of the tool will be displayed on the right. You may have to also specify the **input argument** as well though TOPPView might automatically select this option for you. To save the output to a file, specify the **output argument**.
 
   ![display selected layer](/_images/tutorials/toppview/topp-tool-arguments-and-description.png)
 
-4. Specify the TOPP tool parameters by either:
+4. Specify the tool parameters by either:
    <ol type="a">
     <li>Loading an INI file by clicking <b>Load</b> and selecting an INI File from the file importer.</li>
 

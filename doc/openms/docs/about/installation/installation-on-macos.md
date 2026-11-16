@@ -95,7 +95,7 @@ The graphical tools are not part of the OpenMS installer. They come with a separ
 3. Double click on it. It installs TOPPView.app, TOPPAS.app and INIFileEditor.app into the OpenMS folder
    (`/Applications/OpenMS-<version>`) and refuses to install if OpenMS of that version is not installed there.
 
-To use {term}`TOPP` as regular app in the shell, add the following lines to the `~/.profile` file.
+To use the {term}`OpenMS-tools` as regular apps in the shell, add the following lines to the `~/.profile` file.
 
 :::{warning} Known Installer Issues
 

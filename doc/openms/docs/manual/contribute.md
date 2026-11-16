@@ -12,14 +12,14 @@ Bugs of the graphical tools (TOPPView, TOPPAS, INIFileEditor) go to the
 
 Include the following information in your bug report:
 
-1. The command line (i.e. call) including the TOPP tool and the arguments you used, or the steps you followed in a GUI
+1. The command line (i.e. call) including the OpenMS tool and the arguments you used, or the steps you followed in a GUI
    tool (e.g. TOPPView) - e.g. `FeatureFinderCentroided -in myfile.mzML -out myfile.featureXML`.
-2. The output of OpenMS/TOPP (or a screenshot in case of a GUI problem).
+2. The output of the OpenMS tool (or a screenshot in case of a GUI problem).
 3. Operating system (e.g. "Windows XP 32 bit", "Win 7 64 bit", "Fedora 8 32 bit", "macOS 10.6 64 bit").
 4. OpenMS version (e.g. "OpenMS 1.11.1", "Revision 63082 from the SVN repository").
 5. OpenMS architecture ("32 bit" or "64 bit")
 
-Please provide files that we need to reproduce the bug (e.g. `TOPP INI` files, data files — usually mzML) via a download
+Please provide files that we need to reproduce the bug (e.g. INI files, data files — usually mzML) via a download
 link, via the mailing list or by directly contacting one of the developers.
 
 

@@ -1,8 +1,10 @@
-TOPP Tools
-==========
+OpenMS-tools
+============
 
 
-**TOPP - The OpenMS Pipeline** is a set of tools for the analysis of HPLC-MS data. These tools can be either:
+**OpenMS-tools** are the command-line tools that ship with OpenMS for the analysis of LC-MS data. They were
+long known as **TOPP** (The OpenMS Pipeline), the name used in publications, in the API reference and in the graphical
+applications. These tools can be either:
 
 - [Executed from the command line](/getting-started/topp-tools.md#command-line-interface) or,
 - Applied individually using OpenMS graphical applications.
@@ -29,12 +31,12 @@ Documented schemas of the OpenMS formats can be found [here](https://github.com/
 
 Many tools also read Thermo Fisher `.raw` files and Bruker timsTOF `.d` directories, also zipped as `.d.zip`,
 directly; see [Vendor formats](vendor-formats.md). For data in other formats, you may need to use a file conversion
-TOPP tool.
+tool.
 
 Command Line Interface
 ----------------------
 
-Command line calls will depend on the TOPP tools used, as each TOPP tool has its own set of parameters. However, the following arguments are typically used:
+Command line calls will depend on the OpenMS tools used, as each tool has its own set of parameters. However, the following arguments are typically used:
 
 - `-in`
 
@@ -44,12 +46,12 @@ Command line calls will depend on the TOPP tools used, as each TOPP tool has its
   Specify an output file in the command line using the `-out` argument.
 - `-ini`
 
-  Specify an INI file in the command line using the `-ini` argument. TOPP uses INI files to set parameters specific to the command line tool being called.
+  Specify an INI file in the command line using the `-ini` argument. OpenMS tools use INI files to set parameters specific to the command line tool being called.
 - `-write_ini`
 
   Create an INI file using the `-write_ini` file argument.
   Create an INI file with this call:
-  `<insert TOPP tool> -write_ini <insert output INI File>`
+  `<insert OpenMS tool> -write_ini <insert output INI File>`
   If you want a visual tool to assist setting parameters, use the [INIFileEditor](/manual/additional/ini-file-editor.md), one of the graphical tools of OpenMS (installed with the OpenMS-TOPP-GUI installer, see [Installation](/about/installation.rst)).  Otherwise, you can set the parameters from the command line.
 - `-help`
 
@@ -61,17 +63,17 @@ Command line calls will depend on the TOPP tools used, as each TOPP tool has its
 Many (but not all) command line calls will have the following structure:
 
 ```bash
-<insert TOPP tool> -in <insert input mzML file> -out <insert output mzML file> -ini <insert INI file>
+<insert OpenMS tool> -in <insert input mzML file> -out <insert output mzML file> -ini <insert INI file>
 ```
 
 The following command line call uses the FileFilter tool to extract data from an mzML file. Note, that this call directly specifies the tool-specific parameters and doesn’t rely on an INI file:
 
 ![break down of example command line call](/_images/topp/command-line-call.png)
 
-TOPP INI files
---------------
+INI files
+---------
 
-TOPP INI files are XML-based files with an `.ini` extension. OpenMS uses TOPP INI files to set parameters for one or more TOPP tools. Here is an example of a TOPP INI file:
+INI files are XML-based files with an `.ini` extension. OpenMS uses INI files to set parameters for one or more OpenMS tools. Here is an example of an INI file:
 
   ```xml
   <PARAMETERS>
@@ -117,18 +119,18 @@ Similar to a feature map, a consensus map is a container for consensus features.
 ConsensusXML files can be created from featureXML files using OpenMS's feature grouping algorithms.
 
 
-Types of TOPP Tools
--------------------
+Types of OpenMS-tools
+---------------------
 
 The following tools are offered:
 
 - **File conversion**
 
-  TOPP file conversion tools can be used to convert files into a supported format.
+  File conversion tools can be used to convert files into a supported format.
 
 - **File handling**
 
-  TOPP file handling tools are largely used to extract or merge data. For more information, view the [File handling](types-of-topp-tools/file-handling.md).
+  File handling tools are largely used to extract or merge data. For more information, view the [File handling](types-of-topp-tools/file-handling.md).
 
 - **Centroiding**
 
@@ -169,7 +171,7 @@ The following tools are offered:
 
   OpenMS provides tools to measure the quality of LC-MS data. For more information, view the [Quality control](types-of-topp-tools/quality-control.md) section.
 
-For the full list of TOPP tools, visit the [API reference](https://archive.openms.de/openms/Documentation/nightly/latest/html/TOPP_documentation.html) website.
+For the full list of OpenMS tools, visit the [API reference](https://archive.openms.de/openms/Documentation/nightly/latest/html/TOPP_documentation.html) website.
 
 
 ```{toctree}

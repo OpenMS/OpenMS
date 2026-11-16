@@ -49,8 +49,8 @@ our tutorial data set. Note that conceptually, there are no differences in visua
   OpenMS, you will see a small window of the 3D mode when switching
   to 2D. Close the 3D tab in order to get rid of it.
   ```
-- In TOPPView you can also execute TOPP tools. Go to **Tools** > **Apply tool (whole layer)**
-  and choose a TOPP tool (e.g., `FileInfo`) and inspect the results.
+- In TOPPView you can also execute OpenMS tools. Go to **Tools** > **Apply tool (whole layer)**
+  and choose a tool (e.g., `FileInfo`) and inspect the results.
 
 Dependent on your data MS/MS spectra can be visualized as well (see <a href="#figure-5">Fig.5</a>) . You can
 do so, by double-click on the MS/MS spectrum shown in scan view

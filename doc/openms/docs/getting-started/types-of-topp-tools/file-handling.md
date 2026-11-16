@@ -25,7 +25,7 @@ Another frequently-occurring problem is corrupt data. You can check for corrupt 
 
 ## Converting your files to mzML
 
-The TOPP tools read spectra from the HUPO-PSI `mzML` format. Many of them also read Thermo Fisher `.raw` files and
+The OpenMS tools read spectra from the HUPO-PSI `mzML` format. Many of them also read Thermo Fisher `.raw` files and
 Bruker timsTOF `.d` directories directly; see [Vendor formats](../vendor-formats.md). If you need to convert *mzData*,
 *mzXML*, *MGF* or vendor data to *mzML*, use the FileConverter, e.g.
 
@@ -62,8 +62,8 @@ command:
 
 ### Export of OpenMS XML formats
 
-As TOPP offers no functionality for statistical analysis, this step is normally done using external statistics packages.
-In order to export the OpenMS XML formats into an appropriate format for these packages the TOPP **TextExporter** can be
+As the OpenMS tools offer no functionality for statistical analysis, this step is normally done using external statistics packages.
+In order to export the OpenMS XML formats into an appropriate format for these packages the **TextExporter** tool can be
 used.
 
 It converts the following OpenMS formats to text files:

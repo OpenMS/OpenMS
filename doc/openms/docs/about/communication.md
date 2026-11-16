@@ -41,7 +41,7 @@ The issue tracker can be used for:
 OpenMS
 - [Bug reports](https://github.com/OpenMS/OpenMS/labels/bug) (e.g. "Filter doesn't work for 1D data")
 - [Feature requests](https://github.com/OpenMS/OpenMS/labels/enhancement)
-- [Tools](https://github.com/OpenMS/OpenMS/issues?q=is%3Aopen+is%3Aissue+label%3ATOPP) (**T**he **O**penMS **P**i**p**eline - TOPP)
+- [Tools](https://github.com/OpenMS/OpenMS/issues?q=is%3Aopen+is%3Aissue+label%3ATOPP) (OpenMS-tools, formerly TOPP: **T**he **O**penMS **P**i**p**eline)
 
 Graphical tools (TOPPView, TOPPAS, INIFileEditor)
 - [OpenMS-TOPP-GUI issue tracker](https://github.com/OpenMS/OpenMS-TOPP-GUI/issues)

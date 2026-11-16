@@ -90,4 +90,4 @@ changes.
 ## Imaging data (imzML)
 
 OpenMS 3.6 reads and writes imzML, the standard format for mass spectrometry imaging, in its library and in pyOpenMS.
-The TOPP tools and TOPPView do not accept imzML files yet.
+The OpenMS tools and TOPPView do not accept imzML files yet.

@@ -11,7 +11,7 @@ Installation
 Workflow Editor
 ---------------
 
-You can run OpenMS TOPP tools from the command line using your custom scripts, or use powerful
+You can run the OpenMS-tools (TOPP) from the command line using your custom scripts, or use powerful
 workflow systems designed to make workflow creation and maintenance more fun, find out more in :ref:`workflows`.
 
 .. list-table::
