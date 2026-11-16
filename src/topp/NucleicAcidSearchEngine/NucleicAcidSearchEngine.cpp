@@ -2226,7 +2226,9 @@ protected:
     if (test_mode_) software.setVersion("test");
     // @TODO: which should be the "primary" (first) score?
     software.assigned_scores.push_back(search_score_ref);
-    software.assigned_scores.push_back(qvalue_ref);
+    // The mzTab export numbers score columns in the order of the first match that has them, following this list.
+    // The scores of every match are a subsequence of it (q-values come last: tied hits that the FDR calculation did
+    // not pick have none), so the column order does not depend on which match is exported first.
     std::optional<RescoringScores> rescoring_scores;
     if (rescoring_enabled)
     {
@@ -2237,6 +2239,7 @@ protected:
       software.assigned_scores.push_back(refs.pep_ref);
       rescoring_scores = refs;
     }
+    software.assigned_scores.push_back(qvalue_ref);
     IdentificationData::ProcessingSoftwareRef software_ref =
       id_data.registerProcessingSoftware(software);
     // @TODO: add suitable data processing action
