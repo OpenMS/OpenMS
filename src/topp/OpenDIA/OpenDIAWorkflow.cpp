@@ -52,8 +52,6 @@ protected:
     setMinFloat_("q", 0.0);
     setMaxFloat_("q", 1.0);
     registerFlag_("features_out", "Also write <run>.features.tsv with every scored window and its features");
-    registerFlag_("rt_width_selection", "Choose the RT window half width per fold from the run itself (cross-fitted, the most target precursors at "
-                  "q <= 0.01 on the other folds; experimental, PLAN_RTWIN2). Also writes <run>.precursors.full_window.tsv without it");
     registerIntOption_("seed", "<n>", 0, "Scorer seed", false);
     setMinInt_("seed", 0);
     registerFlag_("im_array_as_vssc", "Interpret a spectrum ion-mobility array whose unit is not CCS as 1/K0");
@@ -118,7 +116,6 @@ protected:
     options.threads = std::max(1, getIntOption_("threads"));
     options.seed = static_cast<std::uint64_t>(getIntOption_("seed"));
     options.im_array_as_vssc = getFlag_("im_array_as_vssc");
-    options.rt_width_selection = getFlag_("rt_width_selection");
     options.calibration.panel_targets = 40000;
 
     // Best (calibrated) score of each precursor per run, for the global q-value.
@@ -147,11 +144,7 @@ protected:
         std::ofstream json(out_dir + "/" + name + ".calibration.json");
         json << result.calibration_json;
       }
-      if (!writeRun_(out_dir + "/" + name + ".precursors.tsv", name, library, result, false))
-      {
-        return CANNOT_WRITE_OUTPUT_FILE;
-      }
-      if (options.rt_width_selection && !writeRun_(out_dir + "/" + name + ".precursors.full_window.tsv", name, library, result, true))
+      if (!writeRun_(out_dir + "/" + name + ".precursors.tsv", name, library, result))
       {
         return CANNOT_WRITE_OUTPUT_FILE;
       }
@@ -231,21 +224,18 @@ protected:
   }
 
   /// One row per precursor winner (the kept window), with its run q-value.
-  static bool writeRun_(const std::string& path, const std::string& run, const OpenDIA::AnalysisLibrary& library, const OpenDIA::RunResult& result,
-                        bool full_window)
+  static bool writeRun_(const std::string& path, const std::string& run, const OpenDIA::AnalysisLibrary& library, const OpenDIA::RunResult& result)
   {
     std::ofstream out(path);
     out << "run\tcandidate_row\tprecursor_id\tis_decoy\tsequence\tcharge\trt_apex\trt_start\trt_end\tarea\ttransition_support\tscore\tq_value\n";
     for (const auto& w : result.windows)
     {
-      const float score = full_window ? w.full_score : w.score;
-      const double q = full_window ? w.full_q_value : w.q_value;
-      if (!(score > OpenDIA::CrossFitScorer::NOT_KEPT)) continue;
+      if (!(w.score > OpenDIA::CrossFitScorer::NOT_KEPT)) continue;
       const auto& p = library.precursors[w.precursor];
       std::string row = run + '\t' + std::to_string(w.candidate) + '\t' + p.id + '\t' + (p.decoy ? "1" : "0") + '\t' + p.sequence + '\t' + std::to_string(p.charge);
       for (double v : {w.peak.rt_apex, w.peak.rt_start, w.peak.rt_end, w.peak.area}) number_(row, v);
       row += '\t' + std::to_string(w.peak.transition_support);
-      for (double v : {static_cast<double>(score), q}) number_(row, v);
+      for (double v : {static_cast<double>(w.score), w.q_value}) number_(row, v);
       out << row << '\n';
     }
     out.close();

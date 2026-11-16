@@ -644,74 +644,27 @@ namespace OpenMS::OpenDIA
     }
 
     // W rule: per precursor the window with the largest linear part (ties: lower row) keeps its full score.
-    res.raw_score = std::move(raw);
-    res.linear = std::move(linear);
-    finalise(in, res, std::vector<bool>(n, true));
-    return res;
-  }
-
-  void CrossFitScorer::finalise(const Input& in, Result& res, const std::vector<bool>& allowed)
-  {
-    const std::size_t n = in.rows();
     std::uint32_t n_precursors = 0;
     for (std::uint32_t p : in.precursor) n_precursors = std::max(n_precursors, p + 1);
     constexpr std::uint32_t NONE = std::numeric_limits<std::uint32_t>::max();
     std::vector<std::uint32_t> keep(n_precursors, NONE);
     for (std::uint32_t r = 0; r < n; ++r)
     {
-      if (!allowed[r]) continue;
       auto& b = keep[in.precursor[r]];
-      if (b == NONE || res.linear[r] > res.linear[b]) b = r;
+      if (b == NONE || linear[r] > linear[b]) b = r;
     }
     std::vector<float> kept(n, NOT_KEPT);
     for (std::uint32_t b : keep)
-      if (b != NONE) kept[b] = res.raw_score[b];
-    res.score = calibrateTail(in, kept);
-    res.q_value.assign(n, 1.0);
-    std::vector<std::uint32_t> rows;
-    for (std::uint32_t r = 0; r < n; ++r)
-      if (res.score[r] > NOT_KEPT) rows.push_back(r);
-    const auto comp = pooledPairedTDC(in, res.score, rows);
-    for (std::size_t i = 0; i < comp.ranked.size(); ++i) res.q_value[comp.ranked[i]] = comp.q[i];
-  }
+      if (b != NONE) kept[b] = raw[b];
 
-  std::vector<double> CrossFitScorer::selectWidth(const Input& in, Result& res, const std::vector<double>& rt_error,
-                                                  double tolerance, const std::vector<double>& fractions)
-  {
-    const std::size_t n = in.rows();
-    if (rt_error.size() != n || fractions.empty() || !(tolerance > 0.0))
-      throw std::invalid_argument("CrossFitScorer::selectWidth: rt_error must have one value per row, and the grid and tolerance must be set.");
-    std::uint8_t n_folds = 0;
-    for (std::uint8_t f : in.fold) n_folds = std::max<std::uint8_t>(n_folds, f + 1);
-    // Count targets at q <= 0.01 among the rows of the given folds, every row restricted to |error| <= w.
-    const auto count = [&](double w, std::uint8_t exclude)
-    {
-      Result trial = res;
-      std::vector<bool> allowed(n);
-      for (std::size_t r = 0; r < n; ++r) allowed[r] = in.fold[r] != exclude && std::abs(rt_error[r]) <= w;
-      finalise(in, trial, allowed);
-      std::size_t hits = 0;
-      for (std::size_t r = 0; r < n; ++r) hits += !in.decoy[r] && trial.q_value[r] <= 0.01;
-      return hits;
-    };
-    std::vector<double> width(n_folds, tolerance);
-    for (std::uint8_t k = 0; k < n_folds; ++k)
-    {
-      std::size_t best = 0;
-      for (double f : fractions)  // ascending; ties go to the larger width
-      {
-        const double w = f * tolerance;
-        const std::size_t c = count(w, k);
-        if (c >= best)
-        {
-          best = c;
-          width[k] = w;
-        }
-      }
-    }
-    std::vector<bool> allowed(n);
-    for (std::size_t r = 0; r < n; ++r) allowed[r] = std::abs(rt_error[r]) <= width[in.fold[r]];
-    finalise(in, res, allowed);
-    return width;
+    res.score = calibrateTail(in, kept);
+    res.raw_score = std::move(raw);
+    res.linear = std::move(linear);
+    res.q_value.assign(n, 1.0);
+    std::vector<std::uint32_t> all(n);
+    std::iota(all.begin(), all.end(), 0u);
+    const auto comp = pooledPairedTDC(in, res.score, all);
+    for (std::size_t i = 0; i < comp.ranked.size(); ++i) res.q_value[comp.ranked[i]] = comp.q[i];
+    return res;
   }
 }

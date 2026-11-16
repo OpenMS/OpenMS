@@ -86,8 +86,6 @@ namespace OpenMS::OpenDIA
     std::uint64_t seed = 0;
     int threads = 1;
     bool im_array_as_vssc = false;
-    /// Choose the RT window half width per fold from this run (CrossFitScorer::selectWidth, PLAN_RTWIN2).
-    bool rt_width_selection = false;
     /// Optional: reuse an OpenDIACalibrate JSON and anchor TSV instead of calibrating (reproduction of earlier runs).
     std::string calibration_json;
     std::string anchors_tsv;
@@ -101,8 +99,6 @@ namespace OpenMS::OpenDIA
     SearchCandidate peak;
     float score = CrossFitScorer::NOT_KEPT;
     double q_value = 1.0;
-    float full_score = CrossFitScorer::NOT_KEPT;  ///< With rt_width_selection: the result without width selection.
-    double full_q_value = 1.0;
   };
 
   struct RunResult
@@ -113,7 +109,6 @@ namespace OpenMS::OpenDIA
     std::vector<RunWindow> windows;
     std::vector<std::string> feature_names;
     std::vector<float> features;  ///< windows x feature_names, row-major.
-    std::vector<double> rt_widths;  ///< With rt_width_selection: the half width of each fold.
     std::vector<std::string> log;
   };
 

@@ -172,25 +172,5 @@ namespace OpenMS::OpenDIA
 
     /// FNV-1a 64 of a string (the validation split hash).
     static std::uint64_t fnv1a(const std::string& s);
-
-    /**
-      @brief W rule, tail calibration and pooled paired TDC over the allowed rows only (score, q_value of @p res
-      recomputed from raw_score and linear; rows not allowed are NOT_KEPT).
-    */
-    static void finalise(const Input& in, Result& res, const std::vector<bool>& allowed);
-
-    /**
-      @brief Choose the RT window half width per fold from the run itself (cross-fitted) and apply it.
-
-      For fold k, every grid width w = fraction x @p tolerance is tried on the other folds: rows with
-      |rt_error| > w are dropped, finalise() is rerun, and target precursors at q <= 0.01 are counted. The width with
-      the most targets is fold k's (ties: the larger width). Then every fold is restricted to its own width and
-      finalise() gives the reported scores and q-values. Uses only target/decoy status; scores are not retrained.
-      @param[in] rt_error Per row, apex minus (calibrated) library RT in seconds.
-      @param[in] fractions Grid of fractions of @p tolerance, ascending.
-      @return The width of each fold.
-    */
-    static std::vector<double> selectWidth(const Input& in, Result& res, const std::vector<double>& rt_error, double tolerance,
-                                           const std::vector<double>& fractions);
   };
 }
