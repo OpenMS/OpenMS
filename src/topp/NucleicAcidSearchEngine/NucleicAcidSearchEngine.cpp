@@ -511,6 +511,13 @@ protected:
                        false, true);
     setMinInt_("rescoring:min_decoys", 1);
     registerIntOption_("rescoring:seed", "<num>", 1, "Random seed of Percolator's cross-validation folds", false, true);
+    registerDoubleOption_("rescoring:train_fdr", "<value>", 0.01,
+                          "FDR at which Percolator selects positive training examples and checks the learned model on held-out folds "
+                          "(its 'train_fdr' and 'test_fdr'). If a fold has no target at this FDR, the model is rejected and the native "
+                          "score is used; a higher value can let small or hard searches train.",
+                          false, true);
+    setMinFloat_("rescoring:train_fdr", 0.001);
+    setMaxFloat_("rescoring:train_fdr", 0.5);
     registerOutputFile_("rescoring:out_features", "<file>", "",
                         "Optional output file: the feature row, label and Percolator result of every rescored hit (for inspection)", false, true);
     setValidFormats_("rescoring:out_features", {"tsv"});
@@ -1436,6 +1443,8 @@ protected:
     Percolator percolator;
     Param param = percolator.getParameters();
     param.setValue("seed", getIntOption_("rescoring:seed"));
+    param.setValue("train_fdr", getDoubleOption_("rescoring:train_fdr"));
+    param.setValue("test_fdr", getDoubleOption_("rescoring:train_fdr"));
     param.setValue("num_threads", std::max(getIntOption_("threads"), 1));
     percolator.setParameters(param);
     RescoreOutput output;

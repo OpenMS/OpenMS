@@ -93,6 +93,14 @@ high-scoring decoy left no target at q < 1% on a fold, and the single-feature
 score kept 16 / 102 / 329 spectra at 1% / 5% / 10% FDR, against 0 / 2,095 /
 2,474 for the native score.
 
+`rescoring:train_fdr` (default 0.01) sets the FDR at which Percolator selects
+positive training examples and checks the learned model (its `train_fdr` and
+`test_fdr`). A higher value can let hard searches train: with 0.05, Percolator
+trained on all three HAP1 clone1 entrapment searches, accepting 9.9% / 5.7%
+more spectra than the native score at 5% / 10% q-value, with estimated
+entrapment FDPs of 4.4% / 8.8% (native: 4.0% / 7.6%), pooled over the three
+files.
+
 ## Reproducibility and limits
 
 Results depend on `rescoring:seed` (Percolator's cross-validation folds), the

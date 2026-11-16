@@ -57,7 +57,9 @@ spectrum.
 NASE keeps the native score, with a warning, if fewer than @p rescoring:min_decoys spectra (default 100) have a
 decoy as their best hit (or no target does), if Percolator's sanity check rejects the learned model, or if
 Percolator fails. The output is then that of a search without rescoring. (For a rejected model, Percolator would
-score with its best single feature, which can rank far worse than the native score.)
+score with its best single feature, which can rank far worse than the native score.) @p rescoring:train_fdr
+(default 0.01) sets the FDR at which Percolator selects positive training examples and checks the learned model; a
+higher value, e.g. 0.05, can let hard searches train.
 
 Results are reproducible for the same @p rescoring:seed, input order and number of threads. The tests use
 synthetic data (one set on which Percolator trains a model, one on which it rejects it) and check the wiring, not
