@@ -62,3 +62,34 @@ removed and nothing is retuned.
     precursors and their decoys. The scorer's RT-error feature is in seconds, so it cannot tell a 100 s error in a
     600 s window from one in a 50 s window.
 - Raw 03 (held out) follows below, reported descriptively.
+
+## Where pass 2 gains and loses (diagnostic, after the verdict)
+Median target IDs at q ≤ 0.01, by library-RT zone, CUR → NEW. Entrapment hits stay at 0-7 per zone throughout.
+
+| zone | raw01 | raw02 |
+|---|---|---|
+| early (< 0.07) | 71 → 94 | 81 → 105 |
+| early-mid (0.07-0.15) | 147 → 151 | 145 → 149 |
+| middle (0.15-0.8) | 1408 → 1421 | 1494 → 1442 |
+| late (> 0.8) | 89 → 96 | 81 → 98 |
+
+- **Ends:** recovered, as intended. That is +23 to +24 at the early end and +7 to +17 at the late end.
+- **Middle:** the narrower window loses −52 on raw02. This repeats the earlier narrowing results (CALREFINE2, RTWIN2).
+
+## Raw 03 (held out, run once after the verdict was committed, docs 257fd81de4)
+| arm | s0 | s1 | s2 | s3 | s4 | median |
+|---|---|---|---|---|---|---|
+| CUR | 1907 (.0096) | 1831 (.0058) | 1864 (.0068) | 1913 (.0084) | 1957 (.0076) | **1907** |
+| NEW | 1831 (.0090) | 1920 (.0068) | 1881 (.0058) | 1895 (.0068) | 1955 (.0057) | **1895** |
+
+- Criterion 1: 1895 vs the 1888 needed (−0.6 %), pass. Criterion 2: max 0.0090, pass.
+- Raw 03 CUR reproduces the PLAN_RTWIN2 CUR values exactly, as determinism requires.
+- The verdict stands: it fails on raws 01/02, and raw 03 is neutral. `-id_recalibration` is removed.
+
+## Infrastructure note
+The first raw 03 submission deadlocked: 4 of 5 jobs hung for 50 min with no CPU use.
+- **Cause:** the Thermo reader takes a .NET global named mutex, `CBaseIO_<raw path>`, under
+  `$HOME/.dotnet/corefx/.../shm`. On codon, HOME is the NFS home shared by all nodes. Jobs that open the same raw file
+  concurrently on different nodes block each other, and an aborted job can leave the lock state behind.
+- **Fix:** run the container with a node-local HOME (`--no-home --home $SC:/tmp`). `run_rtprofile.sbatch` does this.
+  Earlier runs were unaffected only because they never hit this interleaving.

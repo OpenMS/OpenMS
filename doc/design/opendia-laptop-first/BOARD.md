@@ -32,7 +32,8 @@ Rows of 12-16 November 2026. Earlier rows (voxel v2-v19, CNN + LDA) are in the R
 | OpenDIAWorkflow, one binary on .raw: 1819 / 1870 (reused cal.), raw 02 at 97.1 % of Python (rule 98 %) | R-WP3, R-WP6 | Done (raw 01 pass, raw 02 fail) | [RESULT_WORKFLOW.md](gates/single-binary/workflow/RESULT_WORKFLOW.md) |
 | Validation: determinism, report, run and global q recompute, fail-closed CLI tests | R-WP6 | Done (pass) | [RESULT_WORKFLOW.md](gates/single-binary/workflow/RESULT_WORKFLOW.md) |
 | Self-calibrated RT spread: CALSPREAD fails offline; CALREFINE / CALREFINE2 (5 seeds) +5.8 % / −3.1 %, fail | R-WP2 | Done (fail) | [calspread](gates/single-binary/calspread/RESULT_CALSPREAD.md), [calrefine](gates/single-binary/calrefine/RESULT_CALREFINE2.md) |
-| RT window width rule: density crossing undefined, P_win against the evidence; cross-fitted width on IDs (PLAN_RTWIN2) −2.2 % raw 01, held-out raw 03 −2.3 %, stays off (`-rt_width_selection`) | R-WP2 | Done (fail) | [RESULT_RTWIN2.md](gates/single-binary/rtwin/RESULT_RTWIN2.md) |
+| RT window width rule: density crossing undefined, P_win against the evidence; cross-fitted width on IDs (PLAN_RTWIN2) −2.2 % raw 01, held-out raw 03 −2.3 %, removed | R-WP2 | Done (fail) | [RESULT_RTWIN2.md](gates/single-binary/rtwin/RESULT_RTWIN2.md) |
+| ID-based recalibration with RT-dependent window (PLAN_RTPROFILE): ends recovered, middle loses; raw 02 −1.05 %, raw 01 s4 FDP_c 0.0104, raw 03 −0.6 %, removed | R-WP2 | Done (fail) | [RESULT_RTPROFILE.md](gates/single-binary/rtwin/RESULT_RTPROFILE.md) |
 | Close the 12-21 % gap to DIA-NN (2067 / 2301) | R-WP5 | Next | [RESULT_GAP.md](gates/extraction-parity/gap/RESULT_GAP.md) |
 | Raw 03 held-out check: self-calibrating, `library12_full`, 1907 median, FDP_c ≤ 0.0096 | R-WP6 | Done | [RESULT_RTWIN2.md](gates/single-binary/rtwin/RESULT_RTWIN2.md) |
 
@@ -57,7 +58,8 @@ Rows of 12-16 November 2026. Earlier rows (voxel v2-v19, CNN + LDA) are in the R
 | Low-input runs (500 pg) | Open | [R2](work-packages/R2-calibration.md) |
 | Selection-free RT spread fit (`20f9f12335`) and RT-likelihood stage-3 ranking (`0e4a234762`) | Done | [RESULT_CALIB.md](gates/extraction-parity/decoygen/calib/RESULT_CALIB.md) |
 | Self-calibrated RT window on the predicted-decoy library: spread inflated (frame mismatch), fixes fail (CALSPREAD, CALREFINE, CALREFINE2) | Done (fail) | [RESULT_CALREFINE2.md](gates/single-binary/calrefine/RESULT_CALREFINE2.md) |
-| RT window width rule (PRECHECK_CROSSING, PLAN_RTWIN2 cross-fitted selection) | Done (fail, option off by default) | [RESULT_RTWIN2.md](gates/single-binary/rtwin/RESULT_RTWIN2.md) |
+| RT window width rule (PRECHECK_CROSSING, PLAN_RTWIN2 cross-fitted selection) | Done (fail, removed) | [RESULT_RTWIN2.md](gates/single-binary/rtwin/RESULT_RTWIN2.md) |
+| ID-based recalibration, RT-dependent window (PLAN_RTPROFILE) | Done (fail, removed) | [RESULT_RTPROFILE.md](gates/single-binary/rtwin/RESULT_RTPROFILE.md) |
 
 ## R-WP3: Scorer
 

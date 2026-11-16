@@ -1,0 +1,15 @@
+== raw03 s0
+LFQ_Astral_DIA_15min_50ng_Human_03.precursors.pass1.tsv N@FDP_c 0.5/1/2%: [1638, 1907, 2044] | q<=0.01 1876 FDP_c 0.0096 | tool q<=0.01 1876 FDP_c 0.0096
+LFQ_Astral_DIA_15min_50ng_Human_03.precursors.tsv N@FDP_c 0.5/1/2%: [1456, 1831, 2121] | q<=0.01 1781 FDP_c 0.0090 | tool q<=0.01 1781 FDP_c 0.0090
+== raw03 s1
+LFQ_Astral_DIA_15min_50ng_Human_03.precursors.pass1.tsv N@FDP_c 0.5/1/2%: [1653, 1831, 2007] | q<=0.01 1732 FDP_c 0.0058 | tool q<=0.01 1732 FDP_c 0.0058
+LFQ_Astral_DIA_15min_50ng_Human_03.precursors.tsv N@FDP_c 0.5/1/2%: [1410, 1920, 2106] | q<=0.01 1758 FDP_c 0.0068 | tool q<=0.01 1758 FDP_c 0.0068
+== raw03 s2
+LFQ_Astral_DIA_15min_50ng_Human_03.precursors.pass1.tsv N@FDP_c 0.5/1/2%: [1506, 1864, 2038] | q<=0.01 1757 FDP_c 0.0068 | tool q<=0.01 1757 FDP_c 0.0068
+LFQ_Astral_DIA_15min_50ng_Human_03.precursors.tsv N@FDP_c 0.5/1/2%: [1694, 1881, 2110] | q<=0.01 1737 FDP_c 0.0058 | tool q<=0.01 1737 FDP_c 0.0058
+== raw03 s3
+LFQ_Astral_DIA_15min_50ng_Human_03.precursors.pass1.tsv N@FDP_c 0.5/1/2%: [1618, 1913, 2059] | q<=0.01 1902 FDP_c 0.0084 | tool q<=0.01 1902 FDP_c 0.0084
+LFQ_Astral_DIA_15min_50ng_Human_03.precursors.tsv N@FDP_c 0.5/1/2%: [1706, 1895, 2054] | q<=0.01 1761 FDP_c 0.0068 | tool q<=0.01 1761 FDP_c 0.0068
+== raw03 s4
+LFQ_Astral_DIA_15min_50ng_Human_03.precursors.pass1.tsv N@FDP_c 0.5/1/2%: [1499, 1957, 2114] | q<=0.01 1849 FDP_c 0.0076 | tool q<=0.01 1849 FDP_c 0.0076
+LFQ_Astral_DIA_15min_50ng_Human_03.precursors.tsv N@FDP_c 0.5/1/2%: [1693, 1955, 2088] | q<=0.01 1755 FDP_c 0.0057 | tool q<=0.01 1755 FDP_c 0.0057

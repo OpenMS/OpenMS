@@ -39,7 +39,8 @@ Cost: about 8-10 min and 9.6 GB per Astral raw on 8 threads. Output is byte-iden
   - On raw 01 it is wide (151 s).
   - A refined spread fit gets the spread right, but over five seeds it scores +5.8 % on raw 01 and -3.1 % on raw 02, so it fails (PLAN_CALREFINE2).
   - Two label-free width rules are undefined or point the wrong way.
-  - A cross-fitted per-run width chosen on IDs (PLAN_RTWIN2) scores −2.2 % on raw 01 and −2.3 % on held-out raw 03, so it fails. It stays as `-rt_width_selection`, off by default (`gates/single-binary/rtwin/`).
+  - A cross-fitted per-run width chosen on IDs (PLAN_RTWIN2) scores −2.2 % on raw 01 and −2.3 % on held-out raw 03, so it fails. That post-hoc filter was removed.
+  - Recalibrating from the run's own IDs, with a window that follows the local RT error (PLAN_RTPROFILE), recovers the gradient ends: +23 to +24 IDs early, +7 to +17 late. But the narrower middle loses (raw 02 −52), the strict-FDR ranking is less stable, and it fails: raw 02 −1.05 %, raw 01 seed 4 FDP_c 0.0104, held-out raw 03 −0.6 %. Removed (`gates/single-binary/rtwin/`).
   - With the full 12-fragment scoring library, the wide window keeps FDP_c ≤ 0.0096 on all 15 runs, so the width is no longer an FDR problem.
 - **Gap to DIA-NN.** It is about 12-21 %, almost entirely in score formation on the right peak (`gates/extraction-parity/gap/`).
 
