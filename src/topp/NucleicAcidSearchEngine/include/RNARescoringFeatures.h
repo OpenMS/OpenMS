@@ -36,8 +36,8 @@ namespace OpenMS
   - matched_intensity: intensity of the distinct matched peaks / total spectrum intensity
   - longest_series: longest run of consecutive ordinals of any series / (length - 1)
   - coverage: internal backbone positions explained by any series / (length - 1)
-  - route_nodes / route_intensity_ratio / route_prefix_length / route_suffix_length
-    (Options::route: the route score is the search score, so native_score),
+  - route_score (Options::route_score), route_nodes / route_intensity_ratio /
+    route_prefix_length / route_suffix_length (Options::route),
     graph_tag_length (Options::graph), diagnostic_supported_mods (Options::diagnostics:
     modifications permitted by the spectrum's diagnostic ions; the unsupported ones
     are modifications - diagnostic_supported_mods),
@@ -57,7 +57,10 @@ public:
     StringList ion_series;
     /// Range of absolute precursor charges of the charge_<z> one-hot columns.
     Size min_charge = 1, max_charge = 1;
+    /// Route evidence columns (route_nodes, route_intensity_ratio, route_prefix_length, route_suffix_length).
     bool route = false;
+    /// With route: also a route_score column. Not for route-scored searches, whose native_score is the route score.
+    bool route_score = false;
     bool graph = false;
     bool diagnostics = false;
     bool flash = false;
@@ -84,7 +87,8 @@ public:
     Int charge = 0;
     bool adduct = false;
     const std::vector<PeptideHit::PeakAnnotation>* annotations = nullptr;
-    // Options::route
+    // Options::route (route_score: Options::route_score)
+    double route_score = 0.0;
     Size route_nodes = 0;
     double route_matched_intensity = 0.0;
     double route_local_intensity = 0.0;

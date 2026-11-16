@@ -51,6 +51,9 @@ START_SECTION(RNARescoringFeatures(Options options))
   bad = options;
   bad.min_charge = 4;
   TEST_EXCEPTION(Exception::InvalidParameter, RNARescoringFeatures{bad});
+  bad = options;
+  bad.route_score = true; // needs the route group
+  TEST_EXCEPTION(Exception::InvalidParameter, RNARescoringFeatures{bad});
 }
 END_SECTION
 
@@ -65,6 +68,14 @@ START_SECTION(const StringList& featureNames() const)
   RNARescoringFeatures extended(all);
   TEST_EQUAL(extended.featureNames().size(), basic.featureNames().size() + 4 + 1 + 1 + 3)
   TEST_EQUAL(extended.featureNames().back(), "flash_snr")
+  // route-scored searches: the route score is native_score; other searches can add it
+  TEST_EQUAL(std::count(extended.featureNames().begin(), extended.featureNames().end(), "route_score"), 0)
+  all.route_score = true;
+  RNARescoringFeatures with_route_score(all);
+  TEST_EQUAL(with_route_score.featureNames().size(), extended.featureNames().size() + 1)
+  const auto& names = with_route_score.featureNames();
+  const auto route_score = std::find(names.begin(), names.end(), "route_score");
+  TEST_EQUAL(route_score != names.end() && (route_score + 1) != names.end() && *(route_score + 1) == "route_nodes", true)
 }
 END_SECTION
 
@@ -182,6 +193,18 @@ START_SECTION(computeSpectrum)
   TEST_REAL_SIMILAR(feature(features, tied[1], "flash_snr"), 2.0)
 
   TEST_EQUAL(features.computeSpectrum({}, spectrum).empty(), true)
+
+  // route_score column (hyperscore/MVH searches): the hit's route score, next to the other route evidence
+  RNARescoringFeatures::Options with_route_score = all;
+  with_route_score.route_score = true;
+  const RNARescoringFeatures route_features(with_route_score);
+  RNARescoringFeatures::HitInput routed = best;
+  routed.route_score = 4.5;
+  const auto route_row = route_features.computeRow({routed, runner_up}, 0, spectrum);
+  TEST_EQUAL(route_row.size(), route_features.featureNames().size())
+  TEST_REAL_SIMILAR(feature(route_features, route_row, "route_score"), 4.5)
+  TEST_REAL_SIMILAR(feature(route_features, route_row, "native_score"), 10.0)
+  TEST_REAL_SIMILAR(feature(route_features, route_row, "route_intensity_ratio"), 0.5)
 }
 END_SECTION
 

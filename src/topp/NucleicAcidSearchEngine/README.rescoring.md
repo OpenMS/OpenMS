@@ -61,12 +61,24 @@ Optional groups, present when the corresponding mode is on:
 
 | Mode | Features |
 | --- | --- |
-| `scoring:method=route` | `route_nodes`, `route_intensity_ratio`, `route_prefix_length`, `route_suffix_length` |
+| `scoring:method=route` | `route_nodes`, `route_intensity_ratio`, `route_prefix_length`, `route_suffix_length` (the route score is `native_score`) |
+| `rescoring:route_features` with `scoring:method` `hyperscore` or `mvh` | `route_score` and the four route features above |
 | graph candidate methods except `graph_routes` | `graph_tag_length` (0 without a supported tag) |
 | `diagnostic:filter` | `diagnostic_supported_mods` (modifications with diagnostic support) |
 | `precursor:correct_with_flash` | `flash_corrected`, `flash_cosine`, `flash_snr` |
 
 Neutral losses other than a-B are not counted as ladder rungs.
+
+`rescoring:route_features` scores the rescored hit of a hyperscore or MVH
+search as `scoring:method=route` would, for its intact model (without the
+support scaffolds of `graph_routes`). The search and its ranking stay those of
+the chosen score; only Percolator sees the route evidence. On the HAP1 clone1
+files (three files, one seed), this gave more spectra at 1% q-value than the
+route-scored search with rescoring (hyperscore 6,442, MVH 6,388 against
+5,878); MVH with route features also accepted the most spectra at 5% and 10%
+on the entrapment database, with estimated FDPs of 3.8% / 8.9% (route-scored
+search: 4.4% / 8.8%). On small data, the extra separation can make
+Percolator's sanity check fail at train FDR 1% (see Fallback).
 
 ## Output
 
@@ -86,7 +98,7 @@ NASE uses the native score, with a warning, if
   unreliable on fewer decoys, and it does not reliably refuse such input, or
 - Percolator's sanity check rejects the learned model (no target at q < 1% on a
   held-out fold, or fewer than its best single feature), or
-- Percolator throws.
+- Percolator throws, or the route evidence of `rescoring:route_features` fails.
 
 The output is then the same as without rescoring. Percolator itself would score
 a rejected model with its best single feature, which can rank far worse than

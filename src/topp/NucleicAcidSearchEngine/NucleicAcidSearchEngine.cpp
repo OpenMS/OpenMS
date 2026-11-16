@@ -67,6 +67,7 @@
 // post-processing of results
 #include <OpenMS/ANALYSIS/ID/FalseDiscoveryRate.h>
 #include <OpenMS/ANALYSIS/ID/Percolator.h>
+#include <functional>
 #include <OpenMS/PROCESSING/ID/IDFilter.h>
 
 
@@ -501,6 +502,10 @@ protected:
                   "calculated on the Percolator score; the native score, Percolator score and PEP are reported. The order of the hits of a "
                   "spectrum is unchanged, and hits below the best one get no Percolator score or q-value. If Percolator cannot run (e.g. "
                   "too few decoys) or rejects its learned model, the native score is used with a warning.");
+    registerFlag_("rescoring:route_features",
+                  "Add the route evidence of the rescored hit (route score, nodes, intensity ratio, prefix and suffix length) to the "
+                  "features of a hyperscore or MVH search. The route score is that of 'scoring:method route' for the intact model "
+                  "(without the support scaffolds of 'graph_routes'). Route-scored searches always have these features.");
     registerIntOption_("rescoring:top_hits", "<num>", 2,
                        "Hits per spectrum retained for the score-margin features of rescoring (at least 'report:top_hits'; 0 for all)",
                        false, true);
@@ -589,6 +594,8 @@ protected:
   };
 
   typedef multimap<double, AnnotatedHit, greater<double>> HitsByScore;
+  /// Route evidence of a hit of spectrum @p scan_index (for 'rescoring:route_features'); may throw.
+  using RouteEvidence = std::function<RNARouteScorer::Result(Size scan_index, const AnnotatedHit& hit)>;
 
   /// Score both enumerated and graph-generated models through the existing OpenMS scorers.
   static double scoreNativeSpectrum_(const std::string& method,
@@ -1343,11 +1350,13 @@ protected:
     PSM per spectrum with delta scores), so Percolator's PEPs refer to the same spectrum-level competition as
     NASE's FDR calculation. Hits tied with the best native score share its Percolator score and
     PEP; lower-ranked hits get none (and therefore no q-value). The order of the hits of a spectrum is unchanged.
+    With @p route_evidence ('rescoring:route_features' of a hyperscore or MVH search), the route evidence of each
+    rescored hit is added to its features.
 
-    @return False (no Percolator scores) if Percolator cannot run (e.g. with too few decoys) or its sanity check
-            rejects the learned model.
+    @return False (no Percolator scores) if Percolator cannot run (e.g. with too few decoys), its sanity check
+            rejects the learned model, or route evidence fails.
   */
-  bool rescoreHits_(const PeakMap& exp, vector<HitsByScore>& annotated_hits)
+  bool rescoreHits_(const PeakMap& exp, vector<HitsByScore>& annotated_hits, const RouteEvidence& route_evidence)
   {
     Size min_charge = std::numeric_limits<Size>::max(), max_charge = 0, n_rows = 0, n_decoys = 0;
     for (const auto& hits : annotated_hits)
@@ -1375,13 +1384,15 @@ protected:
     options.min_charge = std::max<Size>(min_charge, 1);
     options.max_charge = std::max(max_charge, options.min_charge);
     const std::string candidate_method = getStringOption_("candidates:method");
-    options.route = getStringOption_("scoring:method") == "route";
+    options.route = (getStringOption_("scoring:method") == "route") || route_evidence;
+    options.route_score = options.route && (getStringOption_("scoring:method") != "route");
     options.graph = (candidate_method != "enumeration") && (candidate_method != "graph_routes");
     options.diagnostics = getFlag_("diagnostic:filter");
     options.flash = getFlag_("precursor:correct_with_flash");
     const RNARescoringFeatures builder(options);
 
     vector<vector<double>> scan_rows(annotated_hits.size());
+    std::string route_failure; // first route evidence error; guarded by an OpenMP critical section
 #pragma omp parallel for
     for (SignedSize scan_index = 0; scan_index < (SignedSize)annotated_hits.size(); ++scan_index)
     {
@@ -1414,6 +1425,7 @@ protected:
         input.charge = hit.precursor_ref->charge;
         input.adduct = hit.precursor_ref->adduct.has_value();
         input.annotations = &hit.annotations;
+        input.route_score = hit.route_evidence.score;
         input.route_nodes = hit.route_evidence.nodes;
         input.route_matched_intensity = hit.route_evidence.matched_intensity;
         input.route_local_intensity = hit.route_evidence.local_intensity;
@@ -1422,8 +1434,37 @@ protected:
         input.graph_tag_length = (hit.graph_evaluated && hit.graph_evidence.supported) ? hit.graph_evidence.length : 0;
         inputs.push_back(std::move(input));
       }
+      if (route_evidence)
+      {
+        // Only the rescored (best) hit needs route evidence; the others give the score margins.
+        try
+        {
+          const RNARouteScorer::Result route = route_evidence(scan_index, hits.begin()->second);
+          RNARescoringFeatures::HitInput& best = inputs.front();
+          best.route_score = std::isfinite(route.score) ? route.score : 0.0;
+          best.route_nodes = route.nodes;
+          best.route_matched_intensity = route.matched_intensity;
+          best.route_local_intensity = route.local_intensity;
+          best.route_prefix_length = route.prefix_length;
+          best.route_suffix_length = route.suffix_length;
+        }
+        catch (const Exception::BaseException& error)
+        {
+#pragma omp critical (rescoring_route_failure)
+          {
+            if (route_failure.empty()) route_failure = "spectrum '" + spectrum.getNativeID() + "': " + error.what();
+          }
+          continue;
+        }
+      }
       // All retained hits give the margins; only the best one is rescored (linear in the number of hits).
       scan_rows[scan_index] = builder.computeRow(inputs, 0, spectrum_input);
+    }
+
+    if (! route_failure.empty())
+    {
+      OPENMS_LOG_WARN << "Warning: Route evidence for rescoring failed for " << route_failure << ". Using the native search score." << endl;
+      return false;
     }
 
     RescoreInput input;
@@ -1509,7 +1550,7 @@ protected:
   /**
     @brief Turn the search hits into observation matches.
 
-    With @p rescoring, the best hits are also rescored (rescoreHits_()). Each spectrum keeps its best
+    With @p rescoring, the best hits are also rescored (rescoreHits_(), with @p route_evidence). Each spectrum keeps its best
     @p report_top_hits hits by native score (with exact ties).
 
     @return Whether the hits were rescored
@@ -1521,7 +1562,8 @@ protected:
                         IdentificationData::InputFileRef file_ref,
                         IdentificationData::ScoreTypeRef score_ref,
                         Size report_top_hits,
-                        const std::optional<RescoringScores>& rescoring)
+                        const std::optional<RescoringScores>& rescoring,
+                        const RouteEvidence& route_evidence)
   {
     // Use the current run references; cached entries may sort before them.
     const std::string graph_method = getStringOption_("candidates:method");
@@ -1540,7 +1582,7 @@ protected:
       }
     }
 
-    const bool rescored = rescoring && rescoreHits_(exp, annotated_hits);
+    const bool rescored = rescoring && rescoreHits_(exp, annotated_hits, route_evidence);
 
 // @TODO: change OpenMP schedule from default ("static") to "dynamic"/"guided"?
 #pragma omp parallel for
@@ -2815,7 +2857,9 @@ protected:
     route_score_options.max_states = getIntOption_("routes:max_states");
     vector<MSSpectrum> route_scoring_spectra;
     vector<RNARouteScorer::PreparedSpectrum> route_scoring_contexts;
-    if (scoring_method == "route")
+    // Route evidence of the rescored hits of a hyperscore or MVH search (route-scored hits already have it).
+    const bool rescoring_route_features = rescoring_enabled && getFlag_("rescoring:route_features") && (scoring_method != "route");
+    if ((scoring_method == "route") || rescoring_route_features)
     {
       route_scoring_spectra.assign(spectra.begin(), spectra.end());
       const Size max_peaks = getIntOption_(route_generation ? "routes:max_peaks" : "graph:max_peaks");
@@ -2826,6 +2870,19 @@ protected:
       }
     }
 
+    RouteEvidence rescoring_route_evidence;
+    if (rescoring_route_features)
+    {
+      // As 'scoring:method route' for the intact model of the hit (no support scaffolds).
+      rescoring_route_evidence = [&](Size scan_index, const AnnotatedHit& hit) {
+        MSSpectrum model;
+        spectrum_generator.getSpectrum(model, hit.sequence, base_charge, hit.precursor_ref->charge * base_charge);
+        filterBlacklistedIons_(model, blacklist_mz, blacklist_tolerance);
+        const auto query = RNATagCandidateFilter::prepare(hit.sequence, nullptr, model, selected_ions, route_base_loss);
+        return RNARouteScorer::score(query, route_scoring_spectra[scan_index], route_scoring_contexts[scan_index], negative_mode,
+                                     route_score_options);
+      };
+    }
     std::atomic<bool> route_score_limit_exceeded {false};
     std::string route_score_failure; // first failing pair; guarded by an OpenMP critical section
     if (route_generation)
@@ -3585,7 +3642,8 @@ protected:
 
     progresslogger.startProgress(0, 1, "post-processing search hits...");
     const bool rescored =
-      postProcessHits_(spectra, annotated_hits, id_data, negative_mode, file_ref, search_score_ref, report_top_hits, rescoring_scores);
+      postProcessHits_(spectra, annotated_hits, id_data, negative_mode, file_ref, search_score_ref, report_top_hits, rescoring_scores,
+                       rescoring_route_evidence);
     progresslogger.endProgress();
     OPENMS_LOG_INFO << "Identified spectra: " << id_data.getObservations().size()
                     << endl;

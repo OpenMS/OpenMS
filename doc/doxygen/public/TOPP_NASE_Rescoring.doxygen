@@ -44,7 +44,9 @@ rescored hits), never on the label of a hit:
 - @p longest_series: longest run of consecutive ordinals of one series / (length - 1)
 - @p coverage: backbone positions explained by any series / (length - 1)
 
-Optional groups: route evidence (@p scoring:method=route), @p graph_tag_length (graph candidate methods except
+Optional groups: route evidence (@p scoring:method=route, whose route score is @p native_score; or
+@p rescoring:route_features with hyperscore or MVH, which adds @p route_score: the route score of the hit's intact
+model, without the support scaffolds of @p graph_routes), @p graph_tag_length (graph candidate methods except
 @p graph_routes), modifications with diagnostic support (@p diagnostic:filter), and FLASH precursor
 cosine and SNR (@p precursor:correct_with_flash).
 
@@ -57,7 +59,8 @@ spectrum.
 
 NASE keeps the native score, with a warning, if fewer than @p rescoring:min_decoys spectra (default 100) have a
 decoy as their best hit (or no target does), if Percolator's sanity check rejects the learned model, or if
-Percolator fails. The output is then that of a search without rescoring. (For a rejected model, Percolator would
+Percolator (or the route evidence of @p rescoring:route_features) fails. The output is then that of a search without
+rescoring. (For a rejected model, Percolator would
 score with its best single feature, which can rank far worse than the native score.) @p rescoring:train_fdr
 (default 0.01) sets the FDR at which Percolator selects positive training examples and checks the learned model; a
 higher value, e.g. 0.05, can let hard searches train.

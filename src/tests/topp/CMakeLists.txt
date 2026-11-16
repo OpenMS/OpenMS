@@ -9168,6 +9168,11 @@ add_test("TOPP_NucleicAcidSearchEngine_rescoring_out" ${DIFF} -in1 ${TESTS_TEMP_
 add_test("TOPP_NucleicAcidSearchEngine_rescoring_features_out" ${DIFF} -in1 ${TESTS_TEMP_DIR}/NucleicAcidSearchEngine_rescoring_features.tmp.tsv -in2 ${DATA_DIR_TOPP}/NucleicAcidSearchEngine_rescoring_features_out.tsv)
 set_tests_properties("TOPP_NucleicAcidSearchEngine_rescoring_out" PROPERTIES DEPENDS "TOPP_NucleicAcidSearchEngine_rescoring")
 set_tests_properties("TOPP_NucleicAcidSearchEngine_rescoring_features_out" PROPERTIES DEPENDS "TOPP_NucleicAcidSearchEngine_rescoring")
+# 'rescoring:route_features' adds the route evidence of each rescored hit to the features of this hyperscore search
+# (at train FDR 1%, Percolator rejects that model on this small set: no target at q < 1% on a held-out fold).
+add_test("TOPP_NucleicAcidSearchEngine_rescoring_route" ${TOPP_BIN_PATH}/NucleicAcidSearchEngine -test -in ${DATA_DIR_TOPP}/NucleicAcidSearchEngine_rescoring.mzML.gz -database ${DATA_DIR_TOPP}/NucleicAcidSearchEngine_rescoring.fasta -oligo:enzyme "no cleavage" -precursor:min_charge -2 -precursor:max_charge -3 -fdr:decoy_pattern DECOY_ -threads 1 -rescoring:enable -rescoring:route_features -rescoring:train_fdr 0.05 -out ${TESTS_TEMP_DIR}/NucleicAcidSearchEngine_rescoring_route.tmp.mzTab -rescoring:out_features ${TESTS_TEMP_DIR}/NucleicAcidSearchEngine_rescoring_route_features.tmp.tsv)
+add_test("TOPP_NucleicAcidSearchEngine_rescoring_route_features_out" ${DIFF} -in1 ${TESTS_TEMP_DIR}/NucleicAcidSearchEngine_rescoring_route_features.tmp.tsv -in2 ${DATA_DIR_TOPP}/NucleicAcidSearchEngine_rescoring_route_features_out.tsv)
+set_tests_properties("TOPP_NucleicAcidSearchEngine_rescoring_route_features_out" PROPERTIES DEPENDS "TOPP_NucleicAcidSearchEngine_rescoring_route")
 # The q-values of rescored searches count one match per spectrum: with an FDR cutoff, reporting two hits per
 # spectrum must give the same result as one (lower hits have no Percolator score; tied hits share one).
 foreach(top 1 2)

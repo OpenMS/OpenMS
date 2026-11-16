@@ -23,6 +23,10 @@ RNARescoringFeatures::RNARescoringFeatures(Options options) : options_(std::move
     throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                       "Rescoring features need a charge range 0 < min_charge <= max_charge");
   }
+  if (options_.route_score && ! options_.route)
+  {
+    throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "The route_score column needs the route features");
+  }
   for (const auto& series : options_.ion_series)
   {
     if (! (series == "a-B" || (series.size() == 1 && std::string("abcdwxyz").find(series) != std::string::npos)))
@@ -40,7 +44,7 @@ RNARescoringFeatures::RNARescoringFeatures(Options options) : options_(std::move
   names_.insert(names_.end(), {"matched_ions", "matched_intensity", "longest_series", "coverage"});
   if (options_.route)
   {
-    // no route_score: with route scoring, it is native_score
+    if (options_.route_score) { names_.push_back("route_score"); }
     names_.insert(names_.end(), {"route_nodes", "route_intensity_ratio", "route_prefix_length", "route_suffix_length"});
   }
   if (options_.graph) { names_.push_back("graph_tag_length"); }
@@ -182,6 +186,7 @@ std::vector<double> RNARescoringFeatures::buildRow_(const HitInput& hit, double 
 
   if (options_.route)
   {
+    if (options_.route_score) { row.push_back(hit.route_score); }
     row.insert(row.end(), {double(hit.route_nodes),
                            hit.route_local_intensity > 0.0 ? hit.route_matched_intensity / hit.route_local_intensity : 0.0,
                            double(hit.route_prefix_length), double(hit.route_suffix_length)});
