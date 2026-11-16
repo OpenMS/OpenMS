@@ -290,6 +290,60 @@ START_SECTION(([EXTRA] legacy isotope envelopes require distinct observed peaks)
 }
 END_SECTION
 
+START_SECTION(([EXTRA] duplicate m / z seeds keep isotope features and summed intensities aligned))
+{
+  TestNASE tool;
+  for (Int polarity : {-1, 1})
+  {
+    for (Int charge : {1, 2})
+    {
+      for (bool keep_only : {false, true})
+      {
+        for (bool sum : {false, true})
+        {
+          for (bool decharge : {false, true})
+          {
+            MSSpectrum spectrum;
+            spectrum.emplace_back(500, 10);
+            spectrum.emplace_back(500, 20); // a distinct observation at the same m/z
+            spectrum.emplace_back(500 + Constants::C13C12_MASSDIFF_U / charge, 4);
+            spectrum.emplace_back(500 + 2 * Constants::C13C12_MASSDIFF_U / charge, 3);
+            tool.deisotopeAndSingleChargeMSSpectrum_(spectrum, polarity * charge, polarity * charge, 10, true, keep_only, 3, 10, decharge, true, sum);
+            TEST_EQUAL(spectrum.size(), keep_only ? 1 : 2)
+            const auto* charges = legacyCharges(spectrum);
+            TEST_NOT_EQUAL(charges, nullptr)
+            ABORT_IF(charges == nullptr)
+            TEST_EQUAL(charges->size(), spectrum.size())
+            Size assigned = 0, unassigned = 0;
+            double total = 0;
+            for (Size i = 0; i < spectrum.size(); ++i)
+            {
+              total += spectrum[i].getIntensity();
+              if ((*charges)[i] != 0)
+              {
+                ++assigned;
+                TEST_EQUAL((*charges)[i], decharge ? 1 : charge)
+                TEST_REAL_SIMILAR(spectrum[i].getIntensity(), sum ? 17 : 10)
+                TEST_REAL_SIMILAR(spectrum[i].getMZ(), decharge ? 500 * charge - polarity * (charge - 1) * Constants::PROTON_MASS_U : 500)
+              }
+              else
+              {
+                ++unassigned;
+                TEST_REAL_SIMILAR(spectrum[i].getMZ(), 500)
+                TEST_REAL_SIMILAR(spectrum[i].getIntensity(), 20)
+              }
+            }
+            TEST_EQUAL(assigned, 1)
+            TEST_EQUAL(unassigned, keep_only ? 0 : 1)
+            TEST_REAL_SIMILAR(total, (sum ? 17 : 10) + (keep_only ? 0 : 20))
+          }
+        }
+      }
+    }
+  }
+}
+END_SECTION
+
 START_SECTION(([EXTRA] optional legacy isotope detection retains unknown precursor charge))
 {
   TestNASE tool;

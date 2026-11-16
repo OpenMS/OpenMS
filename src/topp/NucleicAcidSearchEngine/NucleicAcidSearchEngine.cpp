@@ -574,9 +574,11 @@ protected:
             double expected_mz = current_mz + i * Constants::C13C12_MASSDIFF_U / abs(q);
             Size p = old_spectrum.findNearest(expected_mz);
             double tolerance_dalton = fragment_unit_ppm ? fragment_tolerance * old_spectrum[p].getPosition()[0] * 1e-6 : fragment_tolerance;
-            // Expected isotope m/z values increase. Reusing the nearest peak
-            // cannot supply another observed isotope, even with a wide window.
-            if (fabs(old_spectrum[p].getPosition()[0] - expected_mz) > tolerance_dalton || (! extensions.empty() && p <= extensions.back()))
+            // Duplicate m/z values can make findNearest select an earlier seed.
+            // An envelope must start at the current seed and then advance to
+            // distinct observed peaks for later isotope positions.
+            if (p < current_peak || fabs(old_spectrum[p].getPosition()[0] - expected_mz) > tolerance_dalton
+                || (! extensions.empty() && p <= extensions.back()))
             {
               if (extensions.size() < min_isopeaks) { has_min_isopeaks = false; }
               break;
