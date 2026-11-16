@@ -1,0 +1,18 @@
+raw01 s0 (W reproduces C++ kept set: True)
+   W rule (max linear): right-peak kept 2205 | N@0.5/1/2% [1616, 1822, 1967] q<=0.01 1714
+   max full score: right-peak kept 2058 | N@0.5/1/2% [1603, 1839, 1967] q<=0.01 1716
+raw01 s1 (W reproduces C++ kept set: True)
+   W rule (max linear): right-peak kept 2208 | N@0.5/1/2% [1639, 1871, 2000] q<=0.01 1629
+   max full score: right-peak kept 2049 | N@0.5/1/2% [1619, 1867, 2021] q<=0.01 1631
+raw01 s2 (W reproduces C++ kept set: True)
+   W rule (max linear): right-peak kept 2208 | N@0.5/1/2% [1427, 1860, 1953] q<=0.01 1640
+   max full score: right-peak kept 2062 | N@0.5/1/2% [1532, 1839, 1988] q<=0.01 1648
+raw02 s0 (W reproduces C++ kept set: True)
+   W rule (max linear): right-peak kept 2171 | N@0.5/1/2% [1676, 1835, 2043] q<=0.01 1546
+   max full score: right-peak kept 2084 | N@0.5/1/2% [1679, 1837, 2041] q<=0.01 1479
+raw02 s1 (W reproduces C++ kept set: True)
+   W rule (max linear): right-peak kept 2174 | N@0.5/1/2% [1702, 2012, 2121] q<=0.01 1469
+   max full score: right-peak kept 2075 | N@0.5/1/2% [1680, 1967, 2127] q<=0.01 1330
+raw02 s2 (W reproduces C++ kept set: True)
+   W rule (max linear): right-peak kept 2172 | N@0.5/1/2% [1680, 1896, 2029] q<=0.01 1003
+   max full score: right-peak kept 2066 | N@0.5/1/2% [1692, 1884, 1987] q<=0.01 1011

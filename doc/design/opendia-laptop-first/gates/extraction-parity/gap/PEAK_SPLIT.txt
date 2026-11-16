@@ -1,0 +1,22 @@
+raw01: reference human IDs 2344; window half width T = 90.8 s
+  A no search candidate 0 | B no candidate within 6 s 96 (B1 DIA-NN apex outside window 49, B2 inside 47) | C dropped by population 3
+  B2 detail: candidates per precursor {2: 1, 4: 1, 5: 45} | peaks found in window (cap 5) median 11, share at cap 0.96 | nearest candidate |d| p50 11.5 s
+ seed  D_other_window_kept  E_right  right_accepted   N1
+    0                   40     2205            1652 1805
+    1                   37     2208            1691 1854
+    2                   37     2208            1697 1864
+    3                   40     2205            1667 1822
+    4                   38     2207            1660 1804
+  median {'seed': 2.0, 'D_other_window_kept': 38.0, 'E_right': 2207.0, 'right_accepted': 1667.0, 'N1': 1822.0}
+raw02: reference human IDs 2309; window half width T = 79.4 s
+  A no search candidate 0 | B no candidate within 6 s 100 (B1 DIA-NN apex outside window 63, B2 inside 37) | C dropped by population 1
+  B2 detail: candidates per precursor {2: 1, 5: 36} | peaks found in window (cap 5) median 9, share at cap 0.97 | nearest candidate |d| p50 8.2 s
+ seed  D_other_window_kept  E_right  right_accepted   N1
+    0                   37     2171            1678 1826
+    1                   34     2174            1802 2021
+    2                   36     2172            1729 1905
+    3                   36     2172            1702 1866
+    4                   37     2171            1746 1930
+  median {'seed': 2.0, 'D_other_window_kept': 36.0, 'E_right': 2172.0, 'right_accepted': 1729.0, 'N1': 1905.0}
+raw01 seed 0 rows kept 327994 precursors 327994 (scores of non-kept windows are not saved: the max-full-score what-if needs the C++ raw scores, done in-tool if pursued)
+raw02 seed 0 rows kept 303995 precursors 303995 (scores of non-kept windows are not saved: the max-full-score what-if needs the C++ raw scores, done in-tool if pursued)

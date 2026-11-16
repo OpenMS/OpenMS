@@ -1,0 +1,8 @@
+raw01: DIA-NN human IDs with candidates 2344, none within 6 s 96
+  peaks_in_window over ALL library precursors: median 12, share > 5: 0.88; over DIA-NN IDs: median 13
+  rank (by co-elution) of the right peak among kept candidates: {0: 2146, 1: 66, 2: 22, 3: 11, 4: 3}
+  DIA-NN quantity of the B2 misses vs all: median 495928 vs 1295198
+raw02: DIA-NN human IDs with candidates 2309, none within 6 s 100
+  peaks_in_window over ALL library precursors: median 10, share > 5: 0.83; over DIA-NN IDs: median 11
+  rank (by co-elution) of the right peak among kept candidates: {0: 2126, 1: 60, 2: 15, 3: 8}
+  DIA-NN quantity of the B2 misses vs all: median 581528 vs 1343447
