@@ -500,7 +500,7 @@ protected:
                   "error, ion-series coverage, matched intensity and the evidence of the candidate method). The q-values are then "
                   "calculated on the Percolator score; the native score, Percolator score and PEP are reported. The order of the hits of a "
                   "spectrum is unchanged, and hits below the best one get no Percolator score or q-value. If Percolator cannot run (e.g. "
-                  "too few decoys), the native score is used with a warning.");
+                  "too few decoys) or rejects its learned model, the native score is used with a warning.");
     registerIntOption_("rescoring:top_hits", "<num>", 2,
                        "Hits per spectrum retained for the score-margin features of rescoring (at least 'report:top_hits'; 0 for all)",
                        false, true);
@@ -1337,7 +1337,8 @@ protected:
     NASE's FDR calculation. Hits tied with the best native score share its Percolator score and
     PEP; lower-ranked hits get none (and therefore no q-value). The order of the hits of a spectrum is unchanged.
 
-    @return False (no Percolator scores) if Percolator cannot run, e.g. with too few decoys.
+    @return False (no Percolator scores) if Percolator cannot run (e.g. with too few decoys) or its sanity check
+            rejects the learned model.
   */
   bool rescoreHits_(const PeakMap& exp, vector<HitsByScore>& annotated_hits)
   {
@@ -1451,8 +1452,12 @@ protected:
     }
     if (percolator.usedDefaultDirection())
     {
-      OPENMS_LOG_WARN << "Warning: Percolator found no model better than its best single feature; the Percolator score follows that "
-                         "feature." << endl;
+      // Percolator then scores with a single feature, which can rank far worse than the native score (e.g. when a
+      // high-scoring decoy leaves no target at q < 1% on a held-out fold).
+      OPENMS_LOG_WARN << "Warning: Percolator's sanity check rejected the learned model (" << n_rows << " spectra, " << n_decoys
+                      << " decoy best hits). Using the native search score." << endl;
+      writeRescoringFeatures_(exp, annotated_hits, input, row_scans, nullptr);
+      return false;
     }
     writeRescoringFeatures_(exp, annotated_hits, input, row_scans, &output);
 

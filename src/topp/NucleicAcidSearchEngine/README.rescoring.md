@@ -82,11 +82,16 @@ NASE uses the native score, with a warning, if
 - fewer than `rescoring:min_decoys` spectra (default 100) have a decoy as
   their best hit, or no target does; Percolator's model and PEPs are
   unreliable on fewer decoys, and it does not reliably refuse such input, or
+- Percolator's sanity check rejects the learned model (no target at q < 1% on a
+  held-out fold, or fewer than its best single feature), or
 - Percolator throws.
 
-The output is then the same as without rescoring. If Percolator's sanity check
-rejects the learned model, it scores with its best single feature and NASE
-warns about it; that score is still used.
+The output is then the same as without rescoring. Percolator itself would score
+a rejected model with its best single feature, which can rank far worse than
+the native score: on a HAP1 file searched with an entrapment database, a
+high-scoring decoy left no target at q < 1% on a fold, and the single-feature
+score kept 16 / 102 / 329 spectra at 1% / 5% / 10% FDR, against 0 / 2,095 /
+2,474 for the native score.
 
 ## Reproducibility and limits
 
@@ -94,9 +99,9 @@ Results depend on `rescoring:seed` (Percolator's cross-validation folds), the
 input order and `threads`. They are reproducible for the same three.
 
 The test data are synthetic (target and reversed-decoy spectra plus poor
-spectra with a few true fragments). On them, rescoring keeps more targets at
-1% FDR than the native score, but Percolator falls back to its best single
-feature, so the test checks the wiring rather than the model. Reversed RNA
+spectra with a few true fragments) and check the wiring, not the model: on one
+set Percolator trains a model (which keeps fewer targets at 1% FDR than the
+native score there), on the other it rejects it. Reversed RNA
 decoys also share many fragment masses with their targets (on the synthetic
 data, a decoy matched a median 32% of its possible ions in its target's
 spectrum, against 40% for the target); shuffled decoys

@@ -55,12 +55,13 @@ score; the PSM-level q-value is calculated on the Percolator score by the usual 
 spectrum.
 
 NASE keeps the native score, with a warning, if fewer than @p rescoring:min_decoys spectra (default 100) have a
-decoy as their best hit (or no target does), or if Percolator fails. The output is then that of a search without
-rescoring. If Percolator's sanity check rejects the learned model, it scores with its best single feature; NASE
-warns and uses that score.
+decoy as their best hit (or no target does), if Percolator's sanity check rejects the learned model, or if
+Percolator fails. The output is then that of a search without rescoring. (For a rejected model, Percolator would
+score with its best single feature, which can rank far worse than the native score.)
 
 Results are reproducible for the same @p rescoring:seed, input order and number of threads. The tests use
-synthetic data and check the wiring, not the model. Reversed RNA decoys share many fragment masses with their
+synthetic data (one set on which Percolator trains a model, one on which it rejects it) and check the wiring, not
+the model. Reversed RNA decoys share many fragment masses with their
 targets; shuffled decoys (DecoyDatabase with @p type RNA and @p method shuffle) may separate better. Neither a
 nominal q-value yield nor these tests show FDR control on real data; an entrapment experiment is the appropriate
 check.
