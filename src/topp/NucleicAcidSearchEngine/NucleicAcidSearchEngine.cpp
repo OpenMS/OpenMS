@@ -1274,13 +1274,17 @@ protected:
     if ((top_hits == 0) || (hits.size() < top_hits) || (score >= hits.rbegin()->first))
     {
       hits.emplace(score, std::move(hit));
-      if (top_hits > 0)
-      {
-        auto cutoff = hits.begin();
-        std::advance(cutoff, std::min<Size>(top_hits, hits.size()) - 1);
-        hits.erase(hits.upper_bound(cutoff->first), hits.end());
-      }
+      trimToTopHits_(hits, top_hits);
     }
+  }
+
+  /// @brief Keep the best @p top_hits hits and every exact tie at the cutoff (0 keeps all hits).
+  static void trimToTopHits_(HitsByScore& hits, Size top_hits)
+  {
+    if ((top_hits == 0) || (hits.size() <= top_hits)) return;
+    auto cutoff = hits.begin();
+    std::advance(cutoff, top_hits - 1);
+    hits.erase(hits.upper_bound(cutoff->first), hits.end());
   }
 
   void postProcessHits_(const PeakMap& exp,
@@ -1288,7 +1292,8 @@ protected:
                         IdentificationData& id_data,
                         bool negative_mode,
                         IdentificationData::InputFileRef file_ref,
-                        IdentificationData::ScoreTypeRef score_ref)
+                        IdentificationData::ScoreTypeRef score_ref,
+                        Size report_top_hits)
   {
     // Use the current run references; cached entries may sort before them.
     const std::string graph_method = getStringOption_("candidates:method");
@@ -1323,6 +1328,8 @@ protected:
         // Merged ambiguity codes can change the value order of the surviving hits.
         sortHitsByValue_(annotated_hits[scan_index]);
       }
+      // The search may retain more hits than are reported (search_top_hits).
+      trimToTopHits_(annotated_hits[scan_index], report_top_hits);
 
       // create full oligo hit structure from annotated hits
       for (const auto& pair : annotated_hits[scan_index])
@@ -1796,6 +1803,9 @@ protected:
     Size max_variable_mods_per_oligo =
       getIntOption_("modifications:variable_max_per_oligo");
     Size report_top_hits = getIntOption_("report:top_hits");
+    // Hits retained per spectrum during the search; postProcessHits_ trims them to report_top_hits.
+    // Rescoring will retain runner-up hits for its delta features.
+    const Size search_top_hits = report_top_hits;
 
     std::string enzyme_name = getStringOption_("oligo:enzyme");
     const DigestionEnzyme* configured_enzyme =
@@ -2884,7 +2894,7 @@ protected:
               hit.route_evidence = std::move(route_evidence);
               hit.native_scoring_scaffold = std::move(native_scoring_scaffold);
               hit.parent_override = std::move(parent_override);
-              retainTopHit_(annotated_hits[scan], score, std::move(hit), report_top_hits);
+              retainTopHit_(annotated_hits[scan], score, std::move(hit), search_top_hits);
             }
           }
           generated.candidates.clear();
@@ -3242,7 +3252,7 @@ protected:
 #pragma omp critical (annotated_hits_access)
             {
               HitsByScore& scan_hits = annotated_hits[scan_index];
-              if (report_top_hits == 0 || scan_hits.size() < report_top_hits || score >= scan_hits.rbegin()->first)
+              if (search_top_hits == 0 || scan_hits.size() < search_top_hits || score >= scan_hits.rbegin()->first)
               {
                 AnnotatedHit new_hit;
                 new_hit.oligo_ref = oligo_ref;
@@ -3254,7 +3264,7 @@ protected:
                 new_hit.graph_evaluated = graph_enabled;
                 new_hit.graph_evidence = graph_evidence;
                 new_hit.route_evidence = std::move(route_evidence);
-                retainTopHit_(scan_hits, score, std::move(new_hit), report_top_hits);
+                retainTopHit_(scan_hits, score, std::move(new_hit), search_top_hits);
               }
             }
           }
@@ -3313,7 +3323,7 @@ protected:
     }
 
     progresslogger.startProgress(0, 1, "post-processing search hits...");
-    postProcessHits_(spectra, annotated_hits, id_data, negative_mode, file_ref, search_score_ref);
+    postProcessHits_(spectra, annotated_hits, id_data, negative_mode, file_ref, search_score_ref, report_top_hits);
     progresslogger.endProgress();
     OPENMS_LOG_INFO << "Identified spectra: " << id_data.getObservations().size()
                     << endl;
