@@ -622,7 +622,8 @@ void CrossValidation::trainFoldChains() {
     for (std::size_t set = 0; set < numFolds_; ++set) {
       bestTruePos += stepPositives[i][set];
     }
-    const int foundPositives = static_cast<int>(bestTruePos / (numFolds_ - 1));
+    // each PSM is in numFolds_ - 1 training sets, or in the only one
+    const int foundPositives = static_cast<int>(bestTruePos / std::max(1u, numFolds_ - 1));
     if (VERB > 1) {
       cerr << "Estimated " << foundPositives << " PSMs with q<" << testFdr_
            << endl;
@@ -1058,7 +1059,8 @@ int CrossValidation::mergeCpCnPairs(
   for (int set = 0; set < static_cast<int>(numFolds_); ++set) {
     bestTruePos += truePoses[set];
   }
-  return static_cast<int>(bestTruePos / (numFolds_ - 1));
+  // each PSM is in numFolds_ - 1 training sets, or in the only one
+  return static_cast<int>(bestTruePos / std::max(1u, numFolds_ - 1));
 }
 
 void CrossValidation::postIterationProcessing(Scores& fullset,

@@ -103,7 +103,8 @@ double mymin(double a, double b) {
 }
 
 void PosteriorEstimator::estimatePEP(vector<pair<double, bool> >& combined,
-    bool usePi0, double pi0, vector<double>& peps, bool include_negative) {
+    bool usePi0, double pi0, vector<double>& peps, bool include_negative,
+    double oddsFactor) {
   // Logistic regression on the data
   LogisticRegression lr;
   estimate(combined, lr, usePi0, pi0);
@@ -125,7 +126,8 @@ void PosteriorEstimator::estimatePEP(vector<pair<double, bool> >& combined,
 #endif
   if (peps.size() == 0) return;
   
-  double top = min(1.0, exp(*max_element(peps.begin(), peps.end())));
+  double top =
+      min(1.0, oddsFactor * exp(*max_element(peps.begin(), peps.end())));
   vector<double>::iterator pep = peps.begin();
   bool crap = false;
   for (; pep != peps.end(); ++pep) {
@@ -133,7 +135,7 @@ void PosteriorEstimator::estimatePEP(vector<pair<double, bool> >& combined,
       *pep = top;
       continue;
     }
-    *pep = exp(*pep);
+    *pep = oddsFactor * exp(*pep);
     if (*pep >= top) {
       *pep = top;
       crap = true;

@@ -43,6 +43,7 @@
 #include <queue>
 #include <set>
 #include <sstream>
+#include <string_view>
 #include <unordered_map>
 #include <unordered_set>
 #include <tuple>
@@ -473,6 +474,21 @@ Percolator::Percolator()
                      "'percolator_peptide_q_value' and 'percolator_peptide_pep'. Not with algorithm 'reset' (its own "
                      "peptide-level q-value) or a scorer.");
   defaults_.setValidStrings("peptide_level", {"true","false"});
+  defaults_.setValue("reset_algorithm", "false",
+                     "rescore(): Percolator-RESET as the percolator executable's --reset-algorithm (Freestone, Kall, Noble, "
+                     "Keich, J Proteome Res 2025; bioRxiv doi:10.1101/2023.10.26.564068), "
+                     "which controls the FDR at the peptide level where several PSMs of one peptide break Percolator's "
+                     "PSM-level FDR control (Freestone, Noble, Keich 2024). The rows are scored by the best single feature, the "
+                     "best row of each RescoreInput::peptide_keys entry is kept (required), and each kept decoy is a training "
+                     "decoy or, with probability 1/2 (PseudoRandom, parameter 'seed'), an estimating decoy, which is treated as "
+                     "a target during the training. One SVM is trained (one fold, nested_xval_bins 3) on the kept rows; the "
+                     "targets and estimating decoys are then ranked, and q-values and PEPs count each estimating decoy for "
+                     "two incorrect targets. Single-decoy mode only (as the executable). Without mix-max (use_pi0 false); "
+                     "subset_max_train, subset_mode and peptide_level do not apply. RescoreOutput: q_values and peps on the "
+                     "kept rows (1 elsewhere), peptide_q_values and peptide_peps per peptide key, reset_roles. Not used by "
+                     "train()/score() or by rescorePSMs() with algorithm 'reset' (PercolatorReset, an independent "
+                     "implementation).");
+  defaults_.setValidStrings("reset_algorithm", {"true","false"});
   defaults_.setValue("reset:salt", "",
                      "RESET: salt of the decoy coins (an unsigned 64-bit integer). Empty = a fresh random salt per run "
                      "(recorded in the log and by ProSE in the search parameters). Never choose the best of several salts.");
@@ -581,6 +597,7 @@ void Percolator::updateMembers_()
   impl_->reset_decoy_databases = param_.getValue("reset:decoys").toString() == "two" ? 2 : 1;
   impl_->reset_second_decoy_prefix = param_.getValue("reset:second_decoy_prefix").toString();
   impl_->peptide_level = param_.getValue("peptide_level").toString() == "true";
+  impl_->reset_algorithm = param_.getValue("reset_algorithm").toString() == "true";
 }
 
 const std::vector<std::vector<double>>& Percolator::getSvmWeights() const
@@ -1038,6 +1055,122 @@ static RescoreInput makeSubsetInput_(
     if (has_calc)     out.calc_masses.push_back(input.calc_masses[i]);
   }
   return out;
+}
+
+// Percolator-RESET (parameter 'reset_algorithm'; Freestone, Kall, Noble, Keich, J Proteome Res 2025): the probability
+// that a kept decoy is a training decoy (Algorithm S3 of its supplement; the executable's decoyFractionTraining)
+constexpr double kResetDecoyFractionTraining = 0.5;
+
+// RESET's selection, as the executable's Caller::run with --reset-algorithm (upstream a90106b): @p all_scores (the
+// training PSMs, normalized) are scored by the best single feature (SanityCheck::getInitDirection, which leaves them
+// sorted by that score), the best PSM of each peptide key is kept (CompositionSorter::psmsOnly: strictly higher score
+// wins, so the first of equal scores; the peptides in the order in which they first appear in that order, upstream
+// e9a2b60c, not in hash-map order), and each kept decoy becomes a pseudo-target (estimating decoy) if
+// PseudoRandom::lcg_uniform_rand() > kResetDecoyFractionTraining, drawn in the order of the kept PSMs. @p all_scores
+// then holds the kept PSMs. As the executable, the sizes are counted before the draw (the ratio of targets to decoys
+// that sets the Cneg candidates counts the pseudo-targets as decoys). Output: the input row of each kept PSM, its role
+// (0 target, 1 estimating decoy, 2 training decoy) and, per input row, the index of its key's kept PSM.
+static void selectResetRepresentatives(P::Scores& all_scores, const P::Normalizer* normalizer, const RescoreInput& input,
+                                       const std::vector<size_t>& training_rows, const P::PSMDescription* slab,
+                                       double train_fdr, int threads, std::vector<size_t>& kept_rows,
+                                       std::vector<int>& roles, std::vector<size_t>& kept_of_row)
+{
+  {
+    P::SanityCheck init_check;
+    init_check.setNumThreads(static_cast<unsigned int>(threads));
+    std::vector<std::vector<double>> ww(1, std::vector<double>(P::FeatureNames::getNumFeatures() + 1, 0.0));
+    std::vector<P::Scores> sets;
+    sets.push_back(std::move(all_scores));
+    init_check.getInitDirection(sets, sets, normalizer, ww, train_fdr, train_fdr);
+    all_scores = std::move(sets.front());
+  }
+  // (the keys view the strings of the input, which outlive the map)
+  std::unordered_map<std::string_view, size_t> index_of_key;
+  std::vector<const P::ScoreHolder*> best;
+  for (const P::ScoreHolder& sh : all_scores)
+  {
+    const size_t row = training_rows[static_cast<size_t>(sh.pPSM - slab)];
+    const auto [it, inserted] = index_of_key.try_emplace(std::string_view(input.peptide_keys[row]), best.size());
+    if (inserted) best.push_back(&sh);
+    else if (sh.score > best[it->second]->score) best[it->second] = &sh;
+  }
+  P::Scores kept(/*usePi0=*/false);
+  kept.reserve(best.size());
+  kept_rows.clear();
+  for (const P::ScoreHolder* sh : best)
+  {
+    kept.addScoreHolder(*sh);
+    kept_rows.push_back(training_rows[static_cast<size_t>(sh->pPSM - slab)]);
+  }
+  kept.recalculateSizes();
+  // A plain loop in the order of the kept PSMs, so that the random numbers go to the same PSMs in every run.
+  roles.assign(kept_rows.size(), 0);
+  size_t k = 0, estimating = 0, training = 0;
+  for (P::ScoreHolder& sh : kept)
+  {
+    if (sh.isDecoy())
+    {
+      if (P::PseudoRandom::lcg_uniform_rand() > kResetDecoyFractionTraining)
+      {
+        sh.label = P::LabelType::PSEUDO_TARGET;
+        roles[k] = 1;
+        ++estimating;
+      }
+      else
+      {
+        roles[k] = 2;
+        ++training;
+      }
+    }
+    ++k;
+  }
+  kept_of_row.assign(input.rowCount(), 0);
+  for (size_t i = 0; i < kept_of_row.size(); ++i)
+  {
+    kept_of_row[i] = index_of_key.at(std::string_view(input.peptide_keys[i]));
+  }
+  OPENMS_LOG_INFO << "Percolator-RESET: kept the best of " << all_scores.size() << " PSMs for each of " << kept.size()
+                  << " peptides: " << kept.size() - estimating - training << " targets, " << estimating
+                  << " estimating decoys, " << training << " training decoys." << std::endl;
+  all_scores = std::move(kept);
+}
+
+// RESET's output (see RescoreOutput): the rows that are not in the final list (training decoys, rows that were not
+// kept, kept rows removed by the target-decoy competition; their score is NaN here) are scored by the final model
+// (@p avg_weights, raw feature space: with one fold the scale of the merged scores); q-value and PEP stay 1. Per row
+// the q-value, PEP and role of its key's kept row.
+static void resetOutput(const RescoreInput& input, const std::vector<double>& avg_weights,
+                        const std::vector<size_t>& kept_rows, const std::vector<int>& roles,
+                        const std::vector<size_t>& kept_of_row, RescoreOutput& out)
+{
+  const size_t n_rows = input.rowCount();
+  const size_t n_feat = input.featureCount();
+  if (avg_weights.size() != n_feat + 1)
+  {
+    throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+      "Percolator-RESET: no trained weights", std::to_string(avg_weights.size()));
+  }
+#pragma omp parallel for schedule(static)
+  for (SignedSize k = 0; k < static_cast<SignedSize>(n_rows); ++k)
+  {
+    const size_t i = static_cast<size_t>(k);
+    if (!std::isnan(out.scores[i])) continue;
+    // as Scores::scoreAndAddPSM: the features in order, then the bias
+    const double* feats = input.row(i);
+    double score = 0.0;
+    for (size_t j = 0; j < n_feat; ++j) score += feats[j] * avg_weights[j];
+    out.scores[i] = score + avg_weights[n_feat];
+  }
+  out.peptide_q_values.resize(n_rows);
+  out.peptide_peps.resize(n_rows);
+  out.reset_roles.resize(n_rows);
+  for (size_t i = 0; i < n_rows; ++i)
+  {
+    const size_t kept = kept_of_row[i];
+    out.peptide_q_values[i] = out.q_values[kept_rows[kept]];
+    out.peptide_peps[i] = out.peps[kept_rows[kept]];
+    out.reset_roles[i] = roles[kept];
+  }
 }
 
 // Dimension + optional-field checks shared by rescore/train/score entry points.
@@ -1592,10 +1725,24 @@ RescoreOutput Percolator::rescore(const RescoreInput& input)
   impl_->weights_error.clear();
 
   validateRescoreInput_(input);
-  const bool use_pi0 = resolveUsePi0(impl_->use_pi0, impl_->post_processing_tdc, input);
+  // Percolator-RESET (parameter 'reset_algorithm'): no mix-max, as the executable, whose RESET keeps the best PSM of each
+  // peptide in a Scores object without pi0 (and is not stopped by its mix-max check, upstream 68ec0058)
+  const bool reset = impl_->reset_algorithm;
+  if (reset && input.peptide_keys.size() != input.rowCount())
+  {
+    throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+      "Percolator parameter 'reset_algorithm' needs RescoreInput::peptide_keys (one per row).");
+  }
+  const bool use_pi0 = !reset && resolveUsePi0(impl_->use_pi0, impl_->post_processing_tdc, input);
 
   const size_t n_rows = input.rowCount();
   const size_t n_feat = input.featureCount();
+  if (reset && (impl_->subset_curve || impl_->subset_out_of_fold ||
+                (impl_->subset_max_train > 0 && static_cast<size_t>(impl_->subset_max_train) < n_rows)))
+  {
+    OPENMS_LOG_INFO << "Percolator: reset_algorithm trains on all kept peptides; subset_max_train and subset_mode do "
+                    << "not apply." << std::endl;
+  }
 
   impl_->reset();
   P::PseudoRandom::setSeed(static_cast<unsigned long>(impl_->seed));
@@ -1627,7 +1774,7 @@ RescoreOutput Percolator::rescore(const RescoreInput& input)
     }
   };
   // subset_mode 'learning_curve': folds and validation spectra here, the samples in trainLearningCurve below
-  const bool learning_curve = impl_->subset_curve && static_cast<size_t>(impl_->subset_curve_start) < n_rows;
+  const bool learning_curve = !reset && impl_->subset_curve && static_cast<size_t>(impl_->subset_curve_start) < n_rows;
   const size_t curve_validation = std::min(n_rows / 5, static_cast<size_t>(impl_->subset_curve_validation));
   if (learning_curve)
   {
@@ -1635,7 +1782,7 @@ RescoreOutput Percolator::rescore(const RescoreInput& input)
     oof = P::drawOutOfFoldSample(spec_files, scans, 1, sample_seed, num_folds, curve_validation);
     out_of_fold = true;
   }
-  else if (impl_->subset_out_of_fold && impl_->subset_max_train > 0 &&
+  else if (!reset && impl_->subset_out_of_fold && impl_->subset_max_train > 0 &&
            static_cast<size_t>(impl_->subset_max_train) < n_rows)
   {
     spectrum_keys();
@@ -1668,7 +1815,7 @@ RescoreOutput Percolator::rescore(const RescoreInput& input)
   {
     // Reservoir-sample the training subset. When subset_max_train is 0 or
     // >= n_rows, training_rows is the identity [0..n). (An inert learning_curve trains on all rows.)
-    training_rows = selectTrainingSubset(input, n_rows, impl_->subset_curve ? 0 : impl_->subset_max_train);
+    training_rows = selectTrainingSubset(input, n_rows, impl_->subset_curve || reset ? 0 : impl_->subset_max_train);
   }
   bool did_subsample = training_rows.size() < n_rows;
 
@@ -1685,6 +1832,13 @@ RescoreOutput Percolator::rescore(const RescoreInput& input)
     std::vector<char> reset_folds;                 // out-of-fold: the fold models replaced by the default direction
     WeightsFile weights_file;                      // the fold models as the executable's -w writes them (storeWeights)
   };
+  // RESET: the representative row of each peptide key (the kept rows, in the order of the selection) and its role
+  // (RescoreOutput::reset_roles), and per row the index of its key's representative
+  std::vector<size_t> reset_rows;
+  std::vector<int> reset_role;
+  std::vector<size_t> reset_rep_of_row;
+  // RESET trains one SVM on one fold, with nested cross-validation of the class weights (Caller::run of the executable)
+  const unsigned int cv_folds = reset ? 1u : num_folds;
   auto train_rows = [&](const std::vector<size_t>& training_rows) -> Trained
   {
   Trained trained;
@@ -1804,6 +1958,11 @@ RescoreOutput Percolator::rescore(const RescoreInput& input)
 
   all_scores = P::Scores(/*usePi0=*/use_pi0);
   all_scores.populateWithPSMs(*impl_->set_handler);
+  if (reset)
+  {
+    selectResetRepresentatives(all_scores, normalizer, input, training_rows, impl_->psm_slab.data, impl_->train_fdr,
+                               teamThreads(impl_->num_threads), reset_rows, reset_role, reset_rep_of_row);
+  }
 
   P::CrossValidation cv(
     /*quickValidation=*/false,
@@ -1815,12 +1974,12 @@ RescoreOutput Percolator::rescore(const RescoreInput& input)
     /*selectedCneg=*/impl_->c_neg,
     /*niter=*/static_cast<unsigned int>(impl_->num_iterations),
     /*usePi0=*/use_pi0,
-    /*nestedXvalBins=*/static_cast<unsigned int>(impl_->nested_xval_bins),
+    /*nestedXvalBins=*/reset ? 3u : static_cast<unsigned int>(impl_->nested_xval_bins),
     /*trainBestPositive=*/impl_->train_best_positive,
     /*numThreads=*/static_cast<unsigned int>(impl_->num_threads),
     /*skipNormalizeScores=*/false,
-    /*decoyFractionTraining=*/1.0,
-    /*numFolds=*/3);
+    /*decoyFractionTraining=*/reset ? kResetDecoyFractionTraining : 1.0,
+    /*numFolds=*/cv_folds);
   cv.setSolver(impl_->solver);
   cv.setTrainingOptions(impl_->tron_epsilon, impl_->warm_start, impl_->single_cneg);
   if (out_of_fold)
@@ -1842,7 +2001,7 @@ RescoreOutput Percolator::rescore(const RescoreInput& input)
     cv.postIterationProcessing(all_scores, sanity.get());
     impl_->last_used_default_direction = sanity->used_default_direction;
     cv.getAvgWeights(avg_weights, normalizer);
-    trained.weights_file = printWeights(cv, normalizer, num_folds);
+    trained.weights_file = printWeights(cv, normalizer, cv_folds);
     if (out_of_fold)
     {
       trained.reset_folds = sanity->reset_folds;
@@ -2230,7 +2389,8 @@ RescoreOutput Percolator::rescore(const RescoreInput& input)
   }
 
   RescoreOutput out;
-  out.scores.assign(n_rows, 0.0);
+  // (RESET: NaN marks the rows that are not in the final list; resetOutput scores them)
+  out.scores.assign(n_rows, reset ? std::numeric_limits<double>::quiet_NaN() : 0.0);
   out.q_values.assign(n_rows, 1.0);
   out.peps.assign(n_rows, 1.0);
 
@@ -2297,7 +2457,11 @@ RescoreOutput Percolator::rescore(const RescoreInput& input)
                    << "score range [" << score_min << ", " << score_max << "]"
                    << std::endl;
 
-  if (impl_->peptide_level && !input.peptide_keys.empty())
+  if (reset)
+  {
+    resetOutput(input, avg_weights, reset_rows, reset_role, reset_rep_of_row, out);
+  }
+  else if (impl_->peptide_level && !input.peptide_keys.empty())
   {
     try
     {
@@ -2853,10 +3017,10 @@ Size Percolator::rescorePSMsWithScorer(PeptideIdentificationList& peptide_ids,
   }
   else
   {
-    if (impl_->peptide_level)
+    if (impl_->peptide_level || impl_->reset_algorithm)
     {
-      // peptide-level estimates: the PIN 'Peptide' string between the flanks (PercolatorInfile::store), by which the
-      // executable groups the PSMs of a peptide
+      // peptide-level estimates and RESET's peptides: the PIN 'Peptide' string between the flanks
+      // (PercolatorInfile::store), by which the executable groups the PSMs of a peptide
       ri.peptide_keys.resize(n_rows);
       std::vector<std::exception_ptr> errors(n_rows);
 #pragma omp parallel for schedule(dynamic, 1024)

@@ -2564,9 +2564,14 @@ Probability ties resolved by taking protein with largest number of peptides
         .def_rw("q_values", &OpenMS::RescoreOutput::q_values, "q-value per row")
         .def_rw("peps",     &OpenMS::RescoreOutput::peps,     "posterior error probability per row")
         .def_rw("peptide_q_values", &OpenMS::RescoreOutput::peptide_q_values,
-                "With 'peptide_level' and RescoreInput.peptide_keys: the peptide-level q-value per row (empty otherwise)")
+                "With 'peptide_level' and RescoreInput.peptide_keys: the peptide-level q-value per row; with "
+                "'reset_algorithm': the RESET q-value of the row's peptide key (empty otherwise)")
         .def_rw("peptide_peps",     &OpenMS::RescoreOutput::peptide_peps,
-                "With 'peptide_level' and RescoreInput.peptide_keys: the peptide-level PEP per row (empty otherwise)")
+                "With 'peptide_level' and RescoreInput.peptide_keys: the peptide-level PEP per row; with "
+                "'reset_algorithm': the RESET PEP of the row's peptide key (empty otherwise)")
+        .def_rw("reset_roles",      &OpenMS::RescoreOutput::reset_roles,
+                "With 'reset_algorithm': the RESET role of the row's peptide key per row: 0 = target, 1 = estimating "
+                "decoy, 2 = training decoy (empty otherwise)")
 
         .def("scores_np",
              [](nb::object self_obj) -> nb::object {

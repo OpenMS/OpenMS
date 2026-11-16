@@ -82,6 +82,8 @@ namespace OpenMS
     /// Optional per-row peptide key for peptide-level q-values (Percolator parameter 'peptide_level'): rows with the
     /// same key and label are one peptide, as the percolator executable groups PSMs by the PIN 'Peptide' string
     /// between the flanks (incl. modifications). Empty, or one entry per row.
+    /// Required by Percolator parameter 'reset_algorithm' (Percolator-RESET), which keeps the best row of each key
+    /// (without regard to the label, as the percolator executable keys by the peptide string only).
     std::vector<std::string> peptide_keys;
 
     /// Number of rows: of @ref features, or else of the dense @ref feature_matrix
@@ -112,9 +114,16 @@ namespace OpenMS
     std::vector<double> peps;       ///< posterior error probability per row
     /// With Percolator parameter 'peptide_level' (and RescoreInput::peptide_keys): per row, the q-value and PEP of its
     /// peptide (key and label) at the peptide level; 1 for a row whose peptide has no PSM left after the target-decoy
-    /// competition. Empty otherwise.
+    /// competition. With parameter 'reset_algorithm': per row, the RESET q-value and PEP of its peptide key (those of the
+    /// key's representative row; 1 if the representative is a training decoy or lost the target-decoy competition).
+    /// Empty otherwise.
     std::vector<double> peptide_q_values;
     std::vector<double> peptide_peps;
+    /// With Percolator parameter 'reset_algorithm': per row, the RESET role of its peptide key, i.e. of the key's
+    /// representative row: 0 = target, 1 = estimating decoy (a decoy ranked with the targets as a pseudo-target during
+    /// the training and counted for the FDR), 2 = training decoy (used for the training, not ranked: q-value and PEP 1).
+    /// The values match PercolatorReset::Role. Empty otherwise.
+    std::vector<int> reset_roles;
   };
 
   /**

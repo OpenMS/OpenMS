@@ -1843,8 +1843,13 @@ void Scores::calcPep(const bool spline, const bool interp, const bool pava) {
         getScoreLabelPairs(combined);
 
         std::vector<double> peps;
+        // Expected number of incorrect targets per decoy, as in the q values: 1
+        // in target-decoy competition, 2 with RESET, which keeps only the half
+        // of the decoys that were not used for training.
+        const double decoyFactor = nullTargetWinProb_ / (1.0 - nullTargetWinProb_);
         // Logistic regression on the data
-        PosteriorEstimator::estimatePEP(combined, usePi0_, pi0_, peps, true);
+        PosteriorEstimator::estimatePEP(combined, usePi0_, pi0_, peps, true,
+                                        decoyFactor);
         for (size_t ix = 0; ix < scores_.size(); ix++) {
             scores_[ix].pep = peps[ix];
         }

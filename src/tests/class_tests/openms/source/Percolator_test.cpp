@@ -28,6 +28,7 @@
 #include <OpenMS/METADATA/PeptideIdentificationList.h>
 
 #include <algorithm>
+#include <cstdint>
 #include <cstdlib>
 #include <fstream>
 #include <functional>
@@ -126,6 +127,39 @@ static void readWeightsFile_(const std::string& filename, std::vector<std::strin
     while (std::getline(ls, field, '\t')) fields.push_back(field);
     rows.push_back(fields);
   }
+}
+
+// Percolator-RESET (parameter 'reset_algorithm'): peptides with several PSMs each, as in the data where Percolator's
+// PSM-level FDR control fails (Freestone, Noble, Keich 2024). Rows: "T" peptides are correct targets (1-4 PSMs, shifted
+// features), "N" incorrect targets and "D" decoys (1-3 PSMs each, the same null distribution), one spectrum per row.
+static RescoreInput makeResetInput_(std::uint64_t seed)
+{
+  std::uint64_t state = seed;
+  auto uniform = [&state]()
+  {
+    state = state * 6364136223846793005ULL + 1442695040888963407ULL;
+    return double(state >> 11) * (1.0 / 9007199254740992.0);
+  };
+  auto normal = [&]() { return (uniform() + uniform() + uniform() + uniform() - 2.0) * 1.7320508; };
+  RescoreInput in;
+  in.feature_names = StringList{"score", "signal", "noise"};
+  auto add = [&](const std::string& key, bool decoy, bool good, int psms)
+  {
+    for (int k = 0; k < psms; ++k)
+    {
+      const double signal = normal() + (good ? 2.5 : 0.0);
+      in.features.push_back({0.6 * signal + 0.8 * normal(), signal, normal()});
+      in.is_decoy.push_back(decoy);
+      in.peptide_keys.push_back(key);
+    }
+  };
+  for (int i = 0; i < 300; ++i) add("T" + std::to_string(i), false, true, 1 + i % 4);
+  for (int i = 0; i < 600; ++i)
+  {
+    add("N" + std::to_string(i), false, false, 1 + i % 3);
+    add("D" + std::to_string(i), true, false, 1 + i % 3);
+  }
+  return in;
 }
 
 START_TEST(Percolator, "$Id$")
@@ -3251,6 +3285,142 @@ START_SECTION((Size scorePSMs(PeptideIdentificationList& peptide_ids, const Perc
     TEST_REAL_SIMILAR(hit.getScore(), double(hit.getMetaValue("MS:1001493")))
     TEST_FALSE(hit.metaValueExists("ScanNr") || hit.metaValueExists("enzN") || hit.metaValueExists("peplen"))
   }
+}
+END_SECTION
+
+
+START_SECTION([EXTRA] reset_algorithm: Percolator-RESET on the best PSM of each peptide)
+{
+  const RescoreInput input = makeResetInput_(11);
+  const size_t n_rows = input.rowCount();
+  auto run = [&input](int seed, int threads, Percolator* keep = nullptr)
+  {
+    Percolator local;
+    Percolator& p = keep ? *keep : local;
+    Param par = p.getDefaults();
+    par.setValue("reset_algorithm", "true");
+    par.setValue("seed", seed);
+    par.setValue("num_threads", threads);
+    p.setParameters(par);
+    return p.rescore(input);
+  };
+  Percolator perc;
+  const RescoreOutput out = run(1, 1, &perc);
+  TEST_EQUAL(out.scores.size(), n_rows)
+  TEST_EQUAL(out.q_values.size(), n_rows)
+  TEST_EQUAL(out.peps.size(), n_rows)
+  TEST_EQUAL(out.peptide_q_values.size(), n_rows)
+  TEST_EQUAL(out.peptide_peps.size(), n_rows)
+  TEST_EQUAL(out.reset_roles.size(), n_rows)
+
+  // per peptide: its rows, its role and its representative (the one row that can have a q-value < 1)
+  std::map<std::string, std::vector<size_t>> rows_of;
+  for (size_t i = 0; i < n_rows; ++i) rows_of[input.peptide_keys[i]].push_back(i);
+  bool per_peptide = true, roles_by_label = true, training_decoys_unranked = true;
+  size_t decoy_peptides = 0, estimating = 0;
+  // the ranked list: the representatives of the targets and estimating decoys (one spectrum each: no competition)
+  std::vector<std::pair<double, size_t>> ranked;
+  for (const auto& [key, rows] : rows_of)
+  {
+    const int role = out.reset_roles[rows[0]];
+    for (size_t i : rows)
+    {
+      per_peptide = per_peptide && out.reset_roles[i] == role && out.peptide_q_values[i] == out.peptide_q_values[rows[0]]
+                    && out.peptide_peps[i] == out.peptide_peps[rows[0]];
+    }
+    roles_by_label = roles_by_label && (input.is_decoy[rows[0]] ? role == 1 || role == 2 : role == 0);
+    if (input.is_decoy[rows[0]])
+    {
+      ++decoy_peptides;
+      if (role == 1) ++estimating;
+    }
+    if (role == 2)
+    {
+      for (size_t i : rows) training_decoys_unranked = training_decoys_unranked && out.q_values[i] == 1.0 && out.peps[i] == 1.0;
+      continue;
+    }
+    // the representative: the row of the peptide with the highest score under the final model is not necessarily it
+    // (it was chosen by the best single feature), so it is found by its q-value: exactly one row per peptide that is
+    // not 1, or all 1
+    size_t rep = n_rows;
+    for (size_t i : rows)
+    {
+      if (out.q_values[i] < 1.0) { if (rep != n_rows) per_peptide = false; rep = i; }
+    }
+    if (rep == n_rows) continue; // (q = 1: not distinguishable, and not needed for the q-values below)
+    per_peptide = per_peptide && out.q_values[rep] == out.peptide_q_values[rep] && out.peps[rep] == out.peptide_peps[rep];
+    ranked.emplace_back(out.scores[rep], rep);
+  }
+  TEST_TRUE(per_peptide)
+  TEST_TRUE(roles_by_label)
+  TEST_TRUE(training_decoys_unranked)
+  TEST_EQUAL(decoy_peptides, 600)
+  // about half of the decoy peptides are estimating decoys (binomial(600, 1/2): 300 +- 12)
+  TEST_TRUE(estimating > 250 && estimating < 350)
+
+  // RESET's q-values: FDP = 2 (estimating decoys + 1) / targets, monotonized from the bottom (the rows with q = 1 are
+  // at the bottom and do not change the others)
+  std::sort(ranked.begin(), ranked.end(), [](const auto& a, const auto& b) { return a.first > b.first; });
+  std::vector<double> expected(ranked.size());
+  size_t t = 0, d = 0;
+  for (size_t k = 0; k < ranked.size(); ++k)
+  {
+    (out.reset_roles[ranked[k].second] == 0 ? t : d) += 1;
+    expected[k] = std::min(1.0, 2.0 * static_cast<double>(d + 1) / static_cast<double>(std::max<size_t>(1, t)));
+  }
+  for (size_t k = ranked.size(); k-- > 1;) expected[k - 1] = std::min(expected[k - 1], expected[k]);
+  bool q_as_reset = !ranked.empty();
+  for (size_t k = 0; k < ranked.size(); ++k)
+  {
+    q_as_reset = q_as_reset && std::fabs(out.q_values[ranked[k].second] - expected[k]) < 1e-12;
+  }
+  TEST_TRUE(q_as_reset)
+
+  // peptide-level FDR at q <= 0.05 (one realization: the false discovery proportion of a 5% FDR stays well below 15%),
+  // and the correct peptides are found
+  size_t accepted = 0, false_accepted = 0;
+  for (const auto& [key, rows] : rows_of)
+  {
+    if (out.reset_roles[rows[0]] == 0 && out.peptide_q_values[rows[0]] <= 0.05)
+    {
+      ++accepted;
+      if (key[0] == 'N') ++false_accepted;
+    }
+  }
+  TEST_TRUE(accepted > 200)
+  TEST_TRUE(static_cast<double>(false_accepted) <= 0.15 * static_cast<double>(accepted))
+
+  // every row has the score of the final model (raw feature space, getSvmWeights; one fold: the merged scale)
+  TEST_EQUAL(perc.getSvmWeights().size(), 1)
+  const std::vector<double>& w = perc.getSvmWeights()[0];
+  bool model_scores = w.size() == 4;
+  for (size_t i = 0; model_scores && i < n_rows; ++i)
+  {
+    const double s = w[0] * input.features[i][0] + w[1] * input.features[i][1] + w[2] * input.features[i][2] + w[3];
+    model_scores = std::isfinite(out.scores[i]) && std::fabs(s - out.scores[i]) <= 1e-9 * (1.0 + std::fabs(s));
+  }
+  TEST_TRUE(model_scores)
+
+  // reproducible for a fixed seed, also with more threads; another seed draws other estimating decoys
+  const RescoreOutput again = run(1, 4);
+  TEST_TRUE(again.scores == out.scores && again.q_values == out.q_values && again.peps == out.peps)
+  TEST_TRUE(again.reset_roles == out.reset_roles && again.peptide_q_values == out.peptide_q_values)
+  TEST_TRUE(run(2, 1).reset_roles != out.reset_roles)
+
+  // off by default; then no RESET output
+  Percolator plain;
+  TEST_EQUAL(plain.getDefaults().getValue("reset_algorithm").toString(), "false")
+  const RescoreOutput standard = plain.rescore(input);
+  TEST_TRUE(standard.reset_roles.empty() && standard.peptide_q_values.empty())
+
+  // the peptide keys are required
+  RescoreInput no_keys = input;
+  no_keys.peptide_keys.clear();
+  Percolator needs_keys;
+  Param par = needs_keys.getDefaults();
+  par.setValue("reset_algorithm", "true");
+  needs_keys.setParameters(par);
+  TEST_EXCEPTION(Exception::MissingInformation, needs_keys.rescore(no_keys))
 }
 END_SECTION
 

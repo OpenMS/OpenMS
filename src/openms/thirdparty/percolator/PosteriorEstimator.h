@@ -35,9 +35,11 @@ class PosteriorEstimator {
   virtual ~PosteriorEstimator(){};
   string greeter();
   int run();
+  // PEP = oddsFactor * (fitted decoy odds), capped at 1; oddsFactor is the
+  // expected number of incorrect targets per decoy (2 with RESET)
   static void estimatePEP(std::vector<std::pair<double, bool> >& combined,
           bool usePi0, double pi0, std::vector<double>& peps,
-		      bool include_negative = false);
+		      bool include_negative = false, double oddsFactor = 1.0);
   static void getPValues(const std::vector<std::pair<double, bool> >& combined,
                          std::vector<double>& p);
   static void getQValues(double pi0,

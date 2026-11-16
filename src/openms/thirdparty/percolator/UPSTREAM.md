@@ -90,6 +90,36 @@ into fixed blocks of 8192 whose partial sums are added in block order, so the re
 do not depend on the threads; within a parallel region the blocks of problems of at
 least 8 blocks run as tasks. Class test `PercolatorNewton_test`.
 
+### Percolator-RESET
+
+RESET (Freestone, Käll, Noble, Keich, J Proteome Res 2025; bioRxiv
+[10.1101/2023.10.26.564068](https://doi.org/10.1101/2023.10.26.564068); upstream
+[percolator/percolator#378](https://github.com/percolator/percolator/pull/378), rel-3-07) is
+already part of the pinned commit where it lives in the vendored files: `LabelType::PSEUDO_TARGET`,
+the decoy fraction and decoys per target of `Scores::createXvalSetsBySpectrum` and of the
+null-target win probability (q-values with an odds factor of 2), and
+`CrossValidation::postIterationProcessing`, which drops the training decoys and turns the
+pseudo-targets back into decoys. Its driver (`Caller::run` with `--reset-algorithm` and
+`CompositionSorter::psmsOnly`) is not vendored: those files read the peptide strings of the PSMs,
+which OpenMS' wrapper uses for row ids. `OpenMS::Percolator::rescore` (parameter
+`reset_algorithm`) implements the driver of upstream master a90106b (2026-11-13) instead, from
+`RescoreInput::peptide_keys`: the best single feature scores the PSMs, the best PSM of each peptide
+is kept, the peptides in the order in which they first appear (upstream e9a2b60c; before, in
+hash-map order, which differs between standard libraries), each kept decoy is an estimating decoy
+if `lcg_uniform_rand() > 0.5`, in that order, and one fold is trained with 3 nested bins and
+without mix-max (upstream 68ec0058: RESET is not stopped by the mix-max check). Only the
+`psmsOnly` protocol: `--composition-match` (amino-acid compositions) is not implemented. Single-decoy
+mode only, as upstream (`decoysPerTarget` is fixed at 1 there).
+
+The pin stays at eb157f7. Upstream master (a90106b, 258 commits later) rewrites `Scores.cpp`,
+`CrossValidation.cpp`, `SetHandler.cpp`, `SanityCheck.cpp` and `PosteriorEstimator.cpp` (one FDR
+walk, one merge plan, `--num-folds`, merge normalization schemes) and removes `ResultHolder`,
+`Logger` and `ScoreHolder.cpp`: a sync would have to redo patches 01-35. The RESET fixes that
+touch vendored code are backported as patches 36 and 37. Compared with `percolator
+--reset-algorithm` of a90106b on a synthetic PIN (`Percolator_subprocess_parity_test`), the kept
+rows and the estimating decoys are the same and the SVM scores correlate with r = 0.999 (TRON here,
+L2-SVM-MFN there).
+
 ## How to re-sync
 
 Run `./sync-from-upstream.sh <tag-or-sha>`. The script copies files listed in
@@ -524,6 +554,19 @@ hand-editing sources and committing them, to keep sync self-healing.
   all-zero g (no entries) was read out of bounds (`Percolator_test`, nonparametric PEP with fewer than 4 distinct
   scores; SIGTRAP with libc++ hardening, OpenMS issue #10880). A filled `gnew` is unchanged, so results only
   change where an entry had been dropped.
+
+- `patches/36-reset-pep-decoy-factor.patch` — backport of upstream b8e59a02 (2026-11-08) for
+  the spline PEP (`pep_method` `nonparametric`, upstream `--irls-pep`): `Scores::calcPep` passes
+  the decoy factor `nullTargetWinProb / (1 - nullTargetWinProb)` (1 without RESET, 2 with RESET,
+  which keeps only the estimating half of the decoys) to `PosteriorEstimator::estimatePEP`, whose
+  new last argument `oddsFactor` (default 1) multiplies the fitted decoy odds. Without it, RESET's
+  logistic-regression PEPs were half as large as they should be. Upstream's other branch
+  (`--tdc-pep`) does not exist at the pinned commit. Without RESET the factor is exactly 1: no
+  change of results.
+- `patches/37-cv-one-fold.patch` — `CrossValidation` divides the summed positives of the folds by
+  `max(1, numFolds_ - 1)` instead of `numFolds_ - 1` (as upstream 6068e7e2): with one fold, as RESET
+  trains, the quotient was a division by zero (converted to `int`: undefined behaviour). Only the
+  reported counts change.
 
 ### Regenerating the patch
 

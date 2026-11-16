@@ -1,0 +1,69 @@
+diff --git a/src/openms/thirdparty/percolator/PosteriorEstimator.cpp b/src/openms/thirdparty/percolator/PosteriorEstimator.cpp
+index 817b9af105..afc4c4e945 100644
+--- a/src/openms/thirdparty/percolator/PosteriorEstimator.cpp
++++ b/src/openms/thirdparty/percolator/PosteriorEstimator.cpp
+@@ -103,7 +103,8 @@ double mymin(double a, double b) {
+ }
+ 
+ void PosteriorEstimator::estimatePEP(vector<pair<double, bool> >& combined,
+-    bool usePi0, double pi0, vector<double>& peps, bool include_negative) {
++    bool usePi0, double pi0, vector<double>& peps, bool include_negative,
++    double oddsFactor) {
+   // Logistic regression on the data
+   LogisticRegression lr;
+   estimate(combined, lr, usePi0, pi0);
+@@ -125,7 +126,8 @@ void PosteriorEstimator::estimatePEP(vector<pair<double, bool> >& combined,
+ #endif
+   if (peps.size() == 0) return;
+   
+-  double top = min(1.0, exp(*max_element(peps.begin(), peps.end())));
++  double top =
++      min(1.0, oddsFactor * exp(*max_element(peps.begin(), peps.end())));
+   vector<double>::iterator pep = peps.begin();
+   bool crap = false;
+   for (; pep != peps.end(); ++pep) {
+@@ -133,7 +135,7 @@ void PosteriorEstimator::estimatePEP(vector<pair<double, bool> >& combined,
+       *pep = top;
+       continue;
+     }
+-    *pep = exp(*pep);
++    *pep = oddsFactor * exp(*pep);
+     if (*pep >= top) {
+       *pep = top;
+       crap = true;
+diff --git a/src/openms/thirdparty/percolator/PosteriorEstimator.h b/src/openms/thirdparty/percolator/PosteriorEstimator.h
+index 945945d0af..a5aa15cd38 100644
+--- a/src/openms/thirdparty/percolator/PosteriorEstimator.h
++++ b/src/openms/thirdparty/percolator/PosteriorEstimator.h
+@@ -35,9 +35,11 @@ class PosteriorEstimator {
+   virtual ~PosteriorEstimator(){};
+   string greeter();
+   int run();
++  // PEP = oddsFactor * (fitted decoy odds), capped at 1; oddsFactor is the
++  // expected number of incorrect targets per decoy (2 with RESET)
+   static void estimatePEP(std::vector<std::pair<double, bool> >& combined,
+           bool usePi0, double pi0, std::vector<double>& peps,
+-		      bool include_negative = false);
++		      bool include_negative = false, double oddsFactor = 1.0);
+   static void getPValues(const std::vector<std::pair<double, bool> >& combined,
+                          std::vector<double>& p);
+   static void getQValues(double pi0,
+diff --git a/src/openms/thirdparty/percolator/Scores.cpp b/src/openms/thirdparty/percolator/Scores.cpp
+index 0d9d7bee7e..d1a73fef9e 100644
+--- a/src/openms/thirdparty/percolator/Scores.cpp
++++ b/src/openms/thirdparty/percolator/Scores.cpp
+@@ -1843,8 +1843,13 @@ void Scores::calcPep(const bool spline, const bool interp, const bool pava) {
+         getScoreLabelPairs(combined);
+ 
+         std::vector<double> peps;
++        // Expected number of incorrect targets per decoy, as in the q values: 1
++        // in target-decoy competition, 2 with RESET, which keeps only the half
++        // of the decoys that were not used for training.
++        const double decoyFactor = nullTargetWinProb_ / (1.0 - nullTargetWinProb_);
+         // Logistic regression on the data
+-        PosteriorEstimator::estimatePEP(combined, usePi0_, pi0_, peps, true);
++        PosteriorEstimator::estimatePEP(combined, usePi0_, pi0_, peps, true,
++                                        decoyFactor);
+         for (size_t ix = 0; ix < scores_.size(); ix++) {
+             scores_[ix].pep = peps[ix];
+         }

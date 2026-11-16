@@ -1431,4 +1431,132 @@ END_SECTION
 
 ///////////////////////////////////////////////////////////////////////////////
 
+
+///////////////////////////////////////////////////////////////////////////////
+// Percolator-RESET (parameter 'reset_algorithm') against `percolator
+// --reset-algorithm`: peptides with several PSMs each (one spectrum per row),
+// the peptide key in the PIN 'Peptide' column.
+///////////////////////////////////////////////////////////////////////////////
+
+START_SECTION([EXTRA] reset_algorithm matches percolator --reset-algorithm)
+{
+  const std::string bin = percolatorBinary();
+  if (bin.empty())
+  {
+    TEST_EQUAL(true, true);  // skip silently; external binary unavailable
+  }
+  else
+  {
+    std::mt19937 rng(2027);
+    std::normal_distribution<double> unit(0.0, 1.0);
+    RescoreInput ri;
+    ri.feature_names = StringList{"score", "signal", "noise"};
+    auto add = [&](const std::string& key, bool decoy, bool good, int psms)
+    {
+      for (int k = 0; k < psms; ++k)
+      {
+        const double signal = unit(rng) + (good ? 2.5 : 0.0);
+        ri.features.push_back({0.6 * signal + 0.8 * unit(rng), signal, unit(rng)});
+        ri.is_decoy.push_back(decoy);
+        ri.peptide_keys.push_back(key);
+      }
+    };
+    for (int i = 0; i < 300; ++i) add("PEPT" + std::to_string(i), false, true, 1 + i % 4);
+    for (int i = 0; i < 600; ++i)
+    {
+      add("PEPN" + std::to_string(i), false, false, 1 + i % 3);
+      add("PEPD" + std::to_string(i), true, false, 1 + i % 3);
+    }
+    const size_t n = ri.features.size();
+    ri.scan_numbers.resize(n);
+    for (size_t i = 0; i < n; ++i) ri.scan_numbers[i] = static_cast<int>(i + 1);
+    ri.spec_file_numbers.assign(n, 0);
+    ri.exp_masses.assign(n, 1000.0);
+    ri.calc_masses.assign(n, 1000.0);
+
+    const std::string pin_path = TempFiles::getTemporaryFile();
+    {
+      std::ofstream f(pin_path.c_str());
+      f.setf(std::ios::scientific);
+      f.precision(17);
+      f << "SpecId\tLabel\tScanNr\tExpMass\tCalcMass";
+      for (const auto& fn : ri.feature_names) f << "\t" << fn;
+      f << "\tPeptide\tProteins\n";
+      for (size_t i = 0; i < n; ++i)
+      {
+        char row_id[32];
+        std::snprintf(row_id, sizeof(row_id), "row_%08zu", i);
+        f << row_id << "\t" << (ri.is_decoy[i] ? -1 : 1) << "\t" << ri.scan_numbers[i] << "\t" << 1000.0 << "\t" << 1000.0;
+        for (double v : ri.features[i]) f << "\t" << v;
+        f << "\t-." << ri.peptide_keys[i] << ".-\t" << (ri.is_decoy[i] ? "decoy_protein" : "target_protein") << "\n";
+      }
+    }
+    SubprocessOut sub = runSubprocess(bin, pin_path, "--reset-algorithm -S 1");
+    if (sub.exit_code != 0)
+    {
+      std::cerr << "percolator --reset-algorithm failed (a version before 3.07?); RESET comparison skipped" << std::endl;
+    }
+    else
+    {
+
+      Percolator p;
+      Param par = p.getDefaults();
+      par.setValue("reset_algorithm", "true");
+      par.setValue("seed", 1);
+      par.setValue("train_best_positive", "false"); // the executable's default
+      par.setValue("pep_method", "isotonic");
+      p.setParameters(par);
+      const RescoreOutput out = p.rescore(ri);
+
+      // The executable reports the ranked PSMs (the kept rows of the targets and estimating decoys; -U). The kept target
+      // rows (the best row of each peptide by the best single feature) are the same. The estimating decoys are the same
+      // with an executable that draws them in the order in which the peptides first appear (upstream e9a2b60c, Nov 2026;
+      // before, in hash-map order); then the SVMs differ only by their solvers (the executable's L2-SVM-MFN, TRON here)
+      // and by the changes upstream after the vendored commit, otherwise also by the training decoys.
+      std::set<size_t> sub_targets, in_targets, sub_estimating, in_estimating;
+      size_t sub_q01 = 0, in_q01 = 0, sub_q05 = 0, in_q05 = 0, both_q05 = 0;
+      double sx = 0, sy = 0, sxx = 0, syy = 0, sxy = 0;
+      for (const auto& [id, t] : sub.triplets)
+      {
+        const size_t row = static_cast<size_t>(std::stoul(id.substr(4, 8)));
+        (ri.is_decoy[row] ? sub_estimating : sub_targets).insert(row);
+        if (!ri.is_decoy[row] && t.qval <= 0.01) ++sub_q01;
+        if (!ri.is_decoy[row] && t.qval <= 0.05)
+        {
+          ++sub_q05;
+          if (out.q_values[row] <= 0.05) ++both_q05;
+        }
+        const double x = out.scores[row], y = t.score;
+        sx += x; sy += y; sxx += x * x; syy += y * y; sxy += x * y;
+      }
+      for (size_t i = 0; i < n; ++i)
+      {
+        // (the kept row of a ranked peptide is the one with the peptide's q-value; on this data no q-value is 1)
+        if (out.reset_roles[i] == 2 || out.q_values[i] != out.peptide_q_values[i]) continue;
+        (out.reset_roles[i] == 1 ? in_estimating : in_targets).insert(i);
+        if (!ri.is_decoy[i] && out.q_values[i] <= 0.01) ++in_q01;
+        if (!ri.is_decoy[i] && out.q_values[i] <= 0.05) ++in_q05;
+      }
+      const double m = static_cast<double>(sub_targets.size() + sub_estimating.size());
+      const double r = (m * sxy - sx * sy) / std::sqrt((m * sxx - sx * sx) * (m * syy - sy * sy));
+      const bool same_draw = in_estimating == sub_estimating;
+      const double tolerance = same_draw ? 0.1 : 0.25;
+      TEST_EQUAL(sub_targets.size(), 900)
+      TEST_TRUE(in_targets == sub_targets)
+      TEST_TRUE(r >= (same_draw ? 0.99 : 0.9))
+      // (with another draw, q <= 0.01 needs about 200 targets above the first estimating decoy: compared only for the same
+      // draw)
+      TEST_TRUE(!same_draw ||
+                std::abs(static_cast<double>(in_q01) - static_cast<double>(sub_q01)) <= tolerance * static_cast<double>(sub_q01))
+      TEST_TRUE(std::abs(static_cast<double>(in_q05) - static_cast<double>(sub_q05)) <= tolerance * static_cast<double>(sub_q05))
+      TEST_TRUE(static_cast<double>(both_q05) >= (1.0 - tolerance) * static_cast<double>(sub_q05))
+      std::cerr << "reset_algorithm vs percolator --reset-algorithm: estimating decoys " << in_estimating.size() << " / "
+                << sub_estimating.size() << (same_draw ? " (the same)" : " (other draw)") << ", score r " << r
+                << ", targets at q <= 0.01: " << in_q01 << " / " << sub_q01 << ", at q <= 0.05: " << in_q05 << " / "
+                << sub_q05 << " (both " << both_q05 << ")" << std::endl;
+    }
+  }
+}
+END_SECTION
+
 END_TEST

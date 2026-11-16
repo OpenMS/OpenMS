@@ -99,6 +99,7 @@ namespace OpenMS
     std::string report_as_main_score = "none"; ///< "none"|"q-value"|"pep"|"svm" — which Percolator output to promote to hit.getScore()
     std::string algorithm = "percolator";     ///< rescorePSMs(): "percolator" | "reset"
     bool   peptide_level = false;             ///< rescore(): also peptide-level q-values and PEPs (RescoreInput::peptide_keys)
+    bool   reset_algorithm = false;           ///< rescore(): Percolator-RESET as the percolator executable's --reset-algorithm
     std::string reset_salt;                   ///< empty = random
     std::string reset_learner = "svm";
     int    reset_iterations = 25;
