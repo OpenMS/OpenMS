@@ -17,7 +17,7 @@ HERE = pathlib.Path(__file__).resolve().parent
 BOARD = HERE / 'BOARD.md'
 DOC_URL = 'https://github.com/OpenMS/OpenMS/blob/docs/opendia-wp00-design-plan/doc/design/opendia-laptop-first/'
 WP_ISSUES = {'R-WP1': 10848, 'R-WP2': 10849, 'R-WP3': 10850, 'R-WP4': 10851, 'R-WP5': 10852, 'R-WP6': 10853}
-WP_STATUS = {'R-WP1': 'In review', 'R-WP2': 'In review', 'R-WP3': 'In progress', 'R-WP4': 'In progress',
+WP_STATUS = {'R-WP1': 'In review', 'R-WP2': 'In progress', 'R-WP3': 'In progress', 'R-WP4': 'In progress',
              'R-WP5': 'In progress', 'R-WP6': 'Backlog'}
 DRY = '--dry-run' in sys.argv
 ARCHIVE = '--archive-stale' in sys.argv

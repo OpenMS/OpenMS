@@ -1,32 +1,47 @@
 # OpenDIA rewrite: master plan
 
-**Status, 10 November 2026.** This plan replaced the laptop-first WP-00 to WP-10 plan on 7 November 2026. The old plan is closed and kept unchanged under [archive/legacy-wp-plan-20261107](archive/legacy-wp-plan-20261107/README.md).
+**Status, 16 November 2026.** This plan replaced the laptop-first WP-00 to WP-10 plan on 7 November 2026. The old plan is closed and kept unchanged under [archive/legacy-wp-plan-20261107](archive/legacy-wp-plan-20261107/README.md).
 
 The rewrite lives on [`OpenMS/OpenMS:feature/opendia-clean-rewrite`](https://github.com/OpenMS/OpenMS/tree/feature/opendia-clean-rewrite).
-All of its code is under `src/topp/OpenDIA/`, and it makes no changes to the shared OpenMS API. The branch tip is `dfbe38b470`.
+All of its code is under `src/topp/OpenDIA/`, and it makes no changes to the shared OpenMS API. The branch tip is `9d6bf16f10`.
 It is an experimental branch, not a pull request. It must not merge into `develop` until the acceptance gates of R-WP6 pass.
-Detailed evidence lives in the branch's [`src/topp/OpenDIA/README_TRACE_MODEL.md`](https://github.com/OpenMS/OpenMS/blob/feature/opendia-clean-rewrite/src/topp/OpenDIA/README_TRACE_MODEL.md) and in [`gates/`](gates/).
+The branch's [`src/topp/OpenDIA/README.md`](https://github.com/OpenMS/OpenMS/blob/feature/opendia-clean-rewrite/src/topp/OpenDIA/README.md) describes the tools. The evidence is in [`gates/`](gates/).
 
-## Current state, 10 November 2026
+## Current state, 16 November 2026
 
-**Goal.** OpenDIA must identify at least as many precursors as OpenSWATH + Percolator, with honest error control and no teacher.
+**Goal.** OpenDIA must identify as many precursors as DIA-NN on the same library, with honest error control and no teacher. The earlier goal was the OpenSWATH + Percolator level, and it is passed.
 
 **Design data.** ProteoBench Astral entrapment raws 01 and 02 are the design runs. Raw 03 is held back for the final check. Raw 03 needs the user's approval.
 
-**Metric.** N is the number of target precursors at an entrapment FDP_c of 1 %, with FDP_c = N_e (1 + 1/r) / N and r = 148983 / 151239. The bootstrap 90 % interval of N@1 % is about ±200 (`gates/astral-native-byion/single-scorer/metric_noise.txt`). A change of the pass rule to a paired bootstrap rule is proposed. It is not approved.
+**Metric.** N is the number of target precursors at an entrapment FDP_c of 1 %, with FDP_c = N_e (1 + 1/r) / N. Every count below is a median over five scorer seeds. The seed range is 50-200 IDs.
 
-**Native base (frozen).** OpenDIACalibrate, then the OpenDIA search, then `OpenDIACNN -stage2` with the feature set `search+boundary+byion` (CNN logit plus a stage-2 LDA).
+**One binary: `OpenDIAWorkflow`** (OpenMS `794ee1565e`, README `e612e34d9c`). It runs on Thermo .raw directly, and there is no Python in the analysis. The steps are:
+- calibration;
+- candidate search;
+- one evidence pass, with 24 features (search, boundary, b/y ions, 12-fragment evidence, fragment deficit and shared-signal interference);
+- a cross-fitted C++ scorer (a small network with a decoy-whitened readout and self-training);
+- pooled paired TDC q-values per run, and a global q-value over runs.
 
-| N at entrapment FDP_c 1 % | raw 01 | raw 02 |
-|---|---|---|
-| Native base (CNN + LDA, `search+boundary+byion`) | 1029 | 1298 |
-| OSW + Percolator, same library (reference only) | 1151 | 1287 |
+Cost: about 8-10 min and 9.6 GB per Astral raw on 8 threads. Output is byte-identical across repeats and thread counts.
 
-- On raw 02, the native base is at the OSW + Percolator level. On raw 01, it is at 89 %.
-- Plain pooled q at q ≤ 0.01 controls the error on both raws (FDP_c 0.013 and 0.007).
-- At q ≤ 0.05, plain pooled q is anti-conservative (FDP_c 0.065 and 0.074). This is open in R-WP4.
+| N at entrapment FDP_c 1 % (median of 5 seeds) | raw 01 | raw 02 | FDP_c at q ≤ 0.01 |
+|---|---|---|---|
+| OpenDIAWorkflow, reused calibration | 1819 | 1870 | 0.0024-0.0082 |
+| OpenDIAWorkflow, self-calibrating | 1718 | 1941 | raw 01 0.0048-0.0104, raw 02 0.0023-0.0045 |
+| Python chain it replaces (D11FDI, C++ interference features) | 1848 | 1925 | ≤ 0.0071 |
+| DIA-NN 2.2, same targets, its own decoys (reference) | 2067 | 2301 | |
+| Former native base (CNN + LDA) | 1029 | 1298 | |
 
-**Direction (user decision, 10 November 2026).** Stop the work on CNN + LDA. Replace both with **one voxel scoring model** in new files, `OpenDIAScoringModel.{h,cpp}`, with its own tool. Train the model with decoy-like target negatives, so that it separates false targets from true targets. The design and the frozen pilot rule are in [`gates/voxel-scoring-model/`](gates/voxel-scoring-model/DESIGN.md).
+- **Decoys.** Since PLAN_DECOYGEN, the decoys come from OpenSwathDecoyGenerator `-predict_decoys`, which gives each decoy its own predicted spectrum and RT. This removed the entrapment excess that failed every earlier arm.
+- **Interference features** (PLAN_GAP arm I). These gave +118 to +185 on raw 01 and +199 to +351 on raw 02 at 1 % over seeds. About a third of the raw 02 gain comes from entrapment pairs that only exist in this benchmark.
+- **Open: the self-calibrated RT window.**
+  - On raw 01 it is too wide (151 s), which explains the FDP_c up to 0.0104.
+  - A refined spread fit gets the spread right, but over five seeds it scores +5.8 % on raw 01 and -3.1 % on raw 02, so it fails (PLAN_CALREFINE2).
+  - Two label-free width rules are undefined or point the wrong way (`gates/single-binary/rtwin/`).
+  - The width needs a decision.
+- **Gap to DIA-NN.** It is about 12-21 %, almost entirely in score formation on the right peak (`gates/extraction-parity/gap/`).
+
+**Direction.** The single voxel model was replaced in practice by the heuristic-feature network (D11 line, R-WP3). That network is now in C++ as `OpenDIA::CrossFitScorer`. OpenDIACNN and LibTorch are no longer on the default path.
 
 ## Why the direction changed
 
@@ -46,9 +61,9 @@ OpenDIACalibrate      identification-free RT, fragment m/z and 1/K0 calibration 
 OpenDIA -calibration  streaming sparse-grid search of the full library inside calibrated windows
    │  candidate peak groups (multi-apex), search features
    ▼
-OpenDIACNN crossfit   now (frozen base): trace tensors → CNN logit → stage-2 LDA over CNN + heuristic
-                      features, family cross-fitting, pooled paired target-decoy competition → q-values
-OpenDIAScoringModel   planned: one voxel model replaces CNN + LDA; same folds and the same paired TDC
+evidence pass         6-fragment traces, apex b/y ions, 12-fragment grids, shared-signal interference graph (24 features)
+CrossFitScorer        decoy-whitened network, family cross-fitting, self-training, pooled paired TDC → q-values
+                      (all inside OpenDIAWorkflow; OpenDIACNN is the earlier, optional CNN + LDA scorer)
 ```
 
 ## Current HeLa result (design run, not independent evidence)
@@ -85,14 +100,14 @@ The current pipeline extracts 198,915 candidates in 40 s and runs CNN crossfit i
 
 ## Work packages
 
-| WP | Scope | State, 10 November 2026 |
+| WP | Scope | State, 16 November 2026 |
 |---|---|---|
-| [R-WP1](work-packages/R1-streaming-search.md) | Streaming sparse-grid candidate search | Delivered. Thermo `.raw` streams natively. Opt-in boundary picker. Recall gates open. |
-| [R-WP2](work-packages/R2-calibration.md) | ID-free run calibration (RT, m/z, 1/K0, tolerances) | Delivered on HeLa and on Astral raws 01/02 (windowed second pass). Fails on 500 pg. |
-| [R-WP3](work-packages/R3-trace-cnn.md) | Raw-trace scorer | CNN + LDA is the frozen base. Work on CNN + LDA is stopped. **Active: single voxel model `OpenDIAScoringModel`.** |
-| [R-WP4](work-packages/R4-error-control.md) | Cross-fitting, paired TDC, independent error control | Partial. q ≤ 0.01 holds on raws 01/02. q ≤ 0.05 is anti-conservative. |
-| [R-WP5](work-packages/R5-id-gap.md) | Close the gap to OpenSWATH + Percolator | **Active.** Raw 02 at OSW level, raw 01 at 89 %. |
-| [R-WP6](work-packages/R6-acceptance.md) | Independent runs, native Thermo, packaging, merge | Open. Raw 03 is held back. |
+| [R-WP1](work-packages/R1-streaming-search.md) | Streaming candidate search | Delivered: native-scan XIC peak picking and Thermo `.raw`. Recall at calibrated windows is open. |
+| [R-WP2](work-packages/R2-calibration.md) | ID-free run calibration | Delivered, with the windowed pass. **Open: the self-calibrated RT window width** (raw 01 too wide). |
+| [R-WP3](work-packages/R3-trace-cnn.md) | Scorer | **C++ `CrossFitScorer` in `OpenDIAWorkflow`**: 98.6 / 99.0 % of the Python D11FDC median. CNN + LDA stopped. |
+| [R-WP4](work-packages/R4-error-control.md) | Error control | q ≤ 0.01 holds with reused calibration (FDP_c ≤ 0.0082). Self-calibrated raw 01 reaches 0.0104 on 2 of 5 seeds. |
+| [R-WP5](work-packages/R5-id-gap.md) | ID gap | **Active.** Past OSW + Percolator. 88 / 81 % of DIA-NN (raw 01 / 02, reused calibration). |
+| [R-WP6](work-packages/R6-acceptance.md) | Acceptance, packaging, merge | One-command tool delivered. Raw 03 held back. PR split open. |
 
 Dependency order: R-WP5 uses R-WP1 to R-WP4. R-WP6 needs R-WP4 and R-WP5.
 

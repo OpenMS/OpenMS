@@ -2,7 +2,7 @@
 
 [Master plan](README.md)
 
-**Status, 12 November 2026.** This file lists the steps of each work package and the state of each step. Each row links to the record of the step. The script [`board_sync.py`](board_sync.py) copies the R-WP sections of this file to the GitHub project [OpenMS/38](https://github.com/orgs/OpenMS/projects/38). Edit this file first, then run the script. The "Now" table repeats rows from the R-WP sections, and the script does not copy it.
+**Status, 16 November 2026.** This file lists the steps of each work package and the state of each step. Each row links to the record of the step. The script [`board_sync.py`](board_sync.py) copies the R-WP sections of this file to the GitHub project [OpenMS/38](https://github.com/orgs/OpenMS/projects/38). Edit this file first, then run the script. The "Now" table repeats rows from the R-WP sections, and the script does not copy it.
 
 **States:**
 - **Done (pass)**: the step met its predeclared rule.
@@ -17,42 +17,23 @@ Counts are N at entrapment FDP_c 1 % on raw 01 / raw 02, unless the row says oth
 
 ## Now
 
+Rows of 12-16 November 2026. Earlier rows (voxel v2-v19, CNN + LDA) are in the R-WP sections and in git history.
+
 | Step | WP | State | Record |
 |---|---|---|---|
-| Voxel pilot, 8 cells: no cell passes. Entrapment AUC 0.47–0.50 (base 0.516), no N gain over the voxel control | R-WP3 | Done (fail) | [RESULT_PILOT.md](gates/voxel-scoring-model/RESULT_PILOT.md) |
-| Next direction for the voxel model | R-WP3 | Done: user chose heuristic features + semi-supervised rounds (10 November 2026) | [RESULT_PILOT.md](gates/voxel-scoring-model/RESULT_PILOT.md) |
-| Voxel v2: 4 arms on raws 01/02: no arm passes. Best arm FS 921 / 1040 at 1 % (base 1024 / 1288), entrapment AUC above base | R-WP3 | Done (fail) | [RESULT_V2.md](gates/voxel-scoring-model/v2/RESULT_V2.md) |
-| Voxel v3 step 0: brightness check not confirmed (drop ≤ 0.0011), voxel score as LDA feature does not help (V0 −; FS ±0) | R-WP3 | Done (fail) | [RESULT_STEP0.md](gates/voxel-scoring-model/v3-step0/RESULT_STEP0.md) |
-| Voxel v3 phase 1: heuristic-only controls. LDA 1267 / 1261, MLP+BCE 1094 / 1100, linear+BCE 1300 / 1146. Any BCE model prefers entrapment (AUC 0.554–0.558 against 0.531): the objective is the bottleneck | R-WP3 | Done | [RESULT_P1.md](gates/voxel-scoring-model/v3-p1/RESULT_P1.md) |
-| Voxel v3 phase 2a: objectives for one network (BCE all negatives, Fisher loss): none acceptable. Cause: positive-class covariance; decoy-only-covariance LDA keeps N (1259 / 1244) and AUC 0.527 | R-WP3 | Done (fail, cause found) | [RESULT_P2a.md](gates/voxel-scoring-model/v3-p1/RESULT_P2a.md) |
-| Voxel v3 phase 2b gate 1: one network, decoy-whitened objective, 11 features (D11): PASS. 1348 / 1334 at 1 % (base 1024 / 1288), entrapment AUC 0.511 / 0.514 | R-WP3 | Done (pass) | [RESULT_P2b.md](gates/voxel-scoring-model/v3-p2b/RESULT_P2b.md) |
-| Voxel v3 phase 2b gate 2: voxel encoder + 11 features (DV): FAIL. 1388 / 1291 at 1 %, entrapment AUC 0.500 / 0.498; fails Δ@2 % on raw 02 and FDP_c 0.019 on raw 01. Voxel adds no IDs over D11 | R-WP3 | Done (fail) | [RESULT_P2b.md](gates/voxel-scoring-model/v3-p2b/RESULT_P2b.md) |
-| Voxel v3-seq: ReDeeM-style atom-graph sequence encoder added (DS11, DVS): no arm passes. DS11 1449 / 1337 at 1 %, 1544 / 1535 at 2 % (D11 1572 / 1572); DVS collapses when folds are pooled. No sequence tell (null-winner AUC within 0.002 of 0.5) | R-WP3 | Done (fail) | [RESULT_SEQ.md](gates/voxel-scoring-model/v3-seq/RESULT_SEQ.md) |
-| Next step after v3-seq (promote D11 to C++, per-fold tail calibration, or stop the sequence line) | R-WP3 | Blocked: needs user decision | [RESULT_SEQ.md](gates/voxel-scoring-model/v3-seq/RESULT_SEQ.md) |
-| D11 miss analysis against DIA-NN: wrong window ~400, right window below cut ~700 per raw | R-WP3 | Done | [MISSES_D11.md](gates/voxel-scoring-model/v3-seq/MISSES_D11.md) |
-| Voxel v4 phase 1: ranking term (D11R), MS1 isotope features (D11M), both (D11MR): no arm passes. Best N@2 % D11M 1592 / 1550, D11MR 1573 / 1637 (D11 1572 / 1572), every interval against D11 includes 0; D11M/MR FDP_c 0.016–0.017 on raw 01 | R-WP3 | Done (fail) | [RESULT_V4P1.md](gates/voxel-scoring-model/v4/RESULT_V4P1.md) |
-| Voxel v4 phase 2: 12-fragment features (D11F) and linear-part window choice (D11W, D11FW): D11F and D11FW PASS, D11W fails. N@2 % 1688 / 1635 and 1714 / 1620 (D11 1572 / 1572); FDP_c at q ≤ 0.01 0.0136 / 0.0149 (at the limit on raw 02); N@1 % unstable on raw 02 (1149 / 1115) | R-WP3 | Done (pass) | [RESULT_V4P2.md](gates/voxel-scoring-model/v4/RESULT_V4P2.md) |
-| Voxel v5: fragment mass accuracy (D11FPW) and consensus co-elution (D11FPCW) on D11FW: no arm passes (rule 2 on raw 01: 1657 / 1664 against 1714). D11FPW steadies 1 % on raw 02 (1432 against 1115) | R-WP3 | Done (fail) | [RESULT_V5.md](gates/voxel-scoring-model/v4/RESULT_V5.md) |
-| Voxel v6: per-fold decoy-tail calibration (no retraining): D11FWT PASS, new base. N@1 % 1496 / 1426, N@2 % 1716 / 1736, FDP_c 0.0137 / 0.0131; raw 02 1 % instability removed (1115 → 1426); raw 01 rule-2 margin +2 | R-WP3 | Done (pass) | [RESULT_V6.md](gates/voxel-scoring-model/v4/RESULT_V6.md) |
-| Voxel v7: cross-run evidence (other run's raw features, D11FXWT): FAIL on FDP_c at q ≤ 0.01 (0.017 / 0.019). N@2 % 1782 / 1746 (D11FWT 1716 / 1736); stage D unchanged | R-WP3 | Done (fail) | [RESULT_V7.md](gates/voxel-scoring-model/v4/RESULT_V7.md) |
-| A+B misses (~330 per raw): about 70 % sit beyond the RT calibration end knots. C++ linear-end RTMap (6015a6e53f, always on) + full rebuild: A+B 351/331 → 230/203 | R-WP3 | Done | [RESULT_V8.md](gates/voxel-scoring-model/v8/RESULT_V8.md) |
-| Voxel v8: D11FWT on the rtlin population vs rebuilt BASE: FAIL rule 3 (FDP_c at q ≤ 0.01 0.016 / 0.019). N@1 % 1519 / 1420, N@2 % 1839 / 1736; ends decoy-clean, entrapment excess inside the old knot range | R-WP3 | Done (fail): needs user decision | [RESULT_V8.md](gates/voxel-scoring-model/v8/RESULT_V8.md) |
-| Voxel v9/v10: native-sampling fragment evidence (per-scan library-fragment matches against a chance model) for weak stage-D peaks. v9 (uniform-density null, mis-calibrated) FAIL: FDP_c 0.018 / 0.019. v10 (empirical per-m/z null, calibrated on decoys) FAIL: FDP_c 0.023 / 0.018, N@2 % 1676 / 1695; the evidence rewards entrapment as much as weak human peaks. v11 (unique fragments only: mask fragments shared with other library targets in the same isolation window and RT tolerance) FAIL: FDP_c 0.030 / 0.032, N@2 % 1552 / 1518; entrapment keeps its native-evidence advantage after masking. Line closed; back to the drawing board | R-WP3 | Done (fail): needs user decision | [RESULT_V10.md](gates/voxel-scoring-model/v9/RESULT_V10.md), [RESULT_V11.md](gates/voxel-scoring-model/v11/RESULT_V11.md) |
-| Voxel v12: reference-profile correction added as a second, raw-preserving XIC view to one learned voxel scorer (D11FIWT): FAIL. FDP_c at q ≤ 0.01 is 0.027 / 0.010; N@2 % 1585 / 1623 vs D11FWT 1716 / 1736 on raws 01 / 02. Null-winner AUC passes. Retain D11FWT and stop this correction approach | R-WP3 | Done (fail) | [RESULT_V12.md](gates/voxel-scoring-model/v12/RESULT_V12.md) |
-| Voxel v13: precursor-aware full-spectrum NNLS diagnostic on raw 01: D-vs-decoy ablation AUC 0.687, but entrapment-vs-decoy AUC 0.535 misses frozen ≤0.53 rule. No training; keep D11FWT and stop this variant | R-WP3 | Done (fail) | [RESULT_V13.md](gates/voxel-scoring-model/v13/RESULT_V13.md) |
-| Voxel v14b: Stage-D-like local-flank attenuation diagnostic, raw01: median score barely changes, only 2.64% of high-confidence donors enter the observed Stage-D score range. F12 inputs largely discard amplitude; no augmentation model trained | R-WP3 | Done (diagnostic) | [RESULT_V14b.md](gates/voxel-scoring-model/v14/RESULT_V14b.md) |
-| Voxel v15: source and raw01 audit finds no continuous absolute-amplitude feature among the 11 D11 inputs; most individual features are near chance for D versus same-fold score-matched decoys. No training or counterfactual scoring; next amplitude/shape test requires a frozen, validated feature-recompute plan | R-WP3 | Done (diagnostic) | [RESULT_V15.md](gates/voxel-scoring-model/v15/RESULT_V15.md) |
-| Voxel v16: Stage D mechanism audit (diagnostic, exact D11F reconstruction on both raws). 779/830 historical D truly miss q ≤ 1 %; 259/376 are near the cut (q 1–5 %). Deep D (< decoy p90, 287/230): linear part ranks them at p95, nonlinear part suppresses them; 268/222 never entered training and 251/212 have the full-score training selector pick a window > 10 s from the deployed W window. Prior arms (V5–V12) recovered 39–229 D per raw but at FDP_c 1.6–3.2 % or large E losses. No IDs recovered | R-WP3 | Done (diagnostic) | [RESULT_V16.md](gates/voxel-scoring-model/v16/RESULT_V16.md) |
-| Voxel v17 (proposed, not run): selector-consistent self-training. Dropped by the user (would rely on hard decoys / risk specificity) | R-WP3 | Cancelled | [PROPOSED_PLAN_V17.md](gates/voxel-scoring-model/v16/PROPOSED_PLAN_V17.md) |
-| Voxel v18: charge-sibling co-elution feature (D11FSWT): FAIL rule 2. N@2 % 1657 / 1585 vs D11FWT 1716 / 1736; q ≤ 0.01 1151 / 1477 vs 1614 / 1536 (entrapment 3 / 8 vs 11 / 10). Decoys gain from their own sibling charge states (decoys with near sibling above p99: 0.9 % → 2.7 %), so accepted IDs without siblings fall below the cut. Line stopped | R-WP3 | Done (fail) | [RESULT_V18.md](gates/voxel-scoring-model/v18/RESULT_V18.md) |
-| DIA-NN 2.2.0 on our exact 300K library, raw01, single run: N@FDP_c 1 % 2161 (D11FWT 1496), q ≤ 0.01 2357 (22 entrapment); finds 548 of our 866 stage D. Gap is our pipeline, not the library. 10:13 wall, 4.34 GB, 14 threads | R-WP3 | Done (diagnostic) | [RESULT.md](gates/diann-ourlib/RESULT.md) |
-| Voxel v19: native-sampling peak geometry replaces the search-run width / scans / support (D11FGWT): FAIL rule 2. N@2 % 1570 / 1580 vs 1716 / 1736 (intervals below 0); N@0.5 % up 971 → 1328 / 1127 → 1265. Finding: search `peak_width_seconds` and `matched_scans` measure a 30-s-gap signal run (median 46–66 s), not the peak | R-WP3 | Done (fail) | [RESULT_V19.md](gates/voxel-scoring-model/v19/RESULT_V19.md) |
-| Native-scan XIC peak picking in the search (`OpenDIA -peak_picking xic`, 11522c7a6c): no 30 s gap, peaks picked from per-fragment native traces inside the calibrated RT window. raw01 look passes its go rule: 3:17 / 4.45 GB (legacy 2:46 / 4.34 GB, legacy output byte-identical), DIA-NN IDs with a candidate within 3 s 92.6 % (90.5 %; DIA-NN-only 77.1 % vs 69.7 %), FWHM vs DIA-NN Spearman 0.56 (0.03). Next: population + features + D11F on xic candidates, both raws | R-WP1, R-WP3 | Look done (go) | [RESULT_XIC_LOOK.md](gates/xic-peaks/RESULT_XIC_LOOK.md) |
-| Stage-D misses (~900 per raw) deep dive: right peak (apex = DIA-NN RT), low abundance, DIA-NN marginal q; no measured evidence separates them from decoys beyond DIA-NN selection. No feature proposed; recompute on rtlin population | R-WP3 | Done | [DEEP_DIVE_D.md](gates/voxel-scoring-model/v4/DEEP_DIVE_D.md) |
-| Promote D11FWT (D11F + linear window choice + per-fold tail calibration) to C++ `OpenDIAScoringModel` (needs 12-fragment library input and extraction of non-search fragments) | R-WP3 | Blocked: needs user decision | [RESULT_V4P2.md](gates/voxel-scoring-model/v4/RESULT_V4P2.md) |
-| C++ `OpenDIAScoringModel.{h,cpp}` and its own tool | R-WP3 | Blocked: needs a pilot cell that passes | [DESIGN.md](gates/voxel-scoring-model/DESIGN.md) |
-| Full gate of `OpenDIAScoringModel` on raws 01/02 against the base (1029 / 1298) | R-WP3, R-WP5 | Blocked: needs the C++ model | |
-| Pass rule: change from N@1 % to a paired bootstrap rule | R-WP4 | Blocked: needs user approval | [metric_noise.txt](gates/astral-native-byion/single-scorer/metric_noise.txt) |
+| Native-scan XIC IDs (PLAN_XIC_IDS): N up +390..+743 / +546..+1051 at 1 %, FDP_c at q ≤ 0.01 0.016 / 0.017 | R-WP3, R-WP4 | Done (fail, rule 1c) | [RESULT_XIC_IDS.md](gates/extraction-parity/RESULT_XIC_IDS.md) |
+| Fragment-deficit features (PLAN_INTERF): raw 01 FDP_c 0.023 | R-WP3 | Done (fail) | [RESULT_INTERF.md](gates/extraction-parity/RESULT_INTERF.md) |
+| Parent-complete library (PLAN_PAIRLIB): excess stays, FDP_c 0.032 / 0.017 | R-WP4 | Done (fail) | [RESULT_PAIRLIB.md](gates/extraction-parity/pairlib/RESULT_PAIRLIB.md) |
+| Predicted decoys (PLAN_DECOYGEN, `-predict_decoys`): rule 1c passes in every arm; C++ arm E reproduces arm D | R-WP4 | Done (pass, arm E) | [RESULT_DECOYGEN.md](gates/extraction-parity/decoygen/RESULT_DECOYGEN.md) |
+| Gap funnel against DIA-NN: losses are right-peak-below-cut (626 / 644) | R-WP5 | Done (diagnostic) | [RESULT_GAP.md](gates/extraction-parity/gap/RESULT_GAP.md) |
+| PLAN_GAP: shared-signal interference (I) passes, 1694 / 1628 → 1879 / 1921; A, G fail. C++ OpenDIAInterference reproduces it | R-WP3, R-WP5 | Done (pass, I) | [RESULT_GAP_ARMS.md](gates/extraction-parity/gap/arms/RESULT_GAP_ARMS.md) |
+| Dead-code removal (TOPAZ, MIL, stage-2 isotope/shape/refine, OpenDIARerank/Traces); outputs byte-identical | R-WP6 | Done | `86d82dfdd4` |
+| C++ CrossFitScorer (D11 network, self-training, W rule, tail, pooled TDC): 98.6 / 99.0 % of Python median | R-WP3 | Done (pass) | [RESULT_STEP1.md](gates/single-binary/step1/RESULT_STEP1.md) |
+| OpenDIAWorkflow, one binary on .raw: 1819 / 1870 (reused cal.), raw 02 at 97.1 % of Python (rule 98 %) | R-WP3, R-WP6 | Done (raw 01 pass, raw 02 fail) | [RESULT_WORKFLOW.md](gates/single-binary/workflow/RESULT_WORKFLOW.md) |
+| Validation: determinism, report, run and global q recompute, fail-closed CLI tests | R-WP6 | Done (pass) | [RESULT_WORKFLOW.md](gates/single-binary/workflow/RESULT_WORKFLOW.md) |
+| Self-calibrated RT spread: CALSPREAD fails offline; CALREFINE / CALREFINE2 (5 seeds) +5.8 % / −3.1 %, fail | R-WP2 | Done (fail) | [calspread](gates/single-binary/calspread/RESULT_CALSPREAD.md), [calrefine](gates/single-binary/calrefine/RESULT_CALREFINE2.md) |
+| RT window width rule: density crossing undefined, P_win points to 2 spreads against the evidence | R-WP2 | Blocked: needs user decision (choose width on IDs, raw 03 held out) | [PRECHECK_CROSSING.md](gates/single-binary/rtwin/PRECHECK_CROSSING.md) |
+| Close the 12-21 % gap to DIA-NN (2067 / 2301) | R-WP5 | Next | [RESULT_GAP.md](gates/extraction-parity/gap/RESULT_GAP.md) |
 | Raw 03 final check | R-WP6 | Blocked: needs user approval | |
 
 ## R-WP1: Streaming search
@@ -74,6 +55,9 @@ Counts are N at entrapment FDP_c 1 % on raw 01 / raw 02, unless the row says oth
 | Frozen design on Astral raw 01: 0 anchors | Done (fail) | [R2](work-packages/R2-calibration.md) |
 | Windowed second pass `-window_panel_targets` (raw 01: 512 anchors) | Done (pass) | [R2](work-packages/R2-calibration.md) |
 | Low-input runs (500 pg) | Open | [R2](work-packages/R2-calibration.md) |
+| Selection-free RT spread fit (`20f9f12335`) and RT-likelihood stage-3 ranking (`0e4a234762`) | Done | [RESULT_CALIB.md](gates/extraction-parity/decoygen/calib/RESULT_CALIB.md) |
+| Self-calibrated RT window on the predicted-decoy library: spread inflated (frame mismatch), fixes fail (CALSPREAD, CALREFINE, CALREFINE2) | Done (fail) | [RESULT_CALREFINE2.md](gates/single-binary/calrefine/RESULT_CALREFINE2.md) |
+| RT window width rule | Blocked: needs user decision | [PRECHECK_CROSSING.md](gates/single-binary/rtwin/PRECHECK_CROSSING.md) |
 
 ## R-WP3: Scorer
 
@@ -108,6 +92,9 @@ Counts are N at entrapment FDP_c 1 % on raw 01 / raw 02, unless the row says oth
 | Full gate of `OpenDIAScoringModel` on raws 01/02 against the base (1029 / 1298) | Blocked: needs the C++ model | |
 | Voxel v13: precursor-aware full-spectrum NNLS diagnostic on raw 01: D-vs-decoy ablation AUC 0.687, but entrapment-vs-decoy AUC 0.535 misses frozen ≤0.53 rule. No training; keep D11FWT and stop this variant | Done (fail) | [RESULT_V13.md](gates/voxel-scoring-model/v13/RESULT_V13.md) |
 | Voxel v14b: Stage-D-like local-flank attenuation diagnostic, raw01: median score barely changes, only 2.64% of high-confidence donors enter observed Stage-D score range. F12 inputs largely discard amplitude; no augmentation model trained | Done (diagnostic) | [RESULT_V14b.md](gates/voxel-scoring-model/v14/RESULT_V14b.md) |
+| Shared-signal interference features, C++ `OpenDIAInterference` (`6560d83cb2`) | Done (pass) | [RESULT_GAP_ARMS.md](gates/extraction-parity/gap/arms/RESULT_GAP_ARMS.md) |
+| C++ `CrossFitScorer` (`b851c0504a`) replaces the Python D11 trainer | Done (pass) | [RESULT_STEP1.md](gates/single-binary/step1/RESULT_STEP1.md) |
+| `OpenDIAWorkflow` single binary (`794ee1565e`): raw 01 pass, raw 02 97.1 % (rule 98 %) | Done (partial) | [RESULT_WORKFLOW.md](gates/single-binary/workflow/RESULT_WORKFLOW.md) |
 
 ## R-WP4: Error control
 
@@ -123,6 +110,7 @@ Counts are N at entrapment FDP_c 1 % on raw 01 / raw 02, unless the row says oth
 | Metric noise: bootstrap 90 % of N@1 % is about ±200 | Done (diagnostic) | [metric_noise.txt](gates/astral-native-byion/single-scorer/metric_noise.txt) |
 | Calibrated q at q ≤ 0.05 (now 0.065 / 0.074) | Open | |
 | Pass rule change to a paired bootstrap rule | Blocked: needs user approval | |
+| Predicted decoys (`-predict_decoys`) remove the entrapment excess (rule 1c passes) | Done (pass) | [RESULT_DECOYGEN.md](gates/extraction-parity/decoygen/RESULT_DECOYGEN.md) |
 
 ## R-WP5: ID gap
 
@@ -134,6 +122,8 @@ Counts are N at entrapment FDP_c 1 % on raw 01 / raw 02, unless the row says oth
 | Raw 01/02 gap to OSW is score formation on the right peak | Done (diagnostic) | [gap2](gates/astral-raw01-rethink/gap2/) |
 | Native base against OSW + Percolator: raw 02 1298 / 1287, raw 01 1029 / 1151 | Done | [byion raw01](gates/astral-native-byion/raw01/RESULT.md) |
 | Close the raw 01 gap with the single voxel model | Blocked: needs pilot and C++ model | |
+| Gap funnel against DIA-NN (arm E): right peak below cut dominates | Done (diagnostic) | [RESULT_GAP.md](gates/extraction-parity/gap/RESULT_GAP.md) |
+| Close the remaining 12-21 % gap to DIA-NN | Next | |
 
 ## R-WP6: Acceptance
 
@@ -141,5 +131,6 @@ Counts are N at entrapment FDP_c 1 % on raw 01 / raw 02, unless the row says oth
 |---|---|---|
 | Raw 03 check under a new hashed gate | Blocked: needs user approval | |
 | Native Bruker `.d` and Thermo `.raw` | Partial: both stream | [R6](work-packages/R6-acceptance.md) |
-| Packaging (LibTorch optional, CTD/INI docs) | Open | [R6](work-packages/R6-acceptance.md) |
+| Packaging (LibTorch optional, CTD/INI docs) | Partial: LibTorch off the default path | [R6](work-packages/R6-acceptance.md) |
 | Split the branch into reviewable PRs | Open | [R6](work-packages/R6-acceptance.md) |
+| One-command `OpenDIAWorkflow`, deterministic, fail-closed CLI tests (`9d6bf16f10`) | Done | [RESULT_WORKFLOW.md](gates/single-binary/workflow/RESULT_WORKFLOW.md) |
