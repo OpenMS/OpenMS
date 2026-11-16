@@ -34,7 +34,10 @@ Rows of 12-16 November 2026. Earlier rows (voxel v2-v19, CNN + LDA) are in the R
 | Self-calibrated RT spread: CALSPREAD fails offline; CALREFINE / CALREFINE2 (5 seeds) +5.8 % / −3.1 %, fail | R-WP2 | Done (fail) | [calspread](gates/single-binary/calspread/RESULT_CALSPREAD.md), [calrefine](gates/single-binary/calrefine/RESULT_CALREFINE2.md) |
 | RT window width rule: density crossing undefined, P_win against the evidence; cross-fitted width on IDs (PLAN_RTWIN2) −2.2 % raw 01, held-out raw 03 −2.3 %, removed | R-WP2 | Done (fail) | [RESULT_RTWIN2.md](gates/single-binary/rtwin/RESULT_RTWIN2.md) |
 | ID-based recalibration with RT-dependent window (PLAN_RTPROFILE): ends recovered, middle loses; raw 02 −1.05 %, raw 01 s4 FDP_c 0.0104, raw 03 −0.6 %, removed | R-WP2 | Done (fail) | [RESULT_RTPROFILE.md](gates/single-binary/rtwin/RESULT_RTPROFILE.md) |
-| Close the 12-21 % gap to DIA-NN (2067 / 2301) | R-WP5 | Next | [RESULT_GAP.md](gates/extraction-parity/gap/RESULT_GAP.md) |
+| Close the 12-21 % gap to DIA-NN (2067 / 2301) | R-WP5 | In progress | [RESULT_GAP.md](gates/extraction-parity/gap/RESULT_GAP.md) |
+| Status snapshot vs DIA-NN: 87 % / 84 % of DIA-NN at FDP_c 1 %; 67-72 % of DIA-NN's q ≤ 0.01 IDs shared, 93 % of ours in DIA-NN; 6-7.5 min, 22 GB per raw | R-WP5, R-WP6 | Done (diagnostic) | [README snapshot](README.md), [STATUS_vs_DIANN.txt](gates/single-binary/STATUS_vs_DIANN.txt) |
+| Joint (presence-weighted) interference fit: no room, block I's explaining-away comes from absent claimants; labelled ceiling on current inputs about +100 / raw | R-WP5 | Done (diagnostic, not pursued) | [PRECHECK_JOINT.md](gates/extraction-parity/gap/PRECHECK_JOINT.md) |
+| Scorer capacity (option 1): interaction inputs and self-trained trees fail offline; seed ensemble (PLAN_ENSEMBLE, m = 3) on codon | R-WP3, R-WP5 | In progress | [PLAN_ENSEMBLE.md](gates/single-binary/ensemble/PLAN_ENSEMBLE.md) |
 | Raw 03 held-out check: self-calibrating, `library12_full`, 1907 median, FDP_c ≤ 0.0096 | R-WP6 | Done | [RESULT_RTWIN2.md](gates/single-binary/rtwin/RESULT_RTWIN2.md) |
 
 ## R-WP1: Streaming search
@@ -125,13 +128,16 @@ Rows of 12-16 November 2026. Earlier rows (voxel v2-v19, CNN + LDA) are in the R
 | Native base against OSW + Percolator: raw 02 1298 / 1287, raw 01 1029 / 1151 | Done | [byion raw01](gates/astral-native-byion/raw01/RESULT.md) |
 | Close the raw 01 gap with the single voxel model | Blocked: needs pilot and C++ model | |
 | Gap funnel against DIA-NN (arm E): right peak below cut dominates | Done (diagnostic) | [RESULT_GAP.md](gates/extraction-parity/gap/RESULT_GAP.md) |
-| Close the remaining 12-21 % gap to DIA-NN | Next | |
+| Close the remaining 12-21 % gap to DIA-NN | In progress | [README snapshot](README.md) |
+| Joint interference fit precheck: no room (absent claimants carry block I) | Done (diagnostic, not pursued) | [PRECHECK_JOINT.md](gates/extraction-parity/gap/PRECHECK_JOINT.md) |
+| Scorer seed ensemble (PLAN_ENSEMBLE) | In progress | [PLAN_ENSEMBLE.md](gates/single-binary/ensemble/PLAN_ENSEMBLE.md) |
 
 ## R-WP6: Acceptance
 
 | Step | State | Record |
 |---|---|---|
-| Raw 03 check under a new hashed gate | Blocked: needs user approval | |
+| Raw 03 held-out check under each new hashed plan | Done for PLAN_RTWIN2 / PLAN_RTPROFILE (current setup 1907 median) | [RESULT_RTWIN2.md](gates/single-binary/rtwin/RESULT_RTWIN2.md) |
+| Memory: 22 GB per raw with the full 12-fragment scoring library (9.6 GB with `library12_pop`) | Open | [README snapshot](README.md) |
 | Native Bruker `.d` and Thermo `.raw` | Partial: both stream | [R6](work-packages/R6-acceptance.md) |
 | Packaging (LibTorch optional, CTD/INI docs) | Partial: LibTorch off the default path | [R6](work-packages/R6-acceptance.md) |
 | Split the branch into reviewable PRs | Open | [R6](work-packages/R6-acceptance.md) |
