@@ -68,3 +68,9 @@ CUR (the current default with `library12_full.pqp`, self-calibrating) on all thr
 - FDP_c ≤ 0.0096 on all 15 runs.
 - Medians: 1804 / 1909 / 1907.
 - These are 87 % / 83 % of DIA-NN's 2067 / 2301 on raws 01/02.
+
+## Follow-up (16 November 2026)
+The user judged a post-hoc RT filter the wrong place for this: the scorer should learn it. So
+`-rt_width_selection` was removed (revert e560b3817a), not kept as an option.
+
+The next direction is an RT-dependent extraction window; see `PRECHECK_RTPROFILE.md`.
