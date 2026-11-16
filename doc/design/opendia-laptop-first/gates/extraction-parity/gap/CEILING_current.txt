@@ -1,0 +1,4 @@
+raw01 x1 decoy rate (0.00018): ceiling TPR on currently-rejected 0.197 (109 of 553); currently-accepted kept 0.926
+raw01 x4 decoy rate (0.00071): ceiling TPR on currently-rejected 0.461 (255 of 553); currently-accepted kept 0.987
+raw02 x1 decoy rate (0.00018): ceiling TPR on currently-rejected 0.203 (100 of 493); currently-accepted kept 0.911
+raw02 x4 decoy rate (0.00071): ceiling TPR on currently-rejected 0.552 (272 of 493); currently-accepted kept 0.989

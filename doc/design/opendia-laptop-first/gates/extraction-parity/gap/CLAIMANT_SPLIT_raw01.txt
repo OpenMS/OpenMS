@@ -1,0 +1,8 @@
+  scale = np.where(use.any(1), np.nanmedian(np.where(use, Ab / np.maximum(Lb, 1e-12), np.nan), 1), 0.0)
+raw01: cut keeps 1805; windows above the cut (likely present) 1834 of 1628266; groups: rejected 553, matched decoys 994, accepted 1652
+median (mean) explained share of the window central area, by claimant class:
+  rejected (DIA-NN right peak)   all 0.223 | present 0.000 (0.002) | absent_winner 0.037 (0.109) | absent_nonwinner 0.185 (0.247)
+  matched decoy winners          all 0.270 | present 0.000 (0.003) | absent_winner 0.049 (0.150) | absent_nonwinner 0.217 (0.287)
+  accepted                       all 0.098 | present 0.000 (0.002) | absent_winner 0.011 (0.054) | absent_nonwinner 0.078 (0.134)
+  AUC rejected > matched decoys, -explained, all claimants (current): 0.538
+  AUC rejected > matched decoys, -explained, present claimants only: 0.504

@@ -1,0 +1,52 @@
+== raw01: rejected 553 (score median 6.6, cut 22.7), matched decoys 994; entrapment in band 197, their decoys 271
+  input                           AUC R>D  AUC E>D     R med    D med    E med
+  transition_support                0.819    0.494     5.000    4.000    4.000 <-- R differs, E does not
+  log_matched_scans                 0.640    0.514     1.792    1.609    1.792 <-- R differs, E does not
+  log_peak_width                    0.655    0.512     2.023    2.020    2.022 <-- R differs, E does not
+  abs_library_rt_error              0.334    0.500    16.469   34.184   30.691 <-- R differs, E does not
+  boundary_log_fwhm                 0.545    0.507     1.833    1.796    1.746
+  boundary_log_width                0.566    0.543     2.506    2.506    2.648
+  boundary_coelution                0.604    0.497     0.287    0.200    0.323 <-- R differs, E does not
+  boundary_library_correlation      0.677    0.531     0.595    0.274    0.548 <-- R differs, E does not
+  boundary_apex_agreement           0.652    0.427     0.833    0.667    0.667
+  byion_b                           0.491    0.489     2.000    2.000    2.000
+  byion_y                           0.572    0.510     4.000    3.000    4.000
+  f12_support                       0.358    0.485     1.000    2.000    4.000 <-- R differs, E does not
+  f12_coelution                     0.464    0.481     0.226    0.242    0.346
+  f12_libcos                        0.803    0.513     0.871    0.713    0.806 <-- R differs, E does not
+  f12_extra_support                 0.342    0.513     0.000    1.000    2.000 <-- R differs, E does not
+  f12_extra_coelution               0.419    0.500     0.170    0.208    0.290
+  f12_extra_share                   0.462    0.495    -0.551   -0.499   -0.573
+  d_max                             0.301    0.476     0.369    0.592    0.582 <-- R differs, E does not
+  d6_max                            0.334    0.472     0.282    0.441    0.422 <-- R differs, E does not
+  d_lib                             0.405    0.481     0.000    0.000    0.000
+  i_explained                       0.462    0.516     0.222    0.274    0.242
+  i_libcos_resid                    0.767    0.495     0.836    0.676    0.764 <-- R differs, E does not
+  i_dlibcos                         0.500    0.476    -0.013   -0.017   -0.023
+  i_nclaim                          0.483    0.515     3.178    3.178    3.401
+== raw02: rejected 493 (score median 8.1, cut 19.5), matched decoys 783; entrapment in band 77, their decoys 121
+  input                           AUC R>D  AUC E>D     R med    D med    E med
+  transition_support                0.819    0.506     5.000    4.000    5.000 <-- R differs, E does not
+  log_matched_scans                 0.587    0.495     1.792    1.609    1.792
+  log_peak_width                    0.586    0.462     2.023    2.021    2.021
+  abs_library_rt_error              0.342    0.550    15.993   30.105   24.947 <-- R differs, E does not
+  boundary_log_fwhm                 0.527    0.434     1.817    1.808    1.735
+  boundary_log_width                0.538    0.518     2.579    2.506    2.712
+  boundary_coelution                0.572    0.486     0.293    0.233    0.369
+  boundary_library_correlation      0.611    0.527     0.539    0.300    0.592 <-- R differs, E does not
+  boundary_apex_agreement           0.660    0.477     0.833    0.667    0.833 <-- R differs, E does not
+  byion_b                           0.505    0.525     2.000    2.000    3.000
+  byion_y                           0.565    0.457     4.000    3.000    4.000
+  f12_support                       0.339    0.573     1.000    3.000    5.000
+  f12_coelution                     0.427    0.555     0.236    0.264    0.388
+  f12_libcos                        0.766    0.469     0.857    0.727    0.821 <-- R differs, E does not
+  f12_extra_support                 0.344    0.540     0.000    1.000    2.000 <-- R differs, E does not
+  f12_extra_coelution               0.419    0.517     0.182    0.223    0.313
+  f12_extra_share                   0.485    0.509    -0.512   -0.478   -0.611
+  d_max                             0.276    0.530     0.375    0.626    0.646 <-- R differs, E does not
+  d6_max                            0.299    0.509     0.262    0.459    0.546 <-- R differs, E does not
+  d_lib                             0.411    0.498     0.000    0.000    0.000
+  i_explained                       0.486    0.449     0.215    0.241    0.160
+  i_libcos_resid                    0.764    0.491     0.837    0.694    0.788 <-- R differs, E does not
+  i_dlibcos                         0.537    0.519    -0.011   -0.019   -0.023
+  i_nclaim                          0.498    0.485     3.219    3.045    3.219

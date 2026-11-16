@@ -1,0 +1,7 @@
+raw02: cut keeps 1826; windows above the cut (likely present) 1853 of 1503845; groups: rejected 493, matched decoys 783, accepted 1678
+median (mean) explained share of the window central area, by claimant class:
+  rejected (DIA-NN right peak)   all 0.214 | present 0.000 (0.002) | absent_winner 0.044 (0.121) | absent_nonwinner 0.176 (0.256)
+  matched decoy winners          all 0.238 | present 0.000 (0.001) | absent_winner 0.050 (0.144) | absent_nonwinner 0.191 (0.273)
+  accepted                       all 0.085 | present 0.000 (0.001) | absent_winner 0.007 (0.048) | absent_nonwinner 0.063 (0.123)
+  AUC rejected > matched decoys, -explained, all claimants (current): 0.514
+  AUC rejected > matched decoys, -explained, present claimants only: 0.505
