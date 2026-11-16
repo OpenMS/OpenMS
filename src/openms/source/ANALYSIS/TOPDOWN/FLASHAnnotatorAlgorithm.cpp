@@ -19,7 +19,9 @@
 #include <OpenMS/METADATA/SpectrumLookup.h>
 #include <OpenMS/PROCESSING/CENTROIDING/PeakPickerHiRes.h>
 #include <algorithm>
+#include <array>
 #include <cmath>
+#include <limits>
 #include <cstdlib>
 #include <numeric>
 #include <unordered_map>
@@ -161,15 +163,16 @@ void FLASHAnnotatorAlgorithm::setDefaultParams_()
   defaults_.setValue("terminal_calibration", std::vector<double> {0.479, 0.697},
                      "c0, c1: -log10 P(RawScore >= s) = c0 + c1 s (s >= 1; linear from 0 below), the tail of RawScore for shuffled "
                      "proteoforms (composition-preserving shuffles of E. coli lysate PrSMs). Used for FAScore.");
-  defaults_.setValue("internal_calibration", std::vector<double> {-11.531, 2.062, -0.471},
+  defaults_.setValue("internal_calibration", std::vector<double> {-5.050, 0.671, -0.405},
                      "a, b, c: logit P(K >= k | n) = a + b log10(n) + c k, the chance of k counted internal pieces among n tested ones, "
-                     "fitted on shuffled proteoforms. Used for FAScore.");
+                     "fitted on shuffled proteoforms under the default internal-ion rule (internal_alpha 0.05, automatic internal_tol). Used "
+                     "for FAScore; refit it when that rule is changed.");
 
   defaults_.setValue("internal_ions", "true",
                      "Annotate internal fragments (both ends inside the proteoform). The cleavage after a residue is authentic if pieces of "
                      "consecutive lengths that all end with that residue, or all start right after it, are accepted (a ladder giving a tag): "
-                     "a tag of at least internal_min_tag_length_asp residues after Asp, internal_min_tag_length_pro before Pro, "
-                     "internal_min_tag_length elsewhere. Ladder pieces "
+                     "the number of pieces a tag needs is taken from the decoy shifts (internal_alpha), separately after Asp, before Pro "
+                     "and elsewhere, or fixed (internal_alpha 0: internal_min_tag_length_asp, _pro and internal_min_tag_length). Tag pieces "
                      "count; internal_extension decides which other pieces at authentic cleavages count. The same decoy shifts measure "
                      "their chance rate.");
   defaults_.setValidStrings("internal_ions", {"true", "false"});
@@ -199,6 +202,21 @@ void FLASHAnnotatorAlgorithm::setDefaultParams_()
                      "cleavage after Asp dominates; with mobile protons (denatured or small precursors) the cleavage before Pro takes "
                      "over. 0: never exchanged. Without a precursor m/z the thresholds are used as given.");
   defaults_.setMinFloat("internal_charge_switch", 0.0);
+
+  defaults_.setValue("internal_alpha", 0.05,
+                     "Tag lengths from the decoy shifts. For the cleavages after Asp, before Pro and elsewhere separately, a tag needs "
+                     "the smallest number of pieces at which the decoy shifts give at most this share of the cleavages found in the "
+                     "PrSM. Half of the shifts choose the lengths; the other half measure the chance that is reported "
+                     "(RawInternalChanceBonds). Needs at least two decoy shifts. 0: the fixed lengths internal_min_tag_length_asp, "
+                     "internal_min_tag_length_pro and internal_min_tag_length (with internal_charge_switch).");
+  defaults_.setMinFloat("internal_alpha", 0.0);
+  defaults_.setMaxFloat("internal_alpha", 1.0);
+
+  defaults_.setValue("internal_tol", 0.0,
+                     "Tolerance (ppm) of internal pieces. Their mass errors are measured from a line in m/z fitted to the errors of "
+                     "the terminal fragments of the PrSM (at least 8 envelopes over more than 200 m/z; without a line, from 0 with "
+                     "tol). 0: twice the spread of the terminal errors around the line, between 1 ppm and tol. A positive value is "
+                     "used as given. A negative value: tol and no line (the behaviour before this option).");
 
   defaults_.setValue("internal_piece_types", "by",
                      "Internal ion types that are tested. 'by': only pieces with a b-type C-end and a y-type N-end, the product of two "
@@ -236,13 +254,15 @@ void FLASHAnnotatorAlgorithm::updateMembers_()
   terminal_calibration_ = param_.getValue("terminal_calibration").toDoubleVector();
   internal_calibration_ = param_.getValue("internal_calibration").toDoubleVector();
   if (terminal_calibration_.size() != 2) terminal_calibration_ = {0.479, 0.697};
-  if (internal_calibration_.size() != 3) internal_calibration_ = {-11.531, 2.062, -0.471};
+  if (internal_calibration_.size() != 3) internal_calibration_ = {-5.050, 0.671, -0.405};
   internal_max_length_ = param_.getValue("internal_max_length");
   min_run_asp_ = (int)param_.getValue("internal_min_tag_length_asp") + 1;
   min_run_other_ = (int)param_.getValue("internal_min_tag_length") + 1;
   min_run_pro_ = (int)param_.getValue("internal_min_tag_length_pro") + 1;
   charge_switch_ = param_.getValue("internal_charge_switch");
   internal_by_only_ = param_.getValue("internal_piece_types").toString() == "by";
+  internal_alpha_ = param_.getValue("internal_alpha");
+  internal_tol_ = param_.getValue("internal_tol");
   const std::string extension = param_.getValue("internal_extension").toString();
   extension_min_run_ = extension == "all" ? 1 : (extension == "tag1" ? 2 : 0);
 
@@ -1080,21 +1100,117 @@ void FLASHAnnotatorAlgorithm::annotateOne_(const PeakArrays& spec, const std::ve
     }
   }
 
+  // mass errors of internal pieces are measured from the line in m/z through the errors of the terminal envelopes of this PrSM, and
+  // the tolerance follows the spread of those errors around the line: the terminal fragments tell how accurate this spectrum is
+  double line_offset = 0, line_slope = 0, internal_tol_ppm = tol_;
+  if (internal_tol_ >= 0)
+  {
+    std::vector<double> xs, ys;
+    for (const auto& e : result.envelopes)
+    {
+      if (e.first >= 0 || e.decoy_shift != 0) continue;
+      xs.push_back(e.most_abundant_mz);
+      ys.push_back(e.ppm_error);
+    }
+    bool line = false;
+    if (xs.size() >= 8)
+    {
+      const auto [x_min, x_max] = std::minmax_element(xs.begin(), xs.end());
+      if (*x_max - *x_min > 200.0)
+      {
+        const double n = (double)xs.size();
+        const double mx = std::accumulate(xs.begin(), xs.end(), 0.0) / n, my = std::accumulate(ys.begin(), ys.end(), 0.0) / n;
+        double sxx = 0, sxy = 0;
+        for (Size k = 0; k < xs.size(); k++)
+        {
+          sxx += (xs[k] - mx) * (xs[k] - mx);
+          sxy += (xs[k] - mx) * (ys[k] - my);
+        }
+        line_slope = sxy / sxx;
+        line_offset = my - line_slope * mx;
+        line = true;
+        if (internal_tol_ == 0)
+        {
+          // twice the spread: the range from the 16th to the 84th percentile of the errors around the line
+          std::vector<double> res(xs.size());
+          for (Size k = 0; k < xs.size(); k++) res[k] = ys[k] - (line_offset + line_slope * xs[k]);
+          std::sort(res.begin(), res.end());
+          auto quantile = [&res](double q) {
+            const double pos = q * (res.size() - 1);
+            const Size lo = (Size)std::floor(pos);
+            const Size hi = std::min(res.size() - 1, lo + 1);
+            return res[lo] + (pos - lo) * (res[hi] - res[lo]);
+          };
+          internal_tol_ppm = std::min(tol_, std::max(1.0, quantile(0.84) - quantile(0.16)));
+        }
+      }
+    }
+    if (internal_tol_ > 0) internal_tol_ppm = std::min(tol_, internal_tol_);
+    (void)line;
+  }
+
+  // the target and, when chance is to be measured, the decoy shifts
+  const bool from_decoys = internal_alpha_ > 0 && decoy_shifts_.size() >= 2;
+  const bool decoy_worlds = from_decoys || report_decoys_;
+  std::vector<InternalWorld> worlds(1 + (decoy_worlds ? decoy_shifts_.size() : 0));
+  matchInternal_(spec, occupancy, sorted_intensities, pieces, terminal_peaks, cal_factor, 0.0, line_offset, line_slope, internal_tol_ppm, true, worlds[0]);
+  for (Size s = 0; decoy_worlds && s < decoy_shifts_.size(); s++)
+  {
+    matchInternal_(spec, occupancy, sorted_intensities, pieces, terminal_peaks, cal_factor, decoy_shifts_[s], line_offset, line_slope, internal_tol_ppm,
+                   report_decoys_, worlds[s + 1]);
+  }
+
+  // pieces a tag needs at each cleavage: from the decoy shifts (every second shift chooses; the others measure the chance), or fixed
+  std::array<int, 3> tag_pieces {0, 0, 0};
+  std::vector<Size> judging;
+  const bool high_charge = charge_switch_ > 0 && prsm.precursor_mz > 0 && 1000.0 / prsm.precursor_mz > charge_switch_;
+  if (from_decoys)
+  {
+    std::vector<Size> choosing;
+    for (Size s = 0; s < decoy_shifts_.size(); s++) (s % 2 == 0 ? choosing : judging).push_back(s + 1);
+    tag_pieces = chooseTagLengths_(prsm.sequence, worlds, choosing);
+  }
+  else
+  {
+    tag_pieces = {high_charge ? min_run_pro_ : min_run_asp_, high_charge ? min_run_asp_ : min_run_pro_, min_run_other_};
+    for (Size s = 0; decoy_worlds && s < decoy_shifts_.size(); s++) judging.push_back(s + 1);
+  }
+  const int never = std::numeric_limits<int>::max() / 2;
+  std::vector<int> site_min_run(length, never);
+  for (int a = 0; a + 1 < length; a++)
+  {
+    const bool asp = prsm.sequence[a] == 'D' || prsm.sequence[a] == 'd';
+    const bool pro = prsm.sequence[a + 1] == 'P' || prsm.sequence[a + 1] == 'p';
+    int pieces_needed = tag_pieces[asp ? 0 : (pro ? 1 : 2)];
+    // fixed lengths: a cleavage after Asp and before Pro takes the smaller of the two
+    if (! from_decoys && asp && pro) pieces_needed = std::min(tag_pieces[0], tag_pieces[1]);
+    if (pieces_needed > 0) site_min_run[a] = pieces_needed;
+  }
+
   // no extension where the proteoform's start or end is undetermined: its "internal" pieces may touch the real terminus
   const int extension_min_run = (prsm.known_n_term && prsm.known_c_term) ? extension_min_run_ : 0;
   std::vector<char> authentic, decoy_authentic;
-  const bool high_charge = charge_switch_ > 0 && prsm.precursor_mz > 0 && 1000.0 / prsm.precursor_mz > charge_switch_;
-  const auto counted = annotateInternal_(spec, occupancy, sorted_intensities, pieces, prsm.sequence, high_charge, terminal_peaks, cal_factor, 0.0, true,
-                                         extension_min_run, std::vector<char>(length, 0), result.envelopes, authentic);
-  // the decoy worlds of the internal fragments are only needed to study chance (the internal p-value comes from the calibration
-  // model): they run with report_decoy_envelopes only
+  const auto counted = countInternal_(pieces, worlds[0], site_min_run, extension_min_run, std::vector<char>(length, 0), true, result.envelopes, authentic);
+
+  auto new_bonds = [&covered, length](const std::set<std::pair<int, int>>& counted_pieces) {
+    std::vector<char> added(length + 1, 0);
+    for (const auto& [first, last] : counted_pieces)
+    {
+      added[first] = 1;    // bond between first - 1 and first
+      added[last + 1] = 1; // bond between last and last + 1
+    }
+    int n = 0;
+    for (int b = 1; b < length; b++) n += added[b] && ! covered[b];
+    return n;
+  };
   int decoy_counted = -1;
-  for (Size s = 0; report_decoys_ && s < decoy_shifts_.size(); s++)
+  double chance_bonds = 0;
+  for (Size s = 0; decoy_worlds && s < decoy_shifts_.size(); s++)
   {
     decoy_counted = std::max(0, decoy_counted);
-    decoy_counted += (int)annotateInternal_(spec, occupancy, sorted_intensities, pieces, prsm.sequence, high_charge, terminal_peaks, cal_factor, decoy_shifts_[s],
-                                            true, extension_min_run, authentic, result.envelopes, decoy_authentic)
-                       .size();
+    const auto decoy_pieces = countInternal_(pieces, worlds[s + 1], site_min_run, extension_min_run, authentic, report_decoys_, result.envelopes, decoy_authentic);
+    decoy_counted += (int)decoy_pieces.size();
+    if (std::find(judging.begin(), judging.end(), s + 1) != judging.end()) chance_bonds += new_bonds(decoy_pieces);
   }
 
   std::vector<char> covered_all = covered;
@@ -1114,14 +1230,18 @@ void FLASHAnnotatorAlgorithm::annotateOne_(const PeakArrays& spec, const std::ve
   result.authentic_cleavages = (int)std::count(authentic.begin(), authentic.end(), 1);
   result.covered_bonds_with_internal = covered_all_bonds;
   result.coverage_with_internal = 100.0 * covered_all_bonds / (length - 1);
+  result.internal_chance_bonds = judging.empty() ? -1.0 : chance_bonds / judging.size();
+  result.internal_tag_pieces_asp = tag_pieces[0];
+  result.internal_tag_pieces_pro = tag_pieces[1];
+  result.internal_tag_pieces_other = tag_pieces[2];
+  result.internal_tol_ppm = internal_tol_ppm;
+  result.internal_line_offset = line_offset;
+  result.internal_line_slope = line_slope;
 }
 
-std::set<std::pair<int, int>> FLASHAnnotatorAlgorithm::annotateInternal_(const PeakArrays& spec, const PeakOccupancy& occupancy,
-                                                                         const std::vector<double>& sorted_intensities,
-                                                                         const InternalPieces& pieces, const std::string& sequence, bool high_charge,
-                                                                         const std::vector<char>& terminal_peaks, double cal_factor, double shift,
-                                                                         bool record, int extension_min_run, const std::vector<char>& given_authentic,
-                                                                         std::vector<Envelope>& envelopes, std::vector<char>& authentic) const
+void FLASHAnnotatorAlgorithm::matchInternal_(const PeakArrays& spec, const PeakOccupancy& occupancy, const std::vector<double>& sorted_intensities,
+                                             const InternalPieces& pieces, const std::vector<char>& terminal_peaks, double cal_factor, double shift,
+                                             double line_offset, double line_slope, double tol_ppm, bool keep_envelopes, InternalWorld& world) const
 {
   const double tol = tol_ * 1e-6;
   const double min_mz = spec.mzs.front();
@@ -1130,8 +1250,9 @@ std::set<std::pair<int, int>> FLASHAnnotatorAlgorithm::annotateInternal_(const P
   const int offsets = pieces.offsets;
 
   // every piece at every charge; the envelopes of accepted pieces are kept for the record
-  std::vector<char> accepted(pieces.mono_mass.size(), 0);
-  std::unordered_map<int, std::vector<Envelope>> piece_envelopes;
+  auto& accepted = world.accepted;
+  accepted.assign(pieces.mono_mass.size(), 0);
+  world.envelopes.clear();
   EnvelopeMatch match;
   for (int first = 1; first <= length - 3; first++)
   {
@@ -1152,8 +1273,11 @@ std::set<std::pair<int, int>> FLASHAnnotatorAlgorithm::annotateInternal_(const P
           if (observed * (1 - tol) > max_mz) continue;
           if (observed * (1 + tol) < min_mz) break;
           if (! matchEnvelope_(spec, occupancy, mono_mass, bin, z, cal_factor, match) || terminal_peaks[match.apex_peak]) continue;
+          // the most abundant peak within the internal tolerance of the line of the terminal envelopes
+          const double ppm_error = (spec.mzs[match.apex_peak] / cal_factor - apex_mz) / apex_mz * 1e6;
+          if (std::abs(ppm_error - (line_offset + line_slope * apex_mz)) > tol_ppm) continue;
           accepted[idx] = 1;
-          if (! record) break;
+          if (! keep_envelopes) break;
           Envelope e;
           e.ion_type = o;
           e.first = first;
@@ -1167,34 +1291,25 @@ std::set<std::pair<int, int>> FLASHAnnotatorAlgorithm::annotateInternal_(const P
           e.cosine = match.cosine;
           e.pearson = match.pearson;
           e.intensity = match.intensity;
-          e.ppm_error = (spec.mzs[match.apex_peak] / cal_factor - apex_mz) / apex_mz * 1e6;
+          e.ppm_error = ppm_error;
           e.intensity_rank = rankOf_(sorted_intensities, spec.intensities[match.apex_peak]);
           e.local_density = densityAt_(spec, spec.mzs[match.apex_peak]);
           e.decoy_shift = shift;
-          piece_envelopes[idx].push_back(e);
+          world.envelopes[idx].push_back(e);
         }
       }
     }
   }
 
-  // ladders: for the cleavage after residue a and one internal ion type, accepted pieces of consecutive lengths that all end with
+  // runs: for the cleavage after residue a and one internal ion type, accepted pieces of consecutive lengths that all end with
   // a, or all start right after it. run_end / run_start: the size of a piece's run in the group of its last / first residue.
-  authentic.assign(length, 0);
-  // threshold by the residues around the cleavage after residue a: after Asp, before Pro (the smaller one where both hold), other
-  // (the two exchanged for a precursor of high charge density)
-  const int run_asp = high_charge ? min_run_pro_ : min_run_asp_;
-  const int run_pro = high_charge ? min_run_asp_ : min_run_pro_;
-  auto min_run = [&sequence, length, run_asp, run_pro, this](int a) {
-    const bool asp = sequence[a] == 'D' || sequence[a] == 'd';
-    const bool pro = a + 1 < length && (sequence[a + 1] == 'P' || sequence[a + 1] == 'p');
-    if (asp && pro) return std::min(run_asp, run_pro);
-    if (asp) return run_asp;
-    return pro ? run_pro : min_run_other_;
-  };
-  std::vector<int> run_end(accepted.size(), 0), run_start(accepted.size(), 0);
+  world.run_end.assign(accepted.size(), 0);
+  world.run_start.assign(accepted.size(), 0);
+  world.site_end.assign(length, 0);
+  world.site_start.assign(length, 0);
   std::vector<int> run;
-  auto flush = [&](int a, std::vector<int>& run_size) {
-    if ((int)run.size() >= min_run(a)) authentic[a] = 1;
+  auto flush = [&run](int a, std::vector<int>& run_size, std::vector<int>& site) {
+    site[a] = std::max(site[a], (int)run.size());
     for (int k : run) run_size[k] = (int)run.size();
     run.clear();
   };
@@ -1207,7 +1322,7 @@ std::set<std::pair<int, int>> FLASHAnnotatorAlgorithm::annotateInternal_(const P
       for (int first = a - 1; a <= length - 2 && first >= 1 && a - first < internal_max_length_; first--)
       {
         const int idx = pieces.index(first, a, o);
-        if (! accepted[idx] || prev_first != first + 1) flush(a, run_end);
+        if (! accepted[idx] || prev_first != first + 1) flush(a, world.run_end, world.site_end);
         if (accepted[idx])
         {
           run.push_back(idx);
@@ -1215,13 +1330,13 @@ std::set<std::pair<int, int>> FLASHAnnotatorAlgorithm::annotateInternal_(const P
         }
         else prev_first = -1;
       }
-      flush(a, run_end);
+      flush(a, world.run_end, world.site_end);
       // pieces [a + 1, last] in order of increasing length
       int prev_last = -1;
       for (int last = a + 2; a + 1 <= length - 3 && last <= pieces.lastMax(a + 1); last++)
       {
         const int idx = pieces.index(a + 1, last, o);
-        if (! accepted[idx] || prev_last != last - 1) flush(a, run_start);
+        if (! accepted[idx] || prev_last != last - 1) flush(a, world.run_start, world.site_start);
         if (accepted[idx])
         {
           run.push_back(idx);
@@ -1229,8 +1344,21 @@ std::set<std::pair<int, int>> FLASHAnnotatorAlgorithm::annotateInternal_(const P
         }
         else prev_last = -1;
       }
-      flush(a, run_start);
+      flush(a, world.run_start, world.site_start);
     }
+  }
+}
+
+std::set<std::pair<int, int>> FLASHAnnotatorAlgorithm::countInternal_(const InternalPieces& pieces, const InternalWorld& world, const std::vector<int>& site_min_run,
+                                                                      int extension_min_run, const std::vector<char>& given_authentic, bool record,
+                                                                      std::vector<Envelope>& envelopes, std::vector<char>& authentic) const
+{
+  const int length = pieces.length;
+  const int offsets = pieces.offsets;
+  authentic.assign(length, 0);
+  for (int a = 0; a < length; a++)
+  {
+    if (std::max(world.site_end[a], world.site_start[a]) >= site_min_run[a]) authentic[a] = 1;
   }
 
   std::set<std::pair<int, int>> counted;
@@ -1241,25 +1369,98 @@ std::set<std::pair<int, int>> FLASHAnnotatorAlgorithm::annotateInternal_(const P
       for (int o = 0; o < offsets; o++)
       {
         const int idx = pieces.index(first, last, o);
-        if (! accepted[idx]) continue;
+        if (! world.accepted[idx]) continue;
         const int a_end = last, a_start = first - 1;
-        bool count = run_end[idx] >= min_run(a_end) || run_start[idx] >= min_run(a_start); // ladder pieces
+        bool count = world.run_end[idx] >= site_min_run[a_end] || world.run_start[idx] >= site_min_run[a_start]; // tag pieces
         if (! count && extension_min_run > 0)
         {
-          count = ((authentic[a_end] || given_authentic[a_end]) && run_end[idx] >= extension_min_run)
-                  || ((authentic[a_start] || given_authentic[a_start]) && run_start[idx] >= extension_min_run);
+          count = ((authentic[a_end] || given_authentic[a_end]) && world.run_end[idx] >= extension_min_run)
+                  || ((authentic[a_start] || given_authentic[a_start]) && world.run_start[idx] >= extension_min_run);
         }
         if (! count) continue;
         counted.emplace(first, last);
         if (record)
         {
-          const auto it = piece_envelopes.find(idx);
-          if (it != piece_envelopes.end()) envelopes.insert(envelopes.end(), it->second.begin(), it->second.end());
+          const auto it = world.envelopes.find(idx);
+          if (it != world.envelopes.end()) envelopes.insert(envelopes.end(), it->second.begin(), it->second.end());
         }
       }
     }
   }
   return counted;
+}
+
+std::array<int, 3> FLASHAnnotatorAlgorithm::chooseTagLengths_(const std::string& sequence, const std::vector<InternalWorld>& worlds,
+                                                              const std::vector<Size>& choosing) const
+{
+  // cleavage classes: after Asp (0), before Pro (1), elsewhere (2). A cleavage has two sides (pieces ending with a, pieces starting
+  // after a), each a site of its own. sites[w][c][k]: sites of class c in world w whose longest run has at least k + 2 pieces.
+  const int length = (int)sequence.size();
+  const int max_k = 14; // tags of 2 .. 15 pieces
+  auto site_counts = [&](const InternalWorld& world) {
+    std::array<std::vector<double>, 3> n;
+    for (auto& v : n) v.assign(max_k, 0.0);
+    for (int a = 0; a + 1 < length; a++)
+    {
+      const bool asp = sequence[a] == 'D' || sequence[a] == 'd';
+      const bool pro = sequence[a + 1] == 'P' || sequence[a + 1] == 'p';
+      const int c = asp ? 0 : (pro ? 1 : 2);
+      for (int run : {world.site_end[a], world.site_start[a]})
+      {
+        for (int k = 0; k < max_k && run >= k + 2; k++) n[c][k] += 1;
+      }
+    }
+    return n;
+  };
+  const auto target = site_counts(worlds[0]);
+  std::array<std::vector<double>, 3> decoy;
+  for (auto& v : decoy) v.assign(max_k, 0.0);
+  for (Size w : choosing)
+  {
+    const auto n = site_counts(worlds[w]);
+    for (int c = 0; c < 3; c++)
+    {
+      for (int k = 0; k < max_k; k++) decoy[c][k] += n[c][k] / choosing.size();
+    }
+  }
+  // chance falls by a constant factor with each further piece: the factor between the two longest tag lengths that still have
+  // at least half a decoy site per shift (at most 0.5); a class with too few decoys takes the factor of all classes, else 0.25
+  auto factor = [max_k](const std::vector<double>& d) {
+    int last = -1;
+    for (int k = 0; k < max_k; k++)
+    {
+      if (d[k] >= 0.5) last = k;
+    }
+    return last >= 1 && d[last - 1] > 0 ? std::min(0.5, d[last] / d[last - 1]) : -1.0;
+  };
+  std::vector<double> all(max_k, 0.0);
+  for (int k = 0; k < max_k; k++) all[k] = decoy[0][k] + decoy[1][k] + decoy[2][k];
+  const double factor_all = factor(all);
+
+  std::array<int, 3> pieces_needed {0, 0, 0};
+  for (int c = 0; c < 3; c++)
+  {
+    double r = factor(decoy[c]);
+    if (r < 0) r = factor_all >= 0 ? factor_all : 0.25;
+    int last = -1;
+    for (int k = 0; k < max_k; k++)
+    {
+      if (decoy[c][k] > 0) last = k;
+    }
+    for (int k = 0; k < max_k; k++)
+    {
+      if (target[c][k] <= 0) break;
+      double expected = decoy[c][k];
+      // beyond the longest decoy run: continued geometrically (without any decoy site, from 1/12 of a site at two pieces)
+      if (expected <= 0) expected = last >= 0 ? decoy[c][last] * std::pow(r, k - last) : std::pow(r, k) / 12.0;
+      if (expected / target[c][k] <= internal_alpha_)
+      {
+        pieces_needed[c] = k + 2;
+        break;
+      }
+    }
+  }
+  return pieces_needed;
 }
 
 double FLASHAnnotatorAlgorithm::binomialTailScore(int n, int k, double p)

@@ -8,6 +8,8 @@
 
 #pragma once
 
+#include <array>
+#include <unordered_map>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
@@ -182,6 +184,17 @@ public:
     /// bonds covered by terminal and accepted internal fragments (both ends of an internal fragment), and their percentage
     int covered_bonds_with_internal = -1;
     double coverage_with_internal = -1;
+    /// bonds that the internal pieces of a decoy shift would add to the terminal coverage, mean over the shifts that measure chance
+    /// (with internal_alpha the half that did not choose the tag lengths; else all, only with report_decoy_envelopes); -1 if not computed
+    double internal_chance_bonds = -1;
+    /// pieces a tag needs after Asp, before Pro and elsewhere for this PrSM (0: no cleavage of the class is accepted)
+    int internal_tag_pieces_asp = -1;
+    int internal_tag_pieces_pro = -1;
+    int internal_tag_pieces_other = -1;
+    /// tolerance (ppm) of the internal pieces around the line offset + slope * m/z (ppm) fitted to the terminal envelopes
+    double internal_tol_ppm = -1;
+    double internal_line_offset = 0;
+    double internal_line_slope = 0;
   };
 
   /// constructor
@@ -336,23 +349,46 @@ private:
     int lastMax(int first) const { return std::min(length - 2, first + max_length - 1); }
   };
 
+  /// internal pieces of one world (the target, or the pieces moved by a decoy shift): which are accepted, and their runs
+  struct InternalWorld
+  {
+    std::vector<char> accepted;
+    /// per piece, the size of its run of consecutive lengths among the pieces that share its last / first residue
+    std::vector<int> run_end, run_start;
+    /// per cleavage a (after residue a), the longest run of pieces ending with a / starting right after a
+    std::vector<int> site_end, site_start;
+    /// envelopes of the accepted pieces (kept only on request)
+    std::unordered_map<int, std::vector<Envelope>> envelopes;
+  };
+
   /**
-    Internal fragments of one world (the target, or the pieces moved by @p shift): every piece is tested at all its charges (an
-    envelope whose most abundant peak is a peak of an accepted terminal envelope, @p terminal_peaks, is not used). The cleavage after
-    residue a is authentic if, for one internal ion type, pieces of consecutive lengths that all end with a, or all start right after
-    it, are accepted: at least min_tag_length_asp + 1 of them if a is Asp, min_tag_length_pro + 1 if the next residue is Pro
-    (the two exchanged if @p high_charge: with mobile protons the cleavage before Pro takes over from the one after Asp), else
-    min_tag_length + 1 (a tag of that length). Ladder pieces count. Beyond the ladders, accepted pieces with an end at an authentic cleavage (found here or given in @p given_authentic:
-    a decoy world gets the target's, so that chance matches of the extension at real cleavages are measured too) count if they lie
-    in a run of at least @p extension_min_run consecutive lengths there (1: every piece, 2: a tag of length one; 0: none). Returns
-    the counted pieces as (first, last); their envelopes are added to @p envelopes if @p record; @p authentic (one flag per residue)
-    receives the authentic cleavages found in this world.
+    Internal fragments of one world: every piece is tested at all its charges. An envelope is used if its most abundant peak is not
+    a peak of an accepted terminal envelope (@p terminal_peaks) and lies within @p tol_ppm of the line
+    @p line_offset + @p line_slope * m/z (ppm) that the terminal envelopes define. Then, for the cleavage after residue a and one
+    internal ion type, the runs of accepted pieces of consecutive lengths that all end with a, or all start right after it.
   */
-  std::set<std::pair<int, int>> annotateInternal_(const PeakArrays& spec, const PeakOccupancy& occupancy, const std::vector<double>& sorted_intensities,
-                                                  const InternalPieces& pieces, const std::string& sequence, bool high_charge,
-                                                  const std::vector<char>& terminal_peaks, double cal_factor, double shift, bool record,
-                                                  int extension_min_run, const std::vector<char>& given_authentic,
-                                                  std::vector<Envelope>& envelopes, std::vector<char>& authentic) const;
+  void matchInternal_(const PeakArrays& spec, const PeakOccupancy& occupancy, const std::vector<double>& sorted_intensities, const InternalPieces& pieces,
+                      const std::vector<char>& terminal_peaks, double cal_factor, double shift, double line_offset, double line_slope, double tol_ppm,
+                      bool keep_envelopes, InternalWorld& world) const;
+
+  /**
+    The counted pieces of a world. The cleavage after residue a is authentic if one of its runs has at least @p site_min_run[a]
+    pieces (a tag); the pieces of such runs count. Beyond them, accepted pieces with an end at an authentic cleavage (of this world
+    or given in @p given_authentic: a decoy world gets the target's, so that chance matches of the extension at real cleavages are
+    measured too) count if they lie in a run of at least @p extension_min_run pieces there (1: every piece, 2: a tag of length one;
+    0: none). Returns the counted pieces as (first, last); their envelopes are added to @p envelopes if @p record; @p authentic
+    (one flag per residue) receives the authentic cleavages of this world.
+  */
+  std::set<std::pair<int, int>> countInternal_(const InternalPieces& pieces, const InternalWorld& world, const std::vector<int>& site_min_run,
+                                               int extension_min_run, const std::vector<char>& given_authentic, bool record,
+                                               std::vector<Envelope>& envelopes, std::vector<char>& authentic) const;
+
+  /**
+    Tag lengths from the decoy shifts (internal_alpha): for the cleavages after Asp (0), before Pro (1) and elsewhere (2), the
+    smallest number of pieces k at which the decoy worlds in @p choosing give at most alpha of the cleavages the target has with a
+    run of at least k pieces. Beyond the longest run the decoys show, their count is continued geometrically. 0: no length passes.
+  */
+  std::array<int, 3> chooseTagLengths_(const std::string& sequence, const std::vector<InternalWorld>& worlds, const std::vector<Size>& choosing) const;
 
   /// matched peaks an envelope with @p predicted kept isotope peaks needs; -1 if it cannot be annotated
   int requiredPeaks_(int predicted) const;
@@ -391,6 +427,10 @@ private:
   double charge_switch_ = 0.45;
   /// only internal pieces of the b/y type (two collisional cleavages)
   bool internal_by_only_ = true;
+  /// share of chance cleavages allowed when the tag lengths are taken from the decoy shifts (0: fixed lengths)
+  double internal_alpha_ = 0.05;
+  /// tolerance (ppm) of internal pieces: 0 automatic (from the terminal envelopes), > 0 fixed, < 0 the input tolerance without a line
+  double internal_tol_ = 0;
   /// minimum run of consecutive lengths for pieces beyond the ladders: 0 none, 1 all, 2 a tag of length one
   int extension_min_run_ = 0;
   /// internal ion types: mass added to the residue sum (C-end prefix shift + N-end suffix shift - H2O), and their names
