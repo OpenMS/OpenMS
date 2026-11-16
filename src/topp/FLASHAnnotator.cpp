@@ -188,7 +188,7 @@ protected:
   /// the appended PrSM columns and the envelope header
   static constexpr const char* prsm_columns_ = "\tFAScore\tRawScore\tRawLLR\tRawMatchedFragments\tRawFragmentHypotheses\tRawChanceRate\tRawCoveredBonds"
                                                 "\tRawCoverage(%)\tRawCalibrationPPM\tRawInternalScore\tRawInternalMatched\tRawInternalHypotheses\tRawInternalChanceRate"
-                                                "\tRawAuthenticCleavages\tRawCoverageWithInternal(%)";
+                                                "\tRawAuthenticCleavages\tRawCoverageWithInternal(%)\tRawInternalChanceBonds\tRawInternalTagPieces\tRawInternalTol";
   static constexpr const char* envelope_header_ = "PrSMIndex\tScan\tIonType\tLength\tBond\tCharge\tMonoMass\tMostAbundantMz\tMatchedPeaks"
                                                    "\tPredictedPeaks\tCosine\tPearson\tIntensity\tPPMError\tIntensityRank\tLocalDensity\tDecoyShift\tInternalFirst";
 
@@ -455,7 +455,8 @@ protected:
         out << lines[r] << "\t" << res.fa_score << "\t" << res.score << "\t" << format_(res.llr) << "\t" << res.matched_fragments << "\t" << res.fragment_hypotheses
             << "\t" << res.chance_rate << "\t" << res.covered_bonds << "\t" << res.coverage << "\t" << format_(res.calibration_ppm) << "\t"
             << res.internal_score << "\t" << res.internal_matched << "\t" << res.internal_hypotheses << "\t" << res.internal_chance_rate << "\t"
-            << res.authentic_cleavages << "\t" << res.coverage_with_internal << "\n";
+            << res.authentic_cleavages << "\t" << res.coverage_with_internal << "\t" << res.internal_chance_bonds << "\t" << res.internal_tag_pieces_asp << "/"
+            << res.internal_tag_pieces_pro << "/" << res.internal_tag_pieces_other << "\t" << res.internal_tol_ppm << "\n";
       }
     }
     if (! out_annotation_file.empty())
