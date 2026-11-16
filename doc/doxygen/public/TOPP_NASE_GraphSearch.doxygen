@@ -132,11 +132,19 @@ establish identification accuracy.
 @p graph_routes uses a neutral-mass view of the selected MS2 peaks, preserving
 original peak identities and legacy-assigned charges. Database prefix/suffix
 tries constrain one-/two-residue edges and anchored routes. Exact precursor
-validation follows modification completion. @p routes:completion selects labile,
-bounded-labile, bounded general, or full completion under explicit resource
-limits. The bounded modes limit variable placements without intact modified
+validation follows modification completion. @p routes:completion defaults to
+bounded general completion, allowing up to two configured variable modifications
+without intact graph placements even when no diagnostic reporter is configured.
+Other choices are labile, bounded-labile, or full completion under explicit
+resource limits. The bounded modes limit variable placements without intact modified
 graph evidence. @p routes:verify_candidates compares the complete candidates and
 scaffold witnesses with an unindexed pairing/completion oracle; mismatches fail.
+
+The default per-spectrum failure bounds are one million route states, five million
+candidates, twenty million supports and one billion completion nodes. They do not
+preallocate those amounts. Exhaustion aborts without output and names the option
+to raise. Bounded completion can be substantially slower than enumeration and
+still requires an anchored route; it does not promise the same candidate set.
 
 Raw-MS2 diagnostics are evaluated before filtering/deisotoping. Explicit
 polarity-specific @p diagnostic:fixed_ions rules permit labile completions;
@@ -147,7 +155,8 @@ Diagnostic permission alone does not establish localization.
 
 The default modification-aware cleavage model validates completed products with
 RNaseDigestion. @p oligo:cleavage_model=canonical explicitly selects canonical
-cleavage in route mode. Digestion caches must match the selected model.
+cleavage in route mode. Digestion caches must match the selected model and
+come from @p digest_out; search results containing observation matches are rejected.
 Cuts created by a modification (e.g. RNase T1 after inosine) count against the
 missed-cleavage budget, so such a product at the full budget is dropped although
 enumeration keeps it. A cached digest supplies its own missed-cleavage budget.

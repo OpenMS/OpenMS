@@ -76,12 +76,18 @@ only explicit rules, allowing intact graph-supported modifications without a
 terminal monomer. Generic charge hypotheses above one require a raw isotope
 partner. Diagnostic permission does not establish modification localization.
 
-With `routes:completion=labile`, uncovered sites stay canonical or receive
-diagnostic-supported labile modifications. `bounded` also permits nonlabile
-modifications, limiting variable placements without intact graph evidence to
-`routes:max_unanchored_modifications`. `bounded_labile` applies that limit to
+The default `routes:completion=bounded` permits configured variable modifications
+at uncovered positions without requiring a diagnostic reporter. It limits variable
+placements without intact graph evidence to `routes:max_unanchored_modifications`
+(default two). `labile` instead keeps uncovered sites canonical or permits only
+diagnostic-supported labile modifications. `bounded_labile` applies that limit to
 labile completion only; `all` enumerates permitted completions under resource
 limits. Graph-placed modifications still consume the full per-oligo budget.
+The default per-spectrum limits are one million route states, five million candidates,
+twenty million supports and one billion completion nodes. These are failure bounds,
+not preallocated buffers; exhaustion aborts without output and names the option to
+raise. Bounded completion can be substantially slower than enumeration. It still
+requires an anchored route and is not guaranteed to reproduce enumeration.
 
 The default modification-aware cleavage model uses `RNaseDigestion` to validate
 each completed product against its parent and missed-cleavage budget.
@@ -89,12 +95,15 @@ Cuts created by a modification (e.g. RNase T1 after inosine) count against
 that budget, so such a product at the full budget is dropped here although
 enumeration keeps it. A cached digest supplies its own missed-cleavage budget.
 `oligo:cleavage_model=canonical` is an explicit alternative for `graph_routes`.
-Cached digests must match the database and digestion model. Enumeration/tag modes
+Cached digests must match the database and digestion model and come from
+`digest_out`; files containing search observation matches are rejected. Enumeration/tag modes
 reject route digests because cleavage-sensitive placements have not been pre-expanded. Route generation
 requires monoisotopic masses. By default (`routes:terminal_states=enzyme`) each
 product receives the terminal groups of the configured RNase at its parent
 position, as in enumeration; a parent match is retained only if the candidate's
-termini agree with it. A fixed terminal modification fills only an end without
+termini agree with it. Deferred scaffolds are held outside the output molecule
+store so exporting a hit cannot restore incompatible parent mappings.
+A fixed terminal modification fills only an end without
 an RNase group, again as in enumeration. `routes:terminal_states=all` additionally tries all six
 physical assignments for every oligonucleotide: OH/OH, OH/P, OH/cyclic-P, P/OH,
 P/P and P/cyclic-P. Linkage modifications (codes ending in `*`) have
@@ -153,3 +162,18 @@ assignment, score and native q-value, and byte-identical graph/precursor diagnos
 Combined yields were 5,454 / 7,587 / 8,422 PSMs at 1% / 5% / 10% native q-value.
 This three-file replay does not constitute an independent accuracy benchmark or
 a new nine-file comparison against another engine.
+
+A focused follow-up with the revised route defaults is recorded in
+`doc/benchmarking/nase/hap1_route_defaults_review_2026.json`. On one complete
+HAP1 recording, enumeration/HyperScore gave 546 / 1,154 / 1,711 target-containing
+spectra at 1% / 5% / 10% native q-value; default graph routes with HyperScore gave
+546 / 1,177 / 1,708. All baseline accepted calls at 1% and 5% were retained.
+The graph run completed without resource overrides but took 136 seconds versus
+15 seconds for enumeration (16 threads, this machine). On its RT 35–39 minute
+slice, default graph routes reproduced enumeration's 109 / 143 / 154 accepted
+calls and assignments. The optional route score gave 169 / 181 / 191, but changed
+27 of the 109 baseline assignments at 1%; increased nominal-q yield is not
+independent evidence of accuracy. This single-recording comparison has no
+entrapment control and does not validate general transferability. Historical
+1% yields also varied strongly over decoy seeds; interpret the recorded 5%/10%
+results and seed spread together. Enumeration and HyperScore remain the defaults.

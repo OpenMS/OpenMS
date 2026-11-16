@@ -359,7 +359,7 @@ protected:
     setValidStrings_("candidates:method", {"enumeration", "graph", "graph_audit", "graph_generate", "graph_generate_audit", "graph_routes"});
     registerTOPPSubsection_("routes", "Anchored graph placement (graph_routes) and route-scoring bounds; explicit limits fail the run");
     registerStringOption_(
-      "routes:completion", "<mode>", "labile",
+      "routes:completion", "<mode>", "bounded",
       "Uncovered positions: labile adds diagnostic-supported labile modifications; bounded_labile limits their unsupported placements; "
       "bounded also permits a limited number of "
       "nonlabile modifications; all enumerates all permitted "
@@ -390,10 +390,10 @@ protected:
     setMinInt_("routes:max_length", 2);
     setMaxInt_("routes:max_length", 32);
     for (const auto& [name, value] : vector<pair<std::string, Int>> {{"max_peaks", 200},
-                                                                     {"max_states", 200000},
-                                                                     {"max_completion_nodes", 5000000},
-                                                                     {"max_candidates", 200000},
-                                                                     {"max_supports", 400000},
+                                                                     {"max_states", 1000000},
+                                                                     {"max_completion_nodes", 1000000000},
+                                                                     {"max_candidates", 5000000},
+                                                                     {"max_supports", 20000000},
                                                                      {"min_nodes", 2}})
     {
       const std::string description = name == "max_states"
@@ -2090,6 +2090,11 @@ protected:
     {
       OPENMS_LOG_INFO << "Loading pre-digested sequence data..." << endl;
       OMSFile(log_type_).load(in_digest, id_data);
+      if (route_generation && ! id_data.getObservationMatches().empty())
+      {
+        OPENMS_LOG_ERROR << "graph_routes requires a sequence digest from 'digest_out', not search results containing observation matches.\n";
+        return ILLEGAL_PARAMETERS;
+      }
       if (id_data.getDBSearchParams().empty())
       {
         OPENMS_LOG_ERROR << "No search parameter information found in 'digest' input" << endl;
@@ -2500,12 +2505,20 @@ protected:
     Size placement_nodes = 0, placement_pruned = 0, placement_emitted = 0, placement_fallbacks = 0;
     Size placement_reference = 0, placement_expected = 0, placement_missing = 0, placement_extra = 0;
 
-    // keep a list of (references to) oligos in the original digest:
+    // Deferred products are search scaffolds, not identified output molecules.
+    // Preserve their references and the original parent references in a separate
+    // container. Otherwise registration can merge a filtered candidate back into
+    // its deferred scaffold and reintroduce terminally incompatible parents.
+    IdentificationData::IdentifiedOligos deferred_digest;
+    if (route_generation)
+    {
+      deferred_digest = id_data.getIdentifiedOligos();
+      id_data.cleanup(true, false); // remove unmatched scaffolds, keep parent references
+    }
+    const auto& search_oligos = route_generation ? deferred_digest : id_data.getIdentifiedOligos();
     vector<IdentificationData::IdentifiedOligoRef> digest;
-    digest.reserve(id_data.getIdentifiedOligos().size());
-    for (IdentificationData::IdentifiedOligoRef it =
-           id_data.getIdentifiedOligos().begin(); it !=
-           id_data.getIdentifiedOligos().end(); ++it)
+    digest.reserve(search_oligos.size());
+    for (IdentificationData::IdentifiedOligoRef it = search_oligos.begin(); it != search_oligos.end(); ++it)
     {
       digest.push_back(it);
     }
@@ -3287,11 +3300,8 @@ protected:
                       << "; enumeration fallback pairs: " << graph_fallback << "; rejected pairs after theoretical validation: " << graph_rejected
                       << '\n';
     }
-    OPENMS_LOG_INFO << "Undigested nucleic acids: " << n_nucleic_acids
-                    << "\nOligonucleotides: "
-                    << id_data.getIdentifiedOligos().size()
-                    << "\nSearch hits (spectrum matches): " << hit_counter
-                    << endl;
+    OPENMS_LOG_INFO << "Undigested nucleic acids: " << n_nucleic_acids << "\nOligonucleotides: " << digest.size()
+                    << "\nSearch hits (spectrum matches): " << hit_counter << endl;
 
     if (!exp_ms2_out.empty())
     {
