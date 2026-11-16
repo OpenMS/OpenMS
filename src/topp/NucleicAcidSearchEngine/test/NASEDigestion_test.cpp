@@ -17,7 +17,6 @@
 class TestNASE : public NucleicAcidSearchEngine
 {
 public:
-  using NucleicAcidSearchEngine::completeRNAScoreColumns_;
   using NucleicAcidSearchEngine::getModifications_;
   using NucleicAcidSearchEngine::calculatePrecursorPercentage_;
   using NucleicAcidSearchEngine::flashMassUpperBound_;
@@ -1669,46 +1668,5 @@ START_SECTION((NASE directed deconvolution preserves ordinary FLASH and clears q
 }
 END_SECTION
 
-START_SECTION(([EXTRA] unavailable RNA scores keep declared mzTab columns without fabricated values))
-{
-  MzTab table;
-  MzTabMetaData metadata;
-  for (Size index : {Size(1), Size(2)})
-  {
-    metadata.ms_run[index] = MzTabMSRunMetaData();
-    metadata.nucleic_acid_search_engine_score[index] = MzTabParameter();
-    metadata.oligonucleotide_search_engine_score[index] = MzTabParameter();
-    metadata.osm_search_engine_score[index] = MzTabParameter();
-  }
-  table.setMetaData(metadata);
-  MzTabNucleicAcidSectionRow nucleic;
-  nucleic.best_search_engine_score[1] = MzTabDouble(42.0);
-  nucleic.search_engine_score_ms_run[1][2] = MzTabDouble(12.0);
-  table.setNucleicAcidSectionRows({nucleic});
-  MzTabOligonucleotideSectionRow oligo;
-  oligo.best_search_engine_score[2] = MzTabDouble(7.0);
-  table.setOligonucleotideSectionRows({oligo});
-  MzTabOSMSectionRow match;
-  match.search_engine_score[1] = MzTabDouble(42.0);
-  table.setOSMSectionRows({match});
-  TestNASE::completeRNAScoreColumns_(table);
-  const auto& row = table.getNucleicAcidSectionRows()[0];
-  TEST_EQUAL(row.best_search_engine_score.size(), 2)
-  TEST_REAL_SIMILAR(row.best_search_engine_score.at(1).get(), 42.0)
-  TEST_TRUE(row.best_search_engine_score.at(2).isNull())
-  TEST_TRUE(row.search_engine_score_ms_run.at(1).at(1).isNull())
-  TEST_REAL_SIMILAR(row.search_engine_score_ms_run.at(1).at(2).get(), 12.0)
-  TEST_TRUE(row.search_engine_score_ms_run.at(2).at(1).isNull())
-  TEST_TRUE(row.search_engine_score_ms_run.at(2).at(2).isNull())
-  const auto& oligo_row = table.getOligonucleotideSectionRows()[0];
-  TEST_TRUE(oligo_row.best_search_engine_score.at(1).isNull())
-  TEST_REAL_SIMILAR(oligo_row.best_search_engine_score.at(2).get(), 7.0)
-  TEST_EQUAL(oligo_row.search_engine_score_ms_run.size(), 2)
-  TEST_TRUE(table.getOSMSectionRows()[0].search_engine_score.at(2).isNull())
-  TestNASE::completeRNAScoreColumns_(table);
-  TEST_EQUAL(table.getOSMSectionRows()[0].search_engine_score.size(), 2)
-  TEST_REAL_SIMILAR(table.getOSMSectionRows()[0].search_engine_score.at(1).get(), 42.0)
-}
-END_SECTION
 
 END_TEST

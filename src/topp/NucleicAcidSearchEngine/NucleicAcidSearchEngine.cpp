@@ -1277,42 +1277,6 @@ protected:
   }
 
 
-  /// @brief Emit null columns for unavailable RNA scores.
-  static void completeRNAScoreColumns_(MzTab& table)
-  {
-    const auto& metadata = table.getMetaData();
-    const auto complete = [&](auto& rows, const auto& scores) {
-      for (auto& row : rows)
-      {
-        for (const auto& [score, definition] : scores)
-        {
-          row.best_search_engine_score.try_emplace(score);
-          for (const auto& [run, info] : metadata.ms_run)
-          {
-            row.search_engine_score_ms_run[score].try_emplace(run);
-          }
-        }
-      }
-    };
-    // Some core versions serialize only present score-map entries. Mixed target/
-    // decoy and tied results can have unavailable parent/alternative q-values.
-    auto nucleic_acids = table.getNucleicAcidSectionRows();
-    complete(nucleic_acids, metadata.nucleic_acid_search_engine_score);
-    table.setNucleicAcidSectionRows(nucleic_acids);
-    auto oligos = table.getOligonucleotideSectionRows();
-    complete(oligos, metadata.oligonucleotide_search_engine_score);
-    table.setOligonucleotideSectionRows(oligos);
-    auto matches = table.getOSMSectionRows();
-    for (auto& row : matches)
-    {
-      for (const auto& [score, definition] : metadata.osm_search_engine_score)
-      {
-        row.search_engine_score.try_emplace(score);
-      }
-    }
-    table.setOSMSectionRows(matches);
-  }
-
   void generateLFQInput_(IdentificationData& id_data, const std::string& out_file)
   {
     using AdductedOligo = pair<NASequence, IdentificationData::AdductOpt>;
@@ -2196,7 +2160,6 @@ protected:
     MzTab results = IdentificationDataConverter::exportMzTab(id_data,
       getFlag_("report:precursor_percentage") ? set<std::string>{"precursor_percentage"} : set<std::string>{},
       {"isotope_offset"});
-    completeRNAScoreColumns_(results);
     OPENMS_LOG_DEBUG << "Nucleic acid rows: "
                      << results.getNucleicAcidSectionRows().size()
                      << "\nOligonucleotide rows: "
