@@ -1884,6 +1884,34 @@ START_SECTION(([EXTRA] graph audit and fallback preserve scoring with FLASH MS1 
   TEST_TRUE(search("graph_generate_audit", false) == baseline)
   TEST_TRUE(search("graph_generate", false) == baseline)
   TEST_TRUE(search("graph_generate", true) == baseline)
+  const auto rejects_without_results = [&](const std::string& method, const std::vector<std::string>& extra) {
+    std::string output;
+    NEW_TMP_FILE(output)
+    output += ".idXML";
+    std::vector<std::string> arguments {"-in",      mzml,      "-database",          fasta,           "-out",        output + ".mzTab", "-id_out",
+                                        output,     "-db_out", output + ".oms",      "-oligo:enzyme", "no cleavage", "-oligo:min_size", "1",
+                                        "-threads", "2",       "-candidates:method", method};
+    arguments.insert(arguments.end(), extra.begin(), extra.end());
+    TEST_EQUAL(runSearch(arguments), TOPPBase::ILLEGAL_PARAMETERS)
+    TEST_FALSE(File::exists(output))
+    TEST_FALSE(File::exists(output + ".mzTab"))
+    TEST_FALSE(File::exists(output + ".oms"))
+  };
+  // The fixture above has usable tags. Global cache exhaustion must abort in
+  // every graph mode, rather than silently enumerate the remaining spectra.
+  for (const std::string method : {"graph", "graph_audit", "graph_generate", "graph_generate_audit"})
+  {
+    rejects_without_results(method, {"-graph:max_total_edges", "1"});
+  }
+  // Graph-only options and invalid bounds fail before starting a search.
+  std::string graph_output;
+  NEW_TMP_FILE(graph_output)
+  graph_output += ".tsv";
+  rejects_without_results("enumeration", {"-out_graph", graph_output});
+  TEST_FALSE(File::exists(graph_output))
+  rejects_without_results("enumeration", {"-graph:verify_matches"});
+  rejects_without_results("graph", {"-graph:min_tag_length", "3", "-graph:max_tag_length", "2"});
+  rejects_without_results("graph", {"-fragment:mass_tolerance", "0"});
   // Cleavage-sensitive m22G consumes the sole modification budget before placement.
   fixture({"AC[m2,2G]UAC", "A[m2,2G]CUAC"});
   const auto modified_baseline = search("enumeration", false, true);

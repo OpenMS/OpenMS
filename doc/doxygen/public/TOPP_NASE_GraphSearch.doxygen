@@ -35,6 +35,15 @@ limits per-oligo exploration. Exceeding it discards partial output and restarts
 exhaustive placement for that oligo. @p graph_generate_audit checks eligible
 candidate multisets before theoretical-spectrum scoring, independently of PSM yield.
 
+These modes select candidates; they do not promise faster searches or improved
+identification accuracy. Graph filtering can reject candidates after theoretical-spectrum
+generation, and placement-budget fallback can pay for both partial traversal and
+exhaustive expansion. Profile complete searches on representative data before
+making performance claims. A review measurement on one full HAP1 tRNA recording
+found graph filtering and constrained generation slightly slower than enumeration,
+while preserving its accepted spectra and assignments at 1% and 5% native q-value.
+That is a dataset-specific result, not a general recall or accuracy guarantee.
+
 The theoretical ion annotations and residue labels are prepared once per
 candidate/precursor-charge hypothesis and reused across matching spectra.
 Validation stores dynamic-programming states only for observed ion matches.
@@ -95,6 +104,11 @@ unsupported model, or a graph exceeding its storage bound uses enumeration.
 Candidate queries have separate state/work bounds. A completed valid path is a
 witness of support; an incomplete query without a witness uses enumeration.
 This avoids rejecting candidates based on a partially explored graph or query.
+The prefilter bounds all eligible positions, charge layers and enabled ion
+series, counting outgoing edges and transition comparisons before tag-span
+rejection. A partial modification-domain query bounds every singleton completion.
+Exhausting that conservative bound keeps the candidate for full matching; it may
+retain extra candidates under tight limits, but cannot discard matcher fallback.
 Exceeding the cache budget over all spectra (@p graph:max_total_edges) aborts
 the run instead of enumerating the remaining spectra, so that candidate
 selection never depends on spectrum order. None of these rules inspect
