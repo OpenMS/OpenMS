@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<msms_pipeline_analysis date="2026-11-08T12:00:00" summary_xml="merged_scans.pep.xml" xmlns="http://regis-web.systemsbiology.net/pepXML" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://regis-web.systemsbiology.net/pepXML http://localhost/pepXML_v117.xsd">
+<msms_run_summary base_name="merged_scans" search_engine="X! Tandem" raw_data_type="raw" raw_data=".mzML">
+<sample_enzyme name="trypsin">
+<specificity cut="KR" no_cut="P" sense="C"/>
+</sample_enzyme>
+<search_summary base_name="merged_scans" search_engine="X! Tandem" precursor_mass_type="monoisotopic" fragment_mass_type="monoisotopic" search_id="1">
+<search_database local_path="db.fasta" type="AA"/>
+</search_summary>
+<!-- one scan -->
+<spectrum_query spectrum="merged_scans.00001.00001.2" start_scan="1" end_scan="1" precursor_neutral_mass="971.47" assumed_charge="2" index="1" retention_time_sec="100">
+<search_result>
+<search_hit hit_rank="1" peptide="PEPTIDEK" peptide_prev_aa="K" peptide_next_aa="A" protein="PROT1" num_tot_proteins="1" calc_neutral_pep_mass="971.47" massdiff="0.000" num_tol_term="2" num_missed_cleavages="0">
+<search_score name="expect" value="0.01"/>
+</search_hit>
+</search_result>
+</spectrum_query>
+<!-- scans 5 to 7 merged into one MS/MS spectrum: not supported, read with the start scan -->
+<spectrum_query spectrum="merged_scans.00005.00007.2" start_scan="5" end_scan="7" precursor_neutral_mass="1056.48" assumed_charge="2" index="2" retention_time_sec="200">
+<search_result>
+<search_hit hit_rank="1" peptide="PEPTIDER" peptide_prev_aa="K" peptide_next_aa="A" protein="PROT1" num_tot_proteins="1" calc_neutral_pep_mass="1056.48" massdiff="0.000" num_tol_term="2" num_missed_cleavages="0">
+<search_score name="expect" value="0.01"/>
+</search_hit>
+</search_result>
+</spectrum_query>
+</msms_run_summary>
+</msms_pipeline_analysis>
