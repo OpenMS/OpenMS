@@ -45,11 +45,12 @@ FileConverter -in sample.raw -out sample.mzML
 ### Reading `.raw` in other tools
 
 These tools also accept `.raw` files as input:
-CometAdapter, FeatureFinderCentroided, FeatureFinderIdentification, FeatureFinderLFQ,
-FeatureFinderMetabo, FeatureFinderMetaboIdent, FeatureFinderMultiplex, FLASHDeconv,
-IsobaricAnalyzer, MassTraceExtractor, MetaboliteSpectralMatcher, MS1LabeledWorkflow,
-NucleicAcidSearchEngine, OpenPepXL, OpenSwathPeakMapExtractor, OpenSwathWorkflow, ProSE,
-ProteomicsLFQ, SageAdapter and SimpleSearchEngine.
+CometAdapter, DIAuditor, FeatureFinderCentroided, FeatureFinderIdentification,
+FeatureFinderLFQ, FeatureFinderMetabo, FeatureFinderMetaboIdent, FeatureFinderMultiplex,
+FLASHDeconv, IsobaricAnalyzer, IsobaricWorkflow, MassTraceExtractor, MetaboliteSpectralMatcher,
+MS1LabeledWorkflow, NucleicAcidSearchEngine, OpenDIA, OpenNuXL, OpenPepXL,
+OpenSwathPeakMapExtractor, OpenSwathWorkflow, ProSE, ProteomicsLFQ, SageAdapter and
+SimpleSearchEngine.
 
 They read with the built-in reader, on every platform, so they need the .NET 8 runtime on
 Windows as well. Like FileConverter, they apply Thermo's peak picking, so they process
@@ -58,8 +59,10 @@ methods means profile MS1 spectra, convert the `.raw` file with
 `FileConverter -RawToMzML:no_peak_picking` first and use the mzML.
 
 ```{note}
-OpenNuXL also accepts `.raw` files. It converts them with ThermoRawFileParser, like the
-external reader of FileConverter, so on Linux and macOS it needs mono.
+OpenNuXL accepts `.raw` files also when OpenMS was built without the built-in reader. It then
+converts them to mzML with ThermoRawFileParser, like the external reader of FileConverter (so on
+Linux and macOS it needs mono, see `-ThermoRaw_executable` and `-NET_executable`), and writes
+the converted file next to the input, where later runs reuse it.
 ```
 
 ## Bruker timsTOF `.d`
@@ -80,8 +83,9 @@ installed, set the environment variable `OPENMS_BRUKER_SDK_PATH` to the library'
 convert ion mobility with Bruker's own code instead.
 
 These tools accept `.d` and `.d.zip` input:
-CometAdapter, FeatureFinderIdentification, FeatureFinderLFQ, FeatureFinderMetaboIdent,
-FileConverter, IonMobilityBinning, MetaboliteSpectralMatcher, NucleicAcidSearchEngine,
+CometAdapter, DIAuditor, FeatureFinderIdentification, FeatureFinderLFQ,
+FeatureFinderMetaboIdent, FileConverter, IonMobilityBinning, IsobaricWorkflow,
+MetaboliteSpectralMatcher, NucleicAcidSearchEngine, OpenDIA, OpenNuXL (DDA-PASEF),
 OpenSwathPeakMapExtractor, OpenSwathWorkflow, PeakPickerIM, ProSE, ProteomicsLFQ,
 SageAdapter, SimpleSearchEngine and TransitionListEvidenceFilter.
 
