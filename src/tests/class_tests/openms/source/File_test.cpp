@@ -324,6 +324,14 @@ START_SECTION((static std::string localPath(const std::string& file)))
   TEST_STRING_EQUAL(File::localPath("C:\\data\\run\\sample.mzML"), "C:\\data\\run\\sample.mzML")
 END_SECTION
 
+START_SECTION((static bool isRemoteAuthorityPath(const std::string& path)))
+  TEST_EQUAL(File::isRemoteAuthorityPath("//server/share/sample.mzML"), true)
+  TEST_EQUAL(File::isRemoteAuthorityPath("/data/run/sample.mzML"), false)
+  TEST_EQUAL(File::isRemoteAuthorityPath("C:/data/run/sample.mzML"), false)
+  TEST_EQUAL(File::isRemoteAuthorityPath(""), false)
+  TEST_EQUAL(File::isRemoteAuthorityPath("/"), false)
+END_SECTION
+
 START_SECTION((static std::string path(const std::string &file)))
   TEST_EQUAL(File::path("/source/config/bla/bluff.h"), "/source/config/bla");
   TEST_EQUAL(File::path("c:\\config\\bla\\tuff.h"), "c:\\config\\bla");

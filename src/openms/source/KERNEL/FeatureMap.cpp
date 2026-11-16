@@ -440,7 +440,9 @@ namespace OpenMS
     if (ms_path.size() == 1 && StringUtils::hasSuffix(ms_path[0], "mzML"))
     {
       const std::string local_path = File::localPath(ms_path[0]);
-      if (File::exists(local_path))
+      // ms_path[0] comes from the mzML's own, unauthenticated source metadata;
+      // never probe a remote share's authority it may name.
+      if (!File::isRemoteAuthorityPath(local_path) && File::exists(local_path))
       {
         setPrimaryMSRunPath(StringList{local_path});
         return;

@@ -110,7 +110,8 @@ namespace OpenMS{
 
   bool File::exists(const std::string& file)
   {
-    return fs::exists(to_path(file));
+    std::error_code ec;
+    return fs::exists(to_path(file), ec); // false (not an exception) on any error, e.g. an unsearchable parent dir
   }
 
   bool File::empty(const std::string& file)
@@ -393,6 +394,14 @@ namespace OpenMS{
       path = "//" + path;
     }
     return path;
+  }
+
+  bool File::isRemoteAuthorityPath(const std::string& path)
+  {
+    // Only a UNC form (as produced above) starts with exactly two slashes;
+    // a local absolute path has either one (POSIX) or none (a Windows drive
+    // path, which localPath() returns as "C:/...").
+    return path.size() >= 2 && path[0] == '/' && path[1] == '/';
   }
 
   std::string File::basename(const std::string& file)
