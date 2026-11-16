@@ -104,7 +104,6 @@ int main(int argc, char** argv)
   CrossFitScorer::Options options;
   options.seed = std::stoull(argv[3]);
   options.threads = std::stoi(argv[4]);
-  if (const char* m = std::getenv("OPENDIA_ENSEMBLE")) options.ensemble = std::stoul(m);
 
   CrossFitScorer::Input input;
   std::unordered_map<std::string, std::uint32_t> precursor_index, pair_index, row_of;

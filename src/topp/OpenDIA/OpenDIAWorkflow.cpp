@@ -54,9 +54,6 @@ protected:
     registerFlag_("features_out", "Also write <run>.features.tsv with every scored window and its features");
     registerIntOption_("seed", "<n>", 0, "Scorer seed", false);
     setMinInt_("seed", 0);
-    registerIntOption_("ensemble", "<m>", 1, "Scorer ensemble size: m cross-fitted trainings (seeds seed + 1000 i), averaged in decoy units "
-                       "(experimental, PLAN_ENSEMBLE)", false, true);
-    setMinInt_("ensemble", 1);
     registerFlag_("im_array_as_vssc", "Interpret a spectrum ion-mobility array whose unit is not CCS as 1/K0");
     registerStringOption_("calibration", "<files>", "", "Advanced: comma-separated OpenDIACalibrate JSON per run to reuse instead of calibrating", false, true);
     registerStringOption_("anchors", "<files>", "", "Advanced: comma-separated anchor TSV per run, with -calibration", false, true);
@@ -118,7 +115,6 @@ protected:
     OpenDIA::RunOptions options;
     options.threads = std::max(1, getIntOption_("threads"));
     options.seed = static_cast<std::uint64_t>(getIntOption_("seed"));
-    options.ensemble = static_cast<std::size_t>(getIntOption_("ensemble"));
     options.im_array_as_vssc = getFlag_("im_array_as_vssc");
     options.calibration.panel_targets = 40000;
 

@@ -179,31 +179,6 @@ int main()
     std::cerr << "synthetic: real " << real << " passing " << passing << " false " << false_hits << '\n';
     check(passing > real * 8 / 10, "finds most true windows at q <= 0.01");
     check(false_hits <= passing / 50 + 2, "false share at q <= 0.01 near the nominal level");
-
-    // Ensemble: m = 1 is the single model exactly; m = 3 is deterministic, thread independent, and its members'
-    // seeds are seed + 1000 i (member 0 is the single model above).
-    o.threads = 1;
-    o.ensemble = 1;
-    const auto e1 = CrossFitScorer::run(in, o);
-    check(e1.score == a.score && e1.q_value == a.q_value, "ensemble 1 equals the single model");
-    o.ensemble = 3;
-    const auto e3 = CrossFitScorer::run(in, o);
-    o.threads = 4;
-    const auto e3b = CrossFitScorer::run(in, o);
-    check(e3.score == e3b.score && e3.q_value == e3b.q_value, "ensemble independent of thread count");
-    std::size_t e_pass = 0, e_false = 0;
-    for (std::size_t r = 0; r < in.rows(); ++r)
-    {
-      if (!in.decoy[r] && e3.q_value[r] <= 0.01)
-      {
-        ++e_pass;
-        e_false += !truth[r];
-      }
-    }
-    std::cerr << "synthetic ensemble 3: passing " << e_pass << " false " << e_false << '\n';
-    check(e_pass > real * 8 / 10, "ensemble finds most true windows at q <= 0.01");
-    check(e_false <= e_pass / 50 + 2, "ensemble false share near the nominal level");
-    check(e3.log.size() == 3 * 3 && e3.log[3].rfind("member 1 fold 0", 0) == 0, "ensemble logs every member and fold");
   }
 
   // 6. Input validation.
