@@ -134,6 +134,10 @@ enumerated candidates and the existing scoring. See @ref TOPP_NASE_GraphSearch
 for supported ion series, bounds, fallback, spectrum-specific route generation,
 optional route/scaffold scoring, and the FLASH MS1 / legacy MS2 workflow.
 
+With @p rescoring:enable, the best hit of every spectrum is rescored with the
+in-process Percolator, and the q-values are calculated on the Percolator score.
+See @ref TOPP_NASE_Rescoring for the features, fallback and limitations.
+
 <B>The command line parameters of this tool are:</B>
 @verbinclude TOPP_NucleicAcidSearchEngine.cli
 <B>INI file documentation of this tool:</B>

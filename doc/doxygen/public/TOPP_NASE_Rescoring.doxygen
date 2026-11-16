@@ -1,0 +1,67 @@
+/**
+@page TOPP_NASE_Rescoring Percolator rescoring in NASE
+
+@brief Semi-supervised rescoring of the best hit per spectrum with the in-process Percolator.
+
+@p rescoring:enable rescores NucleicAcidSearchEngine's spectrum matches with Percolator::rescore. It is off by
+default and requires decoy sequences (@p fdr:decoy_pattern). The search, the candidate methods and the native
+scores are unchanged; only the score that the q-values are calculated on changes.
+
+@code
+NucleicAcidSearchEngine -in spectra.mzML -database targets_decoys.fasta \
+  -out results.mzTab -fdr:decoy_pattern DECOY_ \
+  -rescoring:enable -rescoring:out_features features.tsv
+@endcode
+
+@section nase_rescoring_rows What is rescored
+
+Percolator gets one row per spectrum: its best hit by the native score. The other hits retained by the search
+(@p rescoring:top_hits, default 2, at least @p report:top_hits) only describe how far ahead that hit is
+(@p delta_next, @p delta_best). This is the usual Percolator input of search engines, so Percolator's PEPs and
+NASE's q-values refer to the same competition: the best hit of each spectrum. Consequently:
+- the order of the hits of a spectrum stays the native order; a runner-up is never promoted,
+- hits tied with the best native score share its Percolator score and PEP,
+- with @p report:top_hits above 1, lower-ranked hits get no Percolator score and therefore no q-value
+  (with @p fdr:cutoff below 1, they are removed).
+
+Runner-ups are not rescored as rows of their own. Every RNA target has an isobaric reversed decoy, so most
+spectra have a strong decoy runner-up. Without Percolator's target-decoy competition, its training q-values and
+PEPs count these runner-ups as independent chances; with it, the losing hits are returned as score 0 / PEP 1
+and cannot be told apart from real values.
+
+@section nase_rescoring_features Features
+
+The rows come from RNARescoringFeatures. Their columns depend only on the parameters (and on the charges of the
+rescored hits), never on the label of a hit:
+- @p native_score: hyperscore, MVH or route score
+- @p delta_next: score minus the best lower or equal score of a hit with another sequence (other charges or
+  isotopes of the same sequence are no competitors); @p delta_best: score minus the spectrum's best score
+- @p abs_ppm_error, @p isotope_offset, one-hot @p charge_N (N = precursor charge), @p length, @p modifications, @p adduct
+- @p frac_X (X = ion series): distinct matched ordinals of each @p fragment:ions series / (length - 1)
+- @p matched_ions: matched (series, ordinal) pairs / (series * (length - 1))
+- @p matched_intensity: intensity of the distinct matched peaks / total intensity of the scored spectrum
+- @p longest_series: longest run of consecutive ordinals of one series / (length - 1)
+- @p coverage: backbone positions explained by any series / (length - 1)
+
+Optional groups: route evidence (@p scoring:method=route), @p graph_tag_length (graph candidate methods except
+@p graph_routes), modifications with and without diagnostic support (@p diagnostic:filter), and FLASH precursor
+cosine and SNR (@p precursor:correct_with_flash).
+
+@section nase_rescoring_output Output and fallback
+
+The PSM section gets @p percolator:score (MS:1001492) and @p percolator:PEP (MS:1001493) next to the native
+score; the PSM-level q-value is calculated on the Percolator score by the usual NASE FDR path.
+@p rescoring:out_features writes the features, label and Percolator score, q-value and PEP of each rescored
+spectrum.
+
+NASE keeps the native score, with a warning, if fewer than @p rescoring:min_decoys spectra (default 100) have a
+decoy as their best hit (or no target does), or if Percolator fails. The output is then that of a search without
+rescoring. If Percolator's sanity check rejects the learned model, it scores with its best single feature; NASE
+warns and uses that score.
+
+Results are reproducible for the same @p rescoring:seed, input order and number of threads. The tests use
+synthetic data and check the wiring, not the model. Reversed RNA decoys share many fragment masses with their
+targets; shuffled decoys (DecoyDatabase with @p type RNA and @p method shuffle) may separate better. Neither a
+nominal q-value yield nor these tests show FDR control on real data; an entrapment experiment is the appropriate
+check.
+*/
