@@ -1,0 +1,28 @@
+== raw01: windows 1628266; MS1 signal present 0.516; null windows 417035
+  null windows, AUC target > decoy (tell check; 0.5 = none): m1_corr_xic 0.500, m1_iso_cos 0.500, m1_iso_corr 0.498, m1_apex_dt 0.500, m1_log_m0 0.500
+  seed 0: R 553 D 994 | E in band 197 ED 271 | accepted entrapments 9
+    m1_corr_xic  AUC R>D 0.648 | E>ED 0.534 | accepted human > accepted entrapment 0.717 | med R 0.201 D 0.000 E 0.073
+    m1_iso_cos   AUC R>D 0.675 | E>ED 0.533 | accepted human > accepted entrapment 0.653 | med R 0.841 D 0.587 E 0.760
+    m1_iso_corr  AUC R>D 0.571 | E>ED 0.530 | accepted human > accepted entrapment 0.627 | med R 0.235 D 0.038 E 0.321
+    m1_apex_dt   AUC R>D 0.346 | E>ED 0.499 | accepted human > accepted entrapment 0.354 | med R 3.000 D 7.000 E 4.000
+    m1_log_m0    AUC R>D 0.621 | E>ED 0.526 | accepted human > accepted entrapment 0.538 | med R 13.428 D 12.438 E 14.170
+  seed 2: R 511 D 994 | E in band 242 ED 321 | accepted entrapments 9
+    m1_corr_xic  AUC R>D 0.666 | E>ED 0.544 | accepted human > accepted entrapment 0.700 | med R 0.214 D 0.000 E 0.112
+    m1_iso_cos   AUC R>D 0.687 | E>ED 0.540 | accepted human > accepted entrapment 0.609 | med R 0.850 D 0.576 E 0.761
+    m1_iso_corr  AUC R>D 0.576 | E>ED 0.537 | accepted human > accepted entrapment 0.554 | med R 0.228 D 0.000 E 0.332
+    m1_apex_dt   AUC R>D 0.335 | E>ED 0.460 | accepted human > accepted entrapment 0.331 | med R 3.000 D 7.000 E 4.000
+    m1_log_m0    AUC R>D 0.633 | E>ED 0.558 | accepted human > accepted entrapment 0.591 | med R 13.473 D 12.390 E 14.223
+== raw02: windows 1503845; MS1 signal present 0.518; null windows 385291
+  null windows, AUC target > decoy (tell check; 0.5 = none): m1_corr_xic 0.501, m1_iso_cos 0.500, m1_iso_corr 0.501, m1_apex_dt 0.499, m1_log_m0 0.500
+  seed 0: R 493 D 783 | E in band 77 ED 121 | accepted entrapments 9
+    m1_corr_xic  AUC R>D 0.645 | E>ED 0.573 | accepted human > accepted entrapment 0.677 | med R 0.202 D 0.000 E 0.168
+    m1_iso_cos   AUC R>D 0.658 | E>ED 0.508 | accepted human > accepted entrapment 0.576 | med R 0.830 D 0.570 E 0.775
+    m1_iso_corr  AUC R>D 0.539 | E>ED 0.497 | accepted human > accepted entrapment 0.555 | med R 0.214 D 0.017 E 0.324
+    m1_apex_dt   AUC R>D 0.345 | E>ED 0.457 | accepted human > accepted entrapment 0.383 | med R 3.000 D 7.000 E 3.000
+    m1_log_m0    AUC R>D 0.607 | E>ED 0.506 | accepted human > accepted entrapment 0.404 | med R 13.614 D 12.639 E 14.334
+  seed 2: R 443 D 774 | E in band 109 ED 155 | accepted entrapments 9
+    m1_corr_xic  AUC R>D 0.650 | E>ED 0.571 | accepted human > accepted entrapment 0.722 | med R 0.202 D 0.000 E 0.164
+    m1_iso_cos   AUC R>D 0.656 | E>ED 0.530 | accepted human > accepted entrapment 0.578 | med R 0.832 D 0.578 E 0.775
+    m1_iso_corr  AUC R>D 0.549 | E>ED 0.539 | accepted human > accepted entrapment 0.501 | med R 0.227 D 0.044 E 0.362
+    m1_apex_dt   AUC R>D 0.354 | E>ED 0.456 | accepted human > accepted entrapment 0.414 | med R 3.000 D 6.000 E 4.000
+    m1_log_m0    AUC R>D 0.617 | E>ED 0.538 | accepted human > accepted entrapment 0.397 | med R 13.674 D 12.444 E 14.267
