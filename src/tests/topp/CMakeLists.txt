@@ -9160,6 +9160,18 @@ foreach(mode graph_generate graph_generate_audit)
   set_tests_properties("TOPP_NucleicAcidSearchEngine_${mode}_out" PROPERTIES DEPENDS "TOPP_NucleicAcidSearchEngine_${mode};TOPP_NucleicAcidSearchEngine_graph_reference")
 endforeach()
 
+# Percolator rescoring: synthetic negative-mode spectra (110 identifiable, 260 poor ones with a few target or
+# reversed-decoy fragments) of 8-12-mer targets and reversed decoys. The one-spectrum fixture has too few decoys,
+# so rescoring falls back to the native score and must reproduce the native result.
+add_test("TOPP_NucleicAcidSearchEngine_rescoring" ${TOPP_BIN_PATH}/NucleicAcidSearchEngine -test -in ${DATA_DIR_TOPP}/NucleicAcidSearchEngine_rescoring.mzML.gz -database ${DATA_DIR_TOPP}/NucleicAcidSearchEngine_rescoring.fasta -oligo:enzyme "no cleavage" -precursor:min_charge -2 -precursor:max_charge -3 -fdr:decoy_pattern DECOY_ -threads 1 -rescoring:enable -out ${TESTS_TEMP_DIR}/NucleicAcidSearchEngine_rescoring.tmp.mzTab -rescoring:out_features ${TESTS_TEMP_DIR}/NucleicAcidSearchEngine_rescoring_features.tmp.tsv)
+add_test("TOPP_NucleicAcidSearchEngine_rescoring_out" ${DIFF} -in1 ${TESTS_TEMP_DIR}/NucleicAcidSearchEngine_rescoring.tmp.mzTab -in2 ${DATA_DIR_TOPP}/NucleicAcidSearchEngine_rescoring_out.mzTab -whitelist "ms_run[1]-location")
+add_test("TOPP_NucleicAcidSearchEngine_rescoring_features_out" ${DIFF} -in1 ${TESTS_TEMP_DIR}/NucleicAcidSearchEngine_rescoring_features.tmp.tsv -in2 ${DATA_DIR_TOPP}/NucleicAcidSearchEngine_rescoring_features_out.tsv)
+set_tests_properties("TOPP_NucleicAcidSearchEngine_rescoring_out" PROPERTIES DEPENDS "TOPP_NucleicAcidSearchEngine_rescoring")
+set_tests_properties("TOPP_NucleicAcidSearchEngine_rescoring_features_out" PROPERTIES DEPENDS "TOPP_NucleicAcidSearchEngine_rescoring")
+add_test("TOPP_NucleicAcidSearchEngine_rescoring_fallback" ${TOPP_BIN_PATH}/NucleicAcidSearchEngine -test -ini ${DATA_DIR_TOPP}/NucleicAcidSearchEngine_1.ini -in ${DATA_DIR_TOPP}/NucleicAcidSearchEngine_1.mzML -database ${DATA_DIR_TOPP}/NucleicAcidSearchEngine_1.fasta -out ${TESTS_TEMP_DIR}/NucleicAcidSearchEngine_rescoring_fallback.tmp.mzTab -rescoring:enable)
+add_test("TOPP_NucleicAcidSearchEngine_rescoring_fallback_out" ${DIFF} -in1 ${TESTS_TEMP_DIR}/NucleicAcidSearchEngine_rescoring_fallback.tmp.mzTab -in2 ${DATA_DIR_TOPP}/NucleicAcidSearchEngine_12_out.mzTab -whitelist "ms_run[1]-location")
+set_tests_properties("TOPP_NucleicAcidSearchEngine_rescoring_fallback_out" PROPERTIES DEPENDS "TOPP_NucleicAcidSearchEngine_rescoring_fallback")
+
 # RNAMassCalculator:
 add_test("TOPP_RNAMassCalculator_1" ${TOPP_BIN_PATH}/RNAMassCalculator -test -in_seq "AUCGGC" -charge -1 -2 -out ${TESTS_TEMP_DIR}/RNAMassCalculator.tmp.txt)
 add_test("TOPP_RNAMassCalculator_1_out" ${DIFF} -in1 ${TESTS_TEMP_DIR}/RNAMassCalculator.tmp.txt -in2 ${DATA_DIR_TOPP}/RNAMassCalculator_1.txt)

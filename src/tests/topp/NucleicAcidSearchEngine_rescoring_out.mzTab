@@ -1,0 +1,828 @@
+MTD	mzTab-version	1.0.0
+MTD	mzTab-mode	null
+MTD	mzTab-type	null
+MTD	description	null
+MTD	osm_search_engine_score[1]	[, , hyperscore, ]
+MTD	osm_search_engine_score[2]	[MS, MS:1002354, PSM-level q-value, ]
+MTD	osm_search_engine_score[3]	[MS, MS:1001492, percolator:score, ]
+MTD	osm_search_engine_score[4]	[MS, MS:1001493, percolator:PEP, ]
+MTD	software[1]	[, , NucleicAcidSearchEngine, test]
+MTD	ms_run[1]-location	NucleicAcidSearchEngine_rescoring.mzML.gz
+
+NUH	accession	description	taxid	species	database	database_version	search_engine	ambiguity_members	modifications	sequence_coverage	opt_sequence
+NUC	DECOY_T0	null	null	null	null	null	[, , NucleicAcidSearchEngine, test]	null	null	1.0	UCGUCCUA
+NUC	DECOY_T1	null	null	null	null	null	[, , NucleicAcidSearchEngine, test]	null	null	1.0	CACCAAGCG
+NUC	DECOY_T10	null	null	null	null	null	[, , NucleicAcidSearchEngine, test]	null	null	1.0	GGGGUGCAGA
+NUC	DECOY_T101	null	null	null	null	null	[, , NucleicAcidSearchEngine, test]	null	null	1.0	ACUAUCGUCCCC
+NUC	DECOY_T102	null	null	null	null	null	[, , NucleicAcidSearchEngine, test]	null	null	1.0	AGGGCAAC
+NUC	DECOY_T103	null	null	null	null	null	[, , NucleicAcidSearchEngine, test]	null	null	1.0	CUAGCAGGAAC
+NUC	DECOY_T107	null	null	null	null	null	[, , NucleicAcidSearchEngine, test]	null	null	1.0	UCGUUCAUGU
+NUC	DECOY_T108	null	null	null	null	null	[, , NucleicAcidSearchEngine, test]	null	null	1.0	ACCAAGUC
+NUC	DECOY_T109	null	null	null	null	null	[, , NucleicAcidSearchEngine, test]	null	null	1.0	CCGAAACAAUG
+NUC	DECOY_T12	null	null	null	null	null	[, , NucleicAcidSearchEngine, test]	null	null	1.0	UUGCGUCU
+NUC	DECOY_T13	null	null	null	null	null	[, , NucleicAcidSearchEngine, test]	null	null	1.0	CUGACACG
+NUC	DECOY_T14	null	null	null	null	null	[, , NucleicAcidSearchEngine, test]	null	null	1.0	UAUCCCGCGA
+NUC	DECOY_T15	null	null	null	null	null	[, , NucleicAcidSearchEngine, test]	null	null	1.0	CAGCUUUGCC
+NUC	DECOY_T16	null	null	null	null	null	[, , NucleicAcidSearchEngine, test]	null	null	1.0	AAUCUUGAUCU
+NUC	DECOY_T17	null	null	null	null	null	[, , NucleicAcidSearchEngine, test]	null	null	1.0	GCUACACCU
+NUC	DECOY_T18	null	null	null	null	null	[, , NucleicAcidSearchEngine, test]	null	null	1.0	UCCUCCCAGGUA
+NUC	DECOY_T19	null	null	null	null	null	[, , NucleicAcidSearchEngine, test]	null	null	1.0	CAAGUUUAGG
+NUC	DECOY_T2	null	null	null	null	null	[, , NucleicAcidSearchEngine, test]	null	null	1.0	GCGACCCUUG
+NUC	DECOY_T20	null	null	null	null	null	[, , NucleicAcidSearchEngine, test]	null	null	1.0	UCGUGAAUC
+NUC	DECOY_T21	null	null	null	null	null	[, , NucleicAcidSearchEngine, test]	null	null	1.0	UACGGAUAAU
+NUC	DECOY_T22	null	null	null	null	null	[, , NucleicAcidSearchEngine, test]	null	null	1.0	CUGUAACGG
+NUC	DECOY_T23	null	null	null	null	null	[, , NucleicAcidSearchEngine, test]	null	null	1.0	CCUGUGGA
+NUC	DECOY_T24	null	null	null	null	null	[, , NucleicAcidSearchEngine, test]	null	null	1.0	CGAGUUUGA
+NUC	DECOY_T25	null	null	null	null	null	[, , NucleicAcidSearchEngine, test]	null	null	1.0	CGUUCGAAGUUG
+NUC	DECOY_T26	null	null	null	null	null	[, , NucleicAcidSearchEngine, test]	null	null	1.0	AGUCCCAG
+NUC	DECOY_T27	null	null	null	null	null	[, , NucleicAcidSearchEngine, test]	null	null	1.0	CGGAUAGAUCGA
+NUC	DECOY_T28	null	null	null	null	null	[, , NucleicAcidSearchEngine, test]	null	null	1.0	AUCGACAAGCA
+NUC	DECOY_T29	null	null	null	null	null	[, , NucleicAcidSearchEngine, test]	null	null	1.0	UACAUCUAAGAU
+NUC	DECOY_T3	null	null	null	null	null	[, , NucleicAcidSearchEngine, test]	null	null	1.0	UCGUACUUCCAG
+NUC	DECOY_T30	null	null	null	null	null	[, , NucleicAcidSearchEngine, test]	null	null	1.0	CCCUAUUAGCU
+NUC	DECOY_T31	null	null	null	null	null	[, , NucleicAcidSearchEngine, test]	null	null	1.0	GACGAAGUCA
+NUC	DECOY_T32	null	null	null	null	null	[, , NucleicAcidSearchEngine, test]	null	null	1.0	GGAGGAGCA
+NUC	DECOY_T33	null	null	null	null	null	[, , NucleicAcidSearchEngine, test]	null	null	1.0	CCUAGAGGG
+NUC	DECOY_T34	null	null	null	null	null	[, , NucleicAcidSearchEngine, test]	null	null	1.0	UACUAUUAU
+NUC	DECOY_T35	null	null	null	null	null	[, , NucleicAcidSearchEngine, test]	null	null	1.0	UGUCACUAA
+NUC	DECOY_T36	null	null	null	null	null	[, , NucleicAcidSearchEngine, test]	null	null	1.0	GGAGUGGAGACA
+NUC	DECOY_T37	null	null	null	null	null	[, , NucleicAcidSearchEngine, test]	null	null	1.0	GUGCCGGAU
+NUC	DECOY_T38	null	null	null	null	null	[, , NucleicAcidSearchEngine, test]	null	null	1.0	CCUAUAAAG
+NUC	DECOY_T39	null	null	null	null	null	[, , NucleicAcidSearchEngine, test]	null	null	1.0	GGUAUAAGG
+NUC	DECOY_T41	null	null	null	null	null	[, , NucleicAcidSearchEngine, test]	null	null	1.0	GCAACGCCUCA
+NUC	DECOY_T42	null	null	null	null	null	[, , NucleicAcidSearchEngine, test]	null	null	1.0	UGAUUCAGGUU
+NUC	DECOY_T43	null	null	null	null	null	[, , NucleicAcidSearchEngine, test]	null	null	1.0	CGGAGCCCG
+NUC	DECOY_T44	null	null	null	null	null	[, , NucleicAcidSearchEngine, test]	null	null	1.0	CGGAAUAUGCCU
+NUC	DECOY_T45	null	null	null	null	null	[, , NucleicAcidSearchEngine, test]	null	null	1.0	GUCCAGUUC
+NUC	DECOY_T46	null	null	null	null	null	[, , NucleicAcidSearchEngine, test]	null	null	1.0	UAAGCGGG
+NUC	DECOY_T48	null	null	null	null	null	[, , NucleicAcidSearchEngine, test]	null	null	1.0	CCCAGCAU
+NUC	DECOY_T49	null	null	null	null	null	[, , NucleicAcidSearchEngine, test]	null	null	1.0	AACCGGUGCGU
+NUC	DECOY_T5	null	null	null	null	null	[, , NucleicAcidSearchEngine, test]	null	null	1.0	CCUCGCCAACA
+NUC	DECOY_T50	null	null	null	null	null	[, , NucleicAcidSearchEngine, test]	null	null	1.0	UACGAUCGUCA
+NUC	DECOY_T51	null	null	null	null	null	[, , NucleicAcidSearchEngine, test]	null	null	1.0	GUUCAUUUA
+NUC	DECOY_T52	null	null	null	null	null	[, , NucleicAcidSearchEngine, test]	null	null	1.0	GCGGCGUGA
+NUC	DECOY_T53	null	null	null	null	null	[, , NucleicAcidSearchEngine, test]	null	null	1.0	AAGAUAUACACA
+NUC	DECOY_T54	null	null	null	null	null	[, , NucleicAcidSearchEngine, test]	null	null	1.0	UUUCAUAUGGAA
+NUC	DECOY_T55	null	null	null	null	null	[, , NucleicAcidSearchEngine, test]	null	null	1.0	CAAAUAAGC
+NUC	DECOY_T57	null	null	null	null	null	[, , NucleicAcidSearchEngine, test]	null	null	1.0	GCCCCAAUGGUA
+NUC	DECOY_T58	null	null	null	null	null	[, , NucleicAcidSearchEngine, test]	null	null	1.0	CUACCGCAAU
+NUC	DECOY_T59	null	null	null	null	null	[, , NucleicAcidSearchEngine, test]	null	null	1.0	UGACACCG
+NUC	DECOY_T6	null	null	null	null	null	[, , NucleicAcidSearchEngine, test]	null	null	1.0	AGACUUCUC
+NUC	DECOY_T60	null	null	null	null	null	[, , NucleicAcidSearchEngine, test]	null	null	1.0	AGUUAAGGUAC
+NUC	DECOY_T61	null	null	null	null	null	[, , NucleicAcidSearchEngine, test]	null	null	1.0	CCCAUGGAGU
+NUC	DECOY_T62	null	null	null	null	null	[, , NucleicAcidSearchEngine, test]	null	null	1.0	UUUCAGGGGACG
+NUC	DECOY_T63	null	null	null	null	null	[, , NucleicAcidSearchEngine, test]	null	null	1.0	GUACGGCUGUA
+NUC	DECOY_T65	null	null	null	null	null	[, , NucleicAcidSearchEngine, test]	null	null	1.0	UUAGUACCGU
+NUC	DECOY_T66	null	null	null	null	null	[, , NucleicAcidSearchEngine, test]	null	null	1.0	UGCAUACCCUC
+NUC	DECOY_T67	null	null	null	null	null	[, , NucleicAcidSearchEngine, test]	null	null	1.0	AAACGCUCC
+NUC	DECOY_T68	null	null	null	null	null	[, , NucleicAcidSearchEngine, test]	null	null	1.0	GAACUACUCG
+NUC	DECOY_T69	null	null	null	null	null	[, , NucleicAcidSearchEngine, test]	null	null	1.0	UCGUACUCCG
+NUC	DECOY_T7	null	null	null	null	null	[, , NucleicAcidSearchEngine, test]	null	null	1.0	UCCGCCGCA
+NUC	DECOY_T70	null	null	null	null	null	[, , NucleicAcidSearchEngine, test]	null	null	1.0	UGCGUUUCAUU
+NUC	DECOY_T71	null	null	null	null	null	[, , NucleicAcidSearchEngine, test]	null	null	1.0	UGCUGCCGUCG
+NUC	DECOY_T72	null	null	null	null	null	[, , NucleicAcidSearchEngine, test]	null	null	1.0	ACCUAUGCA
+NUC	DECOY_T73	null	null	null	null	null	[, , NucleicAcidSearchEngine, test]	null	null	1.0	CUAAGUACU
+NUC	DECOY_T74	null	null	null	null	null	[, , NucleicAcidSearchEngine, test]	null	null	1.0	UUUGUUGGCAAG
+NUC	DECOY_T75	null	null	null	null	null	[, , NucleicAcidSearchEngine, test]	null	null	1.0	CAAGUGUCUAGC
+NUC	DECOY_T77	null	null	null	null	null	[, , NucleicAcidSearchEngine, test]	null	null	1.0	CCCUCCUG
+NUC	DECOY_T78	null	null	null	null	null	[, , NucleicAcidSearchEngine, test]	null	null	1.0	UUCCACUGAU
+NUC	DECOY_T79	null	null	null	null	null	[, , NucleicAcidSearchEngine, test]	null	null	1.0	AGGCAUCAACAA
+NUC	DECOY_T8	null	null	null	null	null	[, , NucleicAcidSearchEngine, test]	null	null	1.0	GCAUUUCCGC
+NUC	DECOY_T82	null	null	null	null	null	[, , NucleicAcidSearchEngine, test]	null	null	1.0	CCGAGUGCCGGU
+NUC	DECOY_T83	null	null	null	null	null	[, , NucleicAcidSearchEngine, test]	null	null	1.0	GUAUUUUC
+NUC	DECOY_T84	null	null	null	null	null	[, , NucleicAcidSearchEngine, test]	null	null	1.0	CGAGCCGC
+NUC	DECOY_T85	null	null	null	null	null	[, , NucleicAcidSearchEngine, test]	null	null	1.0	GGGCUCAAA
+NUC	DECOY_T87	null	null	null	null	null	[, , NucleicAcidSearchEngine, test]	null	null	1.0	UUACUAGU
+NUC	DECOY_T88	null	null	null	null	null	[, , NucleicAcidSearchEngine, test]	null	null	1.0	GGGUCUCACA
+NUC	DECOY_T89	null	null	null	null	null	[, , NucleicAcidSearchEngine, test]	null	null	1.0	GGUAUUUG
+NUC	DECOY_T9	null	null	null	null	null	[, , NucleicAcidSearchEngine, test]	null	null	1.0	CCGGGGCGC
+NUC	DECOY_T90	null	null	null	null	null	[, , NucleicAcidSearchEngine, test]	null	null	1.0	CUUUCCGACCAU
+NUC	DECOY_T93	null	null	null	null	null	[, , NucleicAcidSearchEngine, test]	null	null	1.0	GUUUGCAC
+NUC	DECOY_T94	null	null	null	null	null	[, , NucleicAcidSearchEngine, test]	null	null	1.0	GAACCCUGUA
+NUC	DECOY_T95	null	null	null	null	null	[, , NucleicAcidSearchEngine, test]	null	null	1.0	CUCUGAAC
+NUC	DECOY_T96	null	null	null	null	null	[, , NucleicAcidSearchEngine, test]	null	null	1.0	GGCCUCGCGG
+NUC	DECOY_T97	null	null	null	null	null	[, , NucleicAcidSearchEngine, test]	null	null	1.0	AAUAGGCAUA
+NUC	DECOY_T99	null	null	null	null	null	[, , NucleicAcidSearchEngine, test]	null	null	1.0	UUCUUAUACUC
+NUC	T0	null	null	null	null	null	[, , NucleicAcidSearchEngine, test]	null	null	1.0	AUCCUGCU
+NUC	T1	null	null	null	null	null	[, , NucleicAcidSearchEngine, test]	null	null	1.0	GCGAACCAC
+NUC	T10	null	null	null	null	null	[, , NucleicAcidSearchEngine, test]	null	null	1.0	AGACGUGGGG
+NUC	T100	null	null	null	null	null	[, , NucleicAcidSearchEngine, test]	null	null	1.0	CUUAGAGA
+NUC	T101	null	null	null	null	null	[, , NucleicAcidSearchEngine, test]	null	null	1.0	CCCCUGCUAUCA
+NUC	T102	null	null	null	null	null	[, , NucleicAcidSearchEngine, test]	null	null	1.0	CAACGGGA
+NUC	T103	null	null	null	null	null	[, , NucleicAcidSearchEngine, test]	null	null	1.0	CAAGGACGAUC
+NUC	T104	null	null	null	null	null	[, , NucleicAcidSearchEngine, test]	null	null	1.0	AGCUACUG
+NUC	T105	null	null	null	null	null	[, , NucleicAcidSearchEngine, test]	null	null	1.0	CUCCUAAGC
+NUC	T106	null	null	null	null	null	[, , NucleicAcidSearchEngine, test]	null	null	1.0	AUGAGUUUCCG
+NUC	T107	null	null	null	null	null	[, , NucleicAcidSearchEngine, test]	null	null	1.0	UGUACUUGCU
+NUC	T108	null	null	null	null	null	[, , NucleicAcidSearchEngine, test]	null	null	1.0	CUGAACCA
+NUC	T109	null	null	null	null	null	[, , NucleicAcidSearchEngine, test]	null	null	1.0	GUAACAAAGCC
+NUC	T11	null	null	null	null	null	[, , NucleicAcidSearchEngine, test]	null	null	1.0	CGUAACGGGAUU
+NUC	T12	null	null	null	null	null	[, , NucleicAcidSearchEngine, test]	null	null	1.0	UCUGCGUU
+NUC	T13	null	null	null	null	null	[, , NucleicAcidSearchEngine, test]	null	null	1.0	GCACAGUC
+NUC	T14	null	null	null	null	null	[, , NucleicAcidSearchEngine, test]	null	null	1.0	AGCGCCCUAU
+NUC	T15	null	null	null	null	null	[, , NucleicAcidSearchEngine, test]	null	null	1.0	CCGUUUCGAC
+NUC	T16	null	null	null	null	null	[, , NucleicAcidSearchEngine, test]	null	null	1.0	UCUAGUUCUAA
+NUC	T17	null	null	null	null	null	[, , NucleicAcidSearchEngine, test]	null	null	1.0	UCCACAUCG
+NUC	T18	null	null	null	null	null	[, , NucleicAcidSearchEngine, test]	null	null	1.0	AUGGACCCUCCU
+NUC	T19	null	null	null	null	null	[, , NucleicAcidSearchEngine, test]	null	null	1.0	GGAUUUGAAC
+NUC	T2	null	null	null	null	null	[, , NucleicAcidSearchEngine, test]	null	null	1.0	GUUCCCAGCG
+NUC	T20	null	null	null	null	null	[, , NucleicAcidSearchEngine, test]	null	null	1.0	CUAAGUGCU
+NUC	T21	null	null	null	null	null	[, , NucleicAcidSearchEngine, test]	null	null	1.0	UAAUAGGCAU
+NUC	T22	null	null	null	null	null	[, , NucleicAcidSearchEngine, test]	null	null	1.0	GGCAAUGUC
+NUC	T23	null	null	null	null	null	[, , NucleicAcidSearchEngine, test]	null	null	1.0	AGGUGUCC
+NUC	T24	null	null	null	null	null	[, , NucleicAcidSearchEngine, test]	null	null	1.0	AGUUUGAGC
+NUC	T25	null	null	null	null	null	[, , NucleicAcidSearchEngine, test]	null	null	1.0	GUUGAAGCUUGC
+NUC	T26	null	null	null	null	null	[, , NucleicAcidSearchEngine, test]	null	null	1.0	GACCCUGA
+NUC	T27	null	null	null	null	null	[, , NucleicAcidSearchEngine, test]	null	null	1.0	AGCUAGAUAGGC
+NUC	T28	null	null	null	null	null	[, , NucleicAcidSearchEngine, test]	null	null	1.0	ACGAACAGCUA
+NUC	T29	null	null	null	null	null	[, , NucleicAcidSearchEngine, test]	null	null	1.0	UAGAAUCUACAU
+NUC	T3	null	null	null	null	null	[, , NucleicAcidSearchEngine, test]	null	null	1.0	GACCUUCAUGCU
+NUC	T30	null	null	null	null	null	[, , NucleicAcidSearchEngine, test]	null	null	1.0	UCGAUUAUCCC
+NUC	T31	null	null	null	null	null	[, , NucleicAcidSearchEngine, test]	null	null	1.0	ACUGAAGCAG
+NUC	T32	null	null	null	null	null	[, , NucleicAcidSearchEngine, test]	null	null	1.0	ACGAGGAGG
+NUC	T33	null	null	null	null	null	[, , NucleicAcidSearchEngine, test]	null	null	1.0	GGGAGAUCC
+NUC	T34	null	null	null	null	null	[, , NucleicAcidSearchEngine, test]	null	null	1.0	UAUUAUCAU
+NUC	T35	null	null	null	null	null	[, , NucleicAcidSearchEngine, test]	null	null	1.0	AAUCACUGU
+NUC	T36	null	null	null	null	null	[, , NucleicAcidSearchEngine, test]	null	null	1.0	ACAGAGGUGAGG
+NUC	T37	null	null	null	null	null	[, , NucleicAcidSearchEngine, test]	null	null	1.0	UAGGCCGUG
+NUC	T38	null	null	null	null	null	[, , NucleicAcidSearchEngine, test]	null	null	1.0	GAAAUAUCC
+NUC	T39	null	null	null	null	null	[, , NucleicAcidSearchEngine, test]	null	null	1.0	GGAAUAUGG
+NUC	T4	null	null	null	null	null	[, , NucleicAcidSearchEngine, test]	null	null	1.0	AAGUUUACGCUC
+NUC	T40	null	null	null	null	null	[, , NucleicAcidSearchEngine, test]	null	null	1.0	UAAUCAAAG
+NUC	T41	null	null	null	null	null	[, , NucleicAcidSearchEngine, test]	null	null	1.0	ACUCCGCAACG
+NUC	T42	null	null	null	null	null	[, , NucleicAcidSearchEngine, test]	null	null	1.0	UUGGACUUAGU
+NUC	T43	null	null	null	null	null	[, , NucleicAcidSearchEngine, test]	null	null	1.0	GCCCGAGGC
+NUC	T44	null	null	null	null	null	[, , NucleicAcidSearchEngine, test]	null	null	1.0	UCCGUAUAAGGC
+NUC	T45	null	null	null	null	null	[, , NucleicAcidSearchEngine, test]	null	null	1.0	CUUGACCUG
+NUC	T46	null	null	null	null	null	[, , NucleicAcidSearchEngine, test]	null	null	1.0	GGGCGAAU
+NUC	T47	null	null	null	null	null	[, , NucleicAcidSearchEngine, test]	null	null	1.0	GGUGGGCAUG
+NUC	T48	null	null	null	null	null	[, , NucleicAcidSearchEngine, test]	null	null	1.0	UACGACCC
+NUC	T49	null	null	null	null	null	[, , NucleicAcidSearchEngine, test]	null	null	1.0	UGCGUGGCCAA
+NUC	T5	null	null	null	null	null	[, , NucleicAcidSearchEngine, test]	null	null	1.0	ACAACCGCUCC
+NUC	T50	null	null	null	null	null	[, , NucleicAcidSearchEngine, test]	null	null	1.0	ACUGCUAGCAU
+NUC	T51	null	null	null	null	null	[, , NucleicAcidSearchEngine, test]	null	null	1.0	AUUUACUUG
+NUC	T52	null	null	null	null	null	[, , NucleicAcidSearchEngine, test]	null	null	1.0	AGUGCGGCG
+NUC	T53	null	null	null	null	null	[, , NucleicAcidSearchEngine, test]	null	null	1.0	ACACAUAUAGAA
+NUC	T54	null	null	null	null	null	[, , NucleicAcidSearchEngine, test]	null	null	1.0	AAGGUAUACUUU
+NUC	T55	null	null	null	null	null	[, , NucleicAcidSearchEngine, test]	null	null	1.0	CGAAUAAAC
+NUC	T56	null	null	null	null	null	[, , NucleicAcidSearchEngine, test]	null	null	1.0	GGUUUGGCCUUU
+NUC	T57	null	null	null	null	null	[, , NucleicAcidSearchEngine, test]	null	null	1.0	AUGGUAACCCCG
+NUC	T58	null	null	null	null	null	[, , NucleicAcidSearchEngine, test]	null	null	1.0	UAACGCCAUC
+NUC	T59	null	null	null	null	null	[, , NucleicAcidSearchEngine, test]	null	null	1.0	GCCACAGU
+NUC	T6	null	null	null	null	null	[, , NucleicAcidSearchEngine, test]	null	null	1.0	CUCUUCAGA
+NUC	T60	null	null	null	null	null	[, , NucleicAcidSearchEngine, test]	null	null	1.0	CAUGGAAUUGA
+NUC	T61	null	null	null	null	null	[, , NucleicAcidSearchEngine, test]	null	null	1.0	UGAGGUACCC
+NUC	T62	null	null	null	null	null	[, , NucleicAcidSearchEngine, test]	null	null	1.0	GCAGGGGACUUU
+NUC	T63	null	null	null	null	null	[, , NucleicAcidSearchEngine, test]	null	null	1.0	AUGUCGGCAUG
+NUC	T64	null	null	null	null	null	[, , NucleicAcidSearchEngine, test]	null	null	1.0	UGGCAAUUA
+NUC	T65	null	null	null	null	null	[, , NucleicAcidSearchEngine, test]	null	null	1.0	UGCCAUGAUU
+NUC	T66	null	null	null	null	null	[, , NucleicAcidSearchEngine, test]	null	null	1.0	CUCCCAUACGU
+NUC	T67	null	null	null	null	null	[, , NucleicAcidSearchEngine, test]	null	null	1.0	CCUCGCAAA
+NUC	T68	null	null	null	null	null	[, , NucleicAcidSearchEngine, test]	null	null	1.0	GCUCAUCAAG
+NUC	T69	null	null	null	null	null	[, , NucleicAcidSearchEngine, test]	null	null	1.0	GCCUCAUGCU
+NUC	T7	null	null	null	null	null	[, , NucleicAcidSearchEngine, test]	null	null	1.0	ACGCCGCCU
+NUC	T70	null	null	null	null	null	[, , NucleicAcidSearchEngine, test]	null	null	1.0	UUACUUUGCGU
+NUC	T71	null	null	null	null	null	[, , NucleicAcidSearchEngine, test]	null	null	1.0	GCUGCCGUCGU
+NUC	T72	null	null	null	null	null	[, , NucleicAcidSearchEngine, test]	null	null	1.0	ACGUAUCCA
+NUC	T73	null	null	null	null	null	[, , NucleicAcidSearchEngine, test]	null	null	1.0	UCAUGAAUC
+NUC	T74	null	null	null	null	null	[, , NucleicAcidSearchEngine, test]	null	null	1.0	GAACGGUUGUUU
+NUC	T75	null	null	null	null	null	[, , NucleicAcidSearchEngine, test]	null	null	1.0	CGAUCUGUGAAC
+NUC	T76	null	null	null	null	null	[, , NucleicAcidSearchEngine, test]	null	null	1.0	CUUUUUUUAUA
+NUC	T77	null	null	null	null	null	[, , NucleicAcidSearchEngine, test]	null	null	1.0	GUCCUCCC
+NUC	T78	null	null	null	null	null	[, , NucleicAcidSearchEngine, test]	null	null	1.0	UAGUCACCUU
+NUC	T79	null	null	null	null	null	[, , NucleicAcidSearchEngine, test]	null	null	1.0	AACAACUACGGA
+NUC	T8	null	null	null	null	null	[, , NucleicAcidSearchEngine, test]	null	null	1.0	CGCCUUUACG
+NUC	T80	null	null	null	null	null	[, , NucleicAcidSearchEngine, test]	null	null	1.0	GGUAUAACA
+NUC	T81	null	null	null	null	null	[, , NucleicAcidSearchEngine, test]	null	null	1.0	CGGCCUCCCUAA
+NUC	T82	null	null	null	null	null	[, , NucleicAcidSearchEngine, test]	null	null	1.0	UGGCCGUGAGCC
+NUC	T83	null	null	null	null	null	[, , NucleicAcidSearchEngine, test]	null	null	1.0	CUUUUAUG
+NUC	T84	null	null	null	null	null	[, , NucleicAcidSearchEngine, test]	null	null	1.0	CGCCGAGC
+NUC	T85	null	null	null	null	null	[, , NucleicAcidSearchEngine, test]	null	null	1.0	AAACUCGGG
+NUC	T86	null	null	null	null	null	[, , NucleicAcidSearchEngine, test]	null	null	1.0	AUAGAUAAAGU
+NUC	T87	null	null	null	null	null	[, , NucleicAcidSearchEngine, test]	null	null	1.0	UGAUCAUU
+NUC	T88	null	null	null	null	null	[, , NucleicAcidSearchEngine, test]	null	null	1.0	ACACUCUGGG
+NUC	T89	null	null	null	null	null	[, , NucleicAcidSearchEngine, test]	null	null	1.0	GUUUAUGG
+NUC	T9	null	null	null	null	null	[, , NucleicAcidSearchEngine, test]	null	null	1.0	CGCGGGGCC
+NUC	T90	null	null	null	null	null	[, , NucleicAcidSearchEngine, test]	null	null	1.0	UACCAGCCUUUC
+NUC	T91	null	null	null	null	null	[, , NucleicAcidSearchEngine, test]	null	null	1.0	CAUGAAUU
+NUC	T92	null	null	null	null	null	[, , NucleicAcidSearchEngine, test]	null	null	1.0	GCGCCCGA
+NUC	T93	null	null	null	null	null	[, , NucleicAcidSearchEngine, test]	null	null	1.0	CACGUUUG
+NUC	T94	null	null	null	null	null	[, , NucleicAcidSearchEngine, test]	null	null	1.0	AUGUCCCAAG
+NUC	T95	null	null	null	null	null	[, , NucleicAcidSearchEngine, test]	null	null	1.0	CAAGUCUC
+NUC	T96	null	null	null	null	null	[, , NucleicAcidSearchEngine, test]	null	null	1.0	GGCGCUCCGG
+NUC	T97	null	null	null	null	null	[, , NucleicAcidSearchEngine, test]	null	null	1.0	AUACGGAUAA
+NUC	T98	null	null	null	null	null	[, , NucleicAcidSearchEngine, test]	null	null	1.0	CGCCCUGGU
+NUC	T99	null	null	null	null	null	[, , NucleicAcidSearchEngine, test]	null	null	1.0	CUCAUAUUCUU
+
+OLH	sequence	accession	unique	search_engine	modifications	retention_time	retention_time_window	pre	post	start	end
+OLI	AAACGCUCC	DECOY_T67	1	[, , NucleicAcidSearchEngine, test]	null	null	null	-	-	1	9
+OLI	AAACUCGGG	T85	1	[, , NucleicAcidSearchEngine, test]	null	null	null	-	-	1	9
+OLI	AACAACUACGGA	T79	1	[, , NucleicAcidSearchEngine, test]	null	null	null	-	-	1	12
+OLI	AACCGGUGCGU	DECOY_T49	1	[, , NucleicAcidSearchEngine, test]	null	null	null	-	-	1	11
+OLI	AAGAUAUACACA	DECOY_T53	1	[, , NucleicAcidSearchEngine, test]	null	null	null	-	-	1	12
+OLI	AAGGUAUACUUU	T54	1	[, , NucleicAcidSearchEngine, test]	null	null	null	-	-	1	12
+OLI	AAGUUUACGCUC	T4	1	[, , NucleicAcidSearchEngine, test]	null	null	null	-	-	1	12
+OLI	AAUAGGCAUA	DECOY_T97	1	[, , NucleicAcidSearchEngine, test]	null	null	null	-	-	1	10
+OLI	AAUCACUGU	T35	1	[, , NucleicAcidSearchEngine, test]	null	null	null	-	-	1	9
+OLI	AAUCUUGAUCU	DECOY_T16	1	[, , NucleicAcidSearchEngine, test]	null	null	null	-	-	1	11
+OLI	ACAACCGCUCC	T5	1	[, , NucleicAcidSearchEngine, test]	null	null	null	-	-	1	11
+OLI	ACACAUAUAGAA	T53	1	[, , NucleicAcidSearchEngine, test]	null	null	null	-	-	1	12
+OLI	ACACUCUGGG	T88	1	[, , NucleicAcidSearchEngine, test]	null	null	null	-	-	1	10
+OLI	ACAGAGGUGAGG	T36	1	[, , NucleicAcidSearchEngine, test]	null	null	null	-	-	1	12
+OLI	ACCAAGUC	DECOY_T108	1	[, , NucleicAcidSearchEngine, test]	null	null	null	-	-	1	8
+OLI	ACCUAUGCA	DECOY_T72	1	[, , NucleicAcidSearchEngine, test]	null	null	null	-	-	1	9
+OLI	ACGAACAGCUA	T28	1	[, , NucleicAcidSearchEngine, test]	null	null	null	-	-	1	11
+OLI	ACGAGGAGG	T32	1	[, , NucleicAcidSearchEngine, test]	null	null	null	-	-	1	9
+OLI	ACGCCGCCU	T7	1	[, , NucleicAcidSearchEngine, test]	null	null	null	-	-	1	9
+OLI	ACGUAUCCA	T72	1	[, , NucleicAcidSearchEngine, test]	null	null	null	-	-	1	9
+OLI	ACUAUCGUCCCC	DECOY_T101	1	[, , NucleicAcidSearchEngine, test]	null	null	null	-	-	1	12
+OLI	ACUCCGCAACG	T41	1	[, , NucleicAcidSearchEngine, test]	null	null	null	-	-	1	11
+OLI	ACUGAAGCAG	T31	1	[, , NucleicAcidSearchEngine, test]	null	null	null	-	-	1	10
+OLI	ACUGCUAGCAU	T50	1	[, , NucleicAcidSearchEngine, test]	null	null	null	-	-	1	11
+OLI	AGACGUGGGG	T10	1	[, , NucleicAcidSearchEngine, test]	null	null	null	-	-	1	10
+OLI	AGACUUCUC	DECOY_T6	1	[, , NucleicAcidSearchEngine, test]	null	null	null	-	-	1	9
+OLI	AGCGCCCUAU	T14	1	[, , NucleicAcidSearchEngine, test]	null	null	null	-	-	1	10
+OLI	AGCUACUG	T104	1	[, , NucleicAcidSearchEngine, test]	null	null	null	-	-	1	8
+OLI	AGCUAGAUAGGC	T27	1	[, , NucleicAcidSearchEngine, test]	null	null	null	-	-	1	12
+OLI	AGGCAUCAACAA	DECOY_T79	1	[, , NucleicAcidSearchEngine, test]	null	null	null	-	-	1	12
+OLI	AGGGCAAC	DECOY_T102	1	[, , NucleicAcidSearchEngine, test]	null	null	null	-	-	1	8
+OLI	AGGUGUCC	T23	1	[, , NucleicAcidSearchEngine, test]	null	null	null	-	-	1	8
+OLI	AGUCCCAG	DECOY_T26	1	[, , NucleicAcidSearchEngine, test]	null	null	null	-	-	1	8
+OLI	AGUGCGGCG	T52	1	[, , NucleicAcidSearchEngine, test]	null	null	null	-	-	1	9
+OLI	AGUUAAGGUAC	DECOY_T60	1	[, , NucleicAcidSearchEngine, test]	null	null	null	-	-	1	11
+OLI	AGUUUGAGC	T24	1	[, , NucleicAcidSearchEngine, test]	null	null	null	-	-	1	9
+OLI	AUACGGAUAA	T97	1	[, , NucleicAcidSearchEngine, test]	null	null	null	-	-	1	10
+OLI	AUAGAUAAAGU	T86	1	[, , NucleicAcidSearchEngine, test]	null	null	null	-	-	1	11
+OLI	AUCCUGCU	T0	1	[, , NucleicAcidSearchEngine, test]	null	null	null	-	-	1	8
+OLI	AUCGACAAGCA	DECOY_T28	1	[, , NucleicAcidSearchEngine, test]	null	null	null	-	-	1	11
+OLI	AUGAGUUUCCG	T106	1	[, , NucleicAcidSearchEngine, test]	null	null	null	-	-	1	11
+OLI	AUGGACCCUCCU	T18	1	[, , NucleicAcidSearchEngine, test]	null	null	null	-	-	1	12
+OLI	AUGGUAACCCCG	T57	1	[, , NucleicAcidSearchEngine, test]	null	null	null	-	-	1	12
+OLI	AUGUCCCAAG	T94	1	[, , NucleicAcidSearchEngine, test]	null	null	null	-	-	1	10
+OLI	AUGUCGGCAUG	T63	1	[, , NucleicAcidSearchEngine, test]	null	null	null	-	-	1	11
+OLI	AUUUACUUG	T51	1	[, , NucleicAcidSearchEngine, test]	null	null	null	-	-	1	9
+OLI	CAAAUAAGC	DECOY_T55	1	[, , NucleicAcidSearchEngine, test]	null	null	null	-	-	1	9
+OLI	CAACGGGA	T102	1	[, , NucleicAcidSearchEngine, test]	null	null	null	-	-	1	8
+OLI	CAAGGACGAUC	T103	1	[, , NucleicAcidSearchEngine, test]	null	null	null	-	-	1	11
+OLI	CAAGUCUC	T95	1	[, , NucleicAcidSearchEngine, test]	null	null	null	-	-	1	8
+OLI	CAAGUGUCUAGC	DECOY_T75	1	[, , NucleicAcidSearchEngine, test]	null	null	null	-	-	1	12
+OLI	CAAGUUUAGG	DECOY_T19	1	[, , NucleicAcidSearchEngine, test]	null	null	null	-	-	1	10
+OLI	CACCAAGCG	DECOY_T1	1	[, , NucleicAcidSearchEngine, test]	null	null	null	-	-	1	9
+OLI	CACGUUUG	T93	1	[, , NucleicAcidSearchEngine, test]	null	null	null	-	-	1	8
+OLI	CAGCUUUGCC	DECOY_T15	1	[, , NucleicAcidSearchEngine, test]	null	null	null	-	-	1	10
+OLI	CAUGAAUU	T91	1	[, , NucleicAcidSearchEngine, test]	null	null	null	-	-	1	8
+OLI	CAUGGAAUUGA	T60	1	[, , NucleicAcidSearchEngine, test]	null	null	null	-	-	1	11
+OLI	CCCAGCAU	DECOY_T48	1	[, , NucleicAcidSearchEngine, test]	null	null	null	-	-	1	8
+OLI	CCCAUGGAGU	DECOY_T61	1	[, , NucleicAcidSearchEngine, test]	null	null	null	-	-	1	10
+OLI	CCCCUGCUAUCA	T101	1	[, , NucleicAcidSearchEngine, test]	null	null	null	-	-	1	12
+OLI	CCCUAUUAGCU	DECOY_T30	1	[, , NucleicAcidSearchEngine, test]	null	null	null	-	-	1	11
+OLI	CCCUCCUG	DECOY_T77	1	[, , NucleicAcidSearchEngine, test]	null	null	null	-	-	1	8
+OLI	CCGAAACAAUG	DECOY_T109	1	[, , NucleicAcidSearchEngine, test]	null	null	null	-	-	1	11
+OLI	CCGAGUGCCGGU	DECOY_T82	1	[, , NucleicAcidSearchEngine, test]	null	null	null	-	-	1	12
+OLI	CCGGGGCGC	DECOY_T9	1	[, , NucleicAcidSearchEngine, test]	null	null	null	-	-	1	9
+OLI	CCGUUUCGAC	T15	1	[, , NucleicAcidSearchEngine, test]	null	null	null	-	-	1	10
+OLI	CCUAGAGGG	DECOY_T33	1	[, , NucleicAcidSearchEngine, test]	null	null	null	-	-	1	9
+OLI	CCUAUAAAG	DECOY_T38	1	[, , NucleicAcidSearchEngine, test]	null	null	null	-	-	1	9
+OLI	CCUCGCAAA	T67	1	[, , NucleicAcidSearchEngine, test]	null	null	null	-	-	1	9
+OLI	CCUCGCCAACA	DECOY_T5	1	[, , NucleicAcidSearchEngine, test]	null	null	null	-	-	1	11
+OLI	CCUGUGGA	DECOY_T23	1	[, , NucleicAcidSearchEngine, test]	null	null	null	-	-	1	8
+OLI	CGAAUAAAC	T55	1	[, , NucleicAcidSearchEngine, test]	null	null	null	-	-	1	9
+OLI	CGAGCCGC	DECOY_T84	1	[, , NucleicAcidSearchEngine, test]	null	null	null	-	-	1	8
+OLI	CGAGUUUGA	DECOY_T24	1	[, , NucleicAcidSearchEngine, test]	null	null	null	-	-	1	9
+OLI	CGAUCUGUGAAC	T75	1	[, , NucleicAcidSearchEngine, test]	null	null	null	-	-	1	12
+OLI	CGCCCUGGU	T98	1	[, , NucleicAcidSearchEngine, test]	null	null	null	-	-	1	9
+OLI	CGCCGAGC	T84	1	[, , NucleicAcidSearchEngine, test]	null	null	null	-	-	1	8
+OLI	CGCCUUUACG	T8	1	[, , NucleicAcidSearchEngine, test]	null	null	null	-	-	1	10
+OLI	CGCGGGGCC	T9	1	[, , NucleicAcidSearchEngine, test]	null	null	null	-	-	1	9
+OLI	CGGAAUAUGCCU	DECOY_T44	1	[, , NucleicAcidSearchEngine, test]	null	null	null	-	-	1	12
+OLI	CGGAGCCCG	DECOY_T43	1	[, , NucleicAcidSearchEngine, test]	null	null	null	-	-	1	9
+OLI	CGGAUAGAUCGA	DECOY_T27	1	[, , NucleicAcidSearchEngine, test]	null	null	null	-	-	1	12
+OLI	CGGCCUCCCUAA	T81	1	[, , NucleicAcidSearchEngine, test]	null	null	null	-	-	1	12
+OLI	CGUAACGGGAUU	T11	1	[, , NucleicAcidSearchEngine, test]	null	null	null	-	-	1	12
+OLI	CGUUCGAAGUUG	DECOY_T25	1	[, , NucleicAcidSearchEngine, test]	null	null	null	-	-	1	12
+OLI	CUAAGUACU	DECOY_T73	1	[, , NucleicAcidSearchEngine, test]	null	null	null	-	-	1	9
+OLI	CUAAGUGCU	T20	1	[, , NucleicAcidSearchEngine, test]	null	null	null	-	-	1	9
+OLI	CUACCGCAAU	DECOY_T58	1	[, , NucleicAcidSearchEngine, test]	null	null	null	-	-	1	10
+OLI	CUAGCAGGAAC	DECOY_T103	1	[, , NucleicAcidSearchEngine, test]	null	null	null	-	-	1	11
+OLI	CUCAUAUUCUU	T99	1	[, , NucleicAcidSearchEngine, test]	null	null	null	-	-	1	11
+OLI	CUCCCAUACGU	T66	1	[, , NucleicAcidSearchEngine, test]	null	null	null	-	-	1	11
+OLI	CUCCUAAGC	T105	1	[, , NucleicAcidSearchEngine, test]	null	null	null	-	-	1	9
+OLI	CUCUGAAC	DECOY_T95	1	[, , NucleicAcidSearchEngine, test]	null	null	null	-	-	1	8
+OLI	CUCUUCAGA	T6	1	[, , NucleicAcidSearchEngine, test]	null	null	null	-	-	1	9
+OLI	CUGAACCA	T108	1	[, , NucleicAcidSearchEngine, test]	null	null	null	-	-	1	8
+OLI	CUGACACG	DECOY_T13	1	[, , NucleicAcidSearchEngine, test]	null	null	null	-	-	1	8
+OLI	CUGUAACGG	DECOY_T22	1	[, , NucleicAcidSearchEngine, test]	null	null	null	-	-	1	9
+OLI	CUUAGAGA	T100	1	[, , NucleicAcidSearchEngine, test]	null	null	null	-	-	1	8
+OLI	CUUGACCUG	T45	1	[, , NucleicAcidSearchEngine, test]	null	null	null	-	-	1	9
+OLI	CUUUCCGACCAU	DECOY_T90	1	[, , NucleicAcidSearchEngine, test]	null	null	null	-	-	1	12
+OLI	CUUUUAUG	T83	1	[, , NucleicAcidSearchEngine, test]	null	null	null	-	-	1	8
+OLI	CUUUUUUUAUA	T76	1	[, , NucleicAcidSearchEngine, test]	null	null	null	-	-	1	11
+OLI	GAAAUAUCC	T38	1	[, , NucleicAcidSearchEngine, test]	null	null	null	-	-	1	9
+OLI	GAACCCUGUA	DECOY_T94	1	[, , NucleicAcidSearchEngine, test]	null	null	null	-	-	1	10
+OLI	GAACGGUUGUUU	T74	1	[, , NucleicAcidSearchEngine, test]	null	null	null	-	-	1	12
+OLI	GAACUACUCG	DECOY_T68	1	[, , NucleicAcidSearchEngine, test]	null	null	null	-	-	1	10
+OLI	GACCCUGA	T26	1	[, , NucleicAcidSearchEngine, test]	null	null	null	-	-	1	8
+OLI	GACCUUCAUGCU	T3	1	[, , NucleicAcidSearchEngine, test]	null	null	null	-	-	1	12
+OLI	GACGAAGUCA	DECOY_T31	1	[, , NucleicAcidSearchEngine, test]	null	null	null	-	-	1	10
+OLI	GCAACGCCUCA	DECOY_T41	1	[, , NucleicAcidSearchEngine, test]	null	null	null	-	-	1	11
+OLI	GCACAGUC	T13	1	[, , NucleicAcidSearchEngine, test]	null	null	null	-	-	1	8
+OLI	GCAGGGGACUUU	T62	1	[, , NucleicAcidSearchEngine, test]	null	null	null	-	-	1	12
+OLI	GCAUUUCCGC	DECOY_T8	1	[, , NucleicAcidSearchEngine, test]	null	null	null	-	-	1	10
+OLI	GCCACAGU	T59	1	[, , NucleicAcidSearchEngine, test]	null	null	null	-	-	1	8
+OLI	GCCCCAAUGGUA	DECOY_T57	1	[, , NucleicAcidSearchEngine, test]	null	null	null	-	-	1	12
+OLI	GCCCGAGGC	T43	1	[, , NucleicAcidSearchEngine, test]	null	null	null	-	-	1	9
+OLI	GCCUCAUGCU	T69	1	[, , NucleicAcidSearchEngine, test]	null	null	null	-	-	1	10
+OLI	GCGAACCAC	T1	1	[, , NucleicAcidSearchEngine, test]	null	null	null	-	-	1	9
+OLI	GCGACCCUUG	DECOY_T2	1	[, , NucleicAcidSearchEngine, test]	null	null	null	-	-	1	10
+OLI	GCGCCCGA	T92	1	[, , NucleicAcidSearchEngine, test]	null	null	null	-	-	1	8
+OLI	GCGGCGUGA	DECOY_T52	1	[, , NucleicAcidSearchEngine, test]	null	null	null	-	-	1	9
+OLI	GCUACACCU	DECOY_T17	1	[, , NucleicAcidSearchEngine, test]	null	null	null	-	-	1	9
+OLI	GCUCAUCAAG	T68	1	[, , NucleicAcidSearchEngine, test]	null	null	null	-	-	1	10
+OLI	GCUGCCGUCGU	T71	1	[, , NucleicAcidSearchEngine, test]	null	null	null	-	-	1	11
+OLI	GGAAUAUGG	T39	1	[, , NucleicAcidSearchEngine, test]	null	null	null	-	-	1	9
+OLI	GGAGGAGCA	DECOY_T32	1	[, , NucleicAcidSearchEngine, test]	null	null	null	-	-	1	9
+OLI	GGAGUGGAGACA	DECOY_T36	1	[, , NucleicAcidSearchEngine, test]	null	null	null	-	-	1	12
+OLI	GGAUUUGAAC	T19	1	[, , NucleicAcidSearchEngine, test]	null	null	null	-	-	1	10
+OLI	GGCAAUGUC	T22	1	[, , NucleicAcidSearchEngine, test]	null	null	null	-	-	1	9
+OLI	GGCCUCGCGG	DECOY_T96	1	[, , NucleicAcidSearchEngine, test]	null	null	null	-	-	1	10
+OLI	GGCGCUCCGG	T96	1	[, , NucleicAcidSearchEngine, test]	null	null	null	-	-	1	10
+OLI	GGGAGAUCC	T33	1	[, , NucleicAcidSearchEngine, test]	null	null	null	-	-	1	9
+OLI	GGGCGAAU	T46	1	[, , NucleicAcidSearchEngine, test]	null	null	null	-	-	1	8
+OLI	GGGCUCAAA	DECOY_T85	1	[, , NucleicAcidSearchEngine, test]	null	null	null	-	-	1	9
+OLI	GGGGUGCAGA	DECOY_T10	1	[, , NucleicAcidSearchEngine, test]	null	null	null	-	-	1	10
+OLI	GGGUCUCACA	DECOY_T88	1	[, , NucleicAcidSearchEngine, test]	null	null	null	-	-	1	10
+OLI	GGUAUAACA	T80	1	[, , NucleicAcidSearchEngine, test]	null	null	null	-	-	1	9
+OLI	GGUAUAAGG	DECOY_T39	1	[, , NucleicAcidSearchEngine, test]	null	null	null	-	-	1	9
+OLI	GGUAUUUG	DECOY_T89	1	[, , NucleicAcidSearchEngine, test]	null	null	null	-	-	1	8
+OLI	GGUGGGCAUG	T47	1	[, , NucleicAcidSearchEngine, test]	null	null	null	-	-	1	10
+OLI	GGUUUGGCCUUU	T56	1	[, , NucleicAcidSearchEngine, test]	null	null	null	-	-	1	12
+OLI	GUAACAAAGCC	T109	1	[, , NucleicAcidSearchEngine, test]	null	null	null	-	-	1	11
+OLI	GUACGGCUGUA	DECOY_T63	1	[, , NucleicAcidSearchEngine, test]	null	null	null	-	-	1	11
+OLI	GUAUUUUC	DECOY_T83	1	[, , NucleicAcidSearchEngine, test]	null	null	null	-	-	1	8
+OLI	GUCCAGUUC	DECOY_T45	1	[, , NucleicAcidSearchEngine, test]	null	null	null	-	-	1	9
+OLI	GUCCUCCC	T77	1	[, , NucleicAcidSearchEngine, test]	null	null	null	-	-	1	8
+OLI	GUGCCGGAU	DECOY_T37	1	[, , NucleicAcidSearchEngine, test]	null	null	null	-	-	1	9
+OLI	GUUCAUUUA	DECOY_T51	1	[, , NucleicAcidSearchEngine, test]	null	null	null	-	-	1	9
+OLI	GUUCCCAGCG	T2	1	[, , NucleicAcidSearchEngine, test]	null	null	null	-	-	1	10
+OLI	GUUGAAGCUUGC	T25	1	[, , NucleicAcidSearchEngine, test]	null	null	null	-	-	1	12
+OLI	GUUUAUGG	T89	1	[, , NucleicAcidSearchEngine, test]	null	null	null	-	-	1	8
+OLI	GUUUGCAC	DECOY_T93	1	[, , NucleicAcidSearchEngine, test]	null	null	null	-	-	1	8
+OLI	UAACGCCAUC	T58	1	[, , NucleicAcidSearchEngine, test]	null	null	null	-	-	1	10
+OLI	UAAGCGGG	DECOY_T46	1	[, , NucleicAcidSearchEngine, test]	null	null	null	-	-	1	8
+OLI	UAAUAGGCAU	T21	1	[, , NucleicAcidSearchEngine, test]	null	null	null	-	-	1	10
+OLI	UAAUCAAAG	T40	1	[, , NucleicAcidSearchEngine, test]	null	null	null	-	-	1	9
+OLI	UACAUCUAAGAU	DECOY_T29	1	[, , NucleicAcidSearchEngine, test]	null	null	null	-	-	1	12
+OLI	UACCAGCCUUUC	T90	1	[, , NucleicAcidSearchEngine, test]	null	null	null	-	-	1	12
+OLI	UACGACCC	T48	1	[, , NucleicAcidSearchEngine, test]	null	null	null	-	-	1	8
+OLI	UACGAUCGUCA	DECOY_T50	1	[, , NucleicAcidSearchEngine, test]	null	null	null	-	-	1	11
+OLI	UACGGAUAAU	DECOY_T21	1	[, , NucleicAcidSearchEngine, test]	null	null	null	-	-	1	10
+OLI	UACUAUUAU	DECOY_T34	1	[, , NucleicAcidSearchEngine, test]	null	null	null	-	-	1	9
+OLI	UAGAAUCUACAU	T29	1	[, , NucleicAcidSearchEngine, test]	null	null	null	-	-	1	12
+OLI	UAGGCCGUG	T37	1	[, , NucleicAcidSearchEngine, test]	null	null	null	-	-	1	9
+OLI	UAGUCACCUU	T78	1	[, , NucleicAcidSearchEngine, test]	null	null	null	-	-	1	10
+OLI	UAUCCCGCGA	DECOY_T14	1	[, , NucleicAcidSearchEngine, test]	null	null	null	-	-	1	10
+OLI	UAUUAUCAU	T34	1	[, , NucleicAcidSearchEngine, test]	null	null	null	-	-	1	9
+OLI	UCAUGAAUC	T73	1	[, , NucleicAcidSearchEngine, test]	null	null	null	-	-	1	9
+OLI	UCCACAUCG	T17	1	[, , NucleicAcidSearchEngine, test]	null	null	null	-	-	1	9
+OLI	UCCGCCGCA	DECOY_T7	1	[, , NucleicAcidSearchEngine, test]	null	null	null	-	-	1	9
+OLI	UCCGUAUAAGGC	T44	1	[, , NucleicAcidSearchEngine, test]	null	null	null	-	-	1	12
+OLI	UCCUCCCAGGUA	DECOY_T18	1	[, , NucleicAcidSearchEngine, test]	null	null	null	-	-	1	12
+OLI	UCGAUUAUCCC	T30	1	[, , NucleicAcidSearchEngine, test]	null	null	null	-	-	1	11
+OLI	UCGUACUCCG	DECOY_T69	1	[, , NucleicAcidSearchEngine, test]	null	null	null	-	-	1	10
+OLI	UCGUACUUCCAG	DECOY_T3	1	[, , NucleicAcidSearchEngine, test]	null	null	null	-	-	1	12
+OLI	UCGUCCUA	DECOY_T0	1	[, , NucleicAcidSearchEngine, test]	null	null	null	-	-	1	8
+OLI	UCGUGAAUC	DECOY_T20	1	[, , NucleicAcidSearchEngine, test]	null	null	null	-	-	1	9
+OLI	UCGUUCAUGU	DECOY_T107	1	[, , NucleicAcidSearchEngine, test]	null	null	null	-	-	1	10
+OLI	UCUAGUUCUAA	T16	1	[, , NucleicAcidSearchEngine, test]	null	null	null	-	-	1	11
+OLI	UCUGCGUU	T12	1	[, , NucleicAcidSearchEngine, test]	null	null	null	-	-	1	8
+OLI	UGACACCG	DECOY_T59	1	[, , NucleicAcidSearchEngine, test]	null	null	null	-	-	1	8
+OLI	UGAGGUACCC	T61	1	[, , NucleicAcidSearchEngine, test]	null	null	null	-	-	1	10
+OLI	UGAUCAUU	T87	1	[, , NucleicAcidSearchEngine, test]	null	null	null	-	-	1	8
+OLI	UGAUUCAGGUU	DECOY_T42	1	[, , NucleicAcidSearchEngine, test]	null	null	null	-	-	1	11
+OLI	UGCAUACCCUC	DECOY_T66	1	[, , NucleicAcidSearchEngine, test]	null	null	null	-	-	1	11
+OLI	UGCCAUGAUU	T65	1	[, , NucleicAcidSearchEngine, test]	null	null	null	-	-	1	10
+OLI	UGCGUGGCCAA	T49	1	[, , NucleicAcidSearchEngine, test]	null	null	null	-	-	1	11
+OLI	UGCGUUUCAUU	DECOY_T70	1	[, , NucleicAcidSearchEngine, test]	null	null	null	-	-	1	11
+OLI	UGCUGCCGUCG	DECOY_T71	1	[, , NucleicAcidSearchEngine, test]	null	null	null	-	-	1	11
+OLI	UGGCAAUUA	T64	1	[, , NucleicAcidSearchEngine, test]	null	null	null	-	-	1	9
+OLI	UGGCCGUGAGCC	T82	1	[, , NucleicAcidSearchEngine, test]	null	null	null	-	-	1	12
+OLI	UGUACUUGCU	T107	1	[, , NucleicAcidSearchEngine, test]	null	null	null	-	-	1	10
+OLI	UGUCACUAA	DECOY_T35	1	[, , NucleicAcidSearchEngine, test]	null	null	null	-	-	1	9
+OLI	UUACUAGU	DECOY_T87	1	[, , NucleicAcidSearchEngine, test]	null	null	null	-	-	1	8
+OLI	UUACUUUGCGU	T70	1	[, , NucleicAcidSearchEngine, test]	null	null	null	-	-	1	11
+OLI	UUAGUACCGU	DECOY_T65	1	[, , NucleicAcidSearchEngine, test]	null	null	null	-	-	1	10
+OLI	UUCCACUGAU	DECOY_T78	1	[, , NucleicAcidSearchEngine, test]	null	null	null	-	-	1	10
+OLI	UUCUUAUACUC	DECOY_T99	1	[, , NucleicAcidSearchEngine, test]	null	null	null	-	-	1	11
+OLI	UUGCGUCU	DECOY_T12	1	[, , NucleicAcidSearchEngine, test]	null	null	null	-	-	1	8
+OLI	UUGGACUUAGU	T42	1	[, , NucleicAcidSearchEngine, test]	null	null	null	-	-	1	11
+OLI	UUUCAGGGGACG	DECOY_T62	1	[, , NucleicAcidSearchEngine, test]	null	null	null	-	-	1	12
+OLI	UUUCAUAUGGAA	DECOY_T54	1	[, , NucleicAcidSearchEngine, test]	null	null	null	-	-	1	12
+OLI	UUUGUUGGCAAG	DECOY_T74	1	[, , NucleicAcidSearchEngine, test]	null	null	null	-	-	1	12
+
+OSH	sequence	search_engine	search_engine_score[1]	search_engine_score[2]	search_engine_score[3]	search_engine_score[4]	modifications	retention_time	charge	exp_mass_to_charge	calc_mass_to_charge	spectra_ref	opt_global_isotope_offset
+OSM	AAACGCUCC	[, , NucleicAcidSearchEngine, test]	19.380106793384552	0.354166666666667	-0.956236757853678	1.0	null	187.0	-3	931.139289003070985	931.139289003071099	ms_run[1]:scan=178	0
+OSM	AAACGCUCC	[, , NucleicAcidSearchEngine, test]	14.415009444106243	0.435897435897436	-1.008841203537627	1.0	null	297.0	-3	931.139289003070985	931.139289003071099	ms_run[1]:scan=288	0
+OSM	AAACUCGGG	[, , NucleicAcidSearchEngine, test]	21.829435473969735	0.248	-0.891974452457346	1.0	null	315.0	-3	957.81005433640405	957.810054336404392	ms_run[1]:scan=306	0
+OSM	AAACUCGGG	[, , NucleicAcidSearchEngine, test]	167.590062231961383	0.0	-0.123727577081744	1.0789583545474978e-03	null	95.0	-3	957.81005433640405	957.810054336404392	ms_run[1]:scan=86	0
+OSM	AACAACUACGGA	[, , NucleicAcidSearchEngine, test]	24.724100506541088	0.191304347826087	-0.853483943107591	0.982725953652635	null	309.0	-3	1273.52719354254009	1273.527193542537589	ms_run[1]:scan=300	0
+OSM	AACAACUACGGA	[, , NucleicAcidSearchEngine, test]	259.938686035134708	0.0	-0.061438172483784	1.0789583545474978e-03	null	89.0	-3	1273.52719354254009	1273.527193542537589	ms_run[1]:scan=80	0
+OSM	AACCGGUGCGU	[, , NucleicAcidSearchEngine, test]	27.238491049398139	0.235772357723577	-0.889763833452149	1.0	null	169.0	-3	1166.830557240969938	1166.830557240971075	ms_run[1]:scan=160	0
+OSM	AAGAUAUACACA	[, , NucleicAcidSearchEngine, test]	27.119863207748459	0.248	-0.894243675650611	1.0	null	173.0	-3	1268.523560531900102	1268.523560531904195	ms_run[1]:scan=164	0
+OSM	AAGGUAUACUUU	[, , NucleicAcidSearchEngine, test]	12.358816456588606	0.393333333333333	-0.982022138773001	1.0	null	174.0	-2	1888.75122747599994	1888.75122747600426	ms_run[1]:scan=165	0
+OSM	AAGGUAUACUUU	[, , NucleicAcidSearchEngine, test]	27.130407956058011	0.211864406779661	-0.869261809601187	0.997835590035373	null	64.0	-2	1888.75122747599994	1888.75122747600426	ms_run[1]:scan=55	0
+OSM	AAGUUUACGCUC	[, , NucleicAcidSearchEngine, test]	9.699287586149678	0.555555555555556	-1.161793988295813	1.0	null	124.0	-2	1876.253602991949947	1876.253602991954267	ms_run[1]:scan=115	0
+OSM	AAGUUUACGCUC	[, , NucleicAcidSearchEngine, test]	7.651578967027129	0.555555555555556	-1.159176234569107	1.0	null	234.0	-2	1876.253602991949947	1876.253602991954267	ms_run[1]:scan=225	0
+OSM	AAGUUUACGCUC	[, , NucleicAcidSearchEngine, test]	5.870334188826655	0.55868544600939	-1.173737844437108	1.0	null	344.0	-2	1876.253602991949947	1876.253602991954267	ms_run[1]:scan=335	0
+OSM	AAGUUUACGCUC	[, , NucleicAcidSearchEngine, test]	98.644948615219661	0.0	-0.209878962101134	1.0789583545474978e-03	null	14.0	-2	1876.253602991949947	1876.253602991954267	ms_run[1]:scan=5	0
+OSM	AAUAGGCAUA	[, , NucleicAcidSearchEngine, test]	21.985110437652022	0.211864406779661	-0.865350066213195	0.997835590035373	null	327.0	-3	1062.490595283370112	1062.490595283371022	ms_run[1]:scan=318	0
+OSM	AAUCACUGU	[, , NucleicAcidSearchEngine, test]	155.886043362728373	0.0	-0.055645868996472	1.0789583545474978e-03	null	45.0	-3	931.795299648470973	931.795299648470973	ms_run[1]:scan=36	0
+OSM	AAUCUUGAUCU	[, , NucleicAcidSearchEngine, test]	12.131217619030451	0.435897435897436	-1.004394370228165	1.0	null	136.0	-2	1704.221892539600049	1704.221892539604369	ms_run[1]:scan=127	0
+OSM	AAUCUUGAUCU	[, , NucleicAcidSearchEngine, test]	6.193331473681351	0.497005988023952	-1.049639349026929	1.0	null	246.0	-2	1704.221892539600049	1704.221892539604369	ms_run[1]:scan=237	0
+OSM	ACAACCGCUCC	[, , NucleicAcidSearchEngine, test]	19.134346751432918	0.497005988023952	-1.053883305016371	1.0	null	125.0	-3	1134.500148251599967	1134.500148251604287	ms_run[1]:scan=116	0
+OSM	ACAACCGCUCC	[, , NucleicAcidSearchEngine, test]	9.761165198615128	0.547872340425532	-1.119277417304904	1.0	null	345.0	-3	1134.500148251599967	1134.500148251604287	ms_run[1]:scan=336	0
+OSM	ACAACCGCUCC	[, , NucleicAcidSearchEngine, test]	238.444563063432213	0.0	0.0	1.0789583545474978e-03	null	15.0	-3	1134.500148251599967	1134.500148251604287	ms_run[1]:scan=6	0
+OSM	ACACAUAUAGAA	[, , NucleicAcidSearchEngine, test]	30.201447833313932	0.135135135135135	-0.831573127871558	0.939549622488586	null	283.0	-3	1268.523560531900102	1268.523560531904195	ms_run[1]:scan=274	0
+OSM	ACACAUAUAGAA	[, , NucleicAcidSearchEngine, test]	264.366578061930511	0.0	-4.860678529971441e-03	1.0789583545474978e-03	null	63.0	-3	1268.523560531900102	1268.523560531904195	ms_run[1]:scan=54	0
+OSM	ACACUCUGGG	[, , NucleicAcidSearchEngine, test]	2.740301722188251	0.55868544600939	-1.200107354214634	1.0	null	208.0	-2	1578.225755651049894	1578.225755651054214	ms_run[1]:scan=199	0
+OSM	ACACUCUGGG	[, , NucleicAcidSearchEngine, test]	6.109676342279382	0.547872340425532	-1.107706696116462	1.0	null	318.0	-2	1578.225755651049894	1578.225755651054214	ms_run[1]:scan=309	0
+OSM	ACACUCUGGG	[, , NucleicAcidSearchEngine, test]	95.062983716905208	0.0	-0.107148580092833	1.0789583545474978e-03	null	98.0	-2	1578.225755651049894	1578.225755651054214	ms_run[1]:scan=89	0
+OSM	ACAGAGGUGAGG	[, , NucleicAcidSearchEngine, test]	22.007474829934495	0.248	-0.893830003160019	1.0	null	376.0	-2	1966.795491539799968	1966.795491539804289	ms_run[1]:scan=367	0
+OSM	ACAGAGGUGAGG	[, , NucleicAcidSearchEngine, test]	51.005012008999209	0.0	-0.599817153583584	0.189203634004825	null	46.0	-2	1966.795491539799968	1966.795491539804289	ms_run[1]:scan=37	0
+OSM	ACCAAGUC	[, , NucleicAcidSearchEngine, test]	12.10528552634455	0.523529411764706	-1.064565747741229	1.0	null	228.0	-2	1244.691927294200013	1244.691927294204334	ms_run[1]:scan=219	0
+OSM	ACCAAGUC	[, , NucleicAcidSearchEngine, test]	7.838435817499344	0.552083333333333	-1.134765092087129	1.0	null	338.0	-2	1244.691927294200013	1244.691927294204334	ms_run[1]:scan=329	0
+OSM	ACCUAUGCA	[, , NucleicAcidSearchEngine, test]	4.079555050950646	0.55868544600939	-1.204365768021639	1.0	null	192.0	-2	1397.704579714649981	1397.704579714654301	ms_run[1]:scan=183	0
+OSM	ACCUAUGCA	[, , NucleicAcidSearchEngine, test]	5.88632746430044	0.55868544600939	-1.182122631167993	1.0	null	302.0	-2	1397.704579714649981	1397.704579714654301	ms_run[1]:scan=293	0
+OSM	ACCUAUGCA	[, , NucleicAcidSearchEngine, test]	7.773642883815885	0.539772727272727	-1.09759986849543	1.0	null	82.0	-2	1397.704579714649981	1397.704579714654301	ms_run[1]:scan=73	0
+OSM	ACGAACAGCUA	[, , NucleicAcidSearchEngine, test]	102.249274197000844	0.0	-0.220882161909076	1.0789583545474978e-03	null	38.0	-2	1746.268167603399888	1746.268167603404436	ms_run[1]:scan=29	0
+OSM	ACGAACAGCUA	[, , NucleicAcidSearchEngine, test]	7.795388922786467	0.55868544600939	-1.16799740727647	1.0	null	368.0	-2	1746.268167603399888	1746.268167603404436	ms_run[1]:scan=359	0
+OSM	ACGAGGAGG	[, , NucleicAcidSearchEngine, test]	60.674289736415965	0.0	-0.230213975846389	1.1936935375681532e-03	null	42.0	-2	1476.732859746550048	1476.732859746554368	ms_run[1]:scan=33	0
+OSM	ACGAGGAGG	[, , NucleicAcidSearchEngine, test]	5.981489801536649	0.552083333333333	-1.139984525357227	1.0	null	372.0	-2	1476.732859746550048	1476.732859746554368	ms_run[1]:scan=363	0
+OSM	ACGCCGCCU	[, , NucleicAcidSearchEngine, test]	9.88085632519617	0.537142857142857	-1.073003932606982	1.0	null	127.0	-3	928.467183003071	928.467183003071	ms_run[1]:scan=118	0
+OSM	ACGCCGCCU	[, , NucleicAcidSearchEngine, test]	188.090273138448879	0.0	-0.03274798529345	1.0789583545474978e-03	null	17.0	-3	928.467183003071	928.467183003071	ms_run[1]:scan=8	0
+OSM	ACGUAUCCA	[, , NucleicAcidSearchEngine, test]	4.079555050950646	null	-1.204365768021639	1.0	null	192.0	-2	1397.704579714649981	1397.704579714654301	ms_run[1]:scan=183	0
+OSM	ACGUAUCCA	[, , NucleicAcidSearchEngine, test]	7.773642883815885	null	-1.09759986849543	1.0	null	82.0	-2	1397.704579714649981	1397.704579714654301	ms_run[1]:scan=73	0
+OSM	ACUAUCGUCCCC	[, , NucleicAcidSearchEngine, test]	41.796046164587835	0.042553191489362	-0.722976208166218	0.533498561612191	null	221.0	-3	1228.832844187940054	1228.832844187937553	ms_run[1]:scan=212	0
+OSM	ACUCCGCAACG	[, , NucleicAcidSearchEngine, test]	32.727791783899519	0.265625	-0.897635422629937	1.0	null	161.0	-3	1147.835530918270024	1147.835530918270933	ms_run[1]:scan=152	0
+OSM	ACUCCGCAACG	[, , NucleicAcidSearchEngine, test]	242.648080726734662	0.0	-5.018894886480892e-03	1.0789583545474978e-03	null	51.0	-3	1147.835530918270024	1147.835530918270933	ms_run[1]:scan=42	0
+OSM	ACUGAAGCAG	[, , NucleicAcidSearchEngine, test]	21.699369586412139	0.487341772151899	-1.029029951039526	1.0	null	151.0	-3	1067.494228294000095	1067.494228294004415	ms_run[1]:scan=142	0
+OSM	ACUGAAGCAG	[, , NucleicAcidSearchEngine, test]	24.26364401440647	0.497005988023952	-1.044063991269825	1.0	null	261.0	-3	1067.494228294000095	1067.494228294004415	ms_run[1]:scan=252	0
+OSM	ACUGAAGCAG	[, , NucleicAcidSearchEngine, test]	225.611408994152271	0.0	-0.013961728634331	1.0789583545474978e-03	null	41.0	-3	1067.494228294000095	1067.494228294004415	ms_run[1]:scan=32	0
+OSM	ACUGCUAGCAU	[, , NucleicAcidSearchEngine, test]	14.551682123685703	0.391891891891892	-0.97824175321788	1.0	null	170.0	-2	1723.24095057149998	1723.2409505715043	ms_run[1]:scan=161	0
+OSM	ACUGCUAGCAU	[, , NucleicAcidSearchEngine, test]	4.004091067077879	0.589861751152074	-1.220932470901166	1.0	null	280.0	-2	1723.24095057149998	1723.2409505715043	ms_run[1]:scan=271	0
+OSM	ACUGCUAGCAU	[, , NucleicAcidSearchEngine, test]	91.5707284437526	0.0	-0.252273964596802	0.011534201907305	null	60.0	-2	1723.24095057149998	1723.2409505715043	ms_run[1]:scan=51	0
+OSM	AGACGUGGGG	[, , NucleicAcidSearchEngine, test]	77.545657912197399	0.0	-0.163354775166767	1.0789583545474978e-03	null	20.0	-2	1637.742969666999898	1637.742969667004445	ms_run[1]:scan=11	0
+OSM	AGACGUGGGG	[, , NucleicAcidSearchEngine, test]	7.890362501676623	0.555555555555556	-1.150697301462247	1.0	null	350.0	-2	1637.742969666999898	1637.742969667004445	ms_run[1]:scan=341	0
+OSM	AGACUUCUC	[, , NucleicAcidSearchEngine, test]	2.378988466617641	0.603603603603604	-1.296417407711079	1.0	null	126.0	-2	1386.190971198700026	1386.190971198704347	ms_run[1]:scan=117	0
+OSM	AGCGCCCUAU	[, , NucleicAcidSearchEngine, test]	80.701185095006068	0.0	-0.190911380981465	1.0789583545474978e-03	null	24.0	-2	1558.222681651049925	1558.222681651054472	ms_run[1]:scan=15	0
+OSM	AGCGCCCUAU	[, , NucleicAcidSearchEngine, test]	5.725119438078227	0.555555555555556	-1.148033674766825	1.0	null	354.0	-2	1558.222681651049925	1558.222681651054472	ms_run[1]:scan=345	0
+OSM	AGCUACUG	[, , NucleicAcidSearchEngine, test]	47.744760312368079	0.0	-0.448763647217101	0.040433126130633	null	114.0	-2	1253.181392778250029	1253.181392778254349	ms_run[1]:scan=105	0
+OSM	AGCUACUG	[, , NucleicAcidSearchEngine, test]	12.062263337530187	0.547872340425532	-1.110352826440415	1.0	null	224.0	-2	1253.181392778250029	1253.181392778254349	ms_run[1]:scan=215	0
+OSM	AGCUACUG	[, , NucleicAcidSearchEngine, test]	5.807582330836594	0.55868544600939	-1.190941630932818	1.0	null	334.0	-2	1253.181392778250029	1253.181392778254349	ms_run[1]:scan=325	0
+OSM	AGCUAGAUAGGC	[, , NucleicAcidSearchEngine, test]	67.245053287202396	0.0	-0.609457045500126	0.23464281919423	null	37.0	-3	1284.518475531900094	1284.518475531904187	ms_run[1]:scan=28	0
+OSM	AGCUAGAUAGGC	[, , NucleicAcidSearchEngine, test]	54.247831748463305	0.010869565217391	-0.659624320814144	0.259340381723341	null	367.0	-3	1284.518475531900094	1284.518475531904187	ms_run[1]:scan=358	0
+OSM	AGGCAUCAACAA	[, , NucleicAcidSearchEngine, test]	44.753098816521145	0.032258064516129	-0.710147379325274	0.451074128720793	null	199.0	-3	1273.52719354254009	1273.527193542537589	ms_run[1]:scan=190	0
+OSM	AGGGCAAC	[, , NucleicAcidSearchEngine, test]	5.603992476031483	0.590909090909091	-1.246386704835017	1.0	null	332.0	-2	1284.206067310150047	1284.206067310154367	ms_run[1]:scan=323	0
+OSM	AGGUGUCC	[, , NucleicAcidSearchEngine, test]	147.962278123492354	0.0	-0.094690254910368	1.0789583545474978e-03	null	33.0	-3	840.450141368170989	840.450141368170989	ms_run[1]:scan=24	0
+OSM	AGGUGUCC	[, , NucleicAcidSearchEngine, test]	8.057053269205509	0.497005988023952	-1.041636006163619	1.0	null	253.0	-3	840.450141368170989	840.450141368170989	ms_run[1]:scan=244	0
+OSM	AGUCCCAG	[, , NucleicAcidSearchEngine, test]	2.413611763379566	0.590909090909091	-1.233286099288131	1.0	null	146.0	-2	1252.689384794199896	1252.689384794204443	ms_run[1]:scan=137	0
+OSM	AGUCCCAG	[, , NucleicAcidSearchEngine, test]	7.672427471346337	0.55868544600939	-1.178588033117268	1.0	null	256.0	-2	1252.689384794199896	1252.689384794204443	ms_run[1]:scan=247	0
+OSM	AGUGCGGCG	[, , NucleicAcidSearchEngine, test]	77.575264169006815	0.0	-0.234746039549368	5.9982293265581545e-03	null	62.0	-2	1453.213634730600006	1453.213634730604326	ms_run[1]:scan=53	0
+OSM	AGUUAAGGUAC	[, , NucleicAcidSearchEngine, test]	7.947077122577054	0.502958579881657	-1.059496585468406	1.0	null	180.0	-2	1755.249641071500037	1755.249641071504357	ms_run[1]:scan=171	0
+OSM	AGUUAAGGUAC	[, , NucleicAcidSearchEngine, test]	4.063986633262044	0.570093457943925	-1.21431376851416	1.0	null	290.0	-2	1755.249641071500037	1755.249641071504357	ms_run[1]:scan=281	0
+OSM	AGUUUGAGC	[, , NucleicAcidSearchEngine, test]	5.720914774230417	0.55868544600939	-1.187937512509465	1.0	null	254.0	-2	1426.197119198699966	1426.197119198704286	ms_run[1]:scan=245	0
+OSM	AGUUUGAGC	[, , NucleicAcidSearchEngine, test]	33.054470752384354	0.010869565217391	-0.697935252496106	0.402418747079524	null	34.0	-2	1426.197119198699966	1426.197119198704286	ms_run[1]:scan=25	0
+OSM	AGUUUGAGC	[, , NucleicAcidSearchEngine, test]	5.872490996011853	0.570093457943925	-1.209037923684392	1.0	null	364.0	-2	1426.197119198699966	1426.197119198704286	ms_run[1]:scan=355	0
+OSM	AUACGGAUAA	[, , NucleicAcidSearchEngine, test]	14.505195412205667	0.393333333333333	-0.986608122279945	1.0	null	217.0	-3	1062.490595283370112	1062.490595283371022	ms_run[1]:scan=208	0
+OSM	AUACGGAUAA	[, , NucleicAcidSearchEngine, test]	21.985110437652022	null	-0.865350066213195	0.997835590035373	null	327.0	-3	1062.490595283370112	1062.490595283371022	ms_run[1]:scan=318	0
+OSM	AUACGGAUAA	[, , NucleicAcidSearchEngine, test]	188.058304087014818	0.0	-0.102278109912953	1.0789583545474978e-03	null	107.0	-3	1062.490595283370112	1062.490595283371022	ms_run[1]:scan=98	0
+OSM	AUAGAUAAAGU	[, , NucleicAcidSearchEngine, test]	9.6879352550686	0.55868544600939	-1.171933704292967	1.0	null	316.0	-2	1759.257800071500014	1759.257800071504334	ms_run[1]:scan=307	0
+OSM	AUAGAUAAAGU	[, , NucleicAcidSearchEngine, test]	109.693567267487495	0.0	-0.141251977623746	1.0789583545474978e-03	null	96.0	-2	1759.257800071500014	1759.257800071504334	ms_run[1]:scan=87	0
+OSM	AUCCUGCU	[, , NucleicAcidSearchEngine, test]	21.884652831175696	0.176991150442478	-0.843985746569068	0.963517938868263	null	10.0	-2	1221.664710262300105	1221.664710262304425	ms_run[1]:scan=1	0
+OSM	AUCCUGCU	[, , NucleicAcidSearchEngine, test]	7.748457990242692	0.547872340425532	-1.123397243860432	1.0	null	340.0	-2	1221.664710262300105	1221.664710262304425	ms_run[1]:scan=331	0
+OSM	AUCGACAAGCA	[, , NucleicAcidSearchEngine, test]	14.48820127907144	0.487341772151899	-1.023133209552328	1.0	null	148.0	-2	1746.268167603399888	1746.268167603404436	ms_run[1]:scan=139	0
+OSM	AUCGACAAGCA	[, , NucleicAcidSearchEngine, test]	14.460793269483169	0.354166666666667	-0.961371740631185	1.0	null	258.0	-2	1746.268167603399888	1746.268167603404436	ms_run[1]:scan=249	0
+OSM	AUCGACAAGCA	[, , NucleicAcidSearchEngine, test]	7.795388922786467	null	-1.16799740727647	1.0	null	368.0	-2	1746.268167603399888	1746.268167603404436	ms_run[1]:scan=359	0
+OSM	AUGAGUUUCCG	[, , NucleicAcidSearchEngine, test]	106.023802570597752	0.0	-0.182951606162523	1.0789583545474978e-03	null	116.0	-2	1731.730416055549995	1731.730416055554315	ms_run[1]:scan=107	0
+OSM	AUGAGUUUCCG	[, , NucleicAcidSearchEngine, test]	7.690587440330804	0.55868544600939	-1.185724478919891	1.0	null	336.0	-2	1731.730416055549995	1731.730416055554315	ms_run[1]:scan=327	0
+OSM	AUGGACCCUCCU	[, , NucleicAcidSearchEngine, test]	4.265540344291042	0.55868544600939	-1.175278938141471	1.0	null	138.0	-2	1863.755978507899954	1863.755978507904274	ms_run[1]:scan=129	0
+OSM	AUGGACCCUCCU	[, , NucleicAcidSearchEngine, test]	10.041553432260239	0.537142857142857	-1.08749060260331	1.0	null	28.0	-2	1863.755978507899954	1863.755978507904274	ms_run[1]:scan=19	0
+OSM	AUGGACCCUCCU	[, , NucleicAcidSearchEngine, test]	5.846166628010648	0.552083333333333	-1.136685858611438	1.0	null	358.0	-2	1863.755978507899954	1863.755978507904274	ms_run[1]:scan=349	0
+OSM	AUGGUAACCCCG	[, , NucleicAcidSearchEngine, test]	24.498896082680346	0.340425531914894	-0.935480811234138	1.0	null	177.0	-3	1263.179348531899905	1263.179348531904225	ms_run[1]:scan=168	0
+OSM	AUGGUAACCCCG	[, , NucleicAcidSearchEngine, test]	77.445103607052545	0.0	-0.518002186411086	0.071429451920832	null	67.0	-3	1263.179348531899905	1263.179348531904225	ms_run[1]:scan=58	0
+OSM	AUGUCCCAAG	[, , NucleicAcidSearchEngine, test]	105.975179779697612	0.0	-0.179458576742154	1.0789583545474978e-03	null	104.0	-2	1570.228298151050012	1570.228298151054332	ms_run[1]:scan=95	0
+OSM	AUGUCGGCAUG	[, , NucleicAcidSearchEngine, test]	27.365222643679594	0.128440366972477	-0.820626066081377	0.910159081319928	null	183.0	-3	1167.158562563670102	1167.158562563671012	ms_run[1]:scan=174	0
+OSM	AUGUCGGCAUG	[, , NucleicAcidSearchEngine, test]	64.01477092610304	0.0	-0.597058953811013	0.168456784629413	null	73.0	-3	1167.158562563670102	1167.158562563671012	ms_run[1]:scan=64	0
+OSM	AUUUACUUG	[, , NucleicAcidSearchEngine, test]	19.535287155888046	0.328467153284672	-0.929222920776502	1.0	null	281.0	-3	924.447565960537986	924.447565960537645	ms_run[1]:scan=272	0
+OSM	AUUUACUUG	[, , NucleicAcidSearchEngine, test]	57.455808919809094	0.0	-0.602509015074764	0.211264774407245	null	61.0	-3	924.447565960537986	924.447565960537645	ms_run[1]:scan=52	0
+OSM	CAAAUAAGC	[, , NucleicAcidSearchEngine, test]	24.582635313289373	0.325757575757576	-0.924145629584451	1.0	null	285.0	-3	947.146777669737958	947.14677766973773	ms_run[1]:scan=276	0
+OSM	CAACGGGA	[, , NucleicAcidSearchEngine, test]	12.063605574355019	0.537142857142857	-1.075974302757354	1.0	null	112.0	-2	1284.206067310150047	1284.206067310154367	ms_run[1]:scan=103	0
+OSM	CAAGGACGAUC	[, , NucleicAcidSearchEngine, test]	217.077195358355056	0.0	-0.025592829346031	1.0789583545474978e-03	null	113.0	-3	1169.174657918269986	1169.174657918271123	ms_run[1]:scan=104	0
+OSM	CAAGUCUC	[, , NucleicAcidSearchEngine, test]	16.763470263234922	0.497005988023952	-1.036614394686742	1.0	null	325.0	-3	821.783120368171012	821.783120368170898	ms_run[1]:scan=316	0
+OSM	CAAGUCUC	[, , NucleicAcidSearchEngine, test]	144.001415109120785	0.0	-0.091958804108527	1.0789583545474978e-03	null	105.0	-3	821.783120368171012	821.783120368170898	ms_run[1]:scan=96	0
+OSM	CAAGUGUCUAGC	[, , NucleicAcidSearchEngine, test]	44.869059938967624	0.032258064516129	-0.713821690470338	0.467039890755311	null	195.0	-3	1263.507353854600069	1263.507353854604162	ms_run[1]:scan=186	0
+OSM	CAAGUUUAGG	[, , NucleicAcidSearchEngine, test]	32.852468981407789	0.191304347826087	-0.855356758834176	0.990751698944604	null	139.0	-3	1060.146494606070064	1060.146494606070974	ms_run[1]:scan=130	0
+OSM	CAAGUUUAGG	[, , NucleicAcidSearchEngine, test]	19.443890894566543	0.325757575757576	-0.920906734573242	1.0	null	359.0	-3	1060.146494606070064	1060.146494606070974	ms_run[1]:scan=350	0
+OSM	CACCAAGCG	[, , NucleicAcidSearchEngine, test]	19.350172392990697	0.435897435897436	-1.016404990739903	1.0	null	121.0	-3	944.146666347038035	944.146666347037694	ms_run[1]:scan=112	0
+OSM	CACCAAGCG	[, , NucleicAcidSearchEngine, test]	12.374669669860912	0.340425531914894	-0.934045181402237	1.0	null	231.0	-3	944.146666347038035	944.146666347037694	ms_run[1]:scan=222	0
+OSM	CACGUUUG	[, , NucleicAcidSearchEngine, test]	16.788490342138005	0.502958579881657	-1.059111571213626	1.0	null	213.0	-3	827.442764024204052	827.44276402420428	ms_run[1]:scan=204	0
+OSM	CACGUUUG	[, , NucleicAcidSearchEngine, test]	44.705799338456345	0.010869565217391	-0.665184118699854	0.285360075352133	null	103.0	-3	827.442764024204052	827.44276402420428	ms_run[1]:scan=94	0
+OSM	CAGCUUUGCC	[, , NucleicAcidSearchEngine, test]	21.899572927843298	0.265625	-0.896947276725627	1.0	null	355.0	-3	1030.803623272739969	1030.803623272737468	ms_run[1]:scan=346	0
+OSM	CAUGAAUU	[, , NucleicAcidSearchEngine, test]	12.11714918146612	0.497005988023952	-1.045822434183074	1.0	null	211.0	-3	830.114870024204038	830.114870024204265	ms_run[1]:scan=202	0
+OSM	CAUGAAUU	[, , NucleicAcidSearchEngine, test]	12.303420037675172	0.435897435897436	-1.005198161178315	1.0	null	321.0	-3	830.114870024204038	830.114870024204265	ms_run[1]:scan=312	0
+OSM	CAUGAAUU	[, , NucleicAcidSearchEngine, test]	159.858324635508211	0.0	-0.030867966810094	1.0789583545474978e-03	null	101.0	-3	830.114870024204038	830.114870024204265	ms_run[1]:scan=92	0
+OSM	CAUGGAAUUGA	[, , NucleicAcidSearchEngine, test]	4.063986633262044	null	-1.21431376851416	1.0	null	290.0	-2	1755.249641071500037	1755.249641071504357	ms_run[1]:scan=281	0
+OSM	CAUGGAAUUGA	[, , NucleicAcidSearchEngine, test]	41.812861657101642	0.052083333333333	-0.739771716637961	0.566872851372863	null	70.0	-2	1755.249641071500037	1755.249641071504357	ms_run[1]:scan=61	0
+OSM	CCCAGCAU	[, , NucleicAcidSearchEngine, test]	16.898131551125402	0.328467153284672	-0.93297150753947	1.0	null	168.0	-2	1232.686310794199926	1232.686310794204246	ms_run[1]:scan=159	0
+OSM	CCCAGCAU	[, , NucleicAcidSearchEngine, test]	9.838520272616901	0.539772727272727	-1.096290649830685	1.0	null	58.0	-2	1232.686310794199926	1232.686310794204246	ms_run[1]:scan=49	0
+OSM	CCCAUGGAGU	[, , NucleicAcidSearchEngine, test]	35.688009707191696	0.128440366972477	-0.823614564056071	0.925573500202484	null	181.0	-3	1051.814744950039994	1051.814744950037721	ms_run[1]:scan=172	0
+OSM	CCCAUGGAGU	[, , NucleicAcidSearchEngine, test]	30.095383891934766	0.096153846153846	-0.793528110544564	0.832463631840982	null	291.0	-3	1051.814744950039994	1051.814744950037721	ms_run[1]:scan=282	0
+OSM	CCCCUGCUAUCA	[, , NucleicAcidSearchEngine, test]	290.670274811554918	0.0	-0.024172656450328	1.0789583545474978e-03	null	111.0	-3	1228.832844187940054	1228.832844187937553	ms_run[1]:scan=102	0
+OSM	CCCCUGCUAUCA	[, , NucleicAcidSearchEngine, test]	35.675465160918662	0.169642857142857	-0.837855973283491	0.952170188577442	null	331.0	-3	1228.832844187940054	1228.832844187937553	ms_run[1]:scan=322	0
+OSM	CCCUAUUAGCU	[, , NucleicAcidSearchEngine, test]	16.835958744059262	0.435897435897436	-1.011855462089576	1.0	null	260.0	-2	1691.724268055550056	1691.724268055554376	ms_run[1]:scan=251	0
+OSM	CCCUAUUAGCU	[, , NucleicAcidSearchEngine, test]	7.873690433020561	0.547872340425532	-1.122001717825561	1.0	null	370.0	-2	1691.724268055550056	1691.724268055554376	ms_run[1]:scan=361	0
+OSM	CCCUCCUG	[, , NucleicAcidSearchEngine, test]	12.181168518975603	0.502958579881657	-1.060140766035211	1.0	null	197.0	-3	805.775631701504039	805.775631701504267	ms_run[1]:scan=188	0
+OSM	CCGAAACAAUG	[, , NucleicAcidSearchEngine, test]	30.03192125274267	0.135135135135135	-0.834113432463954	0.946154778572473	null	229.0	-3	1163.843019584940066	1163.843019584937565	ms_run[1]:scan=220	0
+OSM	CCGAAACAAUG	[, , NucleicAcidSearchEngine, test]	38.875098943910352	0.042553191489362	-0.718341410480875	0.50014835895825	null	339.0	-3	1163.843019584940066	1163.843019584937565	ms_run[1]:scan=330	0
+OSM	CCGAGUGCCGGU	[, , NucleicAcidSearchEngine, test]	5.704011693807755	0.55868544600939	-1.193945948605934	1.0	null	202.0	-2	1911.267576023850097	1911.26757602385419	ms_run[1]:scan=193	0
+OSM	CCGAGUGCCGGU	[, , NucleicAcidSearchEngine, test]	4.236225333632726	0.55868544600939	-1.169978168692016	1.0	null	312.0	-2	1911.267576023850097	1911.26757602385419	ms_run[1]:scan=303	0
+OSM	CCGGGGCGC	[, , NucleicAcidSearchEngine, test]	14.527911038892107	0.372413793103448	-0.966677329348446	1.0	null	129.0	-3	960.141581347038027	960.141581347037686	ms_run[1]:scan=120	0
+OSM	CCGGGGCGC	[, , NucleicAcidSearchEngine, test]	16.739409641571772	0.265625	-0.901769847434379	1.0	null	349.0	-3	960.141581347038027	960.141581347037686	ms_run[1]:scan=340	0
+OSM	CCGUUUCGAC	[, , NucleicAcidSearchEngine, test]	21.912566170718982	0.265625	-0.899889116879401	1.0	null	135.0	-3	1030.803623272739969	1030.803623272737468	ms_run[1]:scan=126	0
+OSM	CCGUUUCGAC	[, , NucleicAcidSearchEngine, test]	44.827053282626977	0.010869565217391	-0.687201042781886	0.312704513438166	null	25.0	-3	1030.803623272739969	1030.803623272737468	ms_run[1]:scan=16	0
+OSM	CCGUUUCGAC	[, , NucleicAcidSearchEngine, test]	19.358564476279984	0.34965034965035	-0.954234779415139	1.0	null	245.0	-3	1030.803623272739969	1030.803623272737468	ms_run[1]:scan=236	0
+OSM	CCUAGAGGG	[, , NucleicAcidSearchEngine, test]	14.458612597451591	0.393333333333333	-0.988495598990311	1.0	null	153.0	-3	963.141692669737949	963.141692669737608	ms_run[1]:scan=144	0
+OSM	CCUAGAGGG	[, , NucleicAcidSearchEngine, test]	14.578057519887897	0.407894736842105	-0.993171280251708	1.0	null	263.0	-3	963.141692669737949	963.141692669737608	ms_run[1]:scan=254	0
+OSM	CCUAUAAAG	[, , NucleicAcidSearchEngine, test]	3.638730296856056	0.603603603603604	-1.278585766831822	1.0	null	158.0	-2	1409.710196214650068	1409.710196214654388	ms_run[1]:scan=149	0
+OSM	CCUAUAAAG	[, , NucleicAcidSearchEngine, test]	12.031853428976254	0.497005988023952	-1.040305023721434	1.0	null	268.0	-2	1409.710196214650068	1409.710196214654388	ms_run[1]:scan=259	0
+OSM	CCUAUAAAG	[, , NucleicAcidSearchEngine, test]	2.541057494334851	0.570093457943925	-1.213736419605394	1.0	null	378.0	-2	1409.710196214650068	1409.710196214654388	ms_run[1]:scan=369	0
+OSM	CCUCGCAAA	[, , NucleicAcidSearchEngine, test]	179.794796305431049	0.0	-0.081786967877666	1.0789583545474978e-03	null	77.0	-3	931.139289003070985	931.139289003071099	ms_run[1]:scan=68	0
+OSM	CCUCGCCAACA	[, , NucleicAcidSearchEngine, test]	24.549142520284811	0.176991150442478	-0.842656528425054	0.963517938868263	null	235.0	-3	1134.500148251599967	1134.500148251604287	ms_run[1]:scan=226	0
+OSM	CCUGUGGA	[, , NucleicAcidSearchEngine, test]	24.559422507272767	0.340425531914894	-0.93494874222143	1.0	null	143.0	-3	840.450141368170989	840.450141368170989	ms_run[1]:scan=134	0
+OSM	CCUGUGGA	[, , NucleicAcidSearchEngine, test]	19.372461648776415	0.235772357723577	-0.890073019038008	1.0	null	363.0	-3	840.450141368170989	840.450141368170989	ms_run[1]:scan=354	0
+OSM	CGAAUAAAC	[, , NucleicAcidSearchEngine, test]	29.983425718675228	0.12037037037037	-0.810362437740138	0.89322362544171	null	175.0	-3	947.146777669737958	947.14677766973773	ms_run[1]:scan=166	0
+OSM	CGAAUAAAC	[, , NucleicAcidSearchEngine, test]	24.582635313289373	null	-0.924145629584451	1.0	null	285.0	-3	947.146777669737958	947.14677766973773	ms_run[1]:scan=276	0
+OSM	CGAAUAAAC	[, , NucleicAcidSearchEngine, test]	159.806760801969432	0.0	-0.08697319036573	1.0789583545474978e-03	null	65.0	-3	947.146777669737958	947.14677766973773	ms_run[1]:scan=56	0
+OSM	CGAGCCGC	[, , NucleicAcidSearchEngine, test]	7.837117801912113	0.555555555555556	-1.147026371351421	1.0	null	314.0	-2	1260.1948343101501	1260.194834310154192	ms_run[1]:scan=305	0
+OSM	CGAGCCGC	[, , NucleicAcidSearchEngine, test]	21.780194305559416	0.265625	-0.900029376947449	1.0	null	94.0	-2	1260.1948343101501	1260.194834310154192	ms_run[1]:scan=85	0
+OSM	CGAGUUUGA	[, , NucleicAcidSearchEngine, test]	5.625190097778708	0.589861751152074	-1.216156455734244	1.0	null	144.0	-2	1426.197119198699966	1426.197119198704286	ms_run[1]:scan=135	0
+OSM	CGAUCUGUGAAC	[, , NucleicAcidSearchEngine, test]	35.77997351245412	0.052083333333333	-0.733977617079463	0.533498561612191	null	305.0	-3	1263.507353854600069	1263.507353854604162	ms_run[1]:scan=296	0
+OSM	CGAUCUGUGAAC	[, , NucleicAcidSearchEngine, test]	63.936040904656885	0.0	-0.596504277789486	0.14902161292345	null	85.0	-3	1263.507353854600069	1263.507353854604162	ms_run[1]:scan=76	0
+OSM	CGCCCUGGU	[, , NucleicAcidSearchEngine, test]	7.730382271841133	0.555555555555556	-1.14649783527955	1.0	null	218.0	-2	1401.693878214650113	1401.693878214654433	ms_run[1]:scan=209	0
+OSM	CGCCCUGGU	[, , NucleicAcidSearchEngine, test]	3.897814179036511	0.590909090909091	-1.237163262734916	1.0	null	328.0	-2	1401.693878214650113	1401.693878214654433	ms_run[1]:scan=319	0
+OSM	CGCCCUGGU	[, , NucleicAcidSearchEngine, test]	60.562717267117186	0.0	-0.250071210187312	8.42201006786952e-03	null	108.0	-2	1401.693878214650113	1401.693878214654433	ms_run[1]:scan=99	0
+OSM	CGCCGAGC	[, , NucleicAcidSearchEngine, test]	5.969876326549477	0.555555555555556	-1.159459758453152	1.0	null	204.0	-2	1260.1948343101501	1260.194834310154192	ms_run[1]:scan=195	0
+OSM	CGCCGAGC	[, , NucleicAcidSearchEngine, test]	21.780194305559416	null	-0.900029376947449	1.0	null	94.0	-2	1260.1948343101501	1260.194834310154192	ms_run[1]:scan=85	0
+OSM	CGCCUUUACG	[, , NucleicAcidSearchEngine, test]	3.972777780732831	0.589861751152074	-1.231511709204987	1.0	null	348.0	-2	1546.70907313509997	1546.70907313510429	ms_run[1]:scan=339	0
+OSM	CGCCUUUACG	[, , NucleicAcidSearchEngine, test]	91.4833030370052	0.0	-0.233418393101516	1.466189597242215e-03	null	18.0	-2	1546.70907313509997	1546.70907313510429	ms_run[1]:scan=9	0
+OSM	CGCGGGGCC	[, , NucleicAcidSearchEngine, test]	32.847270658029665	0.12037037037037	-0.805015723858458	0.854458641101446	null	19.0	-3	960.141581347038027	960.141581347037686	ms_run[1]:scan=10	0
+OSM	CGCGGGGCC	[, , NucleicAcidSearchEngine, test]	14.527911038892107	null	-0.966677329348446	1.0	null	129.0	-3	960.141581347038027	960.141581347037686	ms_run[1]:scan=120	0
+OSM	CGCGGGGCC	[, , NucleicAcidSearchEngine, test]	9.771875756907171	0.547872340425532	-1.130022807416679	1.0	null	239.0	-3	960.141581347038027	960.141581347037686	ms_run[1]:scan=230	0
+OSM	CGCGGGGCC	[, , NucleicAcidSearchEngine, test]	16.739409641571772	null	-0.901769847434379	1.0	null	349.0	-3	960.141581347038027	960.141581347037686	ms_run[1]:scan=340	0
+OSM	CGGAAUAUGCCU	[, , NucleicAcidSearchEngine, test]	19.298792201091754	0.432258064516129	-1.0	1.0	null	164.0	-2	1895.764669007900011	1895.764669007904331	ms_run[1]:scan=155	0
+OSM	CGGAGCCCG	[, , NucleicAcidSearchEngine, test]	35.69503342691344	0.169642857142857	-0.835492694552132	0.952170188577442	null	163.0	-3	954.809943013704014	954.809943013704356	ms_run[1]:scan=154	0
+OSM	CGGAGCCCG	[, , NucleicAcidSearchEngine, test]	16.796733492112178	0.391891891891892	-0.976537889821292	1.0	null	273.0	-3	954.809943013704014	954.809943013704356	ms_run[1]:scan=264	0
+OSM	CGGAUAGAUCGA	[, , NucleicAcidSearchEngine, test]	41.667637532293924	0.088235294117647	-0.772379219835554	0.713015877767473	null	147.0	-3	1284.518475531900094	1284.518475531904187	ms_run[1]:scan=138	0
+OSM	CGGAUAGAUCGA	[, , NucleicAcidSearchEngine, test]	44.672601918810557	0.088235294117647	-0.773856119068499	0.726487949727698	null	257.0	-3	1284.518475531900094	1284.518475531904187	ms_run[1]:scan=248	0
+OSM	CGGCCUCCCUAA	[, , NucleicAcidSearchEngine, test]	27.449145688160915	0.096153846153846	-0.78608308315345	0.782884941767259	null	201.0	-3	1241.840221531899942	1241.84022153190449	ms_run[1]:scan=192	0
+OSM	CGGCCUCCCUAA	[, , NucleicAcidSearchEngine, test]	27.412142523987121	0.060606060606061	-0.752275488600951	0.632823102837315	null	311.0	-3	1241.840221531899942	1241.84022153190449	ms_run[1]:scan=302	0
+OSM	CGGCCUCCCUAA	[, , NucleicAcidSearchEngine, test]	60.758347327719797	0.0	-0.500479252922132	0.059809465722839	null	91.0	-3	1241.840221531899942	1241.84022153190449	ms_run[1]:scan=82	0
+OSM	CGUAACGGGAUU	[, , NucleicAcidSearchEngine, test]	247.001883171892644	0.0	-0.032364608365412	1.0789583545474978e-03	null	21.0	-3	1276.842736521269899	1276.842736521271036	ms_run[1]:scan=12	0
+OSM	CGUAACGGGAUU	[, , NucleicAcidSearchEngine, test]	44.815749904440899	0.010869565217391	-0.694444283730625	0.371341366295219	null	131.0	-3	1276.842736521269899	1276.842736521271036	ms_run[1]:scan=122	0
+OSM	CGUAACGGGAUU	[, , NucleicAcidSearchEngine, test]	24.415809312009895	0.354166666666667	-0.957920892917809	1.0	null	241.0	-3	1276.842736521269899	1276.842736521271036	ms_run[1]:scan=232	0
+OSM	CGUAACGGGAUU	[, , NucleicAcidSearchEngine, test]	27.370439872856117	0.12037037037037	-0.809412120896868	0.874684392168618	null	351.0	-3	1276.842736521269899	1276.842736521271036	ms_run[1]:scan=342	0
+OSM	CGUUCGAAGUUG	[, , NucleicAcidSearchEngine, test]	14.424394838579573	0.397350993377483	-0.990563675693622	1.0	null	255.0	-3	1269.166997510639931	1269.166997510637657	ms_run[1]:scan=246	0
+OSM	CUAAGUACU	[, , NucleicAcidSearchEngine, test]	9.85980954839674	0.555555555555556	-1.144176860094031	1.0	null	193.0	-3	931.795299648470973	931.795299648470973	ms_run[1]:scan=184	0
+OSM	CUAAGUGCU	[, , NucleicAcidSearchEngine, test]	64.079406821694334	0.0	-0.234389604174548	2.8716955892452538e-03	null	30.0	-2	1406.194045198699996	1406.194045198704316	ms_run[1]:scan=21	0
+OSM	CUAAGUGCU	[, , NucleicAcidSearchEngine, test]	14.641116307081324	0.218487394957983	-0.874933086117165	1.0	null	250.0	-2	1406.194045198699996	1406.194045198704316	ms_run[1]:scan=241	0
+OSM	CUAAGUGCU	[, , NucleicAcidSearchEngine, test]	4.007875483778319	0.590909090909091	-1.233796082974852	1.0	null	360.0	-2	1406.194045198699996	1406.194045198704316	ms_run[1]:scan=351	0
+OSM	CUACCGCAAU	[, , NucleicAcidSearchEngine, test]	12.110378946041751	0.502958579881657	-1.059316601683468	1.0	null	178.0	-2	1550.225224151050043	1550.225224151054363	ms_run[1]:scan=169	0
+OSM	CUACCGCAAU	[, , NucleicAcidSearchEngine, test]	12.32726040632781	0.391891891891892	-0.977517166751873	1.0	null	288.0	-2	1550.225224151050043	1550.225224151054363	ms_run[1]:scan=279	0
+OSM	CUAGCAGGAAC	[, , NucleicAcidSearchEngine, test]	32.896248226987126	0.135135135135135	-0.831974248767588	0.942852200530529	null	223.0	-3	1169.174657918269986	1169.174657918271123	ms_run[1]:scan=214	0
+OSM	CUAGCAGGAAC	[, , NucleicAcidSearchEngine, test]	30.156396538228723	0.128440366972477	-0.816562173539199	0.910159081319928	null	333.0	-3	1169.174657918269986	1169.174657918271123	ms_run[1]:scan=324	0
+OSM	CUCAUAUUCUU	[, , NucleicAcidSearchEngine, test]	67.251202104110845	0.0	-0.556574829533507	0.114075849089639	null	109.0	-3	1114.801047865099918	1114.801047865104238	ms_run[1]:scan=100	0
+OSM	CUCCCAUACGU	[, , NucleicAcidSearchEngine, test]	5.837253604424028	0.55868544600939	-1.171117273833356	1.0	null	186.0	-2	1691.232260071499923	1691.232260071504243	ms_run[1]:scan=177	0
+OSM	CUCCCAUACGU	[, , NucleicAcidSearchEngine, test]	6.060768240693752	0.539772727272727	-1.095312272662	1.0	null	296.0	-2	1691.232260071499923	1691.232260071504243	ms_run[1]:scan=287	0
+OSM	CUCCCAUACGU	[, , NucleicAcidSearchEngine, test]	27.36409462254808	0.010869565217391	-0.704030198984867	0.434390804347645	null	76.0	-2	1691.232260071499923	1691.232260071504243	ms_run[1]:scan=67	0
+OSM	CUCCUAAGC	[, , NucleicAcidSearchEngine, test]	41.620394363465927	0.088235294117647	-0.778173878332998	0.755436167899062	null	115.0	-3	923.463549992437947	923.463549992437606	ms_run[1]:scan=106	0
+OSM	CUCCUAAGC	[, , NucleicAcidSearchEngine, test]	21.765400756558495	0.340425531914894	-0.935355193011816	1.0	null	225.0	-3	923.463549992437947	923.463549992437606	ms_run[1]:scan=216	0
+OSM	CUCCUAAGC	[, , NucleicAcidSearchEngine, test]	14.222567801386845	0.537142857142857	-1.084049706673383	1.0	null	335.0	-3	923.463549992437947	923.463549992437606	ms_run[1]:scan=326	0
+OSM	CUCUGAAC	[, , NucleicAcidSearchEngine, test]	21.774616519879526	0.407894736842105	-0.997152978262158	1.0	null	215.0	-3	821.783120368171012	821.783120368170898	ms_run[1]:scan=206	0
+OSM	CUCUUCAGA	[, , NucleicAcidSearchEngine, test]	5.872539050164098	0.55868544600939	-1.200207201217262	1.0	null	236.0	-2	1386.190971198700026	1386.190971198704347	ms_run[1]:scan=227	0
+OSM	CUCUUCAGA	[, , NucleicAcidSearchEngine, test]	3.798258272307323	0.589861751152074	-1.226908402816542	1.0	null	346.0	-2	1386.190971198700026	1386.190971198704347	ms_run[1]:scan=337	0
+OSM	CUCUUCAGA	[, , NucleicAcidSearchEngine, test]	16.953807499597417	0.235772357723577	-0.887916890280036	1.0	null	16.0	-2	1386.190971198700026	1386.190971198704347	ms_run[1]:scan=7	0
+OSM	CUGAACCA	[, , NucleicAcidSearchEngine, test]	24.524051804045101	0.211864406779661	-0.872921729271384	1.0	null	118.0	-2	1244.691927294200013	1244.691927294204334	ms_run[1]:scan=109	0
+OSM	CUGAACCA	[, , NucleicAcidSearchEngine, test]	12.10528552634455	null	-1.064565747741229	1.0	null	228.0	-2	1244.691927294200013	1244.691927294204334	ms_run[1]:scan=219	0
+OSM	CUGACACG	[, , NucleicAcidSearchEngine, test]	12.32172570596396	0.487341772151899	-1.02452500294715	1.0	null	353.0	-3	834.790497712137949	834.790497712137608	ms_run[1]:scan=344	0
+OSM	CUGUAACGG	[, , NucleicAcidSearchEngine, test]	7.81337765049398	0.55868544600939	-1.170248593282617	1.0	null	362.0	-2	1425.70511121465006	1425.70511121465438	ms_run[1]:scan=353	0
+OSM	CUUAGAGA	[, , NucleicAcidSearchEngine, test]	51.061296156388941	0.0	-0.28719531899716	0.01542085623213	null	110.0	-2	1265.187009278249889	1265.187009278254436	ms_run[1]:scan=101	0
+OSM	CUUAGAGA	[, , NucleicAcidSearchEngine, test]	7.744966996739087	0.552083333333333	-1.14093180501902	1.0	null	220.0	-2	1265.187009278249889	1265.187009278254436	ms_run[1]:scan=211	0
+OSM	CUUAGAGA	[, , NucleicAcidSearchEngine, test]	5.834123822220547	0.547872340425532	-1.108393848946721	1.0	null	330.0	-2	1265.187009278249889	1265.187009278254436	ms_run[1]:scan=321	0
+OSM	CUUGACCUG	[, , NucleicAcidSearchEngine, test]	24.494684256602376	0.253968253968254	-0.89522665306487	1.0	null	275.0	-3	929.123193648470988	929.123193648470988	ms_run[1]:scan=266	0
+OSM	CUUGACCUG	[, , NucleicAcidSearchEngine, test]	41.722934211381336	0.060606060606061	-0.751149548210883	0.600053580895994	null	55.0	-3	929.123193648470988	929.123193648470988	ms_run[1]:scan=46	0
+OSM	CUUUCCGACCAU	[, , NucleicAcidSearchEngine, test]	19.440716843771479	0.302325581395349	-0.912155094468732	1.0	null	320.0	-2	1844.24491249194989	1844.24491249195421	ms_run[1]:scan=311	0
+OSM	CUUUUAUG	[, , NucleicAcidSearchEngine, test]	19.245135597764385	0.432258064516129	-1.001667366491598	1.0	null	203.0	-3	814.763392002937962	814.763392002937621	ms_run[1]:scan=194	0
+OSM	CUUUUAUG	[, , NucleicAcidSearchEngine, test]	159.658205394754987	0.0	-0.025504824576319	1.0789583545474978e-03	null	93.0	-3	814.763392002937962	814.763392002937621	ms_run[1]:scan=84	0
+OSM	CUUUUUUUAUA	[, , NucleicAcidSearchEngine, test]	7.902451738457451	0.547872340425532	-1.108227214479115	1.0	null	196.0	-2	1673.689225991749936	1673.689225991754483	ms_run[1]:scan=187	0
+OSM	CUUUUUUUAUA	[, , NucleicAcidSearchEngine, test]	102.282578924551288	0.0	-0.146687065035693	1.0789583545474978e-03	null	86.0	-2	1673.689225991749936	1673.689225991754483	ms_run[1]:scan=77	0
+OSM	GAAAUAUCC	[, , NucleicAcidSearchEngine, test]	2.541057494334851	null	-1.213736419605394	1.0	null	378.0	-2	1409.710196214650068	1409.710196214654388	ms_run[1]:scan=369	0
+OSM	GAAAUAUCC	[, , NucleicAcidSearchEngine, test]	80.946656282928302	0.0	-0.233745390535787	1.9968398187127506e-03	null	48.0	-2	1409.710196214650068	1409.710196214654388	ms_run[1]:scan=39	0
+OSM	GAACCCUGUA	[, , NucleicAcidSearchEngine, test]	21.815609456683063	0.376712328767123	-0.973783759719146	1.0	null	214.0	-2	1570.228298151050012	1570.228298151054332	ms_run[1]:scan=205	0
+OSM	GAACCCUGUA	[, , NucleicAcidSearchEngine, test]	9.74667957605606	0.552083333333333	-1.138483964030035	1.0	null	324.0	-2	1570.228298151050012	1570.228298151054332	ms_run[1]:scan=315	0
+OSM	GAACGGUUGUUU	[, , NucleicAcidSearchEngine, test]	29.893451480029068	0.372413793103448	-0.968094142474337	1.0	null	194.0	-2	1904.746142475999932	1904.746142476004252	ms_run[1]:scan=185	0
+OSM	GAACGGUUGUUU	[, , NucleicAcidSearchEngine, test]	7.829718642237381	0.55868544600939	-1.174369105429839	1.0	null	304.0	-2	1904.746142475999932	1904.746142476004252	ms_run[1]:scan=295	0
+OSM	GAACGGUUGUUU	[, , NucleicAcidSearchEngine, test]	106.028470899553213	0.0	-0.153827543037404	1.0789583545474978e-03	null	84.0	-2	1904.746142475999932	1904.746142476004252	ms_run[1]:scan=75	0
+OSM	GAACUACUCG	[, , NucleicAcidSearchEngine, test]	16.832337545870534	0.432258064516129	-1.0	1.0	null	188.0	-2	1570.228298151050012	1570.228298151054332	ms_run[1]:scan=179	0
+OSM	GAACUACUCG	[, , NucleicAcidSearchEngine, test]	14.368783726531454	0.537142857142857	-1.071450959147528	1.0	null	298.0	-2	1570.228298151050012	1570.228298151054332	ms_run[1]:scan=289	0
+OSM	GACCCUGA	[, , NucleicAcidSearchEngine, test]	2.413611763379566	null	-1.233286099288131	1.0	null	146.0	-2	1252.689384794199896	1252.689384794204443	ms_run[1]:scan=137	0
+OSM	GACCCUGA	[, , NucleicAcidSearchEngine, test]	7.672427471346337	null	-1.178588033117268	1.0	null	256.0	-2	1252.689384794199896	1252.689384794204443	ms_run[1]:scan=247	0
+OSM	GACCCUGA	[, , NucleicAcidSearchEngine, test]	47.932332584235091	0.0	-0.319250010525591	0.032588107991595	null	36.0	-2	1252.689384794199896	1252.689384794204443	ms_run[1]:scan=27	0
+OSM	GACCCUGA	[, , NucleicAcidSearchEngine, test]	7.790359143410219	0.55868544600939	-1.182472006600866	1.0	null	366.0	-2	1252.689384794199896	1252.689384794204443	ms_run[1]:scan=357	0
+OSM	GACCUUCAUGCU	[, , NucleicAcidSearchEngine, test]	35.937500992998665	0.060606060606061	-0.756463606607808	0.664963769852553	null	123.0	-3	1242.496232177300044	1242.496232177304364	ms_run[1]:scan=114	0
+OSM	GACCUUCAUGCU	[, , NucleicAcidSearchEngine, test]	95.123456611007981	0.0	-0.44894331793239	0.049482863691387	null	13.0	-3	1242.496232177300044	1242.496232177304364	ms_run[1]:scan=4	0
+OSM	GACGAAGUCA	[, , NucleicAcidSearchEngine, test]	21.699369586412139	null	-1.029029951039526	1.0	null	151.0	-3	1067.494228294000095	1067.494228294004415	ms_run[1]:scan=142	0
+OSM	GACGAAGUCA	[, , NucleicAcidSearchEngine, test]	27.267264614900526	0.096153846153846	-0.783559400708038	0.782884941767259	null	371.0	-3	1067.494228294000095	1067.494228294004415	ms_run[1]:scan=362	0
+OSM	GCAACGCCUCA	[, , NucleicAcidSearchEngine, test]	27.321615174148853	0.096153846153846	-0.791567193472606	0.827836600466526	null	271.0	-3	1147.835530918270024	1147.835530918270933	ms_run[1]:scan=262	0
+OSM	GCACAGUC	[, , NucleicAcidSearchEngine, test]	10.074043676322352	0.376712328767123	-0.970976845345389	1.0	null	133.0	-3	834.790497712137949	834.790497712137608	ms_run[1]:scan=124	0
+OSM	GCACAGUC	[, , NucleicAcidSearchEngine, test]	132.310787994855417	0.0	-0.112356897993672	1.0789583545474978e-03	null	23.0	-3	834.790497712137949	834.790497712137608	ms_run[1]:scan=14	0
+OSM	GCACAGUC	[, , NucleicAcidSearchEngine, test]	16.587036525875167	0.487341772151899	-1.029917182062885	1.0	null	243.0	-3	834.790497712137949	834.790497712137608	ms_run[1]:scan=234	0
+OSM	GCAGGGGACUUU	[, , NucleicAcidSearchEngine, test]	16.716738733179884	0.497005988023952	-1.053610072067145	1.0	null	182.0	-2	1923.76520050790009	1923.765200507904183	ms_run[1]:scan=173	0
+OSM	GCAGGGGACUUU	[, , NucleicAcidSearchEngine, test]	91.516024016324522	0.0	-0.214670272205603	1.0789583545474978e-03	null	72.0	-2	1923.76520050790009	1923.765200507904183	ms_run[1]:scan=63	0
+OSM	GCAUUUCCGC	[, , NucleicAcidSearchEngine, test]	4.164394544092631	0.589861751152074	-1.220237727401596	1.0	null	128.0	-2	1546.70907313509997	1546.70907313510429	ms_run[1]:scan=119	0
+OSM	GCAUUUCCGC	[, , NucleicAcidSearchEngine, test]	7.763004645123987	0.555555555555556	-1.153002716390465	1.0	null	238.0	-2	1546.70907313509997	1546.70907313510429	ms_run[1]:scan=229	0
+OSM	GCAUUUCCGC	[, , NucleicAcidSearchEngine, test]	3.972777780732831	null	-1.231511709204987	1.0	null	348.0	-2	1546.70907313509997	1546.70907313510429	ms_run[1]:scan=339	0
+OSM	GCCACAGU	[, , NucleicAcidSearchEngine, test]	151.952297529471082	0.0	-0.055003822072184	1.0789583545474978e-03	null	69.0	-3	834.790497712137949	834.790497712137608	ms_run[1]:scan=60	0
+OSM	GCCCCAAUGGUA	[, , NucleicAcidSearchEngine, test]	54.330200312809204	0.010869565217391	-0.652648058461158	0.259340381723341	null	287.0	-3	1263.179348531899905	1263.179348531904225	ms_run[1]:scan=278	0
+OSM	GCCCGAGGC	[, , NucleicAcidSearchEngine, test]	171.734135766082289	0.0	-0.1704985371352	1.0789583545474978e-03	null	53.0	-3	954.809943013704014	954.809943013704356	ms_run[1]:scan=44	0
+OSM	GCCUCAUGCU	[, , NucleicAcidSearchEngine, test]	63.885150184737718	0.0	-0.572569377384172	0.130895505529378	null	79.0	-3	1030.803623272739969	1030.803623272737468	ms_run[1]:scan=70	0
+OSM	GCGAACCAC	[, , NucleicAcidSearchEngine, test]	19.350172392990697	null	-1.016404990739903	1.0	null	121.0	-3	944.146666347038035	944.146666347037694	ms_run[1]:scan=112	0
+OSM	GCGAACCAC	[, , NucleicAcidSearchEngine, test]	192.182488264700396	0.0	-0.075709516982295	1.0789583545474978e-03	null	11.0	-3	944.146666347038035	944.146666347037694	ms_run[1]:scan=2	0
+OSM	GCGAACCAC	[, , NucleicAcidSearchEngine, test]	12.374669669860912	null	-0.934045181402237	1.0	null	231.0	-3	944.146666347038035	944.146666347037694	ms_run[1]:scan=222	0
+OSM	GCGAACCAC	[, , NucleicAcidSearchEngine, test]	21.988821720336652	0.307692307692308	-0.916312943876564	1.0	null	341.0	-3	944.146666347038035	944.146666347037694	ms_run[1]:scan=332	0
+OSM	GCGACCCUUG	[, , NucleicAcidSearchEngine, test]	14.32837006384378	0.497005988023952	-1.044276959194975	1.0	null	232.0	-2	1566.220139151050034	1566.220139151054354	ms_run[1]:scan=223	0
+OSM	GCGACCCUUG	[, , NucleicAcidSearchEngine, test]	12.255647725533438	0.537142857142857	-1.074353965019913	1.0	null	342.0	-2	1566.220139151050034	1566.220139151054354	ms_run[1]:scan=333	0
+OSM	GCGCCCGA	[, , NucleicAcidSearchEngine, test]	64.030951101127144	0.0	-0.181395077135694	1.0789583545474978e-03	null	102.0	-2	1260.1948343101501	1260.194834310154192	ms_run[1]:scan=93	0
+OSM	GCGGCGUGA	[, , NucleicAcidSearchEngine, test]	12.15409253151587	0.487341772151899	-1.0325090899501	1.0	null	172.0	-2	1453.213634730600006	1453.213634730604326	ms_run[1]:scan=163	0
+OSM	GCGGCGUGA	[, , NucleicAcidSearchEngine, test]	5.853320122383851	0.589861751152074	-1.218758815459296	1.0	null	282.0	-2	1453.213634730600006	1453.213634730604326	ms_run[1]:scan=273	0
+OSM	GCUACACCU	[, , NucleicAcidSearchEngine, test]	14.49234481364827	0.497005988023952	-1.033944385407951	1.0	null	137.0	-3	923.463549992437947	923.463549992437606	ms_run[1]:scan=128	0
+OSM	GCUACACCU	[, , NucleicAcidSearchEngine, test]	33.035201848384247	0.060606060606061	-0.745884147542627	0.600053580895994	null	357.0	-3	923.463549992437947	923.463549992437606	ms_run[1]:scan=348	0
+OSM	GCUCAUCAAG	[, , NucleicAcidSearchEngine, test]	16.832337545870534	null	-1.0	1.0	null	188.0	-2	1570.228298151050012	1570.228298151054332	ms_run[1]:scan=179	0
+OSM	GCUCAUCAAG	[, , NucleicAcidSearchEngine, test]	67.130737330952869	0.0	-0.31733842472902	0.025861757887009	null	78.0	-2	1570.228298151050012	1570.228298151054332	ms_run[1]:scan=69	0
+OSM	GCUGCCGUCGU	[, , NucleicAcidSearchEngine, test]	24.545422691666381	0.328467153284672	-0.930266404090536	1.0	null	301.0	-3	1151.15107389700006	1151.15107389700438	ms_run[1]:scan=292	0
+OSM	GCUGCCGUCGU	[, , NucleicAcidSearchEngine, test]	229.911628688239148	0.0	-0.035229884594717	1.0789583545474978e-03	null	81.0	-3	1151.15107389700006	1151.15107389700438	ms_run[1]:scan=72	0
+OSM	GGAAUAUGG	[, , NucleicAcidSearchEngine, test]	21.965481724679435	0.184210526315789	-0.847033391864	0.973675613760258	null	159.0	-3	971.473442325770975	971.473442325770975	ms_run[1]:scan=150	0
+OSM	GGAAUAUGG	[, , NucleicAcidSearchEngine, test]	47.786860788129815	0.042553191489362	-0.721124767679833	0.50014835895825	null	49.0	-3	971.473442325770975	971.473442325770975	ms_run[1]:scan=40	0
+OSM	GGAGGAGCA	[, , NucleicAcidSearchEngine, test]	2.417541754971882	0.601809954751131	-1.254861857578091	1.0	null	152.0	-2	1476.732859746550048	1476.732859746554368	ms_run[1]:scan=143	0
+OSM	GGAGGAGCA	[, , NucleicAcidSearchEngine, test]	9.764760810288045	0.523529411764706	-1.067711625661333	1.0	null	262.0	-2	1476.732859746550048	1476.732859746554368	ms_run[1]:scan=253	0
+OSM	GGAGGAGCA	[, , NucleicAcidSearchEngine, test]	5.981489801536649	null	-1.139984525357227	1.0	null	372.0	-2	1476.732859746550048	1476.732859746554368	ms_run[1]:scan=363	0
+OSM	GGAGUGGAGACA	[, , NucleicAcidSearchEngine, test]	9.853533707085301	0.552083333333333	-1.14319255643393	1.0	null	156.0	-2	1966.795491539799968	1966.795491539804289	ms_run[1]:scan=147	0
+OSM	GGAUUUGAAC	[, , NucleicAcidSearchEngine, test]	217.123111621072866	0.0	-0.041677610910314	1.0789583545474978e-03	null	29.0	-3	1060.146494606070064	1060.146494606070974	ms_run[1]:scan=20	0
+OSM	GGAUUUGAAC	[, , NucleicAcidSearchEngine, test]	14.545629737894657	0.340425531914894	-0.93609523031412	1.0	null	249.0	-3	1060.146494606070064	1060.146494606070974	ms_run[1]:scan=240	0
+OSM	GGCAAUGUC	[, , NucleicAcidSearchEngine, test]	7.713440162655396	0.55868544600939	-1.19466037482674	1.0	null	142.0	-2	1425.70511121465006	1425.70511121465438	ms_run[1]:scan=133	0
+OSM	GGCAAUGUC	[, , NucleicAcidSearchEngine, test]	80.81943948718839	0.0	-0.234649705467422	4.176808296105235e-03	null	32.0	-2	1425.70511121465006	1425.70511121465438	ms_run[1]:scan=23	0
+OSM	GGCAAUGUC	[, , NucleicAcidSearchEngine, test]	7.81337765049398	null	-1.170248593282617	1.0	null	362.0	-2	1425.70511121465006	1425.70511121465438	ms_run[1]:scan=353	0
+OSM	GGCCUCGCGG	[, , NucleicAcidSearchEngine, test]	9.889797020945073	0.547872340425532	-1.102323906745111	1.0	null	216.0	-2	1593.728662666999981	1593.728662667004301	ms_run[1]:scan=207	0
+OSM	GGCCUCGCGG	[, , NucleicAcidSearchEngine, test]	22.04581536112369	0.184210526315789	-0.845543629269761	0.973675613760258	null	326.0	-2	1593.728662666999981	1593.728662667004301	ms_run[1]:scan=317	0
+OSM	GGCCUCGCGG	[, , NucleicAcidSearchEngine, test]	19.289581213316552	0.307692307692308	-0.914827009105009	1.0	null	106.0	-2	1593.728662666999981	1593.728662667004301	ms_run[1]:scan=97	0
+OSM	GGCGCUCCGG	[, , NucleicAcidSearchEngine, test]	9.889797020945073	null	-1.102323906745111	1.0	null	216.0	-2	1593.728662666999981	1593.728662667004301	ms_run[1]:scan=207	0
+OSM	GGCGCUCCGG	[, , NucleicAcidSearchEngine, test]	22.04581536112369	null	-0.845543629269761	0.973675613760258	null	326.0	-2	1593.728662666999981	1593.728662667004301	ms_run[1]:scan=317	0
+OSM	GGCGCUCCGG	[, , NucleicAcidSearchEngine, test]	19.289581213316552	null	-0.914827009105009	1.0	null	106.0	-2	1593.728662666999981	1593.728662667004301	ms_run[1]:scan=97	0
+OSM	GGGAGAUCC	[, , NucleicAcidSearchEngine, test]	74.039274705906962	0.0	-0.548224741301602	0.084345435642924	null	43.0	-3	963.141692669737949	963.141692669737608	ms_run[1]:scan=34	0
+OSM	GGGAGAUCC	[, , NucleicAcidSearchEngine, test]	21.933374301664749	0.235772357723577	-0.889342471030972	1.0	null	373.0	-3	963.141692669737949	963.141692669737608	ms_run[1]:scan=364	0
+OSM	GGGCGAAU	[, , NucleicAcidSearchEngine, test]	7.871930703760997	0.547872340425532	-1.122948428004394	1.0	null	166.0	-2	1292.695532794200062	1292.695532794204382	ms_run[1]:scan=157	0
+OSM	GGGCGAAU	[, , NucleicAcidSearchEngine, test]	57.370859400987698	0.0	-0.225022250981027	1.0933002524250797e-03	null	56.0	-2	1292.695532794200062	1292.695532794204382	ms_run[1]:scan=47	0
+OSM	GGGCUCAAA	[, , NucleicAcidSearchEngine, test]	21.686654301119034	0.376712328767123	-0.969794209655483	1.0	null	205.0	-3	957.81005433640405	957.810054336404392	ms_run[1]:scan=196	0
+OSM	GGGGUGCAGA	[, , NucleicAcidSearchEngine, test]	6.071483740014187	0.555555555555556	-1.163183390699336	1.0	null	240.0	-2	1637.742969666999898	1637.742969667004445	ms_run[1]:scan=231	0
+OSM	GGGGUGCAGA	[, , NucleicAcidSearchEngine, test]	7.890362501676623	null	-1.150697301462247	1.0	null	350.0	-2	1637.742969666999898	1637.742969667004445	ms_run[1]:scan=341	0
+OSM	GGGUCUCACA	[, , NucleicAcidSearchEngine, test]	2.740301722188251	null	-1.200107354214634	1.0	null	208.0	-2	1578.225755651049894	1578.225755651054214	ms_run[1]:scan=199	0
+OSM	GGGUCUCACA	[, , NucleicAcidSearchEngine, test]	6.109676342279382	null	-1.107706696116462	1.0	null	318.0	-2	1578.225755651049894	1578.225755651054214	ms_run[1]:scan=309	0
+OSM	GGUAUAACA	[, , NucleicAcidSearchEngine, test]	2.534579180699765	0.55868544600939	-1.200397964542269	1.0	null	200.0	-2	1429.713270214650038	1429.713270214654358	ms_run[1]:scan=191	0
+OSM	GGUAUAACA	[, , NucleicAcidSearchEngine, test]	9.817745072590569	0.537142857142857	-1.086839202620807	1.0	null	310.0	-2	1429.713270214650038	1429.713270214654358	ms_run[1]:scan=301	0
+OSM	GGUAUAACA	[, , NucleicAcidSearchEngine, test]	70.637230038208486	0.0	-0.18178971607155	1.0789583545474978e-03	null	90.0	-2	1429.713270214650038	1429.713270214654358	ms_run[1]:scan=81	0
+OSM	GGUAUAAGG	[, , NucleicAcidSearchEngine, test]	21.965481724679435	null	-0.847033391864	0.973675613760258	null	159.0	-3	971.473442325770975	971.473442325770975	ms_run[1]:scan=150	0
+OSM	GGUAUAAGG	[, , NucleicAcidSearchEngine, test]	9.559907984317519	0.55868544600939	-1.203304587933089	1.0	null	269.0	-3	971.473442325770975	971.473442325770975	ms_run[1]:scan=260	0
+OSM	GGUAUAAGG	[, , NucleicAcidSearchEngine, test]	22.019240605045589	0.198275862068966	-0.8601889969786	0.995294629100641	null	379.0	-3	971.473442325770975	971.473442325770975	ms_run[1]:scan=370	0
+OSM	GGUAUUUG	[, , NucleicAcidSearchEngine, test]	5.75457671730254	0.55868544600939	-1.188231308585722	1.0	null	209.0	-3	841.106152013570977	841.106152013570863	ms_run[1]:scan=200	0
+OSM	GGUGGGCAUG	[, , NucleicAcidSearchEngine, test]	19.342892488818492	0.328467153284672	-0.932520627603984	1.0	null	167.0	-3	1083.817148616700024	1083.817148616704344	ms_run[1]:scan=158	0
+OSM	GGUGGGCAUG	[, , NucleicAcidSearchEngine, test]	27.312624074023631	0.223140495867769	-0.883417347184571	1.0	null	277.0	-3	1083.817148616700024	1083.817148616704344	ms_run[1]:scan=268	0
+OSM	GGUGGGCAUG	[, , NucleicAcidSearchEngine, test]	171.614832117483644	0.0	-0.126943800294971	1.0789583545474978e-03	null	57.0	-3	1083.817148616700024	1083.817148616704344	ms_run[1]:scan=48	0
+OSM	GGUUUGGCCUUU	[, , NucleicAcidSearchEngine, test]	6.001783686860314	0.547872340425532	-1.127009301332528	1.0	null	176.0	-2	1881.22691746004989	1881.226917460054437	ms_run[1]:scan=167	0
+OSM	GGUUUGGCCUUU	[, , NucleicAcidSearchEngine, test]	14.468313569105252	0.432258064516129	-1.003268531999305	1.0	null	286.0	-2	1881.22691746004989	1881.226917460054437	ms_run[1]:scan=277	0
+OSM	GGUUUGGCCUUU	[, , NucleicAcidSearchEngine, test]	105.996401142286132	0.0	-0.148476993258478	1.0789583545474978e-03	null	66.0	-2	1881.22691746004989	1881.226917460054437	ms_run[1]:scan=57	0
+OSM	GUAACAAAGCC	[, , NucleicAcidSearchEngine, test]	238.441109046302586	0.0	0.0	1.0789583545474978e-03	null	119.0	-3	1163.843019584940066	1163.843019584937565	ms_run[1]:scan=110	0
+OSM	GUACGGCUGUA	[, , NucleicAcidSearchEngine, test]	19.362715243369497	0.253968253968254	-0.895264593589194	1.0	null	293.0	-3	1167.158562563670102	1167.158562563671012	ms_run[1]:scan=284	0
+OSM	GUAUUUUC	[, , NucleicAcidSearchEngine, test]	14.012508157128108	0.55868544600939	-1.1659741286411	1.0	null	313.0	-3	814.763392002937962	814.763392002937621	ms_run[1]:scan=304	0
+OSM	GUCCAGUUC	[, , NucleicAcidSearchEngine, test]	27.171266555476638	0.302325581395349	-0.90881175823035	1.0	null	165.0	-3	929.123193648470988	929.123193648470988	ms_run[1]:scan=156	0
+OSM	GUCCUCCC	[, , NucleicAcidSearchEngine, test]	19.300384021567783	0.432258064516129	-1.002966842555995	1.0	null	307.0	-3	805.775631701504039	805.775631701504267	ms_run[1]:scan=298	0
+OSM	GUCCUCCC	[, , NucleicAcidSearchEngine, test]	136.158594586949476	0.0	-0.135929161038759	1.0789583545474978e-03	null	87.0	-3	805.775631701504039	805.775631701504267	ms_run[1]:scan=78	0
+OSM	GUGCCGGAU	[, , NucleicAcidSearchEngine, test]	32.744611404036078	0.223140495867769	-0.883593127931437	1.0	null	157.0	-3	955.465953659104002	955.465953659104343	ms_run[1]:scan=148	0
+OSM	GUUCAUUUA	[, , NucleicAcidSearchEngine, test]	16.893302211460504	0.432258064516129	-1.0	1.0	null	171.0	-3	924.447565960537986	924.447565960537645	ms_run[1]:scan=162	0
+OSM	GUUCCCAGCG	[, , NucleicAcidSearchEngine, test]	9.856775416253413	0.547872340425532	-1.120892926229053	1.0	null	122.0	-2	1566.220139151050034	1566.220139151054354	ms_run[1]:scan=113	0
+OSM	GUUCCCAGCG	[, , NucleicAcidSearchEngine, test]	77.550061736647194	0.0	-0.20355438853162	1.0789583545474978e-03	null	12.0	-2	1566.220139151050034	1566.220139151054354	ms_run[1]:scan=3	0
+OSM	GUUCCCAGCG	[, , NucleicAcidSearchEngine, test]	12.255647725533438	null	-1.074353965019913	1.0	null	342.0	-2	1566.220139151050034	1566.220139151054354	ms_run[1]:scan=333	0
+OSM	GUUGAAGCUUGC	[, , NucleicAcidSearchEngine, test]	17.035822760545582	0.328467153284672	-0.926655677500876	1.0	null	145.0	-3	1269.166997510639931	1269.166997510637657	ms_run[1]:scan=136	0
+OSM	GUUGAAGCUUGC	[, , NucleicAcidSearchEngine, test]	268.71456148854179	0.0	-0.015846943077743	1.0789583545474978e-03	null	35.0	-3	1269.166997510639931	1269.166997510637657	ms_run[1]:scan=26	0
+OSM	GUUGAAGCUUGC	[, , NucleicAcidSearchEngine, test]	19.319425958325919	0.391891891891892	-0.979362825277465	1.0	null	365.0	-3	1269.166997510639931	1269.166997510637657	ms_run[1]:scan=356	0
+OSM	GUUUAUGG	[, , NucleicAcidSearchEngine, test]	5.75457671730254	null	-1.188231308585722	1.0	null	209.0	-3	841.106152013570977	841.106152013570863	ms_run[1]:scan=200	0
+OSM	GUUUAUGG	[, , NucleicAcidSearchEngine, test]	24.666028433513727	0.198275862068966	-0.85975253723486	0.990751698944604	null	319.0	-3	841.106152013570977	841.106152013570863	ms_run[1]:scan=310	0
+OSM	GUUUAUGG	[, , NucleicAcidSearchEngine, test]	147.84896539265057	0.0	-0.108978096811051	1.0789583545474978e-03	null	99.0	-3	841.106152013570977	841.106152013570863	ms_run[1]:scan=90	0
+OSM	GUUUGCAC	[, , NucleicAcidSearchEngine, test]	16.788490342138005	null	-1.059111571213626	1.0	null	213.0	-3	827.442764024204052	827.44276402420428	ms_run[1]:scan=204	0
+OSM	GUUUGCAC	[, , NucleicAcidSearchEngine, test]	21.931599529921652	0.307692307692308	-0.917471934598617	1.0	null	323.0	-3	827.442764024204052	827.44276402420428	ms_run[1]:scan=314	0
+OSM	UAACGCCAUC	[, , NucleicAcidSearchEngine, test]	91.548940122751944	0.0	-0.160631158463843	1.0789583545474978e-03	null	68.0	-2	1550.225224151050043	1550.225224151054363	ms_run[1]:scan=59	0
+OSM	UAAGCGGG	[, , NucleicAcidSearchEngine, test]	9.864671536515576	0.539772727272727	-1.095071753366675	1.0	null	276.0	-2	1292.695532794200062	1292.695532794204382	ms_run[1]:scan=267	0
+OSM	UAAUAGGCAU	[, , NucleicAcidSearchEngine, test]	41.717982645492306	0.010869565217391	-0.687803270051031	0.341376309338999	null	31.0	-3	1054.814856272739917	1054.814856272737643	ms_run[1]:scan=22	0
+OSM	UAAUCAAAG	[, , NucleicAcidSearchEngine, test]	16.83694505174433	0.497005988023952	-1.052387186204438	1.0	null	160.0	-2	1421.715812714649928	1421.715812714654476	ms_run[1]:scan=151	0
+OSM	UAAUCAAAG	[, , NucleicAcidSearchEngine, test]	12.097312465267594	0.407894736842105	-0.993236811211652	1.0	null	270.0	-2	1421.715812714649928	1421.715812714654476	ms_run[1]:scan=261	0
+OSM	UAAUCAAAG	[, , NucleicAcidSearchEngine, test]	80.974522136626447	0.0	-0.173822509653752	1.0789583545474978e-03	null	50.0	-2	1421.715812714649928	1421.715812714654476	ms_run[1]:scan=41	0
+OSM	UACAUCUAAGAU	[, , NucleicAcidSearchEngine, test]	19.540685768058438	0.135135135135135	-0.834238129321231	0.949457356614417	null	369.0	-3	1253.172082510639939	1253.172082510637665	ms_run[1]:scan=360	0
+OSM	UACCAGCCUUUC	[, , NucleicAcidSearchEngine, test]	14.331421389468169	0.523529411764706	-1.06450294595628	1.0	null	210.0	-2	1844.24491249194989	1844.24491249195421	ms_run[1]:scan=201	0
+OSM	UACCAGCCUUUC	[, , NucleicAcidSearchEngine, test]	35.729292389536432	0.032258064516129	-0.71499655988687	0.467039890755311	null	100.0	-2	1844.24491249194989	1844.24491249195421	ms_run[1]:scan=91	0
+OSM	UACGACCC	[, , NucleicAcidSearchEngine, test]	3.904589131494152	0.590909090909091	-1.241601023425646	1.0	null	278.0	-2	1232.686310794199926	1232.686310794204246	ms_run[1]:scan=269	0
+OSM	UACGACCC	[, , NucleicAcidSearchEngine, test]	9.838520272616901	null	-1.096290649830685	1.0	null	58.0	-2	1232.686310794199926	1232.686310794204246	ms_run[1]:scan=49	0
+OSM	UACGAUCGUCA	[, , NucleicAcidSearchEngine, test]	4.004091067077879	null	-1.220932470901166	1.0	null	280.0	-2	1723.24095057149998	1723.2409505715043	ms_run[1]:scan=271	0
+OSM	UACGGAUAAU	[, , NucleicAcidSearchEngine, test]	5.89786899467898	0.55868544600939	-1.202918310417612	1.0	null	141.0	-3	1054.814856272739917	1054.814856272737643	ms_run[1]:scan=132	0
+OSM	UACGGAUAAU	[, , NucleicAcidSearchEngine, test]	41.717982645492306	null	-0.687803270051031	0.341376309338999	null	31.0	-3	1054.814856272739917	1054.814856272737643	ms_run[1]:scan=22	0
+OSM	UACGGAUAAU	[, , NucleicAcidSearchEngine, test]	44.701096853663017	0.060606060606061	-0.760833100415324	0.696257934597438	null	251.0	-3	1054.814856272739917	1054.814856272737643	ms_run[1]:scan=242	0
+OSM	UACGGAUAAU	[, , NucleicAcidSearchEngine, test]	21.845415504475305	0.34965034965035	-0.953932345140814	1.0	null	361.0	-3	1054.814856272739917	1054.814856272737643	ms_run[1]:scan=352	0
+OSM	UACUAUUAU	[, , NucleicAcidSearchEngine, test]	5.536492568924002	0.601809954751131	-1.254920512528443	1.0	null	154.0	-2	1379.177529666799956	1379.177529666804276	ms_run[1]:scan=145	0
+OSM	UACUAUUAU	[, , NucleicAcidSearchEngine, test]	5.459651023843879	0.590909090909091	-1.237126989087306	1.0	null	264.0	-2	1379.177529666799956	1379.177529666804276	ms_run[1]:scan=255	0
+OSM	UACUAUUAU	[, , NucleicAcidSearchEngine, test]	7.970870605015461	0.552083333333333	-1.133819130606794	1.0	null	374.0	-2	1379.177529666799956	1379.177529666804276	ms_run[1]:scan=365	0
+OSM	UAGAAUCUACAU	[, , NucleicAcidSearchEngine, test]	35.523123787762088	0.223140495867769	-0.880778630674226	1.0	null	149.0	-3	1253.172082510639939	1253.172082510637665	ms_run[1]:scan=140	0
+OSM	UAGAAUCUACAU	[, , NucleicAcidSearchEngine, test]	24.507117517285	0.340425531914894	-0.940176856861234	1.0	null	259.0	-3	1253.172082510639939	1253.172082510637665	ms_run[1]:scan=250	0
+OSM	UAGAAUCUACAU	[, , NucleicAcidSearchEngine, test]	242.643353971855447	0.0	-0.080116435553039	1.0789583545474978e-03	null	39.0	-3	1253.172082510639939	1253.172082510637665	ms_run[1]:scan=30	0
+OSM	UAGGCCGUG	[, , NucleicAcidSearchEngine, test]	9.840017516684982	0.547872340425532	-1.130631971866585	1.0	null	267.0	-3	955.465953659104002	955.465953659104343	ms_run[1]:scan=258	0
+OSM	UAGGCCGUG	[, , NucleicAcidSearchEngine, test]	27.175435998437852	0.12037037037037	-0.802048662903976	0.832463631840982	null	377.0	-3	955.465953659104002	955.465953659104343	ms_run[1]:scan=368	0
+OSM	UAGGCCGUG	[, , NucleicAcidSearchEngine, test]	200.449937628651014	0.0	-5.709225886449106e-03	1.0789583545474978e-03	null	47.0	-3	955.465953659104002	955.465953659104343	ms_run[1]:scan=38	0
+OSM	UAGUCACCUU	[, , NucleicAcidSearchEngine, test]	5.856326694703939	0.55868544600939	-1.171705620520737	1.0	null	198.0	-2	1539.203623619149994	1539.203623619154314	ms_run[1]:scan=189	0
+OSM	UAGUCACCUU	[, , NucleicAcidSearchEngine, test]	27.324929291982833	0.096153846153846	-0.786213324588486	0.808616623988018	null	88.0	-2	1539.203623619149994	1539.203623619154314	ms_run[1]:scan=79	0
+OSM	UAUCCCGCGA	[, , NucleicAcidSearchEngine, test]	8.011784832137966	0.497005988023952	-1.054042356145558	1.0	null	134.0	-2	1558.222681651049925	1558.222681651054472	ms_run[1]:scan=125	0
+OSM	UAUCCCGCGA	[, , NucleicAcidSearchEngine, test]	7.370888966006052	0.589861751152074	-1.220273770138067	1.0	null	244.0	-2	1558.222681651049925	1558.222681651054472	ms_run[1]:scan=235	0
+OSM	UAUUAUCAU	[, , NucleicAcidSearchEngine, test]	70.608905597579934	0.0	-0.290047376714299	0.020168024429609	null	44.0	-2	1379.177529666799956	1379.177529666804276	ms_run[1]:scan=35	0
+OSM	UAUUAUCAU	[, , NucleicAcidSearchEngine, test]	7.970870605015461	null	-1.133819130606794	1.0	null	374.0	-2	1379.177529666799956	1379.177529666804276	ms_run[1]:scan=365	0
+OSM	UCAUGAAUC	[, , NucleicAcidSearchEngine, test]	9.85980954839674	null	-1.144176860094031	1.0	null	193.0	-3	931.795299648470973	931.795299648470973	ms_run[1]:scan=184	0
+OSM	UCAUGAAUC	[, , NucleicAcidSearchEngine, test]	29.941035264198689	0.325757575757576	-0.922076995345454	1.0	null	303.0	-3	931.795299648470973	931.795299648470973	ms_run[1]:scan=294	0
+OSM	UCAUGAAUC	[, , NucleicAcidSearchEngine, test]	159.775214024583249	0.0	-0.211572886941255	1.0789583545474978e-03	null	83.0	-3	931.795299648470973	931.795299648470973	ms_run[1]:scan=74	0
+OSM	UCCACAUCG	[, , NucleicAcidSearchEngine, test]	188.079092230997247	0.0	-0.051899608481927	1.0789583545474978e-03	null	27.0	-3	923.463549992437947	923.463549992437606	ms_run[1]:scan=18	0
+OSM	UCCACAUCG	[, , NucleicAcidSearchEngine, test]	30.044115790067519	0.135135135135135	-0.829022835103173	0.925573500202484	null	247.0	-3	923.463549992437947	923.463549992437606	ms_run[1]:scan=238	0
+OSM	UCCGCCGCA	[, , NucleicAcidSearchEngine, test]	16.890815945794611	0.487341772151899	-1.020352997497408	1.0	null	237.0	-3	928.467183003071	928.467183003071	ms_run[1]:scan=228	0
+OSM	UCCGCCGCA	[, , NucleicAcidSearchEngine, test]	16.839849700319789	0.407894736842105	-0.995185645022494	1.0	null	347.0	-3	928.467183003071	928.467183003071	ms_run[1]:scan=338	0
+OSM	UCCGUAUAAGGC	[, , NucleicAcidSearchEngine, test]	21.962120587999589	0.325757575757576	-0.922937972059506	1.0	null	274.0	-2	1895.764669007900011	1895.764669007904331	ms_run[1]:scan=265	0
+OSM	UCCGUAUAAGGC	[, , NucleicAcidSearchEngine, test]	98.706041157965487	0.0	-0.223756425369606	1.0789583545474978e-03	null	54.0	-2	1895.764669007900011	1895.764669007904331	ms_run[1]:scan=45	0
+OSM	UCCUCCCAGGUA	[, , NucleicAcidSearchEngine, test]	10.041553432260239	null	-1.08749060260331	1.0	null	28.0	-2	1863.755978507899954	1863.755978507904274	ms_run[1]:scan=19	0
+OSM	UCCUCCCAGGUA	[, , NucleicAcidSearchEngine, test]	5.846166628010648	null	-1.136685858611438	1.0	null	358.0	-2	1863.755978507899954	1863.755978507904274	ms_run[1]:scan=349	0
+OSM	UCGAUUAUCCC	[, , NucleicAcidSearchEngine, test]	9.923006592616515	0.502958579881657	-1.058165052743434	1.0	null	150.0	-2	1691.724268055550056	1691.724268055554376	ms_run[1]:scan=141	0
+OSM	UCGAUUAUCCC	[, , NucleicAcidSearchEngine, test]	24.524310111186882	0.328467153284672	-0.92710829100872	1.0	null	40.0	-2	1691.724268055550056	1691.724268055554376	ms_run[1]:scan=31	0
+OSM	UCGUACUCCG	[, , NucleicAcidSearchEngine, test]	27.10731501889456	0.391891891891892	-0.980165088275326	1.0	null	189.0	-3	1030.803623272739969	1030.803623272737468	ms_run[1]:scan=180	0
+OSM	UCGUACUCCG	[, , NucleicAcidSearchEngine, test]	11.997910491627517	0.547872340425532	-1.116400240333438	1.0	null	299.0	-3	1030.803623272739969	1030.803623272737468	ms_run[1]:scan=290	0
+OSM	UCGUACUUCCAG	[, , NucleicAcidSearchEngine, test]	22.052679916772092	0.211864406779661	-0.873884958347013	1.0	null	233.0	-3	1242.496232177300044	1242.496232177304364	ms_run[1]:scan=224	0
+OSM	UCGUACUUCCAG	[, , NucleicAcidSearchEngine, test]	7.726115183040094	0.547872340425532	-1.125413802487388	1.0	null	343.0	-3	1242.496232177300044	1242.496232177304364	ms_run[1]:scan=334	0
+OSM	UCGUCCUA	[, , NucleicAcidSearchEngine, test]	7.949806056532313	0.547872340425532	-1.101965728155747	1.0	null	120.0	-2	1221.664710262300105	1221.664710262304425	ms_run[1]:scan=111	0
+OSM	UCGUCCUA	[, , NucleicAcidSearchEngine, test]	19.397016569038815	0.235772357723577	-0.886938426822565	1.0	null	230.0	-2	1221.664710262300105	1221.664710262304425	ms_run[1]:scan=221	0
+OSM	UCGUGAAUC	[, , NucleicAcidSearchEngine, test]	4.007875483778319	null	-1.233796082974852	1.0	null	360.0	-2	1406.194045198699996	1406.194045198704316	ms_run[1]:scan=351	0
+OSM	UCGUUCAUGU	[, , NucleicAcidSearchEngine, test]	21.959773303246845	0.265625	-0.905903602683926	1.0	null	227.0	-3	1031.459633918140071	1031.459633918137797	ms_run[1]:scan=218	0
+OSM	UCGUUCAUGU	[, , NucleicAcidSearchEngine, test]	17.108471769377292	0.325757575757576	-0.924628385887434	1.0	null	337.0	-3	1031.459633918140071	1031.459633918137797	ms_run[1]:scan=328	0
+OSM	UCUAGUUCUAA	[, , NucleicAcidSearchEngine, test]	88.073607046316809	0.0	-0.147128794487539	1.0789583545474978e-03	null	26.0	-2	1704.221892539600049	1704.221892539604369	ms_run[1]:scan=17	0
+OSM	UCUAGUUCUAA	[, , NucleicAcidSearchEngine, test]	6.193331473681351	null	-1.049639349026929	1.0	null	246.0	-2	1704.221892539600049	1704.221892539604369	ms_run[1]:scan=237	0
+OSM	UCUAGUUCUAA	[, , NucleicAcidSearchEngine, test]	14.374398053148122	0.497005988023952	-1.052265975654558	1.0	null	356.0	-2	1704.221892539600049	1704.221892539604369	ms_run[1]:scan=347	0
+OSM	UCUGCGUU	[, , NucleicAcidSearchEngine, test]	3.769584726635916	0.601809954751131	-1.266544127719443	1.0	null	132.0	-2	1230.154175746349893	1230.15417574635444	ms_run[1]:scan=123	0
+OSM	UCUGCGUU	[, , NucleicAcidSearchEngine, test]	35.867165419030002	0.088235294117647	-0.774458938399327	0.726487949727698	null	22.0	-2	1230.154175746349893	1230.15417574635444	ms_run[1]:scan=13	0
+OSM	UCUGCGUU	[, , NucleicAcidSearchEngine, test]	7.867339632835581	0.552083333333333	-1.139351127532151	1.0	null	242.0	-2	1230.154175746349893	1230.15417574635444	ms_run[1]:scan=233	0
+OSM	UCUGCGUU	[, , NucleicAcidSearchEngine, test]	2.156363589028241	0.603603603603604	-1.289396090637065	1.0	null	352.0	-2	1230.154175746349893	1230.15417574635444	ms_run[1]:scan=343	0
+OSM	UGACACCG	[, , NucleicAcidSearchEngine, test]	16.666801933344974	0.502958579881657	-1.05725259792291	1.0	null	179.0	-3	834.790497712137949	834.790497712137608	ms_run[1]:scan=170	0
+OSM	UGACACCG	[, , NucleicAcidSearchEngine, test]	10.063926367220665	0.435897435897436	-1.012010775996231	1.0	null	289.0	-3	834.790497712137949	834.790497712137608	ms_run[1]:scan=280	0
+OSM	UGAGGUACCC	[, , NucleicAcidSearchEngine, test]	212.936409257933889	0.0	-0.040563785081109	1.0789583545474978e-03	null	71.0	-3	1051.814744950039994	1051.814744950037721	ms_run[1]:scan=62	0
+OSM	UGAUCAUU	[, , NucleicAcidSearchEngine, test]	14.407101897072996	0.397350993377483	-0.990559518552765	1.0	null	317.0	-3	822.439131013571	822.439131013571	ms_run[1]:scan=308	0
+OSM	UGAUCAUU	[, , NucleicAcidSearchEngine, test]	38.711709024459118	0.07	-0.768357276145622	0.696257934597438	null	97.0	-3	822.439131013571	822.439131013571	ms_run[1]:scan=88	0
+OSM	UGAUUCAGGUU	[, , NucleicAcidSearchEngine, test]	9.996247426072145	0.523529411764706	-1.065094641972261	1.0	null	162.0	-2	1732.2224240395999	1732.222424039604448	ms_run[1]:scan=153	0
+OSM	UGAUUCAGGUU	[, , NucleicAcidSearchEngine, test]	12.139394267255607	0.487341772151899	-1.030647880877213	1.0	null	272.0	-2	1732.2224240395999	1732.222424039604448	ms_run[1]:scan=263	0
+OSM	UGCAUACCCUC	[, , NucleicAcidSearchEngine, test]	5.837253604424028	null	-1.171117273833356	1.0	null	186.0	-2	1691.232260071499923	1691.232260071504243	ms_run[1]:scan=177	0
+OSM	UGCAUACCCUC	[, , NucleicAcidSearchEngine, test]	6.060768240693752	null	-1.095312272662	1.0	null	296.0	-2	1691.232260071499923	1691.232260071504243	ms_run[1]:scan=287	0
+OSM	UGCCAUGAUU	[, , NucleicAcidSearchEngine, test]	16.742515676540396	0.497005988023952	-1.043222508241235	1.0	null	185.0	-3	1039.135372928770039	1039.135372928770948	ms_run[1]:scan=176	0
+OSM	UGCCAUGAUU	[, , NucleicAcidSearchEngine, test]	16.933183480240157	0.345070422535211	-0.951761149215083	1.0	null	295.0	-3	1039.135372928770039	1039.135372928770948	ms_run[1]:scan=286	0
+OSM	UGCCAUGAUU	[, , NucleicAcidSearchEngine, test]	200.391028073133981	0.0	-0.10521801531608	1.0789583545474978e-03	null	75.0	-3	1039.135372928770039	1039.135372928770948	ms_run[1]:scan=66	0
+OSM	UGCGUGGCCAA	[, , NucleicAcidSearchEngine, test]	21.819812221809244	0.302325581395349	-0.913233633742985	1.0	null	279.0	-3	1166.830557240969938	1166.830557240971075	ms_run[1]:scan=270	0
+OSM	UGCGUGGCCAA	[, , NucleicAcidSearchEngine, test]	221.402037514380055	0.0	-0.051139744011459	1.0789583545474978e-03	null	59.0	-3	1166.830557240969938	1166.830557240971075	ms_run[1]:scan=50	0
+OSM	UGCGUUUCAUU	[, , NucleicAcidSearchEngine, test]	16.882736220281771	0.487341772151899	-1.026900919571719	1.0	null	190.0	-2	1700.705741523649976	1700.705741523654524	ms_run[1]:scan=181	0
+OSM	UGCUGCCGUCG	[, , NucleicAcidSearchEngine, test]	24.446463579623678	0.325757575757576	-0.919510338866877	1.0	null	191.0	-3	1151.15107389700006	1151.15107389700438	ms_run[1]:scan=182	0
+OSM	UGGCAAUUA	[, , NucleicAcidSearchEngine, test]	63.985752520014174	0.0	-0.189784240639877	1.0789583545474978e-03	null	74.0	-2	1418.199661698700083	1418.199661698704404	ms_run[1]:scan=65	0
+OSM	UGGCCGUGAGCC	[, , NucleicAcidSearchEngine, test]	4.236225333632726	null	-1.169978168692016	1.0	null	312.0	-2	1911.267576023850097	1911.26757602385419	ms_run[1]:scan=303	0
+OSM	UGGCCGUGAGCC	[, , NucleicAcidSearchEngine, test]	117.152558398346969	0.0	-0.140251989644747	1.0789583545474978e-03	null	92.0	-2	1911.267576023850097	1911.26757602385419	ms_run[1]:scan=83	0
+OSM	UGUACUUGCU	[, , NucleicAcidSearchEngine, test]	200.505313950594257	0.0	0.0	1.0789583545474978e-03	null	117.0	-3	1031.459633918140071	1031.459633918137797	ms_run[1]:scan=108	0
+OSM	UGUCACUAA	[, , NucleicAcidSearchEngine, test]	14.347515887644242	0.435897435897436	-1.016121644404801	1.0	null	155.0	-3	931.795299648470973	931.795299648470973	ms_run[1]:scan=146	0
+OSM	UGUCACUAA	[, , NucleicAcidSearchEngine, test]	14.250222306399417	0.547872340425532	-1.11871607384819	1.0	null	265.0	-3	931.795299648470973	931.795299648470973	ms_run[1]:scan=256	0
+OSM	UGUCACUAA	[, , NucleicAcidSearchEngine, test]	24.385472913037017	0.345070422535211	-0.948512043739063	1.0	null	375.0	-3	931.795299648470973	931.795299648470973	ms_run[1]:scan=366	0
+OSM	UUACUAGU	[, , NucleicAcidSearchEngine, test]	22.000986281789853	0.184210526315789	-0.84861601068136	0.982725953652635	null	207.0	-3	822.439131013571	822.439131013571	ms_run[1]:scan=198	0
+OSM	UUACUUUGCGU	[, , NucleicAcidSearchEngine, test]	4.157429081638519	0.547872340425532	-1.125647066755528	1.0	null	300.0	-2	1700.705741523649976	1700.705741523654524	ms_run[1]:scan=291	0
+OSM	UUACUUUGCGU	[, , NucleicAcidSearchEngine, test]	98.656548392685266	0.0	-0.166187311982609	1.0789583545474978e-03	null	80.0	-2	1700.705741523649976	1700.705741523654524	ms_run[1]:scan=71	0
+OSM	UUAGUACCGU	[, , NucleicAcidSearchEngine, test]	16.933183480240157	null	-0.951761149215083	1.0	null	295.0	-3	1039.135372928770039	1039.135372928770948	ms_run[1]:scan=286	0
+OSM	UUCCACUGAU	[, , NucleicAcidSearchEngine, test]	5.856326694703939	null	-1.171705620520737	1.0	null	198.0	-2	1539.203623619149994	1539.203623619154314	ms_run[1]:scan=189	0
+OSM	UUCCACUGAU	[, , NucleicAcidSearchEngine, test]	12.072081691833525	0.502958579881657	-1.060123321567435	1.0	null	308.0	-2	1539.203623619149994	1539.203623619154314	ms_run[1]:scan=299	0
+OSM	UUCUUAUACUC	[, , NucleicAcidSearchEngine, test]	38.651237272620371	0.096153846153846	-0.789762746517861	0.818226612227272	null	219.0	-3	1114.801047865099918	1114.801047865104238	ms_run[1]:scan=210	0
+OSM	UUCUUAUACUC	[, , NucleicAcidSearchEngine, test]	24.490270133778228	0.372413793103448	-0.965511332223327	1.0	null	329.0	-3	1114.801047865099918	1114.801047865104238	ms_run[1]:scan=320	0
+OSM	UUGCGUCU	[, , NucleicAcidSearchEngine, test]	3.769584726635916	null	-1.266544127719443	1.0	null	132.0	-2	1230.154175746349893	1230.15417574635444	ms_run[1]:scan=123	0
+OSM	UUGCGUCU	[, , NucleicAcidSearchEngine, test]	7.867339632835581	null	-1.139351127532151	1.0	null	242.0	-2	1230.154175746349893	1230.15417574635444	ms_run[1]:scan=233	0
+OSM	UUGCGUCU	[, , NucleicAcidSearchEngine, test]	2.156363589028241	null	-1.289396090637065	1.0	null	352.0	-2	1230.154175746349893	1230.15417574635444	ms_run[1]:scan=343	0
+OSM	UUGGACUUAGU	[, , NucleicAcidSearchEngine, test]	12.139394267255607	null	-1.030647880877213	1.0	null	272.0	-2	1732.2224240395999	1732.222424039604448	ms_run[1]:scan=263	0
+OSM	UUGGACUUAGU	[, , NucleicAcidSearchEngine, test]	48.052092424750029	0.0	-0.554951297842916	0.098560030246674	null	52.0	-2	1732.2224240395999	1732.222424039604448	ms_run[1]:scan=43	0
+OSM	UUUCAGGGGACG	[, , NucleicAcidSearchEngine, test]	9.814371734033749	0.55868544600939	-1.165124515604631	1.0	null	292.0	-2	1923.76520050790009	1923.765200507904183	ms_run[1]:scan=283	0
+OSM	UUUCAUAUGGAA	[, , NucleicAcidSearchEngine, test]	17.046267068443218	0.218487394957983	-0.876772789525932	1.0	null	284.0	-2	1888.75122747599994	1888.75122747600426	ms_run[1]:scan=275	0
+OSM	UUUGUUGGCAAG	[, , NucleicAcidSearchEngine, test]	7.829718642237381	null	-1.174369105429839	1.0	null	304.0	-2	1904.746142475999932	1904.746142476004252	ms_run[1]:scan=295	0

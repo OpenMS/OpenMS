@@ -50,6 +50,7 @@
 #include "RNAModificationDiagnostics.h"
 #include "RNARouteScorer.h"
 #include "RNARouteCandidateGenerator.h"
+#include "RNARescoringFeatures.h"
 #include <OpenMS/CHEMISTRY/NASequence.h>
 
 // preprocessing and filtering of spectra
@@ -65,6 +66,7 @@
 
 // post-processing of results
 #include <OpenMS/ANALYSIS/ID/FalseDiscoveryRate.h>
+#include <OpenMS/ANALYSIS/ID/Percolator.h>
 #include <OpenMS/PROCESSING/ID/IDFilter.h>
 
 
@@ -487,6 +489,27 @@ protected:
     setMinFloat_("fdr:cutoff", 0.0);
     setMaxFloat_("fdr:cutoff", 1.0);
     registerFlag_("fdr:remove_decoys", "Do not score hits to decoy sequences and remove them when filtering");
+
+    registerTOPPSubsection_("rescoring", "Semi-supervised rescoring of the search hits with in-process Percolator (requires 'fdr:decoy_pattern')");
+    registerFlag_("rescoring:enable",
+                  "Rescore the best hit of every spectrum with Percolator on match features (score margins to the other hits, precursor "
+                  "error, ion-series coverage, matched intensity and the evidence of the candidate method). The q-values are then "
+                  "calculated on the Percolator score; the native score, Percolator score and PEP are reported. The order of the hits of a "
+                  "spectrum is unchanged, and hits below the best one get no Percolator score or q-value. If Percolator cannot run (e.g. "
+                  "too few decoys), the native score is used with a warning.");
+    registerIntOption_("rescoring:top_hits", "<num>", 2,
+                       "Hits per spectrum retained for the score-margin features of rescoring (at least 'report:top_hits'; 0 for all)",
+                       false, true);
+    setMinInt_("rescoring:top_hits", 0);
+    registerIntOption_("rescoring:min_decoys", "<num>", 100,
+                       "Minimum number of spectra whose best hit is a decoy; with fewer, Percolator's model and PEPs are unreliable and the "
+                       "native score is used",
+                       false, true);
+    setMinInt_("rescoring:min_decoys", 1);
+    registerIntOption_("rescoring:seed", "<num>", 1, "Random seed of Percolator's cross-validation folds", false, true);
+    registerOutputFile_("rescoring:out_features", "<file>", "",
+                        "Optional output file: the feature row, label and Percolator result of every rescored hit (for inspection)", false, true);
+    setValidFormats_("rescoring:out_features", {"tsv"});
   }
 
   // relevant information about an MS2 precursor ion
@@ -550,6 +573,8 @@ protected:
     RNARouteScorer::Result route_evidence;
     std::string native_scoring_scaffold;
     std::optional<IdentificationData::IdentifiedOligo> parent_override;
+    std::optional<double> percolator_score; // set by rescoring (best hits of a spectrum)
+    std::optional<double> percolator_pep;
   };
 
   typedef multimap<double, AnnotatedHit, greater<double>> HitsByScore;
@@ -1287,16 +1312,218 @@ protected:
     hits.erase(hits.upper_bound(cutoff->first), hits.end());
   }
 
-  void postProcessHits_(const PeakMap& exp,
+  static bool isDecoyHit_(const AnnotatedHit& hit)
+  {
+    return (hit.parent_override ? *hit.parent_override : *hit.oligo_ref).allParentsAreDecoys();
+  }
+
+  /// Score types of Percolator rescoring (registered only if 'rescoring:enable' is set).
+  struct RescoringScores
+  {
+    IdentificationData::ScoreTypeRef score_ref;
+    IdentificationData::ScoreTypeRef pep_ref;
+  };
+
+  /**
+    @brief Rescore the best hit of every spectrum with Percolator.
+
+    The hits must be sorted and ambiguity-resolved. Percolator gets one row per spectrum: its best native hit,
+    described relative to the other retained hits (score margins). This is the usual Percolator input (one
+    PSM per spectrum with delta scores), so Percolator's PEPs refer to the same spectrum-level competition as
+    NASE's FDR calculation. Hits tied with the best native score share its Percolator score and
+    PEP; lower-ranked hits get none (and therefore no q-value). The order of the hits of a spectrum is unchanged.
+
+    @return False (no Percolator scores) if Percolator cannot run, e.g. with too few decoys.
+  */
+  bool rescoreHits_(const PeakMap& exp, vector<HitsByScore>& annotated_hits)
+  {
+    Size min_charge = std::numeric_limits<Size>::max(), max_charge = 0, n_rows = 0, n_decoys = 0;
+    for (const auto& hits : annotated_hits)
+    {
+      if (hits.empty()) continue;
+      const AnnotatedHit& best = hits.begin()->second;
+      const Size charge = static_cast<Size>(std::abs(best.precursor_ref->charge));
+      min_charge = std::min(min_charge, charge);
+      max_charge = std::max(max_charge, charge);
+      ++n_rows;
+      if (isDecoyHit_(best)) ++n_decoys;
+    }
+    const Size min_decoys = getIntOption_("rescoring:min_decoys");
+    if ((n_decoys < min_decoys) || (n_decoys == n_rows))
+    {
+      OPENMS_LOG_WARN << "Warning: Rescoring needs target spectrum matches and at least " << min_decoys
+                      << " decoy ones ('rescoring:min_decoys'); found " << n_rows - n_decoys << " target and " << n_decoys
+                      << " decoy best hits. Using the native search score." << endl;
+      return false;
+    }
+
+    // The charge columns cover the charges of all rows (independent of the labels).
+    RNARescoringFeatures::Options options;
+    options.ion_series = getStringList_("fragment:ions");
+    options.min_charge = std::max<Size>(min_charge, 1);
+    options.max_charge = std::max(max_charge, options.min_charge);
+    const std::string candidate_method = getStringOption_("candidates:method");
+    options.route = getStringOption_("scoring:method") == "route";
+    options.graph = (candidate_method != "enumeration") && (candidate_method != "graph_routes");
+    options.diagnostics = getFlag_("diagnostic:filter");
+    options.flash = getFlag_("precursor:correct_with_flash");
+    const RNARescoringFeatures builder(options);
+
+    vector<vector<double>> scan_rows(annotated_hits.size());
+#pragma omp parallel for
+    for (SignedSize scan_index = 0; scan_index < (SignedSize)annotated_hits.size(); ++scan_index)
+    {
+      const HitsByScore& hits = annotated_hits[scan_index];
+      if (hits.empty()) continue;
+      const MSSpectrum& spectrum = exp[scan_index];
+      RNARescoringFeatures::SpectrumInput spectrum_input;
+      for (const auto& peak : spectrum) spectrum_input.total_intensity += peak.getIntensity();
+      if (spectrum.metaValueExists("diagnostic_allowed_mods"))
+      {
+        for (const auto& code : spectrum.getMetaValue("diagnostic_allowed_mods").toStringList())
+        {
+          spectrum_input.diagnostic_allowed.insert(code);
+        }
+      }
+      if (spectrum.metaValueExists("flash_precursor_cosine"))
+      {
+        spectrum_input.flash_cosine = double(spectrum.getMetaValue("flash_precursor_cosine"));
+        if (spectrum.metaValueExists("flash_precursor_snr")) spectrum_input.flash_snr = double(spectrum.getMetaValue("flash_precursor_snr"));
+      }
+      vector<RNARescoringFeatures::HitInput> inputs;
+      inputs.reserve(hits.size());
+      for (const auto& [score, hit] : hits)
+      {
+        RNARescoringFeatures::HitInput input;
+        input.native_score = score;
+        input.sequence = hit.sequence;
+        input.precursor_error_ppm = hit.precursor_error_ppm;
+        input.isotope_offset = hit.precursor_ref->isotope;
+        input.charge = hit.precursor_ref->charge;
+        input.adduct = hit.precursor_ref->adduct.has_value();
+        input.annotations = &hit.annotations;
+        input.route_score = hit.route_evidence.score;
+        input.route_nodes = hit.route_evidence.nodes;
+        input.route_matched_intensity = hit.route_evidence.matched_intensity;
+        input.route_local_intensity = hit.route_evidence.local_intensity;
+        input.route_prefix_length = hit.route_evidence.prefix_length;
+        input.route_suffix_length = hit.route_evidence.suffix_length;
+        input.graph_tag_length = (hit.graph_evaluated && hit.graph_evidence.supported) ? hit.graph_evidence.length : 0;
+        inputs.push_back(std::move(input));
+      }
+      // All retained hits give the margins; only the best one is rescored.
+      scan_rows[scan_index] = std::move(builder.computeSpectrum(inputs, spectrum_input).front());
+    }
+
+    RescoreInput input;
+    input.feature_names = builder.featureNames();
+    input.features.reserve(n_rows);
+    vector<Size> row_scans;
+    for (Size scan_index = 0; scan_index < annotated_hits.size(); ++scan_index)
+    {
+      if (annotated_hits[scan_index].empty()) continue;
+      input.features.push_back(std::move(scan_rows[scan_index]));
+      input.is_decoy.push_back(isDecoyHit_(annotated_hits[scan_index].begin()->second));
+      input.scan_numbers.push_back(static_cast<int>(scan_index));
+      row_scans.push_back(scan_index);
+    }
+
+    Percolator percolator;
+    Param param = percolator.getParameters();
+    param.setValue("seed", getIntOption_("rescoring:seed"));
+    param.setValue("num_threads", std::max(getIntOption_("threads"), 1));
+    percolator.setParameters(param);
+    RescoreOutput output;
+    try
+    {
+      output = percolator.rescore(input);
+    }
+    catch (const Exception::BaseException& e)
+    {
+      OPENMS_LOG_WARN << "Warning: Percolator rescoring failed (" << n_rows << " spectra, " << n_decoys << " decoy best hits): " << e.what()
+                      << "\nUsing the native search score." << endl;
+      writeRescoringFeatures_(exp, annotated_hits, input, row_scans, nullptr);
+      return false;
+    }
+    if (percolator.usedDefaultDirection())
+    {
+      OPENMS_LOG_WARN << "Warning: Percolator found no model better than its best single feature; the Percolator score follows that "
+                         "feature." << endl;
+    }
+    writeRescoringFeatures_(exp, annotated_hits, input, row_scans, &output);
+
+    for (Size row = 0; row < n_rows; ++row)
+    {
+      HitsByScore& hits = annotated_hits[row_scans[row]];
+      const double best_score = hits.begin()->first;
+      for (auto it = hits.begin(); (it != hits.end()) && (it->first == best_score); ++it)
+      {
+        it->second.percolator_score = output.scores[row];
+        it->second.percolator_pep = output.peps[row];
+      }
+    }
+    OPENMS_LOG_INFO << "Rescored the best hits of " << n_rows << " spectra (" << n_decoys << " decoys) with Percolator." << endl;
+    return true;
+  }
+
+  /// Write the rescoring features of the best hits (and the Percolator results, if any) to 'rescoring:out_features'.
+  void writeRescoringFeatures_(const PeakMap& exp, const vector<HitsByScore>& annotated_hits, const RescoreInput& input,
+                               const vector<Size>& row_scans, const RescoreOutput* output)
+  {
+    const std::string path = getStringOption_("rescoring:out_features");
+    if (path.empty()) return;
+    SVOutStream out(path, "\t", "_", QuotingMethod::NONE);
+    out << "native_id" << "scan_index" << "sequence" << "charge" << "decoy";
+    for (const auto& name : input.feature_names) out << name;
+    out << "percolator_score" << "percolator_q_value" << "percolator_pep" << nl;
+    for (Size row = 0; row < row_scans.size(); ++row)
+    {
+      const Size scan_index = row_scans[row];
+      const AnnotatedHit& hit = annotated_hits[scan_index].begin()->second;
+      out << exp[scan_index].getNativeID() << scan_index << hit.sequence.toString() << hit.precursor_ref->charge
+          << (input.is_decoy[row] ? 1 : 0);
+      for (double value : input.features[row]) out << value;
+      if (output) out << output->scores[row] << output->q_values[row] << output->peps[row];
+      else out << "" << "" << "";
+      out << nl;
+    }
+  }
+
+  /**
+    @brief Turn the search hits into observation matches.
+
+    With @p rescoring, the best hits are also rescored (rescoreHits_()). Each spectrum keeps its best
+    @p report_top_hits hits by native score (with exact ties).
+
+    @return Whether the hits were rescored
+  */
+  bool postProcessHits_(const PeakMap& exp,
                         vector<HitsByScore>& annotated_hits,
                         IdentificationData& id_data,
                         bool negative_mode,
                         IdentificationData::InputFileRef file_ref,
                         IdentificationData::ScoreTypeRef score_ref,
-                        Size report_top_hits)
+                        Size report_top_hits,
+                        const std::optional<RescoringScores>& rescoring)
   {
     // Use the current run references; cached entries may sort before them.
     const std::string graph_method = getStringOption_("candidates:method");
+
+#pragma omp parallel for
+    for (SignedSize scan_index = 0; scan_index < (SignedSize)annotated_hits.size(); ++scan_index)
+    {
+      HitsByScore& hits = annotated_hits[scan_index];
+      if (hits.empty()) continue;
+      sortHitsByValue_(hits);
+      if (resolve_ambiguous_mods_ && (hits.size() > 1))
+      {
+        resolveAmbiguousMods_(hits);
+        // Merged ambiguity codes can change the value order of the surviving hits.
+        sortHitsByValue_(hits);
+      }
+    }
+
+    const bool rescored = rescoring && rescoreHits_(exp, annotated_hits);
 
 // @TODO: change OpenMP schedule from default ("static") to "dynamic"/"guided"?
 #pragma omp parallel for
@@ -1320,14 +1547,6 @@ protected:
 #pragma omp critical (id_data_access)
       obs_ref = id_data.registerObservation(obs);
 
-      sortHitsByValue_(annotated_hits[scan_index]);
-
-      if (resolve_ambiguous_mods_ && (annotated_hits[scan_index].size() > 1))
-      {
-        resolveAmbiguousMods_(annotated_hits[scan_index]);
-        // Merged ambiguity codes can change the value order of the surviving hits.
-        sortHitsByValue_(annotated_hits[scan_index]);
-      }
       // The search may retain more hits than are reported (search_top_hits).
       trimToTopHits_(annotated_hits[scan_index], report_top_hits);
 
@@ -1349,6 +1568,8 @@ protected:
         if ((charge > 0) && negative_mode) charge = -charge;
         IdentificationData::ObservationMatch match(oligo_ref, obs_ref, charge);
         match.addScore(score_ref, score, id_data.getCurrentProcessingStep());
+        if (hit.percolator_score) match.addScore(rescoring->score_ref, *hit.percolator_score, id_data.getCurrentProcessingStep());
+        if (hit.percolator_pep) match.addScore(rescoring->pep_ref, *hit.percolator_pep, id_data.getCurrentProcessingStep());
         match.peak_annotations[id_data.getCurrentProcessingStep()] =
           hit.annotations;
         // @TODO: add a field for this to "IdentificationData::ObservationMatch"?
@@ -1416,6 +1637,7 @@ protected:
       }
     }
     id_data.cleanup();
+    return rescored;
   }
 
 
@@ -1514,11 +1736,9 @@ protected:
   }
 
 
-  void calculateAndFilterFDR_(IdentificationData& id_data, bool only_top_hits)
+  /// q-values from target-decoy competition on @p score_ref (the score that ranks the hits)
+  void calculateAndFilterFDR_(IdentificationData& id_data, bool only_top_hits, IdentificationData::ScoreTypeRef score_ref)
   {
-    const std::string scoring_method = getStringOption_("scoring:method");
-    IdentificationData::ScoreTypeRef score_ref
-      = id_data.findScoreType(scoring_method == "route" ? "RNA route score" : (scoring_method == "mvh" ? "MVH score" : "hyperscore"));
     FalseDiscoveryRate fdr;
     Param fdr_params = fdr.getDefaults();
     fdr_params.setValue("use_all_hits", only_top_hits ? "false" : "true");
@@ -1804,8 +2024,14 @@ protected:
       getIntOption_("modifications:variable_max_per_oligo");
     Size report_top_hits = getIntOption_("report:top_hits");
     // Hits retained per spectrum during the search; postProcessHits_ trims them to report_top_hits.
-    // Rescoring will retain runner-up hits for its delta features.
-    const Size search_top_hits = report_top_hits;
+    // Rescoring retains runner-up hits for its score-margin features (0 = all hits).
+    const bool rescoring_enabled = getFlag_("rescoring:enable");
+    Size search_top_hits = report_top_hits;
+    if (rescoring_enabled && (search_top_hits != 0))
+    {
+      const Size rescoring_top_hits = getIntOption_("rescoring:top_hits");
+      search_top_hits = (rescoring_top_hits == 0) ? 0 : std::max(search_top_hits, rescoring_top_hits);
+    }
 
     std::string enzyme_name = getStringOption_("oligo:enzyme");
     const DigestionEnzyme* configured_enzyme =
@@ -1983,6 +2209,16 @@ protected:
     // @TODO: which should be the "primary" (first) score?
     software.assigned_scores.push_back(search_score_ref);
     software.assigned_scores.push_back(qvalue_ref);
+    std::optional<RescoringScores> rescoring_scores;
+    if (rescoring_enabled)
+    {
+      RescoringScores refs;
+      refs.score_ref = id_data.registerScoreType(IdentificationData::ScoreType(CVTerm("MS:1001492", "percolator:score", "MS"), true));
+      refs.pep_ref = id_data.registerScoreType(IdentificationData::ScoreType(CVTerm("MS:1001493", "percolator:PEP", "MS"), false));
+      software.assigned_scores.push_back(refs.score_ref);
+      software.assigned_scores.push_back(refs.pep_ref);
+      rescoring_scores = refs;
+    }
     IdentificationData::ProcessingSoftwareRef software_ref =
       id_data.registerProcessingSoftware(software);
     // @TODO: add suitable data processing action
@@ -1999,6 +2235,11 @@ protected:
 
     // get digested sequences:
     std::string decoy_pattern = getStringOption_("fdr:decoy_pattern");
+    if (rescoring_enabled && decoy_pattern.empty())
+    {
+      OPENMS_LOG_ERROR << "Error: 'rescoring:enable' requires decoy sequences ('fdr:decoy_pattern')." << endl;
+      return ILLEGAL_PARAMETERS;
+    }
     if (in_digest.empty()) // new digestion
     {
       search_param.database = in_db;
@@ -3323,7 +3564,8 @@ protected:
     }
 
     progresslogger.startProgress(0, 1, "post-processing search hits...");
-    postProcessHits_(spectra, annotated_hits, id_data, negative_mode, file_ref, search_score_ref, report_top_hits);
+    const bool rescored =
+      postProcessHits_(spectra, annotated_hits, id_data, negative_mode, file_ref, search_score_ref, report_top_hits, rescoring_scores);
     progresslogger.endProgress();
     OPENMS_LOG_INFO << "Identified spectra: " << id_data.getObservations().size()
                     << endl;
@@ -3332,7 +3574,7 @@ protected:
     if (!decoy_pattern.empty())
     {
       OPENMS_LOG_INFO << "Performing FDR calculations..." << endl;
-      calculateAndFilterFDR_(id_data, report_top_hits == 1);
+      calculateAndFilterFDR_(id_data, report_top_hits == 1, rescored ? rescoring_scores->score_ref : search_score_ref);
     }
     id_data.calculateCoverages();
 

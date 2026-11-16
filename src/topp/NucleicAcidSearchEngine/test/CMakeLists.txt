@@ -33,7 +33,8 @@ target_sources(NASEDigestion_test PRIVATE
   ${CMAKE_CURRENT_SOURCE_DIR}/../source/RNATagCandidateFilter.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/../source/RNAModificationDiagnostics.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/../source/RNARouteScorer.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/../source/RNARouteCandidateGenerator.cpp)
+  ${CMAKE_CURRENT_SOURCE_DIR}/../source/RNARouteCandidateGenerator.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/../source/RNARescoringFeatures.cpp)
 
 openms_add_tool_class_test(RNASpectrumGraph_test
   SOURCES
