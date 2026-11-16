@@ -168,7 +168,8 @@ void FLASHAnnotatorAlgorithm::setDefaultParams_()
   defaults_.setValue("internal_ions", "true",
                      "Annotate internal fragments (both ends inside the proteoform). The cleavage after a residue is authentic if pieces of "
                      "consecutive lengths that all end with that residue, or all start right after it, are accepted (a ladder giving a tag): "
-                     "a tag of at least internal_min_tag_length_asp residues after Asp, internal_min_tag_length elsewhere. Ladder pieces "
+                     "a tag of at least internal_min_tag_length_asp residues after Asp, internal_min_tag_length_pro before Pro, "
+                     "internal_min_tag_length elsewhere. Ladder pieces "
                      "count; internal_extension decides which other pieces at authentic cleavages count. The same decoy shifts measure "
                      "their chance rate.");
   defaults_.setValidStrings("internal_ions", {"true", "false"});
@@ -180,6 +181,12 @@ void FLASHAnnotatorAlgorithm::setDefaultParams_()
                      "Tag length (consecutive pieces - 1) that makes a cleavage after Asp authentic (aspartic acid effect). On raw peaks "
                      "of the 20260715 targeted set, 1 adds chance coverage of ~2.4 points, 2 ~0.7.");
   defaults_.setMinInt("internal_min_tag_length_asp", 1);
+
+  defaults_.setValue("internal_min_tag_length_pro", 4,
+                     "Tag length (consecutive pieces - 1) that makes a cleavage before Pro authentic (proline effect). A cleavage after "
+                     "Asp and before Pro takes the smaller of the two thresholds. The value of internal_min_tag_length treats Pro like "
+                     "any other residue. On native spectra of 34 E. coli proteins, tags of length 4 before Pro are 4% chance, length 3 9%.");
+  defaults_.setMinInt("internal_min_tag_length_pro", 1);
 
   defaults_.setValue("internal_min_tag_length", 5,
                      "Tag length that makes any other cleavage authentic. On raw peaks of the 20260715 targeted set, 3 adds chance "
@@ -218,6 +225,7 @@ void FLASHAnnotatorAlgorithm::updateMembers_()
   internal_max_length_ = param_.getValue("internal_max_length");
   min_run_asp_ = (int)param_.getValue("internal_min_tag_length_asp") + 1;
   min_run_other_ = (int)param_.getValue("internal_min_tag_length") + 1;
+  min_run_pro_ = (int)param_.getValue("internal_min_tag_length_pro") + 1;
   const std::string extension = param_.getValue("internal_extension").toString();
   extension_min_run_ = extension == "all" ? 1 : (extension == "tag1" ? 2 : 0);
 
@@ -1153,7 +1161,14 @@ std::set<std::pair<int, int>> FLASHAnnotatorAlgorithm::annotateInternal_(const P
   // ladders: for the cleavage after residue a and one internal ion type, accepted pieces of consecutive lengths that all end with
   // a, or all start right after it. run_end / run_start: the size of a piece's run in the group of its last / first residue.
   authentic.assign(length, 0);
-  auto min_run = [&sequence, this](int a) { return (sequence[a] == 'D' || sequence[a] == 'd') ? min_run_asp_ : min_run_other_; };
+  // threshold by the residues around the cleavage after residue a: after Asp, before Pro (the smaller one where both hold), other
+  auto min_run = [&sequence, length, this](int a) {
+    const bool asp = sequence[a] == 'D' || sequence[a] == 'd';
+    const bool pro = a + 1 < length && (sequence[a + 1] == 'P' || sequence[a + 1] == 'p');
+    if (asp && pro) return std::min(min_run_asp_, min_run_pro_);
+    if (asp) return min_run_asp_;
+    return pro ? min_run_pro_ : min_run_other_;
+  };
   std::vector<int> run_end(accepted.size(), 0), run_start(accepted.size(), 0);
   std::vector<int> run;
   auto flush = [&](int a, std::vector<int>& run_size) {

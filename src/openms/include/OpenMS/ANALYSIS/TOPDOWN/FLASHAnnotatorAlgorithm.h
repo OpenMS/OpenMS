@@ -379,9 +379,10 @@ private:
   bool report_decoys_ = false;
   bool internal_on_ = true;
   int internal_max_length_ = 150;
-  /// pieces in a ladder that make a cleavage authentic: after Asp, and elsewhere (tag length + 1)
+  /// pieces in a ladder that make a cleavage authentic: after Asp, elsewhere, and before Pro (tag length + 1)
   int min_run_asp_ = 2;
   int min_run_other_ = 4;
+  int min_run_pro_ = 5;
   /// minimum run of consecutive lengths for pieces beyond the ladders: 0 none, 1 all, 2 a tag of length one
   int extension_min_run_ = 2;
   /// internal ion types: mass added to the residue sum (C-end prefix shift + N-end suffix shift - H2O), and their names
