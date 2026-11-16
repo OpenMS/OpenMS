@@ -574,12 +574,11 @@ protected:
             double expected_mz = current_mz + i * Constants::C13C12_MASSDIFF_U / abs(q);
             Size p = old_spectrum.findNearest(expected_mz);
             double tolerance_dalton = fragment_unit_ppm ? fragment_tolerance * old_spectrum[p].getPosition()[0] * 1e-6 : fragment_tolerance;
-            if (fabs(old_spectrum[p].getPosition()[0] - expected_mz) > tolerance_dalton) // test for missing peak
+            // Expected isotope m/z values increase. Reusing the nearest peak
+            // cannot supply another observed isotope, even with a wide window.
+            if (fabs(old_spectrum[p].getPosition()[0] - expected_mz) > tolerance_dalton || (! extensions.empty() && p <= extensions.back()))
             {
-              if (i < min_isopeaks)
-              {
-                has_min_isopeaks = false;
-              }
+              if (extensions.size() < min_isopeaks) { has_min_isopeaks = false; }
               break;
             }
             else
@@ -605,7 +604,7 @@ protected:
             }
           }
 
-          if (has_min_isopeaks)
+          if (has_min_isopeaks && extensions.size() >= min_isopeaks)
           {
             //cout << "min peaks at " << current_mz << " " << " extensions: " << extensions.size() << endl;
             mono_isotopic_peak[current_peak] = q;

@@ -233,6 +233,63 @@ START_SECTION(([EXTRA] legacy fragment isotope thresholds and envelope intensity
 }
 END_SECTION
 
+START_SECTION(([EXTRA] legacy isotope envelopes require distinct observed peaks))
+{
+  TestNASE tool;
+  for (Int polarity : {-1, 1})
+  {
+    for (bool ppm : {false, true})
+    {
+      // The window is wider than the isotope spacing at charge 20. The
+      // nearest peak can therefore be returned for several isotope ordinals.
+      const double tolerance = ppm ? 320.0 : 0.16;
+      for (Size minimum : {Size(2), Size(3)})
+      {
+        for (bool decharge : {false, true})
+        {
+          MSSpectrum isolated;
+          isolated.emplace_back(500, 10);
+          tool.deisotopeAndSingleChargeMSSpectrum_(isolated, polarity, 20 * polarity, tolerance, ppm, false, minimum, 10, decharge, true, true);
+          TEST_EQUAL(isolated.size(), 1)
+          TEST_REAL_SIMILAR(isolated[0].getMZ(), 500)
+          TEST_REAL_SIMILAR(isolated[0].getIntensity(), 10)
+          TEST_EQUAL((*legacyCharges(isolated))[0], 0)
+        }
+      }
+      MSSpectrum isolated;
+      isolated.emplace_back(500, 10);
+      tool.deisotopeAndSingleChargeMSSpectrum_(isolated, polarity, 20 * polarity, tolerance, ppm, true, 2, 10, true, true, true);
+      TEST_TRUE(isolated.empty())
+      MSSpectrum doublet;
+      doublet.emplace_back(500, 10);
+      doublet.emplace_back(500 + Constants::C13C12_MASSDIFF_U / 20, 4);
+      auto insufficient = doublet;
+      // Revisiting the second peak must not turn a doublet into a triplet.
+      tool.deisotopeAndSingleChargeMSSpectrum_(insufficient, 20 * polarity, 20 * polarity, ppm ? 120.0 : 0.06, ppm, false, 3, 10, true, true, true);
+      TEST_EQUAL(insufficient.size(), 2)
+      for (Size i = 0; i < std::min(insufficient.size(), doublet.size()); ++i)
+      {
+        TEST_REAL_SIMILAR(insufficient[i].getMZ(), doublet[i].getMZ())
+        TEST_REAL_SIMILAR(insufficient[i].getIntensity(), doublet[i].getIntensity())
+        TEST_EQUAL((*legacyCharges(insufficient))[i], 0)
+      }
+      // A genuine doublet still passes a two-peak minimum, even when the
+      // next expected isotope would select the second peak again.
+      for (bool decharge : {false, true})
+      {
+        auto sufficient = doublet;
+        tool.deisotopeAndSingleChargeMSSpectrum_(sufficient, 20 * polarity, 20 * polarity, ppm ? 120.0 : 0.06, ppm, false, 2, 10, decharge, true,
+                                                 true);
+        TEST_EQUAL(sufficient.size(), 1)
+        TEST_REAL_SIMILAR(sufficient[0].getIntensity(), 14)
+        TEST_REAL_SIMILAR(sufficient[0].getMZ(), decharge ? 10000 - polarity * 19 * Constants::PROTON_MASS_U : 500)
+        TEST_EQUAL((*legacyCharges(sufficient))[0], decharge ? 1 : 20)
+      }
+    }
+  }
+}
+END_SECTION
+
 START_SECTION(([EXTRA] optional legacy isotope detection retains unknown precursor charge))
 {
   TestNASE tool;
