@@ -36,6 +36,8 @@ namespace OpenMS::OpenDIA
     double precursor_im = 0.0;
     bool has_precursor_im = false;
     bool is_decoy = false;
+    /// Half width of this precursor's RT window; <= 0 uses SearchOptions::rt_window_seconds.
+    double rt_window_seconds = 0.0;
   };
 
   /// One reported candidate peak, as the feature table row with the same candidate_row (= index in candidates()).
@@ -144,6 +146,7 @@ namespace OpenMS::OpenDIA
       double precursor_im = 0.0;
       bool has_precursor_im = false;
       bool is_decoy = false;
+      double rt_window = 0.0; ///< RT half width in seconds.
     };
 
     struct Query
@@ -159,6 +162,7 @@ namespace OpenMS::OpenDIA
       double low_mz = 0.0;
       double high_mz = 0.0;
       double library_rt = 0.0;
+      double rt_window = 0.0;
       double precursor_im = 0.0;
       std::uint32_t candidate = 0;
       std::uint32_t slot = 0;

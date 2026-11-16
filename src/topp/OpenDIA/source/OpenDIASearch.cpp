@@ -104,6 +104,8 @@ namespace OpenMS::OpenDIA
         candidate.precursor_im = query.precursor_im;
         candidate.has_precursor_im = query.has_precursor_im && std::isfinite(query.precursor_im) && query.precursor_im > 0.0;
         candidate.is_decoy = query.is_decoy;
+        candidate.rt_window = query.rt_window_seconds > 0.0 && std::isfinite(query.rt_window_seconds) ? query.rt_window_seconds
+                                                                                                    : options_.rt_window_seconds;
         has_library_im_candidates_ = has_library_im_candidates_ || candidate.has_precursor_im;
         candidates_.push_back(std::move(candidate));
       }
@@ -156,7 +158,7 @@ namespace OpenMS::OpenDIA
     {
       const auto end = [this](std::size_t c)
       {
-        return candidates_[c].has_library_rt ? candidates_[c].library_rt + options_.rt_window_seconds
+        return candidates_[c].has_library_rt ? candidates_[c].library_rt + candidates_[c].rt_window
                                              : std::numeric_limits<double>::infinity();
       };
       return end(lhs) < end(rhs);
@@ -346,15 +348,21 @@ namespace OpenMS::OpenDIA
     const std::size_t timed = static_cast<std::size_t>(timed_end - members.begin());
 
     // Chunks of CANDIDATES_PER_CHUNK consecutive candidates; timed and untimed candidates never share a chunk.
-    const double window = options_.rt_window_seconds;
     const auto addChunk = [&](std::size_t first, std::size_t last, bool is_timed)
     {
       Chunk chunk;
       if (is_timed)
       {
-        // Conservative open range (1 ms margin against rounding); the exact window test is per query.
-        chunk.first_rt = candidates_[members[first]].library_rt - window - 1e-3;
-        chunk.last_rt = candidates_[members[last - 1]].library_rt + window + 1e-3;
+        // Conservative open range (1 ms margin against rounding); the exact window test is per query. Made monotone
+        // over the lane's timed chunks below.
+        chunk.first_rt = std::numeric_limits<double>::infinity();
+        chunk.last_rt = -std::numeric_limits<double>::infinity();
+        for (std::size_t m = first; m < last; ++m)
+        {
+          const Candidate& candidate = candidates_[members[m]];
+          chunk.first_rt = std::min(chunk.first_rt, candidate.library_rt - candidate.rt_window - 1e-3);
+          chunk.last_rt = std::max(chunk.last_rt, candidate.library_rt + candidate.rt_window + 1e-3);
+        }
       }
       else
       {
@@ -373,6 +381,7 @@ namespace OpenMS::OpenDIA
           lane_query.low_mz = query.fragment_mz - halfWidth_(query.fragment_mz);
           lane_query.high_mz = query.fragment_mz + halfWidth_(query.fragment_mz);
           lane_query.library_rt = candidate.library_rt;
+          lane_query.rt_window = candidate.rt_window;
           lane_query.precursor_im = candidate.precursor_im;
           lane_query.candidate = static_cast<std::uint32_t>(c);
           lane_query.slot = query.slot;
@@ -390,6 +399,10 @@ namespace OpenMS::OpenDIA
       addChunk(first, std::min(timed, first + CANDIDATES_PER_CHUNK), true);
     }
     lane.timed_chunks = lane.chunks.size();
+    // The batch lookup needs both ends of the timed open ranges nondecreasing; with per-precursor windows widen them to
+    // the running maximum (last) and the suffix minimum (first). This only adds (cell, chunk) work units.
+    for (std::size_t c = 1; c < lane.timed_chunks; ++c) lane.chunks[c].last_rt = std::max(lane.chunks[c].last_rt, lane.chunks[c - 1].last_rt);
+    for (std::size_t c = lane.timed_chunks; c-- > 1;) lane.chunks[c - 1].first_rt = std::min(lane.chunks[c - 1].first_rt, lane.chunks[c].first_rt);
     for (std::size_t first = timed; first < members.size(); first += CANDIDATES_PER_CHUNK)
     {
       addChunk(first, std::min(members.size(), first + CANDIDATES_PER_CHUNK), false);
@@ -398,7 +411,6 @@ namespace OpenMS::OpenDIA
 
   void StreamSearch::matchChunk_(const GridCell& cell, const Chunk& chunk, std::vector<Match>& matches) const
   {
-    const double window = options_.rt_window_seconds;
     const double tolerance_im = options_.ion_mobility_tolerance_vssc;
     const bool has_peak_im = cell.has_per_peak_im || cell.has_scalar_im;
     const auto points_begin = grid_points_.begin() + static_cast<std::ptrdiff_t>(cell.point_begin);
@@ -415,7 +427,7 @@ namespace OpenMS::OpenDIA
       {
         break;
       }
-      if (query.has_library_rt && std::abs(cell.rt - query.library_rt) > window)
+      if (query.has_library_rt && std::abs(cell.rt - query.library_rt) > query.rt_window)
       {
         continue;
       }
@@ -513,7 +525,7 @@ namespace OpenMS::OpenDIA
     while (end < close_order_.size())
     {
       const Candidate& candidate = candidates_[close_order_[end]];
-      if (!(candidate.has_library_rt && candidate.library_rt + options_.rt_window_seconds < last_rt))
+      if (!(candidate.has_library_rt && candidate.library_rt + candidate.rt_window < last_rt))
       {
         break;
       }
@@ -694,8 +706,8 @@ namespace OpenMS::OpenDIA
       auto last = lane.cell_rts.end();
       if (candidate.has_library_rt)
       {
-        first = std::lower_bound(lane.cell_rts.begin(), lane.cell_rts.end(), candidate.library_rt - options_.rt_window_seconds);
-        last = std::upper_bound(first, lane.cell_rts.end(), candidate.library_rt + options_.rt_window_seconds);
+        first = std::lower_bound(lane.cell_rts.begin(), lane.cell_rts.end(), candidate.library_rt - candidate.rt_window);
+        last = std::upper_bound(first, lane.cell_rts.end(), candidate.library_rt + candidate.rt_window);
       }
       for (auto it = first; it != last; ++it)
       {

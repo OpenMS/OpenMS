@@ -257,6 +257,61 @@ int main()
     require(text.rfind("early", 0) == 0, "rows must be written in order of RT-window end, untimed precursors last");
   }
 
+  // Per-precursor RT window (TransitionQuery::rt_window_seconds) overrides the global one. Two precursors at the same
+  // library RT 50 s: "narrow" (+-5 s) sees only the peak at 50 s; "wide" (+-40 s) also sees the one at 20 s. A third,
+  // at library RT 30 s with +-25 s, sits in a later chunk-order position than "wide" but opens earlier: the chunk ranges
+  // are not monotone, and its peak at 10 s must still be found.
+  {
+    OpenDIA::SearchOptions options = defaults();
+    options.rt_window_seconds = 1.0;
+    std::vector<OpenDIA::TransitionQuery> queries = {{"narrow", 500.0, 100.0, 50.0, true}, {"wide", 500.0, 100.0, 50.0, true},
+                                                     {"early_wide", 500.0, 100.0, 30.0, true}};
+    queries[0].rt_window_seconds = 5.0;
+    queries[1].rt_window_seconds = 40.0;
+    queries[2].rt_window_seconds = 25.0;
+    std::vector<MSSpectrum> spectra;
+    for (int i = 0; i < 100; ++i)
+    {
+      const double rt = 1.0 + i;
+      spectra.push_back(spectrum(rt, 500.0, {Peak1D(100.0, bell(rt, 50.0) + bell(rt, 20.0, 3000.0) + bell(rt, 10.0, 2000.0))}));
+    }
+    const auto rows = parse(run(queries, options, spectra));
+    bool narrow_20 = false, wide_20 = false, early_10 = false;
+    for (const Row& row : rows)
+    {
+      if (row.id == "narrow") require(row.apex == 50.0 && row.start >= 45.0 && row.end <= 55.0, "narrow precursor saw a scan outside its own window");
+      narrow_20 = narrow_20 || (row.id == "narrow" && row.apex == 20.0);
+      wide_20 = wide_20 || (row.id == "wide" && row.apex == 20.0);
+      early_10 = early_10 || (row.id == "early_wide" && row.apex == 10.0);
+    }
+    require(!narrow_20 && count(rows, "narrow") == 1, "narrow window did not exclude the peak at 20 s");
+    require(wide_20, "wide per-precursor window did not find the peak at 20 s");
+    require(early_10, "per-precursor window opening before an earlier chunk was not searched");
+  }
+
+  // Across chunks (256 candidates each, ordered by library RT): 300 narrow fillers at library RT 50 s fill the first
+  // chunk, then one precursor at library RT 60 s (second chunk) with a +-55 s window must still reach its peak at 8 s,
+  // before the first chunk opens. This exercises the monotone widening of the timed chunk ranges.
+  {
+    OpenDIA::SearchOptions options = defaults();
+    options.rt_window_seconds = 2.0;
+    std::vector<std::string> ids;
+    for (int i = 0; i < 300; ++i) ids.push_back("filler" + std::to_string(i));
+    std::vector<OpenDIA::TransitionQuery> queries;
+    for (const auto& id : ids) queries.push_back({id, 500.0, 200.0, 50.0, true});
+    queries.push_back({"late_wide", 500.0, 100.0, 60.0, true});
+    queries.back().rt_window_seconds = 55.0;
+    std::vector<MSSpectrum> spectra;
+    for (int i = 0; i < 100; ++i)
+    {
+      const double rt = 1.0 + i;
+      spectra.push_back(spectrum(rt, 500.0, {Peak1D(100.0, bell(rt, 8.0)), Peak1D(200.0, bell(rt, 50.0))}));
+    }
+    bool found = false;
+    for (const Row& row : parse(run(queries, options, spectra))) found = found || (row.id == "late_wide" && row.apex == 8.0);
+    require(found, "a wide window in a later chunk missed scans before the earlier chunk opened");
+  }
+
   // Ion mobility: applied only when both the library and the spectrum provide 1/K0.
   {
     const std::vector<OpenDIA::TransitionQuery> queries = {{"target", 500.0, 100.0, 0.0, false, 0.80, true}, {"interferer", 500.0, 100.0, 0.0, false, 0.95, true}};

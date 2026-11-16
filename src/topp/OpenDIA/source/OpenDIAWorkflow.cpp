@@ -64,7 +64,8 @@ namespace OpenMS::OpenDIA
     }
 
     /// Query list for StreamSearch from a (calibrated) library, in the heavy reader's transition order.
-    std::vector<TransitionQuery> makeQueries(OpenSwath::LightTargetedExperiment& targeted)
+    std::vector<TransitionQuery> makeQueries(OpenSwath::LightTargetedExperiment& targeted, const AnalysisLibrary* library = nullptr,
+                                             const std::vector<double>* width = nullptr)
     {
       struct Coordinates
       {
@@ -123,6 +124,11 @@ namespace OpenMS::OpenDIA
           q.has_precursor_im = it->second.has_im;
         }
         q.is_decoy = t.getDecoy();
+        if (width != nullptr)
+        {
+          const auto at = library->index.find(t.peptide_ref);
+          if (at != library->index.end()) q.rt_window_seconds = (*width)[at->second];
+        }
         queries.push_back(q);
       }
       return queries;
@@ -356,11 +362,143 @@ namespace OpenMS::OpenDIA
         " ms2_tolerance_ppm=" + std::to_string(cal.ms2_tolerance_ppm) + " boundary_half_widths=" + std::to_string(cal.boundary_half_widths) +
         " seconds=" + std::to_string(seconds(t_run)));
 
+    analyse_(path, lib.search, cal, anchors, {}, {}, result, say, t_run);
+    if (options_.id_recalibration) recalibrate_(path, cal, anchors, result, say, t_run);
+    return result;
+  }
+
+  void RunAnalysis::recalibrate_(const std::string& path, const CalibrationRT& cal, const std::vector<std::pair<std::string, double>>& anchors,
+                                 RunResult& result, const std::function<void(const std::string&)>& say,
+                                 std::chrono::steady_clock::time_point t_run)
+  {
+    // PLAN_RTPROFILE: per-fold RT maps and window widths from the pass-1 identifications, cross-fitted.
+    auto& lib = library_;
+    std::uint8_t n_folds = 0;
+    for (const auto& p : lib.precursors) n_folds = std::max<std::uint8_t>(n_folds, p.fold + 1);
+    struct IdAnchor
+    {
+      double library_rt, run_rt;
+      std::uint8_t fold;
+    };
+    std::vector<IdAnchor> ids;
+    for (const auto& w : result.windows)
+    {
+      const auto& p = lib.precursors[w.precursor];
+      // The kept window of a target precursor (one per precursor) at run q <= 0.01.
+      if (!p.decoy && p.has_library_rt && w.score > CrossFitScorer::NOT_KEPT && w.q_value <= 0.01) ids.push_back({p.library_rt, w.peak.rt_apex, p.fold});
+    }
+    std::vector<RTMap> maps(n_folds);
+    for (std::uint8_t k = 0; k < n_folds; ++k)
+    {
+      std::vector<std::pair<double, double>> train;
+      for (const auto& a : ids)
+        if (a.fold != k) train.emplace_back(a.library_rt, a.run_rt);
+      try
+      {
+        maps[k] = fitMonotoneRTMap(train);
+      }
+      catch (const std::invalid_argument& error)
+      {
+        say(std::string("ID recalibration: skipped, fold ") + std::to_string(k) + " has too few identifications outside it (" + error.what() + ")");
+        return;
+      }
+    }
+    // Held-out residual of every ID anchor (its fold's map did not see it), sorted by library RT.
+    std::vector<std::pair<double, double>> residual;  // library RT, |run RT - map|
+    std::vector<std::uint8_t> residual_fold;
+    {
+      std::vector<std::size_t> order(ids.size());
+      std::iota(order.begin(), order.end(), std::size_t{0});
+      std::sort(order.begin(), order.end(), [&](std::size_t a, std::size_t b) { return ids[a].library_rt < ids[b].library_rt; });
+      for (const std::size_t i : order)
+      {
+        residual.emplace_back(ids[i].library_rt, std::abs(ids[i].run_rt - maps[ids[i].fold](ids[i].library_rt)));
+        residual_fold.push_back(ids[i].fold);
+      }
+    }
+    const auto median = [](std::vector<double> v)
+    {
+      const auto mid = v.begin() + static_cast<std::ptrdiff_t>(v.size() / 2);
+      std::nth_element(v.begin(), mid, v.end());
+      double m = *mid;
+      if (v.size() % 2 == 0) m = 0.5 * (m + *std::max_element(v.begin(), mid));
+      return m;
+    };
+    // Width profile of fold k from the other folds' residuals: sigma_k(x) over the round(sqrt(n)) nearest in library RT.
+    std::vector<std::vector<std::pair<double, double>>> pool(n_folds);
+    std::vector<double> overall(n_folds);
+    for (std::uint8_t k = 0; k < n_folds; ++k)
+    {
+      std::vector<double> all;
+      for (std::size_t i = 0; i < residual.size(); ++i)
+      {
+        if (residual_fold[i] == k) continue;
+        pool[k].push_back(residual[i]);
+        all.push_back(residual[i].second);
+      }
+      overall[k] = 1.4826 * median(all);
+      if (!(overall[k] > 0.0))
+      {
+        say("ID recalibration: skipped, zero residual spread in fold " + std::to_string(k));
+        return;
+      }
+    }
+    const auto local_sigma = [&](std::uint8_t k, double x)
+    {
+      const auto& v = pool[k];
+      const std::size_t m = std::max<std::size_t>(1, static_cast<std::size_t>(std::lround(std::sqrt(static_cast<double>(v.size())))));
+      // The m nearest by library RT: grow a window around the insertion point.
+      std::size_t hi = static_cast<std::size_t>(std::lower_bound(v.begin(), v.end(), std::make_pair(x, -1.0)) - v.begin());
+      std::size_t lo = hi;
+      while (hi - lo < m)
+      {
+        if (lo == 0) ++hi;
+        else if (hi == v.size()) --lo;
+        else if (x - v[lo - 1].first <= v[hi].first - x) --lo;
+        else ++hi;
+      }
+      std::vector<double> e;
+      for (std::size_t i = lo; i < hi; ++i) e.push_back(v[i].second);
+      return 1.4826 * median(e);
+    };
+    std::vector<double> centre(lib.precursors.size(), std::numeric_limits<double>::quiet_NaN()), width(lib.precursors.size(), 0.0);
+    double w_min = std::numeric_limits<double>::infinity(), w_max = 0.0;
+    for (std::size_t p = 0; p < lib.precursors.size(); ++p)
+    {
+      const auto& q = lib.precursors[p];
+      if (!q.has_library_rt) continue;
+      centre[p] = maps[q.fold](q.library_rt);
+      width[p] = cal.tolerance_s * local_sigma(q.fold, q.library_rt) / overall[q.fold];
+      // A zero local spread (identical residuals) would close the window; keep it open.
+      if (!(width[p] > 0.0)) width[p] = cal.tolerance_s;
+      w_min = std::min(w_min, width[p]);
+      w_max = std::max(w_max, width[p]);
+    }
+    std::string line = "ID recalibration: anchors=" + std::to_string(ids.size()) + " width range " + std::to_string(w_min) + "-" +
+                       std::to_string(w_max) + " s (tolerance " + std::to_string(cal.tolerance_s) + " s), held-out sigma per fold:";
+    for (std::uint8_t k = 0; k < n_folds; ++k) line += " " + std::to_string(overall[k]);
+    say(line);
+    result.pass1_windows = std::move(result.windows);
+    analyse_(path, lib.search, cal, anchors, centre, width, result, say, t_run);
+  }
+  void RunAnalysis::analyse_(const std::string& path, const OpenSwath::LightTargetedExperiment& library_search, const CalibrationRT& cal,
+                             const std::vector<std::pair<std::string, double>>& anchors, const std::vector<double>& centre,
+                             const std::vector<double>& width, RunResult& result, const std::function<void(const std::string&)>& say,
+                             std::chrono::steady_clock::time_point t_run)
+  {
+    auto& lib = library_;
+    OpenSwath::LightTargetedExperiment targeted = library_search;
+    result.windows.clear();
+    result.features.clear();
     // 2. Search with the calibrated library.
     const auto t_search = std::chrono::steady_clock::now();
     for (auto& c : targeted.compounds)
     {
-      if (std::isfinite(c.rt)) c.rt = cal.map(c.rt);
+      if (std::isfinite(c.rt))
+      {
+        const auto it = centre.empty() ? lib.index.end() : lib.index.find(c.id);
+        c.rt = it != lib.index.end() && std::isfinite(centre[it->second]) ? centre[it->second] : cal.map(c.rt);
+      }
       if (cal.has_im && std::isfinite(c.drift_time) && c.drift_time > 0.0) c.drift_time = cal.im_intercept + cal.im_slope * c.drift_time;
     }
     for (auto& t : targeted.transitions) t.product_mz *= 1.0 + cal.ms2_offset_ppm * 1e-6;
@@ -377,7 +515,7 @@ namespace OpenMS::OpenDIA
       so.min_transitions = options_.min_transitions;
       // The peak table text is not needed: candidates are kept in memory. A stream without a buffer discards it.
       std::ostream sink(nullptr);
-      StreamSearch search(makeQueries(targeted), so, sink, nullptr);
+      StreamSearch search(makeQueries(targeted, width.empty() ? nullptr : &lib, width.empty() ? nullptr : &width), so, sink, nullptr);
       search.keepCandidates();
       readSpectra(path, search, {2});
       search.finish();
@@ -600,6 +738,5 @@ namespace OpenMS::OpenDIA
     for (std::size_t i = 0; i < n; ++i) at1 += !lib.precursors[windows[i].precursor].decoy && windows[i].q_value <= 0.01;
     say("Scoring: target precursors at q <= 0.01: " + std::to_string(at1) + " seconds=" + std::to_string(seconds(t_score)) +
         "; run total seconds=" + std::to_string(seconds(t_run)));
-    return result;
   }
 }
