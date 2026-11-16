@@ -46,3 +46,14 @@ Medians at the other FDP_c levels:
   Memory is unchanged (21.9 GB).
 - **For later:** the stability benefit is real. If run-to-run reproducibility becomes an acceptance requirement, this is
   the cheapest way to get it, but it would need its own plan.
+
+## Raw 03 (held out, run once after the verdict was committed, docs 1b6388a27e)
+CUR is the raw 03 CUR of PLAN_RTWIN2, which is the same code path as `-ensemble 1`.
+
+| arm | s0 | s1 | s2 | s3 | s4 | median | range |
+|---|---|---|---|---|---|---|---|
+| CUR | 1907 (.0096) | 1831 (.0058) | 1864 (.0068) | 1913 (.0084) | 1957 (.0076) | **1907** | 126 |
+| NEW | 1832 (**.0106**) | 1912 (.0088) | 1897 (.0087) | 1938 (.0096) | 2011 (.0097) | **1912** | 179 |
+
+- Median +0.3 %, and seed 0 has FDP_c 0.0106. Raw 03 shows neither the gain nor the stability.
+- The verdict stands: removed (revert bc30ae9394).

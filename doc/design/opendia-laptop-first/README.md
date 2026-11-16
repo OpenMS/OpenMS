@@ -3,7 +3,7 @@
 **Status, 16 November 2026.** This plan replaced the laptop-first WP-00 to WP-10 plan on 7 November 2026. The old plan is closed and kept unchanged under [archive/legacy-wp-plan-20261107](archive/legacy-wp-plan-20261107/README.md).
 
 The rewrite lives on [`OpenMS/OpenMS:feature/opendia-clean-rewrite`](https://github.com/OpenMS/OpenMS/tree/feature/opendia-clean-rewrite).
-All of its code is under `src/topp/OpenDIA/`, and it makes no changes to the shared OpenMS API. The branch tip is `ab46f97ad4`.
+All of its code is under `src/topp/OpenDIA/`, and it makes no changes to the shared OpenMS API. The branch tip is `bc30ae9394`.
 It is an experimental branch, not a pull request. It must not merge into `develop` until the acceptance gates of R-WP6 pass.
 The branch's [`src/topp/OpenDIA/README.md`](https://github.com/OpenMS/OpenMS/blob/feature/opendia-clean-rewrite/src/topp/OpenDIA/README.md) describes the tools. The evidence is in [`gates/`](gates/).
 
@@ -101,7 +101,13 @@ Cost: about 6-7.5 min and 22 GB per Astral raw on 8 threads with the full 12-fra
   - A cross-fitted per-run width chosen on IDs (PLAN_RTWIN2) scores −2.2 % on raw 01 and −2.3 % on held-out raw 03, so it fails. That post-hoc filter was removed.
   - Recalibrating from the run's own IDs, with a window that follows the local RT error (PLAN_RTPROFILE), recovers the gradient ends: +23 to +24 IDs early, +7 to +17 late. But the narrower middle loses (raw 02 −52), the strict-FDR ranking is less stable, and it fails: raw 02 −1.05 %, raw 01 seed 4 FDP_c 0.0104, held-out raw 03 −0.6 %. Removed (`gates/single-binary/rtwin/`).
   - With the full 12-fragment scoring library, the wide window keeps FDP_c ≤ 0.0096 on all 15 runs, so the width is no longer an FDR problem.
-- **Gap to DIA-NN.** It is about 12-21 %, almost entirely in score formation on the right peak (`gates/extraction-parity/gap/`).
+- **Gap to DIA-NN.** It is 13-16 % at FDP_c 1 %, almost entirely in score formation on the right peak (`gates/extraction-parity/gap/`).
+  - A joint (presence-weighted) interference fit has no room. Block I's explaining-away comes from claimants that are themselves absent (PRECHECK_JOINT).
+  - A labelled ceiling on today's 24 inputs recovers only about +100 per raw at today's decoy rate.
+  - Scorer-capacity attempts on those inputs all failed:
+    - signal-level interactions and self-trained trees, offline;
+    - a 3-seed ensemble (PLAN_ENSEMBLE): +0.2 % / +0.6 %, raw 03 +0.3 %. It does cut the raw 01 seed range from 99 to 17.
+  - Closing the gap needs new evidence for the weak right-peak IDs (next).
 
 **Direction.** The single voxel model was replaced in practice by the heuristic-feature network (D11 line, R-WP3). That network is now in C++ as `OpenDIA::CrossFitScorer`. OpenDIACNN and LibTorch are no longer on the default path.
 

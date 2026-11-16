@@ -37,7 +37,7 @@ Rows of 12-16 November 2026. Earlier rows (voxel v2-v19, CNN + LDA) are in the R
 | Close the 12-21 % gap to DIA-NN (2067 / 2301) | R-WP5 | In progress | [RESULT_GAP.md](gates/extraction-parity/gap/RESULT_GAP.md) |
 | Status snapshot vs DIA-NN: 87 % / 84 % of DIA-NN at FDP_c 1 %; 67-72 % of DIA-NN's q ≤ 0.01 IDs shared, 93 % of ours in DIA-NN; 6-7.5 min, 22 GB per raw | R-WP5, R-WP6 | Done (diagnostic) | [README snapshot](README.md), [STATUS_vs_DIANN.txt](gates/single-binary/STATUS_vs_DIANN.txt) |
 | Joint (presence-weighted) interference fit: no room, block I's explaining-away comes from absent claimants; labelled ceiling on current inputs about +100 / raw | R-WP5 | Done (diagnostic, not pursued) | [PRECHECK_JOINT.md](gates/extraction-parity/gap/PRECHECK_JOINT.md) |
-| Scorer capacity (option 1): interaction inputs and self-trained trees fail offline; seed ensemble (PLAN_ENSEMBLE, m = 3) on codon | R-WP3, R-WP5 | In progress | [PLAN_ENSEMBLE.md](gates/single-binary/ensemble/PLAN_ENSEMBLE.md) |
+| Scorer capacity (option 1): interaction inputs and self-trained trees fail offline; seed ensemble (PLAN_ENSEMBLE, m = 3) +0.2 % / +0.6 % (rule +1 %), raw 03 +0.3 %, removed | R-WP3, R-WP5 | Done (fail) | [RESULT_ENSEMBLE.md](gates/single-binary/ensemble/RESULT_ENSEMBLE.md) |
 | Raw 03 held-out check: self-calibrating, `library12_full`, 1907 median, FDP_c ≤ 0.0096 | R-WP6 | Done | [RESULT_RTWIN2.md](gates/single-binary/rtwin/RESULT_RTWIN2.md) |
 
 ## R-WP1: Streaming search
@@ -130,7 +130,8 @@ Rows of 12-16 November 2026. Earlier rows (voxel v2-v19, CNN + LDA) are in the R
 | Gap funnel against DIA-NN (arm E): right peak below cut dominates | Done (diagnostic) | [RESULT_GAP.md](gates/extraction-parity/gap/RESULT_GAP.md) |
 | Close the remaining 12-21 % gap to DIA-NN | In progress | [README snapshot](README.md) |
 | Joint interference fit precheck: no room (absent claimants carry block I) | Done (diagnostic, not pursued) | [PRECHECK_JOINT.md](gates/extraction-parity/gap/PRECHECK_JOINT.md) |
-| Scorer seed ensemble (PLAN_ENSEMBLE) | In progress | [PLAN_ENSEMBLE.md](gates/single-binary/ensemble/PLAN_ENSEMBLE.md) |
+| Scorer seed ensemble (PLAN_ENSEMBLE): +0.2 % / +0.6 %, removed | Done (fail) | [RESULT_ENSEMBLE.md](gates/single-binary/ensemble/RESULT_ENSEMBLE.md) |
+| New evidence for the rejected right-peak IDs: run-specific fragment selection, MS1 isotope envelope (precheck first) | Next | [PRECHECK_JOINT.md](gates/extraction-parity/gap/PRECHECK_JOINT.md) |
 
 ## R-WP6: Acceptance
 
