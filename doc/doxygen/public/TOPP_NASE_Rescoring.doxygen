@@ -45,7 +45,7 @@ rescored hits), never on the label of a hit:
 - @p coverage: backbone positions explained by any series / (length - 1)
 
 Optional groups: route evidence (@p scoring:method=route), @p graph_tag_length (graph candidate methods except
-@p graph_routes), modifications with and without diagnostic support (@p diagnostic:filter), and FLASH precursor
+@p graph_routes), modifications with diagnostic support (@p diagnostic:filter), and FLASH precursor
 cosine and SNR (@p precursor:correct_with_flash).
 
 @section nase_rescoring_output Output and fallback

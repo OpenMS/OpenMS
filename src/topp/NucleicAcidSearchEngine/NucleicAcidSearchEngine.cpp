@@ -1414,7 +1414,6 @@ protected:
         input.charge = hit.precursor_ref->charge;
         input.adduct = hit.precursor_ref->adduct.has_value();
         input.annotations = &hit.annotations;
-        input.route_score = hit.route_evidence.score;
         input.route_nodes = hit.route_evidence.nodes;
         input.route_matched_intensity = hit.route_evidence.matched_intensity;
         input.route_local_intensity = hit.route_evidence.local_intensity;

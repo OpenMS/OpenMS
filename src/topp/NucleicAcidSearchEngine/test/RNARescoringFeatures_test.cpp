@@ -63,7 +63,7 @@ START_SECTION(const StringList& featureNames() const)
   RNARescoringFeatures::Options all = options;
   all.route = all.graph = all.diagnostics = all.flash = true;
   RNARescoringFeatures extended(all);
-  TEST_EQUAL(extended.featureNames().size(), basic.featureNames().size() + 5 + 1 + 2 + 3)
+  TEST_EQUAL(extended.featureNames().size(), basic.featureNames().size() + 4 + 1 + 1 + 3)
   TEST_EQUAL(extended.featureNames().back(), "flash_snr")
 }
 END_SECTION
@@ -154,7 +154,6 @@ START_SECTION(computeSpectrum)
   TEST_REAL_SIMILAR(feature(features, row, "route_intensity_ratio"), 0.5)
   TEST_REAL_SIMILAR(feature(features, row, "graph_tag_length"), 3.0)
   TEST_REAL_SIMILAR(feature(features, row, "diagnostic_supported_mods"), 1.0)
-  TEST_REAL_SIMILAR(feature(features, row, "diagnostic_unsupported_mods"), 0.0)
   TEST_REAL_SIMILAR(feature(features, row, "flash_corrected"), 0.0)
 
   TEST_REAL_SIMILAR(feature(features, rows[1], "delta_next"), 1.0)
@@ -168,7 +167,6 @@ START_SECTION(computeSpectrum)
   TEST_REAL_SIMILAR(feature(features, last, "charge_1") + feature(features, last, "charge_2") + feature(features, last, "charge_3"), 0.0)
   TEST_REAL_SIMILAR(feature(features, last, "adduct"), 1.0)
   TEST_REAL_SIMILAR(feature(features, last, "diagnostic_supported_mods"), 0.0)
-  TEST_REAL_SIMILAR(feature(features, last, "diagnostic_unsupported_mods"), 1.0)
   TEST_REAL_SIMILAR(feature(features, last, "route_intensity_ratio"), 0.0)
 
   // Ties between different sequences leave no margin; FLASH context is per spectrum

@@ -61,9 +61,9 @@ Optional groups, present when the corresponding mode is on:
 
 | Mode | Features |
 | --- | --- |
-| `scoring:method=route` | `route_score`, `route_nodes`, `route_intensity_ratio`, `route_prefix_length`, `route_suffix_length` |
+| `scoring:method=route` | `route_nodes`, `route_intensity_ratio`, `route_prefix_length`, `route_suffix_length` |
 | graph candidate methods except `graph_routes` | `graph_tag_length` (0 without a supported tag) |
-| `diagnostic:filter` | `diagnostic_supported_mods`, `diagnostic_unsupported_mods` |
+| `diagnostic:filter` | `diagnostic_supported_mods` (modifications with diagnostic support) |
 | `precursor:correct_with_flash` | `flash_corrected`, `flash_cosine`, `flash_snr` |
 
 Neutral losses other than a-B are not counted as ladder rungs.

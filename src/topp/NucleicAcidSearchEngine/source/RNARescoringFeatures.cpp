@@ -40,11 +40,12 @@ RNARescoringFeatures::RNARescoringFeatures(Options options) : options_(std::move
   names_.insert(names_.end(), {"matched_ions", "matched_intensity", "longest_series", "coverage"});
   if (options_.route)
   {
-    names_.insert(names_.end(), {"route_score", "route_nodes", "route_intensity_ratio", "route_prefix_length",
-                                 "route_suffix_length"});
+    // no route_score: with route scoring, it is native_score
+    names_.insert(names_.end(), {"route_nodes", "route_intensity_ratio", "route_prefix_length", "route_suffix_length"});
   }
   if (options_.graph) { names_.push_back("graph_tag_length"); }
-  if (options_.diagnostics) { names_.insert(names_.end(), {"diagnostic_supported_mods", "diagnostic_unsupported_mods"}); }
+  // the unsupported count would be modifications - diagnostic_supported_mods
+  if (options_.diagnostics) { names_.push_back("diagnostic_supported_mods"); }
   if (options_.flash) { names_.insert(names_.end(), {"flash_corrected", "flash_cosine", "flash_snr"}); }
 }
 
@@ -181,12 +182,12 @@ std::vector<double> RNARescoringFeatures::buildRow_(const HitInput& hit, double 
 
   if (options_.route)
   {
-    row.insert(row.end(), {hit.route_score, double(hit.route_nodes),
+    row.insert(row.end(), {double(hit.route_nodes),
                            hit.route_local_intensity > 0.0 ? hit.route_matched_intensity / hit.route_local_intensity : 0.0,
                            double(hit.route_prefix_length), double(hit.route_suffix_length)});
   }
   if (options_.graph) { row.push_back(double(hit.graph_tag_length)); }
-  if (options_.diagnostics) { row.insert(row.end(), {double(supported), double(modifications - supported)}); }
+  if (options_.diagnostics) { row.push_back(double(supported)); }
   if (options_.flash)
   {
     const bool corrected = spectrum.flash_cosine.has_value();

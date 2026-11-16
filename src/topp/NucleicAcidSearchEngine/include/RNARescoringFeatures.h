@@ -36,8 +36,11 @@ namespace OpenMS
   - matched_intensity: intensity of the distinct matched peaks / total spectrum intensity
   - longest_series: longest run of consecutive ordinals of any series / (length - 1)
   - coverage: internal backbone positions explained by any series / (length - 1)
-  - route_* (Options::route), graph_tag_length (Options::graph),
-    diagnostic_supported_mods / diagnostic_unsupported_mods (Options::diagnostics),
+  - route_nodes / route_intensity_ratio / route_prefix_length / route_suffix_length
+    (Options::route: the route score is the search score, so native_score),
+    graph_tag_length (Options::graph), diagnostic_supported_mods (Options::diagnostics:
+    modifications permitted by the spectrum's diagnostic ions; the unsupported ones
+    are modifications - diagnostic_supported_mods),
     flash_corrected / flash_cosine / flash_snr (Options::flash)
 
   Positions follow NASE's coverage rule: prefix ion n (a, b, c, d, a-B)
@@ -82,7 +85,6 @@ public:
     bool adduct = false;
     const std::vector<PeptideHit::PeakAnnotation>* annotations = nullptr;
     // Options::route
-    double route_score = 0.0;
     Size route_nodes = 0;
     double route_matched_intensity = 0.0;
     double route_local_intensity = 0.0;
