@@ -10,7 +10,6 @@
 
 #include <OpenDIAFragmentGrid.h>
 #include <OpenDIAInterference.h>
-#include <OpenDIAMS1.h>
 #include <OpenDIAPeakMaps.h>
 #include <OpenDIAStage2.h>
 #include <OpenDIATraces.h>
@@ -139,18 +138,20 @@ namespace OpenMS::OpenDIA
     }
   }
 
-  std::vector<std::string> runFeatureNames(bool ms1)
+  const std::vector<std::string>& runFeatureNames()
   {
-    std::vector<std::string> n;
-    for (const auto& s : stage2SearchFeatureNames()) n.push_back(s);
-    for (const auto& s : stage2BoundaryFeatureNames()) n.push_back(s);
-    for (const auto& s : stage2ByIonFeatureNames()) n.push_back(s);
-    for (const char* s : FragmentGrid::evidenceNames()) n.emplace_back(s);
-    for (const char* s : FragmentGrid::deficitNames()) n.emplace_back(s);
-    for (const char* s : InterferenceResolver::featureNames()) n.emplace_back(s);
-    if (ms1)
-      for (const auto& s : MS1Evidence::names()) n.push_back(s);
-    return n;
+    static const std::vector<std::string> names = []
+    {
+      std::vector<std::string> n;
+      for (const auto& s : stage2SearchFeatureNames()) n.push_back(s);
+      for (const auto& s : stage2BoundaryFeatureNames()) n.push_back(s);
+      for (const auto& s : stage2ByIonFeatureNames()) n.push_back(s);
+      for (const char* s : FragmentGrid::evidenceNames()) n.emplace_back(s);
+      for (const char* s : FragmentGrid::deficitNames()) n.emplace_back(s);
+      for (const char* s : InterferenceResolver::featureNames()) n.emplace_back(s);
+      return n;
+    }();
+    return names;
   }
 
   // ------------------------------------------------------------------------------------------------ library
@@ -422,8 +423,6 @@ namespace OpenMS::OpenDIA
     }
     std::vector<FragmentGridCollector::Precursor> grid_precursors(local_precursors.size());
     std::vector<InterferenceResolver::Precursor> resolver_precursors(local_precursors.size());
-    std::vector<std::array<double, 4>> envelope(options_.ms1_features ? local_precursors.size() : 0);
-    for (std::size_t l = 0; l < envelope.size(); ++l) envelope[l] = MS1Evidence::envelope(lib.precursors[local_precursors[l]].sequence);
     for (std::size_t l = 0; l < local_precursors.size(); ++l)
     {
       const auto& p = lib.precursors[local_precursors[l]];
@@ -456,9 +455,6 @@ namespace OpenMS::OpenDIA
     TraceCollector traces(std::move(trace_windows), trace_library, 0.02, options_.grid_half_width_s, 0.03, n, std::size_t{64} << 30);
     traces.setIonMobilityArrayAsVSSC(options_.im_array_as_vssc);
     traces.enableEvidence(20.0, options_.core_half_width_s);
-    // PLAN_MS1: isotope traces M+0..M+3, +-10 ppm around the targets shifted by the run's mass offset (the calibration
-    // fits no separate MS1 offset; build_voxels.py used the MS2 offset the same way).
-    if (options_.ms1_features) traces.enableIsotopeTraces(10.0, cal.ms2_offset_ppm);
     traces.enableByIonCounts(trace_library, options_.byion_ppm, options_.byion_intensity_min);
     {
       TeeConsumer both(grids, traces);
@@ -473,7 +469,7 @@ namespace OpenMS::OpenDIA
 
     // 5. Features.
     const auto t_features = std::chrono::steady_clock::now();
-    const auto names = runFeatureNames(options_.ms1_features);
+    const auto& names = runFeatureNames();
     const std::size_t d = names.size();
     result.feature_names = names;
     result.features.assign(n * d, 0.0f);
@@ -506,16 +502,6 @@ namespace OpenMS::OpenDIA
         const auto& gp = grid_precursors[grid_windows[i].precursor];
         for (float v : FragmentGrid::deficit(grid_windows[i].core_area, gp.library, gp.search, noise)) f[o++] = v;
         for (std::size_t k = 0; k < InterferenceResolver::FEATURES; ++k) f[o++] = interference[i * InterferenceResolver::FEATURES + k];
-        if (options_.ms1_features)
-        {
-          // Fragment-sum trace on the same RT grid: the 6 search fragments of the tensor, summed over mobility.
-          std::array<double, MS1Evidence::BINS> xs{};
-          for (std::size_t k = 0; k < TraceCollector::FRAGMENTS; ++k)
-            for (std::size_t b = 0; b < TraceCollector::RT_BINS; ++b)
-              for (std::size_t m = 0; m < TraceCollector::IM_BINS; ++m)
-                xs[b] += tensor[(k * TraceCollector::RT_BINS + b) * TraceCollector::IM_BINS + m];
-          for (double v : MS1Evidence::features(traces.isotopeTraces(i), xs, envelope[local_of[w.precursor]])) f[o++] = static_cast<float>(v);
-        }
       }
     }
     say("Features: " + std::to_string(d) + " per window, noise=" + std::to_string(noise) + " seconds=" + std::to_string(seconds(t_features)));

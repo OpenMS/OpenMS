@@ -172,15 +172,6 @@ namespace OpenMS::OpenDIA
       std::max(0.0, (rt - apex_rt + rt_half_width_) / (2.0 * rt_half_width_)) * RT_BINS));
   }
 
-  void TraceCollector::enableIsotopeTraces(double ppm, double offset_ppm)
-  {
-    require(!evidence_.empty(), "Isotope traces require enableEvidence() first.");
-    require(std::isfinite(ppm) && ppm > 0.0 && std::isfinite(offset_ppm), "Isotope tolerance must be positive and the offset finite.");
-    isotope_ppm_ = ppm;
-    isotope_offset_ppm_ = offset_ppm;
-    isotopes_.assign(samples_.size(), IsotopeTraces{});
-  }
-
   void TraceCollector::enableByIonCounts(const OpenSwath::LightTargetedExperiment& library, double ppm, double intensity_min)
   {
     require(!evidence_.empty(), "b/y ion counts require enableEvidence() first.");
@@ -295,22 +286,6 @@ namespace OpenMS::OpenDIA
       const Sample& sample = samples_[*active];
       TraceEvidence& evidence = evidence_[*active];
       const std::size_t bin = rtBin_(rt, sample.window.apex_rt);
-      if (!isotopes_.empty() && sample.precursor_charge > 0)
-      {
-        auto& traces = isotopes_[*active];
-        for (std::size_t i = 0; i < traces.size(); ++i)
-        {
-          const double target = (sample.precursor_mz + static_cast<double>(i) * 1.0033548 / sample.precursor_charge) * (1.0 + isotope_offset_ppm_ * 1e-6);
-          const double half = target * isotope_ppm_ * 1e-6;
-          double total = 0.0;
-          for (auto point = spectrum.MZBegin(target - half); point != spectrum.end() && point->getMZ() <= target + half; ++point)
-          {
-            const double intensity = point->getIntensity();
-            if (std::isfinite(intensity) && intensity > 0.0) total += intensity;
-          }
-          traces[i][bin] += static_cast<float>(total);
-        }
-      }
       evidence.ms1_mask |= std::uint32_t{1} << bin;
       const bool core = std::abs(rt - sample.window.apex_rt) <= core_half_width_;
       double ppm_sum = 0.0, weight = 0.0;

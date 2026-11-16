@@ -50,9 +50,6 @@ namespace OpenMS::OpenDIA
     std::uint16_t byion_y = 0;         ///< Matched singly charged y ions in the same spectrum.
   };
 
-  /// With TraceCollector::enableIsotopeTraces(): MS1 M+0..M+3 intensity per RT bin (the tensor's bins).
-  using IsotopeTraces = std::array<std::array<float, TraceEvidence::RT_BINS>, 4>;
-
   /**
     @brief Extract bounded raw RT/IM intensity tensors for a specified sample of candidates.
 
@@ -149,18 +146,6 @@ namespace OpenMS::OpenDIA
       @throws Exception::InvalidParameter If evidence is not enabled, a tolerance is not positive or a sequence cannot be parsed.
     */
     void enableByIonCounts(const OpenSwath::LightTargetedExperiment& library, double ppm, double intensity_min);
-    /**
-      @brief Also collect MS1 isotope traces M+0..M+3 per window (PLAN_MS1). Requires enableEvidence() first.
-
-      For every MS1 spectrum and window whose apex is within the RT half width, the intensity of all points within
-      @p ppm of m_i = (precursor m/z + i x 1.0033548 / z) x (1 + offset_ppm 1e-6) is added to bin rtBin(rt) of trace i.
-      Points are pooled over ion mobility. Windows without a charge get no traces.
-      @param[in] ppm Half width of each isotope window (> 0).
-      @param[in] offset_ppm Calibrated MS1 mass offset applied to the targets.
-    */
-    void enableIsotopeTraces(double ppm, double offset_ppm);
-    /// Isotope traces of sample i; requires enableIsotopeTraces().
-    const IsotopeTraces& isotopeTraces(std::size_t i) const { return isotopes_.at(i); }
     /// Evidence of sample i; requires evidenceEnabled().
     const TraceEvidence& evidence(std::size_t i) const { return evidence_.at(i); }
     /// RT half width of the tensor in seconds.
@@ -194,9 +179,6 @@ namespace OpenMS::OpenDIA
     std::vector<std::array<std::uint32_t, 3>> byion_range_; ///< Per sample: first b, first y, end in byion_mz_.
     double byion_ppm_ = 0.0;
     double byion_intensity_min_ = 0.0;
-    std::vector<IsotopeTraces> isotopes_;
-    double isotope_ppm_ = 0.0;
-    double isotope_offset_ppm_ = 0.0;
 
     void consumeMS1_(MSSpectrum& spectrum);
     void countByIons_(const MSSpectrum& spectrum, std::size_t index, double dt);
