@@ -18,6 +18,7 @@
 #include "PercolatorImpl.h"
 #include "ssl.h" // vendored: adviseHugePages
 #include "newton_svm.h" // vendored: SvmSolver
+#include "PosteriorEstimator.h" // vendored: resetToDefaults
 #include "OpenMPThreads.h" // vendored: ThreadCap, maxThreads
 #include <new>
 
@@ -892,6 +893,14 @@ static void peptideLevelEstimates(const P::Scores& psms, const RescoreInput& inp
   }
 }
 
+// A feature value as the PSMs of the vendored Percolator hold it: one that is not finite is 0, as the executable sets
+// it under --no-terminate (validateRescoreInput_ warns). The scores that the wrapper computes from the rows of a
+// RescoreInput read the features through it as well (a NaN score would break the order of the sorts).
+static inline double featureValue_(double value)
+{
+  return std::isfinite(value) ? value : 0.0;
+}
+
 // Fills a PSMDescription from one row of RescoreInput (n_feat values at feats); its feature row
 // (psm.features) is allocated already.
 static void fillPSMFromRow(
@@ -907,14 +916,14 @@ static void fillPSMFromRow(
   psm.setLineNr(static_cast<unsigned int>(row_index));
   psm.scan        = static_cast<unsigned int>(keys.scan);
   psm.specFileNr  = static_cast<unsigned int>(keys.spec_file);
-  psm.expMass     = std::isfinite(keys.exp_mass) ? keys.exp_mass : 0.0; // (validateRescoreInput_ warns)
+  psm.expMass     = keys.exp_mass;
   psm.calcMass    = keys.calc_mass;
   psm.retentionTime_ = 0.0;
 
   double* feat_ptr = psm.features;
   for (size_t j = 0; j < n_feat; ++j)
   {
-    feat_ptr[j] = std::isfinite(feats[j]) ? feats[j] : 0.0; // (validateRescoreInput_ warns)
+    feat_ptr[j] = featureValue_(feats[j]);
   }
 }
 
@@ -943,6 +952,7 @@ static RowKeys makeRowKeys(const RescoreInput& input, size_t i)
   else                                   keys.scan = static_cast<int>(i);
   keys.spec_file = input.spec_file_numbers.empty() ? 0 : input.spec_file_numbers[i];
   keys.exp_mass  = input.exp_masses.empty()        ? 0.0 : input.exp_masses[i];
+  if (!std::isfinite(keys.exp_mass)) keys.exp_mass = 0.0; // as the executable under --no-terminate (validateRescoreInput_ warns)
   keys.calc_mass = input.calc_masses.empty()       ? 0.0 : input.calc_masses[i];
   return keys;
 }
@@ -1032,6 +1042,30 @@ struct FoldScoreRescaler_ : P::SetHandler
     rescaleFoldScores(scores, rows, num_folds);
   }
 };
+
+// The process-wide settings of the vendored code that the percolator executable resets for every run
+// (Caller::resetProcessSettings); the wrapper sets the seed, the feature names and --no-terminate itself.
+static void resetProcessSettings_()
+{
+  P::PosteriorEstimator::resetToDefaults();
+  P::DataSet::resetWarnings();
+  P::PSMDescription::resetSpectrumFileNames();
+}
+
+// SetHandler::normalizeFeatures, whose MyException (a normalization factor that is not finite, e.g. from values near
+// the largest double) is rethrown as an OpenMS exception
+static void normalizeFeatures_(P::SetHandler& set_handler, P::Normalizer& normalizer)
+{
+  try
+  {
+    set_handler.normalizeFeatures(normalizer);
+  }
+  catch (const std::exception& e)
+  {
+    throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+      std::string("Percolator feature normalization failed: ") + e.what(), "");
+  }
+}
 
 // The feature normalizer of the Percolator parameter normalizer ('stdv', 'uni' or 'none')
 static std::unique_ptr<P::Normalizer> makeNormalizer_(const std::string& normalizer)
@@ -1207,6 +1241,7 @@ PercolatorModel Percolator::train(const RescoreInput& input)
   const P::ThreadCap thread_cap(capThreads_(impl_->num_threads));
 
   impl_->reset();
+  resetProcessSettings_();
   P::PseudoRandom::setSeed(static_cast<unsigned long>(impl_->seed));
 
   const size_t n_rows = input.rowCount();
@@ -1272,7 +1307,7 @@ PercolatorModel Percolator::train(const RescoreInput& input)
       impl_->initial_direction);
   }
 
-  impl_->set_handler->normalizeFeatures(*normalizer);
+  normalizeFeatures_(*impl_->set_handler, *normalizer);
 
   P::Scores train_scores(/*usePi0=*/use_pi0);
   train_scores.populateWithPSMs(*impl_->set_handler);
@@ -1399,7 +1434,7 @@ RescoreOutput Percolator::score(const RescoreInput& input,
     const double* row = input.row(i);
     // as Scores::scoreAndAddPSM, with the weights that Scores::normalizeScores rescaled for the reference
     double s = rescaled_weights[n_feat];
-    for (size_t j = 0; j < n_feat; ++j) { s += row[j] * rescaled_weights[j]; }
+    for (size_t j = 0; j < n_feat; ++j) { s += featureValue_(row[j]) * rescaled_weights[j]; }
     const auto [q, pep] = at(s);
     out.scores.push_back(s);
     out.q_values.push_back(q);
@@ -1424,6 +1459,7 @@ RescoreOutput Percolator::score_(const RescoreInput& input,
   const P::ThreadCap thread_cap(capThreads_(impl_->num_threads));
 
   impl_->reset();
+  resetProcessSettings_();
   // As train() and rescore(): the pi0 estimate below bootstraps with Percolator's (process-wide) random number
   // generator, so the q-values and PEPs would otherwise depend on whatever drew from it before (e.g. train() or a
   // previous score()). The same rows and model must give the same results, also in score(input, model, reference),
@@ -1558,7 +1594,7 @@ static std::vector<size_t> acceptedTargets_(const RescoreInput& input, const std
   {
     const double* feats = input.row(i);
     double score = 0.0;
-    for (size_t j = 0; j < n_feat; ++j) score += feats[j] * w[j];
+    for (size_t j = 0; j < n_feat; ++j) score += featureValue_(feats[j]) * w[j];
     scored.push_back({score + w[n_feat], static_cast<bool>(input.is_decoy[i]), i});
   }
   std::sort(scored.begin(), scored.end(), [](const Scored& a, const Scored& b)
@@ -1604,6 +1640,7 @@ RescoreOutput Percolator::rescore(const RescoreInput& input)
   const size_t n_feat = input.featureCount();
 
   impl_->reset();
+  resetProcessSettings_();
   P::PseudoRandom::setSeed(static_cast<unsigned long>(impl_->seed));
 
   impl_->capped_info = CappedTrainingInfo();
@@ -1786,7 +1823,7 @@ RescoreOutput Percolator::rescore(const RescoreInput& input)
       impl_->initial_direction);
   }
 
-  impl_->set_handler->normalizeFeatures(*normalizer);
+  normalizeFeatures_(*impl_->set_handler, *normalizer);
 
   all_scores = P::Scores(/*usePi0=*/use_pi0);
   all_scores.populateWithPSMs(*impl_->set_handler);
@@ -2094,7 +2131,7 @@ RescoreOutput Percolator::rescore(const RescoreInput& input)
           const std::vector<double>& w = fold_weights[scorer_of_row[i]];
           const double* feats = input.row(i);
           double score = 0.0;
-          for (size_t j = 0; j < n_feat; ++j) score += feats[j] * w[j];
+          for (size_t j = 0; j < n_feat; ++j) score += featureValue_(feats[j]) * w[j];
           scores[i] = score + w[n_feat];
         }
         catch (...)
@@ -2170,9 +2207,11 @@ RescoreOutput Percolator::rescore(const RescoreInput& input)
       }
       FoldScoreRescaler_::rescale(all_scores, fold_rows, trained.subset_fold_weights.size());
 
+      // (as the executable with -N, at the selection FDR of the training; its merge scheme with 3 folds is 'test', the
+      // only one that rescales here)
       all_scores.postMergeStep();
-      all_scores.calcQvals(impl_->test_fdr);
-      all_scores.normalizeScores(impl_->test_fdr, avg_weights);
+      all_scores.calcQvals(impl_->train_fdr);
+      all_scores.normalizeScores(impl_->train_fdr, avg_weights);
     }
 
     if (impl_->post_processing_tdc)

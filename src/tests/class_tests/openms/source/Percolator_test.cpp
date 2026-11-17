@@ -755,6 +755,81 @@ START_SECTION([EXTRA] subset_mode out_of_fold: no row is scored by a model that 
 }
 END_SECTION
 
+START_SECTION([EXTRA] a feature that is not finite is 0 in every scoring path)
+{
+  // The wrapper scores the rows of a RescoreInput itself in out_of_fold (the second pass), in learning_curve (the
+  // validation counts) and in score(input, model, reference): a value that is not finite counts there as 0, as in
+  // the PSMs that Percolator trains and scores. Rows with NaN or infinite values give the results of rows with 0.
+  RescoreInput zeros;
+  zeros.feature_names = StringList{"signal", "signal2", "noise"};
+  std::mt19937 gen(5);
+  std::normal_distribution<double> nd(0.0, 0.6);
+  std::uniform_real_distribution<double> ud(0.0, 1.0);
+  const std::size_t n_spectra = 6000;
+  for (std::size_t s = 0; s < n_spectra; ++s)
+  {
+    const bool correct = ud(gen) < 0.5;
+    zeros.features.push_back({(correct ? 1.0 : 0.0) + nd(gen), (correct ? 0.8 : 0.0) + nd(gen), ud(gen)});
+    zeros.is_decoy.push_back(false);
+    zeros.features.push_back({nd(gen), nd(gen), ud(gen)});
+    zeros.is_decoy.push_back(true);
+    for (int k = 0; k < 2; ++k)
+    {
+      zeros.scan_numbers.push_back(static_cast<int>(s));
+      zeros.exp_masses.push_back(500.0 + 0.01 * static_cast<double>(s));
+    }
+  }
+  RescoreInput non_finite = zeros;
+  const double values[3] = {std::numeric_limits<double>::quiet_NaN(), std::numeric_limits<double>::infinity(),
+                            -std::numeric_limits<double>::infinity()};
+  for (std::size_t r = 3; r < zeros.features.size(); r += 97)
+  {
+    const std::size_t j = (r / 97) % 3;
+    zeros.features[r][j] = 0.0;
+    non_finite.features[r][j] = values[(r / 97) % 3];
+  }
+  auto sameOutput = [](const RescoreOutput& a, const RescoreOutput& b)
+  {
+    bool same = a.scores.size() == b.scores.size() && a.q_values.size() == b.q_values.size() && a.peps.size() == b.peps.size();
+    for (std::size_t i = 0; same && i < a.scores.size(); ++i)
+    {
+      same = a.scores[i] == b.scores[i] && a.q_values[i] == b.q_values[i] && a.peps[i] == b.peps[i];
+    }
+    return same;
+  };
+  for (const std::string mode : {"out_of_fold", "learning_curve"})
+  {
+    auto run = [&mode](const RescoreInput& in)
+    {
+      Percolator p;
+      Param par = p.getDefaults();
+      par.setValue("seed", 3);
+      par.setValue("subset_mode", mode);
+      par.setValue("subset_max_train", mode == "out_of_fold" ? 3000 : 0);
+      par.setValue("subset_curve_start", 2000);
+      p.setParameters(par);
+      return p.rescore(in);
+    };
+    const RescoreOutput with_zeros = run(zeros);
+    const RescoreOutput with_non_finite = run(non_finite);
+    bool finite = true;
+    for (double score : with_non_finite.scores) finite = finite && std::isfinite(score);
+    STATUS(mode)
+    TEST_TRUE(finite)
+    TEST_TRUE(sameOutput(with_non_finite, with_zeros))
+  }
+  {
+    Percolator p;
+    Param par = p.getDefaults();
+    par.setValue("seed", 3);
+    p.setParameters(par);
+    const PercolatorModel model = p.train(zeros);
+    TEST_TRUE(sameOutput(p.score(non_finite, model, zeros), p.score(zeros, model, zeros)))
+    TEST_TRUE(sameOutput(p.score(non_finite, model), p.score(zeros, model)))
+  }
+}
+END_SECTION
+
 START_SECTION([EXTRA] q-values in expected range)
 {
   // Moderately separable data. Verify q-values are bounded [0, 1] and that
