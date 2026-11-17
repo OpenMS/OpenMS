@@ -7685,8 +7685,9 @@ add_test("TOPP_FeatureFinderMetaboIdent_3_out1" ${CMAKE_COMMAND}
   "-DEXPECTED=<featureList count=\"0\">;name=\"label\" value=\"caffeine\""
   -P ${DATA_DIR_TOPP}/check_file_contains.cmake)
 set_tests_properties("TOPP_FeatureFinderMetaboIdent_3_out1" PROPERTIES DEPENDS "TOPP_FeatureFinderMetaboIdent_3")
-# The elution peaks of this data are about 4 s wide: the default 'detect:peak_width' (60 s) smooths them away, which
-# the tool has to point out (issue #6058), with the advice to keep the RT window when lowering it.
+# The elution peaks of this data are about 4 s wide: a 'detect:peak_width' of 60 s (the former default, set explicitly
+# here) smooths them away, which the tool has to point out (issue #6058), with the advice to keep the RT window when
+# lowering it.
 # (check_exit_code.cmake: the tool also has to succeed, which PASS_REGULAR_EXPRESSION would not check.)
 add_test(NAME "TOPP_FeatureFinderMetaboIdent_4" COMMAND ${CMAKE_COMMAND}
   "-DCOMMAND=${TOPP_BIN_PATH}/FeatureFinderMetaboIdent;-test;-in;${DATA_DIR_TOPP}/FeatureFinderMetaboIdent_1_input.mzML;-id;${DATA_DIR_TOPP}/FeatureFinderMetaboIdent_1_input.tsv;-out;${TESTS_TEMP_DIR}/FeatureFinderMetaboIdent_4_output.tmp.featureXML;-extract:mz_window;5;-detect:peak_width;60"
@@ -7749,6 +7750,14 @@ add_test("TOPP_FeatureFinderMetaboIdent_9_out1" ${CMAKE_COMMAND}
   "-DEXPECTED=<featureList count=\"2\">;-O-methylcytidine\";name=\"label\" value=\"adenosine\""
   -P ${DATA_DIR_TOPP}/check_file_contains.cmake)
 set_tests_properties("TOPP_FeatureFinderMetaboIdent_9_out1" PROPERTIES DEPENDS "TOPP_FeatureFinderMetaboIdent_9")
+# The default 'detect:peak_width' (20 s) on the same data: 6 features instead of 5 with 60 s (test 4), as
+# 2'-O-methylcytidine is found as well (issue #6058); the seventh target shares the signal of inosine
+add_test("TOPP_FeatureFinderMetaboIdent_10" ${TOPP_BIN_PATH}/FeatureFinderMetaboIdent -test -in ${DATA_DIR_TOPP}/FeatureFinderMetaboIdent_1_input.mzML -id ${DATA_DIR_TOPP}/FeatureFinderMetaboIdent_1_input.tsv -out ${TESTS_TEMP_DIR}/FeatureFinderMetaboIdent_10_output.tmp.featureXML -extract:mz_window 5)
+add_test("TOPP_FeatureFinderMetaboIdent_10_out1" ${CMAKE_COMMAND}
+  -DINPUT_FILE=${TESTS_TEMP_DIR}/FeatureFinderMetaboIdent_10_output.tmp.featureXML
+  "-DEXPECTED=<featureList count=\"6\">"
+  -P ${DATA_DIR_TOPP}/check_file_contains.cmake)
+set_tests_properties("TOPP_FeatureFinderMetaboIdent_10_out1" PROPERTIES DEPENDS "TOPP_FeatureFinderMetaboIdent_10")
 
 # MzMLSplitter test:
 # specify number of parts directly:
