@@ -434,9 +434,22 @@ namespace OpenMS::OpenDIA
       for (; it != by_mz_.end() && panel_[*it].precursor_mz <= upper; ++it)
       {
         Member& member = panel_[*it];
-        if (rt < member.window_low || rt > member.window_high)
+        if (rt < member.window_low)
         {
           continue; // Outside the windowed pass's collection range (never in the default whole-run pass).
+        }
+        if (rt > member.window_high)
+        {
+          // Spectra arrive in RT order, so this member is complete: release the growth reserve of its traces.
+          if (!member.closed)
+          {
+            member.rt.shrink_to_fit();
+            member.intensity.shrink_to_fit();
+            member.ppm.shrink_to_fit();
+            member.im.shrink_to_fit();
+            member.closed = true;
+          }
+          continue;
         }
         if (!member.rt.empty() && rt < member.rt.back())
         {
@@ -494,7 +507,7 @@ namespace OpenMS::OpenDIA
             {
               member.intensity.back()[f] = intensity[f];
               member.ppm.back()[f] = ppm[f];
-              member.im.back()[f] = im[f];
+              if (!member.im.empty()) member.im.back()[f] = im[f];
             }
           }
           continue;
@@ -502,7 +515,8 @@ namespace OpenMS::OpenDIA
         member.rt.push_back(rt);
         member.intensity.push_back(intensity);
         member.ppm.push_back(ppm);
-        member.im.push_back(im);
+        // Without a library 1/K0 the mean mobility is never computed (always 0), so it is not stored.
+        if (member.library_im > 0.0) member.im.push_back(im);
       }
     }
   }
@@ -1203,7 +1217,7 @@ namespace OpenMS::OpenDIA
       std::vector<double> ims;
       for (std::size_t f = 0; f < member.fragment_count; ++f)
       {
-        if (member.intensity[best[m].apex][f] > 0.0f && member.im[best[m].apex][f] > 0.0f)
+        if (!member.im.empty() && member.intensity[best[m].apex][f] > 0.0f && member.im[best[m].apex][f] > 0.0f)
         {
           ims.push_back(member.im[best[m].apex][f]);
         }

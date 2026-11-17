@@ -266,9 +266,10 @@ namespace OpenMS::OpenDIA
       double window_high = std::numeric_limits<double>::infinity();
       std::array<double, FRAGMENTS> fragment_mz{};
       std::array<double, FRAGMENTS> library_intensity{};
-      // One entry per isolating spectrum, in RT order.
+      // One entry per isolating spectrum, in RT order. im is empty when the member has no library 1/K0.
       std::vector<double> rt;
       std::vector<std::array<float, FRAGMENTS>> intensity, ppm, im; ///< ppm: error of the strongest centroid.
+      bool closed = false; ///< Past window_high: traces complete and trimmed.
     };
 
     struct Candidate

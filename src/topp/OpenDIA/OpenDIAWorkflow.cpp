@@ -10,6 +10,7 @@
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/SYSTEM/SysInfo.h>
 
 #include <algorithm>
 #include <charconv>
@@ -110,7 +111,10 @@ protected:
 
     writeLogInfo_("Reading library " + getStringOption_("lib"));
     OpenDIA::AnalysisLibrary library = OpenDIA::AnalysisLibrary::read(getStringOption_("lib"), getStringOption_("scoring_lib"));
-    writeLogInfo_("Library: precursors=" + std::to_string(library.precursors.size()) + " pairs=" + std::to_string(library.pairs));
+    std::size_t library_rss = 0;
+    SysInfo::getProcessMemoryConsumption(library_rss);
+    writeLogInfo_("Library: precursors=" + std::to_string(library.precursors.size()) + " pairs=" + std::to_string(library.pairs) +
+                  " rss_mb=" + std::to_string(library_rss / 1024));
 
     OpenDIA::RunOptions options;
     options.threads = std::max(1, getIntOption_("threads"));

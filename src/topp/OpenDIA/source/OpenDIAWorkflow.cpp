@@ -20,6 +20,7 @@
 #include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/OPTIONS/PeakFileOptions.h>
+#include <OpenMS/SYSTEM/SysInfo.h>
 
 #include <algorithm>
 #include <chrono>
@@ -37,6 +38,15 @@ namespace OpenMS::OpenDIA
     constexpr std::size_t K12 = FragmentGrid::FRAGMENTS;
 
     std::string annotation(const OpenSwath::LightTransition& t) { return t.getAnnotation(); }
+
+    /// " rss_mb=<current> peak_mb=<peak>" for stage log lines (diagnostic only).
+    std::string memoryNote()
+    {
+      std::size_t now = 0, peak = 0;
+      SysInfo::getProcessMemoryConsumption(now);
+      SysInfo::getProcessPeakMemoryConsumption(peak);
+      return " rss_mb=" + std::to_string(now / 1024) + " peak_mb=" + std::to_string(peak / 1024);
+    }
 
     std::string unmodified(const std::string& sequence)
     {
@@ -278,8 +288,8 @@ namespace OpenMS::OpenDIA
     result.run = path;
     const auto say = [&](const std::string& line)
     {
-      result.log.push_back(line);
-      if (log_) log_(line);
+      result.log.push_back(line + memoryNote());
+      if (log_) log_(result.log.back());
     };
     auto& lib = library_;
     const auto t_run = std::chrono::steady_clock::now();
@@ -323,6 +333,7 @@ namespace OpenMS::OpenDIA
         collector.setIonMobilityArrayAsVSSC(options_.im_array_as_vssc);
         readSpectra(path, collector, {2});
         ++passes;
+        say("Calibration: pass " + std::to_string(passes) + " collected panel=" + std::to_string(collector.panelSize()));
         CalibrationDiagnostics diagnostics;
         try
         {
