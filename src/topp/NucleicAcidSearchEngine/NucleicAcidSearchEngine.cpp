@@ -50,6 +50,7 @@
 #include "RNAModificationDiagnostics.h"
 #include "RNARouteScorer.h"
 #include "RNARouteCandidateGenerator.h"
+#include "RNARescoringFeatures.h"
 #include <OpenMS/CHEMISTRY/NASequence.h>
 
 // preprocessing and filtering of spectra
@@ -65,6 +66,8 @@
 
 // post-processing of results
 #include <OpenMS/ANALYSIS/ID/FalseDiscoveryRate.h>
+#include <OpenMS/ANALYSIS/ID/Percolator.h>
+#include <functional>
 #include <OpenMS/PROCESSING/ID/IDFilter.h>
 
 
@@ -131,6 +134,10 @@ Use @p candidates:method=graph_audit to measure tag support while retaining all
 enumerated candidates and the existing scoring. See @ref TOPP_NASE_GraphSearch
 for supported ion series, bounds, fallback, spectrum-specific route generation,
 optional route/scaffold scoring, and the FLASH MS1 / legacy MS2 workflow.
+
+With @p rescoring:enable, the best hit of every spectrum is rescored with the
+in-process Percolator, and the q-values are calculated on the Percolator score.
+See @ref TOPP_NASE_Rescoring for the features, fallback and limitations.
 
 <B>The command line parameters of this tool are:</B>
 @verbinclude TOPP_NucleicAcidSearchEngine.cli
@@ -487,6 +494,41 @@ protected:
     setMinFloat_("fdr:cutoff", 0.0);
     setMaxFloat_("fdr:cutoff", 1.0);
     registerFlag_("fdr:remove_decoys", "Do not score hits to decoy sequences and remove them when filtering");
+
+    registerTOPPSubsection_("rescoring", "Semi-supervised rescoring of the search hits with in-process Percolator (requires 'fdr:decoy_pattern')");
+    registerFlag_("rescoring:enable",
+                  "Rescore the best hit of every spectrum with Percolator on match features (score margins to the other hits, precursor "
+                  "error, ion-series coverage, matched intensity and the evidence of the candidate method). The q-values are then "
+                  "calculated on the Percolator score; the native score, Percolator score and PEP are reported. The order of the hits of a "
+                  "spectrum is unchanged, and hits below the best one get no Percolator score or q-value. If Percolator cannot run (e.g. "
+                  "too few decoys) or rejects its learned model, the native score is used with a warning. Experimental: when an analyte "
+                  "produces several spectra, the rescored q-values can understate the FDR (spectra of one analyte fall into different "
+                  "cross-validation folds; Freestone, Noble and Keich 2024); check them with an entrapment experiment. Shuffled "
+                  "decoys (DecoyDatabase -type RNA -method shuffle) are recommended over reversed ones.");
+    registerFlag_("rescoring:route_features",
+                  "Add the route evidence of the rescored hit (route score, nodes, intensity ratio, prefix and suffix length) to the "
+                  "features of a hyperscore or MVH search. The route score is that of 'scoring:method route' for the intact model "
+                  "(without the support scaffolds of 'graph_routes'). Route-scored searches always have these features.");
+    registerIntOption_("rescoring:top_hits", "<num>", 2,
+                       "Hits per spectrum retained for the score-margin features of rescoring (at least 'report:top_hits'; 0 for all)",
+                       false, true);
+    setMinInt_("rescoring:top_hits", 0);
+    registerIntOption_("rescoring:min_decoys", "<num>", 100,
+                       "Minimum number of spectra whose best hit is a decoy; with fewer, Percolator's model and PEPs are unreliable and the "
+                       "native score is used",
+                       false, true);
+    setMinInt_("rescoring:min_decoys", 1);
+    registerIntOption_("rescoring:seed", "<num>", 1, "Random seed of Percolator's cross-validation folds", false, true);
+    registerDoubleOption_("rescoring:train_fdr", "<value>", 0.01,
+                          "FDR at which Percolator selects positive training examples and checks the learned model on held-out folds "
+                          "(its 'train_fdr' and 'test_fdr'). If a fold has no target at this FDR, the model is rejected and the native "
+                          "score is used; a higher value can let small or hard searches train.",
+                          false, true);
+    setMinFloat_("rescoring:train_fdr", 0.001);
+    setMaxFloat_("rescoring:train_fdr", 0.5);
+    registerOutputFile_("rescoring:out_features", "<file>", "",
+                        "Optional output file: the feature row, label and Percolator result of every rescored hit (for inspection)", false, true);
+    setValidFormats_("rescoring:out_features", {"tsv"});
   }
 
   // relevant information about an MS2 precursor ion
@@ -550,9 +592,13 @@ protected:
     RNARouteScorer::Result route_evidence;
     std::string native_scoring_scaffold;
     std::optional<IdentificationData::IdentifiedOligo> parent_override;
+    std::optional<double> percolator_score; // set by rescoring (best hits of a spectrum)
+    std::optional<double> percolator_pep;
   };
 
   typedef multimap<double, AnnotatedHit, greater<double>> HitsByScore;
+  /// Route evidence of a hit of spectrum @p scan_index (for 'rescoring:route_features'); may throw.
+  using RouteEvidence = std::function<RNARouteScorer::Result(Size scan_index, const AnnotatedHit& hit)>;
 
   /// Score both enumerated and graph-generated models through the existing OpenMS scorers.
   static double scoreNativeSpectrum_(const std::string& method,
@@ -1274,24 +1320,272 @@ protected:
     if ((top_hits == 0) || (hits.size() < top_hits) || (score >= hits.rbegin()->first))
     {
       hits.emplace(score, std::move(hit));
-      if (top_hits > 0)
-      {
-        auto cutoff = hits.begin();
-        std::advance(cutoff, std::min<Size>(top_hits, hits.size()) - 1);
-        hits.erase(hits.upper_bound(cutoff->first), hits.end());
-      }
+      trimToTopHits_(hits, top_hits);
     }
   }
 
-  void postProcessHits_(const PeakMap& exp,
+  /// @brief Keep the best @p top_hits hits and every exact tie at the cutoff (0 keeps all hits).
+  static void trimToTopHits_(HitsByScore& hits, Size top_hits)
+  {
+    if ((top_hits == 0) || (hits.size() <= top_hits)) return;
+    auto cutoff = hits.begin();
+    std::advance(cutoff, top_hits - 1);
+    hits.erase(hits.upper_bound(cutoff->first), hits.end());
+  }
+
+  static bool isDecoyHit_(const AnnotatedHit& hit)
+  {
+    return (hit.parent_override ? *hit.parent_override : *hit.oligo_ref).allParentsAreDecoys();
+  }
+
+  /// Score types of Percolator rescoring (registered only if 'rescoring:enable' is set).
+  struct RescoringScores
+  {
+    IdentificationData::ScoreTypeRef score_ref;
+    IdentificationData::ScoreTypeRef pep_ref;
+  };
+
+  /**
+    @brief Rescore the best hit of every spectrum with Percolator.
+
+    The hits must be sorted and ambiguity-resolved. Percolator gets one row per spectrum: its best native hit,
+    described relative to the other retained hits (score margins). This is the usual Percolator input (one
+    PSM per spectrum with delta scores), so Percolator's PEPs refer to the same spectrum-level competition as
+    NASE's FDR calculation. Hits tied with the best native score share its Percolator score and
+    PEP; lower-ranked hits get none (and therefore no q-value). The order of the hits of a spectrum is unchanged.
+    With @p route_evidence ('rescoring:route_features' of a hyperscore or MVH search), the route evidence of each
+    rescored hit is added to its features.
+
+    @return False (no Percolator scores) if Percolator cannot run (e.g. with too few decoys), its sanity check
+            rejects the learned model, or route evidence fails.
+  */
+  bool rescoreHits_(const PeakMap& exp, vector<HitsByScore>& annotated_hits, const RouteEvidence& route_evidence)
+  {
+    Size min_charge = std::numeric_limits<Size>::max(), max_charge = 0, n_rows = 0, n_decoys = 0;
+    for (const auto& hits : annotated_hits)
+    {
+      if (hits.empty()) continue;
+      const AnnotatedHit& best = hits.begin()->second;
+      const Size charge = static_cast<Size>(std::abs(best.precursor_ref->charge));
+      min_charge = std::min(min_charge, charge);
+      max_charge = std::max(max_charge, charge);
+      ++n_rows;
+      if (isDecoyHit_(best)) ++n_decoys;
+    }
+    const Size min_decoys = getIntOption_("rescoring:min_decoys");
+    if ((n_decoys < min_decoys) || (n_decoys == n_rows))
+    {
+      OPENMS_LOG_WARN << "Warning: Rescoring needs target spectrum matches and at least " << min_decoys
+                      << " decoy ones ('rescoring:min_decoys'); found " << n_rows - n_decoys << " target and " << n_decoys
+                      << " decoy best hits. Using the native search score." << endl;
+      return false;
+    }
+
+    // The charge columns cover the charges of all rows (independent of the labels).
+    RNARescoringFeatures::Options options;
+    options.ion_series = getStringList_("fragment:ions");
+    options.min_charge = std::max<Size>(min_charge, 1);
+    options.max_charge = std::max(max_charge, options.min_charge);
+    const std::string candidate_method = getStringOption_("candidates:method");
+    options.route = (getStringOption_("scoring:method") == "route") || route_evidence;
+    options.route_score = options.route && (getStringOption_("scoring:method") != "route");
+    options.graph = (candidate_method != "enumeration") && (candidate_method != "graph_routes");
+    options.diagnostics = getFlag_("diagnostic:filter");
+    options.flash = getFlag_("precursor:correct_with_flash");
+    const RNARescoringFeatures builder(options);
+
+    vector<vector<double>> scan_rows(annotated_hits.size());
+    std::string route_failure; // first route evidence error; guarded by an OpenMP critical section
+#pragma omp parallel for
+    for (SignedSize scan_index = 0; scan_index < (SignedSize)annotated_hits.size(); ++scan_index)
+    {
+      const HitsByScore& hits = annotated_hits[scan_index];
+      if (hits.empty()) continue;
+      const MSSpectrum& spectrum = exp[scan_index];
+      RNARescoringFeatures::SpectrumInput spectrum_input;
+      for (const auto& peak : spectrum) spectrum_input.total_intensity += peak.getIntensity();
+      if (spectrum.metaValueExists("diagnostic_allowed_mods"))
+      {
+        for (const auto& code : spectrum.getMetaValue("diagnostic_allowed_mods").toStringList())
+        {
+          spectrum_input.diagnostic_allowed.insert(code);
+        }
+      }
+      if (spectrum.metaValueExists("flash_precursor_cosine"))
+      {
+        spectrum_input.flash_cosine = double(spectrum.getMetaValue("flash_precursor_cosine"));
+        if (spectrum.metaValueExists("flash_precursor_snr")) spectrum_input.flash_snr = double(spectrum.getMetaValue("flash_precursor_snr"));
+      }
+      vector<RNARescoringFeatures::HitInput> inputs;
+      inputs.reserve(hits.size());
+      for (const auto& [score, hit] : hits)
+      {
+        RNARescoringFeatures::HitInput input;
+        input.native_score = score;
+        input.sequence = hit.sequence;
+        input.precursor_error_ppm = hit.precursor_error_ppm;
+        input.isotope_offset = hit.precursor_ref->isotope;
+        input.charge = hit.precursor_ref->charge;
+        input.adduct = hit.precursor_ref->adduct.has_value();
+        input.annotations = &hit.annotations;
+        input.route_score = hit.route_evidence.score;
+        input.route_nodes = hit.route_evidence.nodes;
+        input.route_matched_intensity = hit.route_evidence.matched_intensity;
+        input.route_local_intensity = hit.route_evidence.local_intensity;
+        input.route_prefix_length = hit.route_evidence.prefix_length;
+        input.route_suffix_length = hit.route_evidence.suffix_length;
+        input.graph_tag_length = (hit.graph_evaluated && hit.graph_evidence.supported) ? hit.graph_evidence.length : 0;
+        inputs.push_back(std::move(input));
+      }
+      if (route_evidence)
+      {
+        // Only the rescored (best) hit needs route evidence; the others give the score margins.
+        try
+        {
+          const RNARouteScorer::Result route = route_evidence(scan_index, hits.begin()->second);
+          RNARescoringFeatures::HitInput& best = inputs.front();
+          best.route_score = std::isfinite(route.score) ? route.score : 0.0;
+          best.route_nodes = route.nodes;
+          best.route_matched_intensity = route.matched_intensity;
+          best.route_local_intensity = route.local_intensity;
+          best.route_prefix_length = route.prefix_length;
+          best.route_suffix_length = route.suffix_length;
+        }
+        catch (const Exception::BaseException& error)
+        {
+#pragma omp critical (rescoring_route_failure)
+          {
+            if (route_failure.empty()) route_failure = "spectrum '" + spectrum.getNativeID() + "': " + error.what();
+          }
+          continue;
+        }
+      }
+      // All retained hits give the margins; only the best one is rescored (linear in the number of hits).
+      scan_rows[scan_index] = builder.computeRow(inputs, 0, spectrum_input);
+    }
+
+    if (! route_failure.empty())
+    {
+      OPENMS_LOG_WARN << "Warning: Route evidence for rescoring failed for " << route_failure << ". Using the native search score." << endl;
+      return false;
+    }
+
+    RescoreInput input;
+    input.feature_names = builder.featureNames();
+    input.features.reserve(n_rows);
+    vector<Size> row_scans;
+    for (Size scan_index = 0; scan_index < annotated_hits.size(); ++scan_index)
+    {
+      if (annotated_hits[scan_index].empty()) continue;
+      input.features.push_back(std::move(scan_rows[scan_index]));
+      input.is_decoy.push_back(isDecoyHit_(annotated_hits[scan_index].begin()->second));
+      input.scan_numbers.push_back(static_cast<int>(scan_index));
+      row_scans.push_back(scan_index);
+    }
+
+    Percolator percolator;
+    Param param = percolator.getParameters();
+    param.setValue("seed", getIntOption_("rescoring:seed"));
+    param.setValue("train_fdr", getDoubleOption_("rescoring:train_fdr"));
+    param.setValue("test_fdr", getDoubleOption_("rescoring:train_fdr"));
+    param.setValue("num_threads", std::max(getIntOption_("threads"), 1));
+    percolator.setParameters(param);
+    RescoreOutput output;
+    try
+    {
+      output = percolator.rescore(input);
+    }
+    catch (const Exception::BaseException& e)
+    {
+      OPENMS_LOG_WARN << "Warning: Percolator rescoring failed (" << n_rows << " spectra, " << n_decoys << " decoy best hits): " << e.what()
+                      << "\nUsing the native search score." << endl;
+      writeRescoringFeatures_(exp, annotated_hits, input, row_scans, nullptr);
+      return false;
+    }
+    if (percolator.usedDefaultDirection())
+    {
+      // Percolator then scores with a single feature, which can rank far worse than the native score (e.g. when a
+      // high-scoring decoy leaves no target at q < 1% on a held-out fold).
+      OPENMS_LOG_WARN << "Warning: Percolator's sanity check rejected the learned model (" << n_rows << " spectra, " << n_decoys
+                      << " decoy best hits). Using the native search score." << endl;
+      writeRescoringFeatures_(exp, annotated_hits, input, row_scans, nullptr);
+      return false;
+    }
+    writeRescoringFeatures_(exp, annotated_hits, input, row_scans, &output);
+
+    for (Size row = 0; row < n_rows; ++row)
+    {
+      HitsByScore& hits = annotated_hits[row_scans[row]];
+      const double best_score = hits.begin()->first;
+      for (auto it = hits.begin(); (it != hits.end()) && (it->first == best_score); ++it)
+      {
+        it->second.percolator_score = output.scores[row];
+        it->second.percolator_pep = output.peps[row];
+      }
+    }
+    OPENMS_LOG_INFO << "Rescored the best hits of " << n_rows << " spectra (" << n_decoys << " decoys) with Percolator." << endl;
+    return true;
+  }
+
+  /// Write the rescoring features of the best hits (and the Percolator results, if any) to 'rescoring:out_features'.
+  void writeRescoringFeatures_(const PeakMap& exp, const vector<HitsByScore>& annotated_hits, const RescoreInput& input,
+                               const vector<Size>& row_scans, const RescoreOutput* output)
+  {
+    const std::string path = getStringOption_("rescoring:out_features");
+    if (path.empty()) return;
+    SVOutStream out(path, "\t", "_", QuotingMethod::NONE);
+    out << "native_id" << "scan_index" << "sequence" << "charge" << "decoy";
+    for (const auto& name : input.feature_names) out << name;
+    out << "percolator_score" << "percolator_q_value" << "percolator_pep" << nl;
+    for (Size row = 0; row < row_scans.size(); ++row)
+    {
+      const Size scan_index = row_scans[row];
+      const AnnotatedHit& hit = annotated_hits[scan_index].begin()->second;
+      out << exp[scan_index].getNativeID() << scan_index << hit.sequence.toString() << hit.precursor_ref->charge
+          << (input.is_decoy[row] ? 1 : 0);
+      for (double value : input.features[row]) out << value;
+      if (output) out << output->scores[row] << output->q_values[row] << output->peps[row];
+      else out << "" << "" << "";
+      out << nl;
+    }
+  }
+
+  /**
+    @brief Turn the search hits into observation matches.
+
+    With @p rescoring, the best hits are also rescored (rescoreHits_(), with @p route_evidence). Each spectrum keeps its best
+    @p report_top_hits hits by native score (with exact ties).
+
+    @return Whether the hits were rescored
+  */
+  bool postProcessHits_(const PeakMap& exp,
                         vector<HitsByScore>& annotated_hits,
                         IdentificationData& id_data,
                         bool negative_mode,
                         IdentificationData::InputFileRef file_ref,
-                        IdentificationData::ScoreTypeRef score_ref)
+                        IdentificationData::ScoreTypeRef score_ref,
+                        Size report_top_hits,
+                        const std::optional<RescoringScores>& rescoring,
+                        const RouteEvidence& route_evidence)
   {
     // Use the current run references; cached entries may sort before them.
     const std::string graph_method = getStringOption_("candidates:method");
+
+#pragma omp parallel for
+    for (SignedSize scan_index = 0; scan_index < (SignedSize)annotated_hits.size(); ++scan_index)
+    {
+      HitsByScore& hits = annotated_hits[scan_index];
+      if (hits.empty()) continue;
+      sortHitsByValue_(hits);
+      if (resolve_ambiguous_mods_ && (hits.size() > 1))
+      {
+        resolveAmbiguousMods_(hits);
+        // Merged ambiguity codes can change the value order of the surviving hits.
+        sortHitsByValue_(hits);
+      }
+    }
+
+    const bool rescored = rescoring && rescoreHits_(exp, annotated_hits, route_evidence);
 
 // @TODO: change OpenMP schedule from default ("static") to "dynamic"/"guided"?
 #pragma omp parallel for
@@ -1315,14 +1609,8 @@ protected:
 #pragma omp critical (id_data_access)
       obs_ref = id_data.registerObservation(obs);
 
-      sortHitsByValue_(annotated_hits[scan_index]);
-
-      if (resolve_ambiguous_mods_ && (annotated_hits[scan_index].size() > 1))
-      {
-        resolveAmbiguousMods_(annotated_hits[scan_index]);
-        // Merged ambiguity codes can change the value order of the surviving hits.
-        sortHitsByValue_(annotated_hits[scan_index]);
-      }
+      // The search may retain more hits than are reported (search_top_hits).
+      trimToTopHits_(annotated_hits[scan_index], report_top_hits);
 
       // create full oligo hit structure from annotated hits
       for (const auto& pair : annotated_hits[scan_index])
@@ -1342,6 +1630,8 @@ protected:
         if ((charge > 0) && negative_mode) charge = -charge;
         IdentificationData::ObservationMatch match(oligo_ref, obs_ref, charge);
         match.addScore(score_ref, score, id_data.getCurrentProcessingStep());
+        if (hit.percolator_score) match.addScore(rescoring->score_ref, *hit.percolator_score, id_data.getCurrentProcessingStep());
+        if (hit.percolator_pep) match.addScore(rescoring->pep_ref, *hit.percolator_pep, id_data.getCurrentProcessingStep());
         match.peak_annotations[id_data.getCurrentProcessingStep()] =
           hit.annotations;
         // @TODO: add a field for this to "IdentificationData::ObservationMatch"?
@@ -1409,6 +1699,7 @@ protected:
       }
     }
     id_data.cleanup();
+    return rescored;
   }
 
 
@@ -1507,11 +1798,9 @@ protected:
   }
 
 
-  void calculateAndFilterFDR_(IdentificationData& id_data, bool only_top_hits)
+  /// q-values from target-decoy competition on @p score_ref (the score that ranks the hits)
+  void calculateAndFilterFDR_(IdentificationData& id_data, bool only_top_hits, IdentificationData::ScoreTypeRef score_ref)
   {
-    const std::string scoring_method = getStringOption_("scoring:method");
-    IdentificationData::ScoreTypeRef score_ref
-      = id_data.findScoreType(scoring_method == "route" ? "RNA route score" : (scoring_method == "mvh" ? "MVH score" : "hyperscore"));
     FalseDiscoveryRate fdr;
     Param fdr_params = fdr.getDefaults();
     fdr_params.setValue("use_all_hits", only_top_hits ? "false" : "true");
@@ -1796,6 +2085,15 @@ protected:
     Size max_variable_mods_per_oligo =
       getIntOption_("modifications:variable_max_per_oligo");
     Size report_top_hits = getIntOption_("report:top_hits");
+    // Hits retained per spectrum during the search; postProcessHits_ trims them to report_top_hits.
+    // Rescoring retains runner-up hits for its score-margin features (0 = all hits).
+    const bool rescoring_enabled = getFlag_("rescoring:enable");
+    Size search_top_hits = report_top_hits;
+    if (rescoring_enabled && (search_top_hits != 0))
+    {
+      const Size rescoring_top_hits = getIntOption_("rescoring:top_hits");
+      search_top_hits = (rescoring_top_hits == 0) ? 0 : std::max(search_top_hits, rescoring_top_hits);
+    }
 
     std::string enzyme_name = getStringOption_("oligo:enzyme");
     const DigestionEnzyme* configured_enzyme =
@@ -1972,6 +2270,19 @@ protected:
     if (test_mode_) software.setVersion("test");
     // @TODO: which should be the "primary" (first) score?
     software.assigned_scores.push_back(search_score_ref);
+    // The mzTab export numbers score columns in the order of the first match that has them, following this list.
+    // The scores of every match are a subsequence of it (q-values come last: tied hits that the FDR calculation did
+    // not pick have none), so the column order does not depend on which match is exported first.
+    std::optional<RescoringScores> rescoring_scores;
+    if (rescoring_enabled)
+    {
+      RescoringScores refs;
+      refs.score_ref = id_data.registerScoreType(IdentificationData::ScoreType(CVTerm("MS:1001492", "percolator:score", "MS"), true));
+      refs.pep_ref = id_data.registerScoreType(IdentificationData::ScoreType(CVTerm("MS:1001493", "percolator:PEP", "MS"), false));
+      software.assigned_scores.push_back(refs.score_ref);
+      software.assigned_scores.push_back(refs.pep_ref);
+      rescoring_scores = refs;
+    }
     software.assigned_scores.push_back(qvalue_ref);
     IdentificationData::ProcessingSoftwareRef software_ref =
       id_data.registerProcessingSoftware(software);
@@ -1989,6 +2300,11 @@ protected:
 
     // get digested sequences:
     std::string decoy_pattern = getStringOption_("fdr:decoy_pattern");
+    if (rescoring_enabled && decoy_pattern.empty())
+    {
+      OPENMS_LOG_ERROR << "Error: 'rescoring:enable' requires decoy sequences ('fdr:decoy_pattern')." << endl;
+      return ILLEGAL_PARAMETERS;
+    }
     if (in_digest.empty()) // new digestion
     {
       search_param.database = in_db;
@@ -2544,17 +2860,35 @@ protected:
     route_score_options.max_states = getIntOption_("routes:max_states");
     vector<MSSpectrum> route_scoring_spectra;
     vector<RNARouteScorer::PreparedSpectrum> route_scoring_contexts;
+    // Route evidence of the rescored hits of a hyperscore or MVH search (route-scored hits already have it).
+    const bool rescoring_route_features = rescoring_enabled && getFlag_("rescoring:route_features") && (scoring_method != "route");
+    const Size route_max_peaks = getIntOption_(route_generation ? "routes:max_peaks" : "graph:max_peaks");
     if (scoring_method == "route")
     {
       route_scoring_spectra.assign(spectra.begin(), spectra.end());
-      const Size max_peaks = getIntOption_(route_generation ? "routes:max_peaks" : "graph:max_peaks");
       for (auto& spectrum : route_scoring_spectra)
       {
-        spectrum.select(RNASpectrumGraph::selectPeakIndices(spectrum, max_peaks));
+        spectrum.select(RNASpectrumGraph::selectPeakIndices(spectrum, route_max_peaks));
         route_scoring_contexts.push_back(RNARouteScorer::prepareSpectrum(spectrum, negative_mode, route_score_options));
       }
     }
 
+    RouteEvidence rescoring_route_evidence;
+    if (rescoring_route_features)
+    {
+      // As 'scoring:method route' for the intact model of the hit (no support scaffolds). Only the rescored hit of a
+      // spectrum is scored, so its peaks are selected and its context prepared here instead of for all spectra up front.
+      rescoring_route_evidence = [&](Size scan_index, const AnnotatedHit& hit) {
+        MSSpectrum spectrum = spectra[scan_index];
+        spectrum.select(RNASpectrumGraph::selectPeakIndices(spectrum, route_max_peaks));
+        const auto context = RNARouteScorer::prepareSpectrum(spectrum, negative_mode, route_score_options);
+        MSSpectrum model;
+        spectrum_generator.getSpectrum(model, hit.sequence, base_charge, hit.precursor_ref->charge * base_charge);
+        filterBlacklistedIons_(model, blacklist_mz, blacklist_tolerance);
+        const auto query = RNATagCandidateFilter::prepare(hit.sequence, nullptr, model, selected_ions, route_base_loss);
+        return RNARouteScorer::score(query, spectrum, context, negative_mode, route_score_options);
+      };
+    }
     std::atomic<bool> route_score_limit_exceeded {false};
     std::string route_score_failure; // first failing pair; guarded by an OpenMP critical section
     if (route_generation)
@@ -2884,7 +3218,7 @@ protected:
               hit.route_evidence = std::move(route_evidence);
               hit.native_scoring_scaffold = std::move(native_scoring_scaffold);
               hit.parent_override = std::move(parent_override);
-              retainTopHit_(annotated_hits[scan], score, std::move(hit), report_top_hits);
+              retainTopHit_(annotated_hits[scan], score, std::move(hit), search_top_hits);
             }
           }
           generated.candidates.clear();
@@ -3242,7 +3576,7 @@ protected:
 #pragma omp critical (annotated_hits_access)
             {
               HitsByScore& scan_hits = annotated_hits[scan_index];
-              if (report_top_hits == 0 || scan_hits.size() < report_top_hits || score >= scan_hits.rbegin()->first)
+              if (search_top_hits == 0 || scan_hits.size() < search_top_hits || score >= scan_hits.rbegin()->first)
               {
                 AnnotatedHit new_hit;
                 new_hit.oligo_ref = oligo_ref;
@@ -3254,7 +3588,7 @@ protected:
                 new_hit.graph_evaluated = graph_enabled;
                 new_hit.graph_evidence = graph_evidence;
                 new_hit.route_evidence = std::move(route_evidence);
-                retainTopHit_(scan_hits, score, std::move(new_hit), report_top_hits);
+                retainTopHit_(scan_hits, score, std::move(new_hit), search_top_hits);
               }
             }
           }
@@ -3313,7 +3647,9 @@ protected:
     }
 
     progresslogger.startProgress(0, 1, "post-processing search hits...");
-    postProcessHits_(spectra, annotated_hits, id_data, negative_mode, file_ref, search_score_ref);
+    const bool rescored =
+      postProcessHits_(spectra, annotated_hits, id_data, negative_mode, file_ref, search_score_ref, report_top_hits, rescoring_scores,
+                       rescoring_route_evidence);
     progresslogger.endProgress();
     OPENMS_LOG_INFO << "Identified spectra: " << id_data.getObservations().size()
                     << endl;
@@ -3322,7 +3658,9 @@ protected:
     if (!decoy_pattern.empty())
     {
       OPENMS_LOG_INFO << "Performing FDR calculations..." << endl;
-      calculateAndFilterFDR_(id_data, report_top_hits == 1);
+      // Percolator scored one row per spectrum; hits tied with it share its score. Count each spectrum once, whatever
+      // 'report:top_hits' is, so that a reporting limit cannot change the q-values.
+      calculateAndFilterFDR_(id_data, (report_top_hits == 1) || rescored, rescored ? rescoring_scores->score_ref : search_score_ref);
     }
     id_data.calculateCoverages();
 

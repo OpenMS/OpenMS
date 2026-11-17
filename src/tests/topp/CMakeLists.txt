@@ -9160,6 +9160,37 @@ foreach(mode graph_generate graph_generate_audit)
   set_tests_properties("TOPP_NucleicAcidSearchEngine_${mode}_out" PROPERTIES DEPENDS "TOPP_NucleicAcidSearchEngine_${mode};TOPP_NucleicAcidSearchEngine_graph_reference")
 endforeach()
 
+# Percolator rescoring on synthetic negative-mode spectra of 8-12-mer targets with reversed decoys: identifiable
+# spectra plus poor ones with a few target or decoy fragments. These tests check the wiring, not the model.
+# 'rescoring' (330 + 330 spectra): Percolator trains a model.
+add_test("TOPP_NucleicAcidSearchEngine_rescoring" ${TOPP_BIN_PATH}/NucleicAcidSearchEngine -test -in ${DATA_DIR_TOPP}/NucleicAcidSearchEngine_rescoring.mzML.gz -database ${DATA_DIR_TOPP}/NucleicAcidSearchEngine_rescoring.fasta -oligo:enzyme "no cleavage" -precursor:min_charge -2 -precursor:max_charge -3 -fdr:decoy_pattern DECOY_ -threads 1 -rescoring:enable -out ${TESTS_TEMP_DIR}/NucleicAcidSearchEngine_rescoring.tmp.mzTab -rescoring:out_features ${TESTS_TEMP_DIR}/NucleicAcidSearchEngine_rescoring_features.tmp.tsv)
+add_test("TOPP_NucleicAcidSearchEngine_rescoring_out" ${DIFF} -in1 ${TESTS_TEMP_DIR}/NucleicAcidSearchEngine_rescoring.tmp.mzTab -in2 ${DATA_DIR_TOPP}/NucleicAcidSearchEngine_rescoring_out.mzTab -whitelist "ms_run[1]-location")
+add_test("TOPP_NucleicAcidSearchEngine_rescoring_features_out" ${DIFF} -in1 ${TESTS_TEMP_DIR}/NucleicAcidSearchEngine_rescoring_features.tmp.tsv -in2 ${DATA_DIR_TOPP}/NucleicAcidSearchEngine_rescoring_features_out.tsv)
+set_tests_properties("TOPP_NucleicAcidSearchEngine_rescoring_out" PROPERTIES DEPENDS "TOPP_NucleicAcidSearchEngine_rescoring")
+set_tests_properties("TOPP_NucleicAcidSearchEngine_rescoring_features_out" PROPERTIES DEPENDS "TOPP_NucleicAcidSearchEngine_rescoring")
+# 'rescoring:route_features' adds the route evidence of each rescored hit to the features of this hyperscore search
+# (at train FDR 1%, Percolator rejects that model on this small set: no target at q < 1% on a held-out fold).
+add_test("TOPP_NucleicAcidSearchEngine_rescoring_route" ${TOPP_BIN_PATH}/NucleicAcidSearchEngine -test -in ${DATA_DIR_TOPP}/NucleicAcidSearchEngine_rescoring.mzML.gz -database ${DATA_DIR_TOPP}/NucleicAcidSearchEngine_rescoring.fasta -oligo:enzyme "no cleavage" -precursor:min_charge -2 -precursor:max_charge -3 -fdr:decoy_pattern DECOY_ -threads 1 -rescoring:enable -rescoring:route_features -rescoring:train_fdr 0.05 -out ${TESTS_TEMP_DIR}/NucleicAcidSearchEngine_rescoring_route.tmp.mzTab -rescoring:out_features ${TESTS_TEMP_DIR}/NucleicAcidSearchEngine_rescoring_route_features.tmp.tsv)
+add_test("TOPP_NucleicAcidSearchEngine_rescoring_route_features_out" ${DIFF} -in1 ${TESTS_TEMP_DIR}/NucleicAcidSearchEngine_rescoring_route_features.tmp.tsv -in2 ${DATA_DIR_TOPP}/NucleicAcidSearchEngine_rescoring_route_features_out.tsv)
+set_tests_properties("TOPP_NucleicAcidSearchEngine_rescoring_route_features_out" PROPERTIES DEPENDS "TOPP_NucleicAcidSearchEngine_rescoring_route")
+# The q-values of rescored searches count one match per spectrum: with an FDR cutoff, reporting two hits per
+# spectrum must give the same result as one (lower hits have no Percolator score; tied hits share one).
+foreach(top 1 2)
+  add_test("TOPP_NucleicAcidSearchEngine_rescoring_top${top}" ${TOPP_BIN_PATH}/NucleicAcidSearchEngine -test -in ${DATA_DIR_TOPP}/NucleicAcidSearchEngine_rescoring.mzML.gz -database ${DATA_DIR_TOPP}/NucleicAcidSearchEngine_rescoring.fasta -oligo:enzyme "no cleavage" -precursor:min_charge -2 -precursor:max_charge -3 -fdr:decoy_pattern DECOY_ -threads 1 -rescoring:enable -report:top_hits ${top} -fdr:cutoff 0.05 -out ${TESTS_TEMP_DIR}/NucleicAcidSearchEngine_rescoring_top${top}.tmp.mzTab)
+endforeach()
+add_test("TOPP_NucleicAcidSearchEngine_rescoring_top_out" ${DIFF} -in1 ${TESTS_TEMP_DIR}/NucleicAcidSearchEngine_rescoring_top2.tmp.mzTab -in2 ${TESTS_TEMP_DIR}/NucleicAcidSearchEngine_rescoring_top1.tmp.mzTab)
+set_tests_properties("TOPP_NucleicAcidSearchEngine_rescoring_top_out" PROPERTIES DEPENDS "TOPP_NucleicAcidSearchEngine_rescoring_top1;TOPP_NucleicAcidSearchEngine_rescoring_top2")
+# 'rescoring_rejected' (110 + 260 spectra): Percolator's sanity check rejects the learned model, so the result must be
+# that of the native score.
+add_test("TOPP_NucleicAcidSearchEngine_rescoring_rejected" ${TOPP_BIN_PATH}/NucleicAcidSearchEngine -test -in ${DATA_DIR_TOPP}/NucleicAcidSearchEngine_rescoring_rejected.mzML.gz -database ${DATA_DIR_TOPP}/NucleicAcidSearchEngine_rescoring_rejected.fasta -oligo:enzyme "no cleavage" -precursor:min_charge -2 -precursor:max_charge -3 -fdr:decoy_pattern DECOY_ -threads 1 -rescoring:enable -out ${TESTS_TEMP_DIR}/NucleicAcidSearchEngine_rescoring_rejected.tmp.mzTab)
+add_test("TOPP_NucleicAcidSearchEngine_rescoring_rejected_native" ${TOPP_BIN_PATH}/NucleicAcidSearchEngine -test -in ${DATA_DIR_TOPP}/NucleicAcidSearchEngine_rescoring_rejected.mzML.gz -database ${DATA_DIR_TOPP}/NucleicAcidSearchEngine_rescoring_rejected.fasta -oligo:enzyme "no cleavage" -precursor:min_charge -2 -precursor:max_charge -3 -fdr:decoy_pattern DECOY_ -threads 1 -out ${TESTS_TEMP_DIR}/NucleicAcidSearchEngine_rescoring_rejected_native.tmp.mzTab)
+add_test("TOPP_NucleicAcidSearchEngine_rescoring_rejected_out" ${DIFF} -in1 ${TESTS_TEMP_DIR}/NucleicAcidSearchEngine_rescoring_rejected.tmp.mzTab -in2 ${TESTS_TEMP_DIR}/NucleicAcidSearchEngine_rescoring_rejected_native.tmp.mzTab)
+set_tests_properties("TOPP_NucleicAcidSearchEngine_rescoring_rejected_out" PROPERTIES DEPENDS "TOPP_NucleicAcidSearchEngine_rescoring_rejected;TOPP_NucleicAcidSearchEngine_rescoring_rejected_native")
+# The one-spectrum fixture has too few decoys: rescoring falls back and must reproduce the native reference.
+add_test("TOPP_NucleicAcidSearchEngine_rescoring_fallback" ${TOPP_BIN_PATH}/NucleicAcidSearchEngine -test -ini ${DATA_DIR_TOPP}/NucleicAcidSearchEngine_1.ini -in ${DATA_DIR_TOPP}/NucleicAcidSearchEngine_1.mzML -database ${DATA_DIR_TOPP}/NucleicAcidSearchEngine_1.fasta -out ${TESTS_TEMP_DIR}/NucleicAcidSearchEngine_rescoring_fallback.tmp.mzTab -rescoring:enable)
+add_test("TOPP_NucleicAcidSearchEngine_rescoring_fallback_out" ${DIFF} -in1 ${TESTS_TEMP_DIR}/NucleicAcidSearchEngine_rescoring_fallback.tmp.mzTab -in2 ${DATA_DIR_TOPP}/NucleicAcidSearchEngine_12_out.mzTab -whitelist "ms_run[1]-location")
+set_tests_properties("TOPP_NucleicAcidSearchEngine_rescoring_fallback_out" PROPERTIES DEPENDS "TOPP_NucleicAcidSearchEngine_rescoring_fallback")
+
 # RNAMassCalculator:
 add_test("TOPP_RNAMassCalculator_1" ${TOPP_BIN_PATH}/RNAMassCalculator -test -in_seq "AUCGGC" -charge -1 -2 -out ${TESTS_TEMP_DIR}/RNAMassCalculator.tmp.txt)
 add_test("TOPP_RNAMassCalculator_1_out" ${DIFF} -in1 ${TESTS_TEMP_DIR}/RNAMassCalculator.tmp.txt -in2 ${DATA_DIR_TOPP}/RNAMassCalculator_1.txt)
