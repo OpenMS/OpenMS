@@ -93,10 +93,12 @@ least 8 blocks run as tasks (`OpenMPTasks.h`). Class test `PercolatorNewton_test
 
 ### Local additions: `OpenMPThreads.h`, `OpenMPTasks.h`, `InProcessSampler.*`, stubs
 
-- `OpenMPThreads.h`: the thread cap of the vendored code (`maxThreads()`, `ThreadCap`, patch 04)
-  and `LoopErrors` (patch 08).
+- `OpenMPThreads.h`: the thread cap of the vendored code (`maxThreads()`, `ThreadCap`, patch 04),
+  `LoopErrors` (patch 08) and `TaskLoopScope` / `taskLoopThreads()` (the taskloops of the fold
+  chains, patch 11).
 - `OpenMPTasks.h`: `PERCOLATOR_OMP_TASKS` / `PERCOLATOR_TASK_PRAGMA` (OpenMP tasks only where the
-  compiler has them; MSVC's OpenMP 2.0 has none). Used by `newton_svm.cpp`; upstream uses no tasks.
+  compiler has them; MSVC's OpenMP 2.0 has none). Used by `newton_svm.cpp` and the fold chains
+  (patch 11); upstream uses no tasks.
 - `InProcessSampler.{h,cpp}`: the reservoir and out-of-fold samples of OpenMS' capped training.
 - `Globals.h`, `Version.h`, `config.h`: stubs for upstream's CMake-generated headers
   (`Globals.h` is upstream's `Globals.h.cmake` with the values of its `CommonCMake.txt`).
@@ -201,6 +203,24 @@ All patches are `git diff` style (a/b/ prefixes, applied with -p1) on the whitel
   with and without patches 09 and 10. Other compilers, versions and targets (AArch64, MSVC
   `/fp:contract`, x87, fast-math) are not covered. (`isFilled`, which patch 10 uses, comes with
   patch 03.)
+- `patches/11-cv-fold-chains.patch` (the fold chains of the former 12 and 33, on upstream's new
+  training) — `CrossValidation::trainFoldChains`: the iterations of `train()` as one chain of OpenMP
+  tasks per fold. A step of a fold is what `doStep` and `mergeCpCnPairs` do for it, in the same
+  order: its training set scored with its weights, its SVM input, one task per (Cpos, Cneg) pair
+  that solves the pair and counts its positives right after, the choice of the best pair and the
+  count of the fold's positives. The last pair of a step runs the rest of it and starts the fold's
+  next step, so a fold waits only for its own pairs, and the threads run whatever task is ready
+  (no thread waits in a task). With fixed folds (each fold stops on its own count) and with classic
+  training the chains never wait for each other; with upstream's stop rule on the sum of the folds
+  the last fold to finish an iteration decides and starts the next steps. Inside the chains the
+  scoring of a set (`Scores::calcScores`) and the copies of its training rows (`appendTrainingRows`)
+  run as taskloops (`TaskLoopScope`, `OpenMPThreads.h`). The reports of the iterations are printed
+  afterwards as the loop prints them. `trainsFoldChains()`: with OpenMP tasks and more than one
+  thread, without nested cross-validation, `-R` or verbosity above 2, with all folds active and held
+  at once; otherwise the loop runs. The results are those of the loop, bit for bit (scores, q-values
+  and PEPs of `perc_bench` on 100,000 and 1,000,000 synthetic PSMs at 1, 2 and 4 threads: TRON,
+  Newton and LDA, classic and new training, c_pos 0 and 0.1, `out_of_fold`, `out_of_fold_avg`,
+  in-sample caps, learning curve, nested cross-validation, warm starts).
 
 ### The former patch set (01-35 on eb157f7)
 
@@ -212,11 +232,12 @@ and stops at a gain below 0.1%). Measured on synthetic PINs (`perc_bench`, 4 thr
 `Percolator::rescore`, peak RSS), the new tree with upstream's defaults is 3-4x faster than the former
 tree with all 35 patches, with less memory, so they were not ported:
 
-- superseded by upstream: 02 (the static flag is gone), 05, 08, 10 (folds and sorts), 09, 11, 12 (stages,
-  fold chains), 13, 17, 28, 30 (initial direction, normalization), 20 and 32 (the
+- superseded by upstream: 02 (the static flag is gone), 05, 08, 10 (folds and sorts), 09, 11, 12 (stages;
+  its fold chains are re-implemented as 11), 13, 17, 28, 30 (initial direction, normalization), 20 and 32 (the
   best-scoring positive per spectrum: `OrderScanLabel` orders by score since 25cb5124; issue #10720),
   21 (PSM ownership: DataSet no longer owns its PSMs, the feature pool no longer zero-fills), 22-26
-  (sort certificates, packed keys, set-up in tasks), 33 (OpenMP tasks: upstream uses none), 34
+  (sort certificates, packed keys, set-up in tasks), 33 (OpenMP tasks: upstream uses none; the fold
+  chains as 11), 34
   (comments of removed code);
 - not ported: 27 (reuse of the validation scores), 29, 31 (code gone);
 - ported: 01, 03, 04, 14, 15, 16, 18, 19, 35, 06, 07 (as 01-06, 09 and 10 above).

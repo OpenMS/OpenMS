@@ -25,6 +25,11 @@
 #include <omp.h>
 #endif
 #include "OpenMPThreads.h"  // OpenMS: maxThreads()
+#include "OpenMPTasks.h"    // OpenMS: PERCOLATOR_OMP_TASKS, PERCOLATOR_TASK_PRAGMA (trainFoldChains)
+
+#include <atomic>
+#include <memory>
+#include <mutex>
 
 namespace OpenMS { namespace Internal { namespace Percolator {
 
@@ -291,7 +296,12 @@ void CrossValidation::train(const Normalizer* pNorm) {
   std::vector<int> foldPositivesOld(numFolds_, 0), foldPositivesOldOld(numFolds_, 0);
   stoppedFolds_.assign(numFolds_, 0);
   foldPositives_.assign(numFolds_, 0);
-  for (unsigned int i = 0; i < niter_; i++) {
+  // OpenMS: the folds as chains of tasks (trainFoldChains), with the results and reports of this loop
+  const bool foldChains = trainsFoldChains();
+  if (foldChains) {
+    trainFoldChains();
+  }
+  for (unsigned int i = 0; !foldChains && i < niter_; i++) {
     if (VERB > 1) {
       cerr << "Iteration " << i + 1 << ":\t";
     }
@@ -600,6 +610,354 @@ int CrossValidation::doStep(const Normalizer* /* pNorm */, double selectionFdr) 
   estTruePos = mergeCpCnPairs(selectionFdr, pOptions, nestedTestScoresVec,
                               candidatesCpos_, candidatesCfrac_);
   return estTruePos;
+}
+
+bool CrossValidation::trainsFoldChains() const {
+#if PERCOLATOR_OMP_TASKS
+  return maxNumThreads() > 1u && numFolds_ > 1u && niter_ > 0u && nestedXvalBins_ == 1u &&
+         !reportPerformanceEachIteration_ && VERB <= 2 && activeFolds_.empty() &&
+         (svmRowsInPlace_ || foldsAtOnce() == numFolds_);
+#else
+  return false;
+#endif
+}
+
+/**
+ * OpenMS: the iterations of train() as one chain of tasks per fold. A step of a fold is what doStep and
+ * mergeCpCnPairs do for it, in the same order: its training set scored with its weights (rescored in the first
+ * step), its SVM input, the solves of its (Cpos, Cneg) pairs (one task each, with the count of the pair's positives
+ * right after its solve), the choice of the best pair and the count of the fold's positives with its weights. The
+ * last pair of a step to finish runs the rest of it and starts the fold's next step. A fold thus waits only for its
+ * own pairs, not for the other folds at each stage, and the threads run whatever task is ready. Only the stop rule of
+ * the training on the sum of the folds (new training without fixed folds) waits for all folds of an iteration: the
+ * last fold to finish it decides and starts the next steps. With fixed folds each fold stops on its own count, and
+ * classic training runs all iterations, so the chains never wait for each other.
+ *
+ * The results are those of the loop of train(): a step of a fold reads and writes only the fold's own data, and its
+ * computations do not depend on the threads (the scores of a sorted set, its order and its q-values are the same on
+ * one thread). The reports of the iterations are printed afterwards as the loop prints them. An error ends its fold's
+ * chain; the first error (by iteration, then stage, then fold) is rethrown.
+ */
+void CrossValidation::trainFoldChains() {
+  const unsigned int numPairsPerFold =
+      static_cast<unsigned int>(classWeightsPerFold_.size() / numFolds_);
+  const bool stopPerFold = static_cast<bool>(fixedFold_);
+  const bool stopsEarly = quickValidation_ || !classicTraining_;
+  // the stop rule on the sum of the folds (train)
+  const bool coupled = !stopPerFold && stopsEarly;
+  const double requiredIncrease = quickValidation_ ? requiredIncreaseOver2Iterations_
+                                                   : requiredIncreaseOver2IterationsDefault_;
+  const bool canFixGrid = !classicTraining_ && classWeightsPerFold_.size() > numFolds_ * nestedXvalBins_;
+  const bool skipDecoysPlusOne = true;  // as doStep and mergeCpCnPairs
+  const int numValues = static_cast<int>(FeatureNames::getNumFeatures()) + 1;
+  if (svmInputs_.size() != numFolds_) {
+    svmInputs_.assign(numFolds_, AlgIn(numValues, svmRowsInPlace_));
+  }
+  const std::size_t teamThreads = maxNumThreads();
+
+  struct Fold {
+    unsigned int iteration = 0;  // the step that runs
+    options stepOptions;
+    bool needCounts = false;
+    bool fixed = false;  // the grid of the fold is fixed (after gridSearchIterations_ steps)
+    std::pair<double, double> selected{1.0, 1.0};
+    std::unique_ptr<TronPairGroup> group;
+    Scores::FeatureRows rows;
+    std::vector<int> pairPositives;
+    std::vector<std::exception_ptr> pairErrors;
+    std::atomic<unsigned int> pendingPairs{0u};
+    // per iteration: the positives of the fold (-1: no step), the best pair
+    std::vector<int> positives;
+    std::vector<std::pair<double, double> > best;
+    int positivesOld = 0, positivesOldOld = 0;
+    int stoppedAt = -1;  // the iteration after which the fold stopped (fixed folds)
+    std::exception_ptr error;
+    unsigned int errorIteration = 0;
+    int errorStage = 0;
+  };
+  std::vector<Fold> folds(numFolds_);
+  for (Fold& fold : folds) {
+    fold.positives.assign(niter_, -1);
+    fold.best.assign(niter_, std::make_pair(1.0, 1.0));
+  }
+  std::vector<SvmTrainingBuffers> svmBuffers(teamThreads);
+  std::vector<Scores::CountBuffers> countBuffers(teamThreads);
+  // the stop rule on the sum of the folds
+  std::mutex decisionMutex;
+  std::vector<unsigned int> foldsDone(niter_, 0u);
+  std::vector<int> found(niter_, 0);
+  int foundOld = 0, foundOldOld = 0;
+  int stoppedAfter = -1;  // the iteration after which the rule stopped the training
+
+  auto failed = [&](Fold& fold, int stage) {
+    fold.error = std::current_exception();
+    fold.errorIteration = fold.iteration;
+    fold.errorStage = stage;
+  };
+  std::function<void(unsigned int)> startStep;
+  std::function<void(unsigned int)> finishStep;
+
+  // the second part of a step: after the solves of the fold's pairs
+  finishStep = [&](unsigned int set) {
+    const TaskLoopScope taskLoops;  // its scoring of the training set as a taskloop
+    Fold& fold = folds[set];
+    const unsigned int i = fold.iteration;
+    int stage = 3;
+    try {
+      fold.group.reset();
+      for (const std::exception_ptr& error : fold.pairErrors) {
+        if (error) {
+          stage = 2;
+          std::rethrow_exception(error);
+        }
+      }
+      // mergeCpCnPairs without nested cross validation, for this fold
+      int bestTruePoses = 0;
+      double bestCpos = 1.0, bestCfrac = 1.0;
+      for (unsigned int k = 0; k < numPairsPerFold; ++k) {
+        CandidateCposCfrac& cpCnFold = classWeightsPerFold_[set * numPairsPerFold + k];
+        const int tp = fold.pairPositives[k];
+        cpCnFold.tp = tp;
+        if (tp >= bestTruePoses) {
+          bestTruePoses = tp;
+          weights_[set] = cpCnFold.ww;
+          bestCpos = cpCnFold.cpos;
+          bestCfrac = cpCnFold.cfrac;
+        }
+      }
+      fold.best[i] = std::make_pair(bestCpos, bestCfrac);
+      if (canFixGrid && !fold.fixed && i + 1u >= gridSearchIterations_) {
+        fold.fixed = true;
+        fold.selected = fold.best[i];
+      }
+      stage = 4;
+      const int positives = trainScores_[set].calcScoresAndQvals(weights_[set], testFdr_);
+      foldPositives_[set] = positives;
+      fold.positives[i] = positives;
+    } catch (...) {
+      failed(fold, stage);
+      if (!coupled) return;
+    }
+    if (!coupled) {
+      bool stop = i + 1u >= niter_;
+      if (stopPerFold) {
+        const int positives = fold.positives[i];
+        if (positives > 0 && fold.positivesOldOld > 0 && stopsEarly &&
+            (static_cast<double>(positives - fold.positivesOldOld) <=
+             fold.positivesOldOld * requiredIncrease)) {
+          stoppedFolds_[set] = 1;
+          fold.stoppedAt = static_cast<int>(i);
+          stop = true;
+        }
+        fold.positivesOldOld = fold.positivesOld;
+        fold.positivesOld = positives;
+      }
+      if (!stop) {
+        fold.iteration = i + 1u;
+        PERCOLATOR_TASK_PRAGMA(omp task default(shared) firstprivate(set))
+        startStep(set);
+      }
+      return;
+    }
+    // the stop rule of train() on the sum of the folds, by the last fold to finish the iteration
+    bool next = false;
+    {
+      std::lock_guard<std::mutex> lock(decisionMutex);
+      if (++foldsDone[i] < numFolds_) return;
+      bool anyError = false;
+      double positives = 0.0;
+      for (const Fold& other : folds) {
+        anyError = anyError || static_cast<bool>(other.error);
+        positives += other.positives[i];
+      }
+      if (anyError) return;
+      // each PSM is in numFolds_ - 1 training sets (doStep)
+      found[i] = static_cast<int>(positives / std::max(1u, numFolds_ - 1u));
+      if (found[i] > 0 && foundOldOld > 0 &&
+          (static_cast<double>(found[i] - foundOldOld) <= foundOldOld * requiredIncrease)) {
+        stoppedAfter = static_cast<int>(i);
+      } else {
+        foundOldOld = foundOld;
+        foundOld = found[i];
+        next = i + 1u < niter_;
+      }
+    }
+    if (next) {
+      for (unsigned int other = 0; other < numFolds_; ++other) {
+        folds[other].iteration = i + 1u;
+        PERCOLATOR_TASK_PRAGMA(omp task default(shared) firstprivate(other))
+        startStep(other);
+      }
+    }
+  };
+
+  // the first part of a step: the training set, the SVM input and the solves of the pairs (as tasks)
+  startStep = [&](unsigned int set) {
+    const TaskLoopScope taskLoops;  // its scoring and the copies of the training rows as taskloops
+    Fold& fold = folds[set];
+    const unsigned int i = fold.iteration;
+    int stage = 0;
+    std::vector<unsigned int> pairs;
+    try {
+      const double selectionFdr = i == 0u ? initialSelectionFdr_ : selectionFdr_;
+      // doStep's options for the step
+      options& pOptions = fold.stepOptions;
+      pOptions.lambda = 1.0;
+      pOptions.lambda_u = 1.0;
+      pOptions.epsilon = tronEpsilon_;
+      pOptions.cgitermax = CGITERMAX;
+      pOptions.mfnitermax = MFNITERMAX;
+      pOptions.directSolve = !classicTraining_;
+      pOptions.weightsOnly = true;
+      if (solver_ == kSolverNewton && classicTraining_ && !quickValidation_ && i + 1u < niter_) {
+        pOptions.epsilon = kNewtonEarlyEpsilon;
+      }
+      if (i > 0u || trainScoresCurrent_) {
+        // scored and sorted with weights_ at the end of the fold's last step
+        trainScores_[set].calcQvals(selectionFdr, skipDecoysPlusOne);
+      } else {
+        trainScores_[set].calcScoresAndQvals(weights_[set], selectionFdr, skipDecoysPlusOne);
+      }
+      stage = 1;
+      AlgIn& svmInput = svmInputs_[set];
+      trainScores_[set].reserveTrainingSet(svmInput, selectionFdr);
+      trainScores_[set].generateNegativeTrainingSet(svmInput, 1.0);
+      trainScores_[set].generatePositiveTrainingSet(svmInput, selectionFdr, 1.0, trainBestPositive_);
+      fold.needCounts = !fold.fixed && numPairsPerFold > nestedXvalBins_;
+      if (fold.needCounts) {
+        trainScores_[set].getFeatureRows(fold.rows);
+      }
+      const bool singleSolves = fold.fixed || numPairsPerFold == nestedXvalBins_;
+      if (!singleSolves) {
+        fold.group = std::make_unique<TronPairGroup>(svmInput);
+      }
+      stage = 2;
+      // the pairs of the step (isSelectedPair); a pair that is not trained counts -1 (mergeCpCnPairs)
+      fold.pairPositives.assign(numPairsPerFold, -1);
+      fold.pairErrors.assign(numPairsPerFold, nullptr);
+      for (unsigned int k = 0; k < numPairsPerFold; ++k) {
+        const CandidateCposCfrac& cpCnFold = classWeightsPerFold_[set * numPairsPerFold + k];
+        if (!fold.fixed || (cpCnFold.cpos == fold.selected.first && cpCnFold.cfrac == fold.selected.second)) {
+          pairs.push_back(k);
+        }
+      }
+    } catch (...) {
+      failed(fold, stage);
+      fold.group.reset();
+      if (coupled) {
+        std::lock_guard<std::mutex> lock(decisionMutex);
+        ++foldsDone[i];
+      }
+      return;
+    }
+    if (pairs.empty()) {  // (not reached: a fixed grid keeps one of the fold's pairs)
+      finishStep(set);
+      return;
+    }
+    fold.pendingPairs.store(static_cast<unsigned int>(pairs.size()), std::memory_order_relaxed);
+    for (unsigned int k : pairs) {
+      PERCOLATOR_TASK_PRAGMA(omp task default(shared) firstprivate(set, k))
+      {
+        Fold& pairFold = folds[set];
+        try {
+          CandidateCposCfrac& cpCnFold = classWeightsPerFold_[set * numPairsPerFold + k];
+          const std::size_t thread = threadNum();
+          trainCpCnPair(cpCnFold, pairFold.stepOptions, svmInputs_[set], svmBuffers[thread],
+                        pairFold.group.get());
+          pairFold.pairPositives[k] =
+              pairFold.needCounts
+                  ? trainScores_[set].countTargetsBelowFdr(pairFold.rows, cpCnFold.ww, testFdr_,
+                                                           skipDecoysPlusOne, countBuffers[thread])
+                  : 0;  // the only trained pair of its fold
+        } catch (...) {
+          pairFold.pairErrors[k] = std::current_exception();
+        }
+        if (pairFold.pendingPairs.fetch_sub(1u, std::memory_order_acq_rel) == 1u) {
+          finishStep(set);
+        }
+      }
+    }
+  };
+
+#pragma omp parallel num_threads(static_cast<int>(teamThreads))
+#pragma omp single
+  {
+    for (unsigned int set = 0; set < numFolds_; ++set) {
+      PERCOLATOR_TASK_PRAGMA(omp task default(shared) firstprivate(set))
+      startStep(set);
+    }
+  }
+
+  // the steps that ran: all folds for the iterations up to the last one, and the state of the loop after them
+  unsigned int iterations = 0;
+  for (const Fold& fold : folds) {
+    for (unsigned int i = 0; i < niter_; ++i) {
+      if (fold.positives[i] >= 0) iterations = std::max(iterations, i + 1u);
+    }
+  }
+  iteration_ = iterations;
+  if (canFixGrid && iterations >= gridSearchIterations_) {
+    gridFixed_ = true;
+    selectedPairs_.resize(numFolds_);
+    for (unsigned int set = 0; set < numFolds_; ++set) {
+      selectedPairs_[set] = folds[set].best[gridSearchIterations_ - 1u];
+    }
+  }
+  trainScoresCurrent_ = true;
+  // a fold that stopped before the last iteration had its q-values recalculated in the iterations after (doStep)
+  for (unsigned int set = 0; set < numFolds_; ++set) {
+    if (folds[set].stoppedAt >= 0 && static_cast<unsigned int>(folds[set].stoppedAt) + 1u < iterations) {
+      trainScores_[set].calcQvals(selectionFdr_, skipDecoysPlusOne);
+    }
+  }
+
+  // the reports of the iterations, as train() prints them
+  for (unsigned int i = 0; i < iterations; ++i) {
+    if (VERB > 1) {
+      cerr << "Iteration " << i + 1 << ":\t";
+    }
+    if (canFixGrid && i + 1u == gridSearchIterations_ && VERB > 1) {
+      for (unsigned int set = 0; set < numFolds_; ++set) {
+        const std::pair<double, double>& best = folds[set].best[i];
+        std::cerr << "Split " << set + 1 << ": using Cpos=" << best.first
+                  << ", Cneg=" << best.first * best.second
+                  << " in the remaining iterations" << std::endl;
+      }
+    }
+    double positives = 0.0;
+    for (const Fold& fold : folds) {
+      if (fold.positives[i] >= 0) positives += fold.positives[i];
+    }
+    const int foundPositives = static_cast<int>(positives / std::max(1u, numFolds_ - 1u));
+    if (VERB > 1) {
+      cerr << "Estimated " << foundPositives << " PSMs with q<" << testFdr_ << endl;
+    }
+    if (stopPerFold) {
+      for (unsigned int set = 0; set < numFolds_; ++set) {
+        if (folds[set].stoppedAt == static_cast<int>(i) && VERB > 1) {
+          const int before = i >= 2u ? folds[set].positives[i - 2u] : 0;
+          std::cerr << "Split " << set + 1 << " has converged (" << folds[set].positives[i]
+                    << " vs " << before << ")" << std::endl;
+        }
+      }
+    } else if (stoppedAfter == static_cast<int>(i) && VERB > 0) {
+      std::cerr << "Performance increase over the last two iterations "
+                << "indicate that the algorithm has converged\n"
+                << "(" << found[i] << " vs " << (i >= 2u ? found[i - 2u] : 0) << ")" << std::endl;
+    }
+  }
+
+  // the first error by iteration, stage and fold
+  const Fold* first = nullptr;
+  for (const Fold& fold : folds) {
+    if (fold.error && (!first || fold.errorIteration < first->errorIteration ||
+                       (fold.errorIteration == first->errorIteration && fold.errorStage < first->errorStage))) {
+      first = &fold;
+    }
+  }
+  if (first) {
+    std::rethrow_exception(first->error);
+  }
 }
 
 /**
