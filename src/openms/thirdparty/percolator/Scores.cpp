@@ -894,9 +894,12 @@ int Scores::calcScores(const std::vector<double>& w) {
     scores_[i].score = calcScore(scores_[i].pPSM->features, w);
   };
 #if PERCOLATOR_OMP_TASKS
-  // OpenMS: in a task of the fold chains, on the threads of their region (TaskLoopScope)
-  if (numScores > 100000 && taskLoopThreads() > 1) {
-#pragma omp taskloop grainsize(16384) default(shared)
+  // OpenMS: in a task of the fold chains, on the threads of their region (TaskLoopScope); a few tasks per thread, as
+  // libgomp runs a taskloop undeferred (on this thread) if the team has more than 64 tasks per thread
+  const int loopThreads = taskLoopThreads();
+  if (numScores > 100000 && loopThreads > 1) {
+    const long numTasks = std::min<long>((numScores + 16383) / 16384, 2L * loopThreads);
+#pragma omp taskloop num_tasks(numTasks) default(shared)
     for (long i = 0; i < numScores; ++i) {
       scoreRow(i);
     }

@@ -209,13 +209,17 @@ All patches are `git diff` style (a/b/ prefixes, applied with -p1) on the whitel
   order: its training set scored with its weights, its SVM input, one task per (Cpos, Cneg) pair
   that solves the pair and counts its positives right after, the choice of the best pair and the
   count of the fold's positives. The last pair of a step runs the rest of it and starts the fold's
-  next step, so a fold waits only for its own pairs, and the threads run whatever task is ready
-  (no thread waits in a task). With fixed folds (each fold stops on its own count) and with classic
+  next step, so a fold waits only for its own pairs, and the threads run whatever task is ready.
+  No task waits for other tasks of the chains: a task waits only at the end of the taskloops it runs
+  (the row loops of Scores, Newton's blocks), and the solves of a step's pairs while they build their
+  shared copy of the SVM input (TronPairGroup); the per-thread buffers and `TaskLoopScope` rely on the
+  tasks being tied. With fixed folds (each fold stops on its own count) and with classic
   training the chains never wait for each other; with upstream's stop rule on the sum of the folds
   the last fold to finish an iteration decides and starts the next steps. Inside the chains the
   scoring of a set (`Scores::calcScores`) and the copies of its training rows (`appendTrainingRows`)
   run as taskloops (`TaskLoopScope`, `OpenMPThreads.h`). The reports of the iterations are printed
-  afterwards as the loop prints them. `trainsFoldChains()`: with OpenMP tasks and more than one
+  afterwards as the loop prints them; after an error no fold starts a step beyond the iteration of
+  the first error, which is rethrown after the reports of the iterations before it. `trainsFoldChains()`: with OpenMP tasks and more than one
   thread, without nested cross-validation, `-R` or verbosity above 2, with all folds active and held
   at once; otherwise the loop runs. The results are those of the loop, bit for bit (scores, q-values
   and PEPs of `perc_bench` on 100,000 and 1,000,000 synthetic PSMs at 1, 2 and 4 threads: TRON,

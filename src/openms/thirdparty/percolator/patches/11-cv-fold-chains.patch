@@ -1,5 +1,5 @@
 diff --git a/src/openms/thirdparty/percolator/CrossValidation.cpp b/src/openms/thirdparty/percolator/CrossValidation.cpp
-index 4cb74fac796dea136f6fea42f5498ff6e54f6214..2457af81971525e44f16998124a16dc90bab20e3 100644
+index 4cb74fac796dea136f6fea42f5498ff6e54f6214..9a5b547c942f6f486860c6890c5feb399519359e 100644
 --- a/src/openms/thirdparty/percolator/CrossValidation.cpp
 +++ b/src/openms/thirdparty/percolator/CrossValidation.cpp
 @@ -25,6 +25,11 @@
@@ -28,7 +28,7 @@ index 4cb74fac796dea136f6fea42f5498ff6e54f6214..2457af81971525e44f16998124a16dc9
      if (VERB > 1) {
        cerr << "Iteration " << i + 1 << ":\t";
      }
-@@ -602,6 +612,354 @@ int CrossValidation::doStep(const Normalizer* /* pNorm */, double selectionFdr)
+@@ -602,6 +612,396 @@ int CrossValidation::doStep(const Normalizer* /* pNorm */, double selectionFdr)
    return estTruePos;
  }
  
@@ -48,15 +48,21 @@ index 4cb74fac796dea136f6fea42f5498ff6e54f6214..2457af81971525e44f16998124a16dc9
 + * step), its SVM input, the solves of its (Cpos, Cneg) pairs (one task each, with the count of the pair's positives
 + * right after its solve), the choice of the best pair and the count of the fold's positives with its weights. The
 + * last pair of a step to finish runs the rest of it and starts the fold's next step. A fold thus waits only for its
-+ * own pairs, not for the other folds at each stage, and the threads run whatever task is ready. Only the stop rule of
++ * own pairs, not for the other folds at each stage, and the threads run whatever task is ready: no task waits for other
++ * tasks of the chains (a task waits only at the end of the taskloops it runs itself, the row loops of Scores and
++ * Newton's blocks, and the solves of a step's pairs while they finish building their shared copy of the SVM input,
++ * TronPairGroup). The per-thread buffers of the solves and counts and the TaskLoopScope rely on the tasks being tied:
++ * at these waits a thread runs only tasks of the loop it waits for. Only the stop rule of
 + * the training on the sum of the folds (new training without fixed folds) waits for all folds of an iteration: the
 + * last fold to finish it decides and starts the next steps. With fixed folds each fold stops on its own count, and
 + * classic training runs all iterations, so the chains never wait for each other.
 + *
 + * The results are those of the loop of train(): a step of a fold reads and writes only the fold's own data, and its
 + * computations do not depend on the threads (the scores of a sorted set, its order and its q-values are the same on
-+ * one thread). The reports of the iterations are printed afterwards as the loop prints them. An error ends its fold's
-+ * chain; the first error (by iteration, then stage, then fold) is rethrown.
++ * one thread). The reports of the iterations are printed afterwards as the loop prints them (the header of the first
++ * one before, as messages of the first solves follow it). After an error no fold starts a step beyond the iteration of
++ * the first error, and the first error (by iteration, then stage, then fold) is rethrown after the reports of the
++ * iterations before it, as the loop throws it.
 + */
 +void CrossValidation::trainFoldChains() {
 +  const unsigned int numPairsPerFold =
@@ -109,10 +115,19 @@ index 4cb74fac796dea136f6fea42f5498ff6e54f6214..2457af81971525e44f16998124a16dc9
 +  int foundOld = 0, foundOldOld = 0;
 +  int stoppedAfter = -1;  // the iteration after which the rule stopped the training
 +
++  // the first iteration with an error: no fold starts a step after it
++  std::atomic<unsigned int> firstErrorIteration{niter_};
++  auto noteError = [&](unsigned int i) {
++    unsigned int current = firstErrorIteration.load(std::memory_order_relaxed);
++    while (i < current &&
++           !firstErrorIteration.compare_exchange_weak(current, i, std::memory_order_acq_rel)) {
++    }
++  };
 +  auto failed = [&](Fold& fold, int stage) {
 +    fold.error = std::current_exception();
 +    fold.errorIteration = fold.iteration;
 +    fold.errorStage = stage;
++    noteError(fold.iteration);
 +  };
 +  std::function<void(unsigned int)> startStep;
 +  std::function<void(unsigned int)> finishStep;
@@ -172,7 +187,7 @@ index 4cb74fac796dea136f6fea42f5498ff6e54f6214..2457af81971525e44f16998124a16dc9
 +        fold.positivesOldOld = fold.positivesOld;
 +        fold.positivesOld = positives;
 +      }
-+      if (!stop) {
++      if (!stop && i + 1u <= firstErrorIteration.load(std::memory_order_acquire)) {
 +        fold.iteration = i + 1u;
 +        PERCOLATOR_TASK_PRAGMA(omp task default(shared) firstprivate(set))
 +        startStep(set);
@@ -216,6 +231,9 @@ index 4cb74fac796dea136f6fea42f5498ff6e54f6214..2457af81971525e44f16998124a16dc9
 +    const TaskLoopScope taskLoops;  // its scoring and the copies of the training rows as taskloops
 +    Fold& fold = folds[set];
 +    const unsigned int i = fold.iteration;
++    if (i > firstErrorIteration.load(std::memory_order_acquire)) {
++      return;  // (not in the coupled mode: its next steps start only after an iteration without errors)
++    }
 +    int stage = 0;
 +    std::vector<unsigned int> pairs;
 +    try {
@@ -291,6 +309,7 @@ index 4cb74fac796dea136f6fea42f5498ff6e54f6214..2457af81971525e44f16998124a16dc9
 +                  : 0;  // the only trained pair of its fold
 +        } catch (...) {
 +          pairFold.pairErrors[k] = std::current_exception();
++          noteError(pairFold.iteration);
 +        }
 +        if (pairFold.pendingPairs.fetch_sub(1u, std::memory_order_acq_rel) == 1u) {
 +          finishStep(set);
@@ -299,6 +318,10 @@ index 4cb74fac796dea136f6fea42f5498ff6e54f6214..2457af81971525e44f16998124a16dc9
 +    }
 +  };
 +
++  // the header of the first iteration's report, which messages of its solves follow (train)
++  if (VERB > 1) {
++    cerr << "Iteration " << 1 << ":\t";
++  }
 +#pragma omp parallel num_threads(static_cast<int>(teamThreads))
 +#pragma omp single
 +  {
@@ -308,32 +331,29 @@ index 4cb74fac796dea136f6fea42f5498ff6e54f6214..2457af81971525e44f16998124a16dc9
 +    }
 +  }
 +
-+  // the steps that ran: all folds for the iterations up to the last one, and the state of the loop after them
++  // the first error by iteration, stage and fold
++  const Fold* first = nullptr;
++  for (const Fold& fold : folds) {
++    if (fold.error && (!first || fold.errorIteration < first->errorIteration ||
++                       (fold.errorIteration == first->errorIteration && fold.errorStage < first->errorStage))) {
++      first = &fold;
++    }
++  }
++
++  // the steps that ran: all folds for the iterations up to the last one (before the first error)
 +  unsigned int iterations = 0;
 +  for (const Fold& fold : folds) {
 +    for (unsigned int i = 0; i < niter_; ++i) {
 +      if (fold.positives[i] >= 0) iterations = std::max(iterations, i + 1u);
 +    }
 +  }
-+  iteration_ = iterations;
-+  if (canFixGrid && iterations >= gridSearchIterations_) {
-+    gridFixed_ = true;
-+    selectedPairs_.resize(numFolds_);
-+    for (unsigned int set = 0; set < numFolds_; ++set) {
-+      selectedPairs_[set] = folds[set].best[gridSearchIterations_ - 1u];
-+    }
-+  }
-+  trainScoresCurrent_ = true;
-+  // a fold that stopped before the last iteration had its q-values recalculated in the iterations after (doStep)
-+  for (unsigned int set = 0; set < numFolds_; ++set) {
-+    if (folds[set].stoppedAt >= 0 && static_cast<unsigned int>(folds[set].stoppedAt) + 1u < iterations) {
-+      trainScores_[set].calcQvals(selectionFdr_, skipDecoysPlusOne);
-+    }
++  if (first) {
++    iterations = first->errorIteration;
 +  }
 +
-+  // the reports of the iterations, as train() prints them
++  // the reports of the iterations, as train() prints them (the header of the first one is printed already)
 +  for (unsigned int i = 0; i < iterations; ++i) {
-+    if (VERB > 1) {
++    if (VERB > 1 && i > 0u) {
 +      cerr << "Iteration " << i + 1 << ":\t";
 +    }
 +    if (canFixGrid && i + 1u == gridSearchIterations_ && VERB > 1) {
@@ -366,17 +386,39 @@ index 4cb74fac796dea136f6fea42f5498ff6e54f6214..2457af81971525e44f16998124a16dc9
 +                << "(" << found[i] << " vs " << (i >= 2u ? found[i - 2u] : 0) << ")" << std::endl;
 +    }
 +  }
++  if (first) {
++    // as doStep throws it: after the header of its iteration and, for an error in the last stage, the choice of the
++    // pairs that mergeCpCnPairs prints before
++    const unsigned int i = first->errorIteration;
++    if (VERB > 1 && i > 0u) {
++      cerr << "Iteration " << i + 1 << ":\t";
++    }
++    if (first->errorStage == 4 && canFixGrid && i + 1u == gridSearchIterations_ && VERB > 1) {
++      for (unsigned int set = 0; set < numFolds_; ++set) {
++        const std::pair<double, double>& best = folds[set].best[i];
++        std::cerr << "Split " << set + 1 << ": using Cpos=" << best.first
++                  << ", Cneg=" << best.first * best.second
++                  << " in the remaining iterations" << std::endl;
++      }
++    }
++    std::rethrow_exception(first->error);
++  }
 +
-+  // the first error by iteration, stage and fold
-+  const Fold* first = nullptr;
-+  for (const Fold& fold : folds) {
-+    if (fold.error && (!first || fold.errorIteration < first->errorIteration ||
-+                       (fold.errorIteration == first->errorIteration && fold.errorStage < first->errorStage))) {
-+      first = &fold;
++  // the state of the loop after the iterations
++  iteration_ = iterations;
++  if (canFixGrid && iterations >= gridSearchIterations_) {
++    gridFixed_ = true;
++    selectedPairs_.resize(numFolds_);
++    for (unsigned int set = 0; set < numFolds_; ++set) {
++      selectedPairs_[set] = folds[set].best[gridSearchIterations_ - 1u];
 +    }
 +  }
-+  if (first) {
-+    std::rethrow_exception(first->error);
++  trainScoresCurrent_ = true;
++  // a fold that stopped before the last iteration had its q-values recalculated in the iterations after (doStep)
++  for (unsigned int set = 0; set < numFolds_; ++set) {
++    if (folds[set].stoppedAt >= 0 && static_cast<unsigned int>(folds[set].stoppedAt) + 1u < iterations) {
++      trainScores_[set].calcQvals(selectionFdr_, skipDecoysPlusOne);
++    }
 +  }
 +}
 +
@@ -402,7 +444,7 @@ index 6e549313cde1fb1a6c914a7dafdc449af418cf7c..19a74a5b9d19b1b5b5fac1b07a5ae4fa
    void trainCpCnPair(CandidateCposCfrac& cpCnFold,
                       const options& pOptions,
 diff --git a/src/openms/thirdparty/percolator/Scores.cpp b/src/openms/thirdparty/percolator/Scores.cpp
-index 9735e579e67cc22a39181dd21c1e393795d19ebd..2e74617db1ed4b4dae90a0e60c4a506fd76311e4 100644
+index 9735e579e67cc22a39181dd21c1e393795d19ebd..9729074e60fb81eca5e58a8ba280a80b1985f2d5 100644
 --- a/src/openms/thirdparty/percolator/Scores.cpp
 +++ b/src/openms/thirdparty/percolator/Scores.cpp
 @@ -19,6 +19,7 @@
@@ -424,15 +466,18 @@ index 9735e579e67cc22a39181dd21c1e393795d19ebd..2e74617db1ed4b4dae90a0e60c4a506f
      // The PSM records and their feature rows are scattered in memory, in
      // an order that the processor cannot predict: the record is requested
      // 16 PSMs ahead and the row, whose address is in the record, 8 ahead.
-@@ -893,6 +892,22 @@ int Scores::calcScores(const std::vector<double>& w) {
+@@ -893,6 +892,25 @@ int Scores::calcScores(const std::vector<double>& w) {
        prefetchRow(scores_[i + 8].pPSM->features, numFeatures);
      }
      scores_[i].score = calcScore(scores_[i].pPSM->features, w);
 +  };
 +#if PERCOLATOR_OMP_TASKS
-+  // OpenMS: in a task of the fold chains, on the threads of their region (TaskLoopScope)
-+  if (numScores > 100000 && taskLoopThreads() > 1) {
-+#pragma omp taskloop grainsize(16384) default(shared)
++  // OpenMS: in a task of the fold chains, on the threads of their region (TaskLoopScope); a few tasks per thread, as
++  // libgomp runs a taskloop undeferred (on this thread) if the team has more than 64 tasks per thread
++  const int loopThreads = taskLoopThreads();
++  if (numScores > 100000 && loopThreads > 1) {
++    const long numTasks = std::min<long>((numScores + 16383) / 16384, 2L * loopThreads);
++#pragma omp taskloop num_tasks(numTasks) default(shared)
 +    for (long i = 0; i < numScores; ++i) {
 +      scoreRow(i);
 +    }
@@ -447,7 +492,7 @@ index 9735e579e67cc22a39181dd21c1e393795d19ebd..2e74617db1ed4b4dae90a0e60c4a506f
    }
    // already sorted when scored again with the same weights, as the test
    // sets are after training
-@@ -1247,11 +1262,12 @@ template <class Select>
+@@ -1247,11 +1265,12 @@ template <class Select>
  int appendTrainingRows(const std::vector<ScoreHolder>& scores, AlgIn& data,
                         double label, Select select) {
    const long numScores = static_cast<long>(scores.size());
@@ -463,7 +508,7 @@ index 9735e579e67cc22a39181dd21c1e393795d19ebd..2e74617db1ed4b4dae90a0e60c4a506f
      const long begin = numScores / numChunks * c;
      const long end =
          c + 1 == numChunks ? numScores : numScores / numChunks * (c + 1);
-@@ -1260,6 +1276,20 @@ int appendTrainingRows(const std::vector<ScoreHolder>& scores, AlgIn& data,
+@@ -1260,6 +1279,20 @@ int appendTrainingRows(const std::vector<ScoreHolder>& scores, AlgIn& data,
        count += select(scores[static_cast<std::size_t>(i)]) ? 1u : 0u;
      }
      offset[static_cast<std::size_t>(c) + 1] = count;
@@ -484,7 +529,7 @@ index 9735e579e67cc22a39181dd21c1e393795d19ebd..2e74617db1ed4b4dae90a0e60c4a506f
    }
    for (int c = 0; c < numChunks; ++c) {
      offset[static_cast<std::size_t>(c) + 1] +=
-@@ -1273,8 +1303,7 @@ int appendTrainingRows(const std::vector<ScoreHolder>& scores, AlgIn& data,
+@@ -1273,8 +1306,7 @@ int appendTrainingRows(const std::vector<ScoreHolder>& scores, AlgIn& data,
    // requested ahead, and the rows are then copied, requested ahead likewise.
    const int kBlock = 256;
    const int numValues = data.n - 1;
@@ -494,7 +539,7 @@ index 9735e579e67cc22a39181dd21c1e393795d19ebd..2e74617db1ed4b4dae90a0e60c4a506f
      const long begin = numScores / numChunks * c;
      const long end =
          c + 1 == numChunks ? numScores : numScores / numChunks * (c + 1);
-@@ -1296,6 +1325,20 @@ int appendTrainingRows(const std::vector<ScoreHolder>& scores, AlgIn& data,
+@@ -1296,6 +1328,20 @@ int appendTrainingRows(const std::vector<ScoreHolder>& scores, AlgIn& data,
          data.set(next++, rows[k], label);
        }
      }
