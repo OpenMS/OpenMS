@@ -536,10 +536,10 @@ protected:
   {
     Size scan_index;
     Int charge;
-    Size isotope;
+    Int isotope;
     IdentificationData::AdductOpt adduct;
 
-    PrecursorInfo(Size scan_index, Int charge, Size isotope,
+    PrecursorInfo(Size scan_index, Int charge, Int isotope,
                   const IdentificationData::AdductOpt& adduct = std::nullopt):
       scan_index(scan_index), charge(charge), isotope(isotope), adduct(adduct)
     {

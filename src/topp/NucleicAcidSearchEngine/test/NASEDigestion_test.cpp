@@ -426,6 +426,25 @@ START_SECTION(([EXTRA] searchable RNA candidates and cached digest provenance))
   TEST_EQUAL(runSearch(args), 0)
   TEST_EQUAL(hitCount(output), 1)
 
+  // A selected ion below the monoisotopic mass needs a signed -1 offset in
+  // both the search hypothesis and its exported metadata.
+  MSExperiment negative_offset_input;
+  MzMLFile().load(mzml, negative_offset_input);
+  auto& shifted_precursor = negative_offset_input[0].getPrecursors()[0];
+  shifted_precursor.setMZ(shifted_precursor.getMZ() - Constants::C13C12_MASSDIFF_U / 2);
+  MzMLFile().store(mzml, negative_offset_input);
+  auto negative_args = arguments();
+  negative_args.insert(negative_args.end(), {"-precursor:isotopes", "-1"});
+  TEST_EQUAL(runSearch(negative_args), 0)
+  vector<ProteinIdentification> negative_proteins;
+  PeptideIdentificationList negative_peptides;
+  IdXMLFile().load(output, negative_proteins, negative_peptides);
+  TEST_EQUAL(negative_peptides.size(), 1)
+  ABORT_IF(negative_peptides.empty())
+  TEST_EQUAL(Int(negative_peptides[0].getHits()[0].getMetaValue("isotope_offset")), -1)
+  fixture("ACGUAC", "ACGUAC", 2);
+  TEST_EQUAL(runSearch(args), 0)
+
   // A later-sorting filename distinguishes current input from cached provenance.
   const std::string replay_mzml = mzml + ".z.mzML";
   {
