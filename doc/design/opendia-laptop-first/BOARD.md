@@ -36,6 +36,7 @@ Rows of 12-16 November 2026. Earlier rows (voxel v2-v19, CNN + LDA) are in the R
 | ID-based recalibration with RT-dependent window (PLAN_RTPROFILE): ends recovered, middle loses; raw 02 −1.05 %, raw 01 s4 FDP_c 0.0104, raw 03 −0.6 %, removed | R-WP2 | Done (fail) | [RESULT_RTPROFILE.md](gates/single-binary/rtwin/RESULT_RTPROFILE.md) |
 | Close the gap to DIA-NN (DIA-NN from .raw: 2204 / 2356 / 2259 at FDP_c 1 %; OpenDIA 81-84 %) | R-WP5 | In progress | [RESULT_GAP.md](gates/extraction-parity/gap/RESULT_GAP.md) |
 | HeLa diaPASEF final benchmark: OpenDIA 11,653 vs DIA-NN 28,950 (40 %), OpenSWATH SVM 19,132 (61 %); below the earlier rewrite (13,253), so the Astral changes regress diaPASEF | R-WP5, R-WP6 | Done (diagnostic) | [RESULT_HELA.md](gates/single-binary/bench/RESULT_HELA.md) |
+| HeLa diagnosis: uncalibrated 1/K0 in the evidence pass (fixed 0e9e4fc3a5, 11,653 → 13,290); early-gradient RT map bias in the single-pass calibration (old map: 13,984); 6 of 24 inputs nearly constant and grid/interference mobility-blind on diaPASEF | R-WP2, R-WP5 | In progress | [DIAG_HELA.md](gates/single-binary/bench/DIAG_HELA.md) |
 | Fair same-laptop benchmark (raw 01, 8 threads, both read .raw): OpenDIA 10:14, 15.6 GB, 172 % CPU; DIA-NN 7:23, 6.8 GB, 765 % CPU | R-WP6 | Done (diagnostic) | [README snapshot](README.md), [bench/](gates/single-binary/bench/) |
 | Raw-pass speed: m/z-bucketed evidence pass (271 → 111 s) and level-aware Thermo read-ahead; laptop raw 01 10:14 → 7:18 (DIA-NN 7:23), byte-identical | R-WP6 | Done | [README snapshot](README.md) |
 | Calibration memory (14.4 GB peak after eaa2c95cd0, from the 600k-member windowed pass; DIA-NN 6.8 GB) | R-WP6 | Open | [README snapshot](README.md) |
@@ -126,6 +127,7 @@ Rows of 12-16 November 2026. Earlier rows (voxel v2-v19, CNN + LDA) are in the R
 | Step | State | Record |
 |---|---|---|
 | HeLa loss funnel | Done (diagnostic) | [R5](work-packages/R5-id-gap.md) |
+| HeLa regression diagnosis: 1/K0 bug fixed (0e9e4fc3a5, 11,653 → 13,290); early-gradient RT map bias and mobility-blind / empty evidence on diaPASEF open | In progress | [DIAG_HELA.md](gates/single-binary/bench/DIAG_HELA.md) |
 | Astral gap against DIA-NN and same-library OSW + Percolator | Done (diagnostic) | [diann-reference-gap](gates/astral-diann-reference-gap/GAP.md) |
 | Raw 01 rethink: ceiling, oracle, RT lever | Done (diagnostic) | [REDESIGN.md](gates/astral-raw01-rethink/REDESIGN.md) |
 | Raw 01/02 gap to OSW is score formation on the right peak | Done (diagnostic) | [gap2](gates/astral-raw01-rethink/gap2/) |
