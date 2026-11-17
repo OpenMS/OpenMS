@@ -381,13 +381,14 @@ Percolator::Percolator()
                      "subset_mode 'learning_curve': largest sample if subset_max_train is 0 (0 = all rows).", {"advanced"});
   defaults_.setMinInt("subset_curve_max", 0);
 
-  defaults_.setValue("classic_training", "false",
-                     "Train as Percolator 3.09 and earlier did (the percolator executable's --classic-training): all "
-                     "'num_iterations' iterations, every (Cpos, Cneg) pair of the grid in every iteration, each SVM "
-                     "solved from zero weights. 'false' (Percolator's default since its training was reworked): each "
-                     "SVM starts from its weights of the previous iteration, the (Cpos, Cneg) pair of each fold is fixed "
-                     "after three iterations, and the training stops when the estimated positives grew by less than 0.1% "
-                     "over two iterations. Changes results within the spread of the training.");
+  defaults_.setValue("classic_training", "true",
+                     "'true' (default): train as Percolator up to version 3.09 did (the percolator executable's "
+                     "--classic-training): all 'num_iterations' iterations, every (Cpos, Cneg) pair of the grid in every "
+                     "iteration, each SVM solved from zero weights. 'false': Percolator's training since it was reworked "
+                     "after 3.09 (the default of its executable): each SVM starts from its weights of the previous "
+                     "iteration, the (Cpos, Cneg) pair of each fold is fixed after three iterations, and the training "
+                     "stops when the estimated positives grew by less than 0.1% over two iterations. Faster; the results "
+                     "differ within the spread of the training.");
   defaults_.setValidStrings("classic_training", {"true","false"});
   defaults_.setValue("tron_epsilon", 1e-7,
                      "Stopping tolerance of the TRON solver of the SVM training (relative gradient norm). "

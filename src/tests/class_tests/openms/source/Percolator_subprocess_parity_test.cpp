@@ -230,8 +230,8 @@ bool binaryOffers(const std::string& bin, const std::string& option)
 
 /// Whether the percolator executable @p bin trains as Percolator does after 3.09 (it offers --classic-training): each
 /// SVM warm-started, each fold's (Cpos, Cneg) pair fixed after three iterations, a stop at a gain below 0.1%. The
-/// in-process Percolator trains so by default; against an older executable (e.g. the 3.07 of OpenMS' THIRDPARTY), the
-/// comparisons set its parameter classic_training.
+/// in-process Percolator trains as the executables up to 3.09 by default (e.g. the 3.07 of OpenMS' THIRDPARTY); against
+/// a later executable, the comparisons set its parameter classic_training to false.
 bool binaryHasNewTraining(const std::string& bin)
 {
   return binaryOffers(bin, "--classic-training");
@@ -242,7 +242,7 @@ Param parityDefaults(const Percolator& p, const std::string& bin, int seed = 1)
 {
   Param par = p.getDefaults();
   par.setValue("seed", seed);
-  if (!binaryHasNewTraining(bin)) par.setValue("classic_training", "true");
+  par.setValue("classic_training", binaryHasNewTraining(bin) ? "false" : "true");
   return par;
 }
 

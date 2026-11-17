@@ -89,7 +89,7 @@ namespace OpenMS
     Percolator::CappedTrainingInfo capped_info;
     double tron_epsilon = 1e-7;               ///< TRON stopping tolerance (Percolator: EPSILON = 1e-7)
     bool   warm_start = false;                ///< pairs start from their previous iteration's weights
-    bool   classic_training = false;          ///< train as Percolator 3.09 (fixed iterations, full grid, solves from 0)
+    bool   classic_training = true;           ///< train as Percolator 3.09 (fixed iterations, full grid, solves from 0)
     bool   single_cneg = false;               ///< one Cneg candidate (3 x ratio) instead of three
     int    num_threads = 3;                   ///< max OpenMP threads for CV, within omp_get_max_threads()
     std::string initial_direction;            ///< feature name; prefix "-" = lower is better; empty = auto

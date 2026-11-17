@@ -445,12 +445,13 @@ namespace OpenMS
                        "values (e.g. 1e-3) train much faster on large runs; the results differ.",
                        {"advanced"});
     defaults_.setMinFloat("rescoring:tron_epsilon", 1e-15);
-    defaults_.setValue("rescoring:classic_training", "false",
-                       "Percolator trains as up to its version 3.09 (Percolator's parameter 'classic_training'): all "
-                       "'rescoring:iterations' iterations, every (Cpos, Cneg) pair in every iteration, each SVM from zero "
-                       "weights. 'false' (default, Percolator's current training): each SVM starts from its weights of "
-                       "the previous iteration, each fold's (Cpos, Cneg) pair is fixed after three iterations, and the "
-                       "training stops when it gains less than 0.1% over two iterations (faster; the results differ).",
+    defaults_.setValue("rescoring:classic_training", "true",
+                       "'true' (default): Percolator trains as up to its version 3.09 (Percolator's parameter "
+                       "'classic_training'): all 'rescoring:iterations' iterations, every (Cpos, Cneg) pair in every "
+                       "iteration, each SVM from zero weights. 'false': Percolator's current training: each SVM starts "
+                       "from its weights of the previous iteration, each fold's (Cpos, Cneg) pair is fixed after three "
+                       "iterations, and the training stops when it gains less than 0.1% over two iterations (faster; the "
+                       "results differ).",
                        {"advanced"});
     defaults_.setValidStrings("rescoring:classic_training", {"true", "false"});
     defaults_.setValue("rescoring:warm_start", "false",

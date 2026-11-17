@@ -99,8 +99,9 @@ Both backends write the pin file of @p -out_pin and the weights of the cross-val
 in-process backend in the format of the executable, see Percolator::storeWeights()). @p -verbose sets the verbosity
 of the executable only.
 
-The in-process backend trains as Percolator does since its training was reworked after version 3.09 (faster, see
-Percolator); with @p -classic_training it trains as the executables up to 3.09 do, e.g. the one that comes with OpenMS.
+The in-process backend trains as the percolator executables up to version 3.09 do, e.g. the one that comes with
+OpenMS; with @p -classic_training @p false it trains as Percolator does since its training was reworked (faster, see
+Percolator).
 
 The in-process backend needs enough decoys to train its model, roughly 100 or more. If the training fails,
 PercolatorAdapter stops with an error.
@@ -460,7 +461,8 @@ protected:
     registerStringOption_("decoy_pattern", "<value>", "random", "Define the text pattern to identify the decoy proteins and/or PSMs, set this up if the label that identifies the decoys in the database is not the default (Only valid if option -protein_level_fdrs is active).", !is_required, is_advanced_option);
     registerFlag_("post_processing_tdc", "Use target-decoy competition to assign q-values and PEPs.", is_advanced_option);
     registerFlag_("train_best_positive", "Enforce that, for each spectrum, at most one PSM is included in the positive set during each training iteration. If the user only provides one PSM per spectrum, this filter will have no effect.", is_advanced_option);
-    registerFlag_("classic_training", "In-process backend: train as Percolator 3.09 and earlier did, e.g. the percolator executable that comes with OpenMS (all -maxiter iterations, every (Cpos, Cneg) pair in every iteration, each SVM solved from zero weights), instead of as Percolator trains since (each SVM starts from its weights of the previous iteration, the (Cpos, Cneg) pair of each fold is fixed after three iterations, the training stops once it gains less than 0.1%). Slower; the results differ within the spread of the training. The percolator executable trains as its version does.", is_advanced_option);
+    registerStringOption_("classic_training", "<choice>", "true", "In-process backend: 'true' (default): train as Percolator 3.09 and earlier did, e.g. the percolator executable that comes with OpenMS (all -maxiter iterations, every (Cpos, Cneg) pair in every iteration, each SVM solved from zero weights). 'false': train as Percolator trains since (each SVM starts from its weights of the previous iteration, the (Cpos, Cneg) pair of each fold is fixed after three iterations, the training stops once it gains less than 0.1%); faster, the results differ within the spread of the training. The percolator executable trains as its version does.", !is_required, is_advanced_option);
+    setValidStrings_("classic_training", {"true", "false"});
 
     //OSW/IPF parameters
     registerDoubleOption_("ipf_max_peakgroup_pep", "<value>", 0.7, "OSW/IPF: Assess transitions only for candidate peak groups until maximum posterior error probability.", !is_required, is_advanced_option);
@@ -1029,7 +1031,7 @@ protected:
         pp.setValue("subset_max_train", getIntOption_("subset_max_train"));
         pp.setValue("initial_direction", getStringOption_("default_direction"));
         pp.setValue("pep_method", "nonparametric");  // match external percolator binary's PEP algorithm
-        pp.setValue("classic_training", getFlag_("classic_training") ? "true" : "false");
+        pp.setValue("classic_training", getStringOption_("classic_training"));
         {
           // Percolator trains one model per cross-validation fold, so more than 3
           // threads do not help. -threads 0 ("all cores") gets 3, which is also what

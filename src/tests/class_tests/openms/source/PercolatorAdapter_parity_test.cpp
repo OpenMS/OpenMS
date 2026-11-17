@@ -193,9 +193,9 @@ START_SECTION([EXTRA] adapter parity: -use_subprocess true vs false on same idXM
     TEST_EQUAL(runAdapter(adapter_bin, percolator_bin, /*use_subprocess=*/true,
                           in_idxml, out_sub,
                           "-testFDR 0.5 -trainFDR 0.5"), 0)
-    // The in-process backend trains as the executables after 3.09 do (they offer --classic-training); for an earlier
-    // one (e.g. the 3.07 of OpenMS' THIRDPARTY) it trains as that one with -classic_training.
-    const std::string inp_training = binaryOffers(percolator_bin, "--classic-training") ? "" : " -classic_training";
+    // The in-process backend trains as the executables up to 3.09 do (e.g. the 3.07 of OpenMS' THIRDPARTY); for a later
+    // one (it offers --classic-training) it trains as that one with -classic_training false.
+    const std::string inp_training = binaryOffers(percolator_bin, "--classic-training") ? " -classic_training false" : "";
     TEST_EQUAL(runAdapter(adapter_bin, percolator_bin, /*use_subprocess=*/false,
                           in_idxml, out_inp,
                           "-testFDR 0.5 -trainFDR 0.5" + inp_training), 0)
