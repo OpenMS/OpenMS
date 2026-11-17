@@ -65,19 +65,25 @@ seed, 3 raws).
 directly** (`gates/single-binary/bench/`, 2026-11-17). DIA-NN 2.2 in docker gets the .NET 8 SDK through a read-only
 mount. Its settings are the same as diann-pairlib-20261113.
 
-| | OpenDIA (a132e9104e) | DIA-NN 2.2 |
-|---|---|---|
-| Wall time | 10:14 | 7:23 (raw 02 7:44, raw 03 7:06) |
-| CPU time (user + sys) | 1060 s (172 % of one core) | 3391 s (765 %) |
-| Peak memory | 15.6 GB | 6.8 GB (raw 02/03 6.3-6.4 GB) |
-| IDs at own q ≤ 0.01 (FDP_c) | 1772 (0.0079) | 2278 (0.0123) |
-| N at FDP_c 1 % | 1815 | 2204 |
+| | OpenDIA (a132e9104e) | OpenDIA (5bd8553a74, same output) | DIA-NN 2.2 |
+|---|---|---|---|
+| Wall time | 10:14 | **7:18** | 7:23 (raw 02 7:44, raw 03 7:06) |
+| CPU time (user + sys) | 1060 s (172 %) | 954 s (217 %) | 3391 s (765 %) |
+| Peak memory | 15.6 GB | 15.7 GB | 6.8 GB (raw 02/03 6.3-6.4 GB) |
+| IDs at own q ≤ 0.01 (FDP_c) | 1772 (0.0079) | 1772 (0.0079) | 2278 (0.0123) |
+| N at FDP_c 1 % | 1815 | 1815 | 2204 |
 
-- **DIA-NN is faster and leaner on the same machine**: 1.4× in wall time and 2.3× in memory. OpenDIA uses less CPU in
-  total but leaves most of the 8 threads idle.
-  - The OpenDIA stages are calibration 168 s (two full raw passes), search 30 s, evidence pass 271 s, features 29 s
-    and scoring 68 s.
-  - The raw passes are mostly single-threaded consumers. Parallelising them is the clear efficiency item.
+- **Speed is now on par with DIA-NN on the same machine (7:18 against 7:23); memory is 2.3× higher.**
+  - The first fair run (10:14) showed most of the 8 threads idle. A profile found two hot spots, both fixed with
+    byte-identical output:
+    - The evidence pass tested every RT-overlapping window against all isolation windows per spectrum. Windows are now
+      bucketed by precursor m/z (d7feda3dff): 271 s → 111 s.
+    - With an MS-level filter, the Thermo reader stopped prefetching peaks, so the main thread decoded every scan
+      itself. The read-ahead workers now read peaks for the selected levels too (5bd8553a74): calibration 185 s → 159 s.
+  - Stage times now: library read and output writing about 40 s together (the library read is SQLite-bound, single thread), calibration 159 s, search 28 s, evidence pass
+    111 s, features 30 s, scoring 69 s (4 fold-parallel threads in the network objective).
+  - Remaining items: the calibration pass is bound by the vendor reader (three read-ahead workers, the vendor limit),
+    and peak memory (15.7 GB) is set by the 600k-member windowed calibration.
 - The earlier "OpenDIA is faster" reading was wrong. In those DIA-NN runs, 4:25 of the 13:27 went to loading a
   5.8 GB mzML, and they ran with other thread counts beside other jobs.
 - The same raw 01 seed 0 run took 7:06 on codon (8 threads) against 10:14 here, with the same output. Codon wall
@@ -100,7 +106,7 @@ mount. Its settings are the same as diann-pairlib-20261113.
 - a cross-fitted C++ scorer (a small network with a decoy-whitened readout and self-training);
 - pooled paired TDC q-values per run, and a global q-value over runs.
 
-Cost: about 6-7.5 min per Astral raw on 8 threads. Peak memory was 22 GB; it is 15.6 GB since a132e9104e (set by the windowed calibration pass). Output is byte-identical across repeats and thread counts.
+Cost: 7:18 per Astral raw on 8 threads on the laptop (5bd8553a74), level with DIA-NN's 7:23 there; peak memory 15.7 GB (was 22 GB before a132e9104e; set by the windowed calibration pass). Output is byte-identical across repeats and thread counts.
 
 | N at entrapment FDP_c 1 % (median of 5 seeds) | raw 01 | raw 02 | FDP_c at q ≤ 0.01 |
 |---|---|---|---|
