@@ -7758,6 +7758,18 @@ add_test("TOPP_FeatureFinderMetaboIdent_10_out1" ${CMAKE_COMMAND}
   "-DEXPECTED=<featureList count=\"6\">"
   -P ${DATA_DIR_TOPP}/check_file_contains.cmake)
 set_tests_properties("TOPP_FeatureFinderMetaboIdent_10_out1" PROPERTIES DEPENDS "TOPP_FeatureFinderMetaboIdent_10")
+# Target RTs 34 s later than in test 10 (e.g. from another LC setup): at the default RT window (80 s, +/- 40 s) the
+# features are found near its edge, which the tool has to point out (targets further off would not be found)
+add_test(NAME "TOPP_FeatureFinderMetaboIdent_11" COMMAND ${CMAKE_COMMAND}
+  "-DCOMMAND=${TOPP_BIN_PATH}/FeatureFinderMetaboIdent;-test;-in;${DATA_DIR_TOPP}/FeatureFinderMetaboIdent_1_input.mzML;-id;${DATA_DIR_TOPP}/FeatureFinderMetaboIdent_11_input.tsv;-out;${TESTS_TEMP_DIR}/FeatureFinderMetaboIdent_11_output.tmp.featureXML;-extract:mz_window;5"
+  -DEXPECTED_CODE=0
+  "-DEXPECTED_OUTPUT_REGEX=6 of 6 features are near the edge of the RT window of their target.*Consider a larger 'extract:rt_window'"
+  -P ${DATA_DIR_TOPP}/check_exit_code.cmake)
+add_test("TOPP_FeatureFinderMetaboIdent_11_out1" ${CMAKE_COMMAND}
+  -DINPUT_FILE=${TESTS_TEMP_DIR}/FeatureFinderMetaboIdent_11_output.tmp.featureXML
+  "-DEXPECTED=<featureList count=\"6\">"
+  -P ${DATA_DIR_TOPP}/check_file_contains.cmake)
+set_tests_properties("TOPP_FeatureFinderMetaboIdent_11_out1" PROPERTIES DEPENDS "TOPP_FeatureFinderMetaboIdent_11")
 
 # MzMLSplitter test:
 # specify number of parts directly:

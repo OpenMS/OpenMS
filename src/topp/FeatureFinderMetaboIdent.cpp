@@ -112,7 +112,8 @@ The widths of the elution models depend somewhat on @p detect:peak_width (the mo
 - @p extract:rt_window (or the @p RetentionTimeRange of a target) is the width of the RT window around the target RT in which a feature is searched.
 It has to cover the elution peak and the expected RT deviation of the target.
 By default it is four times @p detect:peak_width (80 seconds with the default, i.e. +/- 40 seconds around the target RT; 240 seconds with the former default of 60 seconds), so set it explicitly when you lower @p detect:peak_width: otherwise the window shrinks as well, and targets that elute a few seconds off their expected RT are missed.
-Targets whose RT may be further off than that (e.g. RTs from a library, another LC setup or runs that were not aligned) need a larger @p extract:rt_window; they are not found otherwise, without a warning.
+Targets whose RT may be further off than that (e.g. RTs from a library, another LC setup or runs that were not aligned) need a larger @p extract:rt_window; they are not found otherwise.
+A warning is given if more than a quarter of the features (of at least five) are near the edge of the RT window of their target (more than three quarters of half the window away from the target RT), which indicates a window that is too narrow; targets that are entirely outside of it cannot be noticed.
 - Features of different targets that claim the same signal (overlapping mass traces) are resolved: only the one closest to its target RT is kept.
 The number of removed features is reported on the command line, and the remaining feature lists them in its @p overlap_removed meta value.
 
