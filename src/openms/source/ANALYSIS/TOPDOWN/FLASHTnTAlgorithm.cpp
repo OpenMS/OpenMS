@@ -1755,6 +1755,10 @@ void FLASHTnTAlgorithm::run(const MSExperiment& map, const std::vector<FASTAFile
   // decoys keep their first two residues (DecoyDatabase): on these spectra with decoy seeds 1-3, null-database calls 1/1/1 -> 0/0/0,
   // expected proteins 35/33/36 -> 34/33/35 of 43, other proteins 6/7/7 -> 5/5/6, the mAb chains 20/20 unchanged. 2.3, just above the best
   // null candidate (2.27), also called no null protein (34/33/36 expected), with less room to the null.
+  // The margin holds per spectrum: a run of N spectra makes N such tests, so native_margin is raised by log10 N (Bonferroni over the
+  // spectra searched; one spectrum keeps 2.5). Without it, runs of hundreds to thousands of spectra (PXD047341 Lab7 ADH 6053, GroEL 1491)
+  // called null-database proteins in 0.5-5% of their spectra, about N x 10^-2.5 as the per-spectrum margin predicts.
+  const double run_margin = native_margin + std::log10((double)std::max(dspecs.size(), (Size)1));
   const bool native_rule = native_ && decoy_factor_ > 0;
   if (native_ && ! native_rule)
   {
@@ -1835,7 +1839,7 @@ void FLASHTnTAlgorithm::run(const MSExperiment& map, const std::vector<FASTAFile
     std::string names;
     for (auto& c : cands)
     {
-      if ((int)kept.size() >= max_protein_hits_ || score_of(c) < best_decoy + native_margin) break;
+      if ((int)kept.size() >= max_protein_hits_ || score_of(c) < best_decoy + run_margin) break;
       if (is_decoy(c)) continue;
       names += std::string(kept.empty() ? " " : ", ") + fasta_entry[protein_of(c)].identifier + " " + StringUtils::number(score_of(c), 1);
       kept.push_back(std::move(c));
@@ -2529,7 +2533,8 @@ void FLASHTnTAlgorithm::run(const MSExperiment& map, const std::vector<FASTAFile
     if (with_precursor_ladders) mass_ladders.clearPrecursorWindows();
     if (native_rule)
     {
-      OPENMS_LOG_INFO << "Native candidates (score above the best decoy of the source in the spectrum + " << native_margin << "):";
+      OPENMS_LOG_INFO << "Native candidates (score above the best decoy of the source in the spectrum + " << StringUtils::number(run_margin, 2)
+                      << " = " << native_margin << " + log10 of " << dspecs.size() << " spectra):";
       for (Size k = 0; k < native_sources.size(); k++)
       {
         OPENMS_LOG_INFO << (k ? ", " : " ") << native_sources[k] << " " << (Size)native_kept[k];
@@ -3965,7 +3970,7 @@ void FLASHTnTAlgorithm::run(const MSExperiment& map, const std::vector<FASTAFile
     // matched (UniqueMasses; the spectrum's tolerance, +-1 isotope spacing) are unlikely by chance: k ~ Poisson(lambda), lambda = 2 tol x
     // its fragment positions (stretch length - 1, per ion type) / the residue mass of its stretch x the summed masses of the spectrum below
     // that mass that no kept PrSM explains (as the terminal ladders, MassLadderAlgorithm::searchTerminalLadders), UniqueScore = -log10 P,
-    // at least native_margin + log10 of the target proteins (the second protein is chosen from all of them). Measured before the rule
+    // at least run_margin + log10 of the target proteins (the second protein is chosen from all of them). Measured before the rule
     // (25 native test spectra, PXD047341 carbonic anhydrase and bovine hemoglobin): the real second proteins of a spectrum (DLDH, mAb
     // chains, the other hemoglobin chain) had 197 such PrSMs, score median 19, lowest 9.7 apart from a second database entry of the same
     // protein (score 0, same masses); human CA2 beside bovine CA 70 (median 1.7, 1 above the threshold), human hemoglobin chains beside
@@ -3980,7 +3985,7 @@ void FLASHTnTAlgorithm::run(const MSExperiment& map, const std::vector<FASTAFile
       Size target_proteins = 0;
       if (db != nullptr) { for (const auto& p : db->proteins) target_proteins += p.decoy ? 0 : 1; }
       else { for (const auto& e : fasta_entry) target_proteins += StringUtils::hasPrefix(e.identifier, "DECOY") ? 0 : 1; }
-      const double unique_min = native_margin + std::log10((double)std::max(target_proteins, (Size)1));
+      const double unique_min = run_margin + std::log10((double)std::max(target_proteins, (Size)1));
       const double isotope_spacing = Constants::ISOTOPE_MASSDIFF_55K_U;
       const UInt mi_values = MetaInfoInterface::metaRegistry().registerName("MatchedMassValues"),
                  mi_unique = MetaInfoInterface::metaRegistry().registerName("UniqueMasses"),
