@@ -91,6 +91,25 @@ static OpenMS::RescoreInput makePortableModeratelySeparableInput_(std::size_t n_
   return makeModeratelySeparableRows_(n_per_class, [&gen]() { return static_cast<double>(gen()) / 4294967296.0; });
 }
 
+// makePortableModeratelySeparableInput_() with an informative second feature ("signal2", as "signal": targets
+// ~N(+1.0, 0.6^2), decoys ~N(0.0, 0.6^2); from a second std::mt19937) instead of the noise: the trained direction then
+// finds far more targets than either feature alone (the initial direction), so Percolator's direction check keeps it.
+// With one informative feature the trained direction can only beat that feature by chance.
+static OpenMS::RescoreInput makePortableTwoSignalInput_(std::size_t n_per_class, unsigned seed)
+{
+  OpenMS::RescoreInput input = makePortableModeratelySeparableInput_(n_per_class, seed);
+  input.feature_names = OpenMS::StringList{"signal", "signal2"};
+  std::mt19937 gen(seed + 1000);
+  auto rand01 = [&gen]() { return static_cast<double>(gen()) / 4294967296.0; };
+  for (std::size_t i = 0; i < input.features.size(); ++i)
+  {
+    const double u1 = std::max(1e-9, rand01());
+    const double randn = std::sqrt(-2.0 * std::log(u1)) * std::cos(2.0 * M_PI * rand01());
+    input.features[i][1] = (input.is_decoy[i] ? 0.0 : 1.0) + 0.6 * randn;
+  }
+  return input;
+}
+
 static bool medianTargetBeatsDecoy_(const OpenMS::RescoreOutput& out,
                                     const OpenMS::RescoreInput& in)
 {
@@ -228,10 +247,12 @@ START_SECTION([EXTRA] warm_start: TRON starts each pair from its weights of the 
   // learned in the previous iteration instead of 0 (without classic_training every pair starts so anyway). At a loose
   // tolerance the solves stop early, so a warm start must change the result (if the start weights were discarded, warm
   // and cold runs would be identical); repeated warm runs are reproducible, and the default (no warm start) is the
-  // cold training. At an FDR of 0.05 the trained weights are kept: at 0.01 the direction check finds no target on these
-  // rows and both runs fall back to the default direction (whose bias is 0 since Percolator 3.09; before, it kept the
-  // trained bias, which differed between the runs).
-  const RescoreInput input = makeModeratelySeparableInput_(500, 11);
+  // cold training. Both runs must keep their trained weights: if the direction check fell back to the default
+  // direction, both would score with it (its bias is 0 since Percolator 3.09; before, it kept the trained bias, which
+  // differed between the runs). The rows are the same on every platform (std::mt19937, not std::rand()), with two
+  // informative features, and the FDR is 0.05: there the trained weights find far more targets than the initial
+  // direction (cold and warm: 318 and 314 targets at q <= 0.05, the better feature alone 197).
+  const RescoreInput input = makePortableTwoSignalInput_(500, 11);
   auto run = [&](bool warm, double eps)
   {
     Percolator p;
