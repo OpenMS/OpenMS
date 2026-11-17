@@ -180,7 +180,7 @@ if(WITH_ONNX)
 
   # Download PeptDeep models once to the OpenMS model directory.
   # These ONNX files are embedded-weight models and do not require .onnx.data sidecars.
-  set(OPENMS_PEPTDEEP_MODEL_URL "http://archive.openms.de/openms/models" CACHE STRING
+  set(OPENMS_PEPTDEEP_MODEL_URL "https://archive.openms.de/openms/models" CACHE STRING
       "Base URL for PeptDeep ONNX model downloads")
   set(OPENMS_PEPTDEEP_MODEL_DIR "${PROJECT_BINARY_DIR}/share/OpenMS/models" CACHE INTERNAL
       "Build-tree directory containing downloaded PeptDeep ONNX models")
@@ -240,6 +240,7 @@ if(WITH_ONNX)
         DOWNLOAD "${OPENMS_PEPTDEEP_MODEL_URL}/${MODEL}" "${MODEL_PATH}"
         STATUS DOWNLOAD_STATUS
         SHOW_PROGRESS
+        TLS_VERIFY ON
         EXPECTED_HASH "SHA256=${EXPECTED_SHA256}"
       )
 

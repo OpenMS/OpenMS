@@ -17,7 +17,6 @@
 class TestNASE : public NucleicAcidSearchEngine
 {
 public:
-  using NucleicAcidSearchEngine::completeRNAScoreColumns_;
   using NucleicAcidSearchEngine::deisotopeAndSingleChargeMSSpectrum_;
   using NucleicAcidSearchEngine::preprocessSpectra_;
   using NucleicAcidSearchEngine::getModifications_;
@@ -231,6 +230,117 @@ START_SECTION(([EXTRA] legacy fragment isotope thresholds and envelope intensity
   TEST_REAL_SIMILAR(decharged[0].getIntensity(), 14)
   TEST_REAL_SIMILAR(decharged[0].getMZ(), 1000 + Constants::PROTON_MASS_U)
   TEST_EQUAL((*legacyCharges(decharged))[0], 1)
+}
+END_SECTION
+
+START_SECTION(([EXTRA] legacy isotope envelopes require distinct observed peaks))
+{
+  TestNASE tool;
+  for (Int polarity : {-1, 1})
+  {
+    for (bool ppm : {false, true})
+    {
+      // The window is wider than the isotope spacing at charge 20. The
+      // nearest peak can therefore be returned for several isotope ordinals.
+      const double tolerance = ppm ? 320.0 : 0.16;
+      for (Size minimum : {Size(2), Size(3)})
+      {
+        for (bool decharge : {false, true})
+        {
+          MSSpectrum isolated;
+          isolated.emplace_back(500, 10);
+          tool.deisotopeAndSingleChargeMSSpectrum_(isolated, polarity, 20 * polarity, tolerance, ppm, false, minimum, 10, decharge, true, true);
+          TEST_EQUAL(isolated.size(), 1)
+          TEST_REAL_SIMILAR(isolated[0].getMZ(), 500)
+          TEST_REAL_SIMILAR(isolated[0].getIntensity(), 10)
+          TEST_EQUAL((*legacyCharges(isolated))[0], 0)
+        }
+      }
+      MSSpectrum isolated;
+      isolated.emplace_back(500, 10);
+      tool.deisotopeAndSingleChargeMSSpectrum_(isolated, polarity, 20 * polarity, tolerance, ppm, true, 2, 10, true, true, true);
+      TEST_TRUE(isolated.empty())
+      MSSpectrum doublet;
+      doublet.emplace_back(500, 10);
+      doublet.emplace_back(500 + Constants::C13C12_MASSDIFF_U / 20, 4);
+      auto insufficient = doublet;
+      // Revisiting the second peak must not turn a doublet into a triplet.
+      tool.deisotopeAndSingleChargeMSSpectrum_(insufficient, 20 * polarity, 20 * polarity, ppm ? 120.0 : 0.06, ppm, false, 3, 10, true, true, true);
+      TEST_EQUAL(insufficient.size(), 2)
+      for (Size i = 0; i < std::min(insufficient.size(), doublet.size()); ++i)
+      {
+        TEST_REAL_SIMILAR(insufficient[i].getMZ(), doublet[i].getMZ())
+        TEST_REAL_SIMILAR(insufficient[i].getIntensity(), doublet[i].getIntensity())
+        TEST_EQUAL((*legacyCharges(insufficient))[i], 0)
+      }
+      // A genuine doublet still passes a two-peak minimum, even when the
+      // next expected isotope would select the second peak again.
+      for (bool decharge : {false, true})
+      {
+        auto sufficient = doublet;
+        tool.deisotopeAndSingleChargeMSSpectrum_(sufficient, 20 * polarity, 20 * polarity, ppm ? 120.0 : 0.06, ppm, false, 2, 10, decharge, true,
+                                                 true);
+        TEST_EQUAL(sufficient.size(), 1)
+        TEST_REAL_SIMILAR(sufficient[0].getIntensity(), 14)
+        TEST_REAL_SIMILAR(sufficient[0].getMZ(), decharge ? 10000 - polarity * 19 * Constants::PROTON_MASS_U : 500)
+        TEST_EQUAL((*legacyCharges(sufficient))[0], decharge ? 1 : 20)
+      }
+    }
+  }
+}
+END_SECTION
+
+START_SECTION(([EXTRA] duplicate m / z seeds keep isotope features and summed intensities aligned))
+{
+  TestNASE tool;
+  for (Int polarity : {-1, 1})
+  {
+    for (Int charge : {1, 2})
+    {
+      for (bool keep_only : {false, true})
+      {
+        for (bool sum : {false, true})
+        {
+          for (bool decharge : {false, true})
+          {
+            MSSpectrum spectrum;
+            spectrum.emplace_back(500, 10);
+            spectrum.emplace_back(500, 20); // a distinct observation at the same m/z
+            spectrum.emplace_back(500 + Constants::C13C12_MASSDIFF_U / charge, 4);
+            spectrum.emplace_back(500 + 2 * Constants::C13C12_MASSDIFF_U / charge, 3);
+            tool.deisotopeAndSingleChargeMSSpectrum_(spectrum, polarity * charge, polarity * charge, 10, true, keep_only, 3, 10, decharge, true, sum);
+            TEST_EQUAL(spectrum.size(), keep_only ? 1 : 2)
+            const auto* charges = legacyCharges(spectrum);
+            TEST_NOT_EQUAL(charges, nullptr)
+            ABORT_IF(charges == nullptr)
+            TEST_EQUAL(charges->size(), spectrum.size())
+            Size assigned = 0, unassigned = 0;
+            double total = 0;
+            for (Size i = 0; i < spectrum.size(); ++i)
+            {
+              total += spectrum[i].getIntensity();
+              if ((*charges)[i] != 0)
+              {
+                ++assigned;
+                TEST_EQUAL((*charges)[i], decharge ? 1 : charge)
+                TEST_REAL_SIMILAR(spectrum[i].getIntensity(), sum ? 17 : 10)
+                TEST_REAL_SIMILAR(spectrum[i].getMZ(), decharge ? 500 * charge - polarity * (charge - 1) * Constants::PROTON_MASS_U : 500)
+              }
+              else
+              {
+                ++unassigned;
+                TEST_REAL_SIMILAR(spectrum[i].getMZ(), 500)
+                TEST_REAL_SIMILAR(spectrum[i].getIntensity(), 20)
+              }
+            }
+            TEST_EQUAL(assigned, 1)
+            TEST_EQUAL(unassigned, keep_only ? 0 : 1)
+            TEST_REAL_SIMILAR(total, (sum ? 17 : 10) + (keep_only ? 0 : 20))
+          }
+        }
+      }
+    }
+  }
 }
 END_SECTION
 
@@ -1947,48 +2057,6 @@ START_SECTION(([EXTRA] graph audit and fallback preserve scoring with FLASH MS1 
   TEST_TRUE(search("graph_generate_audit", false, false, true) == placement_baseline)
   TEST_TRUE(search("graph_generate", false, false, true) == placement_baseline)
   TEST_TRUE(search("graph_generate", true, false, true) == placement_baseline)
-}
-END_SECTION
-
-START_SECTION(([EXTRA] unavailable RNA scores keep declared mzTab columns without fabricated values))
-{
-  MzTab table;
-  MzTabMetaData metadata;
-  for (Size index : {Size(1), Size(2)})
-  {
-    metadata.ms_run[index] = MzTabMSRunMetaData();
-    metadata.nucleic_acid_search_engine_score[index] = MzTabParameter();
-    metadata.oligonucleotide_search_engine_score[index] = MzTabParameter();
-    metadata.osm_search_engine_score[index] = MzTabParameter();
-  }
-  table.setMetaData(metadata);
-  MzTabNucleicAcidSectionRow nucleic;
-  nucleic.best_search_engine_score[1] = MzTabDouble(42.0);
-  nucleic.search_engine_score_ms_run[1][2] = MzTabDouble(12.0);
-  table.setNucleicAcidSectionRows({nucleic});
-  MzTabOligonucleotideSectionRow oligo;
-  oligo.best_search_engine_score[2] = MzTabDouble(7.0);
-  table.setOligonucleotideSectionRows({oligo});
-  MzTabOSMSectionRow match;
-  match.search_engine_score[1] = MzTabDouble(42.0);
-  table.setOSMSectionRows({match});
-  TestNASE::completeRNAScoreColumns_(table);
-  const auto& row = table.getNucleicAcidSectionRows()[0];
-  TEST_EQUAL(row.best_search_engine_score.size(), 2)
-  TEST_REAL_SIMILAR(row.best_search_engine_score.at(1).get(), 42.0)
-  TEST_TRUE(row.best_search_engine_score.at(2).isNull())
-  TEST_TRUE(row.search_engine_score_ms_run.at(1).at(1).isNull())
-  TEST_REAL_SIMILAR(row.search_engine_score_ms_run.at(1).at(2).get(), 12.0)
-  TEST_TRUE(row.search_engine_score_ms_run.at(2).at(1).isNull())
-  TEST_TRUE(row.search_engine_score_ms_run.at(2).at(2).isNull())
-  const auto& oligo_row = table.getOligonucleotideSectionRows()[0];
-  TEST_TRUE(oligo_row.best_search_engine_score.at(1).isNull())
-  TEST_REAL_SIMILAR(oligo_row.best_search_engine_score.at(2).get(), 7.0)
-  TEST_EQUAL(oligo_row.search_engine_score_ms_run.size(), 2)
-  TEST_TRUE(table.getOSMSectionRows()[0].search_engine_score.at(2).isNull())
-  TestNASE::completeRNAScoreColumns_(table);
-  TEST_EQUAL(table.getOSMSectionRows()[0].search_engine_score.size(), 2)
-  TEST_REAL_SIMILAR(table.getOSMSectionRows()[0].search_engine_score.at(1).get(), 42.0)
 }
 END_SECTION
 

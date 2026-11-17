@@ -785,12 +785,13 @@ protected:
             double expected_mz = current_mz + i * Constants::C13C12_MASSDIFF_U / abs(q);
             Size p = old_spectrum.findNearest(expected_mz);
             double tolerance_dalton = fragment_unit_ppm ? fragment_tolerance * old_spectrum[p].getPosition()[0] * 1e-6 : fragment_tolerance;
-            if (fabs(old_spectrum[p].getPosition()[0] - expected_mz) > tolerance_dalton) // test for missing peak
+            // Duplicate m/z values can make findNearest select an earlier seed.
+            // An envelope must start at the current seed and then advance to
+            // distinct observed peaks for later isotope positions.
+            if (p < current_peak || fabs(old_spectrum[p].getPosition()[0] - expected_mz) > tolerance_dalton
+                || (! extensions.empty() && p <= extensions.back()))
             {
-              if (i < min_isopeaks)
-              {
-                has_min_isopeaks = false;
-              }
+              if (extensions.size() < min_isopeaks) { has_min_isopeaks = false; }
               break;
             }
             else
@@ -816,7 +817,7 @@ protected:
             }
           }
 
-          if (has_min_isopeaks)
+          if (has_min_isopeaks && extensions.size() >= min_isopeaks)
           {
             //cout << "min peaks at " << current_mz << " " << " extensions: " << extensions.size() << endl;
             mono_isotopic_peak[current_peak] = q;
@@ -1823,43 +1824,6 @@ protected:
                       << id_data.getObservations().size() << endl;
     }
   }
-
-  /// @brief Emit null columns for unavailable RNA scores.
-  static void completeRNAScoreColumns_(MzTab& table)
-  {
-    const auto& metadata = table.getMetaData();
-    const auto complete = [&](auto& rows, const auto& scores) {
-      for (auto& row : rows)
-      {
-        for (const auto& [score, definition] : scores)
-        {
-          row.best_search_engine_score.try_emplace(score);
-          for (const auto& [run, info] : metadata.ms_run)
-          {
-            row.search_engine_score_ms_run[score].try_emplace(run);
-          }
-        }
-      }
-    };
-    // Some core versions serialize only present score-map entries. Mixed target/
-    // decoy and tied results can have unavailable parent/alternative q-values.
-    auto nucleic_acids = table.getNucleicAcidSectionRows();
-    complete(nucleic_acids, metadata.nucleic_acid_search_engine_score);
-    table.setNucleicAcidSectionRows(nucleic_acids);
-    auto oligos = table.getOligonucleotideSectionRows();
-    complete(oligos, metadata.oligonucleotide_search_engine_score);
-    table.setOligonucleotideSectionRows(oligos);
-    auto matches = table.getOSMSectionRows();
-    for (auto& row : matches)
-    {
-      for (const auto& [score, definition] : metadata.osm_search_engine_score)
-      {
-        row.search_engine_score.try_emplace(score);
-      }
-    }
-    table.setOSMSectionRows(matches);
-  }
-
 
   void generateLFQInput_(IdentificationData& id_data, const std::string& out_file)
   {
@@ -3673,7 +3637,6 @@ protected:
     MzTab results = IdentificationDataConverter::exportMzTab(id_data,
       getFlag_("report:precursor_percentage") ? set<std::string>{"precursor_percentage"} : set<std::string>{},
       {"isotope_offset"});
-    completeRNAScoreColumns_(results);
     OPENMS_LOG_DEBUG << "Nucleic acid rows: "
                      << results.getNucleicAcidSectionRows().size()
                      << "\nOligonucleotide rows: "

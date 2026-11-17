@@ -6,6 +6,7 @@
 // $Authors: Hendrik Weisser $
 // --------------------------------------------------------------------------
 
+#include <OpenMS/ANALYSIS/ID/FalseDiscoveryRate.h>
 #include <OpenMS/CHEMISTRY/AdductInfo.h>
 #include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/SYSTEM/SysInfo.h>
@@ -14,12 +15,13 @@
 
 ///////////////////////////
 
-#include <OpenMS/METADATA/ID/IdentificationDataConverter.h>
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/FORMAT/MzTabFile.h>
 #include <OpenMS/FORMAT/PepXMLFile.h>
+#include <OpenMS/FORMAT/TextFile.h>
+#include <OpenMS/METADATA/ID/IdentificationDataConverter.h>
 
 ///////////////////////////
 
@@ -36,6 +38,28 @@ struct ComparePIdSize
 };
 
 START_TEST(IdentificationDataConverter, "$Id$")
+
+// Check the serialized rows as well as store()'s internal column postcondition.
+const auto check_rna_columns = [&](const std::string& filename, Size expected_rows) {
+  map<std::string, Size> widths, row_counts;
+  for (const auto& line : TextFile(filename))
+  {
+    if (line.empty()) { continue; }
+    vector<std::string> cells;
+    StringUtils::split(line, '\t', cells);
+    if (cells[0] == "NUH" || cells[0] == "OLH" || cells[0] == "OSH") { widths[cells[0].substr(0, 2)] = cells.size(); }
+    else if (cells[0] == "NUC" || cells[0] == "OLI" || cells[0] == "OSM")
+    {
+      const auto section = cells[0].substr(0, 2);
+      TEST_EQUAL(cells.size(), widths.at(section))
+      ++row_counts[section];
+    }
+  }
+  for (const auto& section : {"NU", "OL", "OS"})
+  {
+    TEST_EQUAL(row_counts[section], expected_rows)
+  }
+};
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
@@ -285,6 +309,147 @@ START_SECTION((MzTab exportMzTab(const IdentificationData& id_data)))
   MzTabFile().store(filename, mztab);
 
   TEST_FILE_SIMILAR(filename, OPENMS_GET_TEST_DATA_PATH("IdentificationDataConverter_out2.mzTab"));
+}
+END_SECTION
+
+START_SECTION(([EXTRA] sparse RNA scores serialize all declared columns across runs))
+{
+  IdentificationData data;
+  data.registerInputFile(IdentificationData::InputFile("run1.mzML"));
+  const auto file = data.registerInputFile(IdentificationData::InputFile("run2.mzML"));
+  const auto score1 = data.registerScoreType(IdentificationData::ScoreType("score1", true));
+  const auto score2 = data.registerScoreType(IdentificationData::ScoreType("score2", false));
+  const vector<std::string> sequences {"AAA", "AAC", "AAU"};
+  for (Size i = 0; i < sequences.size(); ++i)
+  {
+    // Leave the first row unscored; discover both column definitions in later rows.
+    IdentificationData::ParentSequence parent("rna" + StringUtils::toStr(i), IdentificationData::MoleculeType::RNA, sequences[i]);
+    IdentificationData::IdentifiedOligo oligo(NASequence::fromString(sequences[i]));
+    if (i != 0)
+    {
+      parent.addScore(i == 1 ? score1 : score2, i == 1 ? 42.0 : 7.0);
+      oligo.addScore(i == 1 ? score1 : score2, i == 1 ? 42.0 : 7.0);
+    }
+    const auto parent_ref = data.registerParentSequence(parent);
+    oligo.parent_matches[parent_ref].insert(IdentificationData::ParentMatch(0, 2));
+    const auto oligo_ref = data.registerIdentifiedOligo(oligo);
+    const auto observation = data.registerObservation(IdentificationData::Observation("scan=" + StringUtils::toStr(i), file, 20.0, 500.0));
+    IdentificationData::ObservationMatch match(oligo_ref, observation, -2);
+    if (i != 0) { match.addScore(i == 1 ? score1 : score2, i == 1 ? 42.0 : 7.0); }
+    data.registerObservationMatch(match);
+  }
+
+  auto table = IdentificationDataConverter::exportMzTab(data);
+  std::string filename;
+  NEW_TMP_FILE(filename)
+  MzTabFile().store(filename, table);
+  check_rna_columns(filename, 3);
+  const auto check_scores = [&](const auto& rows, const auto& definitions) {
+    TEST_EQUAL(rows.size(), 3)
+    TEST_EQUAL(definitions.size(), 2)
+    for (Size i = 0; i < rows.size(); ++i)
+    {
+      TEST_EQUAL(rows[i].best_search_engine_score.size(), 2)
+      TEST_EQUAL(rows[i].search_engine_score_ms_run.size(), 2)
+      for (const auto& [index, definition] : definitions)
+      {
+        const auto& value = rows[i].best_search_engine_score.at(index);
+        if ((i == 1 && definition.getName() == "score1") || (i == 2 && definition.getName() == "score2"))
+        {
+          TEST_REAL_SIMILAR(value.get(), i == 1 ? 42.0 : 7.0)
+        }
+        else
+        {
+          TEST_TRUE(value.isNull())
+        }
+        const auto& runs = rows[i].search_engine_score_ms_run.at(index);
+        TEST_EQUAL(runs.size(), 2)
+        TEST_TRUE(runs.at(1).isNull())
+        TEST_TRUE(runs.at(2).isNull())
+      }
+    }
+  };
+  check_scores(table.getNucleicAcidSectionRows(), table.getMetaData().nucleic_acid_search_engine_score);
+  check_scores(table.getOligonucleotideSectionRows(), table.getMetaData().oligonucleotide_search_engine_score);
+  for (const auto& row : table.getNucleicAcidSectionRows())
+  {
+    for (const auto* counts : {&row.num_osms_ms_run, &row.num_oligos_distinct_ms_run, &row.num_oligos_unique_ms_run})
+    {
+      TEST_EQUAL(counts->size(), 2)
+      TEST_TRUE(counts->at(1).isNull())
+      TEST_TRUE(counts->at(2).isNull())
+    }
+  }
+  TEST_EQUAL(table.getOSMSectionRows().size(), 3)
+  for (Size i = 0; i < table.getOSMSectionRows().size(); ++i)
+  {
+    const auto& scores = table.getOSMSectionRows()[i].search_engine_score;
+    TEST_EQUAL(scores.size(), 2)
+    for (const auto& [index, definition] : table.getMetaData().osm_search_engine_score)
+    {
+      if ((i == 1 && definition.getName() == "score1") || (i == 2 && definition.getName() == "score2"))
+      {
+        TEST_REAL_SIMILAR(scores.at(index).get(), i == 1 ? 42.0 : 7.0)
+      }
+      else
+      {
+        TEST_TRUE(scores.at(index).isNull())
+      }
+    }
+  }
+}
+END_SECTION
+
+START_SECTION(([EXTRA] tied RNA matches with missing qvalues serialize after FDR))
+{
+  IdentificationData data;
+  const auto file = data.registerInputFile(IdentificationData::InputFile("ties.mzML"));
+  const auto score = data.registerScoreType(IdentificationData::ScoreType("hyperscore", true));
+  const auto observation = data.registerObservation(IdentificationData::Observation("scan=1", file, 20.0, 500.0));
+  for (const auto& sequence : {"AAC", "ACA"})
+  {
+    const auto parent = data.registerParentSequence(IdentificationData::ParentSequence(sequence, IdentificationData::MoleculeType::RNA, sequence));
+    IdentificationData::IdentifiedOligo oligo(NASequence::fromString(sequence));
+    oligo.parent_matches[parent].insert(IdentificationData::ParentMatch(0, 2));
+    const auto oligo_ref = data.registerIdentifiedOligo(oligo);
+    IdentificationData::ObservationMatch match(oligo_ref, observation, -2);
+    match.addScore(score, 42.0);
+    data.registerObservationMatch(match);
+  }
+  FalseDiscoveryRate fdr;
+  auto params = fdr.getParameters();
+  params.setValue("use_all_hits", "false");
+  fdr.setParameters(params);
+  const auto qvalue = fdr.applyToObservationMatches(data, score);
+  Size scored_matches = 0;
+  for (const auto& match : data.getObservationMatches())
+  {
+    scored_matches += match.getScore(qvalue).second;
+  }
+  TEST_EQUAL(scored_matches, 1)
+
+  auto table = IdentificationDataConverter::exportMzTab(data);
+  std::string filename;
+  NEW_TMP_FILE(filename)
+  MzTabFile().store(filename, table);
+  check_rna_columns(filename, 2);
+  Size null_qvalues = 0;
+  for (const auto& row : table.getOSMSectionRows())
+  {
+    TEST_EQUAL(row.search_engine_score.size(), 2)
+    for (const auto& [index, definition] : table.getMetaData().osm_search_engine_score)
+    {
+      const auto& value = row.search_engine_score.at(index);
+      if (definition.getName() == "hyperscore") { TEST_REAL_SIMILAR(value.get(), 42.0) }
+      else
+      {
+        TEST_EQUAL(definition.getName(), qvalue->cv_term.getName())
+        null_qvalues += value.isNull();
+        if (! value.isNull()) { TEST_REAL_SIMILAR(value.get(), 0.0) }
+      }
+    }
+  }
+  TEST_EQUAL(null_qvalues, 1)
 }
 END_SECTION
 
