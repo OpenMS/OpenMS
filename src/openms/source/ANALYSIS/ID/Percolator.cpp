@@ -384,21 +384,24 @@ Percolator::Percolator()
   defaults_.setValue("classic_training", "true",
                      "'true' (default): train as Percolator up to version 3.09 did (the percolator executable's "
                      "--classic-training): all 'num_iterations' iterations, every (Cpos, Cneg) pair of the grid in every "
-                     "iteration, each SVM solved from zero weights. 'false': Percolator's training since it was reworked "
+                     "iteration, each SVM solved from zero weights (solver 'tron'; 'newton' and 'lda' start from the "
+                     "weights of the iteration before). 'false': Percolator's training since it was reworked "
                      "after 3.09 (the default of its executable): each SVM starts from its weights of the previous "
                      "iteration, the (Cpos, Cneg) pair of each fold is fixed after three iterations, and the training "
                      "stops when the estimated positives grew by less than 0.1% over two iterations. Faster; the results "
                      "differ within the spread of the training.");
   defaults_.setValidStrings("classic_training", {"true","false"});
   defaults_.setValue("tron_epsilon", 1e-7,
-                     "Stopping tolerance of the TRON solver of the SVM training (relative gradient norm). "
-                     "Larger values train faster; the results differ from Percolator's (1e-7).",
+                     "Stopping tolerance of the SVM solves with the solvers 'tron' and 'newton' (the gradient norm "
+                     "relative to that at 0; with classic_training, 'newton' stops at 1e-4 in the iterations before the "
+                     "last one). Larger values train faster; the results differ from Percolator's (1e-7).",
                      {"advanced"});
   defaults_.setMinFloat("tron_epsilon", 1e-15);
   defaults_.setValue("warm_start", "false",
-                     "With classic_training: start each SVM training of a cross-validation iteration from the weights "
-                     "its (Cpos, Cneg) pair learned in the previous iteration instead of 0 (faster; the results differ). "
-                     "Not with nested_xval_bins > 1. (Without classic_training every training starts so.)",
+                     "With classic_training and the solver 'tron': start each SVM training of a cross-validation "
+                     "iteration from the weights its (Cpos, Cneg) pair learned in the previous iteration instead of 0 "
+                     "(faster; the results differ). Not with nested_xval_bins > 1. (Without classic_training, and with "
+                     "the solvers 'newton' and 'lda', every training starts so.)",
                      {"advanced"});
   defaults_.setValidStrings("warm_start", {"true", "false"});
   defaults_.setValue("single_cneg", "false",
@@ -446,16 +449,19 @@ Percolator::Percolator()
                      "which reads it as metadata; 'true': the in-process training before OpenMS #10717.");
   defaults_.setValidStrings("calc_mass_feature", {"true","false"});
 
-  defaults_.setValue("solver", "tron",
-                     "Solver of the SVMs of the cross-validation. 'tron' (default): the trust region Newton method "
-                     "(TRON) of Percolator, from 0 in every step. 'newton': the modified finite Newton method of "
-                     "Keerthi & DeCoste (2005) with the explicit Hessian (one pass over the active PSMs per step) and "
-                     "an exact line search, warm-started from the weights of the step before, with a looser tolerance "
-                     "in all steps but the last; for a given training set it reaches the same optimum as 'tron' (within the "
-                     "tolerance) in far fewer passes over the data (the looser steps may choose slightly different "
-                     "training sets for the next), and runs the blocks of large training sets on all threads. 'lda': "
-                     "Fisher's linear discriminant of the positives and the decoys in every step (one pass, no "
-                     "optimization; a fast approximation of the SVM). Upstream percolator has no such option.");
+  defaults_.setValue("solver", "newton",
+                     "Solver of the SVMs of the cross-validation. 'newton' (default): the modified finite Newton method "
+                     "of Keerthi & DeCoste (2005) with the explicit Hessian (one pass over the active PSMs per step) and "
+                     "an exact line search, started from the weights of the step before; with classic_training it stops "
+                     "at a looser tolerance in the iterations before the last one. For a given training set it reaches "
+                     "the same optimum as 'tron' (within the tolerance) in far fewer passes over the data (the looser "
+                     "steps may choose slightly different training sets for the next), runs the blocks of large training "
+                     "sets on all threads, and falls back to 'tron' for more than 127 features or when it does not "
+                     "converge. 'tron': the trust region Newton method (TRON) that the OpenMS copy of Percolator uses "
+                     "instead of upstream's SVMlin (the same optimum); with classic_training from 0 in every step, "
+                     "otherwise from the weights of the step before. 'lda': Fisher's linear discriminant of the "
+                     "positives and the decoys in every step (one pass, no optimization; a fast approximation of the "
+                     "SVM). Upstream percolator has no such option.");
   defaults_.setValidStrings("solver", {"tron","newton","lda"});
   defaults_.setValue("algorithm", "percolator",
                      "rescorePSMs(): 'percolator' = Percolator's cross-validated PSM-level FDR (default); 'reset' = "

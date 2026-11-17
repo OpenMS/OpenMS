@@ -237,11 +237,14 @@ bool binaryHasNewTraining(const std::string& bin)
   return binaryOffers(bin, "--classic-training");
 }
 
-/// The Percolator defaults for a comparison with the executable @p bin, with @p seed (see binaryHasNewTraining)
+/// The Percolator defaults for a comparison with the executable @p bin, with @p seed (see binaryHasNewTraining), and the
+/// solver 'tron', which reaches the optimum of the executable's SVMlin solver along the same path (the default 'newton'
+/// reaches it too, but stops at a looser tolerance in the earlier iterations of classic training)
 Param parityDefaults(const Percolator& p, const std::string& bin, int seed = 1)
 {
   Param par = p.getDefaults();
   par.setValue("seed", seed);
+  par.setValue("solver", "tron");
   par.setValue("classic_training", binaryHasNewTraining(bin) ? "false" : "true");
   return par;
 }
