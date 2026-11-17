@@ -1870,7 +1870,7 @@ bool FLASHAnnotatorAlgorithm::toCentroidedPeakArrays(const MSSpectrum& spec, Pea
   return false;
 }
 
-int FLASHAnnotatorAlgorithm::precursorChargeCap(const MSSpectrum& raw, double precursor_mass, int& reason)
+int FLASHAnnotatorAlgorithm::precursorChargeCap(const MSSpectrum& raw, double precursor_mass, int& reason, double proteoform_mass)
 {
   int raw_charge = 0;
   double precursor_mz = 0, low = 0, high = 0;
@@ -1892,6 +1892,15 @@ int FLASHAnnotatorAlgorithm::precursorChargeCap(const MSSpectrum& raw, double pr
   const int implied_charge = (precursor_mass > 0 && precursor_mz > Constants::PROTON_MASS_U)
                                ? std::max(1, (int)std::round(precursor_mass / (precursor_mz - Constants::PROTON_MASS_U)))
                                : 0;
+  if (raw_charge == 1 && implied_charge <= 0 && proteoform_mass > 0 && precursor_mz > Constants::PROTON_MASS_U
+      && precursor_mz - Constants::PROTON_MASS_U < 0.99 * proteoform_mass)
+  {
+    // no precursor mass to check the raw charge against, and a 1+ precursor would be lighter than the proteoform: the 1 Thermo
+    // records when the charge is not determined (native runs). Only 1: the sequence of a PrSM without determined termini may be
+    // longer than its proteoform, so a higher raw charge is kept (FLASHTnT_1: 14+ at m/z 761 for a 331-residue stretch).
+    reason = 5;
+    return 0;
+  }
   if (raw_charge > 0)
   {
     // a harmonic or co-isolated raw charge does not fit the proteoform: fragments above it would never be tried

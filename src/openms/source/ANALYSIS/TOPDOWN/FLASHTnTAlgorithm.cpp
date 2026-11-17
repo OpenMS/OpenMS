@@ -4794,7 +4794,8 @@ void FLASHTnTAlgorithm::setNativeTermini_()
   for (Size j = 0; j < prsms.size(); j++)
   {
     int reason = 4;
-    prsms[j].precursor_charge = annotator.precursorChargeCap(raw_spectra_[prsms[j].spectrum_index], precursor_masses[j], reason);
+    prsms[j].precursor_charge = annotator.precursorChargeCap(raw_spectra_[prsms[j].spectrum_index], precursor_masses[j], reason,
+                                                             FLASHAnnotatorAlgorithm::getProteoformMass(prsms[j].sequence, prsms[j].modifications));
   }
   std::vector<FLASHAnnotatorAlgorithm::Result> results;
   annotator.annotate(raw_peaks_, prsms, results);
@@ -4919,7 +4920,8 @@ std::function<double(const ProteinHit&)> FLASHTnTAlgorithm::alternativeRawScorer
       annotator->getIsotopeEnvelope(std::max(precursor_mass, FLASHAnnotatorAlgorithm::getProteoformMass(prsm.sequence, prsm.modifications)) + 200.0, 1,
                                     iso_mzs, iso_intensities);
       int reason = 4;
-      prsm.precursor_charge = annotator->precursorChargeCap(raw_spectra_[prsm.spectrum_index], precursor_mass, reason);
+      prsm.precursor_charge = annotator->precursorChargeCap(raw_spectra_[prsm.spectrum_index], precursor_mass, reason,
+                                                              FLASHAnnotatorAlgorithm::getProteoformMass(prsm.sequence, prsm.modifications));
       annotator->annotate(raw_peaks_, {prsm}, results);
     }
     return raw_score_weight * std::max(0.0, results[0].score);
@@ -4955,7 +4957,8 @@ void FLASHTnTAlgorithm::annotateOnRawSpectra_(std::vector<ProteinHit>& hits) con
   {
     if (prsms[i].spectrum_index < 0) continue;
     int reason = 4;
-    prsms[i].precursor_charge = annotator.precursorChargeCap(raw_spectra_[prsms[i].spectrum_index], precursor_masses[i], reason);
+    prsms[i].precursor_charge = annotator.precursorChargeCap(raw_spectra_[prsms[i].spectrum_index], precursor_masses[i], reason,
+                                                             FLASHAnnotatorAlgorithm::getProteoformMass(prsms[i].sequence, prsms[i].modifications));
   }
   std::vector<FLASHAnnotatorAlgorithm::Result> results;
   annotator.annotate(raw_peaks_, prsms, results);
@@ -5075,7 +5078,8 @@ void FLASHTnTAlgorithm::setCombinedCoverage_(const std::vector<std::vector<Size>
   for (Size j = 0; j < prsms.size(); j++)
   {
     int reason = 4;
-    prsms[j].precursor_charge = annotator.precursorChargeCap(raw_spectra_[prsms[j].spectrum_index], precursor_masses[j], reason);
+    prsms[j].precursor_charge = annotator.precursorChargeCap(raw_spectra_[prsms[j].spectrum_index], precursor_masses[j], reason,
+                                                             FLASHAnnotatorAlgorithm::getProteoformMass(prsms[j].sequence, prsms[j].modifications));
   }
   std::vector<FLASHAnnotatorAlgorithm::Result> results;
   annotator.annotate(raw_peaks_, prsms, results);

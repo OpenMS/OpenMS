@@ -260,9 +260,13 @@ public:
     The charge of the raw precursor if @p precursor_mass has an isotope peak in the isolation window at that charge (or no mass is
     given, or the charges agree); else the charge implied by the mass and the isolation target m/z if that one does; else the
     larger of the two. Without a raw charge, the implied charge; without a mass either, 0 (no cap beyond min_mass_per_charge).
-    @param reason 0 raw charge, 1 implied charge, 2 the larger of both, 3 implied charge (no raw charge), 4 no cap
+    Without a precursor mass, a raw charge of 1 at which the isolation target m/z cannot hold @p proteoform_mass (the precursor is
+    the proteoform or a complex containing it, so it is at least that heavy) is ignored: 0 (no cap). Thermo raw files of native runs
+    record 1 when the charge is not determined, which would cap every fragment at 1+.
+    @param reason 0 raw charge, 1 implied charge, 2 the larger of both, 3 implied charge (no raw charge), 4 no cap,
+           5 no cap (raw charge too low for the proteoform)
   */
-  int precursorChargeCap(const MSSpectrum& raw, double precursor_mass, int& reason);
+  int precursorChargeCap(const MSSpectrum& raw, double precursor_mass, int& reason, double proteoform_mass = 0);
 
 protected:
   void updateMembers_() override;
