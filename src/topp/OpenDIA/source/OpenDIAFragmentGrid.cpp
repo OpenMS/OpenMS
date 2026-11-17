@@ -198,6 +198,14 @@ namespace OpenMS::OpenDIA
     evidence_.assign(windows_.size(), {});
   }
 
+  void FragmentGridCollector::enableIonMobility(double half_width, bool array_as_vssc)
+  {
+    if (!(half_width > 0.0) || !std::isfinite(half_width)) throw std::invalid_argument("FragmentGridCollector: mobility half width must be positive.");
+    if (last_rt_ > -1e300) throw std::logic_error("FragmentGridCollector: enableIonMobility() after the first spectrum.");
+    im_half_ = half_width;
+    im_array_as_vssc_ = array_as_vssc;
+  }
+
   FragmentGridCollector::Lane& FragmentGridCollector::lane_(double lo, double hi)
   {
     const auto key = std::make_pair(lo, hi);
@@ -275,6 +283,27 @@ namespace OpenMS::OpenDIA
     last_rt_ = rt;
     closeUntil_(rt);
     if (!spectrum.isSorted()) spectrum.sortByPosition();
+    // Per-point (or scalar) 1/K0 of this spectrum, when mobility filtering is on and the data carry VSSC mobility.
+    const DataArrays::FloatDataArray* mobilities = nullptr;
+    double scalar_im = 0.0;
+    if (im_half_ > 0.0)
+    {
+      if (spectrum.containsIMData())
+      {
+        const auto [index, unit] = spectrum.getIMData();
+        if (spectrum.getFloatDataArrays()[index].size() == spectrum.size() &&
+            (unit == DriftTimeUnit::VSSC || (im_array_as_vssc_ && unit != DriftTimeUnit::CCS)))
+        {
+          mobilities = &spectrum.getFloatDataArrays()[index];
+        }
+      }
+      if (mobilities == nullptr && spectrum.getDriftTimeUnit() == DriftTimeUnit::VSSC && std::isfinite(spectrum.getDriftTime()) &&
+          spectrum.getDriftTime() > 0.0)
+      {
+        scalar_im = spectrum.getDriftTime();
+      }
+    }
+    const bool spectrum_has_im = mobilities != nullptr || scalar_im > 0.0;
     bool used = false;
     for (const OpenMS::Precursor& precursor : spectrum.getPrecursors())
     {
@@ -298,7 +327,11 @@ namespace OpenMS::OpenDIA
           open = std::abs(rt - windows_[window_index_[k]].rt_apex) < half_;
         }
         if (!open) continue;
-        // Fragment sums of this spectrum, once per precursor: |ppm| < tolerance (open interval).
+        // Fragment sums of this spectrum, once per precursor: |ppm| < tolerance (open interval), and, with mobility
+        // filtering, |1/K0 - precursor 1/K0| <= im half width.
+        const double precursor_im = precursors_[p].im;
+        const bool filter_im = spectrum_has_im && precursor_im > 0.0;
+        if (filter_im && mobilities == nullptr && std::abs(scalar_im - precursor_im) > im_half_) continue;
         std::array<double, K> sum{};
         bool any = false;
         for (std::size_t s = 0; s < K; ++s)
@@ -309,7 +342,9 @@ namespace OpenMS::OpenDIA
           double total = 0.0;
           for (auto point = spectrum.MZBegin(target - width); point != spectrum.end() && point->getMZ() <= target + width; ++point)
           {
-            if (std::abs((point->getMZ() - target) / target * 1e6) < ppm_) total += point->getIntensity();
+            if (!(std::abs((point->getMZ() - target) / target * 1e6) < ppm_)) continue;
+            if (filter_im && mobilities != nullptr && !(std::abs((*mobilities)[point - spectrum.begin()] - precursor_im) <= im_half_)) continue;
+            total += point->getIntensity();
           }
           sum[s] = total;
           any = any || total != 0.0;

@@ -126,10 +126,11 @@ namespace OpenMS::OpenDIA
   }
 
   std::vector<float> InterferenceResolver::compute(const std::vector<Precursor>& precursors, const std::vector<Window>& windows,
-                                                   double fragment_tolerance_ppm, double rt_bin_seconds, int threads, Statistics* stats)
+                                                   double fragment_tolerance_ppm, double rt_bin_seconds, int threads, Statistics* stats,
+                                                   double im_link_width)
   {
     if (!std::isfinite(fragment_tolerance_ppm) || !(fragment_tolerance_ppm > 0.0) || !std::isfinite(rt_bin_seconds) ||
-        !(rt_bin_seconds > 0.0) || threads < 1)
+        !(rt_bin_seconds > 0.0) || threads < 1 || !std::isfinite(im_link_width) || im_link_width < 0.0)
     {
       throw std::invalid_argument("InterferenceResolver: the fragment tolerance, bin width and thread count must be positive.");
     }
@@ -209,6 +210,9 @@ namespace OpenMS::OpenDIA
           const std::uint32_t bi = order[q];
           const Window& b = windows[bi];
           if (b.precursor == a.precursor || b.rt_start > a.rt_end || b.rt_end < a.rt_start) return;
+          // With mobility, precursors whose extraction windows in 1/K0 do not overlap cannot share signal.
+          const Precursor& pb_im = precursors[b.precursor];
+          if (im_link_width > 0.0 && pa.im > 0.0 && pb_im.im > 0.0 && std::abs(pa.im - pb_im.im) > im_link_width) return;
           ++pairs_total;
           Claim c;
           if (!sharedFragments(pa, sorted[b.precursor], tol, c.a_to_b, c.b_to_a)) return;

@@ -97,6 +97,7 @@ namespace OpenMS::OpenDIA
       std::array<double, FragmentGrid::FRAGMENTS> extraction_mz{}; ///< Calibrated fragment m/z per slot (0 = absent).
       FragmentGrid::Values library{};
       FragmentGrid::Flags search{};
+      double im = 0.0; ///< Calibrated 1/K0; 0 = no mobility filter for this precursor.
     };
 
     /**
@@ -107,6 +108,16 @@ namespace OpenMS::OpenDIA
     */
     FragmentGridCollector(const std::vector<Precursor>& precursors, std::vector<InterferenceResolver::Window>& windows, double rt_half_width,
                           double extraction_ppm);
+
+    /**
+      @brief Restrict extraction to points within @p half_width (1/K0) of each precursor's calibrated 1/K0.
+
+      Only spectra with a VSSC mobility array (or a scalar VSSC drift time), and only precursors with im > 0, are
+      filtered; everything else keeps pooled extraction. Must be called before the first spectrum.
+      @param[in] half_width Half width in 1/K0 (> 0).
+      @param[in] array_as_vssc Treat a mobility array whose unit is not CCS as 1/K0.
+    */
+    void enableIonMobility(double half_width, bool array_as_vssc = false);
 
     void consumeSpectrum(MSSpectrum& spectrum) override;
     void consumeChromatogram(MSChromatogram&) override {}
@@ -150,6 +161,8 @@ namespace OpenMS::OpenDIA
     std::vector<std::array<float, FragmentGrid::EVIDENCE>> evidence_;
     std::map<std::pair<double, double>, Lane> lanes_;
     double half_, ppm_;
+    double im_half_ = 0.0;
+    bool im_array_as_vssc_ = false;
     double last_rt_ = -1e300;
     std::size_t spectra_used_ = 0, open_ = 0, peak_open_ = 0;
     bool finished_ = false;

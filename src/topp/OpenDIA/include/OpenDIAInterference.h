@@ -30,8 +30,9 @@ namespace OpenMS::OpenDIA
     FRAGMENTS fragment m/z with library intensities.
 
     Two windows a and b of different precursors are linked when their precursors share an isolation window, their peak
-    ranges overlap, and at least one fragment of a lies within the fragment tolerance (ppm of a's fragment m/z) of one
-    of b. For each (a, claimant precursor) only the claimant window with the nearest apex is used. The claimant b
+    ranges overlap, at least one fragment of a lies within the fragment tolerance (ppm of a's fragment m/z) of one
+    of b, and (with im_link_width > 0 and both 1/K0 known) their 1/K0 differ by at most im_link_width. For each
+    (a, claimant precursor) only the claimant window with the nearest apex is used. The claimant b
     explains part of a's signal on each shared fragment f (matched to b's fragment g):
 
       scale_b = median over b's fragments not shared with a, with library intensity and central area > 0, of area / lib
@@ -65,6 +66,7 @@ namespace OpenMS::OpenDIA
       std::int32_t isolation = -1;                 ///< Isolation window index; -1 never links.
       std::array<double, FRAGMENTS> fragment_mz{};  ///< 0 marks an absent fragment.
       std::array<double, FRAGMENTS> library{};      ///< Library intensity relative to the precursor's most intense fragment; 0 for absent fragments.
+      double im = 0.0;                              ///< Calibrated 1/K0; 0 = unknown (links on m/z only).
     };
 
     struct Window
@@ -93,11 +95,14 @@ namespace OpenMS::OpenDIA
       @param[in] rt_bin_seconds Width of one grid bin in seconds (> 0).
       @param[in] threads Worker threads (>= 1); the result does not depend on it.
       @param[out] stats Optional counts.
+      @param[in] im_link_width If > 0, two precursors that both have a 1/K0 link only if their 1/K0 differ by at most this
+                 (their mobility extraction windows overlap); 0 links on m/z alone.
       @return windows.size() x FEATURES, row-major.
       @throws std::invalid_argument On a non-positive tolerance, bin width or thread count, or a bad precursor index.
     */
     static std::vector<float> compute(const std::vector<Precursor>& precursors, const std::vector<Window>& windows,
-                                      double fragment_tolerance_ppm, double rt_bin_seconds, int threads = 1, Statistics* stats = nullptr);
+                                      double fragment_tolerance_ppm, double rt_bin_seconds, int threads = 1, Statistics* stats = nullptr,
+                                      double im_link_width = 0.0);
 
     /// Feature column names, in output order.
     static const std::array<const char*, FEATURES>& featureNames();

@@ -131,6 +131,24 @@ namespace
     auto a2 = window(1, pa, 10.0, prof, 101.0);
     f = InterferenceResolver::compute({pa}, {window(0, pa, 10.0, prof), [&] { auto w = a2; w.precursor = 0; return w; }()}, 7.0, 30.0 / 32);
     require(f[0] == 0.0f && f[3] == 0.0f, "own windows are not claimants");
+    // Mobility: the same pair links only when the 1/K0 difference is within the link width (or a 1/K0 is unknown).
+    {
+      auto mb = precursor(300.0, 0), ma = precursor(1300.0, 0);
+      mb.fragment_mz[0] = ma.fragment_mz[0] = 500.0;
+      const auto bw = window(0, mb, 100.0, prof), aw = window(1, ma, 10.0, prof);
+      mb.im = 0.80;
+      ma.im = 1.00;
+      const auto apart = InterferenceResolver::compute({mb, ma}, {bw, aw}, 7.0, 30.0 / 32, 1, nullptr, 0.06);
+      require(apart[4] == 0.0f && apart[7] == 0.0f, "different 1/K0: no link");
+      const auto m_only = InterferenceResolver::compute({mb, ma}, {bw, aw}, 7.0, 30.0 / 32, 1, nullptr, 0.0);
+      require(m_only[4] > 0.0f, "link width 0: m/z-only link as before");
+      ma.im = 0.83;
+      const auto close = InterferenceResolver::compute({mb, ma}, {bw, aw}, 7.0, 30.0 / 32, 1, nullptr, 0.06);
+      require(close[4] == m_only[4], "1/K0 within the link width: same link");
+      ma.im = 0.0;
+      const auto unknown = InterferenceResolver::compute({mb, ma}, {bw, aw}, 7.0, 30.0 / 32, 1, nullptr, 0.06);
+      require(unknown[4] == m_only[4], "unknown 1/K0: m/z-only link");
+    }
   }
 
   /// Brute-force reference (all pairs) against the sweep, on random data; also thread independence.

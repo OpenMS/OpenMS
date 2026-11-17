@@ -434,11 +434,24 @@ namespace OpenMS::OpenDIA
     }
     std::vector<FragmentGridCollector::Precursor> grid_precursors(local_precursors.size());
     std::vector<InterferenceResolver::Precursor> resolver_precursors(local_precursors.size());
+    // Calibrated precursor 1/K0 (0 without a library value or a mobility calibration), for the mobility-resolved grid.
+    std::vector<double> calibrated_im(lib.precursors.size(), 0.0);
+    if (cal.has_im)
+    {
+      for (const auto& c : lib.search.compounds)
+      {
+        const auto it = lib.index.find(c.id);
+        if (it != lib.index.end() && std::isfinite(c.drift_time) && c.drift_time > 0.0)
+          calibrated_im[it->second] = cal.im_intercept + cal.im_slope * c.drift_time;
+      }
+    }
     for (std::size_t l = 0; l < local_precursors.size(); ++l)
     {
       const auto& p = lib.precursors[local_precursors[l]];
       auto& g = grid_precursors[l];
       g.mz = p.mz;
+      g.im = calibrated_im[local_precursors[l]];
+      resolver_precursors[l].im = g.im;
       for (std::size_t s = 0; s < K12; ++s)
       {
         g.extraction_mz[s] = p.scoring_mz[s] > 0.0 ? p.scoring_mz[s] * (1.0 + cal.ms2_offset_ppm * 1e-6) : 0.0;
@@ -460,6 +473,9 @@ namespace OpenMS::OpenDIA
       trace_windows[i] = {std::to_string(w.candidate), lib.precursors[w.precursor].id, lib.precursors[w.precursor].family, -1, w.peak.rt_apex};
     }
     FragmentGridCollector grids(grid_precursors, grid_windows, options_.grid_half_width_s, options_.grid_extraction_ppm);
+    // With a mobility calibration the 12-fragment grid (and with it the interference inputs) is extracted within the
+    // calibrated 1/K0 tolerance of each precursor, as the search is; without one it pools all points as before.
+    if (cal.has_im && cal.im_tolerance > 0.0) grids.enableIonMobility(cal.im_tolerance, options_.im_array_as_vssc);
     // The 6-fragment tensor uses the calibrated search library (as OpenDIACNN -apply_calibration_coordinates):
     // fragment m/z shifted by the ppm offset and precursor 1/K0 mapped by the calibrated line.
     OpenSwath::LightTargetedExperiment trace_library = lib.search;
@@ -492,7 +508,8 @@ namespace OpenMS::OpenDIA
     result.features.assign(n * d, 0.0f);
     const double noise = FragmentGrid::noiseLevel(grid_windows, resolver_precursors);
     const auto interference = InterferenceResolver::compute(resolver_precursors, grid_windows, cal.ms2_tolerance_ppm,
-                                                            2.0 * options_.grid_half_width_s / InterferenceResolver::BINS, options_.threads);
+                                                            2.0 * options_.grid_half_width_s / InterferenceResolver::BINS, options_.threads,
+                                                            nullptr, cal.has_im ? 2.0 * cal.im_tolerance : 0.0);
     Stage2ExtractionOptions extraction;
     extraction.rt_half_width = options_.grid_half_width_s;
     extraction.core_half_width = options_.core_half_width_s;

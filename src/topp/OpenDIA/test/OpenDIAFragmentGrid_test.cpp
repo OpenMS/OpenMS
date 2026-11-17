@@ -8,6 +8,7 @@
 
 #include <OpenDIAFragmentGrid.h>
 
+#include <OpenMS/IONMOBILITY/IMDataConverter.h>
 #include <OpenMS/METADATA/Precursor.h>
 
 #include <cmath>
@@ -183,6 +184,62 @@ int main()
     bool threw = false;
     try { strict.consumeSpectrum(early); } catch (const std::invalid_argument&) { threw = true; }
     check(threw, "out-of-order spectrum throws");
+  }
+
+  // 3. Mobility-resolved extraction: two co-isolated precursors share fragment m/z but sit at different 1/K0. With
+  // enableIonMobility() each grid holds only its own points; without it (or for a precursor without 1/K0) all are pooled.
+  {
+    std::vector<FragmentGridCollector::Precursor> precursors(3);
+    for (std::size_t p = 0; p < 3; ++p)
+    {
+      precursors[p].mz = 450.0 + p;
+      for (std::size_t s = 0; s < K; ++s)
+      {
+        precursors[p].extraction_mz[s] = s < 6 ? 300.0 + 50.0 * s : 0.0;
+        precursors[p].library[s] = s < 6 ? 1.0 : 0.0;
+        precursors[p].search[s] = s < 6;
+      }
+    }
+    precursors[0].im = 0.80;
+    precursors[1].im = 1.00;
+    precursors[2].im = 0.0; // no library mobility: pooled
+    std::vector<InterferenceResolver::Window> base(3);
+    for (std::uint32_t p = 0; p < 3; ++p) { base[p].precursor = p; base[p].rt_apex = 50.0; }
+    std::vector<MSSpectrum> run;
+    for (double rt = 40.0; rt < 60.0; rt += 1.0)
+    {
+      std::vector<std::pair<double, float>> peaks;
+      std::vector<float> ims;
+      for (std::size_t s = 0; s < 6; ++s)
+      {
+        peaks.emplace_back(300.0 + 50.0 * s, 100.0f); // at 1/K0 0.80
+        peaks.emplace_back(300.0 + 50.0 * s + 1e-4, 10.0f); // at 1/K0 1.00
+      }
+      MSSpectrum spec = spectrum(rt, 440.0, 460.0, peaks);
+      DataArrays::FloatDataArray mobility;
+      IMDataConverter::setIMUnit(mobility, DriftTimeUnit::VSSC);
+      for (std::size_t s = 0; s < 6; ++s) { mobility.push_back(0.80f); mobility.push_back(1.00f); }
+      spec.getFloatDataArrays().push_back(std::move(mobility));
+      run.push_back(std::move(spec));
+    }
+    const auto area = [](const InterferenceResolver::Window& w) { double a = 0.0; for (double v : w.core_area) a += v; return a; };
+    auto pooled = base;
+    FragmentGridCollector plain(precursors, pooled, 15.0, 10.0);
+    for (auto s : run) plain.consumeSpectrum(s);
+    plain.finish();
+    auto resolved = base;
+    FragmentGridCollector im(precursors, resolved, 15.0, 10.0);
+    im.enableIonMobility(0.05);
+    for (auto s : run) im.consumeSpectrum(s);
+    im.finish();
+    check(std::abs(area(pooled[0]) - area(pooled[1])) < 1e-6, "without mobility both precursors get the pooled signal");
+    check(std::abs(area(resolved[0]) / area(pooled[0]) - 100.0 / 110.0) < 1e-6, "precursor at 0.80 keeps only its points");
+    check(std::abs(area(resolved[1]) / area(pooled[1]) - 10.0 / 110.0) < 1e-6, "precursor at 1.00 keeps only its points");
+    check(std::abs(area(resolved[2]) - area(pooled[2])) < 1e-6, "precursor without 1/K0 stays pooled");
+    bool threw = false;
+    try { FragmentGridCollector late(precursors, pooled, 15.0, 10.0); auto s = run[0]; late.consumeSpectrum(s); late.enableIonMobility(0.05); }
+    catch (const std::logic_error&) { threw = true; }
+    check(threw, "enableIonMobility after the first spectrum throws");
   }
 
   if (failures) return EXIT_FAILURE;
