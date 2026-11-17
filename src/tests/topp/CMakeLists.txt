@@ -7751,25 +7751,35 @@ add_test("TOPP_FeatureFinderMetaboIdent_9_out1" ${CMAKE_COMMAND}
   -P ${DATA_DIR_TOPP}/check_file_contains.cmake)
 set_tests_properties("TOPP_FeatureFinderMetaboIdent_9_out1" PROPERTIES DEPENDS "TOPP_FeatureFinderMetaboIdent_9")
 # The default 'detect:peak_width' (20 s) on the same data: 6 features instead of 5 with 60 s (test 4), as
-# 2'-O-methylcytidine is found as well (issue #6058); the seventh target shares the signal of inosine
+# 2'-O-methylcytidine is found as well (issue #6058). The 6 features are those of 7 of the 8 targets ('inosine' and
+# 'equal_to_inosine' share one); that of 'very_similar_to_inosine' is removed as overlapping.
 add_test("TOPP_FeatureFinderMetaboIdent_10" ${TOPP_BIN_PATH}/FeatureFinderMetaboIdent -test -in ${DATA_DIR_TOPP}/FeatureFinderMetaboIdent_1_input.mzML -id ${DATA_DIR_TOPP}/FeatureFinderMetaboIdent_1_input.tsv -out ${TESTS_TEMP_DIR}/FeatureFinderMetaboIdent_10_output.tmp.featureXML -extract:mz_window 5)
 add_test("TOPP_FeatureFinderMetaboIdent_10_out1" ${CMAKE_COMMAND}
   -DINPUT_FILE=${TESTS_TEMP_DIR}/FeatureFinderMetaboIdent_10_output.tmp.featureXML
   "-DEXPECTED=<featureList count=\"6\">"
   -P ${DATA_DIR_TOPP}/check_file_contains.cmake)
 set_tests_properties("TOPP_FeatureFinderMetaboIdent_10_out1" PROPERTIES DEPENDS "TOPP_FeatureFinderMetaboIdent_10")
-# Target RTs 34 s later than in test 10 (e.g. from another LC setup): at the default RT window (80 s, +/- 40 s) the
-# features are found near its edge, which the tool has to point out (targets further off would not be found)
+# Target RTs 32 s later than in test 10 (e.g. from another LC setup): at the default RT window (80 s, +/- 40 s) the
+# features are found near its edge, which the tool has to point out (targets further off would not be found).
+# The warning is given for shifts of 30 to 36 s (5 of 6, 6 of 6, ... 4 of 4 features; from 37 s on, at most one
+# feature is left), so neither the numbers in the message nor the number of features are checked exactly.
 add_test(NAME "TOPP_FeatureFinderMetaboIdent_11" COMMAND ${CMAKE_COMMAND}
   "-DCOMMAND=${TOPP_BIN_PATH}/FeatureFinderMetaboIdent;-test;-in;${DATA_DIR_TOPP}/FeatureFinderMetaboIdent_1_input.mzML;-id;${DATA_DIR_TOPP}/FeatureFinderMetaboIdent_11_input.tsv;-out;${TESTS_TEMP_DIR}/FeatureFinderMetaboIdent_11_output.tmp.featureXML;-extract:mz_window;5"
   -DEXPECTED_CODE=0
-  "-DEXPECTED_OUTPUT_REGEX=6 of 6 features are near the edge of the RT window of their target.*Consider a larger 'extract:rt_window'"
+  "-DEXPECTED_OUTPUT_REGEX=[0-9] of [0-9] features are near the edge of the RT window of their target.*Consider a larger 'extract:rt_window' \\(80 s\\), or"
   -P ${DATA_DIR_TOPP}/check_exit_code.cmake)
 add_test("TOPP_FeatureFinderMetaboIdent_11_out1" ${CMAKE_COMMAND}
   -DINPUT_FILE=${TESTS_TEMP_DIR}/FeatureFinderMetaboIdent_11_output.tmp.featureXML
-  "-DEXPECTED=<featureList count=\"6\">"
+  "-DEXPECTED=name=\"rt_deviation\"" # only features have it (targets without a feature are listed with their label)
   -P ${DATA_DIR_TOPP}/check_file_contains.cmake)
 set_tests_properties("TOPP_FeatureFinderMetaboIdent_11_out1" PROPERTIES DEPENDS "TOPP_FeatureFinderMetaboIdent_11")
+# The same for targets with their own RT window ('RetentionTimeRange' 40 s, target RTs 16 s later): the advice has to
+# name 'RetentionTimeRange', as 'extract:rt_window' does not change these windows. (Warning for shifts of 15 to 17 s.)
+add_test(NAME "TOPP_FeatureFinderMetaboIdent_12" COMMAND ${CMAKE_COMMAND}
+  "-DCOMMAND=${TOPP_BIN_PATH}/FeatureFinderMetaboIdent;-test;-in;${DATA_DIR_TOPP}/FeatureFinderMetaboIdent_1_input.mzML;-id;${DATA_DIR_TOPP}/FeatureFinderMetaboIdent_12_input.tsv;-out;${TESTS_TEMP_DIR}/FeatureFinderMetaboIdent_12_output.tmp.featureXML;-extract:mz_window;5;-detect:peak_width;3"
+  -DEXPECTED_CODE=0
+  "-DEXPECTED_OUTPUT_REGEX=[0-9] of [0-9] features are near the edge of the RT window of their target.*Consider a larger 'RetentionTimeRange' for the targets that have their own"
+  -P ${DATA_DIR_TOPP}/check_exit_code.cmake)
 
 # MzMLSplitter test:
 # specify number of parts directly:

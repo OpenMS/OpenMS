@@ -1,9 +1,9 @@
 CompoundName	SumFormula	Mass	Charge	RetentionTime	RetentionTimeRange	IsoDistribution
-2'-O-methylcytidine	C10H15N3O5	0	1	241.6	0	0
-5-formylcytidine	C10O6N3H13	0	1	303.4	0	0
-5-methyluridine	C10H14N2O6	0	1	325.6	0	0
-adenosine	C10H13N5O4	0	1	254.8	0	0
-deoxyadenosine	C10H13N5O3	0	1	277.0	0	0
-inosine	C10H12N4O5	0	1	298.0	0	0
-equal_to_inosine	C10H12N4O5	0	1	298.0	0	0
-very_similar_to_inosine	C10H12N4O5	0	1	298.1	0	0
+2'-O-methylcytidine	C10H15N3O5	0	1	239.6	0	0
+5-formylcytidine	C10O6N3H13	0	1	301.4	0	0
+5-methyluridine	C10H14N2O6	0	1	323.6	0	0
+adenosine	C10H13N5O4	0	1	252.8	0	0
+deoxyadenosine	C10H13N5O3	0	1	275.0	0	0
+inosine	C10H12N4O5	0	1	296.0	0	0
+equal_to_inosine	C10H12N4O5	0	1	296.0	0	0
+very_similar_to_inosine	C10H12N4O5	0	1	296.1	0	0

@@ -227,7 +227,7 @@ namespace OpenMS
     std::set<std::string> missing_refs;
 
     std::vector<double> group_scan_intervals;
-    n_rt_deviations_ = n_near_window_edge_ = 0;
+    n_rt_deviations_ = n_near_window_edge_ = n_near_own_window_edge_ = 0;
     for (auto& [group_cv, faims_group] : faims_groups)
     {
       OPENMS_LOG_INFO << "Processing FAIMS CV group: " << group_cv << " V ("
@@ -289,6 +289,7 @@ namespace OpenMS
       group_scan_intervals.push_back(ff_group.scan_interval_);
       n_rt_deviations_ += ff_group.n_rt_deviations_;
       n_near_window_edge_ += ff_group.n_near_window_edge_;
+      n_near_own_window_edge_ += ff_group.n_near_own_window_edge_;
     }
     // each CV group is processed with its own spectra, i.e. its own (longer) scan interval
     scan_interval_ = Math::median(group_scan_intervals.begin(), group_scan_intervals.end());
@@ -342,7 +343,7 @@ namespace OpenMS
   {
     // if proper mzML is annotated in MS data use this as reference. Otherwise, overwrite with spectra_file information.
     features.setPrimaryMSRunPath({spectra_file}, ms_data_);
-    n_rt_deviations_ = n_near_window_edge_ = 0;
+    n_rt_deviations_ = n_near_window_edge_ = n_near_own_window_edge_ = 0;
 
     if (ms_data_.empty())
     {
@@ -832,11 +833,12 @@ namespace OpenMS
         }
 
         double rt_tol = rt_ranges[i] / 2.0;
-        if (rt_tol == 0)
+        const bool own_rt_range = (rt_tol != 0);
+        if (!own_rt_range)
         {
           rt_tol = rt_window_ / 2.0;
         }
-        target_rt_tols_[target.id] = rt_tol;
+        target_rt_tols_[target.id] = {rt_tol, own_rt_range};
         // store beginning and end of RT region:
         target.rts.clear();
         addTargetRT_(target, rts[i] - rt_tol);
@@ -1011,9 +1013,13 @@ namespace OpenMS
     {
       if (!feat.metaValueExists("rt_deviation")) continue;
       auto pos = target_rt_tols_.find(StringUtils::toStr(feat.getMetaValue("PeptideRef")));
-      if ((pos == target_rt_tols_.end()) || (pos->second <= 0.0)) continue;
+      if ((pos == target_rt_tols_.end()) || (pos->second.first <= 0.0)) continue;
       ++n_rt_deviations_;
-      if (std::abs(double(feat.getMetaValue("rt_deviation"))) > 0.75 * pos->second) ++n_near_window_edge_;
+      if (std::abs(double(feat.getMetaValue("rt_deviation"))) > 0.75 * pos->second.first)
+      {
+        ++n_near_window_edge_;
+        if (pos->second.second) ++n_near_own_window_edge_;
+      }
     }
   }
 
@@ -1021,14 +1027,23 @@ namespace OpenMS
   {
     // On the data measured for this check (12 MetaboLights studies, 'detect:peak_width' 20 s and the RT window that
     // follows from it), at most 13 % of the features of a run were in the outer quarter of their RT window (mostly
-    // less than 1 %); a systematic RT offset of the targets moves most of them there.
-    if ((n_rt_deviations_ < 5) || (n_near_window_edge_ * 4 <= n_rt_deviations_)) return;
+    // less than 1 %); a systematic RT offset of the targets moves most of them there. No minimum number of features
+    // overall: with a larger offset the features drop out of the window, and few are left to count.
+    if ((n_near_window_edge_ < 3) || (n_near_window_edge_ * 4 <= n_rt_deviations_)) return;
     OPENMS_LOG_WARN << "Warning: " << n_near_window_edge_ << " of " << n_rt_deviations_ << " features are near the edge of "
                     << "the RT window of their target (more than three quarters of half the window away from the target "
-                    << "RT). The RT window ('extract:rt_window', " << rt_window_ << " s, or the 'RetentionTimeRange' of the "
-                    << "targets) is probably too narrow for the RT deviations of the targets: targets that elute outside "
-                    << "of it are not found. Consider a larger 'extract:rt_window' (or aligning the RTs of the targets "
-                    << "to the data)." << endl;
+                    << "RT). The RT window is probably too narrow for the RT deviations of the targets: targets that "
+                    << "elute outside of it are not found. Consider ";
+    if (n_near_own_window_edge_ < n_near_window_edge_) // targets that use 'extract:rt_window'
+    {
+      OPENMS_LOG_WARN << "a larger 'extract:rt_window' (" << rt_window_ << " s)";
+    }
+    if (n_near_own_window_edge_ > 0) // targets with their own window, which 'extract:rt_window' does not change
+    {
+      OPENMS_LOG_WARN << ((n_near_own_window_edge_ < n_near_window_edge_) ? " and " : "") << "a larger 'RetentionTimeRange' "
+                      << "for the targets that have their own (" << n_near_own_window_edge_ << " of these features)";
+    }
+    OPENMS_LOG_WARN << ", or aligning the RTs of the targets to the data." << endl;
   }
 
   void FeatureFinderAlgorithmMetaboIdent::warnIfPeakWidthTooLarge_(const FeatureMap& features) const
