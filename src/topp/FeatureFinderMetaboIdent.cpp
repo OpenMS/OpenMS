@@ -100,8 +100,8 @@ The target m/z is calculated from the formula or mass, or - when re-quantifying 
 A window that is too narrow leaves gaps in the extracted chromatograms; the features are then missed, or only part of the elution peak is found.
 - @p detect:peak_width is the expected width of the elution peaks: the chromatograms are smoothed with a Gaussian of this width before peaks are picked.
 About twice the width (FWHM) of the elution peaks in the data is a suitable value.
-The default (60 seconds) is much wider than the elution peaks of a few seconds that are typical for (U)HPLC metabolomics data:
-neighboring peaks at the m/z of a target (e.g. isomers) can then be merged into one feature, so that targets go missing or get the intensity of a neighbor, and the features extend beyond the signal.
+The default (20 seconds) suits elution peaks of about 5 to 10 seconds (FWHM); for narrower peaks the warning below suggests a smaller value. A value that is much wider than the elution peaks (e.g. the former default of 60 seconds with the peaks of a few seconds that are typical for (U)HPLC metabolomics data) merges
+neighboring peaks at the m/z of a target (e.g. isomers) into one feature, so that targets go missing or get the intensity of a neighbor, and the features extend beyond the signal.
 With many targets close to each other (e.g. when the features of an untargeted feature finder are re-quantified), the wider features are also more often removed as overlapping (see below).
 A much smaller value than the width of the peaks picks up noise and gives less reproducible intensities.
 A warning is given if the value is much larger than the elution peaks that were found, together with their median width (FWHM) and a suggested value: twice that width, but at least eight times the time between two MS1 spectra (a smaller value hardly smooths, and peaks with few data points are lost).
@@ -110,7 +110,7 @@ This check uses the widths of the elution models, so there is no such warning wi
 The widths of the elution models depend somewhat on @p detect:peak_width (the models are fitted between the feature borders), so on noisy data, or with few targets (whose models may be those of noise), the warning can come back with a still smaller value after the suggested value was set.
 - @p extract:rt_window (or the @p RetentionTimeRange of a target) is the width of the RT window around the target RT in which a feature is searched.
 It has to cover the elution peak and the expected RT deviation of the target.
-By default it is four times @p detect:peak_width, so set it explicitly when you lower @p detect:peak_width: otherwise the window shrinks as well, and targets that elute a few seconds off their expected RT are missed.
+By default it is four times @p detect:peak_width (80 seconds with the default), so set it explicitly when you lower @p detect:peak_width: otherwise the window shrinks as well, and targets that elute a few seconds off their expected RT are missed.
 - Features of different targets that claim the same signal (overlapping mass traces) are resolved: only the one closest to its target RT is kept.
 The number of removed features is reported on the command line, and the remaining feature lists them in its @p overlap_removed meta value.
 

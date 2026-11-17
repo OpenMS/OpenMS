@@ -7689,7 +7689,7 @@ set_tests_properties("TOPP_FeatureFinderMetaboIdent_3_out1" PROPERTIES DEPENDS "
 # the tool has to point out (issue #6058), with the advice to keep the RT window when lowering it.
 # (check_exit_code.cmake: the tool also has to succeed, which PASS_REGULAR_EXPRESSION would not check.)
 add_test(NAME "TOPP_FeatureFinderMetaboIdent_4" COMMAND ${CMAKE_COMMAND}
-  "-DCOMMAND=${TOPP_BIN_PATH}/FeatureFinderMetaboIdent;-test;-in;${DATA_DIR_TOPP}/FeatureFinderMetaboIdent_1_input.mzML;-id;${DATA_DIR_TOPP}/FeatureFinderMetaboIdent_1_input.tsv;-out;${TESTS_TEMP_DIR}/FeatureFinderMetaboIdent_4_output.tmp.featureXML;-extract:mz_window;5"
+  "-DCOMMAND=${TOPP_BIN_PATH}/FeatureFinderMetaboIdent;-test;-in;${DATA_DIR_TOPP}/FeatureFinderMetaboIdent_1_input.mzML;-id;${DATA_DIR_TOPP}/FeatureFinderMetaboIdent_1_input.tsv;-out;${TESTS_TEMP_DIR}/FeatureFinderMetaboIdent_4_output.tmp.featureXML;-extract:mz_window;5;-detect:peak_width;60"
   -DEXPECTED_CODE=0
   "-DEXPECTED_OUTPUT_REGEX='detect:peak_width' \\(60 s\\) is much larger than the elution peaks.*also set 'extract:rt_window' \\(e\\.g\\. to the current 240 s\\)"
   -P ${DATA_DIR_TOPP}/check_exit_code.cmake)
@@ -7700,7 +7700,7 @@ add_test("TOPP_FeatureFinderMetaboIdent_4_out1" ${CMAKE_COMMAND}
 set_tests_properties("TOPP_FeatureFinderMetaboIdent_4_out1" PROPERTIES DEPENDS "TOPP_FeatureFinderMetaboIdent_4")
 # ... and an RT extraction window that is narrower than the expected peaks
 add_test(NAME "TOPP_FeatureFinderMetaboIdent_5" COMMAND ${CMAKE_COMMAND}
-  "-DCOMMAND=${TOPP_BIN_PATH}/FeatureFinderMetaboIdent;-test;-in;${DATA_DIR_TOPP}/FeatureFinderMetaboIdent_1_input.mzML;-id;${DATA_DIR_TOPP}/FeatureFinderMetaboIdent_1_input.tsv;-out;${TESTS_TEMP_DIR}/FeatureFinderMetaboIdent_5_output.tmp.featureXML;-extract:mz_window;5;-extract:rt_window;20"
+  "-DCOMMAND=${TOPP_BIN_PATH}/FeatureFinderMetaboIdent;-test;-in;${DATA_DIR_TOPP}/FeatureFinderMetaboIdent_1_input.mzML;-id;${DATA_DIR_TOPP}/FeatureFinderMetaboIdent_1_input.tsv;-out;${TESTS_TEMP_DIR}/FeatureFinderMetaboIdent_5_output.tmp.featureXML;-extract:mz_window;5;-extract:rt_window;20;-detect:peak_width;60"
   -DEXPECTED_CODE=0
   "-DEXPECTED_OUTPUT_REGEX='extract:rt_window' \\(20 s\\) is smaller than 'detect:peak_width' \\(60 s\\)"
   -P ${DATA_DIR_TOPP}/check_exit_code.cmake)
