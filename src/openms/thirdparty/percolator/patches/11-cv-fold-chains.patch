@@ -1,5 +1,5 @@
 diff --git a/src/openms/thirdparty/percolator/CrossValidation.cpp b/src/openms/thirdparty/percolator/CrossValidation.cpp
-index 4cb74fac796dea136f6fea42f5498ff6e54f6214..9a5b547c942f6f486860c6890c5feb399519359e 100644
+index 4cb74fac796dea136f6fea42f5498ff6e54f6214..f8ceed110167c85f8d52e37b4a92b56af93347ba 100644
 --- a/src/openms/thirdparty/percolator/CrossValidation.cpp
 +++ b/src/openms/thirdparty/percolator/CrossValidation.cpp
 @@ -25,6 +25,11 @@
@@ -28,7 +28,7 @@ index 4cb74fac796dea136f6fea42f5498ff6e54f6214..9a5b547c942f6f486860c6890c5feb39
      if (VERB > 1) {
        cerr << "Iteration " << i + 1 << ":\t";
      }
-@@ -602,6 +612,396 @@ int CrossValidation::doStep(const Normalizer* /* pNorm */, double selectionFdr)
+@@ -602,6 +612,398 @@ int CrossValidation::doStep(const Normalizer* /* pNorm */, double selectionFdr)
    return estTruePos;
  }
  
@@ -322,8 +322,10 @@ index 4cb74fac796dea136f6fea42f5498ff6e54f6214..9a5b547c942f6f486860c6890c5feb39
 +  if (VERB > 1) {
 +    cerr << "Iteration " << 1 << ":\t";
 +  }
++#if PERCOLATOR_OMP_TASKS  // (trainsFoldChains: only with tasks)
 +#pragma omp parallel num_threads(static_cast<int>(teamThreads))
 +#pragma omp single
++#endif
 +  {
 +    for (unsigned int set = 0; set < numFolds_; ++set) {
 +      PERCOLATOR_TASK_PRAGMA(omp task default(shared) firstprivate(set))

@@ -902,8 +902,10 @@ void CrossValidation::trainFoldChains() {
   if (VERB > 1) {
     cerr << "Iteration " << 1 << ":\t";
   }
+#if PERCOLATOR_OMP_TASKS  // (trainsFoldChains: only with tasks)
 #pragma omp parallel num_threads(static_cast<int>(teamThreads))
 #pragma omp single
+#endif
   {
     for (unsigned int set = 0; set < numFolds_; ++set) {
       PERCOLATOR_TASK_PRAGMA(omp task default(shared) firstprivate(set))
