@@ -31,6 +31,8 @@ RUN apt-get update \
     make \
     git \
     ca-certificates \
+    # curl: tools/ci/fetch_thermo_assets.sh downloads the pre-built managed Thermo bridge with it
+    curl \
     build-essential \
     # OpenMS build dependencies
     libsvm-dev \
@@ -129,8 +131,10 @@ EOF
 
 # Install the .NET 8 SDK for the openms-thermo-bridge build (WITH_THERMO_RAW).
 # The bridge's FindDotNetHost.cmake requires the nethost headers/library from
-# the official .NET SDK host pack under /usr/share/dotnet/packs/..., and runs
-# `dotnet publish` to build the managed Thermo wrapper. We use Microsoft's
+# the official .NET SDK host pack under /usr/share/dotnet/packs/... The managed
+# Thermo wrapper normally comes pre-built from the bridge's release (see the
+# configure step of the build stage); the bridge builds it with `dotnet publish`
+# only when the pinned bridge revision has no release zip. We use Microsoft's
 # dotnet-install.sh because Ubuntu's own dotnet-sdk-8.0 installs to /usr/lib/dotnet
 # and does not provide the host pack in the expected layout.
 # WITH_THERMO_RAW is ON on every Linux target we build (amd64 and aarch64), so
@@ -204,6 +208,24 @@ EOF
 ENV PATH="${THIRDPARTY_DIR}/LuciPHOr2:${THIRDPARTY_DIR}/MSGFPlus:${THIRDPARTY_DIR}/ThermoRawFileParser:${THIRDPARTY_DIR}/Comet:${THIRDPARTY_DIR}/Fido:${THIRDPARTY_DIR}/MaRaCluster:${THIRDPARTY_DIR}/Percolator:${THIRDPARTY_DIR}/SpectraST:${THIRDPARTY_DIR}/Sage:${PATH}"
 RUN <<-EOF
     set -eux
+    # Thermo RAW support: take the managed half of openms-thermo-bridge
+    # (ThermoWrapperManaged.dll and the Thermo CommonCore assemblies) from the zip of
+    # the bridge's release (retried, SHA-256 pinned in the script) and hand it to the
+    # bridge. Otherwise the bridge runs `dotnet publish` during `make`, which downloads
+    # five Thermo .nupkg files from raw.githubusercontent.com in a single attempt and
+    # restores their dependencies from nuget.org (#9717). The script leaves the
+    # directory empty when the pinned bridge revision has no release zip; the bridge
+    # then publishes the assemblies itself, as before.
+    case "${TARGETARCH}" in
+        amd64) THERMO_PLATFORM="linux-x64" ;;
+        arm64) THERMO_PLATFORM="linux-arm64" ;;
+        *) echo "Unsupported architecture: ${TARGETARCH}" && exit 1 ;;
+    esac
+    bash ${SOURCE_DIR}/tools/ci/fetch_thermo_assets.sh --managed-only "${THERMO_PLATFORM}" ${BUILD_DIR}
+    THERMO_MANAGED_OPT=""
+    if [ -f ${BUILD_DIR}/thermo-managed/ThermoWrapperManaged.dll ]; then
+        THERMO_MANAGED_OPT="-DOPENMS_THERMO_BRIDGE_PREBUILT_MANAGED_DIR=${BUILD_DIR}/thermo-managed"
+    fi
     # dependencies from the apt packages above, not from vcpkg
     cmake \
         -DOPENMS_USE_VCPKG=OFF \
@@ -212,6 +234,7 @@ RUN <<-EOF
         -DLIBXML2_INCLUDE_DIR=/opt/libxml2/include/libxml2 \
         -DLIBXML2_LIBRARY=/opt/libxml2/lib/libxml2.so \
         -DWITH_ONNX=ON \
+        ${THERMO_MANAGED_OPT} \
         -DCMAKE_INSTALL_PREFIX=${INSTALL_DIR} \
         -S ${SOURCE_DIR} \
         -B ${BUILD_DIR}
