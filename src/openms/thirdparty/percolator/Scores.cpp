@@ -19,6 +19,7 @@
 #include <omp.h>
 #endif
 #include "OpenMPThreads.h"  // OpenMS: maxThreads(), inParallel()
+#include "OpenMPTasks.h"  // OpenMS: PERCOLATOR_OMP_TASKS (the taskloops of the fold chains)
 #include <algorithm>
 #include <cassert>
 #include <cmath>
@@ -882,9 +883,7 @@ int Scores::calcScores(const std::vector<double>& w) {
   std::size_t ix;
   const long numScores = static_cast<long>(scores_.size());
   const int numFeatures = static_cast<int>(FeatureNames::getNumFeatures());
-#pragma omp parallel for schedule(static) num_threads(maxThreads()) \
-    if (numScores > 100000 && !inParallel())
-  for (long i = 0; i < numScores; ++i) {
+  auto scoreRow = [&](long i) {
     // The PSM records and their feature rows are scattered in memory, in
     // an order that the processor cannot predict: the record is requested
     // 16 PSMs ahead and the row, whose address is in the record, 8 ahead.
@@ -893,6 +892,22 @@ int Scores::calcScores(const std::vector<double>& w) {
       prefetchRow(scores_[i + 8].pPSM->features, numFeatures);
     }
     scores_[i].score = calcScore(scores_[i].pPSM->features, w);
+  };
+#if PERCOLATOR_OMP_TASKS
+  // OpenMS: in a task of the fold chains, on the threads of their region (TaskLoopScope)
+  if (numScores > 100000 && taskLoopThreads() > 1) {
+#pragma omp taskloop grainsize(16384) default(shared)
+    for (long i = 0; i < numScores; ++i) {
+      scoreRow(i);
+    }
+  } else
+#endif
+  {
+#pragma omp parallel for schedule(static) num_threads(maxThreads()) \
+    if (numScores > 100000 && !inParallel())
+  for (long i = 0; i < numScores; ++i) {
+    scoreRow(i);
+  }
   }
   // already sorted when scored again with the same weights, as the test
   // sets are after training
@@ -1247,11 +1262,12 @@ template <class Select>
 int appendTrainingRows(const std::vector<ScoreHolder>& scores, AlgIn& data,
                        double label, Select select) {
   const long numScores = static_cast<long>(scores.size());
-  const int numChunks = numScores > 100000 ? numLoopThreads() : 1;
+  // OpenMS: in a task of the fold chains, chunks for the threads of their region (TaskLoopScope), as taskloops
+  const int taskThreads = numScores > 100000 ? taskLoopThreads() : 1;
+  const int numChunks = numScores > 100000 ? (taskThreads > 1 ? taskThreads : numLoopThreads()) : 1;
   // offset[c]: the number of selected PSMs before chunk c
   std::vector<std::size_t> offset(static_cast<std::size_t>(numChunks) + 1, 0);
-#pragma omp parallel for schedule(static, 1) num_threads(numChunks) if (numChunks > 1)
-  for (int c = 0; c < numChunks; ++c) {
+  auto countChunk = [&](int c) {
     const long begin = numScores / numChunks * c;
     const long end =
         c + 1 == numChunks ? numScores : numScores / numChunks * (c + 1);
@@ -1260,6 +1276,20 @@ int appendTrainingRows(const std::vector<ScoreHolder>& scores, AlgIn& data,
       count += select(scores[static_cast<std::size_t>(i)]) ? 1u : 0u;
     }
     offset[static_cast<std::size_t>(c) + 1] = count;
+  };
+#if PERCOLATOR_OMP_TASKS
+  if (taskThreads > 1) {
+#pragma omp taskloop grainsize(1) default(shared)
+    for (int c = 0; c < numChunks; ++c) {
+      countChunk(c);
+    }
+  } else
+#endif
+  {
+#pragma omp parallel for schedule(static, 1) num_threads(numChunks) if (numChunks > 1)
+  for (int c = 0; c < numChunks; ++c) {
+    countChunk(c);
+  }
   }
   for (int c = 0; c < numChunks; ++c) {
     offset[static_cast<std::size_t>(c) + 1] +=
@@ -1273,8 +1303,7 @@ int appendTrainingRows(const std::vector<ScoreHolder>& scores, AlgIn& data,
   // requested ahead, and the rows are then copied, requested ahead likewise.
   const int kBlock = 256;
   const int numValues = data.n - 1;
-#pragma omp parallel for schedule(static, 1) num_threads(numChunks) if (numChunks > 1)
-  for (int c = 0; c < numChunks; ++c) {
+  auto copyChunk = [&](int c) {
     const long begin = numScores / numChunks * c;
     const long end =
         c + 1 == numChunks ? numScores : numScores / numChunks * (c + 1);
@@ -1296,6 +1325,20 @@ int appendTrainingRows(const std::vector<ScoreHolder>& scores, AlgIn& data,
         data.set(next++, rows[k], label);
       }
     }
+  };
+#if PERCOLATOR_OMP_TASKS
+  if (taskThreads > 1) {
+#pragma omp taskloop grainsize(1) default(shared)
+    for (int c = 0; c < numChunks; ++c) {
+      copyChunk(c);
+    }
+  } else
+#endif
+  {
+#pragma omp parallel for schedule(static, 1) num_threads(numChunks) if (numChunks > 1)
+  for (int c = 0; c < numChunks; ++c) {
+    copyChunk(c);
+  }
   }
   return static_cast<int>(offset.back());
 }
