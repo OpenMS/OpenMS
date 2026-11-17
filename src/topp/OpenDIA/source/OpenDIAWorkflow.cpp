@@ -460,9 +460,15 @@ namespace OpenMS::OpenDIA
       trace_windows[i] = {std::to_string(w.candidate), lib.precursors[w.precursor].id, lib.precursors[w.precursor].family, -1, w.peak.rt_apex};
     }
     FragmentGridCollector grids(grid_precursors, grid_windows, options_.grid_half_width_s, options_.grid_extraction_ppm);
-    // The 6-fragment tensor uses the calibrated search library (as OpenDIACNN -apply_calibration_coordinates).
+    // The 6-fragment tensor uses the calibrated search library (as OpenDIACNN -apply_calibration_coordinates):
+    // fragment m/z shifted by the ppm offset and precursor 1/K0 mapped by the calibrated line.
     OpenSwath::LightTargetedExperiment trace_library = lib.search;
     for (auto& t : trace_library.transitions) t.product_mz *= 1.0 + cal.ms2_offset_ppm * 1e-6;
+    if (cal.has_im)
+    {
+      for (auto& c : trace_library.compounds)
+        if (std::isfinite(c.drift_time) && c.drift_time > 0.0) c.drift_time = cal.im_intercept + cal.im_slope * c.drift_time;
+    }
     TraceCollector traces(std::move(trace_windows), trace_library, 0.02, options_.grid_half_width_s, 0.03, n, std::size_t{64} << 30);
     traces.setIonMobilityArrayAsVSSC(options_.im_array_as_vssc);
     traces.enableEvidence(20.0, options_.core_half_width_s);
