@@ -1094,12 +1094,16 @@ namespace OpenMS::OpenDIA
       }
     }
 
-    // ---- Stage 3: paired target-decoy anchors inside the stage-2 window.
+    // ---- Stage 3: paired target-decoy anchors around the stage-1 map.
+    // The window is centred on the stage-1 map, as in the windowed pass: the stage-2 EM map is a smooth fixed-width
+    // model that can be biased where the gradient bends (HeLa: 16-29 s late at the start, PRECHECK_RTCENTRE), while the
+    // stage-1 map follows its anchors. Outside the stage-1 anchor support the search runs to the run edge.
     // The EM sigma is a fixed model width, not a measured spread; the window uses the stage-1 anchor spread.
     result.stage3_half_window_s = std::max(options_.rt_sigma_multiple * result.stage1_sigma_s, options_.min_window_s);
     try
     {
-      finish_(result, em_map, half_window, diagnostics);
+      finish_(result, [&map1](double library_rt) { return map1(library_rt); }, half_window, diagnostics,
+              stage1.front().first, stage1.back().first);
     }
     catch (const std::runtime_error&)
     {

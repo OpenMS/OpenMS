@@ -325,6 +325,54 @@ int main()
             "early RT map with support " + std::to_string(supported.runRT(5.0)) + " vs " + std::to_string(trueRT(5.0)));
   }
 
+  // One-pass calibration on a gradient that bends at the start (run RT rises 1.6x faster below library RT 20; HeLa's
+  // stage-1 anchors bend by about this much, PRECHECK_RTCENTRE). Stage 3 is centred on the stage-1 map, which follows
+  // its anchors, so the final map is right at the start (the smooth stage-2 EM map must not set the window).
+  {
+    const auto bentRT = [](double library_rt) { return library_rt < 20.0 ? 200.0 + 8.0 * library_rt : 360.0 + 5.0 * (library_rt - 20.0); };
+    std::vector<Truth> bent = truth;
+    std::mt19937 rng4(17);
+    for (auto& t : bent) t.run_rt = bentRT(t.library_rt) + 2.0 * noise(rng4);
+    OpenDIA::CalibrationCollector one_pass(library, traml_ids, options);
+    for (double rt = 50.0; rt <= 1050.0; rt += 1.0)
+    {
+      MSSpectrum spectrum;
+      spectrum.setMSLevel(2);
+      spectrum.setRT(rt);
+      Precursor precursor;
+      precursor.setMZ(500.0);
+      precursor.setIsolationWindowLowerOffset(60.0);
+      precursor.setIsolationWindowUpperOffset(60.0);
+      spectrum.setPrecursors({precursor});
+      for (const auto& t : bent)
+      {
+        const double shape = std::exp(-0.5 * std::pow((rt - t.run_rt) / 4.0, 2));
+        if (!t.present || shape < 1e-3) continue;
+        for (std::size_t f = 0; f < 6; ++f) spectrum.emplace_back(t.fragments[f] * (1.0 + PPM_SHIFT * 1e-6), static_cast<float>(t.intensities[f] * shape));
+      }
+      for (int k = 0; k < 400; ++k) spectrum.emplace_back(200.0 + 710.0 * uniform(rng4), static_cast<float>(50.0 * uniform(rng4)));
+      spectrum.sortByPosition();
+      one_pass.consumeSpectrum(spectrum);
+    }
+    OpenDIA::CalibrationDiagnostics bent_diagnostics;
+    const auto bent_result = one_pass.calibrate(&bent_diagnostics);
+    require(!bent_result.windowed, "bent gradient calibrates in one pass");
+    // The centre of every stage-3 window is the stage-1 map (the EM map is reported, not used for the window).
+    for (const auto& row : bent_diagnostics.rows)
+    {
+      require(row.stage3_centre_rt == row.stage1_map_rt, "one-pass stage 3 is centred on the stage-1 map");
+    }
+    std::size_t early = 0;
+    for (const auto& anchor : bent_result.anchors) early += anchor.used && anchor.library_rt < 10.0;
+    require(early >= 15, "early anchors on a bent gradient " + std::to_string(early));
+    for (double library_rt : {3.0, 8.0, 50.0})
+    {
+      require(std::fabs(bent_result.runRT(library_rt) - bentRT(library_rt)) < 6.0,
+              "bent RT map at " + std::to_string(library_rt) + ": " + std::to_string(bent_result.runRT(library_rt)) + " vs " +
+                std::to_string(bentRT(library_rt)));
+    }
+  }
+
   // Out-of-order spectra are rejected rather than silently mis-ordered.
   OpenDIA::CalibrationCollector unordered(library, traml_ids, options);
   bool threw = false;
