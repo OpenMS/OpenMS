@@ -154,4 +154,5 @@ Rows of 12-16 November 2026. Earlier rows (voxel v2-v19, CNN + LDA) are in the R
 | Native Bruker `.d` and Thermo `.raw` | Partial: both stream | [R6](work-packages/R6-acceptance.md) |
 | Packaging (LibTorch optional, CTD/INI docs) | Partial: LibTorch off the default path | [R6](work-packages/R6-acceptance.md) |
 | Split the branch into reviewable PRs | Open | [R6](work-packages/R6-acceptance.md) |
+| Thermo RAW level-aware read-ahead split out: draft PR OpenMS#10925 (`feature/thermo-raw-level-readahead`, 1 commit on develop, Thermo tests 3/3) | Done (draft PR) | [#10925](https://github.com/OpenMS/OpenMS/pull/10925) |
 | One-command `OpenDIAWorkflow`, deterministic, fail-closed CLI tests (`9d6bf16f10`) | Done | [RESULT_WORKFLOW.md](gates/single-binary/workflow/RESULT_WORKFLOW.md) |
