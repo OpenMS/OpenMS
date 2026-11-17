@@ -143,6 +143,8 @@ Rows of 12-16 November 2026. Earlier rows (voxel v2-v19, CNN + LDA) are in the R
 |---|---|---|
 | Raw 03 held-out check under each new hashed plan | Done for PLAN_RTWIN2 / PLAN_RTPROFILE (current setup 1907 median) | [RESULT_RTWIN2.md](gates/single-binary/rtwin/RESULT_RTWIN2.md) |
 | Memory: the 22 GB peak came from the windowed calibration pass, not the scoring library. Trimmed calibration traces: 21.6 → 15.6 GB, outputs byte-identical (a132e9104e) | Done | [README snapshot](README.md) |
+| Fair same-laptop benchmark (raw 01, 8 threads, both read .raw): OpenDIA 10:14, 15.6 GB, 172 % CPU; DIA-NN 7:23, 6.8 GB, 765 % CPU | Done | [bench/](gates/single-binary/bench/) |
+| Parallelise the single-threaded raw passes (calibration x2, search, evidence pass) and cut calibration memory | Open | [README snapshot](README.md) |
 | Native Bruker `.d` and Thermo `.raw` | Partial: both stream | [R6](work-packages/R6-acceptance.md) |
 | Packaging (LibTorch optional, CTD/INI docs) | Partial: LibTorch off the default path | [R6](work-packages/R6-acceptance.md) |
 | Split the branch into reviewable PRs | Open | [R6](work-packages/R6-acceptance.md) |
