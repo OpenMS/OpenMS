@@ -249,6 +249,14 @@ protected:
 
   void selectFeaturesFromCandidates_(FeatureMap& features);
 
+  /// Warn if 'detect:peak_width' is more than twice a suggested value - twice the width (FWHM) of the elution peaks of
+  /// @p features (median of their valid elution models, so nothing is checked without them), but at least eight times
+  /// the time between MS1 spectra: the chromatograms are then smoothed too much
+  void warnIfPeakWidthTooLarge_(const FeatureMap& features) const;
+
+  /// Keep only the MS1 spectra of ms_data_, sorted by RT (and their peaks by m/z)
+  void prepareMSData_();
+
   /// Core processing logic for a single (non-FAIMS or single FAIMS group) dataset
   /// Called by run() either directly or for each FAIMS CV group
   void runSingleGroup_(const std::vector<FeatureFinderMetaboIdentCompound>& metaboIdentTable,
@@ -290,6 +298,8 @@ protected:
   std::map<std::string, double> target_rts_; ///< RTs of targets (assays)
   
   size_t n_shared_ = 0;
+
+  double scan_interval_ = 0.0; ///< median time between MS1 spectra (median over the CV groups of FAIMS data)
 };
 
 } // namespace OpenMS
