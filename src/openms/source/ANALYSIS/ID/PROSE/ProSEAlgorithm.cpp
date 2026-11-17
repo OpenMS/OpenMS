@@ -441,14 +441,16 @@ namespace OpenMS
                        {"advanced"});
     defaults_.setMinInt("rescoring:iterations", 1);
     defaults_.setValue("rescoring:tron_epsilon", 1e-7,
-                       "Stopping tolerance of the SVM solver (TRON) of Percolator's training (Percolator: 1e-7). Larger "
-                       "values (e.g. 1e-3) train much faster on large runs; the results differ.",
+                       "Stopping tolerance of the SVM solves of Percolator's training with rescore_solver 'tron' and "
+                       "'newton' (Percolator: 1e-7). Larger values (e.g. 1e-3) train much faster on large runs; the "
+                       "results differ.",
                        {"advanced"});
     defaults_.setMinFloat("rescoring:tron_epsilon", 1e-15);
     defaults_.setValue("rescoring:classic_training", "true",
                        "'true' (default): Percolator trains as up to its version 3.09 (Percolator's parameter "
                        "'classic_training'): all 'rescoring:iterations' iterations, every (Cpos, Cneg) pair in every "
-                       "iteration, each SVM from zero weights. 'false': Percolator's current training: each SVM starts "
+                       "iteration, each SVM from zero weights (rescore_solver 'tron'; 'newton' and 'lda' start from the "
+                       "weights of the iteration before). 'false': Percolator's current training: each SVM starts "
                        "from its weights of the previous iteration, each fold's (Cpos, Cneg) pair is fixed after three "
                        "iterations, and the training stops when it gains less than 0.1% over two iterations (faster; the "
                        "results differ).",

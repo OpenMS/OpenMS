@@ -93,7 +93,7 @@ namespace OpenMS
     bool   single_cneg = false;               ///< one Cneg candidate (3 x ratio) instead of three
     int    num_threads = 3;                   ///< max OpenMP threads for CV, within omp_get_max_threads()
     std::string initial_direction;            ///< feature name; prefix "-" = lower is better; empty = auto
-    int    solver = 0;                        ///< SvmSolver of the cross-validation (param "solver"; 0 = TRON)
+    int    solver = 1;                        ///< SvmSolver of the cross-validation (param "solver"; 0 = TRON, 1 = Newton)
     bool   calc_mass_feature = false;         ///< rescorePSMs(): CalcMass is a training feature (param "calc_mass_feature")
     std::string use_pi0 = "auto";             ///< "auto" | "true" | "false": pi0 correction on q-values; false = pure TDA (pi0=1)
     std::string report_as_main_score = "none"; ///< "none"|"q-value"|"pep"|"svm" — which Percolator output to promote to hit.getScore()

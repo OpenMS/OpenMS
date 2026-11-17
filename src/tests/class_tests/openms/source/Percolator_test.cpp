@@ -224,7 +224,7 @@ END_SECTION
 
 START_SECTION([EXTRA] warm_start: TRON starts each pair from its weights of the previous iteration)
 {
-  // With classic_training and warm_start, TRON (the default solver) starts every (Cpos, Cneg) pair from the weights it
+  // With classic_training and warm_start, TRON (solver 'tron') starts every (Cpos, Cneg) pair from the weights it
   // learned in the previous iteration instead of 0 (without classic_training every pair starts so anyway). At a loose
   // tolerance the solves stop early, so a warm start must change the result (if the start weights were discarded, warm
   // and cold runs would be identical); repeated warm runs are reproducible, and the default (no warm start) is the
@@ -239,6 +239,7 @@ START_SECTION([EXTRA] warm_start: TRON starts each pair from its weights of the 
     par.setValue("seed", 17);
     par.setValue("num_threads", 3);
     par.setValue("classic_training", "true");
+    par.setValue("solver", "tron");
     par.setValue("test_fdr", 0.05);
     par.setValue("train_fdr", 0.05);
     par.setValue("tron_epsilon", eps);
@@ -483,7 +484,7 @@ START_SECTION([EXTRA] subset_mode out_of_fold: no row is scored by a model that 
     {"default", {}},
     {"nested_xval_bins 3", [](Param& par) { par.setValue("nested_xval_bins", 3); }},
     {"warm_start", [](Param& par) { par.setValue("warm_start", "true"); }},
-    {"newton", [](Param& par) { par.setValue("solver", "newton"); }},
+    {"tron", [](Param& par) { par.setValue("solver", "tron"); }},
     {"lda", [](Param& par) { par.setValue("solver", "lda"); }}};
   for (const auto& config : configs)
   {
