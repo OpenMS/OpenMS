@@ -114,7 +114,9 @@ protected:
                        "the PrecursorMass of the PrSM has an isotope peak in the isolation window at it; else "
                        "round(PrecursorMass / (precursor m/z - proton)) if that charge does, or if the "
                        "raw charge is not annotated; else the larger of the two; without a mass or precursor m/z, no cap other "
-                       "than algorithm:min_mass_per_charge.",
+                       "than algorithm:min_mass_per_charge. Without a PrecursorMass, a raw charge of 1 at which the precursor "
+                       "would be lighter than the proteoform (Thermo native runs record 1 when the charge is unknown) is "
+                       "ignored (no cap).",
                        false);
     setMinInt_("precursor_charge", 0);
 
@@ -413,7 +415,7 @@ protected:
     }
 
     // precursor charges. The isotope table is computed once, beyond the heaviest PrSM (the annotation then reuses it).
-    int charge_reasons[5] = {0, 0, 0, 0, 0};
+    int charge_reasons[6] = {0, 0, 0, 0, 0, 0};
     std::vector<double> iso_mzs, iso_intensities;
     if (fixed_precursor_charge == 0) annotator.getIsotopeEnvelope(max_prsm_mass + 200.0, 1, iso_mzs, iso_intensities);
     for (Size r = 0; r < rows.size(); r++)
@@ -429,7 +431,8 @@ protected:
         continue;
       }
       int reason = 4;
-      prsm.precursor_charge = annotator.precursorChargeCap(raw_spectra[prsm.spectrum_index], prsm_masses[r], reason);
+      prsm.precursor_charge = annotator.precursorChargeCap(raw_spectra[prsm.spectrum_index], prsm_masses[r], reason,
+                                                           FLASHAnnotatorAlgorithm::getProteoformMass(prsm.sequence, prsm.modifications));
       charge_reasons[reason]++;
     }
     const double centroid_time = seconds_(time);
@@ -502,7 +505,8 @@ protected:
       OPENMS_LOG_INFO << "Precursor charge: " << charge_reasons[0] << " from the raw precursor, " << charge_reasons[1]
                       << " from the precursor mass and the isolation window (raw charge does not fit), " << charge_reasons[2]
                       << " the larger of both (neither fits), " << charge_reasons[3] << " from the precursor mass (no raw charge), "
-                      << charge_reasons[4] << " without a precursor cap" << endl;
+                      << charge_reasons[4] << " without a precursor cap, " << charge_reasons[5]
+                      << " without a cap because the raw charge is too low for the proteoform (no precursor mass)" << endl;
     }
     OPENMS_LOG_INFO << std::fixed << std::setprecision(2) << "Timing (s): PrSM file " << read_time << ", mzML load " << load_time
                     << ", centroiding " << centroid_time << ", annotation " << annotation_time << ", writing " << write_time
