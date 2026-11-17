@@ -204,6 +204,48 @@ std::string percolatorBinary()
   return std::string(env);
 }
 
+/// The --help text of the percolator executable @p bin (cached per executable)
+const std::string& binaryHelp(const std::string& bin)
+{
+  static std::map<std::string, std::string> known;
+  const auto it = known.find(bin);
+  if (it != known.end()) return it->second;
+  const std::string help = TempFiles::getTemporaryFile();
+  std::string cmd = "\"" + bin + "\" --help > \"" + help + "\" 2>&1";
+#ifdef _WIN32
+  cmd = "\"" + cmd + "\""; // (see runSubprocess)
+#endif
+  [[maybe_unused]] const int status = std::system(cmd.c_str());
+  std::ifstream f(help.c_str());
+  std::stringstream text;
+  text << f.rdbuf();
+  return known[bin] = text.str();
+}
+
+/// Whether the percolator executable @p bin offers the command line option @p option (e.g. "--irls-pep")
+bool binaryOffers(const std::string& bin, const std::string& option)
+{
+  return binaryHelp(bin).find(" " + option + " ") != std::string::npos;
+}
+
+/// Whether the percolator executable @p bin trains as Percolator does after 3.09 (it offers --classic-training): each
+/// SVM warm-started, each fold's (Cpos, Cneg) pair fixed after three iterations, a stop at a gain below 0.1%. The
+/// in-process Percolator trains so by default; against an older executable (e.g. the 3.07 of OpenMS' THIRDPARTY), the
+/// comparisons set its parameter classic_training.
+bool binaryHasNewTraining(const std::string& bin)
+{
+  return binaryOffers(bin, "--classic-training");
+}
+
+/// The Percolator defaults for a comparison with the executable @p bin, with @p seed (see binaryHasNewTraining)
+Param parityDefaults(const Percolator& p, const std::string& bin, int seed = 1)
+{
+  Param par = p.getDefaults();
+  par.setValue("seed", seed);
+  if (!binaryHasNewTraining(bin)) par.setValue("classic_training", "true");
+  return par;
+}
+
 /// Generate a realistic-scale synthetic dataset: 2000 PSMs with a mildly
 /// informative 3-feature signal, same shape as the "realistic" Percolator
 /// class test. Large enough to comfortably pass SanityCheck.
@@ -620,8 +662,7 @@ START_SECTION([EXTRA] scores and FDR-threshold counts match subprocess)
 
     // Subprocess percolator uses isotonic PEP by default; match it.
     Percolator p;
-    Param par = p.getDefaults();
-    par.setValue("seed", 1);
+    Param par = parityDefaults(p, bin);
     par.setValue("pep_method", "isotonic");
     p.setParameters(par);
     RescoreOutput out = p.rescore(ri);
@@ -696,8 +737,7 @@ START_SECTION([EXTRA] ranking parity at q &lt;= 0.01 / 0.05 / 0.10)
     TEST_EQUAL(sub.exit_code, 0)
 
     Percolator p;
-    Param par = p.getDefaults();
-    par.setValue("seed", 1);
+    Param par = parityDefaults(p, bin);
     par.setValue("pep_method", "isotonic");
     p.setParameters(par);
     RescoreOutput out = p.rescore(ri);
@@ -810,8 +850,7 @@ START_SECTION([EXTRA] parameter matrix: each flag flows through to the SVM)
       TEST_EQUAL(sub.exit_code, 0)
 
       Percolator p;
-      Param par = p.getDefaults();
-      par.setValue("seed", 1);
+      Param par = parityDefaults(p, bin);
       par.setValue("pep_method", "isotonic");
       tc.tune(par);
       p.setParameters(par);
@@ -940,8 +979,7 @@ START_SECTION([EXTRA] SVM weights match average of per-fold subprocess weights)
 
     // In-process.
     Percolator p;
-    Param par = p.getDefaults();
-    par.setValue("seed", 1);
+    Param par = parityDefaults(p, bin);
     par.setValue("pep_method", "isotonic");
     p.setParameters(par);
     RescoreOutput out = p.rescore(ri);
@@ -1014,8 +1052,7 @@ START_SECTION([EXTRA] storeWeights writes the weights file of the executable (-w
     TEST_EQUAL(sub.exit_code, 0)
 
     Percolator p;
-    Param par = p.getDefaults();
-    par.setValue("seed", 1);
+    Param par = parityDefaults(p, bin);
     par.setValue("pep_method", "isotonic");
     p.setParameters(par);
     p.rescore(ri);
@@ -1167,7 +1204,13 @@ START_SECTION([EXTRA] realistic idXML parity at library layer)
 
     // Run subprocess. -p 0.1: the library default c_pos (without -p the executable selects Cpos by
     // cross-validation). Training converges on this fixture, so a different Cpos gives a different model.
-    SubprocessOut sub = runSubprocess(bin, pin_path, "-S 1 -t 0.5 -F 0.5 -p 0.1");
+    // The executables since 3.08 calibrate their PEPs with another method by default; --irls-pep selects the cubic
+    // spline that pep_method "nonparametric" computes, --ip-pep (of an executable that ranks by default) its variant
+    // from the score.
+    std::string pep_args;
+    if (binaryOffers(bin, "--irls-pep")) pep_args += " --irls-pep";
+    if (binaryOffers(bin, "--ip-pep")) pep_args += " --ip-pep";
+    SubprocessOut sub = runSubprocess(bin, pin_path, "-S 1 -t 0.5 -F 0.5 -p 0.1" + pep_args);
     TEST_EQUAL(sub.exit_code, 0)
 
     // Run in-process, matching subprocess's CLI defaults. The library has
@@ -1175,9 +1218,8 @@ START_SECTION([EXTRA] realistic idXML parity at library layer)
     // than the upstream percolator CLI (both off unless explicitly enabled);
     // set them to "false" here to mirror the subprocess invocation.
     Percolator p;
-    Param par = p.getDefaults();
-    par.setValue("seed", 1);
-    par.setValue("pep_method", "nonparametric");  // matches 3.06 subprocess PosteriorEstimator::estimatePEP
+    Param par = parityDefaults(p, bin);
+    par.setValue("pep_method", "nonparametric");  // the executable's P-IRLS spline (3.07, or --irls-pep)
     par.setValue("test_fdr",  0.5);
     par.setValue("train_fdr", 0.5);
     par.setValue("post_processing_tdc",  "false");
@@ -1207,14 +1249,10 @@ START_SECTION([EXTRA] realistic idXML parity at library layer)
 
     TEST_TRUE(matches >= 20)
     TEST_TRUE(r >= 0.99)
-    // max_dpep tolerance of 0.15: with pep_method="nonparametric" routing to
-    // the vendored PosteriorEstimator::estimatePEP (3.08.01), the SVM scores
-    // and q-values match the 3.06 subprocess bit-identically (r=1.0, accepted
-    // sets equal), but the PEP smoothing kernel has been updated between 3.06
-    // and 3.08 — residual max |Δpep| observed at 0.10 on this fixture.
-    // TODO(percolator-3.08-binary): tighten to 0.05 after upgrading the
-    // bundled binary to 3.08.01; the gap is algorithmic 3.06↔3.08 drift,
-    // not a parity regression.
+    STATUS("max |dPEP| = " << max_dpep)
+    // max_dpep tolerance of 0.15: the SVM scores and q-values match the executable's (r=1.0, accepted sets equal).
+    // Executables built from Percolator's rel-3-07, eb157f7 and a90106b give the same PEPs within 5e-4; against the
+    // 3.07 executable of OpenMS' THIRDPARTY, max |dPEP| was 0.10 when this test was written.
     TEST_TRUE(max_dpep <= 0.15)
 
     for (double thr : {0.01, 0.05, 0.10})
@@ -1269,8 +1307,7 @@ START_SECTION([EXTRA] reservoir-sampling parity at 20k rows)
     TEST_EQUAL(sub.exit_code, 0)
 
     Percolator p;
-    Param par = p.getDefaults();
-    par.setValue("seed", 1);
+    Param par = parityDefaults(p, bin);
     par.setValue("pep_method", "isotonic");
     par.setValue("subset_max_train", 5000);
     p.setParameters(par);
@@ -1387,8 +1424,7 @@ START_SECTION([EXTRA] multi-file PIN parity)
     TEST_EQUAL(sub.exit_code, 0)
 
     Percolator p;
-    Param par = p.getDefaults();
-    par.setValue("seed", 1);
+    Param par = parityDefaults(p, bin);
     par.setValue("pep_method", "isotonic");
     p.setParameters(par);
     RescoreOutput out = p.rescore(ri);
