@@ -1,0 +1,197 @@
+diff --git a/src/openms/thirdparty/percolator/CrossValidation.cpp b/src/openms/thirdparty/percolator/CrossValidation.cpp
+index 191cfe0999b1563977b76e5112b5d5adaa18dc18..493fad124afab04869266f587b095eae3f467767 100644
+--- a/src/openms/thirdparty/percolator/CrossValidation.cpp
++++ b/src/openms/thirdparty/percolator/CrossValidation.cpp
+@@ -36,6 +36,11 @@ const double CrossValidation::requiredIncreaseOver2IterationsDefault_ = 0.001;
+ // fold keeps its pair (not in classic training)
+ const unsigned int CrossValidation::gridSearchIterations_ = 3u;
+ 
++// OpenMS: Newton's tolerance (as TRON's, the gradient norm relative to that at 0) in the iterations before the last
++// one of classic training, which solves to the tolerance of the options: the earlier iterations only choose the
++// positives of the next.
++constexpr double kNewtonEarlyEpsilon = 1e-4;
++
+ // the number of threads a parallel region can have, and the number of the
+ // calling thread in its region
+ // OpenMS: maxThreads() (OpenMPThreads.h), omp_get_max_threads() at most the cap of the calling thread; the regions
+@@ -197,9 +202,10 @@ void CrossValidation::initializeGridSearch(double targetDecoySizeRatio) {
+   if (selectedCpos_ > 0 && selectedCneg_ > 0) {
+     candidatesCfrac_.push_back(selectedCneg_ / selectedCpos_);
+   } else {
+-    candidatesCfrac_.push_back(1.0 * targetDecoySizeRatio);
++    // OpenMS: with singleCneg_, the middle candidate only
++    if (!singleCneg_) candidatesCfrac_.push_back(1.0 * targetDecoySizeRatio);
+     candidatesCfrac_.push_back(3.0 * targetDecoySizeRatio);
+-    candidatesCfrac_.push_back(10.0 * targetDecoySizeRatio);
++    if (!singleCneg_) candidatesCfrac_.push_back(10.0 * targetDecoySizeRatio);
+     if (VERB > 0) {
+       cerr << "Selecting Cneg by cross-validation." << endl;
+     }
+@@ -241,6 +247,8 @@ void CrossValidation::initializeGridSearch(double targetDecoySizeRatio) {
+  * @param pNorm Normalization object
+  */
+ void CrossValidation::train(const Normalizer* pNorm) {
++  // OpenMS: the solves of the training reuse the buffers of TRON's workspaces (ssl.h), also the large ones
++  TronWorkspaceHold tronWorkspaceHold;
+   if (VERB > 0) {
+     cerr << "---Training with Cpos";
+     if (selectedCpos_ > 0) {
+@@ -395,10 +403,16 @@ int CrossValidation::doStep(const Normalizer* /* pNorm */, double selectionFdr)
+   options pOptions;
+   pOptions.lambda = 1.0;
+   pOptions.lambda_u = 1.0;
+-  pOptions.epsilon = EPSILON;
++  pOptions.epsilon = tronEpsilon_;  // OpenMS: setTrainingOptions (default EPSILON)
+   pOptions.cgitermax = CGITERMAX;
+   pOptions.mfnitermax = MFNITERMAX;
+   pOptions.directSolve = !classicTraining_;
++  // OpenMS: the training uses the weights of the solves only (tron() then skips the outputs and the convergence check)
++  pOptions.weightsOnly = true;
++  // OpenMS: Newton solves the iterations before the last one of classic training to a looser tolerance
++  if (solver_ == kSolverNewton && classicTraining_ && iteration_ + 1u < niter_) {
++    pOptions.epsilon = kNewtonEarlyEpsilon;
++  }
+   int estTruePos = 0;
+ 
+   // for determining an appropriate positive training set, the decoys+1 in the
+@@ -533,26 +547,32 @@ void CrossValidation::trainCpCnPair(CandidateCposCfrac& cpCnFold,
+   // The SVM algorithm (see ssl.cpp) starts from the weights this pair had
+   // after the previous iteration (zero in the first one), which are close
+   // to the new solution, or from zero with classic training.
++  // OpenMS: TRON (ssl.h) starts from the weights alone, so the outputs X w of upstream's solver are not computed.
++  // With classic training, TRON starts from the previous weights as well with warmStart_ (and no nested
++  // cross-validation); Newton and LDA (setSolver) always do.
+   std::vector<double>& weights = cpCnFold.ww;
+-  std::vector<double>& outputs = buffers.outputs;
+-  if (outputs.size() < static_cast<std::size_t>(svmInput.m)) {
+-    std::vector<double>().swap(outputs);
+-    outputs.resize(static_cast<std::size_t>(svmInput.m));
+-  }
+-  if (classicTraining_) {
++  if (classicTraining_ && solver_ == kSolverTron && !(warmStart_ && nestedXvalBins_ == 1u)) {
+     std::fill(weights.begin(), weights.end(), 0.0);
+-    std::fill(outputs.begin(), outputs.begin() + svmInput.m, 0.0);
+-  } else {
+-    for (int i = 0; i < svmInput.m; ++i) {
+-      if (i + 8 < svmInput.m) prefetchRow(svmInput.row(i + 8), svmInput.n);
+-      const double* x = svmInput.row(i);
+-      double o = 0.0;
+-      for (int k = 0; k < svmInput.n; ++k) o += x[k] * weights[k];
+-      outputs[i] = o;
++  }
++  trainSvm(svmInput, pOptions, cpos, cfrac * cpos, weights, buffers.outputs);
++}
++
++// OpenMS: the solver of setSolver. Newton (newton_svm.h) and LDA start from the weights in w; LDA needs two rows of
++// each class, Newton at most kNewtonMaxColumns columns: otherwise, and if Newton fails or does not converge, TRON
++// solves the SVM from 0. TRON (kSolverTron) starts from w as given.
++void CrossValidation::trainSvm(const AlgIn& svmInput, const options& pOptions,
++                               double cpos, double cneg, std::vector<double>& w,
++                               std::vector<double>& outputs) const {
++  if (solver_ == kSolverLda && ldaSvm(svmInput, pOptions, cpos, cneg, w.data())) {
++    return;
++  }
++  if (solver_ != kSolverTron) {
++    if (newtonSvm(svmInput, pOptions, cpos, cneg, pOptions.epsilon, w.data(), nullptr) == 1) {
++      return;
+     }
++    std::fill(w.begin(), w.end(), 0.0);  // the fallback: TRON from 0
+   }
+-  L2_SVM_MFN(svmInput, pOptions, weights, outputs, cpos, cfrac * cpos,
+-             buffers.solver);
++  L2_SVM_MFN(svmInput, pOptions, w, outputs, cpos, cneg);
+ }
+ 
+ /**
+@@ -697,22 +717,13 @@ int CrossValidation::mergeCpCnPairs(
+         // the previous iteration, which are close to the new solution, as
+         // the grid solves do; in the first iteration, which holds the
+         // initial direction, and with classic training it starts from zero.
+-        std::vector<double> outputs(
+-            static_cast<std::size_t>(svmInput.positives + svmInput.negatives),
+-            0.0);
++        // OpenMS: TRON (ssl.h) starts from the weights alone (no outputs X w); the solver of setSolver
++        std::vector<double> outputs;
+         if (classicTraining_ || iteration_ == 0u) {
+           std::fill(weights_[set].begin(), weights_[set].end(), 0.0);
+-        } else {
+-          const std::vector<double>& w = weights_[set];
+-          for (int i = 0; i < svmInput.m; ++i) {
+-            const double* x = svmInput.row(i);
+-            double o = 0.0;
+-            for (int k = 0; k < svmInput.n; ++k) o += x[k] * w[k];
+-            outputs[i] = o;
+-          }
+         }
+-        L2_SVM_MFN(svmInput, pOptions, weights_[set], outputs,
+-                   bestCposes[set], bestCposes[set] * bestCfracs[set]);
++        trainSvm(svmInput, pOptions, bestCposes[set],
++                 bestCposes[set] * bestCfracs[set], weights_[set], outputs);
+       }
+       if (VERB > 2) {
+         for (unsigned int set = firstSet; set < endSet; ++set) {
+diff --git a/src/openms/thirdparty/percolator/CrossValidation.h b/src/openms/thirdparty/percolator/CrossValidation.h
+index 8181e9668f3b7ef011027bc723abdcef91ff6f8e..a8bdc2d8c709a8003843bbd815753f6c7b265716 100644
+--- a/src/openms/thirdparty/percolator/CrossValidation.h
++++ b/src/openms/thirdparty/percolator/CrossValidation.h
+@@ -19,6 +19,7 @@
+ 
+ #include <iomanip>
+ #include <iostream>
++#include <limits>
+ #include <vector>
+ 
+ #include "DataSet.h"
+@@ -29,6 +30,7 @@
+ #include "SanityCheck.h"
+ #include "Scores.h"
+ #include "ssl.h"
++#include "newton_svm.h"  // OpenMS: SvmSolver
+ 
+ namespace OpenMS { namespace Internal { namespace Percolator {
+ 
+@@ -98,6 +100,21 @@ class CrossValidation {
+   }
+   // train as Percolator 3.09 did, see Caller's --classic-training
+   void inline setClassicTraining(bool on) { classicTraining_ = on; }
++  // OpenMS: the solver of the SVMs (SvmSolver, newton_svm.h; default kSolverTron, which ssl.h provides in place of
++  // upstream's L2_SVM_MFN)
++  void inline setSolver(int solver) { solver_ = solver; }
++  // OpenMS (options of the training; the defaults are Percolator's): TRON's stopping tolerance (default EPSILON),
++  // warm starts with classic training (each (Cpos, Cneg) pair starts TRON from its weights of the previous
++  // iteration instead of 0, without nested cross-validation, whose nested sets are drawn anew in each iteration;
++  // the training of setClassicTraining(false) starts every solve from the previous weights anyway), one Cneg
++  // candidate (3 x the target/decoy ratio) instead of three. Set before preIterationSetup. A tolerance that is not
++  // finite and positive keeps EPSILON.
++  void setTrainingOptions(double tronEpsilon, bool warmStart, bool singleCneg) {
++    tronEpsilon_ = tronEpsilon > 0.0 && tronEpsilon < std::numeric_limits<double>::infinity()
++                       ? tronEpsilon : EPSILON;
++    warmStart_ = warmStart;
++    singleCneg_ = singleCneg;
++  }
+   // train the SVM on the feature rows in place instead of on copies (see
+   // AlgIn), which needs rows that end with the intercept 1.0, as those of a
+   // FeatureMemoryPool for which canTrainInPlace(numFeatures) holds; set
+@@ -167,6 +184,11 @@ class CrossValidation {
+ 
+   bool quickValidation_;
+   bool classicTraining_ = false;
++  // OpenMS: see setSolver and setTrainingOptions
++  int solver_ = kSolverTron;
++  double tronEpsilon_ = EPSILON;
++  bool warmStart_ = false;
++  bool singleCneg_ = false;
+   bool svmRowsInPlace_ = false;
+   unsigned int foldsAtOnce_ = 0u;
+   bool singleSolvesInPlace_ = false;
+@@ -236,6 +258,10 @@ class CrossValidation {
+                      const options& pOptions,
+                      const AlgIn& svmInput,
+                      SvmTrainingBuffers& buffers);
++  // OpenMS: solves the SVM of svmInput with the solver of setSolver, from the weights in w
++  void trainSvm(const AlgIn& svmInput, const options& pOptions, double cpos,
++                double cneg, std::vector<double>& w,
++                std::vector<double>& outputs) const;
+ 
+   int mergeCpCnPairs(double selectionFdr,
+                      const options& pOptions,

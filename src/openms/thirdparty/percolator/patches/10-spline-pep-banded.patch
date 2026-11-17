@@ -1,8 +1,8 @@
 diff --git a/src/openms/thirdparty/percolator/BaseSpline.cpp b/src/openms/thirdparty/percolator/BaseSpline.cpp
-index b13e27e50d..78510f44b8 100644
+index 578c58f2eb17c463a20d8c085abc40338a7bb1b0..67074aad93a7a6db6bec69d35b693b121bbf0e24 100644
 --- a/src/openms/thirdparty/percolator/BaseSpline.cpp
 +++ b/src/openms/thirdparty/percolator/BaseSpline.cpp
-@@ -139,6 +139,13 @@ void BaseSpline::iterativeReweightedLeastSquares(double alpha) {
+@@ -128,6 +128,13 @@ void BaseSpline::iterativeReweightedLeastSquares(double alpha) {
    do {
      g = gnew;
      calcPZW();
@@ -16,10 +16,10 @@ index b13e27e50d..78510f44b8 100644
      PackedMatrix diag = PackedMatrix::packedDiagonalMatrix(PackedVector(static_cast<int>(n), 1) / w).packedMultiply(alpha);
      PackedMatrix aWiQ = (diag).packedMultiply(Q);
      PackedMatrix M = R.packedAdd(Qt.packedMultiply(aWiQ));
-@@ -258,7 +265,328 @@ void BaseSpline::initiateQR() {
+@@ -213,7 +220,324 @@ void BaseSpline::initiateQR() {
    R[n - 3].packedAddElement(n - 3, (dx[n - 3] + dx[n - 2]) / 3);
    Qt = PackedMatrix(n-2,n);
-   Qt = Qt.packedTranspose(Q);
+   Qt = PackedMatrix::packedTranspose(Q);
 +  initiateBanded();  // OpenMS
 +}
 +
@@ -105,11 +105,7 @@ index b13e27e50d..78510f44b8 100644
 +#endif
 +
 +namespace {
-+  // a vector of the sparse matrix code that has every index 0..size-1
-+  bool isFilled(const PackedVector& v, int size) {
-+    return v.size() == size && v.numberEntries() == size && (size == 0 || v.index(size - 1) == size - 1);
-+  }
-+
++  // (isFilled: see above)
 +  int findInRow(const BaseSpline::BandRow& row, int col) {
 +    for (int k = 0; k < row.size; ++k) {
 +      if (row.index[k] == col) {
@@ -346,11 +342,11 @@ index b13e27e50d..78510f44b8 100644
  double BaseSpline::evaluateSlope(double alpha) {
    // Calculate a spline for current alpha
 diff --git a/src/openms/thirdparty/percolator/BaseSpline.h b/src/openms/thirdparty/percolator/BaseSpline.h
-index c79e51f94a..8f6ab5565f 100644
+index b798c5dcd3cd6cbbffe5e2abdef002cd029b4d96..01c566f8093e9477714a050cb55b49ef2db41953 100644
 --- a/src/openms/thirdparty/percolator/BaseSpline.h
 +++ b/src/openms/thirdparty/percolator/BaseSpline.h
-@@ -20,6 +20,8 @@
- 
+@@ -19,6 +19,8 @@
+ #define BASESPLINE_H_
  
  #include <assert.h>
 +#include <utility>
@@ -358,7 +354,7 @@ index c79e51f94a..8f6ab5565f 100644
  #include "Transform.h"
  #include "PackedVector.h"
  #include "PackedMatrix.h"
-@@ -44,6 +46,13 @@ class BaseSpline {
+@@ -43,6 +45,13 @@ class BaseSpline {
        return splineEval(xx);
      }
      static void solveInPlace(PackedMatrix& mat, PackedVector& res);
@@ -372,10 +368,10 @@ index c79e51f94a..8f6ab5565f 100644
    protected:
      virtual void calcPZW() {}
      virtual void initg() {
-@@ -66,12 +75,21 @@ class BaseSpline {
+@@ -60,12 +69,21 @@ class BaseSpline {
+     double alphaLinearSearchBA(double min_p, double max_p,
                                 double p1, double p2,
                                 double cv1, double cv2);
-     void testPerformance();
 +    // OpenMS: a faster path for one iteration of iterativeReweightedLeastSquares, see BaseSpline.cpp
 +    void initiateBanded();
 +    bool bandedIteration(double alpha, double& step);

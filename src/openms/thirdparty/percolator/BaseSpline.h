@@ -18,7 +18,6 @@
 #ifndef BASESPLINE_H_
 #define BASESPLINE_H_
 
-
 #include <assert.h>
 #include <utility>
 #include <vector>
@@ -27,6 +26,7 @@
 #include "PackedMatrix.h"
 
 namespace OpenMS { namespace Internal { namespace Percolator {
+
 
 class BaseSpline {
   public:
@@ -38,7 +38,6 @@ class BaseSpline {
     static double weightSlope;
     static double scaleAlpha;
     void roughnessPenaltyIRLS();
-    void roughnessPenaltyIRLS_Old();
     void iterativeReweightedLeastSquares(double alpha);
     void predict(const vector<double>& x, vector<double>& predict);
     void setData(const vector<double>& x);
@@ -66,15 +65,10 @@ class BaseSpline {
     virtual void limitg() {}
     virtual void limitgamma() {}
     void initiateQR();
-    double crossValidation(double alpha);
     double evaluateSlope(double alpha);
-    pair<double, double> alphaLinearSearch(double min_p, double max_p,
-                                           double p1, double p2,
-                                           double cv1, double cv2);
     double alphaLinearSearchBA(double min_p, double max_p,
                                double p1, double p2,
                                double cv1, double cv2);
-    void testPerformance();
     // OpenMS: a faster path for one iteration of iterativeReweightedLeastSquares, see BaseSpline.cpp
     void initiateBanded();
     bool bandedIteration(double alpha, double& step);

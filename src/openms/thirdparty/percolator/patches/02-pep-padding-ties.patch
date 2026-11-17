@@ -1,19 +1,12 @@
 diff --git a/src/openms/thirdparty/percolator/LogisticRegression.cpp b/src/openms/thirdparty/percolator/LogisticRegression.cpp
-index 00c5399..ad96980 100644
+index 3e8543b5f41b449f6493dd8d96fb6a2d733d584d..dfbc05913b68af20126ff9738e5b81e8479001e2 100644
 --- a/src/openms/thirdparty/percolator/LogisticRegression.cpp
 +++ b/src/openms/thirdparty/percolator/LogisticRegression.cpp
-@@ -14,6 +14,7 @@
-  limitations under the License.
- 
-  *******************************************************************************/
-+#include<cmath>
- #include<iterator>
- #include<vector>
- #include<algorithm>
-@@ -102,4 +103,37 @@ void LogisticRegression::initg() {
+@@ -103,4 +103,38 @@ void LogisticRegression::initg() {
+ #endif
  }
  
- 
++
 +// OpenMS: the spline needs at least 4 strictly increasing x (initiateQR), and
 +// keeps their distances in sparse vectors that treat |dx| <= 1e-15 as 0. Merge
 +// the points it cannot tell apart and pad to 4 points spaced like the data.
@@ -49,7 +42,7 @@ index 00c5399..ad96980 100644
 +
  }}}  // namespace OpenMS::Internal::Percolator
 diff --git a/src/openms/thirdparty/percolator/LogisticRegression.h b/src/openms/thirdparty/percolator/LogisticRegression.h
-index a1da6cd..d849f49 100644
+index 46320694d25dd1c9beccf2ef0994ac0e9614dbbf..1cbcf2803c10bb8457667991a3d29b4f5b3b31cf 100644
 --- a/src/openms/thirdparty/percolator/LogisticRegression.h
 +++ b/src/openms/thirdparty/percolator/LogisticRegression.h
 @@ -38,8 +38,10 @@ class LogisticRegression : public BaseSpline {
@@ -64,10 +57,10 @@ index a1da6cd..d849f49 100644
      virtual void initg();
      virtual void limitg();
 diff --git a/src/openms/thirdparty/percolator/PosteriorEstimator.cpp b/src/openms/thirdparty/percolator/PosteriorEstimator.cpp
-index 575d23e..fca38a0 100644
+index de6b7496b3d113d9a35940de8fc620c935e09ac8..716aac2aba1b2eacb0cc2ef83c0488d7c79036a0 100644
 --- a/src/openms/thirdparty/percolator/PosteriorEstimator.cpp
 +++ b/src/openms/thirdparty/percolator/PosteriorEstimator.cpp
-@@ -168,12 +168,12 @@ void PosteriorEstimator::estimate(vector<pair<double, bool> >& combined,
+@@ -179,12 +179,12 @@ void PosteriorEstimator::estimate(vector<pair<double, bool> >& combined,
          return;
        }
  

@@ -1,30 +1,41 @@
 # Percolator vendored source tree
 
 - **Upstream**: https://github.com/percolator/percolator
-- **Pinned at**: commit eb157f7 (post-rel-3-08-01; PR #399 / I-spline PEP)
-- **Commit SHA**: eb157f74e963430e559e0d0bcd31291e4ad660ba
+- **Pinned at**: commit a90106b (master after PR #405, "round three"; version 3.09.0 plus the unreleased changes of
+  `src/ChangeLog`)
+- **Commit SHA**: a90106b40928c01097f5bf0ddc09651877303241
 - **License**: Apache 2.0 (see LICENSE-Apache-2.0.txt) plus the BSD 3-Clause licensed liblinear-derived TRON solver (see NOTICE-percolator.txt).
 
 ## What's here
 
 A stripped-down copy of Percolator's `src/` tree, covering the PSM rescoring path only:
-XML / tab / CLI / protein inference / peptide fragmentation code is excluded.
+the CLI (`Caller`), multi-file input, protein inference, enzymes and the SVMlin solver are excluded.
+`whitelist.txt` lists the upstream files; everything else here is OpenMS-local.
 
 ### Local replacement: TRON-based SVM solver
 
 `ssl.{cpp,h}` and `tron.{cpp,h}` come from the
 [`percolator-tron`](https://bitbucket.org/jthalloran/percolator_upgrade)
 development branch (Halloran's TRON integration of liblinear v2.11). They
-replace the legacy SVMlin-based L2-SVM-MFN solver from upstream
-Percolator's `ssl.{cpp,h}`. The replacement:
+replace the SVMlin-based L2-SVM-MFN solver of upstream Percolator's `ssl.{cpp,h}`
+(upstream still ships SVMlin there, with exact least-squares steps since 3.09). The replacement:
 - Sidesteps the SVMlin license question (its upstream headline is GPL v2+;
   the relicense to Apache-2.0 was scoped to Percolator itself, not to
-  link-time inclusion in downstream non-Apache projects).
-- Calls `extern "C"` BLAS (`dnrm2_`, `ddot_`, `daxpy_`, `dscal_`) which
-  resolve at link time against OpenMS's existing libblas dependency.
+  link-time inclusion in downstream non-Apache projects). Nothing in this
+  directory is copied from upstream's `ssl.{cpp,h}`.
 - Is NOT in `whitelist.txt` — `sync-from-upstream.sh` won't overwrite
-  these files. If a future upstream Percolator sync introduces a different
-  ssl.cpp, this replacement will need to be re-applied manually.
+  these files.
+
+`ssl.h` provides the interface that upstream's training code (CrossValidation,
+`Scores::generate*TrainingSet`; Apache-2.0) calls, as an independent implementation:
+`AlgIn` (the training set: owned copies of the rows, or rows in place; `row`, `rows`,
+`resizeExamples`, `set`, `add`, `reserve`, `capacity`, `clear`), `options` (with upstream's
+`directSolve`, ignored by TRON, and OpenMS' `weightsOnly`), an empty `SolverWorkspace` (TRON
+pools its buffers itself), `prefetchRow` / `prefetchAddress`, and `L2_SVM_MFN` overloads that
+forward to `tron()`. TRON starts from the weights it is given (a warm start, as upstream's
+solver since 3.09; the outputs of the warm start are not read) and returns zero weights for an
+empty training set, as upstream's solver does. The solvers read the n - 1 features of each row
+and supply the bias column themselves, so rows in place need not end with 1.0 for them.
 
 OpenMS changes to the replacement (not in `patches/`: the sync neither copies
 nor patches these files):
@@ -43,535 +54,164 @@ nor patches these files):
   that is never selected); zero padding of rows and columns cannot change a sum
   that starts at +0, except in Hv with an infinite or NaN direction (0 * Inf),
   where `FastTronFunction::Hv` loops over the active rows like `TronFunction`.
-  Further: the active rows are packed while `fun` has them in L1, f and g at
-  w = 0 are computed once per solve (TRON and the gradient-ratio check ask three
-  times), and the buffers are grow-only and come from a pool of workspaces that
-  solves take and give back (a workspace above 64 MB is freed at the end of its
-  solve, unless a `TronWorkspaceHold` exists: `CrossValidation::train` holds one, so
-  the solves of a large training reuse their buffers instead of allocating and
-  page-faulting them per solve; the large ones are freed when the hold ends). The first use of each kernel table in a process
-  solves two small problems both ways (about 1 ms) and falls back to
-  `TronFunction` with a warning if any bit differs. Weights, outputs and the
-  gradient ratio are bit-identical to `TronFunction` (class test
-  `PercolatorTron_test`: whole solves for both kernels, n = 1..60, and fun /
-  grad / Hv with infinite, NaN and huge values). Builds with AVX/FMA
-  (`-march=...`), other architectures, problems with one row and problems with
-  more than INT_MAX / 2 rows keep `TronFunction`. MSVC builds use the SSE2
-  kernels only (no `/arch:AVX2`: its contraction is not verified). Checked with
-  GCC 14.4 -O3 (conda-forge, Linux); MSVC and Apple Clang are covered only by
-  the self-check. (With infinite or huge feature values, TRON's conjugate
-  gradient does not terminate, in both function objects alike.)
-  `build_bt` also reports whether all values of X are finite; then `fun` at w = 0 (all bits 0) is
-  computed without reading X: every margin is (0 + +0) * t_i, all rows are active and f adds
-  C_i * 1 * 1 in row order, the bits of the pass. Solves that pass the same `TronPairGroup` use one
-  BT4 copy of X, built in chunks of 8192 rows by the solves that join while it is built (patch 18).
-  With `options::weightsOnly` tron() stops after TRON (no Outputs, no convergence check; returns 1).
-  Bits as before (`PercolatorTron_test`).
+  The active rows are packed while `fun` has them in L1, f and g at w = 0 are computed once per
+  solve, and the buffers are grow-only and come from a pool of workspaces that solves take and
+  give back (a workspace above 64 MB is freed at the end of its solve, unless a
+  `TronWorkspaceHold` exists: `CrossValidation::train` holds one, patch 05). The first use of each
+  kernel table in a process solves two small problems both ways (about 1 ms) and falls back to
+  `TronFunction` with a warning if any bit differs. Weights, outputs and the gradient ratio are
+  bit-identical to `TronFunction` (class test `PercolatorTron_test`). Builds with AVX/FMA
+  (`-march=...`), other architectures, problems with one row and problems with more than
+  INT_MAX / 2 rows keep `TronFunction`. MSVC builds use the SSE2 kernels only. With
+  `options::weightsOnly` tron() stops after TRON (no Outputs, no convergence check; returns 1);
+  the cross-validation's solves ask for that (patch 05).
+- `TronPairGroup` (solves on the same set share one BT4 copy of X) is still offered by `tron()`
+  and tested, but the cross-validation no longer uses it: since 3.09 a fold trains a single
+  (Cpos, Cneg) pair after three iterations, and each solve builds its own copy. (With
+  `classic_training` the nine pairs of a fold build nine copies; peak memory is then above that
+  of the previous OpenMS tree.)
 
 ### Local addition: Newton and LDA solvers (`newton_svm.{h,cpp}`)
 
 OpenMS-local, not in `whitelist.txt`, used only when the cross-validation's solver is
-not TRON (`CrossValidation::setSolver`, OpenMS `Percolator` parameter `solver`; patch
-15). `newtonSvm` minimizes the same objective as `tron()` with the modified finite
+not TRON (`CrossValidation::setSolver`, OpenMS `Percolator` parameter `solver`, ProSE's
+`rescore_solver`; patch 05). `newtonSvm` minimizes the same objective as `tron()` with the modified finite
 Newton method of Keerthi & DeCoste (2005, JMLR 6:341-361; L2-SVM-MFN), written from
 the paper (not from SVMlin, see the licensing note above): per step one pass over the
 active rows forms the explicit Hessian `I + 2 sum_I C_i x_i x_i^T` and the right-hand
 side (rank-4 updates), a Cholesky factorization gives the Newton point, one pass over
 all rows gives its margins, and the exact line search on the breakpoints of the
-piecewise quadratic objective (selection by partitioning) gives the step; the margins
-are updated without another pass. It stops on TRON's criterion
-(`||g(w)|| <= eps ||g(0)||`) and takes at most 128 columns. The per-row buffers of a Newton solve (the margins X w and X wbar, the
-breakpoints; about 40 bytes per row) come from a pool and are not initialised (every value is written
-before it is read); buffers above 64 MB are kept only while a `TronWorkspaceHold` exists and freed when the
-last one ends (`newtonReleaseWorkspaces`). `ldaSvm` is Fisher's
+piecewise quadratic objective (selection by partitioning) gives the step. This is the
+method of upstream's solver since 3.09 (exact least-squares steps, warm starts). It stops on TRON's criterion
+(`||g(w)|| <= eps ||g(0)||`) and takes at most 128 columns. `ldaSvm` is Fisher's
 discriminant (pooled within-class scatter, small ridge) from one pass, scaled and
 shifted along its direction as in the paper's beta-seeding (eq. 8/9). Rows are cut
 into fixed blocks of 8192 whose partial sums are added in block order, so the results
 do not depend on the threads; within a parallel region the blocks of problems of at
-least 8 blocks run as tasks. Class test `PercolatorNewton_test`.
+least 8 blocks run as tasks (`OpenMPTasks.h`). Class test `PercolatorNewton_test`.
+
+### Local additions: `OpenMPThreads.h`, `OpenMPTasks.h`, `InProcessSampler.*`, stubs
+
+- `OpenMPThreads.h`: the thread cap of the vendored code (`maxThreads()`, `ThreadCap`, patch 04)
+  and `LoopErrors` (patch 08).
+- `OpenMPTasks.h`: `PERCOLATOR_OMP_TASKS` / `PERCOLATOR_TASK_PRAGMA` (OpenMP tasks only where the
+  compiler has them; MSVC's OpenMP 2.0 has none). Used by `newton_svm.cpp`; upstream uses no tasks.
+- `InProcessSampler.{h,cpp}`: the reservoir and out-of-fold samples of OpenMS' capped training.
+- `Globals.h`, `Version.h`, `config.h`: stubs for upstream's CMake-generated headers
+  (`Globals.h` is upstream's `Globals.h.cmake` with the values of its `CommonCMake.txt`).
 
 ## How to re-sync
 
 Run `./sync-from-upstream.sh <tag-or-sha>`. The script copies files listed in
-`whitelist.txt`, applies `patches/*.patch`, and records the new upstream commit
-SHA in this file. Review the resulting diff and commit as
+`whitelist.txt`, applies `patches/*.patch` in name order, and records the new upstream commit
+SHA in `UPSTREAM_COMMIT` and in this file. Review the resulting diff and commit as
 `chore(percolator): sync from upstream <ref>`.
 
-A clean re-sync of the currently-pinned SHA reproduces the committed sources
-bit-identically (verified 2026-10-09). If it does not, a downstream adaptation
-was made by hand or a patch no longer applies — regenerate
-`patches/01-namespace-wrap.patch` from the post-adaptation tree rather than
-hand-editing sources and committing them, to keep sync self-healing.
+A clean re-sync of the pinned SHA reproduces the committed sources
+bit-identically (verified 2026-11-17). If it does not, a downstream adaptation
+was made by hand or a patch no longer applies — regenerate the patches (below)
+rather than hand-editing sources and committing them, to keep sync self-healing.
 
 ## Patches
 
-- `patches/01-namespace-wrap.patch` — covers all OpenMS adaptations except
-  those in the later patches: namespace wrap in `OpenMS::Internal::Percolator`,
-  `using namespace std;` placement, `std::` qualifications, additional
-  includes (TabReader, Version.h), `::min/::max → std::min/std::max`,
-  `parseOptions` body removal, enzyme / protein-inference / SQT feature
-  drops, `#pragma once` on the new header-only regressors, etc.
-  Regenerated 2026-04-24 (commit 9f227d7c03) from the current-tree-vs-upstream
-  diff — replaces the former 01-06 chain which had accumulated drift.
-  Regenerated again 2026-10-09: a hand edit had made it unparseable.
-- `patches/02-atomic-include-negatives.patch` — makes the static
-  `PosteriorEstimator::includeNegativesInResult` a `std::atomic<bool>`:
-  `Scores::calcQvals` sets it from the OpenMP cross-validation loops, a data race
-  on a plain `bool`.
-- `patches/03-pep-padding-ties.patch` — keeps the PEP spline's points strictly
-  increasing, which `BaseSpline::initiateQR` needs (it asserts `dx > 0` in Debug
-  builds and divides by zero in Release builds, giving meaningless PEPs).
-  `BaseSpline` keeps the distances in sparse vectors that treat |dx| <= 1e-15 as 0.
-  The new `LogisticRegression::mergeTiesAndPad` (called from `setData`, after the
-  log/logit transform is chosen from the real bin medians) merges points closer
-  than 1e-12 (relative) in the transformed coordinates, and pads to the 4 points
-  the spline needs, spaced like the data, in the same coordinates.
-  `PosteriorEstimator::estimate` no longer pads the raw medians: upstream added at
-  most 1e-20, lost to rounding unless the median is about 0, and padding raw
-  scores in [0, 1] past 1 switched the spline from the logit to the log
-  transform. Seen with ProSE `-rescore`. Still present in upstream master as of
-  2026-10-12.
-- `patches/04-cv-num-threads.patch` — gives the three OpenMP loops of
-  `CrossValidation` a `num_threads` clause, so they run on at most `numThreads_`
-  threads (OpenMS: `Percolator`'s `num_threads`) and never on more than OpenMP
-  allows (a TOPP tool's `-threads`). Upstream sets the count with
-  `omp_set_num_threads()` in its caller, which this tree does not include, so
-  `numThreads_` was stored but unused.
-  `numLoopThreads` is defined without OpenMP as well (it returns 1): Clang's
-  `-fopenmp-simd` parses the `num_threads` clauses without defining `_OPENMP`.
-- `patches/05-cv-folds-parallel.patch` — runs the remaining per-fold loops of
-  cross-validation in parallel, on at most `numThreads_` threads like the loops of
-  patch 04: the initial direction (`SanityCheck::getDefaultDirection`, which sorts
-  each training set once per feature), the scoring of the test sets
-  (`SanityCheck::getInitDirection`, `validateDirection`, `CrossValidation::train`)
-  and of the training sets (`CrossValidation::doStep`, `mergeCpCnPairs`). Each fold
-  works on its own `Scores`; the counts are added up in fold order, and the
-  "Selected feature" reports (`Scores::getInitDirection` writes them to a stream
-  it is given) are printed afterwards in fold order. None of these loops draws
-  random numbers, so the results do not depend on the number of threads.
-  In `doStep`, the folds also fill their SVM inputs in parallel (not with nested
-  cross-validation, which draws the nested sets at random), and
-  `mergeCpCnPairs` counts the positives of all (Cpos, Cneg) pairs in parallel,
-  each on its own copy of its test set: the count does not depend on the order
-  of the set (PSMs that compare equal have the same label), and the test sets
-  are discarded afterwards. Each of these loops catches the exceptions of its
-  iterations and rethrows the first one, in iteration order, after the loop.
-- `patches/06-spline-pep-sparse.patch` — speeds up the spline PEP (`BaseSpline`,
-  `pep_method` `nonparametric`) without changing its result.
-  `PackedMatrix::packedMultiply` computes, per row, only the dot products with
-  the columns that share an index with the row, instead of with every column:
-  the others are 0 and are not stored, so the products of the banded matrices
-  take linear instead of quadratic time. `BaseSpline::solveInPlace` skips the
-  rows whose index range does not include the column it looks for, and stops
-  scanning a row at the first index past it (the indices are sorted and unique),
-  instead of scanning every entry of every row.
-- `patches/07-spline-pep-banded.patch` — speeds up the spline PEP further, again
-  without changing its result. `BaseSpline::initiateQR` keeps `Q` and `R` as
-  bands as well, and each iteration of `iterativeReweightedLeastSquares` runs
-  `BaseSpline::bandedIteration`: the same floating-point operations, in the same
-  order, as building `alpha / w`, `aWiQ`, `M = R + Qt * aWiQ`, `gamma = Qt * z`,
-  `solveInPlace` and `gnew = z - aWiQ * gamma` with the sparse matrix code, on
-  band rows in reused buffers and without allocations. The elimination makes the
-  same pivot choices, row swaps and row operations as `solveInPlace` and visits
-  only the rows that can hold the pivot column; the back substitution updates
-  only the right-hand side (the row operations of that pass cannot change the
-  result). Whenever dropping an entry (|value| <= 1e-15) would violate the band
-  structure, or the elimination would leave it, `bandedIteration` returns before
-  it commits the iteration's outputs and the matrix code runs instead. On FMA
-  targets the compiler may contract `a * b + c` into a fused multiply-add; the
-  band code keeps the expression shapes of the matrix code so that it is
-  contracted the same way: the elimination stores its rounded product in a
-  `volatile` (like `packedProd`, which stores it), and the dot products are
-  loops `tot += a * b` like `packedDotProd` (under Clang with `clang loop
-  unroll(disable) vectorize(disable)`: Clang's SLP vectoriser otherwise
-  multiplied the terms of `Qt * z` separately). This is checked, not guaranteed:
-  both paths ran in every IRLS iteration on 20 real and 300 synthetic inputs and
-  gave the same bits with GCC 14.4 -O3 (no -march, `-march=haswell`,
-  `-march=native` on Zen 4, `-march=haswell -ffp-contract=off`) and Clang 23 -O3
-  (`-mfma` with the default `-ffp-contract=on`, `fast` and `off`, `-march=native
-  -ffp-contract=fast`). Other compilers, versions and targets (AArch64, MSVC
-  `/fp:contract`, x87, fast-math) are not covered.
-- `patches/08-cv-sorts-tasks.patch` — speeds up cross-validation without changing
-  its result. The sorts of `Scores` (`calcScores`, `generatePositiveTrainingSet`,
-  `createXvalSetsBySpectrum`, `merge`, `postMergeStep`) call `sortLikeStdSort` from the
-  OpenMS-local header `SortLikeStd.h` (not an upstream file, like `InProcessSampler.*`):
-  inside an OpenMP parallel region it makes the comparisons and swaps of libstdc++'s
-  `std::sort`, so it leaves the same permutation (also of PSMs that compare equal), but
-  hands the right parts of the partitions to tasks (the algorithm of OpenMS'
-  `FragmentIndex::sortPeptides_`); otherwise, and with a NaN score or mass (no strict weak
-  ordering), it is `std::sort`. Ranges of more than 2^18 elements (large data sets: the first
-  partitionings, whose scans are the critical path of the sort) are partitioned with all tasks
-  (`partitionInParallel`): the elements are classified against the pivot in chunks, and the swaps
-  of `__unguarded_partition` (the k-th element from the left not less than the pivot with the k-th
-  from the right the pivot is not less than, while they are in order) are made from these
-  classes, in blocks; same swaps, same cut (if its bookkeeping cannot be allocated, the scans of
-  `__unguarded_partition` as before).
-  The loops over the folds (`CrossValidation`, `SanityCheck`) run their folds as tasks of a
-  parallel region on up to 12 threads (`numTeamThreads`), whose other threads run the tasks
-  of the sorts; `createXvalSetsBySpectrum` and `merge` are called in such a region as well.
-  `Scores::getInitDirection` counts the positives of each feature in a task of its own, on
-  (score, label) pairs sorted by score only (the q-values treat a group of equal scores as
-  one, so the count does not depend on the order within a group), while the scores are
-  sorted by each feature in turn as before: the order the last feature leaves is where the
-  training starts from. The (Cpos, Cneg) pairs are trained as tasks, and each task then
-  counts the positives of its pair on the pair's test set without sorting the set
-  (`Scores::countPositives`, the count of `calcScoresAndQvals`, by the same argument), so
-  the test sets are no longer copied. Nested cross-validation (which draws its nested sets at
-  random) keeps its serial loop over the folds. Every loop, including those of
-  `mergeCpCnPairs`, catches the exceptions of its iterations and rethrows the first one, in
-  iteration order.
-- `patches/09-cv-stages.patch` — speeds up the stages of cross-validation around the SVM
-  training without changing its result.
-  `Scores::calcScores` scores the PSMs (each by `calcScore`, as before) in blocks of 2048, as
-  tasks of the enclosing OpenMP parallel region if there is one (the fold tasks of
-  `CrossValidation`), instead of one after the other (the tasks share the weights).
-  Each step of `CrossValidation::doStep` scores the training sets with the weights that the
-  previous step's `mergeCpCnPairs` scored them with at its end; neither the weights nor the
-  sets change in between, so the scores are the same: the step only sorts them again
-  (`Scores::sortScoresAndCalcQvals`; the order is the same as after scoring them again) and
-  sets the q-values. A flag of `CrossValidation` (`trainScoresOfWeights_`), set at the end of
-  `mergeCpCnPairs` and cleared at the start of `mergeCpCnPairs`, `doStep`,
-  `preIterationSetup` and `postIterationProcessing`, says when this holds.
-  Without nested cross-validation, `doStep` trained and validated the SVMs of a fold on two
-  copies of its training set; `Scores::generateTrainingSetsOfSortedSet` generates the SVM
-  inputs from the set itself, without copying or sorting it, and the pairs are validated on
-  the set itself (`countPositives` does not change it). The negatives are the decoys in their
-  order. With `trainBestPositive` the copy was sorted by spectrum and label (`OrderScanLabel`),
-  kept the first PSM of each group (`std::unique`) and sorted the kept PSMs by score again:
-  the (file, scan, label) keys of the PSMs are sorted from the same order like `std::sort`
-  (`sortLikeStdSort`, as before; the comparisons have the same outcomes, so the sort makes the
-  same moves) to find the first PSM of each group, and if each positive (a kept target with
-  q <= fdr) scores strictly higher (`operator>`) than the next one in the set's order, no two
-  positives are equivalent and every sort by score leaves them in that order. Otherwise (and
-  with a NaN score or mass) the copies as before.
-  `Scores::getInitDirection` sorts the scores by each feature in turn (31 sorts per fold, from
-  the order the previous sort left) on keys: the feature value, the rank of the PSM's (scan,
-  mass, label) in the order `ScoreHolder::operator<` compares them after the score, and the
-  position. The comparisons have the outcomes of `operator<`, so the sorts make the same
-  moves, without reading `pPSM` and moving whole `ScoreHolder`s; the PSMs are put into the
-  final order of the keys (and get the scores of the last feature) once, at the end. The
-  positives of each feature are counted in a task on the (score, label) pairs in the order of
-  its sort (sorted by score, as in the serial loop), instead of a task that sorted the pairs
-  again; the chain hands the task a copy of its keys, the task builds the pairs. The ranks are
-  sorted with `sortLikeStdSort` (any sort would do), the feature columns copied in parallel
-  blocks.
-  `PosteriorEstimator::estimatePi0` (called by `Scores::merge` and `postMergeStep` for each
-  fold and for the merged set) runs its 100 bootstraps as tasks of the enclosing OpenMP
-  parallel region (as in `CrossValidation::postIterationProcessing`). The bootstraps draw from
-  the global `PseudoRandom` generator one after the other, min(n, 1000) numbers each, so each
-  task draws its numbers from the generator's state at its first draw
-  (`PseudoRandom::advance`: the generator multiplies by 279470273 modulo 4294967291, so it can
-  jump ahead by a power of the multiplier; `PseudoRandom::lcg_rand(state)` draws like
-  `lcg_rand` from a state of the caller's); the mean squared errors are added up in the order
-  of the bootstraps, and the generator ends in the state the serial loop leaves. Outside a
-  parallel region, the loop as before.
-  `Scores::createXvalSetsBySpectrum` sorts the PSMs by spectrum hash on (hash, position) keys
-  (the hashes `OrderScanHash` compares; same outcomes, same moves, see above) instead of
-  hashing two PSMs for every comparison; inside an OpenMP parallel region it draws the folds
-  (and RESET labels) in the order of the PSMs as before and then fills each fold's training
-  and test set in a task of its own, in the same order. It then moved the feature rows of the
-  test sets' PSMs to the start of the pool, one after the other by swaps (tracking the rows
-  it displaced in a hash map); `FeatureMemoryPool::moveRowsInOrder` moves them there directly
-  (copied out and back, in parallel blocks) when they are exactly the pool's rows (none free),
-  each once, with the pool's row length: the swaps leave the same rows and pointers.
-  Otherwise the swaps as before.
-  `Scores::calcQvals` computes the q-values with `PosteriorEstimator::getQValuesInTasks` where
-  it can: inside an OpenMP parallel region, for pi0 = 1 (no mix-max correction; the training
-  sets of the cross-validation), a finite decoy factor >= 0 and at least 8192 PSMs. The
-  PSMs are split into blocks of whole groups of equal scores at fixed positions; the targets
-  and decoys of the blocks are counted first, so each block computes the FDRs of its groups
-  from the same counts and by the same expression as `getQValues`; the q-values (minimum FDR
-  from a position to the end, of numbers in [0, 1]) are the minima within each block and then
-  with the minimum of the blocks after it. Otherwise `getQValues` as before.
-  The sorts of `Scores` by score (`calcScores`, `merge`, `postMergeStep`) compare with
-  `ScoreHolderGreater`, a copy of `operator>` (defined in another file, so each comparison was
-  a function call) that the sort can inline: same outcomes, same moves.
-- `patches/10-tdc-sort-tasks.patch` — `Scores::weedOutRedundantTDC` sorts the PSMs by
-  spectrum (`OrderScanMassCharge`) with `sortLikeStdSort` (`SortLikeStd.h`) instead of
-  `std::sort`, unless a score or mass is NaN (no strict weak ordering): the same permutation,
-  with the tasks of an enclosing OpenMP parallel region. OpenMS' `Percolator::rescore` calls it
-  in such a region (as the cross-validation calls `merge`), so that this sort, the sort of
-  `postMergeStep` and the bootstraps of `estimatePi0` run as tasks; outside a region it is
-  `std::sort` as before.
-- `patches/11-cv-fold-chains.patch` — speeds up the training of the cross-validation without
-  changing its result. Without quick validation (its stop test needs the sum over the folds after
-  each step), nested cross-validation (which draws the nested sets at random) and the reports of
-  each step's training sets and weights (`VERB > 2`, `reportPerformanceEachIteration`), no fold
-  depends on another fold until the end of `CrossValidation::train`. `trainFoldChains` then runs
-  all steps of a fold (scoring its training set, its SVM inputs, its (Cpos, Cneg) pairs as tasks,
-  the choice of its best pair as in `mergeCpCnPairs`, the scoring of the training set with the
-  chosen weights) and the scoring of its test set as one task, so that the folds no longer wait for
-  each other at every stage of every step; the counts are added up in fold order afterwards and the
-  reports printed as before. An error ends its fold's task; the error `train` would have thrown (the
-  first by step, then by stage, then by fold) is rethrown after the reports of the steps before
-  it. `CrossValidation::setupFoldInputs` is `doStep`'s setup of a fold's SVM inputs, now shared by
-  both. Otherwise `train` steps through `doStep` as before.
-  The (Cpos, Cneg) pairs of a fold count their positives (`Scores::countPositives`) with less
-  work, to the same count. The fold's feature rows with their labels are collected once if
-  the fold validates at least 3 pairs (`Scores::getFeatureRows`, sorted by address, so the scoring reads them in the order they are in
-  memory; the training set keeps its PSMs and labels during the training), and the scores (each by
-  `calcScore`, as before) are counted from the PSMs with the highest scores only where that gives
-  the same count (`Scores::countPositivesOfTop`): with pi0 >= 1 and a finite decoy factor >= 0,
-  `getQValues` makes no mix-max correction, the positives are the targets up to the end of the
-  last group of equal scores whose min(FDR, 1) is below the threshold, and every group after the
-  PSMs scoring at least as high as the k-th highest (k = n / 8, then 4 times more) has an FDR of
-  at least (their decoys, all targets): each operation of the FDR's expression is monotone. If
-  that bound is not below the threshold (checked before sorting), only those PSMs are sorted and
-  walked; otherwise (also for a threshold above 1) all are sorted as before.
-  The set-up of the folds (`preIterationSetup`: `createXvalSetsBySpectrum` and the initial
-  directions) runs on up to 16 threads instead of 12 (`numSetupTeamThreads`).
-- `patches/12-cv-large-sets.patch` — speeds up the training of large data sets without changing
-  its result. If a fold's training set has at least 2^18 PSMs, the fold chains (`trainFoldChains`)
-  run on all threads instead of 12 (`numChainTeamThreads`): the tasks of a chain's own passes (the
-  scoring, sorting and q-values of its sets) are then large enough for more threads. From 2^17 PSMs
-  on, the validation of a (Cpos, Cneg) pair (`Scores::countPositives` with the feature rows) scores
-  the rows in tasks (each score by `calcScore`, as before) and sorts the top part with
-  `sortLikeStdSort`, and `Scores::getFeatureRows` sorts the rows by address with `sortLikeStdSort`
-  (same permutations as `std::sort`).
-- `patches/13-rowsscale-postprocessing.patch` — speeds up the steps before and after the training
-  of the cross-validation on large sets, without changing their results.
-  `CrossValidation::postIterationProcessing`: when the sanity check rejects the learned weights,
-  the test sets are scored with the default weights as tasks of a parallel region (as
-  `SanityCheck::validateDirection` does), so their scoring, sorts and q-values run as the region's
-  tasks (`Scores::calcScores`, `SortLikeStd.h`, `PosteriorEstimator::getQValuesInTasks`): the same
-  scores, order and q-values as the loop over the sets (with `VERB > 3`, which prints the scores of
-  each sort, the loop as before).
-  Before the training, on large sets: the feature pool's blocks for the rows of the rescoring are
-  created (zero-filled) in parallel (`FeatureMemoryPool::reserveRows`, called by OpenMS'
-  `Percolator::rescore`; `allocate` then hands out the same rows in the same order);
-  with OpenMP on more than one thread, `StdvNormalizer::setSet` adds up each feature's sums by one
-  thread, in the order of the PSMs, the features in parallel (a value that is not finite: as before,
-  which reports it);
-  `SetHandler::normalizeFeatures` normalizes the PSMs' rows by feature in parallel
-  (`Normalizer::normalizeRowsByFeature`: each value as by `normalize`; the rows are rows of the
-  feature pool, equal or disjoint); `SetHandler::populateScoresWithPSMs` reserves room for the
-  PSMs. The same values.
-  `Scores::getInitDirection` (the chain of sorts by each feature, in a parallel region): the
-  feature columns are not zero-filled before the tasks write them; the keys get each feature's
-  values, are copied for the count of the feature and are reversed by tasks of blocks of keys
-  (each key written once), and the PSMs are put into the final order by such tasks: the same
-  keys, the same order of the PSMs.
-  `FeatureMemoryPool::moveRowsInOrder` finds the index of each row by tasks (then checks that each
-  occurs once, in order, as before): the same answer and rows.
-  `Scores::createXvalSetsBySpectrum` computes the spectrum hash keys, and `permuteScores` puts large
-  sets into the order of the sorted keys, by the tasks of the region; `getInitDirection` writes its
-  feature columns by blocks of PSMs (one column after the other per block).
-  In a parallel region, `Scores::getScoreLabelPairs`, the setting and counting of the q-values in
-  `calcQvals` (counts of blocks of PSMs, added up) and the rescaling of `normalizeScores` run over
-  large sets as tasks of blocks of PSMs: the same pairs, q-values, count and scores.
-  The taskloops over PSMs or rows (`Scores`: `calcScores`, the loops above, `permuteScores`;
-  `FeatureMemoryPool::moveRowsInOrder`; the blocks of `PosteriorEstimator::getQValuesInTasks`) have
-  at most 64 tasks: libgomp runs all tasks of a taskloop in the encountering thread, one after the
-  other, if its team's queue would then hold more than 64 tasks per thread, so that e.g. the
-  scoring of a set of 2.3M PSMs (1134 tasks of 2048) ran on one thread of a team of 12. Larger
-  blocks; each element computes the same (the q-value blocks still start at positions that depend
-  on the set only).
-- `patches/14-cv-training-options.patch` — experimental options of the training, off by default
-  (`CrossValidation::setTrainingOptions`, set by the OpenMS wrapper's parameters `tron_epsilon`,
-  `warm_start`, `single_cneg`): TRON's stopping tolerance instead of `EPSILON`; each (Cpos, Cneg)
-  pair starts TRON from its weights of the previous iteration instead of 0; one Cneg candidate (3 x
-  the target/decoy ratio) instead of three. With the defaults the training is unchanged; otherwise
-  the results differ from Percolator's.
-- `patches/15-cv-solver-select.patch` — lets the cross-validation solve its SVMs with
-  another solver than TRON (`CrossValidation::setSolver`; OpenMS `Percolator` parameter
-  `solver`, default `tron`: unchanged results). `trainSvm` dispatches every SVM of
-  `trainCpCnPair` and of the nested refit: `kSolverNewton` runs `newtonSvm`
-  (`newton_svm.h`) from the pair's weights of the step before (0 at the first step, whose
-  first Newton step is the least squares fit on all rows), `kSolverLda` runs `ldaSvm`;
-  if they cannot (LDA: fewer than two rows of a class or a fitted scale that is not
-  positive; Newton: too many columns, a failed factorization, a non-finite gradient norm
-  or no convergence within `mfnitermax` steps), Newton or TRON (from 0) solves the SVM. With
-  `kSolverTron`, TRON starts from the weights `trainCpCnPair` gives it (0, or the pair's previous weights with patch
-  14's warm start). In
-  `trainFoldChains`, Newton stops at a tolerance of 1e-4 in the steps before the last one
-  (which solves to `EPSILON` as TRON); with LDA the first pair of a fold is trained first
-  and, if LDA gave its weights (whose ranking, and so the count, does not depend on the
-  costs), its weights and count serve the other pairs, which are trained otherwise; with either solver
-  training sets of at least 2^17 PSMs run the fold chains on all threads, whose tasks
-  then also take the solvers' row blocks.
-- `patches/16-cv-tron-workspace-hold.patch` — `CrossValidation::train` holds a
-  `TronWorkspaceHold` (ssl.h) during the training, so that its solves reuse their buffers (see
-  the local replacement above). No change of results.
-- `patches/17-initdir-count-buffers.patch` — the counts of `Scores::getInitDirection` (patch 08)
-  take their buffers (the snapshot of the sorted keys, the (score, label) pairs and the q-values)
-  from lists of the call and put them back when done, and `countPositivesOfPairs` reserves room
-  for all q-values at once, so the 2 x 30 counts of a fold reuse memory instead of new pages
-  for every feature; the large buffers of the initial direction (the feature columns, the snapshots,
-  the pairs) are advised for transparent huge pages (`adviseHugePages`, ssl.h), as is the copy buffer of
-  `FeatureMemoryPool::moveRowsInOrder`. Without the mix-max correction (pi0 not below 1),
-  `countPositivesOfPairs` counts the positives in one walk over the groups of equal scores (as
-  `countPositivesOfTop`) instead of computing all q-values. When `createXvalSetsBySpectrum` fills
-  the folds by tasks, each fold reserves its exact test and training sizes (a fold of whole spectra
-  outgrew the former estimate and reallocated). No change of results.
-- `patches/18-cv-tron-weights-only-shared-x.patch` — the cross-validation's SVM solves ask TRON for
-  the weights only (`options::weightsOnly`, ssl.h: it skips the Outputs and the post-solve
-  convergence check, which the training discarded), and in the fold chains the solves of a fold's
-  (Cpos, Cneg) pairs share one copy of the training set in TRON's layout per step (`TronPairGroup`,
-  ssl.h) instead of building one each. `trainCpCnPair` and `trainSvm` pass the group to
-  `L2_SVM_MFN`. No change of results.
-- `patches/19-cv-fixed-folds.patch` — out-of-fold capped training (OpenMS `Percolator` parameter
-  `subset_mode` `out_of_fold`): `Scores::createXvalSetsBySpectrum` takes an optional function that
-  gives each PSM's fold (no fold is drawn then); `CrossValidation::setFixedFolds` passes it to the
-  outer split (nested sets are still drawn, each fold from a generator state of its own per step)
-  and makes `initializeGridSearch` take each fold's Cneg
-  candidates from its own training set's target/decoy ratio (`mergeCpCnPairs`' nested path looks
-  them up per fold); `getTrainingPsms` returns a fold's training PSMs; `setActiveFolds` lets `trainFoldChains`
-  skip folds (the learning curve's stopped folds). `Scores::setScoreHolders` replaces the score holders
-  (built in parallel by the caller). Without fixed folds (the
-  default) nothing changes.
-- `patches/20-best-positive-by-score.patch` — an option of the training, off by default
-  (`CrossValidation::setBestPositiveByScore`, set by the OpenMS wrapper's parameter `best_positive`
-  `score`): with `trainBestPositive`, the positive candidate of a spectrum is its best-scoring PSM.
-  Percolator (`Scores::generatePositiveTrainingSet`) sorts the set by spectrum and label with an unstable
-  sort and keeps the first PSM of each group, which is not necessarily the best-scoring one: with many
-  PSMs per spectrum (ProSE reports 10) most of the kept targets are weaker hits above the training FDR,
-  so that most positives are missing (on a Velos file of the 20-file benchmark 296/373/438 positives
-  per fold in the first iteration with the percolator executable, 130/153/162 with this tree's order of
-  the set, 642/734/867 with the best-scoring PSMs). With the option, stable sorts by score and then by
-  spectrum and label put the best-scoring PSM of each group first; `generateTrainingSetsOfSortedSet`
-  keeps the first PSM of each group of the set if the set is sorted by score (else the fallback).
-  Default: unchanged results.
+All patches are `git diff` style (a/b/ prefixes, applied with -p1) on the whitelisted files.
 
-  (Removed again by patch 32, whose selection is always the best-scoring PSM.)
-- `patches/21-psm-slab.patch` — `DataSet::setOwnsPsms` / `reservePsms` and
-  `FeatureMemoryPool::claimRows` / `rowOfClaim`: `Percolator::rescore` (OpenMS) builds the
-  training PSMs in one block that it owns and destroys, gives each the pool row that the k-th
-  `allocate()` would have returned, and registers them in the same order. No change of results.
-- `patches/22-cv-sorted-certificate.patch` — `Scores::sortScoresAndCalcQvals` skips the sort when
-  every PSM compares strictly greater (score, scan, mass, label) than the next one: that order is
-  then the only sorted one, so any sort would leave it unchanged (the fold chains sort the scores
-  that the previous step sorted). Checked in blocks by the tasks of an enclosing parallel region.
-  No change of results.
-- `patches/23-cv-packed-group-keys.patch` — `Scores::generateTrainingSetsOfSortedSet` sorts one
-  64-bit key per PSM (file << 34 | scan << 2 | 2 - label, with its 32-bit position; built in blocks
-  by the tasks of an enclosing parallel region) instead of (file, scan, label, position) where the
-  values fit: the keys compare as OrderScanLabel compares the PSMs, so the sort makes the same moves
-  and keeps the same PSM of each group. Otherwise the full keys as before. No change of results.
-- `patches/24-cv-sorted-up-to-interchangeable.patch` — relaxes patch 22: the sort is also skipped
-  when neighbours are not strictly ordered but interchangeable (bit-identical score, equal label,
-  scan, expMass and spectrum file, bit-identical feature rows), e.g. I/L variants of a spectrum's
-  hits. A sort can then only permute holders within runs of interchangeable ones, so every later
-  consumer of the training set sees the same values at every position; training holders never
-  reach the output. With NaN scores or masses it sorts. No change of results.
-- `patches/25-cv-setup-in-tasks.patch` — `Scores::generateTrainingSetsOfSortedSet` marks the kept
-  PSMs, collects the positives and decoys and fills the SVM rows in blocks, as tasks of an enclosing
-  parallel region; the blocks are joined in order (offsets from their counts), with the same check
-  of each positive against the one before it. No change of results.
-- `patches/26-cv-certificate-cache.patch` — once the certificate of patches 22/24 has failed for a
-  set, `sortScoresAndCalcQvals` sorts that set without checking again (a forced sort is always
-  exact; the check costs 45-60 ms per step on tie-heavy sets). No change of results.
-- `patches/27-cv-reuse-validation-scores.patch` — in the fold chains, each pair's validation on the
-  training set (`countPositives` with the feature rows) also keeps the score of every row; the step's
-  rescoring with the chosen pair's weights (`calcScoresOfRowsAndQvals`) gives each PSM the score of
-  its row (the same `calcScore` of the same row and weights) instead of scoring all PSMs again, then
-  sorts and computes the q-values as before. A PSM whose row is not found makes it score as before.
-  No change of results.
-- `patches/28-normalize-row-blocks.patch` — `Normalizer::normalizeRowsByFeature` applies the
-  normalisation by static blocks of rows (each row's features together) instead of by feature
-  (each thread walking a column through all rows); every value is computed by the same expression.
-  The statistics are unchanged. No change of results.
-- `patches/29-review-fixes-int14.patch` — fixes: the
-  distinct-value tasks of patch 17's packed keys catch their exceptions (a feature then is sorted as
-  before, with the same moves); `FeatureMemoryPool::claimRows` checks the row count without
-  overflow; `normalizeRowsByFeature` documents that its rows must be distinct. No change of results.
-- `patches/30-cv-setup-team-64.patch` — the team of the fold set-up (`preIterationSetup`: the folds' sets
-  and the initial directions, whose sorts run as tasks, see `SortLikeStd.h`) gets up to 64 threads instead
-  of 16 (`kMaxSetupTeamThreads`): 0.78 -> 0.45 s for the initial directions of a timsTOF HeLa run with
-  1.1 million PSMs at 64 threads. Scheduling only: the same results.
-- `patches/31-best-positive-by-score-in-tasks.patch` — `Scores::generateTrainingSetsOfSortedSet` with
-  `bestByScore` (the best-scoring PSM of each (file, scan, label)): inside an OpenMP parallel region and from 16384
-  PSMs on, the order and NaN checks and packed 64-bit (file, scan, label) keys are made by tasks, and the (key,
-  position) pairs are sorted (a total order); the first of each key run is the smallest position of its group, which is
-  what the serial `unordered_set` walk keeps. Keys that do not fit: the serial walk. No change of results.
-- `patches/32-train-best-positive.patch` — with `trainBestPositive`
-  (OpenMS: `Percolator`'s `train_best_positive`, upstream `--train-best-positive`),
-  `Scores::generatePositiveTrainingSet` trains on the best-scoring target PSM of
-  each spectrum (file, scan). Upstream sorted `scores_` with `OrderScanLabel`
-  (file, scan, label) and `std::sort`, which is not stable, then kept the first
-  PSM of each spectrum: an arbitrary one, different between standard libraries,
-  and often one above the training FDR, which drops the spectrum from the
-  positives (OpenMS issue #10720). `OrderScanLabel` now also orders by score and
-  PSM id. The selection runs on a copy of the targets that pass the FDR:
-  `std::unique` on `scores_` overwrote the PSMs it dropped, and
-  `CrossValidation::mergeCpCnPairs` trains on that set again when
-  nested-xval-bins > 1. Still present in upstream master (3.09) as of 2026-10-26.
-  OpenMS develop (#10738) carries this change as `05-train-best-positive.patch` on top of
-  patches 01-04; here it follows 01-31, whose sorts and `generateTrainingSetsOfSortedSet` it changes, and replaces
-  the option of patch 20 (`setBestPositiveByScore`, `bestByScore`: removed, the selection is always the best-scoring
-  PSM). `generateTrainingSetsOfSortedSet` keeps what `generatePositiveTrainingSet` keeps: the candidates (targets
-  with q <= fdr) get a packed 64-bit (file, scan) key, the (key, position) pairs are sorted (a total order), and per
-  key run the first by `OrderScanLabel` is kept (tasks of blocks inside a parallel region); if two candidates of a
-  spectrum are equivalent for `OrderScanLabel` (equal score and PSM id), or a file number does not fit, it returns
-  false and the caller copies and sorts. `generatePositiveTrainingSet` sorts by `OrderScanLabel` like `std::sort`
-  (`SortLikeStd.h`).
-- `patches/33-omp-tasks-guard.patch` — the OpenMP task constructs of patches 08-32 only where the compiler has
-  them (OpenMS-local header `OpenMPTasks.h`: `PERCOLATOR_OMP_TASKS`, `_OPENMP >= 201511` and not MSVC's own
-  OpenMP, which is OpenMP 2.0 without tasks, and `PERCOLATOR_TASK_PRAGMA`). Without tasks the task pragmas, and the
-  `parallel` + `single` regions that only host tasks, expand to nothing, and the loops over the folds (and over the
-  (cpos, cneg) pairs of `doStep`) are a `parallel for schedule(dynamic, 1)`, one fold per thread, as in develop
-  before patch 08. The same applies to the OpenMS-local `newton_svm.cpp`, `SortLikeStd.h` (`std::sort` without
-  tasks) and OpenMS' `Percolator.cpp`. GCC and Clang keep the tasks. The results are the same (each iteration
-  computes what its task computes); `-DPERCOLATOR_OMP_TASKS=0` builds the variant with any compiler. Measured with
-  GCC 13 on 4 cores on a synthetic PIN of 600,000 PSMs (20 features), CV to PEP: 3 threads 15.0 s without tasks,
-  15.3 s with tasks (develop 41.3 s); 4 threads 15.1 s and 11.5 s, as without tasks only the 3 folds run in
-  parallel.
-- `patches/34-comments.patch` — removes references to internal reviews from comments. No change of
-  results.
-- `patches/35-spline-fill-g.patch` — `BaseSpline::iterativeReweightedLeastSquares`: after the general (not
-  banded) step, `gnew` gets its dropped entries back as zeros (`fillPacked`, before `limitg`). The packed vector
-  operations leave out entries of (almost) zero, but `evaluateSlope`, `splineEval` and
-  `LogisticRegression::calcPZW` / `limitg` read g by position: a dropped entry shifted the later values, and an
-  all-zero g (no entries) was read out of bounds (`Percolator_test`, nonparametric PEP with fewer than 4 distinct
-  scores; SIGTRAP with libc++ hardening, OpenMS issue #10880). A filled `gnew` is unchanged, so results only
-  change where an entry had been dropped.
+- `patches/01-namespace-wrap.patch` — the OpenMS adaptations of the upstream files: namespace
+  `OpenMS::Internal::Percolator` around every file (opened after the includes, with the file's
+  `using namespace std;` inside), `std::min`/`std::max` in `Vector.cpp`, includes of excluded headers
+  removed (`Enzyme.h`, `Option.h`, `ProteinProbEstimator.h`, `TabFileValidator.h`, `ValidateTabFile.h`:
+  `SetHandler.h` defines the `InputSegment` of the multi-file reader itself), `TabReader.h` and
+  `<algorithm>` included where those had brought them, the protein-inference branch of
+  `DataSet::readPsm` disabled, and `PosteriorEstimator::parseOptions` (qvality's command line)
+  removed.
+- `patches/02-pep-padding-ties.patch` (formerly 03) — keeps the PEP spline's points strictly
+  increasing, which `BaseSpline::initiateQR` needs (it asserts `dx > 0` in Debug builds and divides by
+  zero in Release builds, giving meaningless PEPs). The new `LogisticRegression::mergeTiesAndPad`
+  (called from `setData`, after the log/logit transform is chosen from the real bin medians) merges
+  points closer than 1e-12 (relative) in the transformed coordinates, and pads to the 4 points the
+  spline needs, spaced like the data, in the same coordinates. `PosteriorEstimator::estimate` no longer
+  pads the raw medians: upstream added at most 1e-20, lost to rounding unless the median is about 0,
+  and padding raw scores in [0, 1] past 1 switched the spline from the logit to the log transform.
+  Seen with ProSE `-rescore`. Still present in upstream a90106b.
+- `patches/03-spline-fill-g.patch` (formerly 35) — `BaseSpline::iterativeReweightedLeastSquares`:
+  after each step, `gnew` gets its dropped entries back as zeros (`fillPacked`, before `limitg`). The
+  packed vector operations leave out entries of (almost) zero, but `evaluateSlope`, `splineEval` and
+  `LogisticRegression::calcPZW` / `limitg` read g by position: a dropped entry shifted the later
+  values, and an all-zero g (no entries) was read out of bounds (OpenMS issue #10880). A filled `gnew`
+  is unchanged. Still present in upstream a90106b.
+- `patches/04-omp-thread-cap.patch` (formerly 04) — the parallel regions of `CrossValidation.cpp`,
+  `Scores.cpp` and `ParallelSort.h` size their teams by `maxThreads()` (`OpenMPThreads.h`):
+  `omp_get_max_threads()`, at most the cap of the calling thread, which OpenMS' wrapper sets per call
+  (`ThreadCap`: the `Percolator` parameter `num_threads`, at most `SysInfo::ompThreadsOfThisThread()`).
+  Upstream sizes them by `omp_get_max_threads()`, which its executable sets once; OpenMS must not call
+  `omp_set_num_threads()` (MSVC's vcomp keeps one number for the whole process). `inParallel()`
+  replaces `omp_in_parallel()` in a clause, which did not compile with Clang's `-fopenmp-simd` (no
+  `_OPENMP`).
+- `patches/05-cv-solver-options.patch` (formerly 14, 15, 16 and the weights-only part of 18) —
+  `CrossValidation::setSolver` (TRON, Newton or LDA; `trainSvm` dispatches every solve, Newton and LDA
+  fall back to TRON from 0 where they cannot solve), `setTrainingOptions` (TRON's tolerance, a warm
+  start of TRON with classic training, a single Cneg candidate), weights-only solves, a
+  `TronWorkspaceHold` during `train()`, and no outputs X w for the warm start (TRON does not read
+  them). Newton stops at 1e-4 in the iterations before the last one of classic training. With the
+  defaults the training is upstream's.
+- `patches/06-cv-fixed-folds.patch` (formerly 19) — out-of-fold capped training (OpenMS `subset_mode`
+  `out_of_fold`, ProSE's default): `Scores::createXvalSetsBySpectrum` takes an optional function that
+  gives each PSM's fold (no fold is drawn, the empty-fold rule does not apply); `setFixedFolds` passes
+  it, nested sets are drawn per fold from a generator state of their own, and each fold's Cneg
+  candidates come from its own training set. With fixed folds each fold stops by upstream's
+  convergence rule on its own count: the sum over the folds that upstream uses would let a fold's
+  held-out labels (in the other folds' training sets) decide when its model stops training.
+  `setActiveFolds` (the learning curve's stopped folds), `getTrainingPsms` (before
+  `postIterationProcessing`, which releases the training sets) and `Scores::setScoreHolders`.
+- `patches/07-sanity-check-virtual.patch` — `SanityCheck::validateDirection` is virtual, so that the
+  wrapper can check each fold's model on its own training set (out-of-fold training).
+- `patches/08-omp-loop-errors.patch` — the parallel loops of the cross-validation and of
+  `Scores::bestInitDirection` catch the exceptions of their iterations and rethrow the first after the
+  loop (`LoopErrors`, `OpenMPThreads.h`): an exception that leaves an OpenMP region ends the process,
+  and OpenMS runs the code as a library (e.g. a `std::bad_alloc` of a large run).
 
-### Regenerating the patch
+### The former patch set (01-35 on eb157f7)
 
-Whenever you hand-fix a downstream issue in the vendored tree, capture it in
-this patch rather than leaving it only in the source commit. The later patches
-(`02-*.patch`, ...) are applied on top of patch 01 by `sync-from-upstream.sh`, so
-they are reverse-applied on a staged copy of the tree first and stay out of
-patch 01. To regenerate, run from this directory (it stops at the first error and
-replaces patch 01 only when every step succeeded):
+Most of the former patches were speedups of the cross-validation, whose code upstream rewrote between
+eb157f7 and a90106b (258 commits: total-order comparators and `parallelSort`, count-only grid evaluation,
+no re-sorting of sorted sets, the SVM input built on all threads, PSMs in a block store, the I-spline fit
+without a design matrix, and a training that fixes each fold's (Cpos, Cneg) pair after three iterations
+and stops at a gain below 0.1%). Measured on synthetic PINs (`perc_bench`, 4 threads; time of
+`Percolator::rescore`, peak RSS), the new tree with upstream's defaults is 3-4x faster than the former
+tree with all 35 patches, with less memory, so they were not ported:
+
+- superseded by upstream: 02 (the static flag is gone), 05, 08, 10 (folds and sorts), 09, 11, 12 (stages,
+  fold chains), 13, 17, 28, 30 (initial direction, normalization), 16 (buffer reuse), 20 and 32 (the
+  best-scoring positive per spectrum: `OrderScanLabel` orders by score since 25cb5124; issue #10720),
+  21 (PSM ownership: DataSet no longer owns its PSMs, the feature pool no longer zero-fills), 22-26
+  (sort certificates, packed keys, set-up in tasks), 33 (OpenMP tasks: upstream uses none), 34
+  (comments of removed code);
+- not ported: 06, 07 (P-IRLS spline products; `pep_method` `nonparametric` only), 18 (shared X of the
+  pair solves: only the first three iterations train several pairs per fold), 27 (reuse of the
+  validation scores), 29, 31 (code gone);
+- ported: 01, 03, 04, 14, 15, 16, 19, 35 (as 01-06 above).
+
+`SortLikeStd.h` (sorts with the moves of `std::sort`) is removed: with total-order comparators any
+sort gives the same order.
+
+### Regenerating the patches
+
+The patches are the commits of a port branch: a commit with the pristine upstream files of the pinned
+SHA (`whitelist.txt`) and the OpenMS-local files, then one commit per patch that touches only
+whitelisted files (OpenMS-local files may change in separate commits). For each patch commit:
 
 ```bash
-(
-set -euo pipefail
-up=; stage=; new=; trap 'rm -rf "$up" "$stage" "$new"' EXIT
-up=$(mktemp -d); stage=$(mktemp -d); new=$(mktemp -d patches/.regen.XXXXXX)
-whitelist=$(grep -v '^#' whitelist.txt | grep -v '^$' | LC_ALL=C sort)
-for f in $whitelist; do
-  gh api "repos/percolator/percolator/contents/src/$f?ref=$(cat UPSTREAM_COMMIT)" \
-    --jq '.content' | base64 -d > "$up/$f"
-  test -s "$up/$f"
-done
-mkdir -p "$stage/src/openms/thirdparty/percolator"
-cp ./*.h ./*.cpp "$stage/src/openms/thirdparty/percolator/"
-patches=$(ls -r patches/*.patch)  # an assignment, so set -e stops here if listing fails
-for p in $patches; do
-  [[ $p == patches/01-* ]] && continue
-  pl=0; [[ $(head -1 "$p") == 'diff --git a/'* ]] && pl=1
-  patch -s -R -p$pl -d "$stage" < "$p"
-done
-for f in $whitelist; do
-  diff -urN --label "/tmp/percolator-preserved/$f" --label "src/openms/thirdparty/percolator/$f" \
-    "$up/$f" "$stage/src/openms/thirdparty/percolator/$f" >> "$stage/01.patch" || [ $? -eq 1 ]
-done
-cp "$stage/01.patch" "$new/01.patch"
-mv "$new/01.patch" patches/01-namespace-wrap.patch
-)
+files=$(grep -v '^#' whitelist.txt | grep -v '^$' | sed 's#^#src/openms/thirdparty/percolator/#')
+git diff --no-color --full-index <commit>~1 <commit> -- $files > patches/NN-name.patch
 ```
 
-Then check it: `./sync-from-upstream.sh "$(cat UPSTREAM_COMMIT)"` must exit 0 and
-leave no change to the vendored `*.h`/`*.cpp` files. Pass the SHA: without an
-argument the script syncs to its built-in default, which is not updated by a sync.
-
-The `--label` flags are important — without them, `diff -urN` embeds
-filesystem timestamps that make `git diff` noisy on every regeneration even
-when the semantic patch content is unchanged.
+To rebuild such a branch from this directory: copy the whitelisted files of the pinned SHA into a fresh
+repository, commit them with the OpenMS-local files, and apply and commit the patches one by one.
+Then check: `./sync-from-upstream.sh "$(cat UPSTREAM_COMMIT)"` must exit 0 and leave no change to the
+vendored `*.h`/`*.cpp` files. Pass the SHA: without an argument the script syncs to its built-in default.
 
 ## Licensing note
 
 `ssl.{cpp,h}` and `tron.{cpp,h}` are BSD-3-Clause (liblinear v2.11 via
-the percolator-tron fork). All other vendored files are Apache-2.0
-(Percolator). See `NOTICE-percolator.txt` for the full attribution.
+the percolator-tron fork); the `AlgIn` interface in `ssl.h` is OpenMS' own implementation.
+All other vendored files are Apache-2.0 (Percolator). See `NOTICE-percolator.txt` for the full attribution.

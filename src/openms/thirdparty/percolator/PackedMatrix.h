@@ -8,11 +8,11 @@
 #ifndef _PackedMatrix_H
 #define _PackedMatrix_H
 
-
 #include "PackedVector.h"
 #include "Array.h"
 
 namespace OpenMS { namespace Internal { namespace Percolator {
+
 
 class PackedMatrix
 {
@@ -30,7 +30,7 @@ class PackedMatrix
     }
     virtual ~PackedMatrix(){};
 
-    PackedMatrix packedTranspose(const PackedMatrix& mat);
+    static PackedMatrix packedTranspose(const PackedMatrix& mat);
     PackedMatrix packedAdd(const PackedMatrix& rhs);
     PackedMatrix packedMultiply(double scale);
     PackedMatrix packedMultiply(const PackedMatrix & rhs);

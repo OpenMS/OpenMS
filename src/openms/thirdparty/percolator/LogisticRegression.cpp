@@ -14,7 +14,6 @@
  limitations under the License.
 
  *******************************************************************************/
-#include<cmath>
 #include<iterator>
 #include<vector>
 #include<algorithm>
@@ -22,6 +21,7 @@
 #include<functional>
 #include<fstream>
 #include<sstream>
+#include<cmath>
 
 #include "Globals.h"
 #include "LogisticRegression.h"
@@ -29,6 +29,7 @@
 namespace OpenMS { namespace Internal { namespace Percolator {
 
 using namespace std;
+
 
 const double LogisticRegression::gRange = 35.0;
 
@@ -49,32 +50,32 @@ double logit(double p) {
 void LogisticRegression::limitg() {
   for (int ix = gnew.numberEntries(); ix--;) {
     gnew.packedReplace(ix, min(gRange, max(-gRange, gnew[ix])));
-    assert(isfinite(gnew[ix]));
+    assert(std::isfinite(gnew[ix]));
   }
 }
 
 void LogisticRegression::limitgamma() {
   for (int ix = gamma.numberEntries(); ix--;) {
     gamma.packedReplace(ix, min(gRange, max(-gRange, gamma[ix])));
-    assert(isfinite(gamma[ix]));
+    assert(std::isfinite(gamma[ix]));
   }
 }
 
 void LogisticRegression::calcPZW() {
 
   for (std::size_t ix = static_cast<std::size_t>(z.numberEntries()); ix--;) {
-    assert(isfinite(g[ix]));
+    assert(std::isfinite(g[ix]));
     double e = exp(g[ix]);
-    assert(isfinite(e));
+    assert(std::isfinite(e));
     double epsilon = 1e-15;
     p[ix] = min(max(e / (1 + e), epsilon), 1
         - epsilon);
-    assert(isfinite(p[ix]));
+    assert(std::isfinite(p[ix]));
     w.packedReplace(static_cast<int>(ix), max(m[ix] * p[ix] * (1 - p[ix]), epsilon));
-    assert(isfinite(w[ix]));
+    assert(std::isfinite(w[ix]));
     z.packedReplace(static_cast<int>(ix), min(gRange, max(-gRange, g[ix] +
         (y[ix] - p[ix] * m[ix]) / w[ix])));
-    assert(isfinite(z[ix]));
+    assert(std::isfinite(z[ix]));
   }
 }
 
@@ -86,8 +87,8 @@ void LogisticRegression::initg() {
   for (std::size_t ix = static_cast<std::size_t>(g.size()); ix--;) {
     double p = (y[ix] + 0.05) / (m[ix] + 0.1);
     gnew.packedReplace(static_cast<int>(ix), log(p / (1 - p)));
-    assert(isfinite(p));
-    assert(isfinite(g[ix]));
+    assert(std::isfinite(p));
+    assert(std::isfinite(g[ix]));
   }
 #define OUTPUT_DEBUG_FILES
 #undef OUTPUT_DEBUG_FILES

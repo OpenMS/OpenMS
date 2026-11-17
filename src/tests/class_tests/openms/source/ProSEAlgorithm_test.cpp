@@ -6565,7 +6565,7 @@ START_SECTION((static PercolatorRescoring rescoreWithPercolator(std::vector<Prot
   // the run is marked as post-processed by Percolator
   const ProteinIdentification& run = percolator_rescored_proteins[0];
   TEST_EQUAL(run.getSearchEngine(), "Percolator")
-  TEST_EQUAL(run.getSearchEngineVersion(), "3.08-vendored")
+  TEST_EQUAL(run.getSearchEngineVersion(), "3.09-vendored")
   TEST_EQUAL(run.getMetaValue("percolator").toString(), "ProSE")
   const ProteinIdentification::SearchParameters& sp = run.getSearchParameters();
   TEST_EQUAL(sp.getMetaValue("Percolator:peptide_level_fdrs").toString(), "false")

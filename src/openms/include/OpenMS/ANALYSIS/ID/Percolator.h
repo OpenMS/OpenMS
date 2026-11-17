@@ -340,7 +340,7 @@ namespace OpenMS
     void storeWeights(const std::string& filename) const;
 
     /// The search engine version that markRescoredRuns() records for the Percolator built into OpenMS
-    static constexpr const char* VENDORED_VERSION = "3.08-vendored";
+    static constexpr const char* VENDORED_VERSION = "3.09-vendored";
 
     /**
       @brief Marks search runs as post-processed by Percolator, so that downstream tools see that their PSMs were rescored

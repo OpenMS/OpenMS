@@ -14,23 +14,58 @@
  limitations under the License.
 
  *******************************************************************************/
-#include <algorithm>
 #include <iostream>
 #include <cmath>
+#include <limits>
 #include <vector>
 #include <string>
 
+
 #include "Normalizer.h"
 #include "StdvNormalizer.h"
+#include "DataSet.h"
+#include "FeatureNames.h"
 #include "Globals.h"
-
-#ifdef _OPENMP
-#include <omp.h>
-#endif
 
 namespace OpenMS { namespace Internal { namespace Percolator {
 
 using namespace std;
+
+
+namespace {
+
+// The smallest and the largest value of each column. A column is constant
+// exactly if the two are equal.
+struct ColumnRanges {
+  explicit ColumnRanges(size_t numColumns)
+      : minV(numColumns, std::numeric_limits<double>::infinity()),
+        maxV(numColumns, -std::numeric_limits<double>::infinity()) {}
+  void add(size_t ix, double value) {
+    if (value < minV[ix]) minV[ix] = value;
+    if (value > maxV[ix]) maxV[ix] = value;
+  }
+  bool isConstant(size_t ix) const { return minV[ix] == maxV[ix]; }
+  bool hasSpread(size_t ix) const { return maxV[ix] > minV[ix]; }
+  std::vector<double> minV, maxV;
+};
+
+// The squared deviations of values below about 1e-162 in magnitude
+// underflow to 0. The column then keeps its values, which are too small to
+// change a score.
+void warnVarianceUnderflow(size_t featureIndex, const ColumnRanges& ranges,
+                           size_t ix) {
+  const std::streamsize precision = std::cerr.precision(6);
+  std::cerr << "Warning: the variance of feature "
+            << DataSet::getFeatureNames().describeFeature(featureIndex)
+            << " underflows to 0, as its values, between " << ranges.minV[ix]
+            << " and " << ranges.maxV[ix] << ", are too small in magnitude. "
+            << "The feature is not scaled and has practically no effect on "
+            << "the scores. Rescale it in the input, e.g. multiply it by a "
+            << "constant." << std::endl;
+  std::cerr.precision(precision);
+}
+
+}  // namespace
 
 StdvNormalizer::StdvNormalizer() {
 }
@@ -60,55 +95,6 @@ void StdvNormalizer::normalizeweight(const std::vector<double>& in,
   out[i] = in[i] + sum;
 }
 
-// OpenMS: the sums of setSet over the PSMs (features), by feature, in an OpenMP parallel loop over
-// the features: each feature's sums are added up by one thread, over the PSMs in order, as in
-// setSet (the same results). Returns false (and changes nothing) without a team of more than one
-// thread (then the row-major loops of setSet are faster) or if a feature value is not finite (then
-// setSet reports it as before).
-static bool sumsByFeature(const std::vector<double*>& featuresV, std::size_t numFeatures,
-                          std::vector<double>& sub, std::vector<double>& div) {
-#ifdef _OPENMP
-  if (omp_get_max_threads() < 2 || omp_in_parallel()) return false;
-  const std::ptrdiff_t nf = static_cast<std::ptrdiff_t>(numFeatures);
-  const double n = static_cast<double>(featuresV.size());
-  std::vector<double> sums(sub.begin(), sub.begin() + nf), squares(div.begin(), div.begin() + nf);
-  bool byFeature = false, finite = true;
-#pragma omp parallel
-  if (omp_get_num_threads() > 1) {
-#pragma omp single
-    byFeature = true;
-#pragma omp for schedule(static) reduction(&& : finite)
-    for (std::ptrdiff_t ix = 0; ix < nf; ++ix) {
-      double s = sums[static_cast<std::size_t>(ix)];
-      bool finiteFeature = true;
-      for (const double* features : featuresV) {
-        finiteFeature = finiteFeature && std::isfinite(features[ix]);
-        s += features[ix];
-      }
-      finite = finite && finiteFeature;
-      if (!finiteFeature) continue;
-      if (n > 0.0) {
-        s /= n;
-      }
-      double d2 = squares[static_cast<std::size_t>(ix)];
-      for (const double* features : featuresV) {
-        const double d = features[ix] - s;
-        d2 += d * d;
-      }
-      sums[static_cast<std::size_t>(ix)] = s;
-      squares[static_cast<std::size_t>(ix)] = d2;
-    }
-  }
-  if (!byFeature || !finite) return false;
-  std::copy(sums.begin(), sums.end(), sub.begin());
-  std::copy(squares.begin(), squares.end(), div.begin());
-  return true;
-#else
-  (void)featuresV; (void)numFeatures; (void)sub; (void)div;
-  return false;
-#endif
-}
-
 void StdvNormalizer::setSet(std::vector<double*>& featuresV,
                             std::vector<double*>& rtFeaturesV, size_t nf,
                             size_t nrf) {
@@ -116,35 +102,29 @@ void StdvNormalizer::setSet(std::vector<double*>& featuresV,
   numRetentionFeatures = nrf;
   sub.resize(nf + nrf, 0.0);
   div.resize(nf + nrf, 0.0);
-  // OpenMS: large sets without retention features by feature (see sumsByFeature), then as below
-  if (nrf == 0 && VERB <= 2 && featuresV.size() >= 4096 && nf > 1 &&
-      sumsByFeature(featuresV, nf, sub, div)) {
-    for (size_t ix = 0; ix < nf; ++ix) {
-      if (div[ix] <= 0 || featuresV.empty()) {
-        div[ix] = 1.0;
-      } else {
-        div[ix] = sqrt(div[ix] / static_cast<double>(featuresV.size()));
-      }
-    }
-    return;
-  }
   double n = 0.0;
   double* features;
   size_t ix;
   vector<double*>::iterator it = featuresV.begin();
+  ColumnRanges ranges(nf + nrf);
   for (; it != featuresV.end(); ++it) {
     features = *it;
     n++;
     for (ix = 0; ix < numFeatures; ++ix) {
       sub[ix] += features[ix];
+      ranges.add(ix, features[ix]);
     }
   }
   for (it = rtFeaturesV.begin(); it != rtFeaturesV.end(); ++it) {
     features = *it;
     for (ix = numFeatures; ix < numFeatures + numRetentionFeatures; ++ix) {
       sub[ix] += features[ix - numFeatures];
+      ranges.add(ix, features[ix - numFeatures]);
     }
   }
+  // the factors are printed with two digits; the precision of cerr is put
+  // back afterwards, since the Stage lines of -v 3 are printed with it
+  const std::streamsize oldPrecision = cerr.precision();
   if (VERB > 2) {
     cerr.precision(2);
     cerr << "Normalization factors" << endl << "Avg ";
@@ -152,6 +132,14 @@ void StdvNormalizer::setSet(std::vector<double*>& featuresV,
   for (ix = 0; ix < numFeatures + numRetentionFeatures; ++ix) {
     if (n > 0.0) {
       sub[ix] /= n;
+    }
+    // The sum of n copies of a value such as 0.1 is rounded, so the mean of
+    // a constant column can differ from its value in the last bits. Every
+    // row then has the same tiny deviation, which the standard
+    // deviation scales to 1 or -1: a second bias column instead of a
+    // column of zeros. The mean of a constant column is its value.
+    if (ranges.isConstant(ix)) {
+      sub[ix] = ranges.minV[ix];
     }
     if (VERB > 2) {
       cerr << "\t" << sub[ix];
@@ -184,6 +172,9 @@ void StdvNormalizer::setSet(std::vector<double*>& featuresV,
   }
   for (ix = 0; ix < numFeatures + numRetentionFeatures; ++ix) {
     if (div[ix] <= 0 || n == 0) {
+      if (ranges.hasSpread(ix)) {
+        warnVarianceUnderflow(ix, ranges, ix);
+      }
       div[ix] = 1.0;
     } else {
       div[ix] = sqrt(div[ix] / n);
@@ -194,63 +185,10 @@ void StdvNormalizer::setSet(std::vector<double*>& featuresV,
   }
   if (VERB > 2) {
     cerr << endl;
+    cerr.precision(oldPrecision);
   }
-}
-
-
-void StdvNormalizer::updateSet(vector<double*> & featuresV, size_t offset,
-                               size_t numFeatures) {
-  double n = 0.0;
-  double* features;
-  size_t ix;
-  vector<double*>::iterator it = featuresV.begin();
-  for (; it != featuresV.end(); ++it) {
-    features = *it;
-    n++;
-    for (ix = 0; ix < numFeatures; ++ix) {
-      sub[offset + ix] += features[ix];
-    }
-  }
-  if (VERB > 2) {
-    cerr.precision(2);
-    cerr << "Normalization factors" << endl << "Avg ";
-  }
-  for (ix = 0; ix < numFeatures; ++ix) {
-    if (n > 0.0) {
-      sub[offset + ix] /= n;
-    }
-    if (VERB > 2) {
-      cerr << "\t" << sub[offset + ix];
-    }
-  }
-  for (it = featuresV.begin(); it != featuresV.end(); ++it) {
-    features = *it;
-    for (ix = 0; ix < numFeatures; ++ix) {
-      if (!std::isfinite(features[ix])) {
-        cerr << "Reached strange feature with val=" << features[ix]
-            << " at col=" << ix << endl;
-      }
-      double d = features[ix] - sub[offset + ix];
-      div[offset + ix] += d * d;
-    }
-  }
-  
-  if (VERB > 2) {
-    cerr << endl << "Stdv";
-  }
-  for (ix = 0; ix < numFeatures; ++ix) {
-    if (div[offset + ix] <= 0 || n == 0) {
-      div[offset + ix] = 1.0;
-    } else {
-      div[offset + ix] = sqrt(div[offset + ix] / n);
-    }
-    if (VERB > 2) {
-      cerr << "\t" << div[offset + ix];
-    }
-  }
-  if (VERB > 2) {
-    cerr << endl;
-  }
+  checkFactorsFinite(0, numFeatures + numRetentionFeatures, "mean",
+                     "standard deviation");
 }
 
 }}}  // namespace OpenMS::Internal::Percolator

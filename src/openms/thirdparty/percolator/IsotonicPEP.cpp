@@ -8,16 +8,13 @@
 #include <cassert>
 #include <iostream>
 #include <chrono>
-
-#include <Eigen/Dense>
-#include <Eigen/Sparse>
-
 #include "MonotoneRegressor.h"
 #include "IsotonicPEP.h"
 
 namespace OpenMS { namespace Internal { namespace Percolator {
 
 using clock_type = std::chrono::high_resolution_clock;
+
 
 namespace {
 std::vector<double> q_values_to_raw_pep(const std::vector<double>& q_values) {
@@ -83,7 +80,8 @@ std::vector<double> InferPEP::qns_to_pep(const std::vector<double>& q_values, co
 
 std::vector<double>
 InferPEP::tdc_to_pep(const std::vector<double>& is_decoy,
-                     const std::vector<double>& scores) {
+                     const std::vector<double>& scores,
+                     double oddsFactor) {
   if (!scores.empty() && scores.size() != is_decoy.size()) {
     throw std::invalid_argument("InferPEP::tdc_to_pep: scores and is_decoy size mismatch");
   }
@@ -124,7 +122,7 @@ InferPEP::tdc_to_pep(const std::vector<double>& is_decoy,
   std::vector<double> pep_iso(is_decoy.size());
   for (size_t i = 0; i < pep_iso.size(); ++i) {
     double p = decoy_rate[i + offset];
-    double pep = p / (1.0 - p);  
+    double pep = oddsFactor * p / (1.0 - p);
     pep = std::max(0.0, std::min(1.0, pep));
     pep_iso[i] = pep;
   }

@@ -224,10 +224,13 @@ END_SECTION
 
 START_SECTION([EXTRA] warm_start: TRON starts each pair from its weights of the previous iteration)
 {
-  // With warm_start, TRON (the default solver) starts every (Cpos, Cneg) pair from the weights it learned in the previous
-  // iteration instead of 0. At a loose tolerance the solves stop early, so a warm start must change the result (if the
-  // start weights were discarded, warm and cold runs would be identical); repeated warm runs are reproducible, and the
-  // default (no warm start) is the cold training.
+  // With classic_training and warm_start, TRON (the default solver) starts every (Cpos, Cneg) pair from the weights it
+  // learned in the previous iteration instead of 0 (without classic_training every pair starts so anyway). At a loose
+  // tolerance the solves stop early, so a warm start must change the result (if the start weights were discarded, warm
+  // and cold runs would be identical); repeated warm runs are reproducible, and the default (no warm start) is the
+  // cold training. At an FDR of 0.05 the trained weights are kept: at 0.01 the direction check finds no target on these
+  // rows and both runs fall back to the default direction (whose bias is 0 since Percolator 3.09; before, it kept the
+  // trained bias, which differed between the runs).
   const RescoreInput input = makeModeratelySeparableInput_(500, 11);
   auto run = [&](bool warm, double eps)
   {
@@ -235,10 +238,15 @@ START_SECTION([EXTRA] warm_start: TRON starts each pair from its weights of the 
     Param par = p.getDefaults();
     par.setValue("seed", 17);
     par.setValue("num_threads", 3);
+    par.setValue("classic_training", "true");
+    par.setValue("test_fdr", 0.05);
+    par.setValue("train_fdr", 0.05);
     par.setValue("tron_epsilon", eps);
     par.setValue("warm_start", warm ? "true" : "false");
     p.setParameters(par);
-    return p.rescore(input);
+    RescoreOutput out = p.rescore(input);
+    TEST_EQUAL(p.usedDefaultDirection(), false)
+    return out;
   };
   const RescoreOutput cold = run(false, 0.3), warm = run(true, 0.3);
   TEST_EQUAL(cold.scores == warm.scores, false)
@@ -277,7 +285,7 @@ START_SECTION([EXTRA] the large-set paths do not depend on the number of threads
 {
   // 420000 rows, all of them training (subset_max_train 0): the training sets of the folds (280000 rows) and the sorts
   // of the whole set are above the thresholds of the large-set paths: the validations scored in tasks and Newton on
-  // all threads (2^17 rows), the fold chains on all threads (2^18), SortLikeStd's parallel partitions (2^18).
+  // all threads (2^17 rows), the fold chains on all threads (2^18), the parallel sorts (ParallelSort.h).
   // The OpenMP threads change (as with a TOPP tool's -threads), not only num_threads. (The nonparametric PEP: the
   // I-spline PEP's matrix products are split by Eigen by the number of threads.)
   const RescoreInput input = makePortableModeratelySeparableInput_(210000, 23);
@@ -1745,7 +1753,7 @@ START_SECTION((static void markRescoredRuns(std::vector<ProteinIdentification>& 
   for (const ProteinIdentification& run : runs)
   {
     TEST_EQUAL(run.getSearchEngine(), "Percolator")
-    TEST_EQUAL(run.getSearchEngineVersion(), "3.08-vendored")
+    TEST_EQUAL(run.getSearchEngineVersion(), "3.09-vendored")
     TEST_EQUAL(run.getMetaValue("percolator").toString(), "SomeTool")
     const ProteinIdentification::SearchParameters& sp = run.getSearchParameters();
     TEST_REAL_SIMILAR(static_cast<double>(sp.getMetaValue("Percolator:markRescoredRuns_test_b")), 0.05)
@@ -2805,8 +2813,12 @@ START_SECTION((Size rescorePSMs(PeptideIdentificationList& peptide_ids, const St
       all[i].sort();
       best[i].sort();
       same = same && all[i].getHits()[0] == best[i].getHits()[0];
-      // a tie for the best score: the original (first) of the two tied hits is the best one
-      if (all[i].getHits()[0].getScore() == all[i].getHits()[1].getScore())
+      // a tie for the best score between the original and its copy: the original (first) of the two is the best one.
+      // (Not every tie at the top is theirs: in target-decoy competition the original, whose row comes first, wins the
+      // tie with its copy, which Percolator breaks by the input line since 3.09; the hits that lose get an SVM score of 0
+      // and a q-value of 1, so with a winner below 0 or at a q-value of 1 the copy can tie with another losing hit.)
+      if (all[i].getHits()[0].getScore() == all[i].getHits()[1].getScore() &&
+          all[i].getHits()[0].getSequence() == all[i].getHits()[1].getSequence())
       {
         ++tied;
         original_first = original_first && !best[i].getHits()[0].metaValueExists("tie_marker");

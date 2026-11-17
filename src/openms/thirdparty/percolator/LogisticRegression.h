@@ -18,13 +18,13 @@
 #ifndef LOGISTICREGRESSION_H_
 #define LOGISTICREGRESSION_H_
 
-
 #include <vector>
 
 #include "BaseSpline.h"
 #include "Array.h"
 
 namespace OpenMS { namespace Internal { namespace Percolator {
+
 
 class LogisticRegression : public BaseSpline {
   public:

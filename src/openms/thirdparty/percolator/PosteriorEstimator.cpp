@@ -31,30 +31,33 @@
 #include "config.h"
 #endif
 
+#include "Version.h"
 #include "PosteriorEstimator.h"
 #include "Transform.h"
 #include "Globals.h"
-#include "Version.h"
-#include "OpenMPTasks.h"  // OpenMS: PERCOLATOR_OMP_TASKS, PERCOLATOR_TASK_PRAGMA
-#include <exception>
-#include <stdint.h>
-#ifdef _OPENMP
-#include <omp.h>
-#endif
+#include "IsotonicPEP.h"
+#include "FdrWalk.h"
 
 namespace OpenMS { namespace Internal { namespace Percolator {
 
 using namespace std;
 
-static int noIntervals = 500;
+
+static const int kDefaultNoIntervals = 500;
+static int noIntervals = kDefaultNoIntervals;
 static unsigned int numLambda = 100;
 static double maxLambda = 0.5;
 
-bool PosteriorEstimator::reversed = false;
 bool PosteriorEstimator::pvalInput = false;
 bool PosteriorEstimator::competition = false;
-std::atomic<bool> PosteriorEstimator::includeNegativesInResult{false};
 bool PosteriorEstimator::usePi0_ = true;
+
+void PosteriorEstimator::resetToDefaults() {
+  pvalInput = false;
+  competition = false;
+  usePi0_ = true;
+  noIntervals = kDefaultNoIntervals;
+}
 
 pair<double, bool> make_my_pair(double d, bool b) {
   return make_pair(d, b);
@@ -84,29 +87,16 @@ template<class T> void bootstrap(const vector<T>& in, vector<T>& out,
   sort(out.begin(), out.end());
 }
 
-// OpenMS: bootstrap with the numbers drawn from the caller's state of the generator
-template<class T> void bootstrapFrom(const vector<T>& in, vector<T>& out, uint64_t& state,
-                                     size_t max_size = 1000) {
-  out.clear();
-  double n = static_cast<double>(in.size());
-  size_t num_draw = min(in.size(), max_size);
-  for (size_t ix = 0; ix < num_draw; ++ix) {
-    size_t draw = (size_t)(PseudoRandom::lcg_uniform_rand(state) * n);
-    out.push_back(in[draw]);
-  }
-  // sort in desending order
-  sort(out.begin(), out.end());
-}
-
 double mymin(double a, double b) {
   return a > b ? b : a;
 }
 
 void PosteriorEstimator::estimatePEP(vector<pair<double, bool> >& combined,
-    bool usePi0, double pi0, vector<double>& peps, bool include_negative) {
+    bool usePi0, double pi0, vector<double>& peps, bool include_negative,
+    double oddsFactor, bool reversed) {
   // Logistic regression on the data
   LogisticRegression lr;
-  estimate(combined, lr, usePi0, pi0);
+  estimate(combined, lr, usePi0, pi0, reversed);
   vector<double> xvals(0);
   vector<pair<double, bool> >::const_iterator elem = combined.begin();
   for (; elem != combined.end(); ++elem) {
@@ -125,7 +115,8 @@ void PosteriorEstimator::estimatePEP(vector<pair<double, bool> >& combined,
 #endif
   if (peps.size() == 0) return;
   
-  double top = min(1.0, exp(*max_element(peps.begin(), peps.end())));
+  double top =
+      min(1.0, oddsFactor * exp(*max_element(peps.begin(), peps.end())));
   vector<double>::iterator pep = peps.begin();
   bool crap = false;
   for (; pep != peps.end(); ++pep) {
@@ -133,7 +124,7 @@ void PosteriorEstimator::estimatePEP(vector<pair<double, bool> >& combined,
       *pep = top;
       continue;
     }
-    *pep = exp(*pep);
+    *pep = oddsFactor * exp(*pep);
     if (*pep >= top) {
       *pep = top;
       crap = true;
@@ -143,7 +134,7 @@ void PosteriorEstimator::estimatePEP(vector<pair<double, bool> >& combined,
 }
 
 void PosteriorEstimator::estimate(vector<pair<double, bool> >& combined,
-    LogisticRegression& lr, bool usePi0, double pi0) {
+    LogisticRegression& lr, bool usePi0, double pi0, bool reversed) {
   // switch sorting order if we do not use mix-max
   if (!reversed && !usePi0) {
     reverse(combined.begin(), combined.end());
@@ -221,37 +212,43 @@ void PosteriorEstimator::finishStandalone(
   vector<double> q(0), xvals(0);
   if (pvalInput) {
     getQValuesFromP(pi0, p, q);
+    if (includeNegativesInResult_) {
+      // one q value per line, as for score input: the decoys are printed too
+      q = getAllQValuesFromP(pi0, p, q, combined);
+    }
   } else {
-    getQValues(pi0, combined, q);
+    getQValues(pi0, combined, q, false, 0.5, includeNegativesInResult_);
   }
   vector<pair<double, bool> >::const_iterator elem = combined.begin();
   for (; elem != combined.end(); ++elem)
   {
-    if (!includeNegativesInResult && elem->second)
+    if (!includeNegativesInResult_ && elem->second)
     {
       xvals.push_back(elem->first);
     }
-    else if(includeNegativesInResult)
+    else if(includeNegativesInResult_)
     {
       xvals.push_back(elem->first);
     }
   }
   vector<double>::iterator xval = xvals.begin();
   vector<double>::const_iterator qv = q.begin(), pep = peps.begin();
+  // '\n' instead of endl: a flush per line costs one write() call per line
   if (resultFileName.empty()) {
-    cout << "Score\tPEP\tq-value" << endl;
+    cout << "Score\tPEP\tq-value\n";
     for (; xval != xvals.end(); ++xval, ++pep, ++qv)
     {
-      cout << *xval << "\t" << *pep << "\t" << *qv << endl;
+      cout << *xval << "\t" << *pep << "\t" << *qv << '\n';
     }
+    flushStandardOutput();
   } else {
     ofstream resultstream(resultFileName.c_str());
-    resultstream << "Score\tPEP\tq-value" << endl;
+    resultstream << "Score\tPEP\tq-value\n";
     for (; xval != xvals.end(); ++xval, ++pep, ++qv)
     {
-      resultstream << *xval << "\t" << *pep << "\t" << *qv << endl;
+      resultstream << *xval << "\t" << *pep << "\t" << *qv << '\n';
     }
-    resultstream.close();
+    closeOutputFile(resultstream, resultFileName);
   }
 }
 
@@ -326,7 +323,8 @@ void PosteriorEstimator::binData(const vector<pair<double, bool> >& combined,
 }
 
 /**
- * Assumes that scores are sorted in descending order
+ * The mix-max counts of binData. Assumes that scores are sorted in
+ * descending order
  */
 void PosteriorEstimator::getMixMaxCounts(const vector<pair<double, bool> >& combined,
     std::vector<double>& h_w_le_z, std::vector<double>& h_z_le_z) {
@@ -352,190 +350,33 @@ void PosteriorEstimator::getMixMaxCounts(const vector<pair<double, bool> >& comb
 }
 
 /**
- * This is a reimplementation of 
- *   Crux/src/app/AssignConfidenceApplication.cpp::compute_decoy_qvalues_mixmax 
- * Which itself was a reimplementation of Uri Keich's code written in R.
- *
- * Assumes that scores are sorted in descending order
- * 
- * If pi0 == 1.0 this is equal to the "traditional" q-value calculation
+ * The q values of the entries of combined, which have to be sorted with the
+ * best score first: one per target, or one per entry with includeNegatives.
+ * The FDR estimates are those of walkFdrEstimates; with pi0 == 1.0 this is
+ * the "traditional" q-value calculation.
  */
-void PosteriorEstimator::getQValues(double pi0, 
+void PosteriorEstimator::getQValues(double pi0,
     const vector<pair<double, bool> >& combined, vector<double>& q,
-    bool skipDecoysPlusOne, double nullTargetWinProb) {
+    bool skipDecoysPlusOne, double nullTargetWinProb, bool includeNegatives) {
   double decoyFactor = nullTargetWinProb / (1.0 - nullTargetWinProb);
-
-  std::vector<double> h_w_le_z, h_z_le_z; // N_{w<=z} and N_{z<=z}
-  if (pi0 < 1.0) {
-    getMixMaxCounts(combined, h_w_le_z, h_z_le_z);
-  }
-
-  double estPx_lt_zj = 0.0;
-  double E_f1_mod_run_tot = 0.0;
-  double fdr = 0.0;
-
-  int n_z_ge_w = 1, n_w_ge_w = 0; // N_{z>=w} and N_{w>=w}
-  if (skipDecoysPlusOne) n_z_ge_w = 0;
-  
-  std::vector<pair<double, bool> >::const_iterator myPair = combined.begin();
-  int decoyQueue = 0, targetQueue = 0; // handles ties
-  for ( ; myPair != combined.end(); ++myPair) {
-    if (myPair->second) { 
-      ++n_w_ge_w; // target PSM
-      ++targetQueue;
-    } else {
-      ++n_z_ge_w; // decoy PSM
-      ++decoyQueue;
-    }
-    
-    // handles ties
-    if (myPair+1 == combined.end() || myPair->first != (myPair+1)->first) {
-      if (pi0 < 1.0 && decoyQueue > 0) {
-        int j = static_cast<int>(h_w_le_z.size()) - (n_z_ge_w - 1);
-        int cnt_w = static_cast<int>(h_w_le_z.at(static_cast<std::size_t>(j)));
-        int cnt_z = static_cast<int>(h_z_le_z.at(static_cast<std::size_t>(j)));
-        estPx_lt_zj = (double)(cnt_w - pi0*cnt_z) / ((1.0 - pi0)*cnt_z);
-        estPx_lt_zj = estPx_lt_zj > 1 ? 1 : estPx_lt_zj;
-        estPx_lt_zj = estPx_lt_zj < 0 ? 0 : estPx_lt_zj;
-        E_f1_mod_run_tot += decoyQueue * estPx_lt_zj * (1.0 - pi0);
-        if (VERB > 4) {
-          std::cerr << "Mix-max num negatives correction: "
-            << (1.0-pi0) * n_z_ge_w << " vs. " << E_f1_mod_run_tot << std::endl;
+  walkFdrEstimates(
+      combined.size(),
+      [&combined](std::size_t ix) { return combined[ix].second; },
+      [&combined](std::size_t ix) {
+        return combined[ix].first == combined[ix + 1].first;
+      },
+      pi0, decoyFactor, skipDecoysPlusOne,
+      [&q, includeNegatives](std::size_t begin, std::size_t end,
+                             int numGroupTargets, int, double fdr) {
+        const std::size_t numValues =
+            includeNegatives ? end - begin
+                             : static_cast<std::size_t>(numGroupTargets);
+        for (std::size_t i = 0; i < numValues; ++i) {
+          q.push_back((std::min)(fdr, 1.0));
         }
-      }
-      
-      if (includeNegativesInResult) {
-        targetQueue += decoyQueue;
-      }
-      fdr = (n_z_ge_w * pi0 + E_f1_mod_run_tot) / (double)((std::max)(1, n_w_ge_w)) * decoyFactor;
-      for (int i = 0; i < targetQueue; ++i) {
-        q.push_back((std::min)(fdr, 1.0));
-      }
-      decoyQueue = 0;
-      targetQueue = 0;
-    }
-  }
+      });
   // Convert the FDRs into q-values.
   partial_sum(q.rbegin(), q.rend(), q.rbegin(), mymin);
-}
-
-// OpenMS: the smallest block of PSMs a task of getQValuesInTasks handles
-[[maybe_unused]] static const size_t kMinQValueBlock = 4096;
-
-/**
- * OpenMS: getQValues(pi0, combined, q, skipDecoysPlusOne, nullTargetWinProb) with the tasks of
- * an enclosing OpenMP parallel region, for pi0 = 1 (then getQValues makes no mix-max correction,
- * and every FDR is a number in [0, +inf]), a finite decoy factor >= 0 and an empty q; otherwise
- * returns false and does nothing.
- * The PSMs are split into blocks of whole groups of equal scores (at fixed positions, not
- * depending on the number of threads). The targets and decoys of the blocks are counted first,
- * so each block computes the FDRs of its groups from the same counts as the loop of getQValues,
- * by the same expression. The q-values (the minimum FDR from a position to the end: the q-values
- * are numbers in [0, 1], so the order of the minimisation does not matter) are the minima
- * within each block, and then the minimum of these and the q-value at the start of the next
- * block.
- */
-bool PosteriorEstimator::getQValuesInTasks(double pi0,
-    const vector<pair<double, bool> >& combined, vector<double>& q,
-    bool skipDecoysPlusOne, double nullTargetWinProb) {
-#ifdef _OPENMP
-  const size_t n = combined.size();
-  const double decoyFactor = nullTargetWinProb / (1.0 - nullTargetWinProb);
-  if (pi0 != 1.0 || !(decoyFactor >= 0.0) || !std::isfinite(decoyFactor) || !q.empty() ||
-      n < 2 * kMinQValueBlock || n > static_cast<size_t>(INT_MAX) || !omp_in_parallel()) {
-    return false;
-  }
-  const bool withNegatives = includeNegativesInResult;
-  // the blocks [starts[b], starts[b + 1]): from multiples of the block size (kMinQValueBlock, or
-  // more for at most 64 blocks: libgomp runs all tasks of a taskloop in the encountering thread if
-  // its team's queue would then hold more than 64 tasks per thread) to the next group (each
-  // position is compared at most once)
-  const size_t blockSize = (std::max)(kMinQValueBlock, (n + 63) / 64);
-  vector<size_t> starts(1, 0);
-  size_t scanned = 1;
-  for (size_t at = blockSize; at < n; at += blockSize) {
-    size_t start = (std::max)(at, scanned);
-    while (start < n && combined[start - 1].first == combined[start].first) ++start;
-    scanned = start + 1;
-    if (start >= n) break;
-    if (start > starts.back()) starts.push_back(start);
-  }
-  starts.push_back(n);
-  const int numBlocks = static_cast<int>(starts.size() - 1);
-  vector<int> targets(static_cast<size_t>(numBlocks)), decoys(static_cast<size_t>(numBlocks));
-  PERCOLATOR_TASK_PRAGMA(omp taskloop grainsize(1) shared(combined, starts, targets, decoys))
-  for (int b = 0; b < numBlocks; ++b) {
-    int t = 0, d = 0;
-    for (size_t i = starts[static_cast<size_t>(b)]; i < starts[static_cast<size_t>(b) + 1]; ++i) {
-      if (combined[i].second) ++t; else ++d;
-    }
-    targets[static_cast<size_t>(b)] = t;
-    decoys[static_cast<size_t>(b)] = d;
-  }
-  // the counts before each block, and the position of its first q-value
-  vector<int> zBefore(static_cast<size_t>(numBlocks)), wBefore(static_cast<size_t>(numBlocks));
-  vector<size_t> qBefore(static_cast<size_t>(numBlocks) + 1);
-  int n_z = skipDecoysPlusOne ? 0 : 1, n_w = 0;
-  qBefore[0] = 0;
-  for (size_t b = 0; b < static_cast<size_t>(numBlocks); ++b) {
-    zBefore[b] = n_z;
-    wBefore[b] = n_w;
-    n_z += decoys[b];
-    n_w += targets[b];
-    qBefore[b + 1] = qBefore[b] + static_cast<size_t>(targets[b]) +
-                     (withNegatives ? static_cast<size_t>(decoys[b]) : 0u);
-  }
-  q.resize(qBefore[static_cast<size_t>(numBlocks)]);
-  PERCOLATOR_TASK_PRAGMA(omp taskloop grainsize(1) shared(combined, starts, zBefore, wBefore, qBefore, q))
-  for (int b = 0; b < numBlocks; ++b) {
-    // the loop of getQValues on the block, without the mix-max correction (pi0 >= 1)
-    const double E_f1_mod_run_tot = 0.0;
-    int n_z_ge_w = zBefore[static_cast<size_t>(b)], n_w_ge_w = wBefore[static_cast<size_t>(b)];
-    int decoyQueue = 0, targetQueue = 0;
-    size_t out = qBefore[static_cast<size_t>(b)];
-    const size_t end = starts[static_cast<size_t>(b) + 1];
-    for (size_t i = starts[static_cast<size_t>(b)]; i < end; ++i) {
-      if (combined[i].second) {
-        ++n_w_ge_w;
-        ++targetQueue;
-      } else {
-        ++n_z_ge_w;
-        ++decoyQueue;
-      }
-      if (i + 1 == end || combined[i].first != combined[i + 1].first) {
-        if (withNegatives) {
-          targetQueue += decoyQueue;
-        }
-        double fdr = (n_z_ge_w * pi0 + E_f1_mod_run_tot) / (double)((std::max)(1, n_w_ge_w)) * decoyFactor;
-        for (int k = 0; k < targetQueue; ++k) {
-          q[out++] = (std::min)(fdr, 1.0);
-        }
-        decoyQueue = 0;
-        targetQueue = 0;
-      }
-    }
-    // the minima within the block
-    for (size_t k = qBefore[static_cast<size_t>(b) + 1]; k-- > qBefore[static_cast<size_t>(b)] + 1;) {
-      q[k - 1] = mymin(q[k], q[k - 1]);
-    }
-  }
-  // the minimum of the q-values after each block
-  vector<double> after(static_cast<size_t>(numBlocks), 2.0);  // above every FDR (none after the last block)
-  for (size_t b = static_cast<size_t>(numBlocks) - 1; b-- > 0;) {
-    const bool empty = qBefore[b + 1] == qBefore[b + 2];
-    after[b] = empty ? after[b + 1] : mymin(after[b + 1], q[qBefore[b + 1]]);
-  }
-  PERCOLATOR_TASK_PRAGMA(omp taskloop grainsize(1) shared(after, qBefore, q))
-  for (int b = 0; b < numBlocks - 1; ++b) {
-    for (size_t k = qBefore[static_cast<size_t>(b)]; k < qBefore[static_cast<size_t>(b) + 1]; ++k) {
-      q[k] = mymin(after[static_cast<size_t>(b)], q[k]);
-    }
-  }
-  return true;
-#else
-  (void)pi0; (void)combined; (void)q; (void)skipDecoysPlusOne; (void)nullTargetWinProb;
-  return false;
-#endif
 }
 
 void PosteriorEstimator::getQValuesFromP(double pi0,
@@ -547,6 +388,42 @@ void PosteriorEstimator::getQValuesFromP(double pi0,
 		q.push_back((*myP * m * pi0) / (double)nP);
 	}
 	partial_sum(q.rbegin(), q.rend(), q.rbegin(), mymin);
+}
+
+/**
+ * The q values of all entries of combined for p value input, where the
+ * targets are the p values and the decoys are the quantiles of the uniform
+ * distribution that run() adds. A target keeps its value of
+ * getQValuesFromP (targetQ). A decoy gets the same estimate at its own p
+ * value d, pi0 * m * d / #{p <= d}, limited by the q value of the next
+ * target, so that the values do not decrease along the list. Both p and
+ * combined have to be sorted in ascending order.
+ */
+vector<double> PosteriorEstimator::getAllQValuesFromP(double pi0,
+    const vector<double>& p, const vector<double>& targetQ,
+    const vector<pair<double, bool> >& combined) {
+  const double m = static_cast<double>(p.size());
+  vector<double> q;
+  q.reserve(combined.size());
+  size_t numTargets = 0;  // targets written so far
+  size_t numLe = 0;       // p values <= the current decoy
+  for (const auto& elem : combined) {
+    if (elem.second) {
+      // a target of combined is a p value, so targetQ has a value for it
+      q.push_back(targetQ.at(numTargets++));
+      continue;
+    }
+    while (numLe < p.size() && p[numLe] <= elem.first) {
+      ++numLe;
+    }
+    double fdr = pi0 * m * elem.first /
+                 static_cast<double>((std::max)(numLe, static_cast<size_t>(1)));
+    if (numLe < targetQ.size()) {
+      fdr = (std::min)(fdr, targetQ[numLe]);
+    }
+    q.push_back(fdr);
+  }
+  return q;
 }
 
 // assumes pep are sorted in ascending order
@@ -631,7 +508,7 @@ double PosteriorEstimator::estimatePi0(vector<double>& p,
         std::cerr << "No-terminate flag set: setting pi0 = 1 and ignoring error." << std::endl;
         return 1.0;
       } else {
-        std::cerr << "No-terminate flag set: ignoring error." << std::endl;
+        throw MyException(oss.str() + "Cannot continue without pi0 estimate. Terminating.\n");
       }
     } else {
       throw MyException(oss.str() + "Terminating.\n");
@@ -642,55 +519,8 @@ double PosteriorEstimator::estimatePi0(vector<double>& p,
   vector<double> pBoot, mse;
   // Initialize the vector mse with zeroes.
   fill_n(back_inserter(mse), pi0s.size(), 0.0);
-  // OpenMS: inside an OpenMP parallel region (CrossValidation, Scores::merge), the bootstraps
-  // are tasks: each draws its numbers from the generator's state at its first draw (the
-  // bootstraps draw min(n, 1000) numbers each, see bootstrap; PseudoRandom::advance), the
-  // errors are added up in the order of the bootstraps as below, and the generator ends in
-  // the state the loop below leaves.
-  bool booted = false;
-#ifdef _OPENMP
-  if (numBoot > 1 && numBoot <= static_cast<unsigned int>(INT_MAX) && !p.empty() &&
-      omp_in_parallel()) {
-    const uint64_t numDraw = min(p.size(), static_cast<size_t>(1000));
-    const uint64_t seed = PseudoRandom::getSeed();
-    const size_t numLambdas = lambdas.size();
-    vector<double> pi0Boots(static_cast<size_t>(numBoot) * numLambdas);
-    vector<std::exception_ptr> errors(numBoot);
-    PERCOLATOR_TASK_PRAGMA(omp taskloop grainsize(4) shared(p, lambdas, pi0Boots, errors))
-    for (int boot = 0; boot < static_cast<int>(numBoot); ++boot) {
-      try {
-        uint64_t state = PseudoRandom::advance(seed, static_cast<uint64_t>(boot) * numDraw);
-        vector<double> pBootOfTask;
-        bootstrapFrom<double>(p, pBootOfTask, state);
-        const size_t nBoot = pBootOfTask.size();
-        for (size_t ix = 0; ix < numLambdas; ++ix) {
-          vector<double>::const_iterator startOfTask =
-              lower_bound(pBootOfTask.begin(), pBootOfTask.end(), lambdas[ix]);
-          double Wl = (double)distance(startOfTask, pBootOfTask.cend());
-          pi0Boots[static_cast<size_t>(boot) * numLambdas + ix] =
-              Wl / static_cast<double>(nBoot) / (1. - lambdas[ix]);
-        }
-      } catch (...) {
-        errors[static_cast<size_t>(boot)] = std::current_exception();
-      }
-    }
-    for (const std::exception_ptr& error : errors) {
-      if (error) std::rethrow_exception(error);
-    }
-    for (unsigned int boot = 0; boot < numBoot; ++boot) {
-      for (unsigned int ix = 0; ix < lambdas.size(); ++ix) {
-        double pi0Boot = pi0Boots[static_cast<size_t>(boot) * numLambdas + ix];
-        // Estimated mean-squared error.
-        mse[ix] += (pi0Boot - minPi0) * (pi0Boot - minPi0);
-      }
-    }
-    PseudoRandom::setSeed(static_cast<unsigned long>(
-        PseudoRandom::advance(seed, static_cast<uint64_t>(numBoot) * numDraw)));
-    booted = true;
-  }
-#endif
   // Examine which lambda level that is most stable under bootstrap
-  for (unsigned int boot = 0; !booted && boot < numBoot; ++boot) {
+  for (unsigned int boot = 0; boot < numBoot; ++boot) {
     // Create an array of bootstrapped p-values, and sort in ascending order.
     bootstrap<double> (p, pBoot);
     n = pBoot.size();
@@ -709,26 +539,65 @@ double PosteriorEstimator::estimatePi0(vector<double>& p,
   return pi0;
 }
 
+void PosteriorEstimator::readScores(const std::string& fileName,
+                                    const char* role,
+                                    std::vector<double>& scores) {
+  ifstream in(fileName.c_str(), ios::in);
+  if (!in.is_open()) {
+    throw MyException("ERROR: Could not open the " + std::string(role) +
+                      " file " + fileName + ".\n");
+  }
+  // strtod on each whitespace-separated token gives the same values as
+  // operator>>, which also converts with strtod, but reports the token at
+  // which reading stops instead of ending the list there
+  std::string token;
+  while (in >> token) {
+    char* end = nullptr;
+    double value = std::strtod(token.c_str(), &end);
+    if (end == token.c_str() || *end != '\0' || !std::isfinite(value)) {
+      ostringstream oss;
+      oss << "ERROR: Value " << scores.size() + 1 << " of the " << role
+          << " file " << fileName << " is not a finite number: \"" << token
+          << "\"." << std::endl;
+      throw MyException(oss.str());
+    }
+    scores.push_back(value);
+  }
+  if (in.bad()) {
+    throw MyException("ERROR: Could not read the " + std::string(role) +
+                      " file " + fileName + ".\n");
+  }
+  if (scores.empty()) {
+    throw MyException("ERROR: The " + std::string(role) + " file " +
+                      fileName + " contains no values.\n");
+  }
+}
+
 int PosteriorEstimator::run() {
-  ifstream target(targetFile.c_str(), ios::in), decoy(decoyFile.c_str(),
-                                                      ios::in);
-  istream_iterator<double> tarIt(target), decIt(decoy), tarEnd, decEnd;
+  if (nothingToRun_) {
+    return true;  // parseOptions printed the version or the help
+  }
   // Merge a labeled version of the two lists into a combined list
   vector<pair<double, bool> > combined;
   vector<double> pvals;
   if (!pvalInput) {
-      std::transform(tarIt, tarEnd, std::back_inserter(combined),
-                       [](double value) { return make_my_pair(value, true); });
+      vector<double> targetScores, decoyScores;
+      readScores(targetFile, "target score", targetScores);
+      readScores(decoyFile, "null score", decoyScores);
+      std::transform(targetScores.begin(), targetScores.end(),
+                     std::back_inserter(combined),
+                     [](double value) { return make_my_pair(value, true); });
       size_t targetSize = combined.size();
-      std::transform(decIt, decEnd, std::back_inserter(combined),
-                       [](double value) { return make_my_pair(value, false); });
+      std::transform(decoyScores.begin(), decoyScores.end(),
+                     std::back_inserter(combined),
+                     [](double value) { return make_my_pair(value, false); });
 
       if (VERB > 0) {
             std::cerr << "Read " << targetSize << " target scores and "
                       << (combined.size() - targetSize) << " decoy scores" << std::endl;
       }
   } else {
-      std::copy(tarIt, tarEnd, std::back_inserter(pvals));
+      readScores(targetFile, "p value", pvals);
       std::sort(pvals.begin(), pvals.end());
       std::transform(pvals.begin(), pvals.end(), std::back_inserter(combined),
                        [](double value) { return make_my_pair(value, true); });
@@ -738,18 +607,21 @@ int PosteriorEstimator::run() {
       for (size_t ix = 0; ix < nDec; ++ix) {
           combined.push_back(make_my_pair(step * static_cast<double>(1 + 2 * ix), false));
       }
-      reversed = true;
+      reversed_ = true;
 
       if (VERB > 0) {
             std::cerr << "Read " << pvals.size() << " statistics" << std::endl;
       }
   }
-  if (reversed) {
+  if (reversed_) {
     if (VERB > 0) {
       cerr << "Reversing all scores" << endl;
     }
   }
-  if (reversed) // sorting in ascending order
+  // std::sort here and above, not parallelSort: -0 and 0 in the input compare
+  // equal but print differently, and only a sort on one thread puts them in
+  // an order that does not depend on the number of threads.
+  if (reversed_) // sorting in ascending order
   {
     sort(combined.begin(), combined.end());
   }
@@ -773,11 +645,95 @@ int PosteriorEstimator::run() {
     }
   }
   
-  // Logistic regression on the data
-  estimatePEP(combined, usePi0_, pi0, peps,includeNegativesInResult);
+  if (irlsPep_) {
+    // Logistic regression on the data
+    estimatePEP(combined, usePi0_, pi0, peps, includeNegativesInResult_, 1.0,
+                reversed_);
+  } else {
+    estimateMonotonePEP(combined, pvals, pi0, peps);
+  }
   finishStandalone(combined, peps, pvals, pi0);
 
   return true;
+}
+
+void PosteriorEstimator::estimateMonotonePEP(
+    const vector<pair<double, bool> >& combined, const vector<double>& p,
+    double pi0, vector<double>& peps) const {
+  // combined is sorted best first; the regressions expect larger x = better
+  const double sign = reversed_ ? -1.0 : 1.0;
+  InferPEP reg(!pavaPep_);
+  peps.clear();
+  if (tdcPep_ && !pvalInput) {
+    // decoy rate p(x) and PEP = p/(1-p); with separate target and decoy
+    // searches the odds are scaled by pi0 and the ratio of targets to decoys
+    vector<double> isDecoy, x;
+    double numTargets = 0.0, numDecoys = 0.0;
+    for (const auto& elem : combined) {
+      isDecoy.push_back(elem.second ? 0.0 : 1.0);
+      x.push_back(sign * elem.first);
+      (elem.second ? numTargets : numDecoys) += 1.0;
+    }
+    const double oddsFactor =
+        usePi0_ ? pi0 * numTargets / std::max(1.0, numDecoys) : 1.0;
+    vector<double> all = rankPep_ ? reg.tdc_to_pep(isDecoy, {}, oddsFactor)
+                                  : reg.tdc_to_pep(isDecoy, x, oddsFactor);
+    for (size_t ix = 0; ix < combined.size(); ++ix) {
+      if (combined[ix].second || includeNegativesInResult_) {
+        peps.push_back(all[ix]);
+      }
+    }
+    return;
+  }
+  if (tdcPep_ && VERB > 0) {
+    cerr << "Warning: --tdc-pep needs target and null scores, using the "
+         << "q values of the targets instead." << endl;
+  }
+  // raw PEPs from the target q values, n q_n - (n-1) q_{n-1}, regressed on
+  // the score or the rank
+  vector<double> q, targetQ, targetX;
+  if (pvalInput) {
+    getQValuesFromP(pi0, p, q);
+    if (includeNegativesInResult_) {
+      q = getAllQValuesFromP(pi0, p, q, combined);
+    }
+  } else {
+    getQValues(pi0, combined, q, false, 0.5, includeNegativesInResult_);
+  }
+  // q holds one value per target, or per entry with includeNegativesInResult_
+  const bool allEntries = includeNegativesInResult_;
+  for (size_t ix = 0, iq = 0; ix < combined.size(); ++ix) {
+    if (!combined[ix].second && !allEntries) continue;
+    if (combined[ix].second && iq < q.size()) {
+      targetQ.push_back(q[iq]);
+      targetX.push_back(sign * combined[ix].first);
+    }
+    ++iq;
+  }
+  vector<double> targetPep = rankPep_ ? reg.q_to_pep(targetQ)
+                                      : reg.qns_to_pep(targetQ, targetX);
+  if (!includeNegativesInResult_) {
+    peps = targetPep;
+    return;
+  }
+  // decoys get PEPs interpolated by their q values between the targets
+  // around them, as in Percolator
+  targetPep.push_back(1.0);
+  targetQ.push_back(1.0);
+  size_t it = 0;
+  double lastQ = 0.0, lastPep = 0.0;
+  for (size_t ix = 0; ix < combined.size(); ++ix) {
+    const double qv = (allEntries && ix < q.size()) ? q[ix] : lastQ;
+    if (combined[ix].second) {
+      peps.push_back(targetPep[it]);
+      lastQ = targetQ[it];
+      lastPep = targetPep[it];
+      ++it;
+    } else {
+      peps.push_back(reg.interpolate(qv, lastQ, targetQ[it], lastPep,
+                                     targetPep[it]));
+    }
+  }
 }
 
 string PosteriorEstimator::greeter() {
@@ -791,6 +747,4 @@ string PosteriorEstimator::greeter() {
   return oss.str();
 }
 
-
 }}}  // namespace OpenMS::Internal::Percolator
-

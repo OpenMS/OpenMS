@@ -445,9 +445,18 @@ namespace OpenMS
                        "values (e.g. 1e-3) train much faster on large runs; the results differ.",
                        {"advanced"});
     defaults_.setMinFloat("rescoring:tron_epsilon", 1e-15);
+    defaults_.setValue("rescoring:classic_training", "false",
+                       "Percolator trains as up to its version 3.09 (Percolator's parameter 'classic_training'): all "
+                       "'rescoring:iterations' iterations, every (Cpos, Cneg) pair in every iteration, each SVM from zero "
+                       "weights. 'false' (default, Percolator's current training): each SVM starts from its weights of "
+                       "the previous iteration, each fold's (Cpos, Cneg) pair is fixed after three iterations, and the "
+                       "training stops when it gains less than 0.1% over two iterations (faster; the results differ).",
+                       {"advanced"});
+    defaults_.setValidStrings("rescoring:classic_training", {"true", "false"});
     defaults_.setValue("rescoring:warm_start", "false",
-                       "Each SVM training of an iteration starts from the weights of the previous iteration instead of "
-                       "0 (faster; the results differ).",
+                       "With 'rescoring:classic_training': each SVM training of an iteration starts from the weights of "
+                       "the previous iteration instead of 0 (faster; the results differ). Without it (and with the "
+                       "solvers 'newton' and 'lda') every training starts so.",
                        {"advanced"});
     defaults_.setValidStrings("rescoring:warm_start", {"true", "false"});
     defaults_.setValue("rescoring:single_cneg", "false",
@@ -1044,6 +1053,7 @@ namespace OpenMS
     percolator_training_.iterations = static_cast<int>(param_.getValue("rescoring:iterations"));
     percolator_training_.tron_epsilon = static_cast<double>(param_.getValue("rescoring:tron_epsilon"));
     percolator_training_.warm_start = param_.getValue("rescoring:warm_start").toString() == "true";
+    percolator_training_.classic_training = param_.getValue("rescoring:classic_training").toString() == "true";
     percolator_training_.single_cneg = param_.getValue("rescoring:single_cneg").toString() == "true";
     percolator_training_.solver = param_.getValue("rescore_solver").toString();
     percolator_training_.use_pi0 = param_.getValue("rescoring:use_pi0").toString();

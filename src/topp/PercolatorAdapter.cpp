@@ -1069,7 +1069,7 @@ protected:
         // historical subprocess output's metadata contract downstream tools rely on.
         stampPercolatorAdapterMetadata_(all_protein_ids,
           peptide_level_fdrs, protein_level_fdrs,
-          /*version_string=*/"3.08-vendored");
+          /*version_string=*/Percolator::VENDORED_VERSION);
 
         // Apply the same post-filters the subprocess path uses, so the two
         // backends produce equivalent output for -score:fdr / -best_per_spectrum_only.

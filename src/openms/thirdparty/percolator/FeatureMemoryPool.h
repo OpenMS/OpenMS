@@ -17,27 +17,34 @@
 #ifndef FEATURE_MEMORY_POOL_H_
 #define FEATURE_MEMORY_POOL_H_
 
-
 /* Adapted from https://www.thinkmind.org/download.php?articleid=computation_tools_2012_1_10_80006 */
 
-#include <cstddef>
+#include <memory>
 #include <vector>
 #include <iostream>
 
 namespace OpenMS { namespace Internal { namespace Percolator {
 
+
+/* Storage of the feature rows of the PSMs, in blocks of 8 MiB. */
 class FeatureMemoryPool {
  private:
-   static const unsigned int kBlockSize = 65536; // in number of doubles, e.g. 0.5MB if sizeof(double) = 8
-   unsigned int numRowsPerBlock_, numFeatures_, initializedRows_;
-   std::vector<double*> memStarts_;
+   static const unsigned int kBlockSize = 1u << 20; // in number of doubles, e.g. 8MB if sizeof(double) = 8
+   struct BlockDeleter {
+     void operator()(double* block) const;
+   };
+   unsigned int numRowsPerBlock_, numFeatures_, rowStride_, initializedRows_;
+   std::vector<std::unique_ptr<double[], BlockDeleter> > memStarts_;
    std::vector<double*> freeRows_;
    bool isInitialized_;
+   bool svmRowsInPlace_;
  public:
-  FeatureMemoryPool() : numRowsPerBlock_(0), numFeatures_(0), 
-                        initializedRows_(0), isInitialized_(false) {}
+  FeatureMemoryPool() : numRowsPerBlock_(0), numFeatures_(0), rowStride_(0),
+                        initializedRows_(0), isInitialized_(false),
+                        svmRowsInPlace_(false) {}
 
-  ~FeatureMemoryPool() { destroyPool(); }
+  FeatureMemoryPool(const FeatureMemoryPool&) = delete;
+  FeatureMemoryPool& operator=(const FeatureMemoryPool&) = delete;
 
   void createPool(size_t numFeatures);
   void createNewBlock();
@@ -45,18 +52,27 @@ class FeatureMemoryPool {
   
   inline bool isInitialized() const { return isInitialized_; }
 
+  // With on, the pools created afterwards give rows of numFeatures features
+  // followed by the constant 1.0, the intercept column of the SVM, and put
+  // their blocks on huge pages where the system allows it (Linux), so that
+  // the SVM can train on the rows in place (see AlgIn and
+  // CrossValidation::setSvmRowsInPlace).
+  inline void setSvmRowsInPlace(bool on) { svmRowsInPlace_ = on; }
+  inline bool svmRowsInPlace() const { return svmRowsInPlace_; }
+  // number of doubles from one row to the next
+  inline unsigned int rowStride() const { return rowStride_; }
+  // whether the rows of the current pool end with 1.0
+  inline bool hasInterceptColumn() const { return rowStride_ > numFeatures_; }
+  // whether the rows of the current pool hold numFeatures features followed
+  // by the intercept 1.0, as training in place needs
+  inline bool canTrainInPlace(size_t numFeatures) const {
+    return hasInterceptColumn() && numFeatures_ == numFeatures;
+  }
+
   double* addressFromIdx(unsigned int i) const;
 
   double* allocate();
   void deallocate(double* p);
-
-  // OpenMS: see FeatureMemoryPool.cpp
-  bool moveRowsInOrder(const std::vector<double**>& rows, std::size_t numFeatures);
-  void reserveRows(std::size_t numRows);
-  // OpenMS: the rows that the next numRows calls of allocate() would return (rows k, k + 1, ... of the pool, see
-  // FeatureMemoryPool.cpp), taken at once; afterwards rowOfClaim(first + i) is the i-th of them
-  bool claimRows(std::size_t numRows, std::size_t& first);
-  double* rowOfClaim(std::size_t k) const { return addressFromIdx(static_cast<unsigned int>(k)); }
 };
 
 }}}  // namespace OpenMS::Internal::Percolator

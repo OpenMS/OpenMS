@@ -9,7 +9,9 @@
 
 #include <algorithm>
 #include <vector>
+
 namespace OpenMS { namespace Internal { namespace Percolator {
+
 
 PackedMatrix PackedMatrix::packedTranspose(const PackedMatrix& mat) {
   PackedMatrix res = PackedMatrix(mat.numCols(), mat.numRows());
@@ -43,7 +45,7 @@ PackedMatrix PackedMatrix::packedMultiply(double scale)
 
 PackedMatrix PackedMatrix::packedMultiply(const PackedMatrix & rhs){
   PackedMatrix res = PackedMatrix(numRows(),rhs.numCols());
-  PackedMatrix trhs = trhs.packedTranspose(rhs);
+  PackedMatrix trhs = packedTranspose(rhs);
   // OpenMS: per row, only the columns that share an index with it (the nonzero entries of the
   // rows of rhs at the row's indices), in increasing order: the dot product with any other
   // column is 0, which is not stored. The products of the (banded) matrices of BaseSpline take

@@ -409,6 +409,7 @@ namespace OpenMS
       pp.setValue("num_iterations", training.iterations);
       pp.setValue("tron_epsilon", training.tron_epsilon);
       pp.setValue("warm_start", training.warm_start ? "true" : "false");
+      pp.setValue("classic_training", training.classic_training ? "true" : "false");
       pp.setValue("single_cneg", training.single_cneg ? "true" : "false");
       pp.setValue("pep_method", "nonparametric");  // as the percolator executable
       // cross-validation trains 9 models at a time (3 folds x 3 Cneg values) and sorts on more threads (up to 12); the
@@ -1044,6 +1045,7 @@ namespace OpenMS
     settings.emplace_back("post_processing_tdc", "true");
     settings.emplace_back("train_best_positive", "true");
     settings.emplace_back("solver", training.solver != "tron" ? DataValue(training.solver) : DataValue::EMPTY);
+    settings.emplace_back("classic_training", training.classic_training ? DataValue("true") : DataValue::EMPTY);
     const auto rr = perc != nullptr ? perc->getResetOutput() : nullptr;
     const bool peptide_q_values = training.peptide_level && reuse == nullptr && perc != nullptr && !rr;
     settings.emplace_back("peptide_q_values", peptide_q_values ? DataValue("percolator_peptide_q_value, percolator_peptide_pep")

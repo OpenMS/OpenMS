@@ -1,8 +1,8 @@
 diff --git a/src/openms/thirdparty/percolator/BaseSpline.cpp b/src/openms/thirdparty/percolator/BaseSpline.cpp
-index 78510f44..0fba4e69 100644
+index fcb8c992e4217574dfae45f4c907a6cbc63dc2b4..9a7f192ee9b8984fe1dc70aa7e5e22b5e785b2b4 100644
 --- a/src/openms/thirdparty/percolator/BaseSpline.cpp
 +++ b/src/openms/thirdparty/percolator/BaseSpline.cpp
-@@ -28,6 +28,28 @@ namespace OpenMS { namespace Internal { namespace Percolator {
+@@ -29,6 +29,28 @@ namespace OpenMS { namespace Internal { namespace Percolator {
  
  using namespace std;
  
@@ -31,7 +31,7 @@ index 78510f44..0fba4e69 100644
  class SplinePredictor {
      BaseSpline* bs;
    public:
-@@ -152,6 +174,7 @@ void BaseSpline::iterativeReweightedLeastSquares(double alpha) {
+@@ -112,6 +134,7 @@ void BaseSpline::iterativeReweightedLeastSquares(double alpha) {
      gamma = Qt.packedMultiply(z);
      solveInPlace(M,gamma);
      gnew = z.packedSubtract(aWiQ.packedMultiply(gamma));
@@ -39,15 +39,3 @@ index 78510f44..0fba4e69 100644
      limitg();
      PackedVector difference = g.packedSubtract(gnew);
      step = packedNorm(difference) / n;
-@@ -350,11 +373,6 @@ void BaseSpline::initiateBanded() {
- #endif
- 
- namespace {
--  // a vector of the sparse matrix code that has every index 0..size-1
--  bool isFilled(const PackedVector& v, int size) {
--    return v.size() == size && v.numberEntries() == size && (size == 0 || v.index(size - 1) == size - 1);
--  }
--
-   int findInRow(const BaseSpline::BandRow& row, int col) {
-     for (int k = 0; k < row.size; ++k) {
-       if (row.index[k] == col) {

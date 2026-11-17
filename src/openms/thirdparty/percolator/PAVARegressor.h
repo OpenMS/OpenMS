@@ -1,5 +1,3 @@
-#pragma once
-
 #include "MonotoneRegressor.h"
 #include <algorithm>
 #include <cassert>
@@ -7,6 +5,7 @@
 #include <stdexcept>
 
 namespace OpenMS { namespace Internal { namespace Percolator {
+
 
 class PAVARegressor final : public MonotoneRegressor {
 public:
@@ -35,11 +34,23 @@ public:
                        return descending_x ? (x[lhs] > x[rhs]) : (x[lhs] < x[rhs]);
                      });
 
-    std::vector<double> y_sorted(y.size());
+    // Observations with the same x form one block from the start: the fit
+    // is a function of x, so they get one value, the mean of their y if no
+    // neighbouring block is merged into it. Fed one by one in input order,
+    // a run of equal x could be split, and e.g. PSMs with the same score
+    // got different PEPs depending on where the decoys stood among them.
+    std::vector<double> block_sum;
+    std::vector<int> block_count;
     for (size_t i = 0; i < order.size(); ++i) {
-      y_sorted[i] = y[order[i]];
+      if (i > 0 && x[order[i]] == x[order[i - 1]]) {
+        block_sum.back() += y[order[i]];
+        ++block_count.back();
+      } else {
+        block_sum.push_back(y[order[i]]);
+        block_count.push_back(1);
+      }
     }
-    const auto fit_sorted = pava_impl(y_sorted, clip_lo, clip_hi);
+    const auto fit_sorted = pava_impl(block_sum, block_count, clip_lo, clip_hi);
 
     std::vector<double> out(y.size());
     for (size_t i = 0; i < order.size(); ++i) {
@@ -50,24 +61,30 @@ public:
 
   std::vector<double> fit_y(const std::vector<double>& y,
                             double clip_lo = 0.0, double clip_hi = 1.0) override {
-    auto out = pava_impl(y, clip_lo, clip_hi);
-    return out;
+    // no x: every observation is a block of its own
+    return pava_impl(y, std::vector<int>(y.size(), 1), clip_lo, clip_hi);
   }
 
 private:
-  std::vector<double> pava_impl(const std::vector<double>& y,
+  // Pool-adjacent-violators on blocks given by the sum and the number of
+  // their observations, in the order in which the fit must not decrease;
+  // returns one value per observation.
+  std::vector<double> pava_impl(const std::vector<double>& sums,
+    const std::vector<int>& counts,
     const double min_value,
     const double max_value) const;
 };
 
 
-std::vector<double> PAVARegressor::pava_impl(
-    const std::vector<double>& values,
+inline std::vector<double> PAVARegressor::pava_impl(
+    const std::vector<double>& sums,
+    const std::vector<int>& counts,
     const double min_value,
     const double max_value
 ) const
 {
-    const int n = static_cast<int>(values.size());
+    assert(sums.size() == counts.size());
+    const int n = static_cast<int>(sums.size());
     if (n == 0) {
         return {};
     }
@@ -84,7 +101,7 @@ std::vector<double> PAVARegressor::pava_impl(
 
     // 1. Left to right
     for (int i = 0; i < n; ++i) {
-        MergeBlock newBlock { values[i], 1, values[i] };
+        MergeBlock newBlock { sums[i], counts[i], sums[i] / counts[i] };
         stack.push_back(newBlock);
 
         // 2. Merge while there's a violation of non-decreasing
@@ -108,7 +125,7 @@ std::vector<double> PAVARegressor::pava_impl(
 
     // 3. Expand final solution
     std::vector<double> result;
-    result.reserve(n); // approximate; actual size = sum(counts)
+    result.reserve(std::accumulate(counts.begin(), counts.end(), size_t(0)));
 
     for (auto &b : stack) {
         double val = std::max( std::min(b.avg, max_value), min_value);

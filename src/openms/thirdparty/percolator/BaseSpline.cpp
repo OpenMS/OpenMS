@@ -26,6 +26,7 @@
 
 namespace OpenMS { namespace Internal { namespace Percolator {
 
+
 using namespace std;
 
 namespace {
@@ -103,40 +104,6 @@ double BaseSpline::splineEval(double xx) {
 
 static double tao = 2 / (1 + sqrt(5.0)); // inverse of golden section
 
-void BaseSpline::roughnessPenaltyIRLS_Old() {
-  unsigned int alphaIter = 0;
-  initiateQR();
-  double alpha = .05, cv = 1e100;
-  initg();
-  do {
-    iterativeReweightedLeastSquares(alpha);
-    double p1 = 1 - tao;
-    double p2 = tao;
-    pair<double, double> res =
-        alphaLinearSearch(0.0,
-                          1.0,
-                          p1,
-                          p2,
-                          crossValidation(-log(p1)),
-                          crossValidation(-log(p2)));
-    if (VERB > 2) {
-      cerr << "Alpha=" << res.first << ", cv=" << res.second << endl;
-    }
-    assert(isfinite(res.second));
-    if ((cv - res.second) / cv < convergeEpsilon || alphaIter++ > 100) {
-      // Reject our last attempt to set alpha,
-      // Return with the alpha used when setting g
-      break;
-    }
-    cv = res.second;
-    alpha = res.first;
-  } while (true);
-  if (VERB > 2) {
-    cerr << "Alpha selected to be " << alpha << endl;
-  }
-  g = gnew;
-}
-
 void BaseSpline::roughnessPenaltyIRLS() {
   initiateQR();
   initg();
@@ -183,41 +150,6 @@ void BaseSpline::iterativeReweightedLeastSquares(double alpha) {
     }
   } while ((step > stepEpsilon || step < 0.0) && (++iter < 20));
   g = gnew;
-}
-
-pair<double, double> BaseSpline::alphaLinearSearch(double min_p,
-                                                   double max_p,
-                                                   double p1, double p2,
-                                                   double cv1, double cv2) {
-  double oldCV;
-  if (cv1 > cv2) {
-    min_p = p1;
-    p1 = p2;
-    oldCV = cv1;
-    cv1 = cv2;
-    p2 = min_p + tao * (max_p - min_p);
-    cv2 = crossValidation(-log(p2));
-    if (VERB > 3) {
-      cerr << "New point with alpha=" << -log(p2) << ", giving cv=" << cv2
-          << " taken in consideration" << endl;
-    }
-  } else {
-    max_p = p2;
-    p2 = p1;
-    oldCV = cv2;
-    cv2 = cv1;
-    p1 = min_p + (1 - tao) * (max_p - min_p);
-    cv1 = crossValidation(-log(p1));
-    if (VERB > 3) {
-      cerr << "New point with alpha=" << -log(p1) << ", giving cv=" << cv1
-          << " taken in consideration" << endl;
-    }
-  }
-  if ((oldCV - min(cv1, cv2)) / oldCV < 1e-3 || (abs(p2 - p1) < 1e-10)) {
-    return (cv1 > cv2 ? make_pair(-log(p2), cv2)
-        : make_pair(-log(p1), cv1));
-  }
-  return alphaLinearSearch(min_p, max_p, p1, p2, cv1, cv2);
 }
 
 double BaseSpline::alphaLinearSearchBA(double min_p,
@@ -287,7 +219,7 @@ void BaseSpline::initiateQR() {
   }
   R[n - 3].packedAddElement(n - 3, (dx[n - 3] + dx[n - 2]) / 3);
   Qt = PackedMatrix(n-2,n);
-  Qt = Qt.packedTranspose(Q);
+  Qt = PackedMatrix::packedTranspose(Q);
   initiateBanded();  // OpenMS
 }
 
@@ -373,6 +305,7 @@ void BaseSpline::initiateBanded() {
 #endif
 
 namespace {
+  // (isFilled: see above)
   int findInRow(const BaseSpline::BandRow& row, int col) {
     for (int k = 0; k < row.size; ++k) {
       if (row.index[k] == col) {
@@ -639,93 +572,6 @@ double BaseSpline::evaluateSlope(double alpha) {
 }
 
 
-double BaseSpline::crossValidation(double alpha) {
-  std::size_t n = static_cast<std::size_t>(R.numRows());
-  //  Vec k0(n),k1(n),k2(n);
-  vector<double> k0(n), k1(n), k2(n);
-  PackedMatrix B = R.packedAdd( ((Qt.packedMultiply(alpha)).packedMultiply(
-      PackedMatrix::packedDiagonalMatrix(Vector(static_cast<int>(n)+2, 1.0) / w)).packedMultiply(Q)));
-  // Get the diagonals from K
-  // ka[i]=B[i,i+a]=B[i+a,i]
-  for (std::size_t row = 0; row < n; ++row) {
-    for (int rowPos = B[row].numberEntries(); rowPos--;) {
-      std::size_t col = static_cast<std::size_t>(B[row].index(rowPos));
-      if (col == row) {
-        k0[row] = B[row][rowPos];
-      } else if (col + 1 == row) {
-        k1[row] = B[row][rowPos];
-      } else if (col + 2 == row) {
-        k2[row] = B[row][rowPos];
-      }
-    }
-  }
-  // LDL decompose Page 26 Green Silverman
-  // d[i]=D[i,i]
-  // la[i]=L[i+a,i]
-  //  Vec d(n),l1(n),l2(n);
-  vector<double> d(n), l1(n), l2(n);
-  d[0] = k0[0];
-  l1[0] = k1[0] / d[0];
-  d[1] = k0[1] - l1[0] * l1[0] * d[0];
-  for (std::size_t row = 2; row < n; ++row) {
-    l2[row - 2] = k2[row - 2] / d[row - 2];
-    l1[row - 1] = (k1[row - 1] - l1[row - 2] * l2[row - 2] * d[row - 2])
-        / d[row - 1];
-    d[row] = k0[row] - l1[row - 1] * l1[row - 1] * d[row - 1]
-        - l2[row - 2] * l2[row - 2] * d[row - 2];
-  }
-  // Find diagonals of inverse Page 34 Green Silverman
-  // ba[i]=B^{-1}[i+a,i]=B^{-1}[i,i+a]
-  //  Vec b0(n),b1(n),b2(n);
-  vector<double> b0(n), b1(n), b2(n);
-  for (std::size_t row = n; --row;) {
-    if (row == n - 1) {
-      b0[n - 1] = 1 / d[n - 1];
-    } else if (row == n - 2) {
-      b0[n - 2] = 1 / d[n - 2] - l1[n - 2] * b1[n - 2];
-    } else {
-      b0[row] = 1 / d[row] - l1[row] * b1[row] - l2[row] * b2[row];
-    }
-    if (row == n - 1) {
-      b1[n - 2] = -l1[n - 2] * b0[n - 1];
-    } else if (row >= 1) {
-      b1[row - 1] = -l1[row - 1] * b0[row] - l1[row] * b1[row];
-    }
-    if (row >= 2) {
-      b2[row - 2] = -l1[row - 2] * b0[row];
-    }
-  }
-  // Calculate diagonal elements a[i]=Aii p35 Green Silverman
-  // (expanding q according to p12)
-  //  Vec a(n+2),c(n+1);
-  vector<double> a(n), c(n - 1);
-  for (std::size_t ix = 0; ix < n - 1; ix++) {
-    c[ix] = 1 / dx[ix];
-  }
-  for (std::size_t ix = 0; ix < n; ix++) {
-    if (ix > 0) {
-      a[ix] += b0[ix - 1] * c[ix - 1] * c[ix - 1];
-      if (ix < n - 1) {
-        a[ix] += b0[ix] * (-c[ix - 1] - c[ix]) * (-c[ix - 1] - c[ix]);
-        a[ix] += 2 * b1[ix] * c[ix] * (-c[ix - 1] - c[ix]);
-        a[ix] += 2 * b1[ix - 1] * c[ix - 1] * (-c[ix - 1] - c[ix]);
-        a[ix] += 2 * b2[ix - 1] * c[ix - 1] * c[ix];
-      }
-    }
-    if (ix < n - 1) {
-      a[ix] += b0[ix + 1] * c[ix] * c[ix];
-    }
-  }
-  // Calculating weighted cross validation as described in p
-  double cv = 0.0;
-  for (std::size_t ix = 0; ix < n; ix++) {
-    double f = (z[ix] - gnew[ix]) * w[ix] / (alpha * a[ix]);
-    //    double f =(z[ix]-gnew[ix])/(alpha*alpha*a[ix]*a[ix]);
-    cv += f * f * w[ix];
-  }
-  return cv;
-}
-
 void BaseSpline::predict(const vector<double>& xx, vector<double>& predict) {
   predict.clear();
   transform(xx.begin(),
@@ -814,7 +660,7 @@ void BaseSpline::solveInPlace(PackedMatrix& mat, PackedVector& res) {
     int maxRow(-1), maxRowPos(-1);
     for (rowPos = nonEmpty.numberEntries(); rowPos--;) {
       double val = nonEmpty[rowPos];
-      assert(isfinite(val));
+      assert(std::isfinite(val));
       if (fabs(val) > fabs(maxVal)) {
         maxVal = val;
         maxRow = nonEmpty.index(rowPos);
@@ -905,34 +751,6 @@ void BaseSpline::solveInPlace(PackedMatrix& mat, PackedVector& res) {
 //    cout << res.values<<endl;
   }
   return;
-}
-
-
-void BaseSpline::testPerformance(){
-  cout << "\nTesting performance:\n";
-  PackedVector v;
-  PackedMatrix M1;
-  PackedMatrix M2;
-  for (int n= 500; n <= 1000; n+=100){
-    cout << "********** " << "\n";
-    cout << "MATRIX DIM: " << n << "\n";
-    cout << "********** "<< "\n";
-    double s = 2.0;
-    v = PackedVector(n,3.0);
-    M1 = PackedMatrix(n,n);
-    M2 = PackedMatrix(n,n);
-    for (signed i = 0; i < signed (n); ++ i){
-      for (signed j = max (i-1, 0); j < min (i+2, signed (n)); ++ j){
-        M1[i].packedAddElement(j, 3 * i + j);
-        M2[i].packedAddElement(j, 2 * i + j);
-      }
-    }
-    M1.packedMultiply(s);
-    M1.packedMultiply(v);
-    M1.packedAdd(M2);
-    M1.packedMultiply(M2);
-    cout << endl;
-  }
 }
 
 }}}  // namespace OpenMS::Internal::Percolator

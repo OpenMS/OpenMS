@@ -1,0 +1,126 @@
+diff --git a/src/openms/thirdparty/percolator/CrossValidation.cpp b/src/openms/thirdparty/percolator/CrossValidation.cpp
+index a404c7bc6fb95ba33d5c1ef08c97661f3f5bbf1b..dcd353fa3c049d843e56d94a89b868de76ccc3b0 100644
+--- a/src/openms/thirdparty/percolator/CrossValidation.cpp
++++ b/src/openms/thirdparty/percolator/CrossValidation.cpp
+@@ -565,8 +565,10 @@ int CrossValidation::doStep(const Normalizer* /* pNorm */, double selectionFdr)
+       // the pairs are ordered by fold
+       const int firstPair = static_cast<int>(firstSet * pairsPerFold);
+       const int endPair = static_cast<int>(endSet * pairsPerFold);
++      LoopErrors pairErrors(static_cast<std::size_t>(endPair - firstPair));  // OpenMS
+ #pragma omp parallel for schedule(dynamic, 1) num_threads(static_cast<int>(maxNumThreads()))
+       for (int pairIdx = firstPair; pairIdx < endPair; pairIdx++) {
++        try {  // OpenMS: LoopErrors
+         CandidateCposCfrac* cpCnFold = &classWeightsPerFold_[pairIdx];
+         if (!isSelectedPair(*cpCnFold) || !isActiveFold(cpCnFold->set)) {  // OpenMS: setActiveFolds
+           continue;
+@@ -575,7 +577,11 @@ int CrossValidation::doStep(const Normalizer* /* pNorm */, double selectionFdr)
+             svmInputs[(cpCnFold->set - firstSet) * nestedXvalBins_ +
+                       static_cast<unsigned int>(cpCnFold->nestedSet)];
+         trainCpCnPair(*cpCnFold, pOptions, svmInput, buffers[threadNum()]);
++        } catch (...) {
++          pairErrors.capture(static_cast<std::size_t>(pairIdx - firstPair));
++        }
+       }
++      pairErrors.rethrowFirst();
+     }
+   }
+ 
+@@ -679,20 +685,28 @@ int CrossValidation::mergeCpCnPairs(
+   const int numTestSets =
+       needCounts ? static_cast<int>(numFolds_ * nestedXvalBins_) : 0;
+   std::vector<Scores::FeatureRows> testRows(numTestSets);
++  LoopErrors rowErrors(static_cast<std::size_t>(numTestSets));  // OpenMS
+ #pragma omp parallel for schedule(dynamic, 1) num_threads(static_cast<int>(maxNumThreads()))
+   for (int idx = 0; idx < numTestSets; ++idx) {
++    try {  // OpenMS: LoopErrors
+     if (!isActiveFold(idx / nestedXvalBins_)) continue;  // OpenMS: setActiveFolds
+     testSet(idx / nestedXvalBins_, idx % nestedXvalBins_)
+         .getFeatureRows(testRows[idx]);
++    } catch (...) {
++      rowErrors.capture(static_cast<std::size_t>(idx));
++    }
+   }
++  rowErrors.rethrowFirst();
+ 
+   std::vector<int> truePositives(classWeightsPerFold_.size());
++  LoopErrors countErrors(classWeightsPerFold_.size());  // OpenMS
+ #pragma omp parallel num_threads(static_cast<int>(maxNumThreads()))
+   {
+     Scores::CountBuffers buffers;  // one per thread, for all its pairs
+ #pragma omp for schedule(dynamic, 1)
+     for (int pairIdx = 0;
+          pairIdx < static_cast<int>(classWeightsPerFold_.size()); ++pairIdx) {
++      try {  // OpenMS: LoopErrors
+       const CandidateCposCfrac& cpCnPair = classWeightsPerFold_[pairIdx];
+       const unsigned int nestedSet =
+           static_cast<unsigned int>(cpCnPair.nestedSet);
+@@ -709,8 +723,12 @@ int CrossValidation::mergeCpCnPairs(
+               .countTargetsBelowFdr(
+                   testRows[cpCnPair.set * nestedXvalBins_ + nestedSet],
+                   cpCnPair.ww, testFdr_, skipDecoysPlusOne, buffers);
++      } catch (...) {
++        countErrors.capture(static_cast<std::size_t>(pairIdx));
++      }
+     }
+   }
++  countErrors.rethrowFirst();
+ 
+   for (int set = 0; set < static_cast<int>(numFolds_); ++set) {
+     if (!isActiveFold(static_cast<unsigned int>(set))) continue;  // OpenMS: keeps its weights
+@@ -766,9 +784,11 @@ int CrossValidation::mergeCpCnPairs(
+          firstSet += foldsPerPass) {
+       const unsigned int endSet =
+           (std::min)(numFolds_, firstSet + foldsPerPass);
++      LoopErrors refitErrors(numFolds_);  // OpenMS
+ #pragma omp parallel for schedule(dynamic, 1) num_threads(static_cast<int>(maxNumThreads()))
+       for (int set = static_cast<int>(firstSet);
+            set < static_cast<int>(endSet); ++set) {
++        try {  // OpenMS: LoopErrors
+         if (!isActiveFold(static_cast<unsigned int>(set))) continue;  // OpenMS: setActiveFolds
+         AlgIn& svmInput = svmInputs[
+             (static_cast<unsigned int>(set) - firstSet) * nestedXvalBins_];
+@@ -788,7 +808,11 @@ int CrossValidation::mergeCpCnPairs(
+         }
+         trainSvm(svmInput, pOptions, bestCposes[set],
+                  bestCposes[set] * bestCfracs[set], weights_[set], outputs);
++        } catch (...) {
++          refitErrors.capture(static_cast<std::size_t>(set));
++        }
+       }
++      refitErrors.rethrowFirst();
+       if (VERB > 2) {
+         for (unsigned int set = firstSet; set < endSet; ++set) {
+           const AlgIn& svmInput =
+diff --git a/src/openms/thirdparty/percolator/Scores.cpp b/src/openms/thirdparty/percolator/Scores.cpp
+index a0e2c79573b98486c4f367835c34ed8d0836cb3a..9735e579e67cc22a39181dd21c1e393795d19ebd 100644
+--- a/src/openms/thirdparty/percolator/Scores.cpp
++++ b/src/openms/thirdparty/percolator/Scores.cpp
+@@ -1599,12 +1599,14 @@ int Scores::bestInitDirection(double initialSelectionFdr, int& bestFeature,
+   FeatureRows rows;
+   getFeatureRows(rows);
+   const std::size_t numRows = rows.size();
++  LoopErrors featureErrors(static_cast<std::size_t>(numFeatures));  // OpenMS
+ #pragma omp parallel num_threads(threadsFor(numFeatures))
+   {
+     CountBuffers buffers;  // one per thread, for all its features
+-    buffers.values.resize(numRows);
+ #pragma omp for schedule(dynamic, 1)
+     for (int featNo = 0; featNo < numFeatures; featNo++) {
++      try {  // OpenMS: LoopErrors
++      buffers.values.resize(numRows);  // (OpenMS: in the try; once per thread)
+       for (std::size_t ix = 0; ix < numRows; ++ix) {
+         buffers.values[ix] = rowFeatures(rows[ix])[featNo];
+       }
+@@ -1632,8 +1634,12 @@ int Scores::bestInitDirection(double initialSelectionFdr, int& bestFeature,
+       std::reverse(combined.begin(), combined.end());
+       positivesPerDirection[2 * featNo + 1] = countTargetsBelowFdr(
+           combined, initialSelectionFdr, skipDecoysPlusOne);
++      } catch (...) {
++        featureErrors.capture(static_cast<std::size_t>(featNo));
++      }
+     }
+   }
++  featureErrors.rethrowFirst();
+ 
+   for (int featNo = 0; featNo < numFeatures; featNo++) {
+     for (int i = 0; i < 2; i++) {

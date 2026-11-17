@@ -1,8 +1,8 @@
 diff --git a/src/openms/thirdparty/percolator/BaseSpline.cpp b/src/openms/thirdparty/percolator/BaseSpline.cpp
-index c9a96a85f0..b13e27e50d 100644
+index 9a7f192ee9b8984fe1dc70aa7e5e22b5e785b2b4..578c58f2eb17c463a20d8c085abc40338a7bb1b0 100644
 --- a/src/openms/thirdparty/percolator/BaseSpline.cpp
 +++ b/src/openms/thirdparty/percolator/BaseSpline.cpp
-@@ -410,6 +410,26 @@ void BaseSpline::setData(const vector<double>& xx) {
+@@ -278,6 +278,26 @@ void BaseSpline::setData(const vector<double>& xx) {
    transform(xx.begin(), xx.end(), back_inserter(x), transf);
  }
  
@@ -29,7 +29,7 @@ index c9a96a85f0..b13e27e50d 100644
  void BaseSpline::solveInPlace(PackedMatrix& mat, PackedVector& res) {
    res = res.makeSparse();
    // Current implementation requires a quadratic mat
-@@ -430,14 +450,11 @@ void BaseSpline::solveInPlace(PackedMatrix& mat, PackedVector& res) {
+@@ -298,14 +318,11 @@ void BaseSpline::solveInPlace(PackedMatrix& mat, PackedVector& res) {
      nonEmpty = PackedVector();
      int pivotPos(-1);
      for (row = col; row < mat.numRows(); row++) {
@@ -49,7 +49,7 @@ index c9a96a85f0..b13e27e50d 100644
          }
        }
      }
-@@ -525,10 +542,9 @@ void BaseSpline::solveInPlace(PackedMatrix& mat, PackedVector& res) {
+@@ -393,10 +410,9 @@ void BaseSpline::solveInPlace(PackedMatrix& mat, PackedVector& res) {
    for (col = mat.numCols(); col--;) {
      nonEmpty = PackedVector();
      for (row = 0; row < col; row++) {
@@ -64,23 +64,23 @@ index c9a96a85f0..b13e27e50d 100644
      }
  //    cout << nonEmpty.values<<endl;
 diff --git a/src/openms/thirdparty/percolator/PackedMatrix.cpp b/src/openms/thirdparty/percolator/PackedMatrix.cpp
-index 093ca14b43..9a25cda7f2 100644
+index 6d8249559a78004f2cccf21f4fac8c25f5504dae..5af042146eb0263cd4fab873f7050749744f7989 100644
 --- a/src/openms/thirdparty/percolator/PackedMatrix.cpp
 +++ b/src/openms/thirdparty/percolator/PackedMatrix.cpp
-@@ -6,6 +6,9 @@
-  */
+@@ -7,6 +7,9 @@
  
  #include "PackedMatrix.h"
-+
+ 
 +#include <algorithm>
 +#include <vector>
++
  namespace OpenMS { namespace Internal { namespace Percolator {
  
- PackedMatrix PackedMatrix::packedTranspose(const PackedMatrix& mat) {
-@@ -41,9 +44,23 @@ PackedMatrix PackedMatrix::packedMultiply(double scale)
+ 
+@@ -43,9 +46,23 @@ PackedMatrix PackedMatrix::packedMultiply(double scale)
  PackedMatrix PackedMatrix::packedMultiply(const PackedMatrix & rhs){
    PackedMatrix res = PackedMatrix(numRows(),rhs.numCols());
-   PackedMatrix trhs = trhs.packedTranspose(rhs);
+   PackedMatrix trhs = packedTranspose(rhs);
 -  int row, col;
 +  // OpenMS: per row, only the columns that share an index with it (the nonzero entries of the
 +  // rows of rhs at the row's indices), in increasing order: the dot product with any other

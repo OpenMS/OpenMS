@@ -4,12 +4,12 @@
 #ifndef _Numerical_H
 #define _Numerical_H
 
-
 #include <iostream>
 #include <cmath>
 #include <limits>
 
 namespace OpenMS { namespace Internal { namespace Percolator {
+
 
 using namespace std;
 
