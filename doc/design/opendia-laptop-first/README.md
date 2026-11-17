@@ -59,12 +59,12 @@ seed, 3 raws).
 
 | | OpenDIA | DIA-NN 2.2 (local docker, same library) |
 |---|---|---|
-| Wall time | 6:08-7:35 (8 threads) | 13:27 raw 01 (14 threads); 8:48 raw 02 (9 threads, run beside another job) |
+| Wall time | 6:08-7:35 (8 threads, codon nodes) | 13:27 raw 01 (14 threads); 8:48 raw 02 (9 threads, beside another job); local docker |
 | CPU time | 586-714 s | not recorded |
 | Peak memory | **21.9-22.7 GB** | not recorded (the docker run hid it) |
 | Input | Thermo .raw read directly | mzML (FileConverter, about 5.8 GB per raw), conversion time not included |
 
-- OpenDIA is about 1.3-2× faster than DIA-NN here.
+- The wall times are not a like-for-like speed comparison. OpenDIA ran on codon nodes, DIA-NN in local docker with other thread counts and next to other jobs, and DIA-NN also needs an mzML conversion first. On these numbers OpenDIA is not slower; a fair benchmark on one machine is still to be done.
 - OpenDIA's memory rose from 9.6 GB (with `library12_pop`) to about 22 GB with the full 12-fragment scoring library.
   That is an open efficiency item.
 

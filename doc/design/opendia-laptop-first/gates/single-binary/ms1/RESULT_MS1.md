@@ -60,7 +60,7 @@ N@FDP_c 0.5 % and 2 % medians:
   (0.02 Da windows), as the plan specifies. The precheck used `xic.npy` (±17.5 ppm around the calibrated offset).
   - Across 919k matched raw01 windows, m1_corr_xic agrees at Pearson 0.73 and m1_apex_dt at 0.94.
   - The MS1-only features agree at 0.9997 or better.
-  - The extraction, the isotope traces and the envelope are therefore exact. Only the fragment reference differs.
+  - The isotope traces, envelope and MS1-only features therefore agree with the precheck to Pearson ≥ 0.9997; only the fragment reference differs.
 - **Cost:** 5 more features. Extraction time is within run-to-run noise (190-430 s against 148-324 s), and memory is
   unchanged (21.9 GB).
 - **Option for the user, not taken here.** The goal metric (equal-FDR N) improved on both raws. A new plan with
