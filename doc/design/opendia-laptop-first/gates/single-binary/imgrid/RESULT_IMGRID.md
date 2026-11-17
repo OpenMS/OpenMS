@@ -16,3 +16,10 @@ All rules pass. The design-run agreement drop (−0.0045) sits near the 0.005 li
 Cumulative today on HeLa (as benchmarked this morning → now):
 - D: 11,653 → 16,116 (+38 %). That is 40 % → 56 % of DIA-NN, and 61 % → 84 % of OpenSWATH SVM (19,132).
 - H: 19,725 (with the 1/K0 fix) → 24,000. That is 52 % → 63 % of DIA-NN.
+
+Caveats:
+- The plan was frozen after a seed-0 precheck on D (+7.3 %), so the D rule (+3 %) was set knowing that one seed. This
+  is a weaker freeze than PLAN_RTCENTRE. The held-out run H was untouched until the design verdict was committed
+  (commit 06ec5f8af8 at 21:30:19 UTC, H runs started 21:30:27), so the H result is the independent evidence.
+- There is no entrapment on diaPASEF. Agreement with DIA-NN is only a proxy for specificity, and on D it came within
+  0.0005 of the limit.
