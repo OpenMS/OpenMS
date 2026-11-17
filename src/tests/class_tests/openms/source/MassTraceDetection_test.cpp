@@ -251,9 +251,9 @@ END_SECTION
 
 std::vector<MassTrace> filt;
 
-// START_SECTION((void filterByPeakWidth(std::vector< MassTrace > &, std::vector< MassTrace > &)))
+//START_SECTION((void filterByPeakWidth(std::vector< MassTrace > &, std::vector< MassTrace > &)))
 //{
-//     test_mtd.filterByPeakWidth(output_mt, filt);
+//    test_mtd.filterByPeakWidth(output_mt, filt);
 
 //    TEST_EQUAL(output_mt.size(), filt.size());
 
