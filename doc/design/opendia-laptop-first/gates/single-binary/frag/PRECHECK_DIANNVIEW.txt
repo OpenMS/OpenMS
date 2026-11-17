@@ -1,0 +1,18 @@
+== raw01: DIA-NN true-1 % cut at 2067 of 2344 non-entrapment q<=0.01
+              n  in_true1   q_med  pep_med      ev  emp    fwhm  qty_pct  ms1corr
+grp                                                                              
+A          1652    0.9413  0.0003   0.0003  3.7984  0.0  0.0593   0.6133   0.8101
+A_wrongRT     8    0.8750  0.0021   0.0088  3.4663  0.0  0.0610   0.5862   0.8431
+R           553    0.7269  0.0036   0.0165  2.5946  0.0  0.0551   0.2573   0.5714
+Wrong       107    0.6822  0.0036   0.0165  2.5624  0.0  0.0589   0.3238   0.5812
+unscored     24    0.8333  0.0006   0.0012  2.6600  0.0  0.0635   0.2280   0.6504
+  R by DIA-NN Q.Value bin: {Interval(-1.0, 0.0001, closed='right'): 16, Interval(0.0001, 0.001, closed='right'): 194, Interval(0.001, 0.003, closed='right'): 44, Interval(0.003, 0.006, closed='right'): 174, Interval(0.006, 0.0101, closed='right'): 125}
+== raw02: DIA-NN true-1 % cut at 2283 of 2309 non-entrapment q<=0.01
+              n  in_true1   q_med  pep_med      ev  emp    fwhm  qty_pct  ms1corr
+grp                                                                              
+A          1678    0.9928  0.0003   0.0003  3.8144  0.0  0.0594   0.5970   0.8159
+A_wrongRT     6    1.0000  0.0009   0.0028  2.5452  0.0  0.0777   0.5745   0.6386
+R           493    0.9554  0.0016   0.0099  2.6472  0.0  0.0528   0.2525   0.5220
+Wrong       106    0.9717  0.0016   0.0099  2.7292  0.0  0.0627   0.3120   0.5744
+unscored     26    1.0000  0.0012   0.0050  2.7623  0.0  0.0730   0.3032   0.7265
+  R by DIA-NN Q.Value bin: {Interval(-1.0, 0.0001, closed='right'): 14, Interval(0.0001, 0.001, closed='right'): 129, Interval(0.001, 0.003, closed='right'): 173, Interval(0.003, 0.006, closed='right'): 66, Interval(0.006, 0.0101, closed='right'): 111}

@@ -28,3 +28,25 @@ Results
   search, and PRECHECK_PEAK showed only 37-47 per raw lost there.
 
 Verdict: no lever. Option (a) (run-specific fragment selection) is closed without a plan.
+
+## Addendum: how DIA-NN rates the IDs we reject (`diann_view.py`, `PRECHECK_DIANNVIEW.txt`)
+
+DIA-NN report columns for its non-entrapment q <= 0.01 IDs, grouped by our outcome (C++ seed 0). A = we accept the
+right peak; R = right peak, below our cut; Wrong = our winner is > 6 s from DIA-NN's RT.
+
+| | raw01 A | raw01 R | raw02 A | raw02 R |
+|---|---|---|---|---|
+| n | 1652 | 553 | 1678 | 493 |
+| inside DIA-NN's own N@FDP_c 1 % set | 94 % | 73 % | 99 % | 96 % |
+| DIA-NN Q.Value median | 0.0003 | 0.0036 | 0.0003 | 0.0016 |
+| DIA-NN PEP median | 0.0003 | 0.017 | 0.0003 | 0.010 |
+| abundance percentile median | 0.61 | 0.26 | 0.60 | 0.25 |
+| Ms1.Profile.Corr median | 0.81 | 0.57 | 0.82 | 0.52 |
+
+- R is DIA-NN's own low-confidence, low-abundance tail. On raw01, 27 % of R lie past DIA-NN's true-1 % cut, so
+  part of the raw01 "gap" at DIA-NN's q <= 0.01 is DIA-NN's own excess FDP (0.0144), not missed evidence.
+- Fragment mass accuracy, the other DIA-NN-style evidence not in our 24 inputs, was tested before (voxel v5,
+  `gates/voxel-scoring-model/v4/RESULT_V5.md`) and failed. MS1 profile correlation is the column that separates A from R
+  most, and the MS1 block (PLAN_MS1) is the closed test of that.
+- A scan-level diagnostic (option b) would study weak peaks that DIA-NN itself rates at PEP 0.01-0.02. It is not
+  expected to show a new evidence type, so it is not pursued.
