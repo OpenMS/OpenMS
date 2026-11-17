@@ -16,7 +16,8 @@ namespace OpenMS
   @brief Validate RNA graph tags against legal candidates and NASE's annotated theoretical ions.
 
   The same rules apply to targets and decoys. a-B ions remain available to full
-  scoring but cannot seed constant-residue-increment graph paths. Unsupported
+  scoring, including optional coherent route scoring, but cannot seed
+  constant-residue-increment graph paths. Unsupported
   linkage chemistry, short candidates and incomplete graphs use enumeration.
 */
 class RNATagCandidateFilter
@@ -48,6 +49,7 @@ public:
     };
     struct Group
     {
+      /// Conventional lowercase ion series; 'A' is the separate a-B scoring ladder.
       char series = 'a';
       Size charge = 1;
       std::vector<Ion> ions;
@@ -69,12 +71,14 @@ public:
     @param[in] alphabet Shared graph alphabet.
     @param[in] theoretical Existing NASE theoretical spectrum after blacklisting.
     @param[in] ions Enabled theoretical ion series.
+    @param[in] include_base_loss Retain a-B as a separate route-scoring series; graph matching ignores it.
     @return Immutable information reusable across experimental spectra.
   */
   static PreparedQuery prepare(const NASequence& candidate,
                                std::shared_ptr<const RNASpectrumGraph::Alphabet> alphabet,
                                const MSSpectrum& theoretical,
-                               const std::set<std::string>& ions);
+                               const std::set<std::string>& ions,
+                               bool include_base_loss = false);
 
   /**
     @brief Match prepared theoretical annotations using sparse observed-ion state.

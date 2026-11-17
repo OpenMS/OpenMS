@@ -39,6 +39,8 @@ RNASpectrumGraph::RNASpectrumGraph(const std::set<const Ribonucleotide*>& residu
     {
       continue; // Linkage-dependent increments require another graph model.
     }
+    // Reuse the cached residue masses used by NucleicAcidSpectrumGenerator.
+    // NASequence separately supplies formula masses for precursor validation.
     const double mass = residue->getMonoMass() + backbone;
     if (std::isfinite(mass) && mass > 0) { masses.emplace(residue->getCode(), mass); }
   }
@@ -79,6 +81,35 @@ RNASpectrumGraph::build(const MSSpectrum& spectrum, const std::set<const Ribonuc
   return RNASpectrumGraph(alphabet, options).build(spectrum, max_charge);
 }
 
+const MSSpectrum::IntegerDataArray* RNASpectrumGraph::legacyCharges(const MSSpectrum& spectrum)
+{
+  for (const auto& array : spectrum.getIntegerDataArrays())
+  {
+    if (array.getName() == "NASE:legacy_fragment_charge" && array.size() == spectrum.size()) { return &array; }
+  }
+  return nullptr;
+}
+
+std::vector<Size> RNASpectrumGraph::selectPeakIndices(const MSSpectrum& spectrum, Size max_peaks)
+{
+  std::vector<Size> peaks;
+  for (Size i = 0; i < spectrum.size(); ++i)
+  {
+    if (std::isfinite(spectrum[i].getMZ()) && spectrum[i].getMZ() > 0 && std::isfinite(spectrum[i].getIntensity()) && spectrum[i].getIntensity() > 0)
+    {
+      peaks.push_back(i);
+    }
+  }
+  std::sort(peaks.begin(), peaks.end(), [&spectrum](Size a, Size b) {
+    if (spectrum[a].getIntensity() != spectrum[b].getIntensity()) { return spectrum[a].getIntensity() > spectrum[b].getIntensity(); }
+    return std::tuple(spectrum[a].getMZ(), a) < std::tuple(spectrum[b].getMZ(), b);
+  });
+  if (peaks.size() > max_peaks) { peaks.resize(max_peaks); }
+  std::sort(peaks.begin(), peaks.end(),
+            [&spectrum](Size a, Size b) { return std::tuple(spectrum[a].getMZ(), a) < std::tuple(spectrum[b].getMZ(), b); });
+  return peaks;
+}
+
 RNASpectrumGraph::Result RNASpectrumGraph::build(const MSSpectrum& spectrum, Size max_charge) const
 {
   if (max_charge == 0) { throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "RNA graph fragment charge must be positive"); }
@@ -87,21 +118,8 @@ RNASpectrumGraph::Result RNASpectrumGraph::build(const MSSpectrum& spectrum, Siz
   result.options = options_;
   result.fallback_reason = fallback_reason_;
   if (! result.fallback_reason.empty()) { return result; }
-  for (Size i = 0; i < spectrum.size(); ++i)
-  {
-    if (std::isfinite(spectrum[i].getMZ()) && spectrum[i].getMZ() > 0 && std::isfinite(spectrum[i].getIntensity()) && spectrum[i].getIntensity() > 0)
-    {
-      result.peak_indices.push_back(i);
-    }
-  }
-  auto& peaks = result.peak_indices;
-  std::sort(peaks.begin(), peaks.end(), [&spectrum](Size a, Size b) {
-    if (spectrum[a].getIntensity() != spectrum[b].getIntensity()) { return spectrum[a].getIntensity() > spectrum[b].getIntensity(); }
-    return std::tuple(spectrum[a].getMZ(), a) < std::tuple(spectrum[b].getMZ(), b);
-  });
-  if (peaks.size() > options_.max_peaks) { peaks.resize(options_.max_peaks); }
-  std::sort(peaks.begin(), peaks.end(),
-            [&spectrum](Size a, Size b) { return std::tuple(spectrum[a].getMZ(), a) < std::tuple(spectrum[b].getMZ(), b); });
+  result.peak_indices = selectPeakIndices(spectrum, options_.max_peaks);
+  const auto& peaks = result.peak_indices;
   result.peaks = peaks.size();
   const auto& transitions = alphabet_->transitions;
   for (Size charge = 1; charge <= std::min(max_charge, options_.max_charge); ++charge)

@@ -1,0 +1,205 @@
+{
+  "scope": "One HAP1 tRNA recording plus its RT 35-39 minute slice; paired search comparison, not independent accuracy validation.",
+  "date": "2026-11-16",
+  "data_accession": "PXD016328",
+  "source_base": "ec55dcc235f93ed178fde470e2498219a5994d41",
+  "source_changes": "This follow-up separates deferred digest scaffolds from output molecules and changes route completion/resource defaults.",
+  "build": "Release, GCC 13, OpenMP, installed OpenMS 3.7.0 core; 16 threads",
+  "executable_sha256": "6b189513b0550fa0bc715aafc16fdbcbfd56bafb9dac55f442922cf47fc38f7e",
+  "inputs": {
+    "HAP1_tRNA_clone1_rep1.mzML": "0431b2e023dcef3fb4a4289eddc209b327399d94dd5cc2998c53478adf060741",
+    "hg19-mature-tRNA_TargetDecoy.fasta": "ee8b7b66fdef51158c645494c9edbd5c27cfad1a92851869b2af4561f53e9d0d",
+    "HAP1_tRNA_clone1_rep1_RT35-39min.mzML": "407c7961d1ada61e7760baae09276275249c4ea65aa3b9a78c5fb34c2935ec1c"
+  },
+  "shared_settings": {
+    "oligo:enzyme": "RNase_T1",
+    "oligo:missed_cleavages": 2,
+    "precursor:mass_tolerance": 3,
+    "fragment:mass_tolerance": 3,
+    "modifications:variable": [
+      "D",
+      "m1A",
+      "m5C",
+      "m7G",
+      "Cm",
+      "Gm",
+      "Um",
+      "m1G",
+      "m2G",
+      "t6A",
+      "I",
+      "m5U",
+      "i6A"
+    ],
+    "fdr:decoy_pattern": "DECOY_",
+    "fdr:cutoff": 1.0,
+    "threads": 16
+  },
+  "route_settings": {
+    "routes:completion": "bounded",
+    "routes:max_unanchored_modifications": 2,
+    "routes:terminal_states": "enzyme",
+    "routes:max_states": 1000000,
+    "routes:max_completion_nodes": 1000000000,
+    "routes:max_candidates": 5000000,
+    "routes:max_supports": 20000000
+  },
+  "route_settings_source": "All route settings above are defaults; no route, diagnostic or limit overrides were passed.",
+  "counting": "One native-q-assigned target-containing match per spectrum, including shared target/decoy parents. Shared counts are reported separately. Input spectra with missing precursor charge are skipped by the common default.",
+  "results": [
+    {
+      "input": "slice",
+      "method": "enumeration",
+      "scorer": "hyperscore",
+      "q_assigned_spectra": 611,
+      "seconds": 10.24,
+      "targets_q0.01": 109,
+      "shared_target_decoy_q0.01": 0,
+      "targets_q0.05": 143,
+      "shared_target_decoy_q0.05": 0,
+      "targets_q0.1": 154,
+      "shared_target_decoy_q0.1": 0
+    },
+    {
+      "input": "slice",
+      "method": "graph_routes",
+      "scorer": "hyperscore",
+      "q_assigned_spectra": 529,
+      "seconds": 7.83,
+      "targets_q0.01": 109,
+      "shared_target_decoy_q0.01": 0,
+      "targets_q0.05": 143,
+      "shared_target_decoy_q0.05": 0,
+      "targets_q0.1": 154,
+      "shared_target_decoy_q0.1": 0
+    },
+    {
+      "input": "slice",
+      "method": "graph_routes",
+      "scorer": "route",
+      "q_assigned_spectra": 530,
+      "seconds": 9.25,
+      "targets_q0.01": 169,
+      "shared_target_decoy_q0.01": 0,
+      "targets_q0.05": 181,
+      "shared_target_decoy_q0.05": 0,
+      "targets_q0.1": 191,
+      "shared_target_decoy_q0.1": 0
+    },
+    {
+      "input": "whole",
+      "method": "enumeration",
+      "scorer": "hyperscore",
+      "q_assigned_spectra": 6076,
+      "seconds": 15.17,
+      "targets_q0.01": 546,
+      "shared_target_decoy_q0.01": 2,
+      "targets_q0.05": 1154,
+      "shared_target_decoy_q0.05": 28,
+      "targets_q0.1": 1711,
+      "shared_target_decoy_q0.1": 76
+    },
+    {
+      "input": "whole",
+      "method": "graph_routes",
+      "scorer": "hyperscore",
+      "q_assigned_spectra": 5724,
+      "seconds": 136.49,
+      "targets_q0.01": 546,
+      "shared_target_decoy_q0.01": 2,
+      "targets_q0.05": 1177,
+      "shared_target_decoy_q0.05": 30,
+      "targets_q0.1": 1708,
+      "shared_target_decoy_q0.1": 76
+    }
+  ],
+  "paired": {
+    "slice_hyperscore": {
+      "0.01": {
+        "baseline": 109,
+        "graph": 109,
+        "shared": 109,
+        "baseline_only": 0,
+        "graph_only": 0,
+        "identical_calls_shared": 109
+      },
+      "0.05": {
+        "baseline": 143,
+        "graph": 143,
+        "shared": 143,
+        "baseline_only": 0,
+        "graph_only": 0,
+        "identical_calls_shared": 143
+      },
+      "0.1": {
+        "baseline": 154,
+        "graph": 154,
+        "shared": 154,
+        "baseline_only": 0,
+        "graph_only": 0,
+        "identical_calls_shared": 154
+      }
+    },
+    "slice_route": {
+      "0.01": {
+        "baseline": 109,
+        "graph": 169,
+        "shared": 109,
+        "baseline_only": 0,
+        "graph_only": 60,
+        "identical_calls_shared": 82
+      },
+      "0.05": {
+        "baseline": 143,
+        "graph": 181,
+        "shared": 141,
+        "baseline_only": 2,
+        "graph_only": 40,
+        "identical_calls_shared": 104
+      },
+      "0.1": {
+        "baseline": 154,
+        "graph": 191,
+        "shared": 151,
+        "baseline_only": 3,
+        "graph_only": 40,
+        "identical_calls_shared": 110
+      }
+    },
+    "whole_hyperscore": {
+      "0.01": {
+        "baseline": 546,
+        "graph": 546,
+        "shared": 546,
+        "baseline_only": 0,
+        "graph_only": 0,
+        "identical_calls_shared": 546
+      },
+      "0.05": {
+        "baseline": 1154,
+        "graph": 1177,
+        "shared": 1154,
+        "baseline_only": 0,
+        "graph_only": 23,
+        "identical_calls_shared": 1154
+      },
+      "0.1": {
+        "baseline": 1711,
+        "graph": 1708,
+        "shared": 1707,
+        "baseline_only": 4,
+        "graph_only": 1,
+        "identical_calls_shared": 1707
+      }
+    }
+  },
+  "limitations": [
+    "One frozen decoy FASTA; no decoy-seed sweep.",
+    "The slice is part of the whole recording, not independent validation.",
+    "No entrapment database or independent ground truth was used.",
+    "Higher nominal-q yield does not validate altered sequence/modification assignments.",
+    "The optional route score is measured only on the slice; 27 of the 109 baseline accepted spectra at 1% change assignment.",
+    "Timing is descriptive, on this machine and thread count; graph generation remains slower on the whole run.",
+    "Earlier nine-file/ten-seed sensitivity results were not rerun."
+  ]
+}

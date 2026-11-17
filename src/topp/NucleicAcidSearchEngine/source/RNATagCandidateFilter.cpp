@@ -8,9 +8,9 @@
 
 #include <OpenMS/CONCEPT/Constants.h>
 #include <algorithm>
-#include <limits>
 #include <charconv>
 #include <cmath>
+#include <limits>
 #include <map>
 #include <string_view>
 #include <system_error>
@@ -226,7 +226,8 @@ bool RNATagCandidateFilter::isCompatible(const std::vector<std::vector<const Rib
 RNATagCandidateFilter::PreparedQuery RNATagCandidateFilter::prepare(const NASequence& candidate,
                                                                     std::shared_ptr<const RNASpectrumGraph::Alphabet> alphabet,
                                                                     const MSSpectrum& theoretical,
-                                                                    const std::set<std::string>& ions)
+                                                                    const std::set<std::string>& ions,
+                                                                    bool include_base_loss)
 {
   PreparedQuery query;
   query.alphabet = std::move(alphabet);
@@ -247,7 +248,9 @@ RNATagCandidateFilter::PreparedQuery RNATagCandidateFilter::prepare(const NASequ
       query.codes.push_back(found->second);
     }
   }
-  if (! query.supported_series || ! query.supported_residues) { return query; }
+  // Route scoring also prepares annotations without a cached graph alphabet.
+  // Graph matching still validates supported_residues before using the codes.
+  if (! query.supported_series && ! (include_base_loss && ions.contains("a-B"))) { return query; }
   const MSSpectrum::StringDataArray* names = nullptr;
   const MSSpectrum::IntegerDataArray* charges = nullptr;
   for (const auto& array : theoretical.getStringDataArrays())
@@ -271,12 +274,14 @@ RNATagCandidateFilter::PreparedQuery RNATagCandidateFilter::prepare(const NASequ
   {
     const auto& name = (*names)[i];
     if (name.size() < 2) { continue; }
-    const std::string series(1, name[0]);
-    if ((! prefixIon(series) && ! suffixIon(series)) || ! ions.contains(series)) { continue; }
+    const bool base_loss = include_base_loss && name[0] == 'a' && name.ends_with("-B");
+    const std::string series = base_loss ? "a-B" : std::string(1, name[0]);
+    if ((! base_loss && ! prefixIon(series) && ! suffixIon(series)) || ! ions.contains(series)) { continue; }
     Size position = 0;
-    const auto parsed = std::from_chars(name.data() + 1, name.data() + name.size(), position);
-    if (parsed.ec != std::errc {} || parsed.ptr != name.data() + name.size() || position == 0 || position >= candidate.size()) { continue; }
-    grouped[{name[0], static_cast<Size>(std::abs((*charges)[i]))}].push_back({position, theoretical[i].getMZ()});
+    const auto* end = name.data() + name.size() - (base_loss ? 2 : 0);
+    const auto parsed = std::from_chars(name.data() + 1, end, position);
+    if (parsed.ec != std::errc {} || parsed.ptr != end || position == 0 || position >= candidate.size()) { continue; }
+    grouped[{base_loss ? 'A' : name[0], static_cast<Size>(std::abs((*charges)[i]))}].push_back({position, theoretical[i].getMZ()});
   }
   for (auto& [key, peaks] : grouped)
   {
@@ -338,6 +343,7 @@ RNATagCandidateFilter::Evidence RNATagCandidateFilter::match(const PreparedQuery
   Size work = 0;
   for (const auto& group : query.groups)
   {
+    if (group.series == 'A') { continue; }
     const auto layer_it
       = std::find_if(graph.layers.begin(), graph.layers.end(), [&group](const auto& layer) { return layer.charge == group.charge; });
     if (layer_it == graph.layers.end()) { continue; }

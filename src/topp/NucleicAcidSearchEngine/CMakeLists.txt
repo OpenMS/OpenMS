@@ -21,6 +21,9 @@ set(tool_sources
   source/RNAPrecursorCorrector.cpp
   source/RNASpectrumGraph.cpp
   source/RNATagCandidateFilter.cpp
+  source/RNAModificationDiagnostics.cpp
+  source/RNARouteScorer.cpp
+  source/RNARouteCandidateGenerator.cpp
 )
 set(tool_headers
   include/ModifiedNASequenceGenerator.h
@@ -29,6 +32,9 @@ set(tool_headers
   include/RNAPrecursorCorrector.h
   include/RNASpectrumGraph.h
   include/RNATagCandidateFilter.h
+  include/RNAModificationDiagnostics.h
+  include/RNARouteScorer.h
+  include/RNARouteCandidateGenerator.h
 )
 
 add_executable(${PROJECT_NAME} ${PROJECT_NAME}.cpp ${tool_sources} ${tool_headers})
