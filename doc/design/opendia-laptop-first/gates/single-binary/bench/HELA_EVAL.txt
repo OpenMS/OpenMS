@@ -1,0 +1,7 @@
+library targets 73922; DIA-NN keys found in library 28568 of 28950
+OpenDIAWorkflow (this branch)    N  11653 | in DIA-NN 0.933 | in SVM 0.856 | of DIA-NN covered 0.375
+DIA-NN 2.2 (own decoys)          N  28950 | in DIA-NN 1.000 | in SVM 0.586 | of DIA-NN covered 1.000
+OpenSWATH + PyProphet SVM        N  19132 | in DIA-NN 0.886 | in SVM 1.000 | of DIA-NN covered 0.586
+OpenSWATH + PyProphet XGBoost    N  19725 | in DIA-NN 0.874 | in SVM 0.891 | of DIA-NN covered 0.595
+OpenDIA / DIA-NN 0.403; OpenDIA / SVM 0.609; OpenDIA / XGB 0.591
+OpenDIA only (not DIA-NN, not SVM): 301; DIA-NN and SVM but not OpenDIA: 7466

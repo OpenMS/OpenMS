@@ -1,0 +1,37 @@
+[0:00] Loading spectral library /in/library_detecting_targets_only.tsv
+[0:00] Finding proteotypic peptides (assuming that the list of UniProt ids provided for each peptide is complete)
+[0:00] Spectral library loaded: 0 protein isoforms, 0 protein groups and 73922 precursors in 65090 elution groups.
+[0:00] Initialising library
+[0:02] Saving the library to /in/library_detecting_targets_only.tsv.skyline.speclib
+[0:02] File #1/1
+[0:02] Loading run /in/20200505_Evosep_200SPD_SG06-16_MLHeLa_200ng_py8_S3-A1_1_2737.d
+[0:30] Pre-processing...
+[0:32] 346 MS1 and 8289 MS2 scans in 346 (inferred) and 346 (encoded) cycles, 73922 precursors in range
+[0:32] Calibrating with mass accuracies 20 (MS1), 25 (MS2)
+[0:42] RT window set to 0.154149
+[0:42] IM window set to 0.0299486
+[0:42] Peak width: 3.104
+[0:42] Scan window radius set to 6
+[0:42] Recommended MS1 mass accuracy setting: 13 ppm
+[0:52] Optimised mass accuracy: 10 ppm
+[0:56] Main search
+[1:09] Removing low confidence identifications
+[1:17] Removing interfering precursors
+[1:18] Training neural networks on 44716 target and 27251 decoy PSMs
+[2:41] Number of IDs at 0.01 FDR: 28950
+[2:42] No protein annotation, skipping protein q-value calculation
+[2:42] Quantification
+[2:43] Quantification information saved to /w/tmp/_in_20200505_Evosep_200SPD_SG06-16_MLHeLa_200ng_py8_S3-A1_1_2737_d.quant
+[2:43] Cross-run analysis
+[2:43] Reading quantification information: 1 files
+[2:44] Quantifying peptides
+[2:44] Quantifying proteins
+[2:44] No protein annotation, skipping protein q-value calculation
+[2:44] No protein annotation, skipping global protein q-value calculation
+[2:44] Compressed report saved to /w/diann_report.parquet. Use R 'arrow' or Python 'PyArrow' package to process
+[2:44] Stats report saved to /w/diann_report.stats.tsv
+[2:44] Log saved to /w/diann_report.log.txt
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 2:45.65
+	Maximum resident set size (kbytes): 2343584
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 2:46.03
+	Maximum resident set size (kbytes): 30596

@@ -35,6 +35,7 @@ Rows of 12-16 November 2026. Earlier rows (voxel v2-v19, CNN + LDA) are in the R
 | RT window width rule: density crossing undefined, P_win against the evidence; cross-fitted width on IDs (PLAN_RTWIN2) −2.2 % raw 01, held-out raw 03 −2.3 %, removed | R-WP2 | Done (fail) | [RESULT_RTWIN2.md](gates/single-binary/rtwin/RESULT_RTWIN2.md) |
 | ID-based recalibration with RT-dependent window (PLAN_RTPROFILE): ends recovered, middle loses; raw 02 −1.05 %, raw 01 s4 FDP_c 0.0104, raw 03 −0.6 %, removed | R-WP2 | Done (fail) | [RESULT_RTPROFILE.md](gates/single-binary/rtwin/RESULT_RTPROFILE.md) |
 | Close the gap to DIA-NN (DIA-NN from .raw: 2204 / 2356 / 2259 at FDP_c 1 %; OpenDIA 81-84 %) | R-WP5 | In progress | [RESULT_GAP.md](gates/extraction-parity/gap/RESULT_GAP.md) |
+| HeLa diaPASEF final benchmark: OpenDIA 11,653 vs DIA-NN 28,950 (40 %), OpenSWATH SVM 19,132 (61 %); below the earlier rewrite (13,253), so the Astral changes regress diaPASEF | R-WP5, R-WP6 | Done (diagnostic) | [RESULT_HELA.md](gates/single-binary/bench/RESULT_HELA.md) |
 | Fair same-laptop benchmark (raw 01, 8 threads, both read .raw): OpenDIA 10:14, 15.6 GB, 172 % CPU; DIA-NN 7:23, 6.8 GB, 765 % CPU | R-WP6 | Done (diagnostic) | [README snapshot](README.md), [bench/](gates/single-binary/bench/) |
 | Raw-pass speed: m/z-bucketed evidence pass (271 → 111 s) and level-aware Thermo read-ahead; laptop raw 01 10:14 → 7:18 (DIA-NN 7:23), byte-identical | R-WP6 | Done | [README snapshot](README.md) |
 | Calibration memory (14.4 GB peak after eaa2c95cd0, from the 600k-member windowed pass; DIA-NN 6.8 GB) | R-WP6 | Open | [README snapshot](README.md) |
@@ -147,6 +148,7 @@ Rows of 12-16 November 2026. Earlier rows (voxel v2-v19, CNN + LDA) are in the R
 | Fair same-laptop benchmark (raw 01, 8 threads, both read .raw): OpenDIA 10:14, 15.6 GB, 172 % CPU; DIA-NN 7:23, 6.8 GB, 765 % CPU | Done | [bench/](gates/single-binary/bench/) |
 | Raw-pass speed: m/z-bucketed evidence pass (271 → 111 s) and level-aware Thermo read-ahead; laptop raw 01 10:14 → 7:18 (DIA-NN 7:23), byte-identical | Done | [README snapshot](README.md) |
 | Calibration memory (14.4 GB peak after eaa2c95cd0, from the 600k-member windowed pass; DIA-NN 6.8 GB) | Open | [README snapshot](README.md) |
+| HeLa diaPASEF benchmark: 11,653 IDs, 40 % of DIA-NN, 61 % of OpenSWATH SVM, below the 2026-11-07 rewrite (13,253) | Done (diagnostic) | [RESULT_HELA.md](gates/single-binary/bench/RESULT_HELA.md) |
 | Native Bruker `.d` and Thermo `.raw` | Partial: both stream | [R6](work-packages/R6-acceptance.md) |
 | Packaging (LibTorch optional, CTD/INI docs) | Partial: LibTorch off the default path | [R6](work-packages/R6-acceptance.md) |
 | Split the branch into reviewable PRs | Open | [R6](work-packages/R6-acceptance.md) |

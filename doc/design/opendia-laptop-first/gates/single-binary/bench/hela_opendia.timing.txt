@@ -1,0 +1,8 @@
+  Calibration: rt_tolerance_s=11.261925 ms2_offset_ppm=0.366819 ms2_tolerance_ppm=7.613656 boundary_half_widths=1.370620 seconds=56.424490 rss_mb=3705 peak_mb=4101
+  Search: candidates=273180 seconds=13.101921 rss_mb=3611 peak_mb=4101
+  Extraction: windows=263468 precursors=138267 isolation_windows=24 peak_open_grids=75396 seconds=62.363459 rss_mb=3710 peak_mb=4394
+  Features: 24 per window, noise=1041.000000 seconds=8.937692 rss_mb=3710 peak_mb=4394
+  Scoring: target precursors at q <= 0.01: 11653 seconds=41.494721; run total seconds=182.344267 rss_mb=3710 peak_mb=4394
+Combined: 11653 target precursors at global q <= 0.010000, 11653 run-level rows; seconds=187.861863
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 3:08.16
+	Maximum resident set size (kbytes): 4500368

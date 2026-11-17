@@ -167,6 +167,12 @@ CrossFitScorer        decoy-whitened network, family cross-fitting, self-trainin
 
 ## Current HeLa result (design run, not independent evidence)
 
+**Update 2026-11-17 (`gates/single-binary/bench/RESULT_HELA.md`).** The current OpenDIAWorkflow gets **11,653** precursors at
+q ≤ 0.01 on this run. DIA-NN 2.2 gets 28,950 on the same library, OpenSWATH + PyProphet SVM 19,132, and the 2026-11-07
+rewrite below 13,253. So the branch reaches about 80 % of DIA-NN only on Astral. On diaPASEF it is at 40 % of DIA-NN
+and below its own earlier HeLa result: the Astral-driven changes regress this run. Wall time is 3:08 against 2:46, and
+peak memory 4.5 GB against 2.3 GB.
+
 This section records the state of 7–8 November 2026. For the current Astral state, see "Current state" above and [BOARD.md](BOARD.md).
 
 | HeLa 200 ng diaPASEF, paired TDC, experimental q ≤ 0.01 | Targets | SVM-baseline overlap |
