@@ -7781,6 +7781,16 @@ add_test(NAME "TOPP_FeatureFinderMetaboIdent_12" COMMAND ${CMAKE_COMMAND}
   -DEXPECTED_CODE=0
   "-DEXPECTED_OUTPUT_REGEX=[0-9] of [0-9] features are near the edge of the RT window of their target.*Consider a larger 'RetentionTimeRange' for the targets that have their own"
   -P ${DATA_DIR_TOPP}/check_exit_code.cmake)
+# A target with its own RT window ('RetentionTimeRange' 100 s) that is much wider than 'extract:rt_window' (20 s), and
+# its peak 35 s from the target RT: the feature is inside the target's window, so it has to be kept. (The distance of
+# the candidates was compared with 'extract:rt_window' for all targets before.)
+add_test("TOPP_FeatureFinderMetaboIdent_13" ${TOPP_BIN_PATH}/FeatureFinderMetaboIdent -test -in ${DATA_DIR_TOPP}/FeatureFinderMetaboIdent_1_input.mzML -id ${DATA_DIR_TOPP}/FeatureFinderMetaboIdent_13_input.tsv -out ${TESTS_TEMP_DIR}/FeatureFinderMetaboIdent_13_output.tmp.featureXML -extract:mz_window 5 -extract:rt_window 20 -detect:peak_width 3)
+add_test("TOPP_FeatureFinderMetaboIdent_13_out1" ${CMAKE_COMMAND}
+  -DINPUT_FILE=${TESTS_TEMP_DIR}/FeatureFinderMetaboIdent_13_output.tmp.featureXML
+  "-DEXPECTED=<featureList count=\"2\">"
+  "-DFORBIDDEN=RT=\"255.8\"" # adenosine (target RT 255.8) must not be among the targets without a feature
+  -P ${DATA_DIR_TOPP}/check_file_contains.cmake)
+set_tests_properties("TOPP_FeatureFinderMetaboIdent_13_out1" PROPERTIES DEPENDS "TOPP_FeatureFinderMetaboIdent_13")
 
 # MzMLSplitter test:
 # specify number of parts directly:

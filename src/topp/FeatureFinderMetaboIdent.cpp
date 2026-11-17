@@ -110,6 +110,7 @@ The warning appears when @p detect:peak_width is more than twice the suggested v
 This check uses the widths of the elution models, so there is no such warning without them (@p model:type @c none, or no valid model).
 The widths of the elution models depend somewhat on @p detect:peak_width (the models are fitted between the feature borders), so on noisy data, or with few targets (whose models may be those of noise), the warning can come back with a still smaller value after the suggested value was set.
 - @p extract:rt_window (or the @p RetentionTimeRange of a target) is the width of the RT window around the target RT in which a feature is searched.
+Among the feature candidates in that window, the one closest to the target RT is kept.
 It has to cover the elution peak and the expected RT deviation of the target.
 The default is 240 seconds, i.e. +/- 120 seconds around the target RT, whatever the value of @p detect:peak_width (it was four times @p detect:peak_width before, which is 240 seconds for the former default of 60 seconds; a value of 0 still gives four times @p detect:peak_width).
 Targets whose RT may be further off than that (e.g. RTs from a library, another LC setup or runs that were not aligned) need a larger @p extract:rt_window; they are not found otherwise. A smaller window saves run time and avoids picking a neighboring peak of the same m/z if the target RTs are accurate, but targets that elute outside of it are missed.

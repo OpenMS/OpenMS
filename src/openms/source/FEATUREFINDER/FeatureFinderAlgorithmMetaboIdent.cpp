@@ -965,7 +965,12 @@ namespace OpenMS
       if (ref != previous_ref) // new assay
       {
         previous_ref = ref;
-        best_rt_dist = rt_window_;
+        // A candidate anywhere in the RT window of its target is eligible (the closest one is kept), so the distance
+        // to beat starts at the full window of that target: 'extract:rt_window', or its own 'RetentionTimeRange'.
+        // (With 'extract:rt_window' for all targets, candidates of a target with a 'RetentionTimeRange' of more than
+        // twice that value were dropped if they were further away than 'extract:rt_window'.)
+        auto tol = target_rt_tols_.find(ref);
+        best_rt_dist = (tol != target_rt_tols_.end()) ? 2.0 * tol->second.first : rt_window_;
         best_it = it;
       }
       double target_rt = target_rts_[ref];
