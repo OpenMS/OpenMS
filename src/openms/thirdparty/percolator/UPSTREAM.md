@@ -224,7 +224,10 @@ All patches are `git diff` style (a/b/ prefixes, applied with -p1) on the whitel
   at once; otherwise the loop runs. The results are those of the loop, bit for bit (scores, q-values
   and PEPs of `perc_bench` on 100,000 and 1,000,000 synthetic PSMs at 1, 2 and 4 threads: TRON,
   Newton and LDA, classic and new training, c_pos 0 and 0.1, `out_of_fold`, `out_of_fold_avg`,
-  in-sample caps, learning curve, nested cross-validation, warm starts).
+  in-sample caps, learning curve, nested cross-validation, warm starts). Measured with `perc_bench`
+  (1,000,000 synthetic PSMs, 30 features, 3 interleaved repetitions on 4 cores): 7-18% less time than
+  the loop at 4 threads and 11-17% at 2 threads (100,000 PSMs: 22-29% at 4 threads); from 1 to 4
+  threads 2.5-2.9x instead of 2.1-2.7x.
 
 ### The former patch set (01-35 on eb157f7)
 
