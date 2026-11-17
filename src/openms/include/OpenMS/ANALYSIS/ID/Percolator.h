@@ -132,6 +132,14 @@ namespace OpenMS
             scan_numbers / exp_masses so that the deduplication key is
             informative.
 
+      @note With parameters 'algorithm' = 'reset' and 'reset:in_rescore' = 'true' (both off by default), the rows are
+            rescored by the native Percolator-RESET (PercolatorReset, as rescorePSMs() with 'algorithm' 'reset'; all
+            'reset:*' parameters apply) instead of Percolator: it needs RescoreInput::search_scores and
+            RescoreInput::stems (and RescoreInput::decoy_sets with 'reset:decoys' 'two'). scores, q_values and peps
+            are then PercolatorReset::Output::scores, psm_q_values and psm_peps (heuristic at PSM level); the
+            FDR-controlled stem q-values are in RescoreOutput::peptide_q_values, the roles in reset_roles, and
+            getResetOutput() returns the full output. Without 'reset:in_rescore', rescore() always uses Percolator.
+
       @throws Exception::InvalidValue if sanity checks fail (too few decoys, no
               discriminative feature, malformed input dimensions).
     */
@@ -590,7 +598,9 @@ namespace OpenMS
     static PercolatorModel loadModel(const std::string& filename);
 
     /**
-      @brief Result of the last rescorePSMs() call with parameter 'algorithm' = 'reset' (null otherwise).
+      @brief Result of the last rescorePSMs() call with parameter 'algorithm' = 'reset', or of the last rescore(input)
+      call with 'algorithm' = 'reset' and 'reset:in_rescore' (null after rescorePSMs() without RESET; rows = the
+      RescoreInput's rows).
 
       With RESET, rescorePSMs() stores the heuristic PSM-level q-value and PEP (PercolatorReset::Output) where
       Percolator stores its PSM-level values, the RESET score as SVM score, and on every rescored hit the q-value of
@@ -605,6 +615,11 @@ namespace OpenMS
   private:
     RescoreOutput rescoreReset_(const PeptideIdentificationList& peptide_ids, RescoreInput& ri,
                                 const std::vector<std::pair<size_t, size_t>>& hit_locs);
+    /// PercolatorReset::run() with the 'reset:*' parameters, its log, weights and getResetOutput(): scores, PSM-level
+    /// q-values and PEPs (rescorePSMs() and rescore() with 'reset:in_rescore')
+    RescoreOutput runReset_(PercolatorReset::Input& in);
+    /// rescore() with 'algorithm' = 'reset' and 'reset:in_rescore': PercolatorReset on RescoreInput::search_scores, stems
+    RescoreOutput rescoreResetInput_(const RescoreInput& input);
     /// The scale of a scoring, for score(input, model, reference): see score_()
     struct ReferenceScale_;
     /// score(); with @p scale, also the model's weights rescaled as the scores (Scores::normalizeScores) and the

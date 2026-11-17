@@ -463,7 +463,8 @@ Percolator::Percolator()
   defaults_.setValue("algorithm", "percolator",
                      "rescorePSMs(): 'percolator' = Percolator's cross-validated PSM-level FDR (default); 'reset' = "
                      "Percolator-RESET (PercolatorReset): FDR control at the peptide (stem = unmodified sequence) level, "
-                     "PSM-level q-values heuristic. rescore() and train()/score() always use Percolator.");
+                     "PSM-level q-values heuristic. rescore() uses it only with reset:in_rescore; train()/score() always "
+                     "use Percolator.");
   defaults_.setValidStrings("algorithm", {"percolator","reset"});
   defaults_.setValue("peptide_level", "false",
                      "rescore(): also estimate peptide-level q-values and PEPs as the percolator executable does without "
@@ -534,6 +535,12 @@ Percolator::Percolator()
   defaults_.setValue("reset:second_decoy_prefix", "DECOY_X_",
                      "RESET 'two' decoys: accession prefix of the proteins of the second decoy database (a decoy hit is of "
                      "the second set if all its proteins have this prefix).");
+  defaults_.setValue("reset:in_rescore", "false",
+                     "With algorithm 'reset': rescore(RescoreInput) also runs PercolatorReset (all reset:* parameters "
+                     "apply), on the RescoreInput's search_scores and stems (decoy_sets with reset:decoys 'two'), "
+                     "instead of Percolator. Off (default): rescore() always uses Percolator, and RESET is available "
+                     "through rescorePSMs() only.");
+  defaults_.setValidStrings("reset:in_rescore", {"true","false"});
   defaults_.setValue("reset:stem_table", "",
                      "RESET: if not empty, rescorePSMs() writes every stem (considered or not) to this tab-separated file: "
                      "stem, representative peptidoform, label, role, considered, search engine score, RESET score, "
@@ -598,6 +605,7 @@ void Percolator::updateMembers_()
   impl_->reset_second_decoy_prefix = param_.getValue("reset:second_decoy_prefix").toString();
   impl_->peptide_level = param_.getValue("peptide_level").toString() == "true";
   impl_->reset_algorithm = param_.getValue("reset_algorithm").toString() == "true";
+  impl_->reset_in_rescore = param_.getValue("reset:in_rescore").toString() == "true";
 }
 
 const std::vector<std::vector<double>>& Percolator::getSvmWeights() const
@@ -1222,6 +1230,9 @@ static void validateRescoreInput_(const RescoreInput& input)
   validate_opt(input.exp_masses,         "exp_masses");
   validate_opt(input.calc_masses,        "calc_masses");
   validate_opt(input.peptide_keys,       "peptide_keys");
+  validate_opt(input.search_scores,      "search_scores");
+  validate_opt(input.stems,              "stems");
+  validate_opt(input.decoy_sets,         "decoy_sets");
 }
 
 // Feature-count + feature-names compatibility between a scoring input and a
@@ -1725,6 +1736,16 @@ RescoreOutput Percolator::rescore(const RescoreInput& input)
   impl_->weights_error.clear();
 
   validateRescoreInput_(input);
+  if (impl_->reset_in_rescore && impl_->algorithm == "reset")
+  {
+    if (impl_->reset_algorithm)
+    {
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+        "Percolator parameters 'reset_algorithm' (upstream Percolator-RESET) and 'algorithm' 'reset' with "
+        "'reset:in_rescore' (native PercolatorReset) exclude each other.", "");
+    }
+    return rescoreResetInput_(input);
+  }
   // Percolator-RESET (parameter 'reset_algorithm'): no mix-max, as the executable, whose RESET keeps the best PSM of each
   // peptide in a Scores object without pi0 (and is not stopped by its mix-max check, upstream 68ec0058)
   const bool reset = impl_->reset_algorithm;
@@ -3524,6 +3545,12 @@ RescoreOutput Percolator::rescoreReset_(const PeptideIdentificationList& peptide
     }
   }
 
+  return runReset_(in);
+}
+
+RescoreOutput Percolator::runReset_(PercolatorReset::Input& in)
+{
+  const bool two_decoys = impl_->reset_decoy_databases == 2;
   PercolatorReset::Options opt;
   if (!impl_->reset_salt.empty()) // empty: PercolatorReset::run() draws a fresh salt (reported below)
   {
@@ -3625,6 +3652,70 @@ RescoreOutput Percolator::rescoreReset_(const PeptideIdentificationList& peptide
   if (!rr->weights.empty()) impl_->svm_weights.assign(1, rr->weights); // the linear learner only
   impl_->last_used_default_direction = false;
   impl_->last_reset = std::move(rr);
+  return ro;
+}
+
+RescoreOutput Percolator::rescoreResetInput_(const RescoreInput& input)
+{
+  impl_->last_reset.reset();
+  const size_t n = input.rowCount();
+  if (input.search_scores.size() != n || input.stems.size() != n)
+  {
+    throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+      "Percolator parameter 'reset:in_rescore' (algorithm 'reset') needs RescoreInput::search_scores and "
+      "RescoreInput::stems (one per row).");
+  }
+  const bool two_decoys = impl_->reset_decoy_databases == 2;
+  if (two_decoys && input.decoy_sets.size() != n)
+  {
+    throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+      "Percolator parameter 'reset:decoys' 'two' with 'reset:in_rescore' needs RescoreInput::decoy_sets (one per row).");
+  }
+  OPENMS_LOG_INFO << "Rescoring " << n << " rows in-process with " << input.featureCount()
+                  << " features (Percolator-RESET, PercolatorReset)." << std::endl;
+  PercolatorReset::Input in;
+  in.feature_names.assign(input.feature_names.begin(), input.feature_names.end());
+  in.is_decoy = input.is_decoy;
+  in.features = input.features;             // (copies: the input is const)
+  in.feature_matrix = input.feature_matrix;
+  in.search_scores = input.search_scores;
+  in.stems = input.stems;
+  if (two_decoys)
+  {
+    in.decoy_set.resize(n);
+    for (size_t r = 0; r < n; ++r)
+    {
+      const int set = input.decoy_sets[r];
+      if (set < 0 || set > 3 || (set == 0) != !input.is_decoy[r])
+      {
+        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+          "RescoreInput::decoy_sets: 0 for targets, 1, 2 or 3 for decoys (row " + std::to_string(r) + ")",
+          std::to_string(set));
+      }
+      in.decoy_set[r] = static_cast<char>(set);
+    }
+  }
+  // the competition unit: the row's spectrum (spec_file_numbers, scan_numbers; else cv_group_keys; else the row), as
+  // the cross-validation folds of rescore() (makeRowKeys)
+  if (input.scan_numbers.empty() && input.cv_group_keys.empty())
+  {
+    OPENMS_LOG_WARN << "RESET: no scan_numbers or cv_group_keys: every row competes as a spectrum of its own." << std::endl;
+  }
+  in.spectrum.resize(n);
+  {
+    std::map<std::pair<int, int>, Size> unit_of;
+    for (size_t r = 0; r < n; ++r)
+    {
+      const RowKeys k = makeRowKeys(input, r);
+      in.spectrum[r] = unit_of.try_emplace(std::make_pair(k.spec_file, k.scan), unit_of.size()).first->second;
+    }
+  }
+  RescoreOutput ro = runReset_(in);
+  const PercolatorReset::Output& rr = *impl_->last_reset;
+  ro.peptide_q_values = rr.stem_q_values;
+  ro.reset_roles.resize(rr.roles.size());
+  std::transform(rr.roles.begin(), rr.roles.end(), ro.reset_roles.begin(),
+                 [](PercolatorReset::Role role) { return static_cast<int>(role); });
   return ro;
 }
 

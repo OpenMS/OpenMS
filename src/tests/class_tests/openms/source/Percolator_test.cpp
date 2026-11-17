@@ -3424,4 +3424,114 @@ START_SECTION([EXTRA] reset_algorithm: Percolator-RESET on the best PSM of each 
 }
 END_SECTION
 
+START_SECTION([EXTRA] reset:in_rescore: rescore(RescoreInput) with the native PercolatorReset as rescorePSMs())
+{
+  // 900 spectra with one hit each; 150 target and 150 decoy sequences, each seen in 3 spectra
+  const std::string aas = "ACDEFGHILMNPQSTVWY";
+  PeptideIdentificationList ids;
+  for (int i = 0; i < 900; ++i)
+  {
+    const bool decoy = i % 2 == 1;
+    const int pep = (i / 2) % 150;
+    std::string body = std::string(1, aas[pep % aas.size()]) + aas[(pep / aas.size()) % aas.size()] + "GALSTVE";
+    if (decoy) std::reverse(body.begin(), body.end());
+    PeptideHit hit;
+    hit.setSequence(AASequence::fromString(pep % 10 == 0 ? "M(Oxidation)" + body + 'K' : body + 'K'));
+    hit.setCharge(2);
+    hit.setScore((decoy ? 0.0 : 2.0) + 2.0 * std::fmod(i * 0.6180339887498949, 1.0) - 1.0);
+    hit.setMetaValue("target_decoy", decoy ? "decoy" : "target");
+    hit.setPeptideEvidences({PeptideEvidence(decoy ? "DECOY_P" + std::to_string(pep) : "P" + std::to_string(pep), 0, 0, 'K', 'A')});
+    PeptideIdentification pid;
+    pid.setScoreType("hyperscore");
+    pid.setHigherScoreBetter(true);
+    pid.setMZ(hit.getSequence().getMZ(2));
+    pid.setRT(10.0 * i);
+    pid.setMetaValue("spectrum_reference", "scan=" + std::to_string(i + 1));
+    pid.setHits({hit});
+    ids.push_back(pid);
+  }
+  StringList feature_set = PercolatorInfile::getStandardFeatureSet(2, 2);
+  feature_set.push_back("score");
+  feature_set.push_back("Peptide");
+  feature_set.push_back("Proteins");
+
+  // the RescoreInput of the same PSMs, with the native RESET's inputs (one spectrum per identification)
+  RescoreInput input;
+  Percolator::PSMRowLocations rows;
+  Percolator::buildPSMRescoreInput(ids, feature_set, "trypsin", 2, 2, input, rows);
+  for (const auto& [pid_i, hit_i] : rows)
+  {
+    const PeptideHit& hit = ids[pid_i].getHits()[hit_i];
+    input.search_scores.push_back(hit.getScore());
+    input.stems.push_back(hit.getSequence().toUnmodifiedString());
+    input.cv_group_keys.push_back(static_cast<int>(pid_i));
+  }
+
+  Percolator psms;
+  Param prm = psms.getDefaults();
+  prm.setValue("algorithm", "reset");
+  prm.setValue("reset:salt", "5");
+  prm.setValue("reset:iterations", 3);
+  psms.setParameters(prm);
+  PeptideIdentificationList ids_reset = ids;
+  psms.rescorePSMs(ids_reset, feature_set, "trypsin", 2, 2, "q-value");
+  const auto expected = psms.getResetOutput();
+  TEST_NOT_EQUAL(expected.get(), nullptr)
+
+  // off by default: with algorithm 'reset' alone, rescore() still uses Percolator (unchanged behaviour)
+  Percolator plain;
+  TEST_EQUAL(plain.getDefaults().getValue("reset:in_rescore").toString(), "false")
+  const RescoreOutput percolator_out = plain.rescore(input);
+  Percolator reset_only;
+  reset_only.setParameters(prm);
+  const RescoreOutput reset_only_out = reset_only.rescore(input);
+  TEST_TRUE(reset_only_out.scores == percolator_out.scores && reset_only_out.q_values == percolator_out.q_values)
+  TEST_TRUE(reset_only_out.reset_roles.empty() && reset_only_out.peptide_q_values.empty())
+  TEST_EQUAL(reset_only.getResetOutput().get(), nullptr)
+
+  // with reset:in_rescore: the native RESET, identical to rescorePSMs()
+  Percolator native;
+  prm.setValue("reset:in_rescore", "true");
+  native.setParameters(prm);
+  const RescoreOutput out = native.rescore(input);
+  const auto got = native.getResetOutput();
+  TEST_NOT_EQUAL(got.get(), nullptr)
+  TEST_EQUAL(out.scores.size(), ids.size())
+  TEST_TRUE(out.scores == expected->scores && out.q_values == expected->psm_q_values && out.peps == expected->psm_peps)
+  TEST_TRUE(out.peptide_q_values == expected->stem_q_values && out.peptide_peps.empty())
+  bool roles_same = out.reset_roles.size() == expected->roles.size();
+  for (size_t i = 0; roles_same && i < out.reset_roles.size(); ++i)
+  {
+    roles_same = out.reset_roles[i] == static_cast<int>(expected->roles[i]);
+  }
+  TEST_TRUE(roles_same)
+  TEST_EQUAL(got->salt, expected->salt)
+  TEST_EQUAL(got->training_decoys, expected->training_decoys)
+  TEST_EQUAL(got->discoveries_1pct, expected->discoveries_1pct)
+
+  // required inputs; the upstream option excludes it
+  RescoreInput no_scores = input;
+  no_scores.search_scores.clear();
+  TEST_EXCEPTION(Exception::MissingInformation, native.rescore(no_scores))
+  RescoreInput no_stems = input;
+  no_stems.stems.clear();
+  TEST_EXCEPTION(Exception::MissingInformation, native.rescore(no_stems))
+  RescoreInput short_stems = input;
+  short_stems.stems.pop_back();
+  TEST_EXCEPTION(Exception::InvalidValue, native.rescore(short_stems))
+  Param two = prm;
+  two.setValue("reset:decoys", "two");
+  Percolator needs_sets;
+  needs_sets.setParameters(two);
+  TEST_EXCEPTION(Exception::MissingInformation, needs_sets.rescore(input))
+  Param both = prm;
+  both.setValue("reset_algorithm", "true");
+  Percolator conflicting;
+  conflicting.setParameters(both);
+  RescoreInput keyed = input;
+  keyed.peptide_keys = keyed.stems;
+  TEST_EXCEPTION(Exception::InvalidValue, conflicting.rescore(keyed))
+}
+END_SECTION
+
 END_TEST

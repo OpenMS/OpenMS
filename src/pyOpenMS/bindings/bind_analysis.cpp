@@ -2523,6 +2523,15 @@ Probability ties resolved by taking protein with largest number of peptides
         .def_rw("peptide_keys",   &OpenMS::RescoreInput::peptide_keys,
                 "Optional per-row peptide key for peptide-level q-values (Percolator parameter 'peptide_level'). "
                 "Empty, or one entry per row.")
+        .def_rw("search_scores",  &OpenMS::RescoreInput::search_scores,
+                "Per-row search engine score, higher = better: input of the native RESET in rescore() (parameters "
+                "'algorithm' 'reset' and 'reset:in_rescore'). Empty, or one entry per row.")
+        .def_rw("stems",          &OpenMS::RescoreInput::stems,
+                "Per-row unmodified peptide sequence: input of the native RESET in rescore() (parameters "
+                "'algorithm' 'reset' and 'reset:in_rescore'). Empty, or one entry per row.")
+        .def_rw("decoy_sets",     &OpenMS::RescoreInput::decoy_sets,
+                "Per-row decoy database (0 target, 1 or 2, 3 = both) for the native RESET with 'reset:decoys' 'two'. "
+                "Empty, or one entry per row.")
 
         .def("set_features_np",
              [](OpenMS::RescoreInput& self,
@@ -2565,13 +2574,16 @@ Probability ties resolved by taking protein with largest number of peptides
         .def_rw("peps",     &OpenMS::RescoreOutput::peps,     "posterior error probability per row")
         .def_rw("peptide_q_values", &OpenMS::RescoreOutput::peptide_q_values,
                 "With 'peptide_level' and RescoreInput.peptide_keys: the peptide-level q-value per row; with "
-                "'reset_algorithm': the RESET q-value of the row's peptide key (empty otherwise)")
+                "'reset_algorithm': the RESET q-value of the row's peptide key; with 'algorithm' 'reset' and "
+                "'reset:in_rescore': the q-value of the row's stem (empty otherwise)")
         .def_rw("peptide_peps",     &OpenMS::RescoreOutput::peptide_peps,
                 "With 'peptide_level' and RescoreInput.peptide_keys: the peptide-level PEP per row; with "
-                "'reset_algorithm': the RESET PEP of the row's peptide key (empty otherwise)")
+                "'reset_algorithm': the RESET PEP of the row's peptide key (empty otherwise, also with "
+                "'reset:in_rescore')")
         .def_rw("reset_roles",      &OpenMS::RescoreOutput::reset_roles,
-                "With 'reset_algorithm': the RESET role of the row's peptide key per row: 0 = target, 1 = estimating "
-                "decoy, 2 = training decoy (empty otherwise)")
+                "With 'reset_algorithm' (of the row's peptide key) or 'algorithm' 'reset' with 'reset:in_rescore' (of "
+                "the row's stem): the RESET role per row: 0 = target, 1 = estimating decoy, 2 = training decoy "
+                "(empty otherwise)")
 
         .def("scores_np",
              [](nb::object self_obj) -> nb::object {
