@@ -1076,11 +1076,11 @@ protected:
   void postProcessHits_(const PeakMap& exp,
                         vector<HitsByScore>& annotated_hits,
                         IdentificationData& id_data,
-                        bool negative_mode)
+                        bool negative_mode,
+                        IdentificationData::InputFileRef file_ref,
+                        IdentificationData::ScoreTypeRef score_ref)
   {
-    IdentificationData::InputFileRef file_ref = id_data.getInputFiles().begin();
-    IdentificationData::ScoreTypeRef score_ref =
-      id_data.getScoreTypes().begin();
+    // Use the current run references; cached entries may sort before them.
 
 // @TODO: change OpenMP schedule from default ("static") to "dynamic"/"guided"?
 #pragma omp parallel for
@@ -1636,7 +1636,7 @@ protected:
     // processing software meta data:
     const std::string scoring_method = getStringOption_("scoring:method");
     IdentificationData::ScoreType score(scoring_method == "mvh" ? "MVH score" : "hyperscore", true);
-    IdentificationData::ScoreTypeRef hyperscore_ref =
+    IdentificationData::ScoreTypeRef search_score_ref =
       id_data.registerScoreType(score);
     CVTerm qvalue("MS:1002354", "PSM-level q-value", "MS");
     score = IdentificationData::ScoreType(qvalue, false);
@@ -1646,7 +1646,7 @@ protected:
     // in test mode just overwrite with a generic version:
     if (test_mode_) software.setVersion("test");
     // @TODO: which should be the "primary" (first) score?
-    software.assigned_scores.push_back(hyperscore_ref);
+    software.assigned_scores.push_back(search_score_ref);
     software.assigned_scores.push_back(qvalue_ref);
     IdentificationData::ProcessingSoftwareRef software_ref =
       id_data.registerProcessingSoftware(software);
@@ -2138,7 +2138,7 @@ protected:
     }
 
     progresslogger.startProgress(0, 1, "post-processing search hits...");
-    postProcessHits_(spectra, annotated_hits, id_data, negative_mode);
+    postProcessHits_(spectra, annotated_hits, id_data, negative_mode, file_ref, search_score_ref);
     progresslogger.endProgress();
     OPENMS_LOG_INFO << "Identified spectra: " << id_data.getObservations().size()
                     << endl;
