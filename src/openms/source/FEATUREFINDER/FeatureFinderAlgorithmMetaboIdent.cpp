@@ -62,8 +62,8 @@ namespace OpenMS
 
     defaults_.setValue(
       "extract:rt_window",
-      0.0,
-      "RT window size (in sec.) for chromatogram extraction. If 0, this parameter is computed as 'detect:peak_width' * 4.",
+      240.0,
+      "RT window size (in sec.) for chromatogram extraction: a feature is searched within +/- half of it around the target RT. If 0, this parameter is computed as 'detect:peak_width' * 4.",
       vector<string>{"advanced"});
     defaults_.setMinFloat("extract:rt_window", 0.0);
 
@@ -86,7 +86,7 @@ namespace OpenMS
 
     defaults_.setSectionDescription("extract", "Parameters for ion chromatogram extraction");
 
-    defaults_.setValue("detect:peak_width", 20.0, "Expected elution peak width in seconds, for smoothing (Gauss filter). Also determines the RT extraction window, unless set explicitly via 'extract:rt_window'. About twice the width (FWHM) of the elution peaks in the data is a suitable value: if it is much larger, neighboring peaks can be merged and targets can be missed.");
+    defaults_.setValue("detect:peak_width", 20.0, "Expected elution peak width in seconds, for smoothing (Gauss filter). Also determines the RT extraction window if 'extract:rt_window' is set to 0. About twice the width (FWHM) of the elution peaks in the data is a suitable value: if it is much larger, neighboring peaks can be merged and targets can be missed.");
     defaults_.setMinFloat("detect:peak_width", 0.0);
     defaults_.setValue(
       "detect:min_peak_width", 
