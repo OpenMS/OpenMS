@@ -641,21 +641,48 @@ START_SECTION(void transform(const std::string& path, Interfaces::IMSDataConsume
   ms1.ms_levels = {1};
   testTransform(ms1);
 #ifdef _OPENMP
-  // MS-level-only selection: the read-ahead workers also read the peaks of the selected levels,
-  // which must give the single-threaded result (where the consumer thread reads every scan itself)
+  // MS-level-only selection: the read-ahead workers also read the peaks of the selected levels. load() keeps the
+  // consumer-thread read for any header filter, so each transform() below is compared with that path.
   {
-    const int threads = omp_get_max_threads();
+    struct ThreadGuard // restores the OpenMP thread count also when a check throws
+    {
+      int threads = omp_get_max_threads();
+      ~ThreadGuard() { omp_set_num_threads(threads); }
+    } guard;
     for (const ThermoRawFile::Options& levels : {ms2, ms1})
     {
       omp_set_num_threads(1);
       testTransform(levels);
-      omp_set_num_threads(4);
-      testTransform(levels);
       ThermoRawFile::Options profile = levels;
       profile.centroid = false;
       testTransform(profile);
+      omp_set_num_threads(4);
+      testTransform(levels);
+      testTransform(profile);
+      // level selection combined with a scan range (peaks_from = first_scan > first scan of the file,
+      // read-ahead ends before the last scan) and with the charge and noise arrays
+      ThermoRawFile::Options range = levels;
+      range.first_scan = 51;
+      range.last_scan = 451;
+      testTransform(range);
+      ThermoRawFile::Options arrays = levels;
+      arrays.charge_data = true;
+      arrays.noise_data = true;
+      testTransform(arrays);
+      // with an RT range the header-only read-ahead is kept
+      ThermoRawFile::Options rt_range = levels;
+      const MSExperiment all = load(base);
+      rt_range.rt_min = all[100].getRT();
+      rt_range.rt_max = all[200].getRT();
+      testTransform(rt_range);
     }
-    omp_set_num_threads(threads);
+    // several levels at once, and a level that does not occur
+    ThermoRawFile::Options both = ms1;
+    both.ms_levels = {1, 2};
+    testTransform(both);
+    ThermoRawFile::Options absent = ms1;
+    absent.ms_levels = {3};
+    testTransform(absent);
   }
 #endif
   const MSExperiment full = load(base);

@@ -168,7 +168,7 @@ namespace Internal
       @param[in] last_scan Last scan to read ahead
       @param[in] peaks_from Scans from this number on are read with peaks (as header(scan, true))
       @param[in] peak_levels If not empty, only scans of these MS levels (from @p peaks_from on) are read with peaks;
-                 the header is read first to learn the level. header() reports which scans carry peaks.
+                 the header is read first to learn the level. convert() reads the peaks of the other scans itself.
     */
     void readAhead(int last_scan, int peaks_from, std::vector<int> peak_levels = {});
 
@@ -245,11 +245,14 @@ namespace Internal
     {
       return options.precursor_mz_min > -std::numeric_limits<double>::infinity() || options.precursor_mz_max < std::numeric_limits<double>::infinity();
     }
+    bool rtFiltered() const
+    {
+      return options.rt_min > -std::numeric_limits<double>::infinity() || options.rt_max < std::numeric_limits<double>::infinity();
+    }
     /// True if scans are selected by values of their header.
     bool headerFiltered() const
     {
-      return ! options.ms_levels.empty() || precursorFiltered() || options.rt_min > -std::numeric_limits<double>::infinity()
-             || options.rt_max < std::numeric_limits<double>::infinity();
+      return ! options.ms_levels.empty() || precursorFiltered() || rtFiltered();
     }
     /// Last scan to read: scans of one controller are in acquisition order, so no later scan can be selected.
     int lastScan(int last) const { return options.last_scan > 0 ? std::min(last, options.last_scan) : last; }
