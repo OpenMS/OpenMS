@@ -22,6 +22,7 @@
 #include<fstream>
 #include<sstream>
 #include<cmath>
+#include<iostream>
 
 #include "Globals.h"
 #include "LogisticRegression.h"
@@ -47,17 +48,107 @@ double logit(double p) {
   return log(p / (1 - p));
 }
 
+// Distinct scores can give equal knots after the log or logit transform of
+// BaseSpline::setData (two scores near 1e9 one ulp apart). The interval
+// between equal knots has length 0, and reinschStep cannot take a step.
+// Such knots are merged. The spline needs 4 knots: if fewer would remain,
+// nothing is merged, the step fails, and roughnessPenaltyIRLS prints its
+// warning. Knots that are only close together are not merged.
+void LogisticRegression::mergeEqualKnots(std::vector<double>& xx,
+                                         std::vector<double>& yy,
+                                         std::vector<double>& mm) {
+  const std::size_t n = xx.size();
+  std::size_t distinct = n > 0 ? 1 : 0;
+  for (std::size_t i = 1; i < n; ++i) {
+    distinct += xx[i] != xx[i - 1];
+  }
+  if (distinct == n || distinct < 4) {
+    return;
+  }
+  std::size_t k = 0;
+  for (std::size_t i = 1; i < n; ++i) {
+    if (xx[i] == xx[k]) {
+      yy[k] += yy[i];
+      mm[k] += mm[i];
+    } else {
+      ++k;
+      xx[k] = xx[i];
+      yy[k] = yy[i];
+      mm[k] = mm[i];
+    }
+  }
+  xx.resize(distinct);
+  yy.resize(distinct);
+  mm.resize(distinct);
+  if (VERB > 2) {
+    cerr << "Merged " << n - distinct << " of " << n << " bins for the PEP "
+         << "fit: their knots are equal." << endl;
+  }
+}
+
+// Knots that are not equal but much closer together than the knots around
+// them leave the system of each step ill-conditioned also in double-double.
+// The fit can then end at its limit with the warning, or converge, and the
+// PEPs can depend on the last bits of exp and log or be wrong (24 qvality
+// scores 1 ulp apart at 1.5 and 400 others: best PEP 6.3e-16, against 3.8e-4
+// with the 24 merged; protein scores 0 and 1e-20 among 300: PEPs up to 0.85
+// off those with the two scores 3e-6 apart). A rule that merged such
+// knots would have to tell the knots that the fit separates from those that
+// it cannot, and merging changes the PEPs. They are not merged; a warning is
+// printed instead. The smallest ratio of a gap to the median of the gaps
+// around it was 4.0e-6 on 150 synthetic sets and 3.5e-7 in qvality inputs
+// with two scores 1e-8 apart; at 7.3e-11 (two of 300 protein scores 1e-12
+// apart) the PEPs differed by up to 5.4e-6 with and without the FMA variants
+// of exp and log. The larger middle gap is taken so that a run of nearly
+// equal knots counts at its ends; with the smaller one, runs of 7 or more
+// knots 1 ulp apart would not count. Where all knots form runs of 3 or more
+// knots 1 ulp apart, the gaps around each pair are small too, and few or no
+// pairs count (none on 18 qvality inputs with runs of 4 to 8 or 12, where
+// the fit did not converge and printed its warning).
+static const double kNearTie = 1e-9;
+static const std::size_t kNearTieWindow = 5;
+
+std::size_t LogisticRegression::countNearTies(const std::vector<double>& xx) {
+  const std::size_t n = xx.size();
+  std::size_t count = 0;
+  std::vector<double> gaps;
+  for (std::size_t i = 0; i + 1 < n; ++i) {
+    gaps.clear();
+    for (std::size_t j = i - min(i, kNearTieWindow);
+         j < min(n - 1, i + 1 + kNearTieWindow); ++j) {
+      const double gap = xx[j + 1] - xx[j];
+      if (j != i && !std::isnan(gap)) {
+        gaps.push_back(gap);
+      }
+    }
+    if (gaps.empty()) {
+      continue;
+    }
+    const std::size_t mid = gaps.size() / 2;
+    std::nth_element(gaps.begin(), gaps.begin() + mid, gaps.end());
+    count += xx[i + 1] - xx[i] < kNearTie * gaps[mid];
+  }
+  return count;
+}
+
+void LogisticRegression::setData(const std::vector<double>& xx,
+                                 const std::vector<double>& yy,
+                                 const std::vector<double>& mm) {
+  BaseSpline::setData(xx);
+  y = yy;
+  m = mm;
+  mergeEqualKnots(x, y, m);
+  const std::size_t nearTies = countNearTies(x);
+  if (nearTies > 0 && VERB > 0) {
+    cerr << "Warning: " << nearTies << " pairs of scores in the PEP fit are "
+         << "nearly equal; the PEPs may be inaccurate." << endl;
+  }
+}
+
 void LogisticRegression::limitg() {
   for (int ix = gnew.numberEntries(); ix--;) {
     gnew.packedReplace(ix, min(gRange, max(-gRange, gnew[ix])));
     assert(std::isfinite(gnew[ix]));
-  }
-}
-
-void LogisticRegression::limitgamma() {
-  for (int ix = gamma.numberEntries(); ix--;) {
-    gamma.packedReplace(ix, min(gRange, max(-gRange, gamma[ix])));
-    assert(std::isfinite(gamma[ix]));
   }
 }
 
@@ -101,40 +192,6 @@ void LogisticRegression::initg() {
   }
   drFile.close();
 #endif
-}
-
-
-// OpenMS: the spline needs at least 4 strictly increasing x (initiateQR), and
-// keeps their distances in sparse vectors that treat |dx| <= 1e-15 as 0. Merge
-// the points it cannot tell apart and pad to 4 points spaced like the data.
-// Both happen in the transformed coordinates the spline fits in, which
-// setData chose from the real data, so the padding cannot change the
-// transform. Expects x in ascending order.
-void LogisticRegression::mergeTiesAndPad() {
-  std::size_t n = 0;
-  for (std::size_t ix = 0; ix < x.size(); ++ix) {
-    if (n > 0 && x[ix] - x[n - 1] <= 1e-12 * max(1.0, fabs(x[ix]))) {
-      y[n - 1] += y[ix];
-      m[n - 1] += m[ix];
-    } else {
-      x[n] = x[ix];
-      y[n] = y[ix];
-      m[n] = m[ix];
-      ++n;
-    }
-  }
-  x.resize(n);
-  y.resize(n);
-  m.resize(n);
-  if (n == 0) {
-    return;
-  }
-  double offset = n > 1 ? x.back() - x.front() : max(1.0, fabs(x.back()));
-  for (std::size_t ix = n; ix < 4; ++ix) {
-    x.push_back(x.back() + static_cast<double>(ix) * offset);
-    y.push_back(y.back());
-    m.push_back(m.back());
-  }
 }
 
 }}}  // namespace OpenMS::Internal::Percolator

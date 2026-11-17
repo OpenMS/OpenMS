@@ -39,8 +39,6 @@ Normalizer.h
 NumberFormatter.h
 Numerical.cpp
 Numerical.h
-PackedMatrix.cpp
-PackedMatrix.h
 PackedVector.cpp
 PackedVector.h
 ParallelSort.h

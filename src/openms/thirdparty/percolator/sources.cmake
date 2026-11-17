@@ -17,7 +17,6 @@ set(OpenMS_percolator_sources
   NoNormalizer.cpp
   Normalizer.cpp
   Numerical.cpp
-  PackedMatrix.cpp
   PackedVector.cpp
   PosteriorEstimator.cpp
   PSMDescription.cpp
