@@ -1,0 +1,128 @@
+/**
+@page TOPP_NASE_GraphSearch Experimental RNA graph filtering in NASE
+
+@brief Bounded RNA mass tags for selecting precursor-matched candidates before full-spectrum scoring.
+
+NucleicAcidSearchEngine offers five candidate modes:
+- @p enumeration keeps the existing search.
+- @p graph_audit scores all enumerated candidates and records whether a validated graph path supports each retained hit.
+- @p graph filters precursor-matched candidates using RNA tags, then applies the existing full-spectrum score, coverage requirement, hit competition and native FDR calculation.
+- @p graph_generate constrains variable-modification placement using precursor-mass completion bounds and graph-compatible residue alternatives, then applies the same graph validation and scoring as @p graph.
+- @p graph_generate_audit compares generated candidates with exhaustive phase-one graph filtering, checks for missing or extra eligible variants, and scores the exhaustive reference. A candidate mismatch fails the run.
+
+An example workflow uses FLASH to correct the MS1 precursor and retains legacy MS2 processing:
+@code
+NucleicAcidSearchEngine -in spectra.mzML -database targets_decoys.fasta \
+  -out results.mzTab -id_out results.idXML \
+  -precursor:correct_with_flash -preprocessing:deisotoping legacy \
+  -candidates:method graph_audit -out_graph graphs.tsv
+@endcode
+
+Graph filtering is an experimental candidate-selection stage. The modification-aware
+RNase digestion determines allowed products and consumes cleavage-sensitive modification
+budgets before placement. The @p graph mode retains exhaustive placement as a reference.
+The @p graph_generate mode extends ModifiedNASequenceGenerator's site compatibility
+and site-subset enumeration with a predicate on partial placements. It preserves fixed,
+pre-existing and terminal modifications and never spends the consumed budget again.
+
+At each branch, mass bounds cover every possible completion, including negative
+mass shifts and terminal groups. Unresolved internal sites retain all legal residue
+labels, so an isobar is never chosen by mass alone. A branch can be rejected only
+if no precursor in its mass envelope has a compatible tag or needs fallback.
+These relaxed bounds may retain impossible completions; final exact precursor and
+ion-series validation remain unchanged. The @p graph:max_placement_nodes bound
+limits per-oligo exploration. Exceeding it discards partial output and restarts
+exhaustive placement for that oligo. @p graph_generate_audit checks eligible
+candidate multisets before theoretical-spectrum scoring, independently of PSM yield.
+
+These modes select candidates; they do not promise faster searches or improved
+identification accuracy. Graph filtering can reject candidates after theoretical-spectrum
+generation, and placement-budget fallback can pay for both partial traversal and
+exhaustive expansion. Profile complete searches on representative data before
+making performance claims. A review measurement on one full HAP1 tRNA recording
+found graph filtering and constrained generation slightly slower than enumeration,
+while preserving its accepted spectra and assignments at 1% and 5% native q-value.
+That is a dataset-specific result, not a general recall or accuracy guarantee.
+
+The theoretical ion annotations and residue labels are prepared once per
+candidate/precursor-charge hypothesis and reused across matching spectra.
+Validation stores dynamic-programming states only for observed ion matches.
+It preserves the reference traversal, fallback limits and tag witness, while
+avoiding repeated annotation parsing and dense per-spectrum state allocation.
+Sorted theoretical groups also skip ions outside a conservatively expanded
+observed m/z range. The full existing theoretical spectrum remains available
+to the unchanged score and annotations.
+
+Use @p graph:verify_matches to compare every prepared graph decision, fallback
+reason and tag witness with the reference matcher, and to check that no
+candidate rejected before theoretical-spectrum generation would have been
+supported or kept through fallback by it. Any difference fails the run. This can be combined with @p graph_generate_audit to check both placement
+recall and matching equivalence in one search.
+
+@section nase_graph_reuse Reused chemistry and scoring
+
+The graph alphabet uses RibonucleotideDB records and the configured internal fixed
+and variable modifications. Its edges retain every matching ordered residue
+alternative instead of choosing a single label for isobaric masses. NASequence
+labels, pre-existing modifications, parent mappings and cleavage-dependent
+modification budgets remain part of NASE's existing candidate generation.
+
+Paths are built in separate fragment-charge layers from the processed MS2 m/z
+values; the scoring spectrum is not decharged or otherwise changed by the graph.
+The graph uses residue increments including the RNA backbone mass. A step of two
+residues bridges one missing fragment peak, with both residue orders retained
+when mass alone cannot distinguish them. One- and two-residue anchors are
+supported, including anchors after missing initial fragments.
+
+@p graph:min_tag_length counts observed ladder steps, not residues: every step
+joins two matched peaks, so the default of two steps needs three peaks of one
+series and charge. A single bridged step never forms a tag on its own, because
+its two peaks are already required to match the candidate's theoretical ions.
+@p graph:max_tag_length bounds the residues a tag may span.
+
+A mass-difference path is only a hypothesis. Each accepted path must also match
+one enabled a/b/c/d or w/x/y/z ladder in the candidate's annotated
+NucleicAcidSpectrumGenerator output, with a consistent charge, direction and
+fragment lengths. This reuses the existing ion and terminal masses. a-B ions
+remain available for full-spectrum scoring and ambiguity resolution; they do not
+seed the constant-residue-increment graph because their increments depend on
+which bases and sugars are lost.
+
+@section nase_graph_queries Compact graph and bounded tag queries
+
+The residue/transition alphabet is prepared once and shared by all spectra.
+Each spectrum stores only selected peak indices and a charge-layer DAG. Edges
+reference every matching ordered residue alternative in the shared table. The
+implementation does not materialize the combinatorial list of all graph paths.
+Sequence tags are extracted on demand by bounded dynamic programming while
+matching a candidate. Theoretical ion metadata confirms absolute mass, series,
+charge, direction and terminal offset for every peak on a supported path.
+
+Peak and charge caps deliberately select an evidence/hypothesis subset. Edge
+counts bound each graph and the whole cache. A graph without an eligible tag, an
+unsupported model, or a graph exceeding its storage bound uses enumeration.
+Candidate queries have separate state/work bounds. A completed valid path is a
+witness of support; an incomplete query without a witness uses enumeration.
+This avoids rejecting candidates based on a partially explored graph or query.
+The prefilter bounds all eligible positions, charge layers and enabled ion
+series, counting outgoing edges and transition comparisons before tag-span
+rejection. A partial modification-domain query bounds every singleton completion.
+Exhausting that conservative bound keeps the candidate for full matching; it may
+retain extra candidates under tight limits, but cannot discard matcher fallback.
+Exceeding the cache budget over all spectra (@p graph:max_total_edges) aborts
+the run instead of enumerating the remaining spectra, so that candidate
+selection never depends on spectrum order. None of these rules inspect
+target/decoy status.
+
+The @p out_graph table records spectrum IDs, selected peaks, cached vertices and
+edges, alphabet size and graph-level fallback reasons. Retained idXML/OMS
+matches record @p graph_candidate_status, @p graph_tag_length (residues),
+@p graph_ion_series and @p graph_fragment_charge. Supported matches also record
+@p graph_start_ion and the @p graph_tag_sequence in 5'-to-3' orientation;
+@p graph_candidate_method distinguishes audit from filtering. The reported tag
+is a validated witness within the configured query bounds. Candidate-specific
+fallback is recorded on each hit. Graph and fallback candidates are calibrated
+together by NASE's existing FDR path. Nominal q-value yields must be assessed
+with candidate recall and target/decoy behavior; ladder support alone does not
+establish identification accuracy.
+*/
