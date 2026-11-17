@@ -1,0 +1,13 @@
+D rtcentre s0 q <= 0.01: 14927
+D base s0 q <= 0.01: 13290
+D rtcentre s1 q <= 0.01: 14865
+D base s1 q <= 0.01: 13173
+D rtcentre s2 q <= 0.01: 14912
+D base s2 q <= 0.01: 13120
+D rtcentre s3 q <= 0.01: 14875
+D base s3 q <= 0.01: 13109
+D rtcentre s4 q <= 0.01: 14804
+D base s4 q <= 0.01: 13127
+A precursors.tsv identical
+A LFQ_Astral_DIA_15min_50ng_Human_01.precursors.tsv identical
+A LFQ_Astral_DIA_15min_50ng_Human_01.calibration.json identical
