@@ -330,6 +330,13 @@ START_SECTION((static bool isRemoteAuthorityPath(const std::string& path)))
   TEST_EQUAL(File::isRemoteAuthorityPath("C:/data/run/sample.mzML"), false)
   TEST_EQUAL(File::isRemoteAuthorityPath(""), false)
   TEST_EQUAL(File::isRemoteAuthorityPath("/"), false)
+#ifdef OPENMS_WINDOWSPLATFORM
+  // mzML metadata can carry a UNC authority in its original backslash form
+  // (not just the forward-slash form localPath() produces), and this must be
+  // recognized too, or the remote-authority guard in setPrimaryMSRunPath()
+  // never engages for it
+  TEST_EQUAL(File::isRemoteAuthorityPath("\\\\server\\share\\sample.mzML"), true)
+#endif
 END_SECTION
 
 START_SECTION((static std::string path(const std::string &file)))

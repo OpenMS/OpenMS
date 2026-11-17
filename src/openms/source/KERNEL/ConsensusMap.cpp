@@ -570,8 +570,11 @@ namespace OpenMS
     {
       const std::string local_path = File::localPath(ms_path[0]);
       // ms_path[0] comes from the mzML's own, unauthenticated source metadata;
-      // never probe a remote share's authority it may name.
-      if (!File::isRemoteAuthorityPath(local_path) && File::exists(local_path))
+      // never probe a remote share's authority it may name. A single path also
+      // can't fill several existing columns, so leave that case to the fallback
+      // list below rather than letting setPrimaryMSRunPath() throw on it.
+      if (!File::isRemoteAuthorityPath(local_path) && File::exists(local_path) &&
+          column_description_.size() <= 1)
       {
         setPrimaryMSRunPath(StringList{local_path});
         return;

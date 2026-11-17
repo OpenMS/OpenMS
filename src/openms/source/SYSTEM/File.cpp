@@ -305,9 +305,11 @@ namespace OpenMS{
 
   bool File::remove(const std::string& file)
   {
-    if (!exists(file))
+    std::error_code ec;
+    if (!fs::exists(to_path(file), ec))
     {
-      return true;
+      return !ec; // absent file succeeds; a failed existence check (e.g. an
+                  // unsearchable parent dir) does not
     }
     if (std::remove(file.c_str()) != 0)
     {
@@ -401,7 +403,17 @@ namespace OpenMS{
     // Only a UNC form (as produced above) starts with exactly two slashes;
     // a local absolute path has either one (POSIX) or none (a Windows drive
     // path, which localPath() returns as "C:/...").
-    return path.size() >= 2 && path[0] == '/' && path[1] == '/';
+    if (path.size() < 2)
+      return false;
+#ifdef OPENMS_WINDOWSPLATFORM
+    // A path taken unchanged from mzML metadata (rather than through
+    // localPath()) can still carry its original "\\server\share" form, so
+    // recognize either separator here; POSIX has no such form to worry about.
+    auto is_sep = [](char c) { return c == '/' || c == '\\'; };
+    return is_sep(path[0]) && is_sep(path[1]);
+#else
+    return path[0] == '/' && path[1] == '/';
+#endif
   }
 
   std::string File::basename(const std::string& file)
