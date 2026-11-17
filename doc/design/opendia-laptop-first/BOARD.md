@@ -140,7 +140,7 @@ Rows of 12-16 November 2026. Earlier rows (voxel v2-v19, CNN + LDA) are in the R
 | Step | State | Record |
 |---|---|---|
 | Raw 03 held-out check under each new hashed plan | Done for PLAN_RTWIN2 / PLAN_RTPROFILE (current setup 1907 median) | [RESULT_RTWIN2.md](gates/single-binary/rtwin/RESULT_RTWIN2.md) |
-| Memory: 22 GB per raw with the full 12-fragment scoring library (9.6 GB with `library12_pop`) | Open | [README snapshot](README.md) |
+| Memory: the 22 GB peak came from the windowed calibration pass, not the scoring library. Trimmed calibration traces: 21.6 → 15.6 GB, outputs byte-identical (a132e9104e) | Done | [README snapshot](README.md) |
 | Native Bruker `.d` and Thermo `.raw` | Partial: both stream | [R6](work-packages/R6-acceptance.md) |
 | Packaging (LibTorch optional, CTD/INI docs) | Partial: LibTorch off the default path | [R6](work-packages/R6-acceptance.md) |
 | Split the branch into reviewable PRs | Open | [R6](work-packages/R6-acceptance.md) |

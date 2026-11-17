@@ -61,12 +61,13 @@ seed, 3 raws).
 |---|---|---|
 | Wall time | 6:08-7:35 (8 threads, codon nodes) | 13:27 raw 01 (14 threads); 8:48 raw 02 (9 threads, beside another job); local docker |
 | CPU time | 586-714 s | not recorded |
-| Peak memory | **21.9-22.7 GB** | not recorded (the docker run hid it) |
+| Peak memory | **21.9-22.7 GB** at the snapshot; 15.6 GB since a132e9104e (local raw01) | not recorded (the docker run hid it) |
 | Input | Thermo .raw read directly | mzML (FileConverter, about 5.8 GB per raw), conversion time not included |
 
 - The wall times are not a like-for-like speed comparison. OpenDIA ran on codon nodes, DIA-NN in local docker with other thread counts and next to other jobs, and DIA-NN also needs an mzML conversion first. On these numbers OpenDIA is not slower; a fair benchmark on one machine is still to be done.
-- OpenDIA's memory rose from 9.6 GB (with `library12_pop`) to about 22 GB with the full 12-fragment scoring library.
-  That is an open efficiency item.
+- Peak memory was mis-attributed earlier. The 22 GB peak came from the second (windowed) calibration pass, which collects traces for 600k panel members. The 9.6 GB runs had reused a saved calibration, so the 12-fragment scoring library was not the cause.
+  - Fix a132e9104e: the calibration traces no longer store an all-zero 1/K0 array when the library has no mobility, and finished members are trimmed. Local raw01 peak goes from 21.6 GB to **15.6 GB**, and precursors.tsv and calibration.json are byte-identical.
+  - The peak is still the calibration pass (15.6 GB). After calibration the run stays at about 9.7 GB.
 
 **Goal.** OpenDIA must identify as many precursors as DIA-NN on the same library, with honest error control and no teacher. The earlier goal was the OpenSWATH + Percolator level, and it is passed.
 
@@ -81,7 +82,7 @@ seed, 3 raws).
 - a cross-fitted C++ scorer (a small network with a decoy-whitened readout and self-training);
 - pooled paired TDC q-values per run, and a global q-value over runs.
 
-Cost: about 6-7.5 min and 22 GB per Astral raw on 8 threads with the full 12-fragment scoring library (9.6 GB with `library12_pop`). Output is byte-identical across repeats and thread counts.
+Cost: about 6-7.5 min per Astral raw on 8 threads. Peak memory was 22 GB; it is 15.6 GB since a132e9104e (set by the windowed calibration pass). Output is byte-identical across repeats and thread counts.
 
 | N at entrapment FDP_c 1 % (median of 5 seeds) | raw 01 | raw 02 | FDP_c at q ≤ 0.01 |
 |---|---|---|---|
