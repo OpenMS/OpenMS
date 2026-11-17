@@ -129,7 +129,7 @@ Rows of 12-16 November 2026. Earlier rows (voxel v2-v19, CNN + LDA) are in the R
 | HeLa loss funnel | Done (diagnostic) | [R5](work-packages/R5-id-gap.md) |
 | HeLa regression diagnosis: 1/K0 bug fixed (0e9e4fc3a5, 11,653 → 13,290); early-gradient RT map bias and mobility-blind / empty evidence on diaPASEF open | In progress | [DIAG_HELA.md](gates/single-binary/bench/DIAG_HELA.md) |
 | One-pass stage 3 centred on the stage-1 map (PLAN_RTCENTRE): HeLa 13,127 → 14,875 (+13.3 %), held-out HeLa 19,725 → 21,682 (+9.9 %), agreement with DIA-NN held, Astral identical; kept (6dd893b954) | Done (pass) | [RESULT_RTCENTRE.md](gates/single-binary/rtcentre/RESULT_RTCENTRE.md) |
-| Mobility-resolved 12-fragment grid and interference (PLAN_IMGRID): precheck seed 0 +7.3 % on HeLa | In progress | [PLAN_IMGRID.md](gates/single-binary/imgrid/PLAN_IMGRID.md) |
+| Mobility-resolved 12-fragment grid and interference (PLAN_IMGRID): HeLa 14,875 → 16,116 (+8.3 %), held-out 21,682 → 24,000 (+10.7 %), agreement held, Astral identical; kept (963543c7f0) | Done (pass) | [RESULT_IMGRID.md](gates/single-binary/imgrid/RESULT_IMGRID.md) |
 | Astral gap against DIA-NN and same-library OSW + Percolator | Done (diagnostic) | [diann-reference-gap](gates/astral-diann-reference-gap/GAP.md) |
 | Raw 01 rethink: ceiling, oracle, RT lever | Done (diagnostic) | [REDESIGN.md](gates/astral-raw01-rethink/REDESIGN.md) |
 | Raw 01/02 gap to OSW is score formation on the right peak | Done (diagnostic) | [gap2](gates/astral-raw01-rethink/gap2/) |

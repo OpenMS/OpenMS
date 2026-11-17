@@ -167,6 +167,23 @@ CrossFitScorer        decoy-whitened network, family cross-fitting, self-trainin
 
 ## Current HeLa result (design run, not independent evidence)
 
+**Current (2026-11-17 evening; RESULT_RTCENTRE.md, RESULT_IMGRID.md).** Three diaPASEF fixes, each frozen-plan tested on
+HeLa D (2737.d) with a held-out HeLa run H (22474.d), and each byte-identical on Astral:
+1. calibrated 1/K0 in the evidence pass (0e9e4fc3a5);
+2. one-pass calibration stage 3 centred on the stage-1 map (6dd893b954);
+3. mobility-resolved 12-fragment grid and interference (963543c7f0).
+
+| HeLa, own q ≤ 0.01 (median of 5 seeds) | D 2737.d | H 22474.d (held out) |
+|---|---|---|
+| this morning | 11,653 (seed 0) | 19,725 (with fix 1) |
+| now | **16,116** | **24,000** |
+| DIA-NN 2.2 | 28,950 | 38,074 |
+| OpenDIA / DIA-NN | 56 % | 63 % |
+| OpenSWATH + PyProphet SVM | 19,132 (OpenDIA at 84 %) | not run |
+
+About 93-95 % of OpenDIA's IDs are in DIA-NN's list on both runs. The remaining gap is mostly scoring; the b/y-ion
+floor and a 12-fragment HeLa library are the next candidates (DIAG_HELA.md).
+
 **Update 2026-11-17 (`gates/single-binary/bench/RESULT_HELA.md`).** The current OpenDIAWorkflow gets **11,653** precursors at
 q ≤ 0.01 on this run. DIA-NN 2.2 gets 28,950 on the same library, OpenSWATH + PyProphet SVM 19,132, and the 2026-11-07
 rewrite below 13,253. So the branch reaches about 80 % of DIA-NN only on Astral. On diaPASEF it is at 40 % of DIA-NN
