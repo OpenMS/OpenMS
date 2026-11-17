@@ -446,14 +446,15 @@ namespace OpenMS
                        "results differ.",
                        {"advanced"});
     defaults_.setMinFloat("rescoring:tron_epsilon", 1e-15);
-    defaults_.setValue("rescoring:classic_training", "true",
-                       "'true' (default): Percolator trains as up to its version 3.09 (Percolator's parameter "
-                       "'classic_training'): all 'rescoring:iterations' iterations, every (Cpos, Cneg) pair in every "
+    defaults_.setValue("rescoring:classic_training", "false",
+                       "'false' (default): Percolator's current training: each SVM starts from its weights of the "
+                       "previous iteration, each fold's (Cpos, Cneg) pair is fixed after three iterations, and the "
+                       "training stops when it gains less than 0.1% over two iterations. 'true': Percolator trains as up "
+                       "to its version 3.09 (Percolator's parameter 'classic_training'), as ProSE did with the earlier copy of "
+                       "Percolator in OpenMS: all 'rescoring:iterations' iterations, every (Cpos, Cneg) pair in every "
                        "iteration, each SVM from zero weights (rescore_solver 'tron'; 'newton' and 'lda' start from the "
-                       "weights of the iteration before). 'false': Percolator's current training: each SVM starts "
-                       "from its weights of the previous iteration, each fold's (Cpos, Cneg) pair is fixed after three "
-                       "iterations, and the training stops when it gains less than 0.1% over two iterations (faster; the "
-                       "results differ).",
+                       "weights of the iteration before); slower, for the results of that copy. Both are deterministic: "
+                       "the same input and seed give the same results with any number of threads.",
                        {"advanced"});
     defaults_.setValidStrings("rescoring:classic_training", {"true", "false"});
     defaults_.setValue("rescoring:warm_start", "false",
