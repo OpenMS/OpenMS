@@ -44,6 +44,9 @@ namespace OpenMS::OpenDIA
     /// pass collects and searches those members from their window to the run edge instead of around the map.
     double support_low = -std::numeric_limits<double>::infinity();
     double support_high = std::numeric_limits<double>::infinity();
+    /// Measured in the first pass (memory sizing only): median spectrum spacing per precursor and the MS2 RT range.
+    double cycle_s = 0.0;
+    double run_first_rt = 0.0, run_last_rt = 0.0;
   };
 
   /** @brief Fixed settings of the identification-free run calibration. */

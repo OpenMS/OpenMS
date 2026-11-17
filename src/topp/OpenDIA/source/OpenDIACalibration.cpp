@@ -385,6 +385,20 @@ namespace OpenMS::OpenDIA
         {
           member.window_high = std::numeric_limits<double>::infinity();
         }
+        // Reserve the expected trace length once (window span / cycle, +10 %), instead of growing by doubling. This
+        // only sets capacity; the collected values are unchanged.
+        if (window_->cycle_s > 0.0 && window_->run_last_rt > window_->run_first_rt)
+        {
+          const double span = std::min(member.window_high, window_->run_last_rt) - std::max(member.window_low, window_->run_first_rt);
+          if (span > 0.0)
+          {
+            const auto expected = static_cast<std::size_t>(std::ceil(1.1 * span / window_->cycle_s)) + 4;
+            member.rt.reserve(expected);
+            member.intensity.reserve(expected);
+            member.ppm.reserve(expected);
+            if (member.library_im > 0.0) member.im.reserve(expected);
+          }
+        }
       }
     }
   }
@@ -1101,6 +1115,9 @@ namespace OpenMS::OpenDIA
         window.peak_fwhm_s = result.peak_fwhm_s;
         window.support_low = stage1.front().first;
         window.support_high = stage1.back().first;
+        window.cycle_s = cycle_s;
+        window.run_first_rt = first_rt_;
+        window.run_last_rt = last_rt_;
         diagnostics->window = window;
       }
       throw;
