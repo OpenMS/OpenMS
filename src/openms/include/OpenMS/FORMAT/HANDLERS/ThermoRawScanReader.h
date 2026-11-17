@@ -167,8 +167,10 @@ namespace Internal
 
       @param[in] last_scan Last scan to read ahead
       @param[in] peaks_from Scans from this number on are read with peaks (as header(scan, true))
+      @param[in] peak_levels If not empty, only scans of these MS levels (from @p peaks_from on) are read with peaks;
+                 the header is read first to learn the level. header() reports which scans carry peaks.
     */
-    void readAhead(int last_scan, int peaks_from);
+    void readAhead(int last_scan, int peaks_from, std::vector<int> peak_levels = {});
 
     /**
       @brief Visit the headers of scans @p first to @p last ahead of header(), without peaks.
