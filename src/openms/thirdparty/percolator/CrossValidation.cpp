@@ -37,8 +37,8 @@ const double CrossValidation::requiredIncreaseOver2IterationsDefault_ = 0.001;
 const unsigned int CrossValidation::gridSearchIterations_ = 3u;
 
 // OpenMS: Newton's tolerance (as TRON's, the gradient norm relative to that at 0) in the iterations before the last
-// one of classic training, which solves to the tolerance of the options: the earlier iterations only choose the
-// positives of the next.
+// one of classic training without quick validation, which solves to the tolerance of the options: the earlier
+// iterations only choose the positives of the next. (A training that can stop early does not know its last iteration.)
 constexpr double kNewtonEarlyEpsilon = 1e-4;
 
 // the number of threads a parallel region can have, and the number of the
@@ -455,8 +455,9 @@ int CrossValidation::doStep(const Normalizer* /* pNorm */, double selectionFdr) 
   pOptions.directSolve = !classicTraining_;
   // OpenMS: the training uses the weights of the solves only (tron() then skips the outputs and the convergence check)
   pOptions.weightsOnly = true;
-  // OpenMS: Newton solves the iterations before the last one of classic training to a looser tolerance
-  if (solver_ == kSolverNewton && classicTraining_ && iteration_ + 1u < niter_) {
+  // OpenMS: Newton solves the iterations before the last one of classic training to a looser tolerance (not with
+  // quick validation: its training can stop after any iteration)
+  if (solver_ == kSolverNewton && classicTraining_ && !quickValidation_ && iteration_ + 1u < niter_) {
     pOptions.epsilon = kNewtonEarlyEpsilon;
   }
   int estTruePos = 0;
@@ -562,6 +563,15 @@ int CrossValidation::doStep(const Normalizer* /* pNorm */, double selectionFdr) 
       }
 
       StageTimer stageTimer("SVM training");
+      // OpenMS: the TRON solves of the pairs of a training set, which run at the same time, share one copy of the
+      // set in the solver's layout (ssl.h), instead of one per solve and thread
+      std::vector<std::unique_ptr<TronPairGroup> > tronGroups;
+      if (!singleSolves) {
+        tronGroups.resize(static_cast<std::size_t>(endSet - firstSet) * nestedXvalBins_);
+        for (std::size_t k = 0; k < tronGroups.size(); ++k) {
+          tronGroups[k] = std::make_unique<TronPairGroup>(svmInputs[k]);
+        }
+      }
       // the pairs are ordered by fold
       const int firstPair = static_cast<int>(firstSet * pairsPerFold);
       const int endPair = static_cast<int>(endSet * pairsPerFold);
@@ -573,10 +583,11 @@ int CrossValidation::doStep(const Normalizer* /* pNorm */, double selectionFdr) 
         if (!isSelectedPair(*cpCnFold) || !isActiveFold(cpCnFold->set)) {  // OpenMS: setActiveFolds
           continue;
         }
-        const AlgIn& svmInput =
-            svmInputs[(cpCnFold->set - firstSet) * nestedXvalBins_ +
-                      static_cast<unsigned int>(cpCnFold->nestedSet)];
-        trainCpCnPair(*cpCnFold, pOptions, svmInput, buffers[threadNum()]);
+        const std::size_t input =
+            (cpCnFold->set - firstSet) * nestedXvalBins_ +
+            static_cast<unsigned int>(cpCnFold->nestedSet);
+        trainCpCnPair(*cpCnFold, pOptions, svmInputs[input], buffers[threadNum()],
+                      tronGroups.empty() ? nullptr : tronGroups[input].get());
         } catch (...) {
           pairErrors.capture(static_cast<std::size_t>(pairIdx - firstPair));
         }
@@ -601,7 +612,8 @@ int CrossValidation::doStep(const Normalizer* /* pNorm */, double selectionFdr) 
 void CrossValidation::trainCpCnPair(CandidateCposCfrac& cpCnFold,
                                     const options& pOptions,
                                     const AlgIn& svmInput,
-                                    SvmTrainingBuffers& buffers) {
+                                    SvmTrainingBuffers& buffers,
+                                    TronPairGroup* group) {
   double cpos = cpCnFold.cpos;
   double cfrac = cpCnFold.cfrac;
 
@@ -618,7 +630,7 @@ void CrossValidation::trainCpCnPair(CandidateCposCfrac& cpCnFold,
   if (classicTraining_ && solver_ == kSolverTron && !(warmStart_ && nestedXvalBins_ == 1u)) {
     std::fill(weights.begin(), weights.end(), 0.0);
   }
-  trainSvm(svmInput, pOptions, cpos, cfrac * cpos, weights, buffers.outputs);
+  trainSvm(svmInput, pOptions, cpos, cfrac * cpos, weights, buffers.outputs, group);
 }
 
 // OpenMS: the solver of setSolver. Newton (newton_svm.h) and LDA start from the weights in w; LDA needs two rows of
@@ -626,7 +638,7 @@ void CrossValidation::trainCpCnPair(CandidateCposCfrac& cpCnFold,
 // solves the SVM from 0. TRON (kSolverTron) starts from w as given.
 void CrossValidation::trainSvm(const AlgIn& svmInput, const options& pOptions,
                                double cpos, double cneg, std::vector<double>& w,
-                               std::vector<double>& outputs) const {
+                               std::vector<double>& outputs, TronPairGroup* group) const {
   if (solver_ == kSolverLda && ldaSvm(svmInput, pOptions, cpos, cneg, w.data())) {
     return;
   }
@@ -636,7 +648,7 @@ void CrossValidation::trainSvm(const AlgIn& svmInput, const options& pOptions,
     }
     std::fill(w.begin(), w.end(), 0.0);  // the fallback: TRON from 0
   }
-  L2_SVM_MFN(svmInput, pOptions, w, outputs, cpos, cneg);
+  L2_SVM_MFN(svmInput, pOptions, w, outputs, cpos, cneg, group);
 }
 
 /**

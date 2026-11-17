@@ -358,6 +358,45 @@ START_SECTION([EXTRA] function object: f and gradient and Hv with infinite or Na
 }
 END_SECTION
 
+START_SECTION([EXTRA] AlgIn: copies of owned and borrowed rows)
+{
+  // owned rows: the features of each row and the bias value 1.0 are copied; a copy is independent of its source
+  const vector<double> feats = {1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0};
+  auto sameExamples = [](const AlgIn& a, const AlgIn& b)
+  {
+    bool same = a.m == b.m && a.n == b.n && a.positives == b.positives && a.negatives == b.negatives && a.Y == b.Y;
+    for (int i = 0; same && i < a.m; ++i)
+    {
+      for (int j = 0; j < a.n; ++j) { same = same && a.row(i)[j] == b.row(i)[j]; }
+    }
+    return same;
+  };
+  AlgIn owned(3);  // two features and the bias
+  for (int i = 0; i < 5; ++i) { owned.add(feats.data() + 2 * i, i % 2 == 0 ? 1.0 : -1.0); }
+  owned.positives = 3;
+  owned.negatives = 2;
+  TEST_EQUAL(owned.row(4)[1], 10.0)
+  TEST_EQUAL(owned.row(4)[2], 1.0)
+  AlgIn copy(owned);
+  TEST_TRUE(sameExamples(copy, owned))
+  TEST_TRUE(copy.row(0) != owned.row(0))
+  // assignment onto a filled AlgIn with more rows
+  AlgIn assigned(3);
+  for (int i = 0; i < 300; ++i) { assigned.add(feats.data(), 1.0); }
+  assigned = owned;
+  TEST_TRUE(sameExamples(assigned, owned))
+  copy.set(0, feats.data() + 8, -1.0);
+  TEST_EQUAL(owned.row(0)[0], 1.0)
+  TEST_EQUAL(owned.Y[0], 1.0)
+  // borrowed rows: the copy points to the same rows
+  AlgIn borrowed(3, /*rowsInPlace=*/true);
+  for (int i = 0; i < 4; ++i) { borrowed.add(feats.data() + 2 * i, 1.0); }
+  AlgIn borrowed_copy(borrowed);
+  TEST_TRUE(borrowed_copy.rowsInPlace())
+  TEST_TRUE(borrowed_copy.row(3) == borrowed.row(3))
+}
+END_SECTION
+
 START_SECTION([EXTRA] tron: concurrent solves)
 {
   // per-thread workspaces: solves on several threads at once give the bits of the serial reference

@@ -157,8 +157,10 @@ class AlgIn {
       rowTable_ = src.rowTable_;
       return;
     }
-    rowTable_.assign(src.rowTable_.size(), nullptr);
+    // no rows to keep (ensureStorage copies those of rowTable_, and storage_ may be gone: operator=)
+    rowTable_.clear();
     ensureStorage(src.rowTable_.size());
+    rowTable_.resize(src.rowTable_.size());
     for (std::size_t i = 0; i < src.rowTable_.size(); ++i) {
       rowTable_[i] = ownedRow(i);
       std::copy(src.rowTable_[i], src.rowTable_[i] + n, ownedRow(i));

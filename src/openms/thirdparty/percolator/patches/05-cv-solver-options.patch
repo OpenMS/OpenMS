@@ -1,5 +1,5 @@
 diff --git a/src/openms/thirdparty/percolator/CrossValidation.cpp b/src/openms/thirdparty/percolator/CrossValidation.cpp
-index 191cfe0999b1563977b76e5112b5d5adaa18dc18..493fad124afab04869266f587b095eae3f467767 100644
+index 191cfe0999b1563977b76e5112b5d5adaa18dc18..e855e4d8951c9719c8bc83b92d0f7574a0ea4ee9 100644
 --- a/src/openms/thirdparty/percolator/CrossValidation.cpp
 +++ b/src/openms/thirdparty/percolator/CrossValidation.cpp
 @@ -36,6 +36,11 @@ const double CrossValidation::requiredIncreaseOver2IterationsDefault_ = 0.001;
@@ -7,8 +7,8 @@ index 191cfe0999b1563977b76e5112b5d5adaa18dc18..493fad124afab04869266f587b095eae
  const unsigned int CrossValidation::gridSearchIterations_ = 3u;
  
 +// OpenMS: Newton's tolerance (as TRON's, the gradient norm relative to that at 0) in the iterations before the last
-+// one of classic training, which solves to the tolerance of the options: the earlier iterations only choose the
-+// positives of the next.
++// one of classic training without quick validation, which solves to the tolerance of the options: the earlier
++// iterations only choose the positives of the next. (A training that can stop early does not know its last iteration.)
 +constexpr double kNewtonEarlyEpsilon = 1e-4;
 +
  // the number of threads a parallel region can have, and the number of the
@@ -36,7 +36,7 @@ index 191cfe0999b1563977b76e5112b5d5adaa18dc18..493fad124afab04869266f587b095eae
    if (VERB > 0) {
      cerr << "---Training with Cpos";
      if (selectedCpos_ > 0) {
-@@ -395,10 +403,16 @@ int CrossValidation::doStep(const Normalizer* /* pNorm */, double selectionFdr)
+@@ -395,10 +403,17 @@ int CrossValidation::doStep(const Normalizer* /* pNorm */, double selectionFdr)
    options pOptions;
    pOptions.lambda = 1.0;
    pOptions.lambda_u = 1.0;
@@ -47,14 +47,57 @@ index 191cfe0999b1563977b76e5112b5d5adaa18dc18..493fad124afab04869266f587b095eae
    pOptions.directSolve = !classicTraining_;
 +  // OpenMS: the training uses the weights of the solves only (tron() then skips the outputs and the convergence check)
 +  pOptions.weightsOnly = true;
-+  // OpenMS: Newton solves the iterations before the last one of classic training to a looser tolerance
-+  if (solver_ == kSolverNewton && classicTraining_ && iteration_ + 1u < niter_) {
++  // OpenMS: Newton solves the iterations before the last one of classic training to a looser tolerance (not with
++  // quick validation: its training can stop after any iteration)
++  if (solver_ == kSolverNewton && classicTraining_ && !quickValidation_ && iteration_ + 1u < niter_) {
 +    pOptions.epsilon = kNewtonEarlyEpsilon;
 +  }
    int estTruePos = 0;
  
    // for determining an appropriate positive training set, the decoys+1 in the
-@@ -533,26 +547,32 @@ void CrossValidation::trainCpCnPair(CandidateCposCfrac& cpCnFold,
+@@ -490,6 +505,15 @@ int CrossValidation::doStep(const Normalizer* /* pNorm */, double selectionFdr)
+       }
+ 
+       StageTimer stageTimer("SVM training");
++      // OpenMS: the TRON solves of the pairs of a training set, which run at the same time, share one copy of the
++      // set in the solver's layout (ssl.h), instead of one per solve and thread
++      std::vector<std::unique_ptr<TronPairGroup> > tronGroups;
++      if (!singleSolves) {
++        tronGroups.resize(static_cast<std::size_t>(endSet - firstSet) * nestedXvalBins_);
++        for (std::size_t k = 0; k < tronGroups.size(); ++k) {
++          tronGroups[k] = std::make_unique<TronPairGroup>(svmInputs[k]);
++        }
++      }
+       // the pairs are ordered by fold
+       const int firstPair = static_cast<int>(firstSet * pairsPerFold);
+       const int endPair = static_cast<int>(endSet * pairsPerFold);
+@@ -499,10 +523,11 @@ int CrossValidation::doStep(const Normalizer* /* pNorm */, double selectionFdr)
+         if (!isSelectedPair(*cpCnFold)) {
+           continue;
+         }
+-        const AlgIn& svmInput =
+-            svmInputs[(cpCnFold->set - firstSet) * nestedXvalBins_ +
+-                      static_cast<unsigned int>(cpCnFold->nestedSet)];
+-        trainCpCnPair(*cpCnFold, pOptions, svmInput, buffers[threadNum()]);
++        const std::size_t input =
++            (cpCnFold->set - firstSet) * nestedXvalBins_ +
++            static_cast<unsigned int>(cpCnFold->nestedSet);
++        trainCpCnPair(*cpCnFold, pOptions, svmInputs[input], buffers[threadNum()],
++                      tronGroups.empty() ? nullptr : tronGroups[input].get());
+       }
+     }
+   }
+@@ -523,7 +548,8 @@ int CrossValidation::doStep(const Normalizer* /* pNorm */, double selectionFdr)
+ void CrossValidation::trainCpCnPair(CandidateCposCfrac& cpCnFold,
+                                     const options& pOptions,
+                                     const AlgIn& svmInput,
+-                                    SvmTrainingBuffers& buffers) {
++                                    SvmTrainingBuffers& buffers,
++                                    TronPairGroup* group) {
+   double cpos = cpCnFold.cpos;
+   double cfrac = cpCnFold.cfrac;
+ 
+@@ -533,26 +559,32 @@ void CrossValidation::trainCpCnPair(CandidateCposCfrac& cpCnFold,
    // The SVM algorithm (see ssl.cpp) starts from the weights this pair had
    // after the previous iteration (zero in the first one), which are close
    // to the new solution, or from zero with classic training.
@@ -79,7 +122,7 @@ index 191cfe0999b1563977b76e5112b5d5adaa18dc18..493fad124afab04869266f587b095eae
 -      for (int k = 0; k < svmInput.n; ++k) o += x[k] * weights[k];
 -      outputs[i] = o;
 +  }
-+  trainSvm(svmInput, pOptions, cpos, cfrac * cpos, weights, buffers.outputs);
++  trainSvm(svmInput, pOptions, cpos, cfrac * cpos, weights, buffers.outputs, group);
 +}
 +
 +// OpenMS: the solver of setSolver. Newton (newton_svm.h) and LDA start from the weights in w; LDA needs two rows of
@@ -87,7 +130,7 @@ index 191cfe0999b1563977b76e5112b5d5adaa18dc18..493fad124afab04869266f587b095eae
 +// solves the SVM from 0. TRON (kSolverTron) starts from w as given.
 +void CrossValidation::trainSvm(const AlgIn& svmInput, const options& pOptions,
 +                               double cpos, double cneg, std::vector<double>& w,
-+                               std::vector<double>& outputs) const {
++                               std::vector<double>& outputs, TronPairGroup* group) const {
 +  if (solver_ == kSolverLda && ldaSvm(svmInput, pOptions, cpos, cneg, w.data())) {
 +    return;
 +  }
@@ -99,11 +142,11 @@ index 191cfe0999b1563977b76e5112b5d5adaa18dc18..493fad124afab04869266f587b095eae
    }
 -  L2_SVM_MFN(svmInput, pOptions, weights, outputs, cpos, cfrac * cpos,
 -             buffers.solver);
-+  L2_SVM_MFN(svmInput, pOptions, w, outputs, cpos, cneg);
++  L2_SVM_MFN(svmInput, pOptions, w, outputs, cpos, cneg, group);
  }
  
  /**
-@@ -697,22 +717,13 @@ int CrossValidation::mergeCpCnPairs(
+@@ -697,22 +729,13 @@ int CrossValidation::mergeCpCnPairs(
          // the previous iteration, which are close to the new solution, as
          // the grid solves do; in the first iteration, which holds the
          // initial direction, and with classic training it starts from zero.
@@ -131,7 +174,7 @@ index 191cfe0999b1563977b76e5112b5d5adaa18dc18..493fad124afab04869266f587b095eae
        if (VERB > 2) {
          for (unsigned int set = firstSet; set < endSet; ++set) {
 diff --git a/src/openms/thirdparty/percolator/CrossValidation.h b/src/openms/thirdparty/percolator/CrossValidation.h
-index 8181e9668f3b7ef011027bc723abdcef91ff6f8e..a8bdc2d8c709a8003843bbd815753f6c7b265716 100644
+index 8181e9668f3b7ef011027bc723abdcef91ff6f8e..d520f5f5c40e65417b1834cc83d2588cf29e42a3 100644
 --- a/src/openms/thirdparty/percolator/CrossValidation.h
 +++ b/src/openms/thirdparty/percolator/CrossValidation.h
 @@ -19,6 +19,7 @@
@@ -184,14 +227,23 @@ index 8181e9668f3b7ef011027bc723abdcef91ff6f8e..a8bdc2d8c709a8003843bbd815753f6c
    bool svmRowsInPlace_ = false;
    unsigned int foldsAtOnce_ = 0u;
    bool singleSolvesInPlace_ = false;
-@@ -236,6 +258,10 @@ class CrossValidation {
+@@ -232,10 +254,18 @@ class CrossValidation {
+   std::vector<AlgIn>& svmInputsOfPass(bool singleSolves,
+                                       unsigned int& foldsPerPass);
+   void initializeGridSearch(double targetDecoySizeRatio);
++  // OpenMS: group, the TronPairGroup of svmInput (or nullptr)
+   void trainCpCnPair(CandidateCposCfrac& cpCnFold,
                       const options& pOptions,
                       const AlgIn& svmInput,
-                      SvmTrainingBuffers& buffers);
-+  // OpenMS: solves the SVM of svmInput with the solver of setSolver, from the weights in w
+-                     SvmTrainingBuffers& buffers);
++                     SvmTrainingBuffers& buffers,
++                     TronPairGroup* group);
++  // OpenMS: solves the SVM of svmInput with the solver of setSolver, from the weights in w; the TRON solves of the
++  // pairs of one training set at a time share its copy of the set in group (ssl.h)
 +  void trainSvm(const AlgIn& svmInput, const options& pOptions, double cpos,
 +                double cneg, std::vector<double>& w,
-+                std::vector<double>& outputs) const;
++                std::vector<double>& outputs,
++                TronPairGroup* group = nullptr) const;
  
    int mergeCpCnPairs(double selectionFdr,
                       const options& pOptions,

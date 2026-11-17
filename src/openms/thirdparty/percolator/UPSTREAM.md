@@ -65,11 +65,12 @@ nor patches these files):
   INT_MAX / 2 rows keep `TronFunction`. MSVC builds use the SSE2 kernels only. With
   `options::weightsOnly` tron() stops after TRON (no Outputs, no convergence check; returns 1);
   the cross-validation's solves ask for that (patch 05).
-- `TronPairGroup` (solves on the same set share one BT4 copy of X) is still offered by `tron()`
-  and tested, but the cross-validation no longer uses it: since 3.09 a fold trains a single
-  (Cpos, Cneg) pair after three iterations, and each solve builds its own copy. (With
-  `classic_training` the nine pairs of a fold build nine copies; peak memory is then above that
-  of the previous OpenMS tree.)
+- `TronPairGroup`: solves on the same set that pass the same group share one BT4 copy of X, built
+  once by the solves that start while it is built (bit-identical to solves alone). The
+  cross-validation makes one group per training set and pass while several (Cpos, Cneg) pairs train
+  on a set at once: in the first three iterations, until each fold's pair is fixed, and in every
+  iteration of `classic_training` (patch 05). The memory of the pair solves is then one copy of X
+  per training set, whatever the number of threads; the later single solves build their own.
 
 ### Local addition: Newton and LDA solvers (`newton_svm.{h,cpp}`)
 
@@ -151,8 +152,10 @@ All patches are `git diff` style (a/b/ prefixes, applied with -p1) on the whitel
   `CrossValidation::setSolver` (TRON, Newton or LDA; `trainSvm` dispatches every solve, Newton and LDA
   fall back to TRON from 0 where they cannot solve), `setTrainingOptions` (TRON's tolerance, a warm
   start of TRON with classic training, a single Cneg candidate), weights-only solves, a
-  `TronWorkspaceHold` during `train()`, and no outputs X w for the warm start (TRON does not read
-  them). Newton stops at 1e-4 in the iterations before the last one of classic training. With the
+  `TronWorkspaceHold` during `train()`, one `TronPairGroup` per training set for the solves of its
+  pairs (formerly 18: one copy of X per set, not per solve and thread), and no outputs X w for the
+  warm start (TRON does not read them). Newton stops at 1e-4 in the iterations before the last one
+  of classic training without quick validation (which can stop after any iteration). With the
   defaults the training is upstream's.
 - `patches/06-cv-fixed-folds.patch` (formerly 19) — out-of-fold capped training (OpenMS `subset_mode`
   `out_of_fold`, ProSE's default): `Scores::createXvalSetsBySpectrum` takes an optional function that
@@ -169,6 +172,35 @@ All patches are `git diff` style (a/b/ prefixes, applied with -p1) on the whitel
   `Scores::bestInitDirection` catch the exceptions of their iterations and rethrow the first after the
   loop (`LoopErrors`, `OpenMPThreads.h`): an exception that leaves an OpenMP region ends the process,
   and OpenMS runs the code as a library (e.g. a `std::bad_alloc` of a large run).
+- `patches/09-spline-pep-sparse.patch` (formerly 06) — speeds up the spline PEP (`BaseSpline`,
+  `pep_method` `nonparametric`) without changing its result. `PackedMatrix::packedMultiply` computes,
+  per row, only the dot products with the columns that share an index with the row, instead of with
+  every column: the others are 0 and are not stored, so the products of the banded matrices take
+  linear instead of quadratic time. `BaseSpline::solveInPlace` skips the rows whose index range does
+  not include the column it looks for, and stops scanning a row at the first index past it (the
+  indices are sorted and unique).
+- `patches/10-spline-pep-banded.patch` (formerly 07) — speeds up the spline PEP further, again without
+  changing its result. `BaseSpline::initiateQR` keeps `Q` and `R` as bands as well, and each iteration
+  of `iterativeReweightedLeastSquares` runs `BaseSpline::bandedIteration`: the same floating-point
+  operations, in the same order, as building `alpha / w`, `aWiQ`, `M = R + Qt * aWiQ`, `gamma = Qt * z`,
+  `solveInPlace` and `gnew = z - aWiQ * gamma` with the sparse matrix code, on band rows in reused
+  buffers and without allocations. The elimination makes the same pivot choices, row swaps and row
+  operations as `solveInPlace` and visits only the rows that can hold the pivot column. Whenever
+  dropping an entry (|value| <= 1e-15) would violate the band structure, or the elimination would
+  leave it, `bandedIteration` returns before it commits the iteration's outputs and the matrix code
+  runs instead. On FMA targets the compiler may contract `a * b + c` into a fused multiply-add; the
+  band code keeps the expression shapes of the matrix code so that it is contracted the same way: the
+  elimination stores its rounded product in a `volatile` (like `packedProd`), and the dot products
+  are loops `tot += a * b` like `packedDotProd` (under Clang with `clang loop unroll(disable)
+  vectorize(disable)`: Clang's SLP vectoriser otherwise multiplied the terms of `Qt * z` separately).
+  This is checked, not guaranteed: on the former tree (eb157f7) both paths ran in every IRLS
+  iteration on 20 real and 300 synthetic inputs and gave the same bits with GCC 14.4 -O3 (no -march,
+  `-march=haswell`, `-march=native` on Zen 4, `-march=haswell -ffp-contract=off`) and Clang 23 -O3
+  (`-mfma` with the default `-ffp-contract=on`, `fast` and `off`, `-march=native -ffp-contract=fast`);
+  on a90106b the `nonparametric` PEPs of `perc_bench` (100,000 PSMs, GCC 13.3 -O3) are bit-identical
+  with and without patches 09 and 10. Other compilers, versions and targets (AArch64, MSVC
+  `/fp:contract`, x87, fast-math) are not covered. (`isFilled`, which patch 10 uses, comes with
+  patch 03.)
 
 ### The former patch set (01-35 on eb157f7)
 
@@ -181,15 +213,13 @@ and stops at a gain below 0.1%). Measured on synthetic PINs (`perc_bench`, 4 thr
 tree with all 35 patches, with less memory, so they were not ported:
 
 - superseded by upstream: 02 (the static flag is gone), 05, 08, 10 (folds and sorts), 09, 11, 12 (stages,
-  fold chains), 13, 17, 28, 30 (initial direction, normalization), 16 (buffer reuse), 20 and 32 (the
+  fold chains), 13, 17, 28, 30 (initial direction, normalization), 20 and 32 (the
   best-scoring positive per spectrum: `OrderScanLabel` orders by score since 25cb5124; issue #10720),
   21 (PSM ownership: DataSet no longer owns its PSMs, the feature pool no longer zero-fills), 22-26
   (sort certificates, packed keys, set-up in tasks), 33 (OpenMP tasks: upstream uses none), 34
   (comments of removed code);
-- not ported: 06, 07 (P-IRLS spline products; `pep_method` `nonparametric` only), 18 (shared X of the
-  pair solves: only the first three iterations train several pairs per fold), 27 (reuse of the
-  validation scores), 29, 31 (code gone);
-- ported: 01, 03, 04, 14, 15, 16, 19, 35 (as 01-06 above).
+- not ported: 27 (reuse of the validation scores), 29, 31 (code gone);
+- ported: 01, 03, 04, 14, 15, 16, 18, 19, 35, 06, 07 (as 01-06, 09 and 10 above).
 
 `SortLikeStd.h` (sorts with the moves of `std::sort`) is removed: with total-order comparators any
 sort gives the same order.

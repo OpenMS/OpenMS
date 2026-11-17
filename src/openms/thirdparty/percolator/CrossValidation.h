@@ -286,14 +286,18 @@ class CrossValidation {
   std::vector<AlgIn>& svmInputsOfPass(bool singleSolves,
                                       unsigned int& foldsPerPass);
   void initializeGridSearch(double targetDecoySizeRatio);
+  // OpenMS: group, the TronPairGroup of svmInput (or nullptr)
   void trainCpCnPair(CandidateCposCfrac& cpCnFold,
                      const options& pOptions,
                      const AlgIn& svmInput,
-                     SvmTrainingBuffers& buffers);
-  // OpenMS: solves the SVM of svmInput with the solver of setSolver, from the weights in w
+                     SvmTrainingBuffers& buffers,
+                     TronPairGroup* group);
+  // OpenMS: solves the SVM of svmInput with the solver of setSolver, from the weights in w; the TRON solves of the
+  // pairs of one training set at a time share its copy of the set in group (ssl.h)
   void trainSvm(const AlgIn& svmInput, const options& pOptions, double cpos,
                 double cneg, std::vector<double>& w,
-                std::vector<double>& outputs) const;
+                std::vector<double>& outputs,
+                TronPairGroup* group = nullptr) const;
 
   int mergeCpCnPairs(double selectionFdr,
                      const options& pOptions,

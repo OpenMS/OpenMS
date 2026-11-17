@@ -1,5 +1,5 @@
 diff --git a/src/openms/thirdparty/percolator/CrossValidation.cpp b/src/openms/thirdparty/percolator/CrossValidation.cpp
-index 493fad124afab04869266f587b095eae3f467767..a404c7bc6fb95ba33d5c1ef08c97661f3f5bbf1b 100644
+index e855e4d8951c9719c8bc83b92d0f7574a0ea4ee9..137aa542bba7d078fec8acfbb43fe68e0fa6a11c 100644
 --- a/src/openms/thirdparty/percolator/CrossValidation.cpp
 +++ b/src/openms/thirdparty/percolator/CrossValidation.cpp
 @@ -131,8 +131,10 @@ int CrossValidation::preIterationSetup(Scores& fullset,
@@ -95,7 +95,7 @@ index 493fad124afab04869266f587b095eae3f467767..a404c7bc6fb95ba33d5c1ef08c97661f
      if (foundPositives > 0 && foundPositivesOldOld > 0 &&
          (quickValidation_ || !classicTraining_) &&
          (static_cast<double>(foundPositives - foundPositivesOldOld) <=
-@@ -471,7 +517,19 @@ int CrossValidation::doStep(const Normalizer* /* pNorm */, double selectionFdr)
+@@ -472,7 +518,19 @@ int CrossValidation::doStep(const Normalizer* /* pNorm */, double selectionFdr)
            // Without nested cross validation, the training set is also used
            // for validation (sub-optimal cross validation).
            std::vector<Scores> nestedTrainScores, nestedTestScores;
@@ -115,7 +115,7 @@ index 493fad124afab04869266f587b095eae3f467767..a404c7bc6fb95ba33d5c1ef08c97661f
              trainScores_[set].createXvalSetsBySpectrum(
                  nestedTrainScores, nestedTestScores, nestedXvalBins_);
            }
-@@ -510,7 +568,7 @@ int CrossValidation::doStep(const Normalizer* /* pNorm */, double selectionFdr)
+@@ -520,7 +578,7 @@ int CrossValidation::doStep(const Normalizer* /* pNorm */, double selectionFdr)
  #pragma omp parallel for schedule(dynamic, 1) num_threads(static_cast<int>(maxNumThreads()))
        for (int pairIdx = firstPair; pairIdx < endPair; pairIdx++) {
          CandidateCposCfrac* cpCnFold = &classWeightsPerFold_[pairIdx];
@@ -123,8 +123,8 @@ index 493fad124afab04869266f587b095eae3f467767..a404c7bc6fb95ba33d5c1ef08c97661f
 +        if (!isSelectedPair(*cpCnFold) || !isActiveFold(cpCnFold->set)) {  // OpenMS: setActiveFolds
            continue;
          }
-         const AlgIn& svmInput =
-@@ -623,6 +681,7 @@ int CrossValidation::mergeCpCnPairs(
+         const std::size_t input =
+@@ -635,6 +693,7 @@ int CrossValidation::mergeCpCnPairs(
    std::vector<Scores::FeatureRows> testRows(numTestSets);
  #pragma omp parallel for schedule(dynamic, 1) num_threads(static_cast<int>(maxNumThreads()))
    for (int idx = 0; idx < numTestSets; ++idx) {
@@ -132,7 +132,7 @@ index 493fad124afab04869266f587b095eae3f467767..a404c7bc6fb95ba33d5c1ef08c97661f
      testSet(idx / nestedXvalBins_, idx % nestedXvalBins_)
          .getFeatureRows(testRows[idx]);
    }
-@@ -637,7 +696,7 @@ int CrossValidation::mergeCpCnPairs(
+@@ -649,7 +708,7 @@ int CrossValidation::mergeCpCnPairs(
        const CandidateCposCfrac& cpCnPair = classWeightsPerFold_[pairIdx];
        const unsigned int nestedSet =
            static_cast<unsigned int>(cpCnPair.nestedSet);
@@ -141,7 +141,7 @@ index 493fad124afab04869266f587b095eae3f467767..a404c7bc6fb95ba33d5c1ef08c97661f
          truePositives[pairIdx] = -1;  // not trained in this iteration
          continue;
        }
-@@ -654,6 +713,7 @@ int CrossValidation::mergeCpCnPairs(
+@@ -666,6 +725,7 @@ int CrossValidation::mergeCpCnPairs(
    }
  
    for (int set = 0; set < static_cast<int>(numFolds_); ++set) {
@@ -149,7 +149,7 @@ index 493fad124afab04869266f587b095eae3f467767..a404c7bc6fb95ba33d5c1ef08c97661f
      unsigned int a = set * numCpCnPairsPerSet;
      unsigned int b = (set + 1) * numCpCnPairsPerSet;
      int tp = 0;
-@@ -680,8 +740,11 @@ int CrossValidation::mergeCpCnPairs(
+@@ -692,8 +752,11 @@ int CrossValidation::mergeCpCnPairs(
        std::vector<double>::const_iterator itCpos = cposCandidates.begin();
        for (; itCpos != cposCandidates.end(); ++itCpos) {
          double cpos = *itCpos;
@@ -163,7 +163,7 @@ index 493fad124afab04869266f587b095eae3f467767..a404c7bc6fb95ba33d5c1ef08c97661f
            double cfrac = *itCfrac;
            tp = intermediateResults[std::pair<double,double>{cpos, cfrac}];
            if (tp >= bestTruePoses[set]) {
-@@ -706,6 +769,7 @@ int CrossValidation::mergeCpCnPairs(
+@@ -718,6 +781,7 @@ int CrossValidation::mergeCpCnPairs(
  #pragma omp parallel for schedule(dynamic, 1) num_threads(static_cast<int>(maxNumThreads()))
        for (int set = static_cast<int>(firstSet);
             set < static_cast<int>(endSet); ++set) {
@@ -171,7 +171,7 @@ index 493fad124afab04869266f587b095eae3f467767..a404c7bc6fb95ba33d5c1ef08c97661f
          AlgIn& svmInput = svmInputs[
              (static_cast<unsigned int>(set) - firstSet) * nestedXvalBins_];
          trainScores_[set].reserveTrainingSet(svmInput, selectionFdr);
-@@ -757,8 +821,12 @@ int CrossValidation::mergeCpCnPairs(
+@@ -769,8 +833,12 @@ int CrossValidation::mergeCpCnPairs(
  
    double bestTruePos = 0;
    for (int set = 0; set < static_cast<int>(numFolds_); ++set) {
@@ -186,7 +186,7 @@ index 493fad124afab04869266f587b095eae3f467767..a404c7bc6fb95ba33d5c1ef08c97661f
    }
    trainScoresCurrent_ = true;
    // each PSM is in numFolds_ - 1 training sets, or in the only one
-@@ -946,6 +1014,16 @@ void CrossValidation::getRawFoldWeights(
+@@ -958,6 +1026,16 @@ void CrossValidation::getRawFoldWeights(
    }
  }
  
@@ -204,7 +204,7 @@ index 493fad124afab04869266f587b095eae3f467767..a404c7bc6fb95ba33d5c1ef08c97661f
      std::vector<std::pair<unsigned int, unsigned int> >& lineFolds) {
    lineFolds.clear();
 diff --git a/src/openms/thirdparty/percolator/CrossValidation.h b/src/openms/thirdparty/percolator/CrossValidation.h
-index a8bdc2d8c709a8003843bbd815753f6c7b265716..274a64853a3c88a75709d2d722322c21d2052bd4 100644
+index d520f5f5c40e65417b1834cc83d2588cf29e42a3..6e549313cde1fb1a6c914a7dafdc449af418cf7c 100644
 --- a/src/openms/thirdparty/percolator/CrossValidation.h
 +++ b/src/openms/thirdparty/percolator/CrossValidation.h
 @@ -17,6 +17,8 @@
