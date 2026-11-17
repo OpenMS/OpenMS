@@ -203,7 +203,7 @@ class OPENMS_DLLAPI ProSEAlgorithm :
       int iterations = 10;       ///< iterations of the cross-validation training
       double tron_epsilon = 1e-7;  ///< stopping tolerance of the SVM solver (TRON)
       bool warm_start = false;     ///< SVM trainings start from the previous iteration's weights (classic training)
-      bool classic_training = true; ///< Percolator's training up to 3.09 (parameter 'rescoring:classic_training')
+      bool classic_training = false; ///< Percolator's training up to 3.09 (parameter 'rescoring:classic_training')
       bool single_cneg = false;    ///< one Cneg candidate instead of three
       std::string solver = "newton"; ///< Percolator's SVM solver (parameter 'rescore_solver', default 'newton')
       std::string use_pi0 = "true"; ///< pi0 estimate in the q-values and PEPs ('rescoring:use_pi0': true, false (the executable with TDC), auto)

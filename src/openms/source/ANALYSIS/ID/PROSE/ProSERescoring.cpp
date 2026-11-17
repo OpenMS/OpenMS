@@ -1046,7 +1046,7 @@ namespace OpenMS
     settings.emplace_back("train_best_positive", "true");
     settings.emplace_back("solver", training.solver != "tron" ? DataValue(training.solver) : DataValue::EMPTY);
     // (recorded when not the default)
-    settings.emplace_back("classic_training", training.classic_training ? DataValue::EMPTY : DataValue("false"));
+    settings.emplace_back("classic_training", training.classic_training ? DataValue("true") : DataValue::EMPTY);
     const auto rr = perc != nullptr ? perc->getResetOutput() : nullptr;
     const bool peptide_q_values = training.peptide_level && reuse == nullptr && perc != nullptr && !rr;
     settings.emplace_back("peptide_q_values", peptide_q_values ? DataValue("percolator_peptide_q_value, percolator_peptide_pep")
