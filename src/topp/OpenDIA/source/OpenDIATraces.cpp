@@ -155,6 +155,17 @@ namespace OpenMS::OpenDIA
     std::iota(by_rt_.begin(), by_rt_.end(), 0);
     std::stable_sort(by_rt_.begin(), by_rt_.end(), [this](std::size_t a, std::size_t b)
     { return samples_[a].window.apex_rt < samples_[b].window.apex_rt; });
+    // MS2 isolation lookup: a spectrum only visits the buckets its isolation windows overlap (see consumeSpectrum).
+    double low = std::numeric_limits<double>::infinity(), high = -low;
+    for (const auto& s : samples_) { low = std::min(low, s.precursor_mz); high = std::max(high, s.precursor_mz); }
+    require(std::isfinite(low) && std::isfinite(high), "Trace precursor m/z must be finite.");
+    require(samples_.size() <= std::numeric_limits<std::uint32_t>::max(), "Trace sample count exceeds 32-bit indices.");
+    mz_bucket_origin_ = std::floor(low);
+    by_mz_rt_.assign(static_cast<std::size_t>(std::floor((high - mz_bucket_origin_) / MZ_BUCKET_TH)) + 1, {});
+    for (const std::size_t i : by_rt_)
+    {
+      by_mz_rt_[static_cast<std::size_t>(std::floor((samples_[i].precursor_mz - mz_bucket_origin_) / MZ_BUCKET_TH))].push_back(static_cast<std::uint32_t>(i));
+    }
   }
 
   void TraceCollector::enableEvidence(double ms1_ppm, double core_half_width_s)
@@ -342,17 +353,41 @@ namespace OpenMS::OpenDIA
     const double scalar_im = spectrum.getDriftTime();
     const bool scalar_valid = spectrum.getDriftTimeUnit() == DriftTimeUnit::VSSC &&
                                std::isfinite(scalar_im) && scalar_im > 0.0;
-    for (auto active = first; active != by_rt_.end() && samples_[*active].window.apex_rt <= rt + rt_half_width_; ++active)
+    // Isolation windows of this spectrum (same tests as per sample before; a NaN bound never isolates).
+    std::vector<std::pair<double, double>> isolation;
+    double lowest = std::numeric_limits<double>::infinity(), highest = -lowest;
+    for (const auto& precursor : spectrum.getPrecursors())
+    {
+      const double lower = precursor.getIsolationWindowLowerOffset(), upper = precursor.getIsolationWindowUpperOffset();
+      if (!(lower >= 0.0 && upper >= 0.0 && lower + upper > 0.0)) continue;
+      const double from = precursor.getMZ() - lower, to = precursor.getMZ() + upper;
+      if (std::isnan(from) || std::isnan(to)) continue;
+      isolation.emplace_back(from, to);
+      lowest = std::min(lowest, from);
+      highest = std::max(highest, to);
+    }
+    if (isolation.empty()) return;
+    const double last_bucket = static_cast<double>(by_mz_rt_.size() - 1);
+    const double bucket_low = std::clamp(std::floor((lowest - mz_bucket_origin_) / MZ_BUCKET_TH), 0.0, last_bucket + 1.0);
+    const double bucket_high = std::clamp(std::floor((highest - mz_bucket_origin_) / MZ_BUCKET_TH), -1.0, last_bucket);
+    if (bucket_high < bucket_low) return;
+    const std::size_t bucket_first = static_cast<std::size_t>(bucket_low);
+    const std::size_t bucket_last = static_cast<std::size_t>(bucket_high);
+    // Each sample sits in one bucket, so it is visited at most once per spectrum; per-sample state is independent of
+    // the visiting order, so the result equals the former scan over all samples in by_rt_ order.
+    for (std::size_t bucket = bucket_first; bucket <= bucket_last; ++bucket)
+    {
+    const auto& in_bucket = by_mz_rt_[bucket];
+    auto from_rt = std::lower_bound(in_bucket.begin(), in_bucket.end(), rt - rt_half_width_,
+                                    [this](std::uint32_t i, double value) { return samples_[i].window.apex_rt < value; });
+    for (auto active = from_rt; active != in_bucket.end() && samples_[*active].window.apex_rt <= rt + rt_half_width_; ++active)
     {
       const std::size_t index = *active;
       Sample& sample = samples_[index];
       bool isolated = false;
-      for (const auto& precursor : spectrum.getPrecursors())
+      for (const auto& [from, to] : isolation)
       {
-        if (precursor.getIsolationWindowLowerOffset() >= 0.0 && precursor.getIsolationWindowUpperOffset() >= 0.0 &&
-            precursor.getIsolationWindowLowerOffset() + precursor.getIsolationWindowUpperOffset() > 0.0 &&
-            precursor.getMZ() - precursor.getIsolationWindowLowerOffset() <= sample.precursor_mz &&
-            precursor.getMZ() + precursor.getIsolationWindowUpperOffset() >= sample.precursor_mz)
+        if (from <= sample.precursor_mz && to >= sample.precursor_mz)
         {
           isolated = true;
           break;
@@ -430,6 +465,7 @@ namespace OpenMS::OpenDIA
           }
         }
       }
+    }
     }
   }
 

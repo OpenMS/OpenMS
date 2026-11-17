@@ -166,6 +166,10 @@ namespace OpenMS::OpenDIA
     };
     std::vector<Sample> samples_;
     std::vector<std::size_t> by_rt_;
+    /// Samples by precursor m/z bucket (MZ_BUCKET_TH wide, from mz_bucket_origin_), each bucket in by_rt_ order.
+    static constexpr double MZ_BUCKET_TH = 1.0;
+    std::vector<std::vector<std::uint32_t>> by_mz_rt_;
+    double mz_bucket_origin_ = 0.0;
     std::vector<float> intensities_;
     std::size_t im_bins_ = IM_BINS;
     double mz_tolerance_;
