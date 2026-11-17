@@ -332,8 +332,8 @@ Percolator::Percolator()
                      "Cap on the training set size (0 = use all). Default 100000 bounds training "
                      "time on very large inputs (>1M PSMs) at negligible quality loss. Sampling "
                      "is reservoir-based, keyed by (scan, exp_mass) so all PSMs sharing a "
-                     "spectrum travel together; the trained model is then applied to ALL input "
-                     "rows via a second scoring pass (matches upstream Caller.cpp behavior). "
+                     "spectrum travel together; all input rows are then scored in a second pass "
+                     "(see subset_mode). "
                      "Inert when the input size is at or below the cap. Note: upstream "
                      "percolator binary defaults this to 0 — PercolatorAdapter preserves the "
                      "CLI contract by passing its own int option (CLI default 0) through to "
@@ -341,9 +341,11 @@ Percolator::Percolator()
   defaults_.setMinInt("subset_max_train", 0);
   defaults_.setValue("subset_mode", "in_sample",
                      "How rescore() trains when subset_max_train caps the training set. 'in_sample' (default, as the "
-                     "percolator executable's --subset-max-train): the cross-validation runs on the sample, and all rows "
-                     "are scored by the average of the fold models, so a sampled row is scored by two models that "
-                     "trained on it. 'out_of_fold': every spectrum (spectrum file, scan) is assigned to one of the "
+                     "percolator executable's --subset-max-train, -N): the cross-validation runs on the sample; each sampled "
+                     "row is scored by the model of the fold in which it was a test row (each fold's scores mapped to "
+                     "the mean and standard deviation of the other rows' scores), the other rows by the average of the "
+                     "fold models (after a failed direction check all rows). 'out_of_fold': every spectrum (spectrum "
+                     "file, scan) is assigned to one of the "
                      "cross-validation folds first; a seeded random sample of whole spectra of at most "
                      "subset_max_train rows is drawn from the entire input (one sample: each fold's model trains on the "
                      "sampled spectra of the other folds); each fold's model is trained (positive selection and Cpos/Cneg "
@@ -2187,7 +2189,8 @@ RescoreOutput Percolator::rescore(const RescoreInput& input)
       all_scores = P::Scores(use_pi0);
       impl_->second_pass_psms.reserve(n_rows);
 
-      // As the executable with -N since Percolator 3.09 (SetHandler::readAndScorePSMs): a PSM of the training subset is
+      // As the executable with -N since upstream's a3527fac and 94154bd2 (November 2026, after 3.09; in a90106b)
+      // (SetHandler::readAndScorePSMs): a PSM of the training subset is
       // scored with the model of the fold in which it was a test PSM (the averaged weights would score it with models
       // that trained on it, so that the decoys would no longer model the incorrect targets at the top of the list),
       // and the scores of each fold are then mapped to the mean and standard deviation of the other PSMs' scores
