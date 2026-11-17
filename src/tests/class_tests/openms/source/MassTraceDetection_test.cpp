@@ -3,7 +3,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg$
-// $Authors: Erhan Kenar$
+// $Authors: Erhan Kenar, Prachi Agrawal$
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/ClassTest.h>
@@ -13,6 +13,9 @@
 ///////////////////////////
 #include <OpenMS/FEATUREFINDER/MassTraceDetection.h>
 ///////////////////////////
+
+#include <algorithm>
+#include <cmath>
 
 using namespace OpenMS;
 using namespace std;
@@ -159,11 +162,98 @@ START_SECTION((void run(const PeakMap &, std::vector< MassTrace > &)))
 }
 END_SECTION
 
+START_SECTION((run() characterizes the mass trace drift reported in issue 10905))
+{
+  // This records known buggy behavior, not a chemically validated ion channel.
+  // A future drift fix should replace these wide-span expectations.
+  PeakMap drift_input;
+  MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("MassTraceDetection_drift_10905.mzML.gz"), drift_input);
+
+  MassTraceDetection detector;
+  Param parameters = detector.getDefaults();
+  parameters.setValue("mass_error_ppm", 20.0);
+  parameters.setValue("noise_threshold_int", 10.0);
+  parameters.setValue("chrom_peak_snr", 3.0);
+  parameters.setValue("reestimate_mt_sd", "true");
+  parameters.setValue("quant_method", "area");
+  parameters.setValue("trace_termination_criterion", "outlier");
+  parameters.setValue("trace_termination_outliers", 5);
+  parameters.setValue("min_sample_rate", 0.5);
+  parameters.setValue("min_trace_length", 5.0);
+  parameters.setValue("max_trace_length", -1.0);
+  detector.setParameters(parameters);
+
+  std::vector<MassTrace> drift_traces;
+  detector.run(drift_input, drift_traces);
+
+  // Cropping changes extraction order and labels (T1930 becomes T14).
+  // Identify the trace by its most intense original observation instead.
+  const MassTrace* drift_trace = nullptr;
+  Size matching_traces = 0;
+  for (const auto& trace : drift_traces)
+  {
+    if (trace.getSize() == 0) { continue; }
+    const auto apex = std::max_element(trace.begin(), trace.end(), [](const auto& a, const auto& b) { return a.getIntensity() < b.getIntensity(); });
+    if (std::abs(apex->getRT() - 440.696651312) < 1e-6 && std::abs(apex->getMZ() - 694.59539794921875) < 1e-6)
+    {
+      drift_trace = &trace;
+      ++matching_traces;
+    }
+  }
+  TEST_EQUAL(matching_traces, 1)
+
+  if (drift_trace != nullptr)
+  {
+    TOLERANCE_RELATIVE(1.0)
+    TOLERANCE_ABSOLUTE(1e-6)
+    TEST_EQUAL(drift_trace->getSize(), 119)
+    TEST_REAL_SIMILAR(drift_trace->getTraceLength(), 211.062323823)
+    TEST_REAL_SIMILAR(drift_trace->getCentroidMZ(), 694.8168204114992)
+    const auto bounds
+      = std::minmax_element(drift_trace->begin(), drift_trace->end(), [](const auto& a, const auto& b) { return a.getMZ() < b.getMZ(); });
+    TEST_REAL_SIMILAR(bounds.first->getMZ(), 694.24554443359375)
+    TEST_REAL_SIMILAR(bounds.second->getMZ(), 695.4852294921875)
+    TEST_REAL_SIMILAR(bounds.second->getMZ() - bounds.first->getMZ(), 1.23968505859375)
+
+    // Check the endpoints, seed, intensity maximum, an intermediate excursion,
+    // and both mass extrema.
+    struct ExpectedPeak
+    {
+      Size index;
+      double rt;
+      double mz;
+      double intensity;
+    };
+    const ExpectedPeak expected_peaks[] = {
+      {0, 388.858178160, 694.7713623046875, 5607.41455078125},     {3, 393.578101856, 694.822998046875, 7240.923828125},
+      {18, 440.696651312, 694.59539794921875, 12166.330078125},    {65, 516.666194319, 695.2978515625, 3250.697265625},
+      {104, 577.907320015, 695.4852294921875, 1828.6632080078125}, {117, 598.670037503, 694.24554443359375, 2687.224609375},
+      {118, 599.920501983, 694.89813232421875, 3135.842529296875},
+    };
+    for (const auto& expected : expected_peaks)
+    {
+      // Keep a changed trace length from causing an out-of-bounds test access.
+      if (expected.index < drift_trace->getSize())
+      {
+        const auto& peak = (*drift_trace)[expected.index];
+        TOLERANCE_ABSOLUTE(1e-6)
+        TEST_REAL_SIMILAR(peak.getRT(), expected.rt)
+        TEST_REAL_SIMILAR(peak.getMZ(), expected.mz)
+        TOLERANCE_ABSOLUTE(1e-3)
+        TEST_REAL_SIMILAR(peak.getIntensity(), expected.intensity)
+      }
+    }
+    TOLERANCE_RELATIVE(1.00001)
+    TOLERANCE_ABSOLUTE(1e-5)
+  }
+}
+END_SECTION
+
 std::vector<MassTrace> filt;
 
-//START_SECTION((void filterByPeakWidth(std::vector< MassTrace > &, std::vector< MassTrace > &)))
+// START_SECTION((void filterByPeakWidth(std::vector< MassTrace > &, std::vector< MassTrace > &)))
 //{
-//    test_mtd.filterByPeakWidth(output_mt, filt);
+//     test_mtd.filterByPeakWidth(output_mt, filt);
 
 //    TEST_EQUAL(output_mt.size(), filt.size());
 
