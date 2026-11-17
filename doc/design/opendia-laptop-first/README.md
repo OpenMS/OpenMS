@@ -19,8 +19,10 @@ The branch's [`src/topp/OpenDIA/README.md`](https://github.com/OpenMS/OpenMS/blo
 | | raw 01 | raw 02 | raw 03 (held out) |
 |---|---|---|---|
 | OpenDIA N at FDP_c 1 % (median, range) | 1804 (1728-1827) | 1909 (1867-1935) | 1907 (1831-1957) |
-| DIA-NN N at FDP_c 1 % | 2067 | 2283 | not run |
+| DIA-NN N at FDP_c 1 % (mzML input, the snapshot reference) | 2067 | 2283 | not run |
 | OpenDIA / DIA-NN | 87 % | 84 % | |
+| DIA-NN N at FDP_c 1 %, **.raw read directly** (2026-11-17) | 2204 | 2356 | 2259 |
+| OpenDIA / DIA-NN (.raw) | **82 %** | **81 %** | **84 %** |
 | OpenDIA IDs at q ≤ 0.01 (median), FDP_c | 1709, 0.0047-0.0095 | 1811, 0.0012-0.0088 | 1849, 0.0058-0.0096 |
 | DIA-NN IDs at q ≤ 0.01, FDP_c | 2361, **0.0144** | 2322, **0.0112** | |
 | DIA-NN's q ≤ 0.01 IDs that OpenDIA also reports | 67 % (1588) | 72 % (1676) | |
@@ -29,7 +31,9 @@ The branch's [`src/topp/OpenDIA/README.md`](https://github.com/OpenMS/OpenMS/blo
 | OpenDIA only / DIA-NN only (q ≤ 0.01) | 121 / 773 | 128 / 646 | |
 | Overlap at each tool's own FDP_c 1 % cut | 75 % of DIA-NN's | 76 % of DIA-NN's | |
 
-- **At equal true error (FDP_c 1 %)**, OpenDIA reaches 84-87 % of DIA-NN.
+- **At equal true error (FDP_c 1 %)**, OpenDIA reaches 84-87 % of DIA-NN run on mzML, and **81-84 %** of DIA-NN
+  reading the .raw directly. DIA-NN finds 137 (raw 01) and 55-73 (raw 02) more IDs from the .raw than from mzML (its own reader, centroiding as in the
+  vendor file). The .raw run is the fairer reference, since OpenDIA reads the .raw too.
 - **At each tool's own q ≤ 0.01**, the gap looks larger: 72-78 %. One reason is that DIA-NN's q ≤ 0.01 is
   anti-conservative on this benchmark (FDP_c 1.1-1.4 %), while OpenDIA's is conservative (≤ 1 %).
 - **93 % of what OpenDIA reports is also in DIA-NN's list.** The disagreement is mostly DIA-NN IDs that OpenDIA does
@@ -57,14 +61,28 @@ seed, 3 raws).
 | scoring | 17-25 |
 | **total wall** | **6:08-7:35** |
 
-| | OpenDIA | DIA-NN 2.2 (local docker, same library) |
-|---|---|---|
-| Wall time | 6:08-7:35 (8 threads, codon nodes) | 13:27 raw 01 (14 threads); 8:48 raw 02 (9 threads, beside another job); local docker |
-| CPU time | 586-714 s | not recorded |
-| Peak memory | **21.9-22.7 GB** at the snapshot; 15.6 GB since a132e9104e (local raw01) | not recorded (the docker run hid it) |
-| Input | Thermo .raw read directly | mzML (FileConverter, about 5.8 GB per raw), conversion time not included |
+**Fair benchmark, same laptop (20 cores, 62 GB), raw 01, 8 threads each, run one after the other, both reading the .raw
+directly** (`gates/single-binary/bench/`, 2026-11-17). DIA-NN 2.2 in docker gets the .NET 8 SDK through a read-only
+mount. Its settings are the same as diann-pairlib-20261113.
 
-- The wall times are not a like-for-like speed comparison. OpenDIA ran on codon nodes, DIA-NN in local docker with other thread counts and next to other jobs, and DIA-NN also needs an mzML conversion first. On these numbers OpenDIA is not slower; a fair benchmark on one machine is still to be done.
+| | OpenDIA (a132e9104e) | DIA-NN 2.2 |
+|---|---|---|
+| Wall time | 10:14 | 7:23 (raw 02 7:44, raw 03 7:06) |
+| CPU time (user + sys) | 1060 s (172 % of one core) | 3391 s (765 %) |
+| Peak memory | 15.6 GB | 6.8 GB (raw 02/03 6.3-6.4 GB) |
+| IDs at own q ≤ 0.01 (FDP_c) | 1772 (0.0079) | 2278 (0.0123) |
+| N at FDP_c 1 % | 1815 | 2204 |
+
+- **DIA-NN is faster and leaner on the same machine**: 1.4× in wall time and 2.3× in memory. OpenDIA uses less CPU in
+  total but leaves most of the 8 threads idle.
+  - The OpenDIA stages are calibration 168 s (two full raw passes), search 30 s, evidence pass 271 s, features 29 s
+    and scoring 68 s.
+  - The raw passes are mostly single-threaded consumers. Parallelising them is the clear efficiency item.
+- The earlier "OpenDIA is faster" reading was wrong. In those DIA-NN runs, 4:25 of the 13:27 went to loading a
+  5.8 GB mzML, and they ran with other thread counts beside other jobs.
+- The same raw 01 seed 0 run took 7:06 on codon (8 threads) against 10:14 here, with the same output. Codon wall
+  times therefore look shorter than laptop wall times, and DIA-NN was not timed on codon. Compare only the same-machine rows.
+
 - Peak memory was mis-attributed earlier. The 22 GB peak came from the second (windowed) calibration pass, which collects traces for 600k panel members. The 9.6 GB runs had reused a saved calibration, so the 12-fragment scoring library was not the cause.
   - Fix a132e9104e: the calibration traces no longer store an all-zero 1/K0 array when the library has no mobility, and finished members are trimmed. Local raw01 peak goes from 21.6 GB to **15.6 GB**, and precursors.tsv and calibration.json are byte-identical.
   - The peak is still the calibration pass (15.6 GB). After calibration the run stays at about 9.7 GB.

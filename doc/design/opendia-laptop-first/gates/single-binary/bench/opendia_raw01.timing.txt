@@ -1,0 +1,12 @@
+  Calibration: rt_tolerance_s=150.914116 ms2_offset_ppm=-3.262437 ms2_tolerance_ppm=6.913080 boundary_half_widths=1.719848 seconds=167.608505 rss_mb=9708 peak_mb=15556
+  Search: candidates=2914196 seconds=29.613802 rss_mb=9317 peak_mb=15556
+  Extraction: windows=1858769 precursors=372638 isolation_windows=300 peak_open_grids=112390 seconds=270.757723 rss_mb=10665 peak_mb=15556
+  Features: 24 per window, noise=1148.096176 seconds=29.451264 rss_mb=10665 peak_mb=15556
+  Scoring: target precursors at q <= 0.01: 1772 seconds=68.020352; run total seconds=565.581739 rss_mb=10665 peak_mb=15556
+Combined: 1772 target precursors at global q <= 0.010000, 1772 run-level rows; seconds=613.210599
+OpenDIAWorkflow took 10:13 m (wall), 17:38 m (CPU), 19.16 s (system), 17:19 m (user); Peak Memory Usage: 15556 MB.
+	User time (seconds): 1039.96
+	System time (seconds): 19.59
+	Percent of CPU this job got: 172%
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 10:14.30
+	Maximum resident set size (kbytes): 15929684

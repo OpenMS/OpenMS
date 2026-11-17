@@ -1,0 +1,40 @@
+[0:00] Loading spectral library /w/lib_targets.tsv.skyline.speclib
+[0:00] Spectral library loaded: 0 protein isoforms, 0 protein groups and 302480 precursors in 133700 elution groups.
+[0:00] Initialising library
+[0:01] File #1/1
+[0:01] Loading run /in/LFQ_Astral_DIA_15min_50ng_Human_02.raw
+[0:21] Pre-processing...
+[0:23] 2928 MS1 and 292914 MS2 scans in 976 (inferred) and 976 (encoded) cycles, 297006 precursors in range
+[0:23] Calibrating with mass accuracies 20 (MS1), 25 (MS2)
+[2:31] RT window set to 1.57782
+[2:31] Peak width: 2.856
+[2:31] Scan window radius set to 6
+[2:31] Recommended MS1 mass accuracy setting: 2.5 ppm
+[6:08] Optimised mass accuracy: 8 ppm
+[6:59] Main search
+[7:23] Removing low confidence identifications
+[7:24] Removing interfering precursors
+[7:24] Training neural networks on 8458 target and 5468 decoy PSMs
+[7:41] Number of IDs at 0.01 FDR: 2279
+[7:41] No protein annotation, skipping protein q-value calculation
+[7:41] Quantification
+[7:42] Quantification information saved to /w/tmp/_in_LFQ_Astral_DIA_15min_50ng_Human_02_raw.quant
+[7:42] Cross-run analysis
+[7:42] Reading quantification information: 1 files
+[7:43] Quantifying peptides
+[7:43] Quantifying proteins
+[7:43] No protein annotation, skipping protein q-value calculation
+[7:43] No protein annotation, skipping global protein q-value calculation
+[7:43] Compressed report saved to /w/diann_raw02.parquet. Use R 'arrow' or Python 'PyArrow' package to process
+[7:43] Stats report saved to /w/diann_raw02.stats.tsv
+[7:43] Log saved to /w/diann_raw02.log.txt
+	User time (seconds): 3493.07
+	System time (seconds): 16.31
+	Percent of CPU this job got: 756%
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 7:43.97
+	Maximum resident set size (kbytes): 6283892
+	User time (seconds): 0.03
+	System time (seconds): 0.02
+	Percent of CPU this job got: 0%
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 7:44.22
+	Maximum resident set size (kbytes): 31568
