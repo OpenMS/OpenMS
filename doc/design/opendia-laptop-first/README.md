@@ -109,6 +109,7 @@ Cost: about 6-7.5 min and 22 GB per Astral raw on 8 threads with the full 12-fra
     - a 3-seed ensemble (PLAN_ENSEMBLE): +0.2 % / +0.6 %, raw 03 +0.3 %. It does cut the raw 01 seed range from 99 to 17.
   - Closing the gap needs new evidence for the weak right-peak IDs.
   - Wrong- and missed-peak losses (about 100 per raw) have no cheap fix (PRECHECK_PEAK).
+  - Run-specific fragment choice has no room (PRECHECK_FRAG). The searched 6 already show signal in 5.4-5.5 of 6 for the rejected right peaks, and re-selecting fragments from the run's own IDs leaves the separation from decoys at AUC 0.71-0.72. The weak IDs are low in abundance across all fragment ranks, not missing particular fragments.
   - MS1 isotope evidence (PLAN_MS1) is the first new block since block I that raises N at equal true FDR: +5.7 % / +2.1 %, every raw 01 seed above every CUR seed.
     - It fails its frozen plan. Its q ≤ 0.01 count stays flat on raw 01, and entrapments in the rejected band rank slightly higher (0.531 against the 0.527 limit).
     - Held-out raw 03 does not confirm the gain (−0.5 % at FDP_c 1 %, −2.1 % at q ≤ 0.01). It is removed per the plan (code kept in git history, 51fb7cc7ec).

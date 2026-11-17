@@ -132,6 +132,7 @@ Rows of 12-16 November 2026. Earlier rows (voxel v2-v19, CNN + LDA) are in the R
 | Joint interference fit precheck: no room (absent claimants carry block I) | Done (diagnostic, not pursued) | [PRECHECK_JOINT.md](gates/extraction-parity/gap/PRECHECK_JOINT.md) |
 | Scorer seed ensemble (PLAN_ENSEMBLE): +0.2 % / +0.6 %, removed | Done (fail) | [RESULT_ENSEMBLE.md](gates/single-binary/ensemble/RESULT_ENSEMBLE.md) |
 | Wrong / missed-peak losses precheck: ~100 / raw, no cheap fix (RT window ends, weak peaks behind the 5-peak cap, W rule already better than max-score) | Done (diagnostic, not pursued) | [PRECHECK_PEAK.md](gates/extraction-parity/gap/PRECHECK_PEAK.md) |
+| Run-specific fragment choice precheck: re-selection AUC 0.708→0.710 / 0.725→0.721, no room | Done (diagnostic, not pursued) | [PRECHECK_FRAG.md](gates/single-binary/frag/PRECHECK_FRAG.md) |
 | MS1 isotope evidence (PLAN_MS1): N@FDP_c 1 % +5.7 % / +2.1 % on raws 01/02, fails q ≤ 0.01 and specificity rules on raw 01; held-out raw 03 −0.5 %; removed | Done (fail) | [RESULT_MS1.md](gates/single-binary/ms1/RESULT_MS1.md) |
 
 ## R-WP6: Acceptance

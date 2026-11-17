@@ -1,0 +1,20 @@
+== raw01: A 1652 R 553 D 994 E 197 ED 271
+  observed share by library rank (1..12):
+    A: 1.00 1.00 0.99 0.99 0.98 0.96 0.93 0.91 0.88 0.83 0.79 0.74 | searched 6: 5.90 of 6
+    R: 1.00 0.97 0.93 0.86 0.89 0.80 0.77 0.71 0.72 0.65 0.57 0.52 | searched 6: 5.43 of 6
+    D: 0.87 0.82 0.78 0.73 0.71 0.66 0.60 0.58 0.57 0.56 0.50 0.46 | searched 6: 4.57 of 6
+    E: 0.97 0.96 0.93 0.85 0.79 0.77 0.73 0.70 0.70 0.66 0.59 0.55 | searched 6: 5.30 of 6
+  R vs D: support orig 5.43 vs 4.57 (AUC 0.708) | re-selected 5.46 vs 4.58 (AUC 0.710)
+  E vs ED: support orig 5.30 vs 5.29 (AUC 0.502) | re-selected 5.29 vs 5.34 (AUC 0.489)
+  A vs D: support orig 5.90 vs 4.57 (AUC 0.842) | re-selected 5.92 vs 4.58 (AUC 0.842)
+  re-selection changes the fragment set of 0.517 of windows; mean fragments swapped 1.15
+== raw02: A 1678 R 493 D 783 E 77 ED 121
+  observed share by library rank (1..12):
+    A: 1.00 1.00 1.00 0.99 0.98 0.96 0.93 0.90 0.88 0.85 0.80 0.73 | searched 6: 5.91 of 6
+    R: 0.99 0.97 0.94 0.91 0.87 0.82 0.80 0.72 0.69 0.65 0.59 0.54 | searched 6: 5.52 of 6
+    D: 0.87 0.81 0.80 0.74 0.73 0.71 0.63 0.58 0.55 0.55 0.52 0.46 | searched 6: 4.62 of 6
+    E: 0.97 0.92 0.90 0.90 0.87 0.78 0.79 0.65 0.79 0.68 0.60 0.55 | searched 6: 5.31 of 6
+  R vs D: support orig 5.52 vs 4.62 (AUC 0.725) | re-selected 5.53 vs 4.64 (AUC 0.721)
+  E vs ED: support orig 5.31 vs 5.33 (AUC 0.500) | re-selected 5.35 vs 5.36 (AUC 0.514)
+  A vs D: support orig 5.91 vs 4.62 (AUC 0.838) | re-selected 5.92 vs 4.64 (AUC 0.839)
+  re-selection changes the fragment set of 0.516 of windows; mean fragments swapped 1.15
