@@ -628,15 +628,21 @@ bool CrossValidation::trainsFoldChains() const {
  * step), its SVM input, the solves of its (Cpos, Cneg) pairs (one task each, with the count of the pair's positives
  * right after its solve), the choice of the best pair and the count of the fold's positives with its weights. The
  * last pair of a step to finish runs the rest of it and starts the fold's next step. A fold thus waits only for its
- * own pairs, not for the other folds at each stage, and the threads run whatever task is ready. Only the stop rule of
+ * own pairs, not for the other folds at each stage, and the threads run whatever task is ready: no task waits for other
+ * tasks of the chains (a task waits only at the end of the taskloops it runs itself, the row loops of Scores and
+ * Newton's blocks, and the solves of a step's pairs while they finish building their shared copy of the SVM input,
+ * TronPairGroup). The per-thread buffers of the solves and counts and the TaskLoopScope rely on the tasks being tied:
+ * at these waits a thread runs only tasks of the loop it waits for. Only the stop rule of
  * the training on the sum of the folds (new training without fixed folds) waits for all folds of an iteration: the
  * last fold to finish it decides and starts the next steps. With fixed folds each fold stops on its own count, and
  * classic training runs all iterations, so the chains never wait for each other.
  *
  * The results are those of the loop of train(): a step of a fold reads and writes only the fold's own data, and its
  * computations do not depend on the threads (the scores of a sorted set, its order and its q-values are the same on
- * one thread). The reports of the iterations are printed afterwards as the loop prints them. An error ends its fold's
- * chain; the first error (by iteration, then stage, then fold) is rethrown.
+ * one thread). The reports of the iterations are printed afterwards as the loop prints them (the header of the first
+ * one before, as messages of the first solves follow it). After an error no fold starts a step beyond the iteration of
+ * the first error, and the first error (by iteration, then stage, then fold) is rethrown after the reports of the
+ * iterations before it, as the loop throws it.
  */
 void CrossValidation::trainFoldChains() {
   const unsigned int numPairsPerFold =
@@ -689,10 +695,19 @@ void CrossValidation::trainFoldChains() {
   int foundOld = 0, foundOldOld = 0;
   int stoppedAfter = -1;  // the iteration after which the rule stopped the training
 
+  // the first iteration with an error: no fold starts a step after it
+  std::atomic<unsigned int> firstErrorIteration{niter_};
+  auto noteError = [&](unsigned int i) {
+    unsigned int current = firstErrorIteration.load(std::memory_order_relaxed);
+    while (i < current &&
+           !firstErrorIteration.compare_exchange_weak(current, i, std::memory_order_acq_rel)) {
+    }
+  };
   auto failed = [&](Fold& fold, int stage) {
     fold.error = std::current_exception();
     fold.errorIteration = fold.iteration;
     fold.errorStage = stage;
+    noteError(fold.iteration);
   };
   std::function<void(unsigned int)> startStep;
   std::function<void(unsigned int)> finishStep;
@@ -752,7 +767,7 @@ void CrossValidation::trainFoldChains() {
         fold.positivesOldOld = fold.positivesOld;
         fold.positivesOld = positives;
       }
-      if (!stop) {
+      if (!stop && i + 1u <= firstErrorIteration.load(std::memory_order_acquire)) {
         fold.iteration = i + 1u;
         PERCOLATOR_TASK_PRAGMA(omp task default(shared) firstprivate(set))
         startStep(set);
@@ -796,6 +811,9 @@ void CrossValidation::trainFoldChains() {
     const TaskLoopScope taskLoops;  // its scoring and the copies of the training rows as taskloops
     Fold& fold = folds[set];
     const unsigned int i = fold.iteration;
+    if (i > firstErrorIteration.load(std::memory_order_acquire)) {
+      return;  // (not in the coupled mode: its next steps start only after an iteration without errors)
+    }
     int stage = 0;
     std::vector<unsigned int> pairs;
     try {
@@ -871,6 +889,7 @@ void CrossValidation::trainFoldChains() {
                   : 0;  // the only trained pair of its fold
         } catch (...) {
           pairFold.pairErrors[k] = std::current_exception();
+          noteError(pairFold.iteration);
         }
         if (pairFold.pendingPairs.fetch_sub(1u, std::memory_order_acq_rel) == 1u) {
           finishStep(set);
@@ -879,6 +898,10 @@ void CrossValidation::trainFoldChains() {
     }
   };
 
+  // the header of the first iteration's report, which messages of its solves follow (train)
+  if (VERB > 1) {
+    cerr << "Iteration " << 1 << ":\t";
+  }
 #pragma omp parallel num_threads(static_cast<int>(teamThreads))
 #pragma omp single
   {
@@ -888,32 +911,29 @@ void CrossValidation::trainFoldChains() {
     }
   }
 
-  // the steps that ran: all folds for the iterations up to the last one, and the state of the loop after them
+  // the first error by iteration, stage and fold
+  const Fold* first = nullptr;
+  for (const Fold& fold : folds) {
+    if (fold.error && (!first || fold.errorIteration < first->errorIteration ||
+                       (fold.errorIteration == first->errorIteration && fold.errorStage < first->errorStage))) {
+      first = &fold;
+    }
+  }
+
+  // the steps that ran: all folds for the iterations up to the last one (before the first error)
   unsigned int iterations = 0;
   for (const Fold& fold : folds) {
     for (unsigned int i = 0; i < niter_; ++i) {
       if (fold.positives[i] >= 0) iterations = std::max(iterations, i + 1u);
     }
   }
-  iteration_ = iterations;
-  if (canFixGrid && iterations >= gridSearchIterations_) {
-    gridFixed_ = true;
-    selectedPairs_.resize(numFolds_);
-    for (unsigned int set = 0; set < numFolds_; ++set) {
-      selectedPairs_[set] = folds[set].best[gridSearchIterations_ - 1u];
-    }
-  }
-  trainScoresCurrent_ = true;
-  // a fold that stopped before the last iteration had its q-values recalculated in the iterations after (doStep)
-  for (unsigned int set = 0; set < numFolds_; ++set) {
-    if (folds[set].stoppedAt >= 0 && static_cast<unsigned int>(folds[set].stoppedAt) + 1u < iterations) {
-      trainScores_[set].calcQvals(selectionFdr_, skipDecoysPlusOne);
-    }
+  if (first) {
+    iterations = first->errorIteration;
   }
 
-  // the reports of the iterations, as train() prints them
+  // the reports of the iterations, as train() prints them (the header of the first one is printed already)
   for (unsigned int i = 0; i < iterations; ++i) {
-    if (VERB > 1) {
+    if (VERB > 1 && i > 0u) {
       cerr << "Iteration " << i + 1 << ":\t";
     }
     if (canFixGrid && i + 1u == gridSearchIterations_ && VERB > 1) {
@@ -946,17 +966,39 @@ void CrossValidation::trainFoldChains() {
                 << "(" << found[i] << " vs " << (i >= 2u ? found[i - 2u] : 0) << ")" << std::endl;
     }
   }
+  if (first) {
+    // as doStep throws it: after the header of its iteration and, for an error in the last stage, the choice of the
+    // pairs that mergeCpCnPairs prints before
+    const unsigned int i = first->errorIteration;
+    if (VERB > 1 && i > 0u) {
+      cerr << "Iteration " << i + 1 << ":\t";
+    }
+    if (first->errorStage == 4 && canFixGrid && i + 1u == gridSearchIterations_ && VERB > 1) {
+      for (unsigned int set = 0; set < numFolds_; ++set) {
+        const std::pair<double, double>& best = folds[set].best[i];
+        std::cerr << "Split " << set + 1 << ": using Cpos=" << best.first
+                  << ", Cneg=" << best.first * best.second
+                  << " in the remaining iterations" << std::endl;
+      }
+    }
+    std::rethrow_exception(first->error);
+  }
 
-  // the first error by iteration, stage and fold
-  const Fold* first = nullptr;
-  for (const Fold& fold : folds) {
-    if (fold.error && (!first || fold.errorIteration < first->errorIteration ||
-                       (fold.errorIteration == first->errorIteration && fold.errorStage < first->errorStage))) {
-      first = &fold;
+  // the state of the loop after the iterations
+  iteration_ = iterations;
+  if (canFixGrid && iterations >= gridSearchIterations_) {
+    gridFixed_ = true;
+    selectedPairs_.resize(numFolds_);
+    for (unsigned int set = 0; set < numFolds_; ++set) {
+      selectedPairs_[set] = folds[set].best[gridSearchIterations_ - 1u];
     }
   }
-  if (first) {
-    std::rethrow_exception(first->error);
+  trainScoresCurrent_ = true;
+  // a fold that stopped before the last iteration had its q-values recalculated in the iterations after (doStep)
+  for (unsigned int set = 0; set < numFolds_; ++set) {
+    if (folds[set].stoppedAt >= 0 && static_cast<unsigned int>(folds[set].stoppedAt) + 1u < iterations) {
+      trainScores_[set].calcQvals(selectionFdr_, skipDecoysPlusOne);
+    }
   }
 }
 

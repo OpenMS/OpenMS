@@ -69,14 +69,13 @@ class ThreadCap
   int previous_;
 };
 
-// An exception must not leave an OpenMP region (the process would end; OpenMS calls the vendored code as a library). The
-// iterations of a parallel loop catch theirs with capture(i), and rethrowFirst() throws the one of the first failed
-// iteration after the loop.
 // OpenMS: the fold chains of the cross-validation (CrossValidation::trainFoldChains) run their steps as tasks of a
 // parallel region, where the parallel loops over rows (the scores of a set, the copies of its training rows) would run
 // on one thread. A TaskLoopScope in a task lets the loops it calls run as taskloops on the threads of the region
-// instead (taskLoopThreads). The flag belongs to the thread that runs the task: tasks are tied, so no other task
-// runs on that thread before the task ends, except the tasks it creates. The results do not depend on it.
+// instead (taskLoopThreads). The flag belongs to the thread that runs the task: tasks are tied, so until the task ends
+// only its descendant tasks can run on that thread (e.g. the tasks of a taskloop it waits for, or a pair task of the
+// chains at a task scheduling point of the step that creates it); these see the flag set unless they open their own
+// scope. The results do not depend on it.
 inline bool& taskLoopsOfThisThread()
 {
   static thread_local bool on = false;
@@ -105,6 +104,9 @@ inline int taskLoopThreads()
 #endif
 }
 
+// An exception must not leave an OpenMP region (the process would end; OpenMS calls the vendored code as a library). The
+// iterations of a parallel loop catch theirs with capture(i), and rethrowFirst() throws the one of the first failed
+// iteration after the loop.
 class LoopErrors
 {
  public:
