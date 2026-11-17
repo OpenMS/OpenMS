@@ -195,6 +195,8 @@ public:
     double internal_tol_ppm = -1;
     double internal_line_offset = 0;
     double internal_line_slope = 0;
+    /// with ion_type_detection: the ion types kept for this PrSM, comma-separated ("none" if no set passed); empty without detection
+    std::string detected_ion_types;
   };
 
   /// constructor
@@ -332,6 +334,15 @@ private:
   void annotateOne_(const PeakArrays& spec, const std::vector<double>& sorted_intensities, const PrSM& prsm, Result& result) const;
 
   /**
+    @brief Read the ion types present in one spectrum (ion_type_detection). Complementary types are tested as sets (b with y, a with x,
+    c with one of z, z+1, z+2; a type without its partner alone). Each set counts its bonds not yet covered by the sets kept so far, in
+    the target and in the decoy shifts of even index (the choosing half); the set with the smallest Poisson P(X >= k) is kept while that
+    P is below 0.01 divided by the number of sets left. Returns, per ion type, 1 if kept.
+  */
+  std::vector<char> detectIonTypes_(const PeakArrays& spec, const PeakOccupancy& occupancy, const std::vector<Fragment>& fragments, double cal_factor,
+                                    int length) const;
+
+  /**
     The internal pieces of a proteoform: residues [first, last] with 1 <= first < last <= L - 2 (both ends inside) and at most
     internal_max_length residues, for every internal ion type. Index (first, last, offset) = base[first] + (last - first - 1) *
     offsets + offset. A piece that splits a modification range, or has no charge in the spectrum's m/z range, has mono_mass -1.
@@ -417,6 +428,7 @@ private:
   double max_mass_ = 200000.0;
   double p1_ = 0.3;
   bool report_decoys_ = false;
+  bool detect_ion_types_ = false;
   bool internal_on_ = true;
   int internal_max_length_ = 150;
   /// pieces in a ladder that make a cleavage authentic: after Asp, elsewhere, and before Pro (tag length + 1)

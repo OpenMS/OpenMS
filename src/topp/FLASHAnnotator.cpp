@@ -205,6 +205,7 @@ protected:
     algorithm_param.setValue("ion_type", getParam_().getValue("ion_type"));
     FLASHAnnotatorAlgorithm annotator;
     annotator.setParameters(algorithm_param);
+    const bool detection = algorithm_param.getValue("ion_type_detection").toString() == "true";
 
     //-------------------------------------------------------------
     // PrSMs: columns are found by their header names
@@ -277,7 +278,7 @@ protected:
       // nothing to annotate: the raw file is not read
       std::ofstream out(out_file);
       if (! out) { throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, out_file); }
-      out << header << prsm_columns_ << "\n";
+      out << header << prsm_columns_ << (detection ? "\tDetectedIonTypes" : "") << "\n";
       if (! out_annotation_file.empty())
       {
         std::ofstream out_annotation(out_annotation_file);
@@ -448,7 +449,7 @@ protected:
     {
       std::ofstream out(out_file);
       if (! out) { throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, out_file); }
-      out << header << prsm_columns_ << "\n";
+      out << header << prsm_columns_ << (detection ? "\tDetectedIonTypes" : "") << "\n";
       for (Size r = 0; r < rows.size(); r++)
       {
         const auto& res = results[r];
@@ -456,7 +457,9 @@ protected:
             << "\t" << res.chance_rate << "\t" << res.covered_bonds << "\t" << res.coverage << "\t" << format_(res.calibration_ppm) << "\t"
             << res.internal_score << "\t" << res.internal_matched << "\t" << res.internal_hypotheses << "\t" << res.internal_chance_rate << "\t"
             << res.authentic_cleavages << "\t" << res.coverage_with_internal << "\t" << res.internal_chance_bonds << "\t" << res.internal_tag_pieces_asp << "/"
-            << res.internal_tag_pieces_pro << "/" << res.internal_tag_pieces_other << "\t" << res.internal_tol_ppm << "\n";
+            << res.internal_tag_pieces_pro << "/" << res.internal_tag_pieces_other << "\t" << res.internal_tol_ppm;
+        if (detection) out << "\t" << res.detected_ion_types;
+        out << "\n";
       }
     }
     if (! out_annotation_file.empty())
