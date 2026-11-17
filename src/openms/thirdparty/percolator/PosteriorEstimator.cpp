@@ -146,20 +146,13 @@ void PosteriorEstimator::estimate(vector<pair<double, bool> >& combined,
     oss << "ERROR: Only 1 bin available for PEP estimation, "
         << "no distinguishing feature present." << std::endl;
     if (NO_TERMINATE) {
-      cerr << oss.str() << "No-terminate flag set: ignoring error and adding "
-          << "random noise to scores to break ties for PEP calculation." << std::endl;
-
-      medians.clear();
-      negatives.clear();
-      sizes.clear();
-
-      double random_offset = PseudoRandom::lcg_uniform_rand() * 1e-20;
-      int i = 0;
-      vector<pair<double, bool> >::iterator elem = combined.begin();
-      for (; elem != combined.end(); ++elem, ++i) {
-        elem->first += i*random_offset;
-      }
-      binData(combined, pi0, medians, negatives, sizes);
+      cerr << oss.str() << "No-terminate flag set: ignoring error and giving "
+          << "all scores the same PEP." << std::endl;
+      // The bin is padded to 4 below, with the same counts, and the fit is
+      // flat. The noise of 1e-20 added to the scores before broke no ties
+      // unless the scores were close to 0, and ordered tied scores by their
+      // label. The draw keeps the later random numbers as they were.
+      PseudoRandom::lcg_uniform_rand();
     } else {
       throw MyException(oss.str());
     }
@@ -179,12 +172,19 @@ void PosteriorEstimator::estimate(vector<pair<double, bool> >& combined,
         return;
       }
 
-      // OpenMS: LogisticRegression::setData pads to 4 bins, in the spline's
-      // transformed coordinates. Upstream added i * lcg_uniform_rand() * 1e-20
-      // here, which is lost to rounding unless the median is ~0, and the padding
-      // could change the transform chosen from the medians. The random draw is
-      // kept, so the random stream stays the same.
-      PseudoRandom::lcg_uniform_rand();
+      // Copies of the last bin at distinct scores beyond it, in the order of
+      // the bins: equal scores give intervals of length 0 in the spline.
+      PseudoRandom::lcg_uniform_rand();  // as above
+      double step = 1e-6 * max(1.0, max(fabs(medians.back()),
+          fabs(medians.back() - medians.front())));
+      if (medians.front() > medians.back()) {
+        step = -step;
+      }
+      while (medians.size() < 4) {
+        medians.push_back(medians.back() + step);
+        negatives.push_back(negatives.back());
+        sizes.push_back(sizes.back());
+      }
     } else {
       throw MyException(oss.str());
     }

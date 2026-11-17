@@ -21,7 +21,7 @@ index c443dfac4082a99dadca0de3931712c8bcb55e83..b5abb78bd02f482534d059f7b3307ad5
  #endif
  
 diff --git a/src/openms/thirdparty/percolator/BaseSpline.cpp b/src/openms/thirdparty/percolator/BaseSpline.cpp
-index 286ec35822873f121b6d5199cc2769225b38130a..fcb8c992e4217574dfae45f4c907a6cbc63dc2b4 100644
+index 491dfa07d8ec6ded91f86b649b814fc4dc5d03b9..65685a89133768c45f101ef0e796a8da8abb53bb 100644
 --- a/src/openms/thirdparty/percolator/BaseSpline.cpp
 +++ b/src/openms/thirdparty/percolator/BaseSpline.cpp
 @@ -24,6 +24,9 @@
@@ -34,19 +34,19 @@ index 286ec35822873f121b6d5199cc2769225b38130a..fcb8c992e4217574dfae45f4c907a6cb
  using namespace std;
  
  class SplinePredictor {
-@@ -387,4 +390,4 @@ void BaseSpline::solveInPlace(PackedMatrix& mat, PackedVector& res) {
-   return;
+@@ -400,3 +403,5 @@ void BaseSpline::setData(const vector<double>& xx) {
+   }
+   transform(xx.begin(), xx.end(), back_inserter(x), transf);
  }
- 
--
++
 +}}}  // namespace OpenMS::Internal::Percolator
 diff --git a/src/openms/thirdparty/percolator/BaseSpline.h b/src/openms/thirdparty/percolator/BaseSpline.h
-index a2fe67f7f40cfd834cb57e62ba94c5fd6ddce7ee..b798c5dcd3cd6cbbffe5e2abdef002cd029b4d96 100644
+index 637ea133ab6faa5e14829780faae34a3c000ea75..6c9aa4886ad1812dba67deb664710b83ef74eaa6 100644
 --- a/src/openms/thirdparty/percolator/BaseSpline.h
 +++ b/src/openms/thirdparty/percolator/BaseSpline.h
-@@ -23,6 +23,9 @@
+@@ -22,6 +22,9 @@
+ #include "Transform.h"
  #include "PackedVector.h"
- #include "PackedMatrix.h"
  
 +namespace OpenMS { namespace Internal { namespace Percolator {
 +
@@ -54,7 +54,7 @@ index a2fe67f7f40cfd834cb57e62ba94c5fd6ddce7ee..b798c5dcd3cd6cbbffe5e2abdef002cd
  class BaseSpline {
    public:
      BaseSpline(){};
-@@ -65,4 +68,6 @@ class BaseSpline {
+@@ -68,4 +71,6 @@ class BaseSpline {
      vector<double> x;
  };
  
@@ -373,13 +373,13 @@ index 83940a749d53ec704c12a45d2721acd229c35522..691e9d79422fdb854d336089a73e4c53
  #endif /*LABEL_TYPE_H_*/
 \ No newline at end of file
 diff --git a/src/openms/thirdparty/percolator/LogisticRegression.cpp b/src/openms/thirdparty/percolator/LogisticRegression.cpp
-index 5e68d1aa22e1edd4cd0f9f4792f3057e0c8452d2..3e8543b5f41b449f6493dd8d96fb6a2d733d584d 100644
+index 678b038adb4e1530fd6e5c68424a0c585bc4363f..422a83e383c41405b33823176d1f6040d04396e8 100644
 --- a/src/openms/thirdparty/percolator/LogisticRegression.cpp
 +++ b/src/openms/thirdparty/percolator/LogisticRegression.cpp
-@@ -22,11 +22,15 @@
- #include<fstream>
+@@ -23,11 +23,15 @@
  #include<sstream>
  #include<cmath>
+ #include<iostream>
 -using namespace std;
  
  #include "Globals.h"
@@ -393,13 +393,13 @@ index 5e68d1aa22e1edd4cd0f9f4792f3057e0c8452d2..3e8543b5f41b449f6493dd8d96fb6a2d
  const double LogisticRegression::gRange = 35.0;
  
  void invlogit(double& out, double in) {
-@@ -99,3 +103,4 @@ void LogisticRegression::initg() {
+@@ -190,3 +194,4 @@ void LogisticRegression::initg() {
  #endif
  }
  
 +}}}  // namespace OpenMS::Internal::Percolator
 diff --git a/src/openms/thirdparty/percolator/LogisticRegression.h b/src/openms/thirdparty/percolator/LogisticRegression.h
-index f631d49484649946e05c5300db97221cbfcabb23..46320694d25dd1c9beccf2ef0994ac0e9614dbbf 100644
+index 3c87ae1669c69f66600616d1c5523f58c931caef..1f9f5f2c31640f1c6c486d7b955e3cf393f4ac6b 100644
 --- a/src/openms/thirdparty/percolator/LogisticRegression.h
 +++ b/src/openms/thirdparty/percolator/LogisticRegression.h
 @@ -23,6 +23,9 @@
@@ -412,7 +412,7 @@ index f631d49484649946e05c5300db97221cbfcabb23..46320694d25dd1c9beccf2ef0994ac0e
  class LogisticRegression : public BaseSpline {
    public:
      LogisticRegression(){};
-@@ -46,4 +49,6 @@ class LogisticRegression : public BaseSpline {
+@@ -55,4 +58,6 @@ class LogisticRegression : public BaseSpline {
      Array<double> p;
  };
  
@@ -792,47 +792,6 @@ index ee500df0e56cb1fdc0b1633617dc9c7c3e627363..4c1a9ce5b51721bf038e115527ce5d5c
 +}}}  // namespace OpenMS::Internal::Percolator
 +
  #endif /*PSMDESCRIPTION_H_*/
-diff --git a/src/openms/thirdparty/percolator/PackedMatrix.cpp b/src/openms/thirdparty/percolator/PackedMatrix.cpp
-index 56742172f18fa8fe4b4c983527103260763efa6a..6d8249559a78004f2cccf21f4fac8c25f5504dae 100644
---- a/src/openms/thirdparty/percolator/PackedMatrix.cpp
-+++ b/src/openms/thirdparty/percolator/PackedMatrix.cpp
-@@ -7,6 +7,9 @@
- 
- #include "PackedMatrix.h"
- 
-+namespace OpenMS { namespace Internal { namespace Percolator {
-+
-+
- PackedMatrix PackedMatrix::packedTranspose(const PackedMatrix& mat) {
-   PackedMatrix res = PackedMatrix(mat.numCols(), mat.numRows());
-   int i, j;
-@@ -89,3 +92,5 @@ void PackedMatrix::displayMatrix() const{
-   }
-   cerr << "}"<<endl;
- }
-+
-+}}}  // namespace OpenMS::Internal::Percolator
-diff --git a/src/openms/thirdparty/percolator/PackedMatrix.h b/src/openms/thirdparty/percolator/PackedMatrix.h
-index 9fe9c0a3218bdf16292ee2dcbfc9a82e0fa19270..651962afadd43562b3b0faf9ce5015dd99a3bafc 100644
---- a/src/openms/thirdparty/percolator/PackedMatrix.h
-+++ b/src/openms/thirdparty/percolator/PackedMatrix.h
-@@ -11,6 +11,9 @@
- #include "PackedVector.h"
- #include "Array.h"
- 
-+namespace OpenMS { namespace Internal { namespace Percolator {
-+
-+
- class PackedMatrix
- {
-   public:
-@@ -59,4 +62,6 @@ class PackedMatrix
-     Array<PackedVector> rows;
- };
- 
-+}}}  // namespace OpenMS::Internal::Percolator
-+
- #endif
 diff --git a/src/openms/thirdparty/percolator/PackedVector.cpp b/src/openms/thirdparty/percolator/PackedVector.cpp
 index 62be8cb468729f374b63db698cf543c4cff7669b..79ef642fd11d83c224232f09cc4593db75fc51b6 100644
 --- a/src/openms/thirdparty/percolator/PackedVector.cpp
@@ -896,7 +855,7 @@ index 0fe70e2f1b7d8319f42ff611fc025c18a95837d5..3da364433867521f0bb9e5538dc432d4
 +
  #endif /* PARALLEL_SORT_H_ */
 diff --git a/src/openms/thirdparty/percolator/PosteriorEstimator.cpp b/src/openms/thirdparty/percolator/PosteriorEstimator.cpp
-index f2842a23cb46bbd4daac0cbfffae81096834f89b..de6b7496b3d113d9a35940de8fc620c935e09ac8 100644
+index 882c4a5916bc809809dfe2b349efba8570620bb9..122fba776faab6b883aa2d9a7b1efc41881e3abe 100644
 --- a/src/openms/thirdparty/percolator/PosteriorEstimator.cpp
 +++ b/src/openms/thirdparty/percolator/PosteriorEstimator.cpp
 @@ -26,13 +26,11 @@
