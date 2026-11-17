@@ -18,6 +18,7 @@
 #include <OpenMS/METADATA/ExperimentalSettings.h>
 #include <OpenMS/METADATA/SpectrumLookup.h>
 #include <OpenMS/PROCESSING/CENTROIDING/PeakPickerHiRes.h>
+#include <boost/math/special_functions/gamma.hpp>
 #include <algorithm>
 #include <array>
 #include <cmath>
@@ -111,6 +112,16 @@ void FLASHAnnotatorAlgorithm::setDefaultParams_()
 
   defaults_.setValue("ion_type", std::vector<std::string> {"b", "y"}, "Ion types to annotate.");
   defaults_.setValidStrings("ion_type", {"b", "c", "a", "y", "z", "x", "zp1", "zp2"});
+
+  defaults_.setValue("ion_type_detection", "false",
+                     "Read the ion types from each spectrum. 'false': every ion type of 'ion_type' is annotated. 'true': the ion types of "
+                     "'ion_type' are candidates (give all eight to let the spectrum decide), and for each PrSM only the ion types that "
+                     "the spectrum supports above chance are annotated. Complementary ion types are tested together, as sets: b with y, "
+                     "a with x, and c with one of z, z+1 and z+2 (a type given without its partner is tested alone). A set is kept when "
+                     "its bonds not covered by the sets already kept exceed those of the decoy shifts of even index (Poisson, P below "
+                     "0.01 divided by the number of sets left); the strongest set is taken first. The kept ion types are reported per "
+                     "PrSM (DetectedIonTypes); 'none' if no set passes. Needs at least two decoy shifts.");
+  defaults_.setValidStrings("ion_type_detection", {"true", "false"});
 
   defaults_.setValue("min_peaks", 3, "Minimum number of matched isotope peaks of an envelope, the most abundant one included.");
   defaults_.setMinInt("min_peaks", 1);
@@ -249,6 +260,7 @@ void FLASHAnnotatorAlgorithm::updateMembers_()
   decoy_shifts_ = param_.getValue("decoy_shifts").toDoubleVector();
   p1_ = param_.getValue("p1");
   report_decoys_ = param_.getValue("report_decoy_envelopes").toString() == "true";
+  detect_ion_types_ = param_.getValue("ion_type_detection").toString() == "true";
   internal_on_ = param_.getValue("internal_ions").toString() == "true";
   min_peaks_small_ = param_.getValue("min_peaks_small");
   terminal_calibration_ = param_.getValue("terminal_calibration").toDoubleVector();
@@ -908,6 +920,22 @@ void FLASHAnnotatorAlgorithm::annotateOne_(const PeakArrays& spec, const std::ve
   PeakOccupancy occupancy;
   occupancy.build(spec);
 
+  // ion types read from the spectrum: fragments of the ion types it does not support are dropped before anything is counted
+  if (detect_ion_types_ && decoy_shifts_.size() >= 2)
+  {
+    const std::vector<char> keep = empty ? std::vector<char>(ion_types_.size(), 0) : detectIonTypes_(spec, occupancy, fragments, cal_factor, length);
+    auto dropped = [&keep](const Fragment& f) { return ! keep[f.ion_type]; };
+    fragments.erase(std::remove_if(fragments.begin(), fragments.end(), dropped), fragments.end());
+    span_fragments.erase(std::remove_if(span_fragments.begin(), span_fragments.end(), dropped), span_fragments.end());
+    for (Size t = 0; t < ion_types_.size(); t++)
+    {
+      if (! keep[t]) continue;
+      if (! result.detected_ion_types.empty()) result.detected_ion_types += ",";
+      result.detected_ion_types += ion_types_[t];
+    }
+    if (result.detected_ion_types.empty()) result.detected_ion_types = "none";
+  }
+
   // fragment hypotheses (ion type group, length): ion types whose envelopes fall on the same peaks count once
   const int hypothesis_count = ion_group_count_ * std::max(1, length);
   std::vector<char> testable(hypothesis_count, 0), matched(hypothesis_count, 0);
@@ -1237,6 +1265,116 @@ void FLASHAnnotatorAlgorithm::annotateOne_(const PeakArrays& spec, const std::ve
   result.internal_tol_ppm = internal_tol_ppm;
   result.internal_line_offset = line_offset;
   result.internal_line_slope = line_slope;
+}
+
+std::vector<char> FLASHAnnotatorAlgorithm::detectIonTypes_(const PeakArrays& spec, const PeakOccupancy& occupancy, const std::vector<Fragment>& fragments,
+                                                           double cal_factor, int length) const
+{
+  const int types = (int)ion_types_.size();
+  const int worlds = 1 + (int)decoy_shifts_.size(); // 0: target, s + 1: decoy shift s
+  const int width = std::max(1, length);
+  std::vector<char> bonds((Size)worlds * types * width, 0); // [world][type][bond]: an envelope of the type matched at the bond
+  auto at = [&](int w, int t, int b) -> char& { return bonds[((Size)w * types + t) * width + b]; };
+  const double min_mz = spec.mzs.front(), max_mz = spec.mzs.back(), tol = tol_ * 1e-6;
+  EnvelopeMatch match;
+  for (int w = 0; w < worlds; w++)
+  {
+    const double shift = w == 0 ? 0.0 : decoy_shifts_[w - 1];
+    for (const auto& f : fragments)
+    {
+      if (f.bond < 0 || f.bond >= width || at(w, f.ion_type, f.bond)) continue;
+      const double mono_mass = f.mono_mass + shift;
+      if (mono_mass <= 0) continue;
+      const int bin = massToBin_(f.mono_mass); // the isotope pattern of the target fragment, as for the decoy fragments of the score
+      if (requiredPeaks_(table_.offset[bin + 1] - table_.offset[bin]) < 0) continue;
+      const double apex_shift = table_.iso_index[table_.offset[bin] + table_.apex_pos[bin]] * Constants::C13C12_MASSDIFF_U;
+      for (int z = 1; z <= f.max_charge; z++)
+      {
+        const double observed = (mono_mass + apex_shift + z * Constants::PROTON_MASS_U) / z * cal_factor;
+        if (observed * (1 - tol) > max_mz) continue;
+        if (observed * (1 + tol) < min_mz) break;
+        if (! matchEnvelope_(spec, occupancy, mono_mass, bin, z, cal_factor, match)) continue;
+        at(w, f.ion_type, f.bond) = 1;
+        break;
+      }
+    }
+  }
+
+  // candidate sets: complementary ion types together; a type given without its partner alone
+  auto index_of = [this](const std::string& name) {
+    const auto it = std::find(ion_types_.begin(), ion_types_.end(), name);
+    return it == ion_types_.end() ? -1 : (int)(it - ion_types_.begin());
+  };
+  std::vector<std::vector<int>> sets;
+  std::vector<char> placed(types, 0);
+  auto add_set = [&](std::vector<int> members) {
+    members.erase(std::remove(members.begin(), members.end(), -1), members.end());
+    if (members.empty()) return;
+    for (int m : members) placed[m] = 1;
+    sets.push_back(members);
+  };
+  add_set({index_of("b"), index_of("y")});
+  add_set({index_of("a"), index_of("x")});
+  const int c = index_of("c");
+  bool c_paired = false;
+  for (const char* zname : {"z", "zp1", "zp2"})
+  {
+    const int zi = index_of(zname);
+    if (zi < 0) continue;
+    if (c >= 0) { add_set({c, zi}); c_paired = true; }
+    else add_set({zi});
+  }
+  if (c >= 0 && ! c_paired) add_set({c});
+  for (int t = 0; t < types; t++)
+  {
+    if (! placed[t]) add_set({t});
+  }
+
+  std::vector<Size> choosing;
+  for (Size s = 0; s < decoy_shifts_.size(); s += 2) choosing.push_back(s + 1);
+  std::vector<char> keep(types, 0), covered(width, 0), set_done(sets.size(), 0);
+  auto uncovered_bonds = [&](int w, const std::vector<int>& set) {
+    int n = 0;
+    for (int b = 1; b < length; b++)
+    {
+      if (covered[b]) continue;
+      for (int t : set)
+      {
+        if (at(w, t, b)) { n++; break; }
+      }
+    }
+    return n;
+  };
+  while (true)
+  {
+    const Size left = (Size)std::count(set_done.begin(), set_done.end(), 0);
+    if (left == 0) break;
+    double best_p = 2.0;
+    int best = -1;
+    for (Size i = 0; i < sets.size(); i++)
+    {
+      if (set_done[i]) continue;
+      const int k = uncovered_bonds(0, sets[i]);
+      double lambda = 0;
+      for (Size w : choosing) lambda += uncovered_bonds((int)w, sets[i]);
+      lambda = std::max(0.5, lambda / (double)choosing.size());
+      const double p = k > 0 ? boost::math::gamma_p((double)k, lambda) : 1.0; // P(X >= k), X ~ Poisson(lambda)
+      if (p < best_p) { best_p = p; best = (int)i; }
+    }
+    if (best < 0 || best_p >= 0.01 / (double)left) break;
+    set_done[best] = 1;
+    for (int t : sets[best])
+    {
+      keep[t] = 1;
+      for (int b = 1; b < length; b++) covered[b] |= at(0, t, b);
+    }
+    // a set sharing members with the kept one (c with another z form) is still tested for its other member
+    for (Size i = 0; i < sets.size(); i++)
+    {
+      if (! set_done[i] && std::all_of(sets[i].begin(), sets[i].end(), [&keep](int t) { return keep[t] != 0; })) set_done[i] = 1;
+    }
+  }
+  return keep;
 }
 
 void FLASHAnnotatorAlgorithm::matchInternal_(const PeakArrays& spec, const PeakOccupancy& occupancy, const std::vector<double>& sorted_intensities,
