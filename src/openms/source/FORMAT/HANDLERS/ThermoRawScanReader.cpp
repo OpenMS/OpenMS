@@ -632,14 +632,21 @@ struct ThermoRawScanReader::Impl
   {
     static constexpr int chunk = 128;
     int first = 0, last = 0, peaks_from = 0;
+    std::vector<int> peak_levels; ///< If not empty, peaks are only read ahead for scans of these MS levels.
     tb::ReadOptions header_options, full_options;
     std::vector<std::thread> workers;
     std::mutex mutex;
     std::condition_variable produced, consumed;
-    std::map<int, std::pair<std::vector<tb::Spectrum>, std::exception_ptr>> ready; ///< chunk -> scans
+    std::map<int, std::tuple<std::vector<tb::Spectrum>, std::vector<char>, std::exception_ptr>> ready; ///< chunk -> scans, peaks read
     int next_chunk = 0, current_chunk = -1, window = 0;
     bool stop = false;
     std::vector<tb::Spectrum> current;
+    std::vector<char> current_peaks;
+
+    bool wantsPeaks(int scan, int level) const
+    {
+      return scan >= peaks_from && (peak_levels.empty() || std::find(peak_levels.begin(), peak_levels.end(), level) != peak_levels.end());
+    }
 
     void run(tb::RawFile accessor)
     {
@@ -656,25 +663,39 @@ struct ThermoRawScanReader::Impl
         if (begin > last) { return; }
         const int end = std::min(last, begin + chunk - 1);
         std::vector<tb::Spectrum> scans(end - begin + 1);
+        std::vector<char> with_peaks(scans.size(), 0);
         std::exception_ptr error;
         try
         {
           for (int scan = begin; scan <= end; ++scan)
           {
-            accessor.read_scan(scan, scans[scan - begin], scan >= peaks_from ? full_options : header_options);
+            tb::Spectrum& out = scans[scan - begin];
+            if (peak_levels.empty() || scan < peaks_from)
+            {
+              with_peaks[scan - begin] = scan >= peaks_from;
+              accessor.read_scan(scan, out, with_peaks[scan - begin] ? full_options : header_options);
+              continue;
+            }
+            // Level-selected peaks: the header decides; the peaks of a selected scan are read in a second call.
+            accessor.read_scan(scan, out, header_options);
+            if (wantsPeaks(scan, out.header.ms_level()))
+            {
+              accessor.read_scan(scan, out, full_options);
+              with_peaks[scan - begin] = 1;
+            }
           }
         }
         catch (...) { error = std::current_exception(); }
         {
           std::lock_guard<std::mutex> lock(mutex);
-          ready.emplace(c, std::make_pair(std::move(scans), error));
+          ready.emplace(c, std::make_tuple(std::move(scans), std::move(with_peaks), error));
         }
         produced.notify_all();
       }
     }
 
-    /// Swap the read-ahead data of @p scan into @p out; false if @p scan is not covered.
-    bool take(int scan, tb::Spectrum& out)
+    /// Swap the read-ahead data of @p scan into @p out (@p has_peaks: peaks were read too); false if @p scan is not covered.
+    bool take(int scan, tb::Spectrum& out, bool& has_peaks)
     {
       if (scan < first || scan > last) { return false; }
       const int c = (scan - first) / chunk;
@@ -685,8 +706,9 @@ struct ThermoRawScanReader::Impl
           std::unique_lock<std::mutex> lock(mutex);
           produced.wait(lock, [&] { return ready.count(c) > 0; });
           auto it = ready.find(c);
-          current = std::move(it->second.first);
-          error = it->second.second;
+          current = std::move(std::get<0>(it->second));
+          current_peaks = std::move(std::get<1>(it->second));
+          error = std::get<2>(it->second);
           ready.erase(it);
           current_chunk = c;
         }
@@ -694,6 +716,7 @@ struct ThermoRawScanReader::Impl
         if (error) { std::rethrow_exception(error); }
       }
       std::swap(out, current[scan - first - c * chunk]);
+      has_peaks = current_peaks[scan - first - c * chunk] != 0;
       return true;
     }
 
@@ -860,7 +883,7 @@ void ThermoRawScanReader::fillSettings(ExperimentalSettings& settings) const
   settings.setInstrument(d.instrument);
 }
 
-void ThermoRawScanReader::readAhead(int last_scan, int peaks_from)
+void ThermoRawScanReader::readAhead(int last_scan, int peaks_from, std::vector<int> peak_levels)
 {
   Impl& d = *impl_;
   if (d.read_ahead) { d.read_ahead->shutdown(); d.read_ahead.reset(); }
@@ -877,6 +900,7 @@ void ThermoRawScanReader::readAhead(int last_scan, int peaks_from)
   ahead->first = first;
   ahead->last = last_scan;
   ahead->peaks_from = peaks_from;
+  ahead->peak_levels = std::move(peak_levels);
   ahead->window = 4 * workers;
   ahead->full_options = d.peakReadOptions();
   ahead->full_options.trailer_text = true;
@@ -897,9 +921,10 @@ const ThermoRawScanReader::ScanInfo& ThermoRawScanReader::header(int scan, bool 
   Impl& d = *impl_;
   if (d.first_seen == 0) { d.first_seen = scan; }
   else if (scan != d.info.scan + 1) { throw std::logic_error("ThermoRawScanReader::header() must visit scans in order"); }
-  if (d.read_ahead && d.read_ahead->take(scan, d.header_read))
+  bool ahead_peaks = false;
+  if (d.read_ahead && d.read_ahead->take(scan, d.header_read, ahead_peaks))
   {
-    d.header_has_peaks = scan >= d.read_ahead->peaks_from;
+    d.header_has_peaks = ahead_peaks;
   }
   else
   {

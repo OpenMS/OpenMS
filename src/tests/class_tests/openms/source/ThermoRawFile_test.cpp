@@ -640,6 +640,24 @@ START_SECTION(void transform(const std::string& path, Interfaces::IMSDataConsume
   ThermoRawFile::Options ms1 = base;
   ms1.ms_levels = {1};
   testTransform(ms1);
+#ifdef _OPENMP
+  // MS-level-only selection: the read-ahead workers also read the peaks of the selected levels,
+  // which must give the single-threaded result (where the consumer thread reads every scan itself)
+  {
+    const int threads = omp_get_max_threads();
+    for (const ThermoRawFile::Options& levels : {ms2, ms1})
+    {
+      omp_set_num_threads(1);
+      testTransform(levels);
+      omp_set_num_threads(4);
+      testTransform(levels);
+      ThermoRawFile::Options profile = levels;
+      profile.centroid = false;
+      testTransform(profile);
+    }
+    omp_set_num_threads(threads);
+  }
+#endif
   const MSExperiment full = load(base);
   ThermoRawFile::Options rt = base;
   rt.rt_min = full[100].getRT();
