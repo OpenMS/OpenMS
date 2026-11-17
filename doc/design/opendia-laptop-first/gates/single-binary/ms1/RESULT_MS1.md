@@ -68,3 +68,16 @@ N@FDP_c 0.5 % and 2 % medians:
   decision for the user, not a retuning of this plan.
 
 Raw 03 (held out) follows below, reported descriptively.
+
+## Raw 03 (held out, run once after the verdict was committed, docs 05600821f6)
+CUR is the raw 03 CUR of the earlier plans, which uses the same 24-input code path.
+
+| arm | s0 | s1 | s2 | s3 | s4 | median N@1 % | median q ≤ 0.01 |
+|---|---|---|---|---|---|---|---|
+| CUR | 1907 (.0096) | 1831 (.0058) | 1864 (.0068) | 1913 (.0084) | 1957 (.0076) | **1907** | 1849 |
+| NEW | 1898 (.0055) | 1835 (**.0100**) | 1951 (.0077) | 1941 (.0066) | 1893 (.0077) | **1898 (−0.5 %)** | 1811 (−2.1 %) |
+
+- **Raw 03 does not confirm the gain.** N@1 % changes by −0.5 % and the q ≤ 0.01 count by −2.1 %. One seed sits at
+  FDP_c 0.0100, exactly at the limit.
+- The raw01 / raw02 gain (+5.7 % / +2.1 %) therefore does not carry over to the held-out run.
+- The verdict stands: removed (revert below). The block's code and tests stay in git history (51fb7cc7ec).

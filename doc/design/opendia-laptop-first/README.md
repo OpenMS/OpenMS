@@ -3,7 +3,7 @@
 **Status, 16 November 2026.** This plan replaced the laptop-first WP-00 to WP-10 plan on 7 November 2026. The old plan is closed and kept unchanged under [archive/legacy-wp-plan-20261107](archive/legacy-wp-plan-20261107/README.md).
 
 The rewrite lives on [`OpenMS/OpenMS:feature/opendia-clean-rewrite`](https://github.com/OpenMS/OpenMS/tree/feature/opendia-clean-rewrite).
-All of its code is under `src/topp/OpenDIA/`, and it makes no changes to the shared OpenMS API. The branch tip is `bc30ae9394`.
+All of its code is under `src/topp/OpenDIA/`, and it makes no changes to the shared OpenMS API. The branch tip is `219d6ee6ea`.
 It is an experimental branch, not a pull request. It must not merge into `develop` until the acceptance gates of R-WP6 pass.
 The branch's [`src/topp/OpenDIA/README.md`](https://github.com/OpenMS/OpenMS/blob/feature/opendia-clean-rewrite/src/topp/OpenDIA/README.md) describes the tools. The evidence is in [`gates/`](gates/).
 
@@ -107,7 +107,11 @@ Cost: about 6-7.5 min and 22 GB per Astral raw on 8 threads with the full 12-fra
   - Scorer-capacity attempts on those inputs all failed:
     - signal-level interactions and self-trained trees, offline;
     - a 3-seed ensemble (PLAN_ENSEMBLE): +0.2 % / +0.6 %, raw 03 +0.3 %. It does cut the raw 01 seed range from 99 to 17.
-  - Closing the gap needs new evidence for the weak right-peak IDs (next).
+  - Closing the gap needs new evidence for the weak right-peak IDs.
+  - Wrong- and missed-peak losses (about 100 per raw) have no cheap fix (PRECHECK_PEAK).
+  - MS1 isotope evidence (PLAN_MS1) is the first new block since block I that raises N at equal true FDR: +5.7 % / +2.1 %, every raw 01 seed above every CUR seed.
+    - It fails its frozen plan. Its q ≤ 0.01 count stays flat on raw 01, and entrapments in the rejected band rank slightly higher (0.531 against the 0.527 limit).
+    - Held-out raw 03 does not confirm the gain (−0.5 % at FDP_c 1 %, −2.1 % at q ≤ 0.01). It is removed per the plan (code kept in git history, 51fb7cc7ec).
 
 **Direction.** The single voxel model was replaced in practice by the heuristic-feature network (D11 line, R-WP3). That network is now in C++ as `OpenDIA::CrossFitScorer`. OpenDIACNN and LibTorch are no longer on the default path.
 
