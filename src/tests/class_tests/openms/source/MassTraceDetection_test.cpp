@@ -174,7 +174,7 @@ START_SECTION((void run(const PeakMap &, std::vector< MassTrace > &)))
       output_mt.clear();
       test_mtd.run(ms1_then_ms2, output_mt);
       TEST_EQUAL(output_mt.size(), 3)
-      for (Size i = 0; i < output_mt.size(); ++i)
+      for (Size i = 0; i < std::min(output_mt.size(), Size(3)); ++i) // the expected values are for 3 traces
       {
         TEST_EQUAL(output_mt[i].getSize(), exp_mt_lengths[i]);
         TEST_REAL_SIMILAR(output_mt[i].getCentroidRT(), exp_mt_rts[i]);
