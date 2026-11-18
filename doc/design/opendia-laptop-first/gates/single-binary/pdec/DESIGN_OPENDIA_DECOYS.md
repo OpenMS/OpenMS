@@ -98,6 +98,32 @@ targets paired.
   direction, and the size of that bias depends on the library.
 - **Pair fairness** is 0.52-0.53, slightly above 0.50 but within about 1 SE. It is noted, not acted on.
 
+## Implemented: `OpenDIAWorkflow -decoys predict` (OpenMS 01d5ded04a, experimental, default `library`)
+- **What it does:**
+  - Drops the library's decoys.
+  - Gives every target a pseudo-reversed decoy predicted like a target: own RT, 1/K0 and fragment intensities. This runs
+    through `OpenSwathLibraryPreparation::generateDecoys` with `predict_decoys` and `predict_keep_short`.
+  - Estimates NCE and instrument from the library.
+  - Writes `<out_dir>/<lib>.predicted_decoys.pqp` and searches it.
+- **Interface:**
+  - `-decoy_model_dir` overrides the installed models.
+  - `-scoring_lib` is refused with predict, because its decoys would not match.
+- **Local check** (49-target library):
+  - Targets are unchanged in sequence, charge, RT, 1/K0, proteins and fragment count.
+  - 49/49 targets are paired, and 4 decoys were kept short.
+  - Each decoy has its own RT and 1/K0.
+  - The output's precursor IDs refer to the written library, whose IDs are canonical.
+- **Tests:** 23/23 OpenDIA ctests pass. There is no unit test yet for the predict path. It needs ONNX models and a run, so
+  it is covered by precheck 2 below.
+- **Container:** `entlib-pdsif-20261118/opendia-pd-01d5ded04a.sif` (sha256 138285c5…), with the PeptDeep models
+  included.
+
+## Precheck 2, submitted 23:14
+OpenDIAWorkflow `-decoys predict` end to end, on D seed 0, CUR and NEW:
+- **Input:** the PGENT2 library `hela_ath2.pqp`. Its pseudo-reverse decoys are replaced by predicted ones.
+- **Location:** `entlib-odp-20261118`, jobs 34839294/5.
+- **Expectation:** the same bounds as precheck 1, with pairing close to 100 %.
+
 ## Precheck step 1, build (18 Nov, 22:19)
 `entlib-osdg-20261118`, using `OpenSwathDecoyGenerator -method pseudo-reverse -predict_decoys true` on the PGENT2
 `targets.pqp`:
