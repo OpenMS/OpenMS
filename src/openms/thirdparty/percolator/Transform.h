@@ -17,10 +17,10 @@
 #ifndef TRANSFORM_H_
 #define TRANSFORM_H_
 
-
 #include <cmath>
 
 namespace OpenMS { namespace Internal { namespace Percolator {
+
 
 class Transform {
   public:

@@ -6504,7 +6504,7 @@ add_test("TOPP_ProSE_11_rescore" ${TOPP_BIN_PATH}/ProSE -test
 add_test("TOPP_ProSE_11_rescore_info" ${TOPP_BIN_PATH}/FileInfo -test
   -in ${TESTS_TEMP_DIR}/ProSE_11_rescore_out.tmp.idXML)
 set_tests_properties("TOPP_ProSE_11_rescore_info" PROPERTIES DEPENDS "TOPP_ProSE_11_rescore"
-  PASS_REGULAR_EXPRESSION "Percolator \\(version: 3.08-vendored\\)")
+  PASS_REGULAR_EXPRESSION "Percolator \\(version: 3.09-vendored\\)")
 # The protein inference ranked the proteins by the best PEP of their PSMs (as posterior probability), not by the PSM q-values;
 # the PSMs carry the q-values of their peptides among the run's peptides, 'peptide q-value' (the name EntrapmentEvaluator reads).
 add_test("TOPP_ProSE_11_rescore_structure" ${CMAKE_COMMAND}
@@ -6525,7 +6525,7 @@ foreach(_part a b)
   add_test("TOPP_ProSE_11_rescore_multi_info_${_part}" ${TOPP_BIN_PATH}/FileInfo -test
     -in ${TESTS_TEMP_DIR}/ProSE_11_rescore_multi_${_part}.tmp.idXML)
   set_tests_properties("TOPP_ProSE_11_rescore_multi_info_${_part}" PROPERTIES DEPENDS "TOPP_ProSE_11_rescore_multi"
-    PASS_REGULAR_EXPRESSION "Percolator \\(version: 3.08-vendored\\)")
+    PASS_REGULAR_EXPRESSION "Percolator \\(version: 3.09-vendored\\)")
 endforeach()
 # Percolator cannot rescore the second file on its own (60 spectra, too few PSMs): the first file keeps its own
 # rescoring, the second gets the scores of a model trained on the first one's PSMs (before, -out_merged refused the
@@ -6557,7 +6557,7 @@ foreach(_part a b)
   add_test("TOPP_ProSE_11_rescore_mixed_info_${_part}" ${TOPP_BIN_PATH}/FileInfo -test
     -in ${TESTS_TEMP_DIR}/ProSE_11_rescore_mixed_${_part}.tmp.idXML)
   set_tests_properties("TOPP_ProSE_11_rescore_mixed_info_${_part}" PROPERTIES DEPENDS "TOPP_ProSE_11_rescore_mixed"
-    PASS_REGULAR_EXPRESSION "Percolator \\(version: 3.08-vendored\\)")
+    PASS_REGULAR_EXPRESSION "Percolator \\(version: 3.09-vendored\\)")
 endforeach()
 # Too few PSMs to train on: the file is not rescored, keeps its HyperScores and ProSE still succeeds.
 add_test("TOPP_ProSE_11_rescore_skip" ${TOPP_BIN_PATH}/ProSE -test

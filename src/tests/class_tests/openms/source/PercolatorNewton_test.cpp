@@ -52,7 +52,7 @@ namespace
     vector<double*> rows;
     AlgIn in;
     Problem(int m_, int nf_, int kind, uint64_t seed)
-      : m(m_), nf(nf_), vals(size_t(m_) * nf_), y(m_), rows(m_), in(m_, nf_ + 1)
+      : m(m_), nf(nf_), vals(size_t(m_) * nf_), y(m_), rows(m_), in(nf_ + 1, /*rowsInPlace=*/true)
     {
       Rng r{seed};
       for (int i = 0; i < m; ++i)
@@ -79,11 +79,10 @@ namespace
           for (int j = 0; j < nf; ++j) vals[size_t(i) * nf + j] = vals[size_t(i - 1) * nf + j];
         }
       }
-      in.m = m;
+      in.resizeExamples(size_t(m));
       for (int i = 0; i < m; ++i)
       {
-        in.vals[i] = vals.data() + size_t(i) * nf;
-        in.Y[i] = y[i];
+        in.set(size_t(i), vals.data() + size_t(i) * nf, y[i]);
         if (y[i] > 0) ++in.positives;
         else ++in.negatives;
       }
@@ -104,13 +103,9 @@ namespace
   vector<double> tronWeights(const Problem& p, double cpos, double cneg, double lambda = 1.0)
   {
     options opts = makeOptions(lambda);
-    vector_double w, out;
-    w.d = p.nf + 1;
-    w.vec = new double[w.d]();
-    out.d = p.m;
-    out.vec = new double[out.d]();
+    vector<double> w(size_t(p.nf + 1), 0.0), out(size_t(p.m), 0.0);
     tron(p.in, opts, w, out, cpos, cneg);
-    return vector<double>(w.vec, w.vec + w.d);
+    return w;
   }
 
   // Newton from start (zero: cold) on threads threads (blocks as tasks of a parallel region if > 1)
@@ -139,13 +134,12 @@ namespace
   {
     vector<double> x, y;
     AlgIn in;
-    Tiny(vector<double> x_, vector<double> y_) : x(std::move(x_)), y(std::move(y_)), in(int(x.size()), 2)
+    Tiny(vector<double> x_, vector<double> y_) : x(std::move(x_)), y(std::move(y_)), in(2, /*rowsInPlace=*/true)
     {
-      in.m = int(x.size());
-      for (int i = 0; i < in.m; ++i)
+      in.resizeExamples(x.size());
+      for (size_t i = 0; i < x.size(); ++i)
       {
-        in.vals[i] = &x[i];
-        in.Y[i] = y[i];
+        in.set(i, &x[i], y[i]);
       }
     }
   };

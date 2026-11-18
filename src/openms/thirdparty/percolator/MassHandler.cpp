@@ -20,6 +20,7 @@
 
 namespace OpenMS { namespace Internal { namespace Percolator {
 
+
 MassHandler::MassHandler() {
 }
 
