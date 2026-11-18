@@ -112,6 +112,14 @@ public:
     raw_loader_ = std::move(loader);
   }
 
+  /// The proteins known to be in the sample (FLASHTnT -target), by the identifier of their database entry. With native mode, a target
+  /// protein that the search did not report in a spectrum is characterized there all the same (the target round of run()), and every
+  /// PrSM gets the meta values TargetProtein (1: reported by the search; 2: characterized on request only) and DecoyMargin.
+  void setTargetProteins(std::set<std::string> identifiers)
+  {
+    target_proteins_ = std::move(identifiers);
+  }
+
   /// The protein-level hits, as they were ranked before proteoform characterization. Filled in
   /// both modes, so a run can be used to shortlist proteins even when the extension is performed.
   void getProteinHits(std::vector<ProteinHit>& hits) const
@@ -131,6 +139,8 @@ private:
 
   Param tagger_param_, extender_param_, gapped_param_, annotator_param_;
   RawSpectrumLoader raw_loader_;
+  /// the identifiers of the target proteins (setTargetProteins)
+  std::set<std::string> target_proteins_;
   /// the raw spectra of loadRawSpectra_, by position (raw_slot_: scan to position): their peaks centroided into raw_peaks_ and removed
   /// from raw_spectra_, which keep the precursor information
   std::vector<MSSpectrum> raw_spectra_;

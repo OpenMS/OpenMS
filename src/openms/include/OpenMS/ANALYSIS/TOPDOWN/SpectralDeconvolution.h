@@ -245,6 +245,8 @@ namespace OpenMS
     /// for precursor targetting.
     int target_precursor_charge_ = 0;
     double target_precursor_mz_ = 0;
+    /// mass of the isolated precursor ion (precursor_mass): gives the precursor charge of each MSn spectrum when precursor_charge is 0
+    double target_precursor_mass_ = 0;
 
     /// this is additional mass tolerance in Da to get more high signal-to-ratio peaks in this candidate peakgroup finding
     double max_mass_dalton_tolerance_ = .16;
