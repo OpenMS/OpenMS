@@ -2,12 +2,12 @@ if(NOT VCPKG_TARGET_IS_WINDOWS)
     vcpkg_check_linkage(ONLY_DYNAMIC_LIBRARY)
 endif()
 
-# Pin the native sources to the v1.0.0 release commit.
+# Pin the native sources to the v1.1.0 release commit.
 vcpkg_from_github(
     OUT_SOURCE_PATH SOURCE_PATH
     REPO OpenMS/openms-thermo-bridge
-    REF 75849ecf6f600a3e52479823043842e571a774ae
-    SHA512 0adf23eae20cfa90bdd9326f5bb551b4459294e4e5de08f4d72e0d7f66c5520a0c6731b8503ce0def04165318968fd6c20199bc661bf1899e0725b71c48506ee
+    REF 1d12ef8ab841715f2a223f874d3e9445854ee284
+    SHA512 41a2c4ce1977e332d93327f225a443d870012ba0b103d0cd11912f23d9b1db9819da6c292c2c13fd9062b8fec0903b5611efb3d382c8237ec02edd07ebb5fe53
     HEAD_REF main
     PATCHES
         vcpkg-nethost-use.patch
@@ -27,7 +27,7 @@ vcpkg_from_github(
 #
 # tools/ci/fetch_thermo_assets.sh pins the same zips (as SHA-256) for the builds that do
 # not take the bridge from vcpkg; update both together.
-set(OPENMS_THERMO_BRIDGE_RELEASE_TAG "v1.0.0")
+set(OPENMS_THERMO_BRIDGE_RELEASE_TAG "v1.1.0")
 set(_openms_thermo_bridge_managed_platform "")
 set(_openms_thermo_bridge_managed_sha512 "")
 if(VCPKG_TARGET_IS_LINUX AND VCPKG_TARGET_ARCHITECTURE STREQUAL "x64")

@@ -1,6 +1,6 @@
 # Thermo RAW to mzML with metadata preservation
 
-`ThermoRawFile` requires openms-thermo-bridge 1.0.0, the revision pinned in
+`ThermoRawFile` requires openms-thermo-bridge 1.1.0, the revision pinned in
 `cmake/cmake_findExternalLibs.cmake` (native and managed components from the same
 revision). It reads every scan with the bridge's typed single-pass API: one call per
 scan returns the header (with the vendor-formatted trailer values) and, for scans that are
@@ -230,8 +230,8 @@ oms.ThermoRawFile().transform("run.raw", Counter())
 ## Building the paired branches locally
 
 The bridge source revision is pinned in `cmake_findExternalLibs.cmake` and the
-vcpkg overlay. The paired bridge is published in
-https://github.com/OpenMS/openms-thermo-bridge/pull/13 (1.0.0). To use a local checkout,
+vcpkg overlay. The paired bridge is the release
+https://github.com/OpenMS/openms-thermo-bridge/releases/tag/v1.1.0. To use a local checkout,
 use CMake's standard
 `-DFETCHCONTENT_SOURCE_DIR_OPENMSTHERMOBRIDGE=/absolute/path/to/openms-thermo-bridge`
 override to use the paired checkout. A matching prebuilt managed directory can
