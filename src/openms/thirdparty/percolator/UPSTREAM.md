@@ -182,7 +182,8 @@ All patches are `git diff` style (a/b/ prefixes, applied with -p1) on the whitel
   iterations that run, not with the iteration cap. A step that a step starts is a task, which a runtime may run at once,
   nested in the starting task (e.g. libomp in a team of one thread): beyond four steps nested on a thread's stack the
   step waits in the thread's list until the thread's outermost step has finished its own, so the stack does not grow
-  with the iterations. A fold's feature rows for the counts of its pairs are released when its grid is fixed.
+  with the iterations. A fold's feature rows for the counts of its pairs are released when its grid is fixed, the
+  per-thread buffers of the counts once the grids of all folds are fixed.
   `trainsFoldChains()`: with OpenMP tasks and more than one thread, without nested cross-validation, `-R` or verbosity above 2, with all folds active and held
   at once; otherwise the loop runs. The results are those of the loop, bit for bit (scores, q-values
   and PEPs of `perc_bench` on 100,000 and 1,000,000 synthetic PSMs at 1, 2 and 4 threads: TRON,

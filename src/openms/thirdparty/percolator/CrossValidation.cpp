@@ -632,7 +632,9 @@ bool CrossValidation::trainsFoldChains() const {
  * tasks of the chains (a task waits only at the end of the taskloops it runs itself, the row loops of Scores and
  * Newton's blocks, and the solves of a step's pairs while they finish building their shared copy of the SVM input,
  * TronPairGroup). The per-thread buffers of the solves and counts and the TaskLoopScope rely on the tasks being tied:
- * at these waits a thread runs only tasks of the loop it waits for. Only the stop rule of
+ * at the waits of a pair task a thread runs only tasks of the loop it waits for (a step that waited in a thread's list
+ * runs in the thread's outermost step, whose pair tasks may run at the waits of its row loops: these hold no per-thread
+ * buffers). Only the stop rule of
  * the training on the sum of the folds (new training without fixed folds) waits for all folds of an iteration: the
  * last fold to finish it decides and starts the next steps. With fixed folds each fold stops on its own count, and
  * classic training runs all iterations, so the chains never wait for each other.
@@ -702,6 +704,7 @@ void CrossValidation::trainFoldChains() {
   std::vector<Fold> folds(numFolds_);
   std::vector<SvmTrainingBuffers> svmBuffers(teamThreads);
   std::vector<Scores::CountBuffers> countBuffers(teamThreads);
+  std::atomic<unsigned int> foldsFixed{0u};  // the folds whose grid is fixed (they count no more pairs)
   // the stop rule on the sum of the folds: all folds are in the same iteration
   std::mutex decisionMutex;
   unsigned int foldsDone = 0u;  // the folds done with the current iteration
@@ -810,6 +813,13 @@ void CrossValidation::trainFoldChains() {
         fold.fixed = true;
         fold.selected = std::make_pair(bestCpos, bestCfrac);
         Scores::FeatureRows().swap(fold.rows);  // (only the counts of the pairs read them, which end with the grid)
+        // once the grids of all folds are fixed, no count runs again: the per-thread buffers of the counts are free
+        // (the counts of the other folds ended before their grids were fixed, which this acquires)
+        if (foldsFixed.fetch_add(1u, std::memory_order_acq_rel) + 1u == numFolds_) {
+          for (Scores::CountBuffers& buffers : countBuffers) {
+            buffers = Scores::CountBuffers();
+          }
+        }
       }
       stage = kFoldCount;
       const int positives = trainScores_[set].calcScoresAndQvals(weights_[set], testFdr_);
