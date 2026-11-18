@@ -37,3 +37,44 @@ so this can be measured directly.
   - among high-scoring entrapment-versus-own-decoy pairs, which feature's difference predicts the winner;
   - and the predicted-decoy library already running, which gives decoys their own self-consistent predictions and so
     removes candidate 2.
+
+## Addendum: what decides the high-score pairs (`PAIRFEAT*.txt`, D s0 CUR `-features_out`)
+- **Winners.** Among the 1,016 entrapment-versus-own-decoy pairs with best q ≤ 0.05, the entrapment wins 58 %. The
+  winner is decided almost entirely by fragment co-elution evidence:
+
+  | feature (entrapment minus decoy) | AUC for "entrapment wins" |
+  |---|---|
+  | `f12_coelution` | 0.97 |
+  | `f12_support` | 0.97 |
+  | `boundary_coelution` | 0.93 |
+
+  This is expected, since co-elution is the signal.
+- **Over all winners, false targets get co-eluting fragment evidence more often than their decoys, and the ratio grows
+  with the evidence threshold** (`PAIRFEAT2.txt`):
+
+  | threshold | entrapment / decoy ratio |
+  |---|---|
+  | `f12_support` ≥ 2 | 1.10 |
+  | `f12_support` ≥ 4 | 1.32 |
+  | `f12_support` ≥ 6 | 1.57 |
+  | support ≥ 3 and co-elution > 0.7 | 1.69 |
+  | support ≥ 3 and co-elution > 0.9 | 2.9 |
+
+  This is the mechanism: the strong-evidence tail of false targets is heavier than that of decoys.
+- **What it is not:**
+  - **Library RT/IM.** Decoys copy the target's library RT and IM exactly, as `rtwin.py` and `rtcheck.py` show. They
+    search the same RT window as their own target, so where they search is not the cause. Entrapments are more often at
+    early RT, where accepted human density is lowest, which works *against* them.
+  - **Fragment m/z overlap with human fragments.** Entrapment 0.984 and decoy 0.982 per fragment, so this is equal.
+  - **Ion types.** The top-6 ion types and ordinals are close: the y share is 0.81 against 0.79, and y1-y3 0.16 against
+    0.14.
+  - **Residue context before the C-terminus.** Total variation distance to human is 0.07 for both.
+- **Likely cause (not yet tested): sequence realism of the fragment ladder.**
+  - A natural false peptide shares longer sub-sequences, and so runs of consecutive b/y ions, with real peptides more
+    often than a reversed sequence does. The usual cause is common motifs at K/R-proximal positions.
+  - Consecutive co-eluting fragments from one real interferer are what f12_support and co-elution reward.
+  - **Test:** for each accepted entrapment and its decoy, count library fragments (± ppm) that match fragments of a
+    single co-eluting human precursor (same RT window). If entrapments share k ≥ 3 fragments with one real interferer
+    more often, the fix is interference-aware evidence: fragments claimed by a co-eluting identified precursor should not
+    count. OpenDIA already has the `i_*` interference features, but they work at score level, not in TDC.
+- **Running in parallel:** the predicted-decoy test (decoys with their own predicted RT, IM and intensities).

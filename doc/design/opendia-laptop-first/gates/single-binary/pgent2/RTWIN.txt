@@ -1,0 +1,15 @@
+share of each group per library-RT decile (and accepted human density):
+   decoy  entrap  human  accepted_human
+0    0.1   0.147  0.027           0.015
+1    0.1   0.118  0.071           0.057
+2    0.1   0.107  0.088           0.058
+3    0.1   0.099  0.101           0.067
+4    0.1   0.094  0.110           0.072
+5    0.1   0.086  0.121           0.082
+6    0.1   0.083  0.126           0.112
+7    0.1   0.081  0.130           0.145
+8    0.1   0.082  0.128           0.196
+9    0.1   0.102  0.097           0.196
+human IM median 0.89 m/z median 570.8 z2 share 0.453
+entrap IM median 0.882 m/z median 558.3 z2 share 0.491
+decoy IM median 0.885 m/z median 564.3 z2 share 0.476

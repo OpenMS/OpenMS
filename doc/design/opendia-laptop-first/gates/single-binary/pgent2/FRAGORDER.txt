@@ -1,0 +1,5 @@
+            y  ord_mean  above_prec   mz_med
+grp                                         
+decoy   0.789     5.816       0.548  605.308
+entrap  0.812     5.771       0.559  604.341
+human   0.755     5.883       0.545  607.257

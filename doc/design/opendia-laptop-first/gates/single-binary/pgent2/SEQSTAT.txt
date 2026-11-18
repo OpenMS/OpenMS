@@ -1,0 +1,7 @@
+residue before C-term: total variation distance human-entrap 0.071 human-decoy 0.078
+dipeptide before C-term: TV human-entrap 0.149 human-decoy 0.133
+grp
+decoy     0.141
+entrap    0.161
+human     0.112
+Name: share of top-6 that are y1-y3, dtype: float64

@@ -1,0 +1,9 @@
+f12_support >= 2: entrapment 0.25673 decoy 0.23341 ratio 1.10
+f12_support >= 3: entrapment 0.10948 decoy 0.09397 ratio 1.17
+f12_support >= 4: entrapment 0.03506 decoy 0.02650 ratio 1.32
+f12_support >= 5: entrapment 0.00864 decoy 0.00598 ratio 1.44
+f12_support >= 6: entrapment 0.00129 decoy 0.00083 ratio 1.57
+support>=3 & coelution>0.5: entrapment 0.04671 decoy 0.03413 ratio 1.37
+support>=3 & coelution>0.7: entrapment 0.00193 decoy 0.00115 ratio 1.69
+support>=3 & coelution>0.8: entrapment 0.00015 decoy 0.00007 ratio 2.01
+support>=3 & coelution>0.9: entrapment 0.00003 decoy 0.00001 ratio 2.91

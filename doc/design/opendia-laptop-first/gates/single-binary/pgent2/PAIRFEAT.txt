@@ -1,0 +1,18 @@
+pairs with best q<=0.05: 1016, entrapment wins 0.581
+                     feature  mean diff E-D  AUC diff -> E wins   dev
+               f12_coelution          0.045               0.971 0.471
+                 f12_support          0.496               0.965 0.465
+          boundary_coelution          0.028               0.933 0.433
+     boundary_apex_agreement          0.037               0.831 0.331
+                  f12_libcos          0.020               0.802 0.302
+          transition_support          0.330               0.788 0.288
+             f12_extra_share         -0.155               0.257 0.243
+              i_libcos_resid          0.017               0.737 0.237
+boundary_library_correlation          0.074               0.724 0.224
+        abs_library_rt_error         -0.951               0.292 0.208
+          boundary_log_width          0.061               0.702 0.202
+                 i_explained          0.004               0.371 0.129
+                   i_dlibcos         -0.002               0.602 0.102
+           boundary_log_fwhm          0.006               0.420 0.080
+           log_matched_scans          0.074               0.570 0.070
+all pairs mean diff: {'f12_libcos': 0.0058, 'abs_library_rt_error': 0.0931, 'boundary_library_correlation': 0.0239, 'i_libcos_resid': -0.0101}

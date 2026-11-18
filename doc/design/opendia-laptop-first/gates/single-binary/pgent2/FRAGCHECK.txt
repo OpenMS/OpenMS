@@ -1,0 +1,7 @@
+              n   mz_med  ord_med  y_share     z2
+grp                                              
+decoy   2508739  605.308      5.0    0.789  0.092
+entrap  1491507  604.341      5.0    0.812  0.083
+human   1018701  607.257      5.0    0.755  0.105
+entrap fragment on a human-target fragment m/z (+-10 ppm): 0.984 | precursors with >=3 such fragments: 0.932
+decoy fragment on a human-target fragment m/z (+-10 ppm): 0.982 | precursors with >=3 such fragments: 0.953
