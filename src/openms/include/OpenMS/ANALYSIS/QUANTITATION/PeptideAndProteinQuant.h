@@ -237,8 +237,9 @@ private:
     /// peptidoforms) sharing that unmodified sequence. Built once per quantifyProteins()
     /// call so that channel-level aggregation does not rescan @p pep_quant_ (calling
     /// AASequence::toUnmodifiedString() on every entry) for every (protein, peptide) pair.
-    /// Only looked up by key (never range-iterated); the per-bucket vector preserves
-    /// @p pep_quant_ (AASequence-sorted) order, so an unordered map keeps output identical.
+    /// Looked up by key, and range-iterated only where the order cannot reach the output; the
+    /// per-bucket vector preserves @p pep_quant_ (AASequence-sorted) order, so an unordered map
+    /// keeps output identical.
     typedef std::unordered_map<std::string, std::vector<const PeptideQuant::value_type*>> UnmodifiedToEntriesIndex;
 
     /// The @p pep_quant_ entries (peptidoforms) that 'modifications:exclude' keeps out of the
@@ -493,8 +494,10 @@ private:
          @brief Perform iBAQ normalization on protein abundances.
          
          @param[in] proteins Protein identification information containing sequences
+         @param[in] left_out_peptides Unmodified sequences of the peptides that 'modifications:exclude' leaves out with all of their forms; they do not count as theoretically observable
     */
-    void performIbaqNormalization_(const ProteinIdentification& proteins);
+    void performIbaqNormalization_(const ProteinIdentification& proteins,
+                                   const std::unordered_set<std::string>& left_out_peptides);
 
     /**
          @brief Get the "canonical" protein accession from the list of protein accessions of a peptide.

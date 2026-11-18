@@ -86,7 +86,7 @@ The accumulated value stands for the amount of a peptide irrespective of how muc
 - By default (@p modifications:exclude_counterparts @p true) a peptide is left out with <em>all</em> of its variants - the unmodified one and those carrying other modifications included - as soon as one variant with a listed modification was identified (quantified or not). The abundance of these counterparts depends on the share of the peptide that is modified, so they are no better a measure of the protein than the modified variant.
 - With @p modifications:exclude_counterparts @p false only the variants that carry a listed modification themselves are left out; the remaining ones are still accumulated.
 - Modifications are matched by their full name, specificity included, and only listed ones have an effect. Fixed modifications and labels (carbamidomethylation, TMT, SILAC labels, ...) therefore need no special treatment.
-- Only protein quantities change. The peptide-level output still reports every variant, and @p consensus:normalize, a peptide-level step, still uses all of them. A peptide that is left out does not count towards @p top:N.
+- Only protein quantities change. The peptide-level output still reports every variant, and @p consensus:normalize, a peptide-level step, still uses all of them. A peptide that is left out does not count towards @p top:N, is not included in the @p n_peptides column of @p out and, with @p method @p iBAQ, does not count as theoretically observable (provided that all of its variants are left out).
 - The identifications are not touched. Unlike after removing them beforehand (@ref TOPP_IDFilter, @p blacklist:modifications), the peptides still support the identification of their protein: the quantification does not change the protein inference results or the PSM counts. A protein all of whose peptides are left out is not quantified. Like every protein that this tool does not quantify, it is then absent from the protein-level outputs: @p out, the protein rows of @p mztab and the protein group view of @p out_qpx.
 
 <B>Output granularity: assays vs. files and channels</B>
@@ -140,7 +140,7 @@ The output files produced by this tool have a table format, with columns as desc
 - @b protein: Protein accession(s) (as in the annotations in the input file; separated by "/" if more than one).
 - @b n_proteins: Number of indistinguishable proteins quantified (usually "1").
 - @b protein_score: Protein score, e.g. ProteinProphet probability (if available).
-- @b n_peptides: Number of proteotypic peptides observed for this protein (or group of indistinguishable proteins) across all assays. Note that not necessarily all of these peptides contribute to the protein abundance (depending on parameter @p top).
+- @b n_peptides: Number of proteotypic peptides observed for this protein (or group of indistinguishable proteins) across all assays, not counting peptides that @p modifications:exclude leaves out. Note that not necessarily all of these peptides contribute to the protein abundance (depending on parameter @p top).
 - @b abundance_fgroupF_labelL: Computed protein abundance for assay @c (F, @c L). There is one self-describing column per assay in the experimental design.
 
 <b>Peptide output</b> (one peptide or - if @p best_charge is set - one charge state and fraction of a peptide per line):

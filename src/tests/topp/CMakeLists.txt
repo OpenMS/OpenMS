@@ -4286,6 +4286,16 @@ add_test("TOPP_ProteinQuantifier_32" ${TOPP_BIN_PATH}/ProteinQuantifier -test -i
 add_test("TOPP_ProteinQuantifier_32_out1" ${DIFF} -in1 ${TESTS_TEMP_DIR}/ProteinQuantifier_32_output.tmp -in2 ${DATA_DIR_TOPP}/ProteinQuantifier_32_output.txt -whitelist "computed from file" )
 set_tests_properties("TOPP_ProteinQuantifier_32_out1" PROPERTIES DEPENDS "TOPP_ProteinQuantifier_32")
 
+# 33: a protein that loses ALL of its peptides. The input adds "Protein2" to that of _23, whose
+#     single peptide is observed oxidized only. With 'Oxidation (M)' left out it is not quantified:
+#     it is absent from the protein table and from the protein group rows of the mzTab file, while
+#     its protein row and the peptide and PSM sections (the identifications) stay as they are.
+add_test("TOPP_ProteinQuantifier_33" ${TOPP_BIN_PATH}/ProteinQuantifier -test -in ${DATA_DIR_TOPP}/ProteinQuantifier_33_input.consensusXML -design ${DATA_DIR_TOPP}/ProteinQuantifier_23_input.tsv -out ${TESTS_TEMP_DIR}/ProteinQuantifier_33_output.tmp -mztab ${TESTS_TEMP_DIR}/ProteinQuantifier_33_output_mztab.tmp.mzTab -top:N 0 -top:aggregate sum -modifications:exclude "Oxidation (M)")
+add_test("TOPP_ProteinQuantifier_33_out1" ${DIFF} -in1 ${TESTS_TEMP_DIR}/ProteinQuantifier_33_output.tmp -in2 ${DATA_DIR_TOPP}/ProteinQuantifier_33_output.txt -whitelist "computed from file" )
+set_tests_properties("TOPP_ProteinQuantifier_33_out1" PROPERTIES DEPENDS "TOPP_ProteinQuantifier_33")
+add_test("TOPP_ProteinQuantifier_33_out2" ${DIFF} -in1 ${TESTS_TEMP_DIR}/ProteinQuantifier_33_output_mztab.tmp.mzTab -in2 ${DATA_DIR_TOPP}/ProteinQuantifier_33_output_mztab.mzTab -whitelist "software")
+set_tests_properties("TOPP_ProteinQuantifier_33_out2" PROPERTIES DEPENDS "TOPP_ProteinQuantifier_33")
+
 #------------------------------------------------------------------------------
 # QPX value references (#9864 Phase 0.1, phases 1-2)
 #

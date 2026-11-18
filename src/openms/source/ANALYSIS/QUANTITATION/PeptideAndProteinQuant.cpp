@@ -107,7 +107,7 @@ namespace OpenMS
     std::vector<std::string> all_mods;
     ModificationsDB::getInstance()->getAllSearchModifications(all_mods);
 
-    defaults_.setValue("modifications:exclude", std::vector<std::string>(), "Leave peptides with these modifications out of the protein quantification, e.g. a regulated modification whose peptides do not follow the abundance of the protein ('Phospho (S)' 'Phospho (T)' 'Phospho (Y)'). A peptide form that carries at least one of them does not contribute to the protein abundances; whether the other forms of the same peptide sequence still do is decided by 'exclude_counterparts'.\nModifications are matched by their full name including the specificity, as by the 'blacklist:modifications' option of IDFilter, so every residue or terminus to leave out has to be listed. Fixed modifications and labels are affected only if they are listed.\nOnly the protein quantities change: peptide-level results keep every form, and the identifications are not touched, so - unlike after filtering the identifications beforehand - the peptides still take part in protein inference.\nEmpty (the default): the forms of a peptide are summed up, whatever their modifications.", {"advanced"});
+    defaults_.setValue("modifications:exclude", std::vector<std::string>(), "Leave peptides with these modifications out of the protein quantification, e.g. a regulated modification whose peptides do not follow the abundance of the protein ('Phospho (S)' 'Phospho (T)' 'Phospho (Y)'). A peptide form that carries at least one of them does not contribute to the protein abundances; whether the other forms of the same peptide sequence still do is decided by 'exclude_counterparts'.\nModifications are matched by their full name including the specificity, as by the 'blacklist:modifications' option of IDFilter, so every residue or terminus to leave out has to be listed. Fixed modifications and labels are affected only if they are listed.\nOnly the protein quantities change: peptide-level results keep every form, and the identifications are not touched, so - unlike after filtering the identifications beforehand - the peptides still take part in protein inference. A protein all of whose peptides are left out is not quantified; whether it is still reported, without an abundance, depends on the tool. With 'method' 'iBAQ', a peptide that is left out with all of its forms does not count as theoretically observable either.\nEmpty (the default): the forms of a peptide are summed up, whatever their modifications.", {"advanced"});
     defaults_.setValidStrings("modifications:exclude", all_mods);
 
     defaults_.setValue("modifications:exclude_counterparts", "true", "Also leave out every other form of a peptide sequence of which at least one form carries a modification listed in 'exclude': the unmodified form and the forms that carry other modifications. Their abundance depends on the share of the peptide that is modified, so where this share differs between samples they do not follow the abundance of the protein either.\nSet to 'false' to leave out only the forms that carry a listed modification themselves.\nA form counts as observed once it was identified, whether or not it was quantified. No effect while 'exclude' is empty.", {"advanced"});
@@ -806,7 +806,25 @@ namespace OpenMS
     // Phase 4: Post-processing
     if (method == "iBAQ")
     {
-      performIbaqNormalization_(proteins);
+      // A peptide that 'modifications:exclude' leaves out with ALL of its forms is gone from the
+      // numerator of iBAQ. It must not count as theoretically observable in the denominator
+      // either: the value of a protein would otherwise shrink with every peptide left out, by a
+      // protein-specific factor, which is exactly what iBAQ is meant to remove. A peptide of which
+      // one form still contributes stays observable. Collecting into a set makes the iteration
+      // order of the index irrelevant.
+      std::unordered_set<std::string> left_out_peptides;
+      if (!excluded.empty())
+      {
+        for (const auto& [unmodified, forms] : unmod_to_entries)
+        {
+          if (std::all_of(forms.begin(), forms.end(),
+                          [&excluded](const PeptideQuant::value_type* form) { return excluded.contains(form); }))
+          {
+            left_out_peptides.insert(unmodified);
+          }
+        }
+      }
+      performIbaqNormalization_(proteins, left_out_peptides);
     }
   }
 
@@ -1805,7 +1823,8 @@ namespace OpenMS
     }
   }
 
-  void PeptideAndProteinQuant::performIbaqNormalization_(const ProteinIdentification& proteins)
+  void PeptideAndProteinQuant::performIbaqNormalization_(const ProteinIdentification& proteins,
+                                                         const std::unordered_set<std::string>& left_out_peptides)
   {
     EnzymaticDigestion digest{};
     for (auto & hit : proteins.getHits())
@@ -1824,7 +1843,24 @@ namespace OpenMS
         {
           std::vector<std::string_view> peptides {};
           digest.digestUnmodified(hit_sequence, peptides);
-          const double n_theoretical_peptides = double(peptides.size());
+          Size n_usable_peptides = peptides.size();
+          if (!left_out_peptides.empty())
+          {
+            n_usable_peptides = static_cast<Size>(std::count_if(peptides.begin(), peptides.end(), [&left_out_peptides](std::string_view peptide)
+            {
+              return !left_out_peptides.contains(std::string(peptide));
+            }));
+            if (n_usable_peptides == 0)
+            {
+              // Every theoretical peptide is left out, so whatever abundance remains stems from
+              // peptides outside that list (missed cleavages). There is no count to divide by;
+              // 1 keeps the value finite, and the warning tells that it is not a regular iBAQ value.
+              OPENMS_LOG_WARN << "Warning: 'modifications:exclude' leaves out every theoretical peptide of " << hit_accession
+                              << "; its iBAQ value is not normalized by a peptide count." << endl;
+              n_usable_peptides = 1;
+            }
+          }
+          const double n_theoretical_peptides = double(n_usable_peptides);
           ProteinData& pd = prot_quant_[hit_accession];
           // the file+channel level abundances are the same quantity at a finer
           // granularity, so they need the same normalization

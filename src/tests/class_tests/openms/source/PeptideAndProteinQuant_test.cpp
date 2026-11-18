@@ -2800,6 +2800,86 @@ START_SECTION(([EXTRA] modifications:exclude applies to both granularities of a 
 }
 END_SECTION
 
+START_SECTION(([EXTRA] modifications:exclude: iBAQ does not count a left-out peptide as theoretically observable))
+{
+  // iBAQ divides by the number of theoretical peptides. A peptide that is left out of the sum
+  // has to leave that count as well, or the value of a protein shrinks with every peptide left
+  // out. The protein below has three theoretical peptides: PEPTIDEMK, AAAAAK and CCCCCK.
+  ProteinHit prot_hit;
+  prot_hit.setAccession("Prot");
+  prot_hit.setSequence("PEPTIDEMKAAAAAKCCCCCK");
+  ProteinIdentification proteins;
+  proteins.setHits({prot_hit});
+
+  auto ibaq = [&proteins](ConsensusMap& consensus, const ExperimentalDesign& design,
+                          const std::vector<std::string>& exclude, const std::string& exclude_counterparts)
+  {
+    PeptideAndProteinQuant quantifier;
+    Param p = quantifier.getDefaults();
+    p.setValue("method", "iBAQ");
+    p.setValue("modifications:exclude", exclude);
+    p.setValue("modifications:exclude_counterparts", exclude_counterparts);
+    quantifier.setParameters(p);
+    quantifier.readQuantData(consensus, design);
+    quantifier.quantifyPeptides();
+    quantifier.quantifyProteins(proteins);
+    const auto& pd = quantifier.getProteinResults().at("Prot");
+    // the file+channel level is normalized by the same count
+    TEST_REAL_SIMILAR(pd.channel_level_abundances.at("fileA").at(1), pd.fraction_group_abundances.at(1).at(1))
+    return pd.fraction_group_abundances.at(1).at(1);
+  };
+
+  // PEPTIDEMK measured unmodified (100) and oxidized (900)
+  {
+    ConsensusMap consensus;
+    ExperimentalDesign design;
+    make_detailed_input({"fileA"},
+                        {{0, "PEPTIDEMK", 2, 100.0},
+                         {0, "PEPTIDEM(Oxidation)K", 2, 900.0},
+                         {0, "AAAAAK", 2, 500.0},
+                         {0, "CCCCCK", 2, 300.0}},
+                        "Prot", consensus, design);
+
+    // nothing left out: (1000 + 500 + 300) / 3
+    TEST_REAL_SIMILAR(ibaq(consensus, design, {}, "true"), 600.0)
+    // PEPTIDEMK left out with both forms: (500 + 300) / 2, not 800 / 3
+    TEST_REAL_SIMILAR(ibaq(consensus, design, {"Oxidation (M)"}, "true"), 400.0)
+    // only the oxidized form left out: PEPTIDEMK still contributes, so it stays observable:
+    // (100 + 500 + 300) / 3
+    TEST_REAL_SIMILAR(ibaq(consensus, design, {"Oxidation (M)"}, "false"), 300.0)
+  }
+
+  // PEPTIDEMK seen oxidized only: without the counterparts, too, none of its forms is left
+  {
+    ConsensusMap consensus;
+    ExperimentalDesign design;
+    make_detailed_input({"fileA"},
+                        {{0, "PEPTIDEM(Oxidation)K", 2, 900.0},
+                         {0, "AAAAAK", 2, 500.0},
+                         {0, "CCCCCK", 2, 300.0}},
+                        "Prot", consensus, design);
+    TEST_REAL_SIMILAR(ibaq(consensus, design, {}, "false"), 1700.0 / 3.0)
+    TEST_REAL_SIMILAR(ibaq(consensus, design, {"Oxidation (M)"}, "false"), 400.0)
+  }
+
+  // Every theoretical peptide left out, while a peptide with a missed cleavage (not a
+  // theoretical one) is still quantified: the value stays finite instead of dividing by zero.
+  {
+    ConsensusMap consensus;
+    ExperimentalDesign design;
+    make_detailed_input({"fileA"},
+                        {{0, "PEPTIDEM(Oxidation)K", 2, 900.0},
+                         {0, "AAAAAM(Oxidation)K", 2, 90.0},
+                         {0, "PEPTIDEMKAAAAAMK", 2, 50.0}},
+                        "Prot", consensus, design);
+    prot_hit.setSequence("PEPTIDEMKAAAAAMK");
+    proteins.setHits({prot_hit});
+    TEST_REAL_SIMILAR(ibaq(consensus, design, {}, "true"), 1040.0 / 2.0)
+    TEST_REAL_SIMILAR(ibaq(consensus, design, {"Oxidation (M)"}, "true"), 50.0)
+  }
+}
+END_SECTION
+
 START_SECTION(([EXTRA] modifications:exclude rejects names that are not modifications))
 {
   PeptideAndProteinQuant quantifier;
