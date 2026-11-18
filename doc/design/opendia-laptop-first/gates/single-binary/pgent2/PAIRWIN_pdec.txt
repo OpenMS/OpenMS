@@ -1,0 +1,8 @@
+cur best q<=0.01: entrapment pairs     100  P(target beats its decoy) 0.470 (+-0.082)
+cur best q<=0.05: entrapment pairs     722  P(target beats its decoy) 0.503 (+-0.031)
+cur best q<=0.2 : entrapment pairs    5198  P(target beats its decoy) 0.501 (+-0.011)
+cur best q<=1.0 : entrapment pairs  137065  P(target beats its decoy) 0.499 (+-0.002)
+new best q<=0.01: entrapment pairs     119  P(target beats its decoy) 0.555 (+-0.075)
+new best q<=0.05: entrapment pairs     810  P(target beats its decoy) 0.502 (+-0.029)
+new best q<=0.2 : entrapment pairs    5765  P(target beats its decoy) 0.508 (+-0.011)
+new best q<=1.0 : entrapment pairs  137065  P(target beats its decoy) 0.500 (+-0.002)

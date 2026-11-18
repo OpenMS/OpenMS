@@ -41,8 +41,12 @@ The branch's [`src/topp/OpenDIA/README.md`](https://github.com/OpenMS/OpenMS/blo
   0.9-1.9 %). The "~1.7 % true FDR" above is an upper bound.
 - **Settled with r = 7 (BOUNDS_R5, 18 Nov):** with a homolog-free foreign entrapment at r = 7 the bounds are tight. diaPASEF
   q <= 0.01 gives a true FDP of 1.6-1.8 % (lower bound 1.58 %), the same with and without `-pg_scores`. The calibration
-  defect is real and pipeline-wide. `-pg_scores` gives +51 % IDs at 1 % true FDP. Next is locating the asymmetry: decoy
-  generation for predicted libraries, self-training, or tail calibration.
+  defect is real and pipeline-wide. `-pg_scores` gives +51 % IDs at 1 % true FDP.
+- **Cause found (PAIRWIN, PRECHECK_PDEC, 18 Nov):** pseudo-reverse decoys carry their target's *predicted* RT, IM and
+  intensities, which do not fit their own sequence. So among strong candidates a false target beats its decoy 63-64 %
+  of the time instead of 50 %. With decoys predicted like targets (DIA-NN style) it is 50 %, and paired-only q <= 0.01
+  gives a true FDP of 0.4-1.0 %. Fix: one predicted decoy per target, either in the library generator or in OpenDIA.
+  User to choose; then a frozen plan on the r ~7 entrapment.
 - **Speed and memory, same laptop, Astral raw 01:** 7:18-7:26 against DIA-NN's 7:23. Peak memory is 14.4 GB against
   6.8 GB.
 

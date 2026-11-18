@@ -1,0 +1,4 @@
+pdec D_cur_s0: unpaired targets in library 143367, accepted unpaired 514 (entrap 67) | paired-only TDC q<=0.01: N 10828 lower 0.0042 combined 0.0084 (r 1.03)
+pdec D_new_s0: unpaired targets in library 143367, accepted unpaired 594 (entrap 67) | paired-only TDC q<=0.01: N 12340 lower 0.0050 combined 0.0099 (r 1.03)
+pseudo-rev D_cur_s0: unpaired targets in library 264, accepted unpaired 1 (entrap 0) | paired-only TDC q<=0.01: N 11451 lower 0.0088 combined 0.0145 (r 1.56)
+pseudo-rev D_new_s0: unpaired targets in library 264, accepted unpaired 1 (entrap 0) | paired-only TDC q<=0.01: N 13415 lower 0.0095 combined 0.0155 (r 1.56)
