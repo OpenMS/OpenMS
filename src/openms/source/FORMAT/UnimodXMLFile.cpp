@@ -153,7 +153,7 @@ namespace OpenMS
       the handler carries from one element to the next otherwise), \<umod:delta\> and \<umod:element\> only in
       \<umod:mod\>, and every specificity with a position that the handler knows (it reports others).
     */
-    bool sliceable(std::string_view text, size_t from, size_t to)
+    [[maybe_unused]] bool sliceable(std::string_view text, size_t from, size_t to)
     {
       int in_mod = 0, in_specificity = 0;
       std::vector<std::string_view> open; // all elements: a slice is a sequence of complete elements
@@ -197,7 +197,7 @@ namespace OpenMS
       @p elements_allowed (outside \<umod:delta\>/\<umod:NeutralLoss\> the handler ignores those), and does it leave
       the elements @p open (on entry: open before it) open at its end?
     */
-    bool inert(std::string_view text, size_t from, size_t to, bool elements_allowed, std::vector<std::string_view>& open)
+    [[maybe_unused]] bool inert(std::string_view text, size_t from, size_t to, bool elements_allowed, std::vector<std::string_view>& open)
     {
       Tag tag;
       for (size_t p = text.find('<', from); p < to; p = text.find('<', p + 1))
@@ -212,7 +212,7 @@ namespace OpenMS
 
     /// Where the root element \<umod:unimod\> starts, if the file before it is an XML declaration, comments and
     /// white space only (no document type declaration: entities could change the meaning of the text); else npos
-    size_t rootStart(std::string_view text)
+    [[maybe_unused]] size_t rootStart(std::string_view text)
     {
       size_t p = text.substr(0, 3) == "\xEF\xBB\xBF" ? 3 : 0;
       if (text.substr(p, 6) == "<?xml ")
@@ -256,6 +256,13 @@ namespace OpenMS
     // unimod.xml (2.5 MB) takes most of the start-up of a tool that needs the ModificationsDB
     const Size max_slices = 8;
     const Size min_slice_bytes = 256 * 1024;
+#ifdef __EMSCRIPTEN__
+    // WebAssembly: a thread started on the browser's main thread beyond the module's pool of Web Workers starts only
+    // when the main thread returns to its event loop, which it does not while it waits here
+    // (the slices: helper threads, joined here). The file is read as a whole.
+    (void)file; (void)modifications; (void)max_slices; (void)min_slice_bytes;
+    return false;
+#else
     const Size n_threads = std::thread::hardware_concurrency();
     if (n_threads < 2 || !enforced_encoding_.empty()) return false;
 
@@ -358,6 +365,7 @@ namespace OpenMS
       part.clear();
     }
     return true;
+#endif
   }
 
 } // namespace OpenMS

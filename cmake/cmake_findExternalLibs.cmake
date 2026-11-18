@@ -252,7 +252,11 @@ endif()
 #------------------------------------------------------------------------------
 # libcurl (used for HTTP in OpenMS core, e.g. HTTPInputSource, which needs curl_multi_poll() of 7.66; also needed by
 # Apache Arrow 23+)
-find_package(CURL 7.66 REQUIRED)
+# Optional (WITH_CURL): without it, NetworkGetRequest, MascotRemoteQuery and HTTPInputSource (http://, https://
+# and ftp:// inputs) report an error when run. The WebAssembly build has no sockets and goes without.
+if(WITH_CURL)
+  find_package(CURL 7.66 REQUIRED)
+endif()
 
 #------------------------------------------------------------------------------
 # Apache Arrow and Parquet (required dependency).
