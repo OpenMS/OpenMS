@@ -51,6 +51,7 @@
 #include "RNARouteScorer.h"
 #include "RNARouteCandidateGenerator.h"
 #include "RNARescoringFeatures.h"
+#include "RNABackgroundDatabase.h"
 #include <OpenMS/CHEMISTRY/NASequence.h>
 
 // preprocessing and filtering of spectra
@@ -139,6 +140,10 @@ With @p rescoring:enable, the best hit of every spectrum is rescored with the
 in-process Percolator, and the q-values are calculated on the Percolator score.
 See @ref TOPP_NASE_Rescoring for the features, fallback and limitations.
 
+With @p background:enable, a background of known RNAs (by default the built-in human background) is searched
+alongside the database, and spectra best explained by a background sequence are left out of the results and the
+FDR calculation. See @ref TOPP_NASE_Background.
+
 <B>The command line parameters of this tool are:</B>
 @verbinclude TOPP_NucleicAcidSearchEngine.cli
 <B>INI file documentation of this tool:</B>
@@ -162,6 +167,8 @@ protected:
   vector<std::string> fragment_ion_codes_;
   map<std::string, std::string> ambiguous_mods_; //< map: specific code -> ambig. code
   bool resolve_ambiguous_mods_;
+  bool background_active_ = false; // background parents are part of the search (meta value BACKGROUND_META_)
+  static constexpr const char* BACKGROUND_META_ = "NASE:background";
 
 
   void registerOptionsAndFlags_() override
@@ -494,6 +501,24 @@ protected:
     setMinFloat_("fdr:cutoff", 0.0);
     setMaxFloat_("fdr:cutoff", 1.0);
     registerFlag_("fdr:remove_decoys", "Do not score hits to decoy sequences and remove them when filtering");
+
+    registerTOPPSubsection_("background", "Background RNAs: known RNAs that the database lacks, searched so that their spectra do not match decoys or false targets");
+    registerFlag_("background:enable",
+                  "Search a background of known RNAs alongside 'database', with decoys made for it ('fdr:decoy_pattern'). Spectra whose best "
+                  "hit is a background sequence or one of its decoys are left out of the results, of the FDR calculation and of rescoring "
+                  "('subset-neighbor search', Lin et al., J Proteome Res 2021). Decoy oligos of 'database' that equal a target or background "
+                  "oligo are reshuffled. Caution: without 'background:database', the built-in human background is used "
+                  "(share/OpenMS/SEQUENCES/RNA/human_background_rna.fasta: tRNAs with 3' end variants, mitochondrial genome and tRNAs, "
+                  "rRNAs and abundant small RNAs); it only suits human samples. The background does not cover sample-specific variants. "
+                  "Searching it takes several times longer.", false);
+    registerInputFile_("background:database", "<file>", "",
+                       "Background sequences (FASTA) for 'background:enable', instead of the built-in human background. Accessions get "
+                       "the prefix 'BG_' if they lack it.", false);
+    setValidFormats_("background:database", {"fasta"});
+    registerOutputFile_("background:out", "<file>", "",
+                        "Spectra left out because their best hit is a background sequence (TSV): the background hit and the best other hit",
+                        false, true);
+    setValidFormats_("background:out", {"tsv"});
 
     registerTOPPSubsection_("rescoring", "Semi-supervised rescoring of the search hits with in-process Percolator (requires 'fdr:decoy_pattern')");
     registerFlag_("rescoring:enable",
@@ -1334,9 +1359,19 @@ protected:
     hits.erase(hits.upper_bound(cutoff->first), hits.end());
   }
 
+  /// Whether the oligo of @p hit is a decoy: all its parents are decoys, not counting background parents ('background:enable')
+  /// unless it has no other parents
   static bool isDecoyHit_(const AnnotatedHit& hit)
   {
-    return (hit.parent_override ? *hit.parent_override : *hit.oligo_ref).allParentsAreDecoys();
+    const auto& oligo = hit.parent_override ? *hit.parent_override : *hit.oligo_ref;
+    bool any_database_parent = false;
+    for (const auto& pair : oligo.parent_matches)
+    {
+      if (pair.first->metaValueExists(BACKGROUND_META_)) continue;
+      if (!pair.first->is_decoy) return false;
+      any_database_parent = true;
+    }
+    return any_database_parent || oligo.allParentsAreDecoys();
   }
 
   /// Score types of Percolator rescoring (registered only if 'rescoring:enable' is set).
@@ -1586,6 +1621,8 @@ protected:
       }
     }
 
+    if (background_active_) removeBackgroundHits_(exp, annotated_hits);
+
     const bool rescored = rescoring && rescoreHits_(exp, annotated_hits, route_evidence);
 
 // @TODO: change OpenMP schedule from default ("static") to "dynamic"/"guided"?
@@ -1798,6 +1835,179 @@ protected:
     return coverage;
   }
 
+
+  /**
+    @brief Load the background sequences of 'background:enable' and make their decoys; reshuffle colliding decoys of @p fasta_db
+
+    The background comes from 'background:database' or the built-in human background. Its accessions get the prefix 'BG_'
+    if they lack it. Decoy oligos of @p fasta_db (by @p decoy_pattern) that equal an oligo of a target or background
+    sequence are reshuffled in place (RNABackgroundDatabase: per digestion product, cleavage residues and the 3' residue stay),
+    since a decoy that is a real molecule would collect that molecule's spectra. With @p decoy_pattern, each background
+    sequence gets a decoy (accession: @p decoy_pattern + accession), every product of at least @p min_length residues
+    reshuffled so that it equals no target, background or decoy oligo.
+
+    @return The background sequences and their decoys, for registration as parent sequences with BACKGROUND_META_
+  */
+  vector<FASTAFile::FASTAEntry> prepareBackground_(vector<FASTAFile::FASTAEntry>& fasta_db, const std::string& decoy_pattern,
+                                                   const DigestionEnzyme* enzyme, Size min_length)
+  {
+    std::string path = getStringOption_("background:database");
+    if (path.empty())
+    {
+      path = File::find("SEQUENCES/RNA/human_background_rna.fasta");
+      OPENMS_LOG_INFO << "Background: built-in human background (" << path << ")" << endl;
+    }
+    vector<FASTAFile::FASTAEntry> background;
+    FASTAFile().load(path, background);
+    const auto* rnase = dynamic_cast<const DigestionEnzymeRNA*>(enzyme);
+    if (rnase == nullptr)
+    {
+      throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "'background:enable' requires an RNase");
+    }
+    auto is_decoy = [&](const std::string& accession) {
+      return !decoy_pattern.empty() && StringUtils::hasSubstring(accession, decoy_pattern);
+    };
+    // the seeds are fixed: the same inputs always give the same decoys
+    RNABackgroundDatabase decoy_fix(*rnase, min_length, 1);
+    std::set<std::string> target_keys, background_keys, decoy_keys;
+    for (const auto& entry : fasta_db)
+    {
+      for (auto& key : decoy_fix.productKeys(entry.sequence)) (is_decoy(entry.identifier) ? decoy_keys : target_keys).insert(key);
+    }
+    for (auto& entry : background)
+    {
+      if (is_decoy(entry.identifier))
+      {
+        throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                          "The background database must not contain decoys (accession '" + entry.identifier +
+                                            "'); NASE makes them");
+      }
+      if (entry.identifier.rfind("BG_", 0) != 0) entry.identifier = "BG_" + entry.identifier;
+      for (auto& key : decoy_fix.productKeys(entry.sequence)) background_keys.insert(key);
+    }
+    auto real = [&](const std::string& key) { return target_keys.count(key) || background_keys.count(key); };
+
+    Size n_decoy_entries = 0;
+    for (auto& entry : fasta_db)
+    {
+      if (!is_decoy(entry.identifier)) continue;
+      ++n_decoy_entries;
+      entry.sequence = decoy_fix.rewrite(entry.sequence, real, [&](const std::string& key) { return real(key) || decoy_keys.count(key); });
+    }
+    if (n_decoy_entries > 0)
+    {
+      OPENMS_LOG_INFO << "Background: reshuffled " << decoy_fix.rewritten() << " decoy oligos that equal a target or background oligo"
+                      << (decoy_fix.failed() ? " (" + std::to_string(decoy_fix.failed()) + " could not be reshuffled)" : std::string()) << endl;
+    }
+    decoy_keys.clear();
+    for (const auto& entry : fasta_db)
+    {
+      if (is_decoy(entry.identifier)) for (auto& key : decoy_fix.productKeys(entry.sequence)) decoy_keys.insert(key);
+    }
+
+    vector<FASTAFile::FASTAEntry> result = background;
+    if (!decoy_pattern.empty())
+    {
+      RNABackgroundDatabase background_decoys(*rnase, min_length, 2);
+      auto all = [](const std::string&) { return true; };
+      auto taken = [&](const std::string& key) { return real(key) || decoy_keys.count(key); };
+      for (const auto& entry : background)
+      {
+        FASTAFile::FASTAEntry decoy = entry;
+        decoy.identifier = decoy_pattern + entry.identifier;
+        decoy.description = "decoy of " + entry.identifier;
+        decoy.sequence = background_decoys.rewrite(entry.sequence, all, taken, true);
+        result.push_back(decoy);
+      }
+      OPENMS_LOG_INFO << "Background: " << background.size() << " sequences (" << background_keys.size() << " distinct oligos of at least "
+                      << min_length << " nt) with decoys"
+                      << (background_decoys.failed() ? " (" + std::to_string(background_decoys.failed()) +
+                                                         " background oligos could not be shuffled into a new decoy)"
+                                                     : std::string())
+                      << endl;
+    }
+    else
+    {
+      OPENMS_LOG_INFO << "Background: " << background.size() << " sequences, without decoys ('fdr:decoy_pattern' is not set)" << endl;
+    }
+    return result;
+  }
+
+  /// Whether every parent of the oligo of @p hit is a background sequence (or a background decoy)
+  static bool isBackgroundHit_(const AnnotatedHit& hit)
+  {
+    const auto& oligo = hit.parent_override ? *hit.parent_override : *hit.oligo_ref;
+    if (oligo.parent_matches.empty()) return false;
+    for (const auto& pair : oligo.parent_matches)
+    {
+      if (!pair.first->metaValueExists(BACKGROUND_META_)) return false;
+    }
+    return true;
+  }
+
+  /**
+    @brief Remove background hits ('background:enable'): spectra whose best hit is background are left out entirely
+
+    A spectrum whose best-scoring hits are all background hits (oligos whose parents are all background sequences or
+    background decoys) loses all its hits: its best explanation is a molecule outside the database, so it is neither
+    reported nor counted in the FDR calculation or rescoring (subset-neighbor search). In other spectra, background hits
+    are removed and the other hits are kept; a database oligo tied with a background oligo for the best score thus wins.
+    The hits must be sorted. Writes 'background:out' if set.
+  */
+  void removeBackgroundHits_(const PeakMap& exp, vector<HitsByScore>& annotated_hits)
+  {
+    const std::string out_path = getStringOption_("background:out");
+    std::unique_ptr<SVOutStream> out;
+    if (!out_path.empty())
+    {
+      out = std::make_unique<SVOutStream>(out_path, "\t", "_", QuotingMethod::NONE);
+      *out << "native_id" << "rt" << "charge" << "background_sequence" << "background_score" << "background_parents"
+           << "other_sequence" << "other_score" << "other_decoy" << nl;
+    }
+    Size removed = 0, removed_target = 0, removed_decoy = 0, hits_removed = 0;
+    for (Size scan_index = 0; scan_index < annotated_hits.size(); ++scan_index)
+    {
+      HitsByScore& hits = annotated_hits[scan_index];
+      if (hits.empty()) continue;
+      const double best = hits.begin()->first;
+      bool best_is_background = true;
+      for (auto it = hits.begin(); (it != hits.end()) && (it->first == best); ++it)
+      {
+        if (!isBackgroundHit_(it->second)) { best_is_background = false; break; }
+      }
+      if (best_is_background)
+      {
+        auto other = std::find_if(hits.begin(), hits.end(), [](const auto& pair) { return !isBackgroundHit_(pair.second); });
+        ++removed;
+        if (other != hits.end()) ++(isDecoyHit_(other->second) ? removed_decoy : removed_target);
+        if (out)
+        {
+          const AnnotatedHit& hit = hits.begin()->second;
+          std::string parents;
+          for (const auto& pair : (hit.parent_override ? *hit.parent_override : *hit.oligo_ref).parent_matches)
+          {
+            parents += (parents.empty() ? "" : ",") + pair.first->accession;
+          }
+          *out << exp[scan_index].getNativeID() << exp[scan_index].getRT() << hit.precursor_ref->charge << hit.sequence.toString()
+               << hits.begin()->first << parents;
+          if (other != hits.end()) *out << other->second.sequence.toString() << other->first << (isDecoyHit_(other->second) ? 1 : 0);
+          else *out << "" << "" << "";
+          *out << nl;
+        }
+        hits_removed += hits.size();
+        hits.clear();
+        continue;
+      }
+      for (auto it = hits.begin(); it != hits.end();)
+      {
+        if (isBackgroundHit_(it->second)) { it = hits.erase(it); ++hits_removed; }
+        else ++it;
+      }
+    }
+    OPENMS_LOG_INFO << "Background: left out " << removed << " spectra whose best hit is a background sequence (otherwise best hit: "
+                    << removed_target << " target, " << removed_decoy << " decoy, " << (removed - removed_target - removed_decoy)
+                    << " none); " << hits_removed << " background hits removed" << endl;
+  }
 
   /// q-values from target-decoy competition on @p score_ref (the score that ranks the hits)
   void calculateAndFilterFDR_(IdentificationData& id_data, bool only_top_hits, IdentificationData::ScoreTypeRef score_ref)
@@ -2298,10 +2508,22 @@ protected:
       vector<FASTAFile::FASTAEntry> fasta_db;
       FASTAFile().load(in_db, fasta_db);
       progresslogger.endProgress();
+      vector<FASTAFile::FASTAEntry> background_db;
+      if (getFlag_("background:enable"))
+      {
+        background_db = prepareBackground_(fasta_db, decoy_pattern, configured_enzyme, min_oligo_length);
+      }
 
       OPENMS_LOG_INFO << "Performing in-silico digestion..." << endl;
       IdentificationDataConverter::importSequences(
         id_data, fasta_db, IdentificationData::MoleculeType::RNA, decoy_pattern);
+      for (const auto& entry : background_db)
+      {
+        IdentificationData::ParentSequence parent(entry.identifier, IdentificationData::MoleculeType::RNA, entry.sequence, entry.description);
+        parent.is_decoy = !decoy_pattern.empty() && StringUtils::hasSubstring(entry.identifier, decoy_pattern);
+        parent.setMetaValue(BACKGROUND_META_, "true");
+        id_data.registerParentSequence(parent);
+      }
       // Fixed internal modifications affect RNase cleavage. Terminal fixed
       // modifications are applied to each resulting oligo during candidate expansion.
       set<ConstRibonucleotidePtr> internal_fixed;
@@ -2477,12 +2699,24 @@ protected:
       bool no_decoys = none_of(
         id_data.getParentSequences().begin(),
         id_data.getParentSequences().end(),
-        [](const IdentificationData::ParentSequence& p){ return p.is_decoy; });
+        [](const IdentificationData::ParentSequence& p){ return p.is_decoy && !p.metaValueExists(BACKGROUND_META_); });
       if (no_decoys)
       {
         OPENMS_LOG_ERROR << "Error: 'fdr:decoy_pattern' is set, but no decoy sequences were found" << endl;
         return ILLEGAL_PARAMETERS;
       }
+    }
+    background_active_ = any_of(id_data.getParentSequences().begin(), id_data.getParentSequences().end(),
+                                [](const IdentificationData::ParentSequence& p) { return p.metaValueExists(BACKGROUND_META_); });
+    if (getFlag_("background:enable") && !background_active_)
+    {
+      OPENMS_LOG_ERROR << "Error: 'background:enable' is set, but the 'digest' input has no background sequences; make the digest "
+                          "with 'background:enable'" << endl;
+      return ILLEGAL_PARAMETERS;
+    }
+    if (background_active_ && !getFlag_("background:enable"))
+    {
+      OPENMS_LOG_WARN << "Warning: the 'digest' input contains background sequences; searching with the background" << endl;
     }
 
     progresslogger.startProgress(0, 1, "filtering spectra...");
@@ -3617,6 +3851,13 @@ protected:
     progresslogger.endProgress();
     OPENMS_LOG_INFO << "Identified spectra: " << id_data.getObservations().size()
                     << endl;
+
+    if (background_active_)
+    {
+      // background hits are gone; background parents must not appear among the parents of reported oligos (nor decide
+      // whether an oligo is a decoy)
+      id_data.removeParentSequencesIf([](IdentificationData::ParentSequenceRef parent) { return parent->metaValueExists(BACKGROUND_META_); });
+    }
 
     // FDR:
     if (!decoy_pattern.empty())

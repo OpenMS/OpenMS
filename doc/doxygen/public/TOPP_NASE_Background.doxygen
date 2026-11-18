@@ -1,0 +1,87 @@
+/**
+@page TOPP_NASE_Background Background search in NASE
+
+@brief Searching known RNAs that the database lacks, so that their spectra do not match decoys or false targets.
+
+@p background:enable searches a background of known RNAs alongside the sequence database. Spectra whose best hit is a
+background sequence, or a decoy of one, are left out of the results, of the FDR calculation and of Percolator
+rescoring. It is off by default.
+
+@code
+NucleicAcidSearchEngine -in spectra.mzML -database targets_decoys.fasta \
+  -out results.mzTab -fdr:decoy_pattern DECOY_ -oligo:min_size 7 \
+  -background:enable -background:out background_spectra.tsv
+@endcode
+
+@warning Without @p background:database, the built-in human background is used. It only suits human samples.
+
+@section nase_background_why Why
+
+Target-decoy competition assumes that a spectrum of a molecule the database lacks matches a decoy as often as a
+false target. RNA digests strain this: four nucleotides and short oligos leave few possible sequences per mass, so a
+shuffled decoy (or a false target) often reproduces a real molecule exactly or nearly. Such a molecule then collects
+dozens of spectra (all charge states, over its elution), all counted for whichever label it happens to match. On
+human tRNA data, most high-scoring decoy and entrapment matches were tRNA 3' end variants, mitochondrial or rRNA
+oligos and other abundant RNAs missing from a tRNA database.
+
+The background search follows the "subset-neighbor search" of Lin et al. (J Proteome Res 2021, 20:4153): the
+background sequences (and their decoys) compete for every spectrum; a spectrum best explained by them is removed
+before target-decoy competition, for targets and decoys alike.
+
+@section nase_background_db Background sequences and decoys
+
+- Built-in: @c share/OpenMS/SEQUENCES/RNA/human_background_rna.fasta (1769 sequences): the GtRNAdb hg38 mature
+  tRNAs, each with the 3' ends CCA, CC, C and none; the mitochondrial genome on both strands and its tRNAs; 45S and
+  5S rRNA; 7SL, 7SK, U1, U2, U4, U5, U6, Y, vault, RNase P and MRP RNAs and scaRNA20. See the README in that
+  directory for sources and how to rebuild it.
+- @p background:database: a FASTA file of other background sequences (without decoys). Accessions get the prefix
+  @c BG_ if they lack it.
+- An oligo that also occurs in the database is a database oligo: background parents never make an oligo a background
+  hit or a decoy, and they are removed from the parents of reported oligos.
+- With @p fdr:decoy_pattern, NASE makes a decoy for every background sequence: each digestion product (without
+  missed cleavages) is shuffled, keeping the enzyme's cleavage residues (e.g. G for RNase T1) and the 3' residue in
+  place, so that it equals no target, background or decoy oligo. The same product always gets the same shuffle.
+- Decoy oligos of the database that equal a target or background oligo are reshuffled the same way (a decoy that is
+  a real molecule collects that molecule's spectra). The log reports how many.
+
+Some oligos cannot be shuffled into a new sequence (e.g. U stretches, or short oligos whose every arrangement is
+taken); the log reports them. Below 7 nt, most arrangements of a composition occur in human RNA, so we recommend
+@p oligo:min_size 7 (or more) with the background.
+
+@section nase_background_hits Which spectra are left out
+
+A spectrum is left out if all its best-scoring hits are background hits (oligos whose parents are all background
+sequences or their decoys). A database oligo tied with a background oligo keeps the spectrum. In other spectra,
+lower-ranked background hits are removed. @p background:out lists the left-out spectra with their background hit and
+the best other hit (if the search retained one). These spectra are not identifications of the database; they are
+evidence of what else the sample contains.
+
+@section nase_background_benchmark Entrapment check
+
+HAP1 tRNA data (PXD016328, clones 1-3, replicate 1), database of 420 human tRNAs plus as many shuffled entrapment
+tRNAs and shuffled decoys of both, six independent shuffles each (18 searches); HyperScore, @p oligo:min_size 7, no
+missed cleavages, built-in background. FDP: entrapment estimate 2E/(T+E) of the accepted spectra (median over the 18
+searches, maximum in brackets).
+
+| Decoys and entrapment | Score | q-value | Background | Target spectra | Estimated FDP |
+| --- | --- | --- | --- | --- | --- |
+| shuffled per T1 product, avoiding human RNA oligos | native | 5% | off / on | 1020 / 1570 | 3.3% (17.6%) / 2.1% (13.0%) |
+| | Percolator | 5% | off / on | 1718 / 1855 | 5.9% (15.9%) / 3.4% (16.9%) |
+| | Percolator | 10% | off / on | 1936 / 1954 | 11.0% (21.1%) / 5.9% (20.0%) |
+| DecoyDatabase (whole tRNAs shuffled) | native | 5% | off / on | 1198 / 1532 | 5.3% (8.6%) / 3.9% (8.8%) |
+| | Percolator | 5% | off / on | 1828 / 1882 | 7.2% (13.7%) / 5.3% (13.8%) |
+
+The background left out about 3300-3500 spectra per search, mostly spectra that had no database hit at all. It
+gains the most with decoys (and entrapment sequences) shuffled per digestion product: whole-sequence shuffles of
+related tRNAs give more distinct decoy oligos than target oligos. Single searches still exceed the nominal FDR, and
+oligo-level results at 1% are too few to judge.
+
+@section nase_background_limits Limitations
+
+- The background does not contain sample-specific sequence variants (e.g. single-nucleotide variants of tRNA
+  genes) or modified forms that the search settings cannot express. Such molecules can still match decoys or false
+  targets; a sample-specific background (e.g. from genome or RNA-seq data) covers them.
+- Searching the background makes searches several times slower, mainly because of the mitochondrial genome.
+- A pre-digested database (@p digest) keeps the background it was made with (@p digest_out with
+  @p background:enable).
+*/
