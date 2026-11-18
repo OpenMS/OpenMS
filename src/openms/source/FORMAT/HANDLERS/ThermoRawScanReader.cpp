@@ -247,16 +247,9 @@ namespace
     scan.ms_level = header.ms_level();
     scan.filter = header.filter;
     scan.native_id = header.native_id();
-    const std::vector<std::string>& values = header.trailer_text;
-    // The labels of the values: the scan's own if it has any, else those of the layout. Labels and values
-    // come from the same vendor call, so their numbers agree; never mislabel values if not.
-    const Size labels = header.trailer_text_labels.empty() ? layout.labels.size() : header.trailer_text_labels.size();
-    scan.trailer.resize(labels == values.size() ? values.size() : 0);
-    for (Size i = 0; i < scan.trailer.size(); ++i)
-    {
-      scan.trailer[i].label = header.trailer_text_label(layout, i);
-      scan.trailer[i].value = values[i];
-    }
+    ThermoRawFileMetadata::pairTrailer(
+      header.trailer_text, header.trailer_text_labels, layout.labels.size(),
+      [&layout](std::size_t i) -> const std::string& { return layout.labels[i].label; }, scan.trailer);
     scan.reactions.clear();
     for (const auto& reaction : header.reactions)
     {

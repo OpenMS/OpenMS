@@ -132,6 +132,60 @@ START_SECTION([EXTRA] ThermoTrailerIndex learns and re-learns label positions)
 }
 END_SECTION
 
+START_SECTION((template <typename LayoutLabel> static void pairTrailer(const std::vector<std::string>& values, const std::vector<std::string>& scan_labels, std::size_t layout_size, LayoutLabel&& layout_label, std::vector<ThermoTrailerEntry>& trailer)))
+{
+  const std::vector<std::string> layout = {"Ion Injection Time (ms):", "Charge State:", "Monoisotopic M/Z:"};
+  const auto label = [&layout](std::size_t i) -> const std::string& { return layout[i]; };
+  std::vector<ThermoTrailerEntry> pairs;
+
+  // a scan that lists every field of the layout: the values are in layout order
+  ThermoRawFileMetadata::pairTrailer({"64.000", "2", "445.1200"}, {}, layout.size(), label, pairs);
+  TEST_EQUAL(pairs.size(), 3)
+  if (pairs.size() == 3)
+  {
+    TEST_STRING_EQUAL(pairs[0].label, "Ion Injection Time (ms):")
+    TEST_STRING_EQUAL(pairs[0].value, "64.000")
+    TEST_STRING_EQUAL(pairs[1].label, "Charge State:")
+    TEST_STRING_EQUAL(pairs[1].value, "2")
+    TEST_STRING_EQUAL(pairs[2].label, "Monoisotopic M/Z:")
+    TEST_STRING_EQUAL(pairs[2].value, "445.1200")
+  }
+
+  // a scan that leaves out the middle field comes with its own labels (Orbitrap Ascend, #10897):
+  // the second value is not the charge state
+  ThermoRawFileMetadata::pairTrailer({"64.000", "445.1200"}, {"Ion Injection Time (ms):", "Monoisotopic M/Z:"}, layout.size(), label, pairs);
+  TEST_EQUAL(pairs.size(), 2)
+  if (pairs.size() == 2)
+  {
+    TEST_STRING_EQUAL(pairs[0].label, "Ion Injection Time (ms):")
+    TEST_STRING_EQUAL(pairs[0].value, "64.000")
+    TEST_STRING_EQUAL(pairs[1].label, "Monoisotopic M/Z:")
+    TEST_STRING_EQUAL(pairs[1].value, "445.1200")
+  }
+
+  // the scan's own labels are used even if they are as many as the layout fields
+  ThermoRawFileMetadata::pairTrailer({"445.1200", "2", "64.000"}, {"Monoisotopic M/Z:", "Charge State:", "Ion Injection Time (ms):"}, layout.size(), label, pairs);
+  TEST_EQUAL(pairs.size(), 3)
+  if (pairs.size() == 3)
+  {
+    TEST_STRING_EQUAL(pairs[0].label, "Monoisotopic M/Z:")
+    TEST_STRING_EQUAL(pairs[0].value, "445.1200")
+    TEST_STRING_EQUAL(pairs[2].label, "Ion Injection Time (ms):")
+    TEST_STRING_EQUAL(pairs[2].value, "64.000")
+  }
+
+  // never paired by position without exactly one label per value
+  ThermoRawFileMetadata::pairTrailer({"64.000", "445.1200"}, {}, layout.size(), label, pairs); // fewer values than layout fields
+  TEST_EQUAL(pairs.empty(), true)
+  ThermoRawFileMetadata::pairTrailer({"64.000", "445.1200"}, {"Ion Injection Time (ms):"}, layout.size(), label, pairs); // fewer labels than values
+  TEST_EQUAL(pairs.empty(), true)
+  ThermoRawFileMetadata::pairTrailer({"64.000", "2", "445.1200", "x"}, {}, layout.size(), label, pairs); // more values than layout fields
+  TEST_EQUAL(pairs.empty(), true)
+  ThermoRawFileMetadata::pairTrailer({}, {}, layout.size(), label, pairs); // a scan without trailer
+  TEST_EQUAL(pairs.empty(), true)
+}
+END_SECTION
+
 START_SECTION((static double selectedIon(double target, std::optional<double> mono, double width)))
 {
   TEST_EQUAL(ThermoRawFileMetadata::selectedIon(500, 499.5, 2), 499.5)       // retain plausible monoisotopic ion

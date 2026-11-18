@@ -108,6 +108,34 @@ public:
   static std::string trailer(const ThermoScan& scan, const std::string& label);
 
   /**
+    @brief Pair the trailer @p values of a scan with their labels.
+
+    The vendor library lists only the trailer fields that apply to a scan. Usually these are all fields of
+    the file's trailer layout, in layout order: then @p scan_labels is empty and value i gets
+    @p layout_label (i). A scan that leaves fields out comes with its own labels (@p scan_labels), which
+    then are the labels of its values. Without exactly one label per value, @p trailer stays empty: paired
+    by position, every value after a missing field would get the label of another field (#10897).
+
+    @param values vendor-formatted values of the scan
+    @param scan_labels labels of @p values if they are not the layout labels, else empty
+    @param layout_size number of fields of the trailer layout
+    @param layout_label label of a layout field by its index (callable: std::size_t -> const std::string&)
+    @param trailer the label/value pairs (overwritten)
+  */
+  template <typename LayoutLabel>
+  static void pairTrailer(const std::vector<std::string>& values, const std::vector<std::string>& scan_labels, std::size_t layout_size,
+                          LayoutLabel&& layout_label, std::vector<ThermoTrailerEntry>& trailer)
+  {
+    const std::size_t labels = scan_labels.empty() ? layout_size : scan_labels.size();
+    trailer.resize(labels == values.size() ? values.size() : 0);
+    for (std::size_t i = 0; i < trailer.size(); ++i)
+    {
+      trailer[i].label = scan_labels.empty() ? layout_label(i) : scan_labels[i];
+      trailer[i].value = values[i];
+    }
+  }
+
+  /**
     @brief Parse a trailer value as a number (locale-independent).
     @return the number, or an empty optional when the value is empty, not fully numeric (e.g. "2,5"
             or "12.3abc") or not finite. Surrounding whitespace and a leading '+' are accepted.
