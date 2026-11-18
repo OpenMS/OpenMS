@@ -170,11 +170,6 @@ target_link_libraries(PercolatorSampler_test OpenMS_Percolator)
 target_link_libraries(PercolatorBestPositive_test OpenMS_Percolator)
 target_link_libraries(PercolatorScores_test OpenMS_Percolator)
 
-
-if (WITH_HDF5)
-  target_link_libraries(HDF5_test HDF5::HDF5)
-endif()
-
 target_link_libraries(OSWParquetFile_test ${OPENMS_ARROW_TARGET})
 
 target_link_libraries(Arrow_test

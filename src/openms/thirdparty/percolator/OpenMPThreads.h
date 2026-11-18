@@ -69,6 +69,41 @@ class ThreadCap
   int previous_;
 };
 
+// OpenMS: the fold chains of the cross-validation (CrossValidation::trainFoldChains) run their steps as tasks of a
+// parallel region, where the parallel loops over rows (the scores of a set, the copies of its training rows) would run
+// on one thread. A TaskLoopScope in a task lets the loops it calls run as taskloops on the threads of the region
+// instead (taskLoopThreads). The flag belongs to the thread that runs the task: tasks are tied, so until the task ends
+// only its descendant tasks can run on that thread (e.g. the tasks of a taskloop it waits for, or a pair task of the
+// chains at a task scheduling point of the step that creates it); these see the flag set unless they open their own
+// scope. The results do not depend on it.
+inline bool& taskLoopsOfThisThread()
+{
+  static thread_local bool on = false;
+  return on;
+}
+
+class TaskLoopScope
+{
+ public:
+  TaskLoopScope() : previous_(taskLoopsOfThisThread()) { taskLoopsOfThisThread() = true; }
+  ~TaskLoopScope() { taskLoopsOfThisThread() = previous_; }
+  TaskLoopScope(const TaskLoopScope&) = delete;
+  TaskLoopScope& operator=(const TaskLoopScope&) = delete;
+
+ private:
+  bool previous_;
+};
+
+// the threads of the region whose tasks may run the loops of the calling task (TaskLoopScope), or 1
+inline int taskLoopThreads()
+{
+#ifdef _OPENMP
+  return taskLoopsOfThisThread() && omp_in_parallel() ? omp_get_num_threads() : 1;
+#else
+  return 1;
+#endif
+}
+
 // An exception must not leave an OpenMP region (the process would end; OpenMS calls the vendored code as a library). The
 // iterations of a parallel loop catch theirs with capture(i), and rethrowFirst() throws the one of the first failed
 // iteration after the loop.

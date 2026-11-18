@@ -46,7 +46,6 @@ RUN apt-get update \
     libbz2-dev \
     libcurl4-openssl-dev \
     libomp-dev \
-    libhdf5-dev\
     libeigen3-dev \
     # Boost headers only: OpenMS links no compiled Boost library
     libboost-dev \
