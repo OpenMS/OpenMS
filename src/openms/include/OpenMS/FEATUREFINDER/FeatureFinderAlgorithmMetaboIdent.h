@@ -249,6 +249,23 @@ protected:
 
   void selectFeaturesFromCandidates_(FeatureMap& features);
 
+  /// Warn if 'detect:peak_width' is more than twice a suggested value - twice the width (FWHM) of the elution peaks of
+  /// @p features (median of their valid elution models, so nothing is checked without them), but at least eight times
+  /// the time between MS1 spectra: the chromatograms are then smoothed too much
+  void warnIfPeakWidthTooLarge_(const FeatureMap& features) const;
+
+  /// Count the features of @p features that are near the edge of the RT window of their target (more than three
+  /// quarters of half the window away from the target RT), for warnIfRTWindowTooNarrow_()
+  void countRTDeviations_(const FeatureMap& features);
+
+  /// Warn if many features (at least three, and more than a quarter of all) are near the edge of the RT window of
+  /// their target: the window is then probably too narrow for the RT deviations of the targets, and targets beyond
+  /// it are missed
+  void warnIfRTWindowTooNarrow_() const;
+
+  /// Keep only the MS1 spectra of ms_data_, sorted by RT (and their peaks by m/z)
+  void prepareMSData_();
+
   /// Core processing logic for a single (non-FAIMS or single FAIMS group) dataset
   /// Called by run() either directly or for each FAIMS CV group
   void runSingleGroup_(const std::vector<FeatureFinderMetaboIdentCompound>& metaboIdentTable,
@@ -288,8 +305,15 @@ protected:
   CoarseIsotopePatternGenerator iso_gen_; ///< isotope pattern generator
   std::map<std::string, double> isotope_probs_; ///< isotope probabilities of transitions
   std::map<std::string, double> target_rts_; ///< RTs of targets (assays)
+  /// half RT windows of targets (assays), and whether they are their own ('RetentionTimeRange', not 'extract:rt_window')
+  std::map<std::string, std::pair<double, bool>> target_rt_tols_;
+  Size n_rt_deviations_ = 0; ///< features with an RT deviation (see countRTDeviations_())
+  Size n_near_window_edge_ = 0; ///< ... of which near the edge of the RT window of their target
+  Size n_near_own_window_edge_ = 0; ///< ... of which the window is the target's own 'RetentionTimeRange'
   
   size_t n_shared_ = 0;
+
+  double scan_interval_ = 0.0; ///< median time between MS1 spectra (median over the CV groups of FAIMS data)
 };
 
 } // namespace OpenMS

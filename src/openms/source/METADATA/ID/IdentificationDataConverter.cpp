@@ -749,6 +749,48 @@ namespace OpenMS
                       meta.oligonucleotide_search_engine_score);
     addMzTabSEScores_(osm_scores, meta.osm_search_engine_score);
 
+    // RNA writers serialize only existing map entries. Complete all declared
+    // columns after collecting the scores from every row, keeping unavailable
+    // values (e.g. q-values of tied alternative matches) null.
+    const auto complete_scores = [&](auto& rows, const auto& scores) {
+      for (auto& row : rows)
+      {
+        for (const auto& [score_type, index] : scores)
+        {
+          row.best_search_engine_score.try_emplace(index);
+          auto& run_scores = row.search_engine_score_ms_run[index];
+          for (const auto& [run, info] : meta.ms_run)
+          {
+            run_scores.try_emplace(run);
+          }
+        }
+      }
+    };
+    complete_scores(nucleic_acids, nucleic_acid_scores);
+    // Run-level nucleic-acid scores also enable three per-run count columns.
+    // These counts are unavailable here; do not invent counts or emit columns
+    // for score-free sections, where the writer does not declare them.
+    if (! nucleic_acid_scores.empty())
+    {
+      for (auto& row : nucleic_acids)
+      {
+        for (const auto& [run, info] : meta.ms_run)
+        {
+          row.num_osms_ms_run.try_emplace(run);
+          row.num_oligos_distinct_ms_run.try_emplace(run);
+          row.num_oligos_unique_ms_run.try_emplace(run);
+        }
+      }
+    }
+    complete_scores(oligos, oligonucleotide_scores);
+    for (auto& row : osms)
+    {
+      for (const auto& [score_type, index] : osm_scores)
+      {
+        row.search_engine_score.try_emplace(index);
+      }
+    }
+
     // sort rows:
     sort(proteins.begin(), proteins.end(),
          MzTabProteinSectionRow::RowCompare());
