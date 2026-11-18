@@ -51,6 +51,23 @@ namespace OpenMS::OpenDIA
   };
 
   /**
+    @brief Optional per-window fragment spectrum evidence (TraceCollector::enablePeakGroupEvidence()).
+
+    Sums over the isolating MS2 spectra within the core half width of the apex, points within the tolerance and the
+    tensor's mobility window, per tensor channel: the monoisotope, its isotopes +1..+4 at the library fragment charge and
+    the positions one 13C spacing before it at charges 1..4.
+  */
+  struct PeakGroupEvidence
+  {
+    static constexpr std::size_t FRAGMENTS = 6;
+    static constexpr std::size_t ISOTOPES = 4;
+    std::array<float, FRAGMENTS> mono{};    ///< Monoisotope intensity.
+    std::array<float, FRAGMENTS> ppm_sum{}; ///< Sum of intensity x signed ppm of the monoisotope points.
+    std::array<std::array<float, ISOTOPES>, FRAGMENTS> isotope{}; ///< Isotope i + 1 intensity.
+    std::array<std::array<float, ISOTOPES>, FRAGMENTS> before{};  ///< Intensity at mono - 1.0033548 / (c + 1).
+  };
+
+  /**
     @brief Extract bounded raw RT/IM intensity tensors for a specified sample of candidates.
 
     This second streaming pass retains no run-wide spectra. Six library fragments
@@ -148,6 +165,16 @@ namespace OpenMS::OpenDIA
     void enableByIonCounts(const OpenSwath::LightTargetedExperiment& library, double ppm, double intensity_min);
     /// Evidence of sample i; requires evidenceEnabled().
     const TraceEvidence& evidence(std::size_t i) const { return evidence_.at(i); }
+    /**
+      @brief Also collect PeakGroupEvidence. Requires enableEvidence() first (its core half width is used).
+      @param[in] ppm Matching half width in ppm around each target m/z.
+      @throws Exception::InvalidParameter If evidence is not enabled or @p ppm is not positive.
+    */
+    void enablePeakGroupEvidence(double ppm);
+    /// Peak-group evidence of sample i; requires enablePeakGroupEvidence().
+    const PeakGroupEvidence& peakGroupEvidence(std::size_t i) const { return pg_evidence_.at(i); }
+    /// Library fragment charge per tensor channel (0 if unknown or padding).
+    const std::array<std::int8_t, FRAGMENTS>& fragmentCharges(std::size_t i) const { return samples_.at(i).fragment_charge; }
     /// RT half width of the tensor in seconds.
     double rtHalfWidth() const { return rt_half_width_; }
 
@@ -163,6 +190,7 @@ namespace OpenMS::OpenDIA
       bool saw_missing_im = false;
       std::array<double, FRAGMENTS> fragment_mz{};
       std::array<double, FRAGMENTS> library_intensity{};
+      std::array<std::int8_t, FRAGMENTS> fragment_charge{};
     };
     std::vector<Sample> samples_;
     std::vector<std::size_t> by_rt_;
@@ -183,6 +211,8 @@ namespace OpenMS::OpenDIA
     std::vector<std::array<std::uint32_t, 3>> byion_range_; ///< Per sample: first b, first y, end in byion_mz_.
     double byion_ppm_ = 0.0;
     double byion_intensity_min_ = 0.0;
+    std::vector<PeakGroupEvidence> pg_evidence_;
+    double pg_ppm_ = 0.0;
 
     void consumeMS1_(MSSpectrum& spectrum);
     void countByIons_(const MSSpectrum& spectrum, std::size_t index, double dt);
