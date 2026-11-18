@@ -263,11 +263,15 @@ namespace OpenMS
       // Join only the per-peptide aggregate. A raw PEPTIDE_GENE_MAPPING join
       // duplicates transition rows for multi-gene peptides and later breaks
       // transition-group construction when native IDs collide.
+      // The aggregate covers every peptide ('NA' without a gene mapping), so
+      // the INNER JOIN no longer silently drops gene-less peptides (e.g.
+      // decoys merged into a library). Join position and order are unchanged.
       join_gene = "INNER JOIN " \
-                  "(SELECT PEPTIDE_ID, GROUP_CONCAT(GENE_NAME,';') AS GENE_NAME " \
-                  "FROM GENE " \
-                  "INNER JOIN PEPTIDE_GENE_MAPPING ON GENE.ID = PEPTIDE_GENE_MAPPING.GENE_ID "\
-                  "GROUP BY PEPTIDE_ID) " \
+                  "(SELECT PEPTIDE.ID AS PEPTIDE_ID, COALESCE(GROUP_CONCAT(GENE.GENE_NAME,';'),'NA') AS GENE_NAME " \
+                  "FROM PEPTIDE " \
+                  "LEFT OUTER JOIN PEPTIDE_GENE_MAPPING ON PEPTIDE.ID = PEPTIDE_GENE_MAPPING.PEPTIDE_ID "\
+                  "LEFT OUTER JOIN GENE ON GENE.ID = PEPTIDE_GENE_MAPPING.GENE_ID "\
+                  "GROUP BY PEPTIDE.ID) " \
                   "AS GENE_AGGREGATED ON PEPTIDE.ID = GENE_AGGREGATED.PEPTIDE_ID ";
     }
 
