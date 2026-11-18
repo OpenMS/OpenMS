@@ -1,0 +1,4 @@
+decoys in the score band of the 694    {'n': 269, 'dn05_same_rt': np.float64(0.342), 'osw1_same_rt': np.float64(0.204), 'either': np.float64(0.364), 'diann_other_run': np.float64(0.636)} | decoy apex within 3 s of its target winner apex: 0.52
+top 694 decoys                         {'n': 694, 'dn05_same_rt': np.float64(0.271), 'osw1_same_rt': np.float64(0.159), 'either': np.float64(0.29), 'diann_other_run': np.float64(0.589)} | decoy apex within 3 s of its target winner apex: 0.44
+all decoy winners (random 3000)        {'n': 3000, 'dn05_same_rt': np.float64(0.18), 'osw1_same_rt': np.float64(0.091), 'either': np.float64(0.193), 'diann_other_run': np.float64(0.526)} | decoy apex within 3 s of its target winner apex: 0.35
+NEW added, not in DIA-NN               {'n': 694, 'dn05_same_rt': np.float64(0.353), 'osw1_same_rt': np.float64(0.313), 'either': np.float64(0.552), 'diann_other_run': np.float64(0.539)}

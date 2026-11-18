@@ -1,0 +1,24 @@
+                                   n  dn05_same_rt  osw1_same_rt  either  diann_other_run
+CUR accepted, not in DIA-NN   1111.0         0.225         0.521   0.636            0.385
+ of which NEW keeps            966.0         0.226         0.584   0.690            0.369
+ of which NEW drops            145.0         0.221         0.103   0.276            0.497
+NEW added, not in DIA-NN       694.0         0.353         0.313   0.552            0.539
+NEW added, in DIA-NN          2359.0         0.975         0.584   0.983            0.747
+CUR accepted, in DIA-NN      14911.0         0.992         0.829   0.995            0.853
+                   group     n  dn_any_q  dn_same_rt  dn_q05_same_rt  dn_med_q  osw_same_rt  diann_H_1pct  pep_other_charge
+    added, in DIA-NN 1 %  2359     1.000       1.000           1.000     0.000        0.604         0.747             0.000
+added, NOT in DIA-NN 1 %   694     0.709       0.699           0.375     0.047        0.336         0.539             0.232
+      old (CUR) accepted 15586     0.968       0.968           0.953     0.000        0.835         0.825             0.026
+
+NOT-in-DIA-NN group, DIA-NN q distribution (where reported):
+Q.Value
+(0.0, 0.01]       0
+(0.01, 0.02]    133
+(0.02, 0.05]    127
+(0.05, 0.1]      76
+(0.1, 0.2]       54
+(0.2, 0.5]      102
+|our apex - DIA-NN RT| (s): median 1.0, share <=10 s 0.99, share >60 s 0.00
+                                group    n  dn_any_q  dn_same_rt  dn_q05_same_rt  dn_med_q  osw_same_rt  diann_H_1pct  pep_other_charge
+null: our rejected targets (q .05-.5) 2000     0.624       0.588           0.298     0.056        0.066         0.412             0.138
+   null: top decoys at their own apex  694     0.787       0.758           0.532     0.001        0.310         0.589             0.091
