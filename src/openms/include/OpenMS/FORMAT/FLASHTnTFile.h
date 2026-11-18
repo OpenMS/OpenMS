@@ -28,10 +28,11 @@ namespace OpenMS
     /// RemovedMasses (masses removed from the spectrum before the PrSM's round), ResidualNullScore (the best extension score of the other
     /// decoy PrSMs of the same residual search; -1: none or round 0) and ResidualScoreRatio (extension score / ResidualNullScore; -1:
     /// undefined)
-    static void writePrSMHeader(std::fstream& fs, bool chimeric = false);
+    /// With @p targets (FLASHTnT -target), TargetProtein and DecoyMargin follow.
+    static void writePrSMHeader(std::fstream& fs, bool chimeric = false, bool targets = false);
 
     /// write header line for Proteoform output file (@p chimeric: as writePrSMHeader, the values of the representative PrSM)
-    static void writeProHeader(std::fstream& fs, bool chimeric = false);
+    static void writeProHeader(std::fstream& fs, bool chimeric = false, bool targets = false);
 
     /// header for the protein-level output, written before proteoform characterization
     static void writeProteinHeader(std::fstream& fs);
@@ -42,7 +43,7 @@ namespace OpenMS
     /// write the features in regular file output
     static void writeTags(const FLASHTnTAlgorithm& tnt, double flanking_mass_tol, std::fstream& fs);
 
-    static void writePrSMs(const std::vector<ProteinHit>& hits, std::fstream& fs, bool chimeric = false);
+    static void writePrSMs(const std::vector<ProteinHit>& hits, std::fstream& fs, bool chimeric = false, bool targets = false);
 
     /**
       @brief the ProForma 2.0 string of a PrSM or proteoform hit; empty if a terminus is undetermined (ProForma cannot express it)
@@ -57,6 +58,6 @@ namespace OpenMS
     /// written before every ProForma string (empty: none)
     static void setGlobalFixedModifications(const std::string& proforma_prefix);
 
-    static void writeProteoforms(const std::vector<ProteinHit>& hits, std::fstream& fs, double pro_fdr, bool chimeric = false);
+    static void writeProteoforms(const std::vector<ProteinHit>& hits, std::fstream& fs, double pro_fdr, bool chimeric = false, bool targets = false);
   };
 } // namespace OpenMS

@@ -24,6 +24,7 @@
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/UniPEFFConverter.h>
+#include <OpenMS/MATH/MathFunctions.h>
 #include <OpenMS/METADATA/SpectrumLookup.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/SYSTEM/TempFiles.h>
@@ -31,6 +32,7 @@
 #include <chrono>
 #include <fstream>
 #include <set>
+#include <unordered_map>
 #include <limits>
 #if defined(__GLIBC__)
   #include <malloc.h>
@@ -120,6 +122,20 @@ protected:
                        "'UniPEFF -annotation_identifiers' writes it, then read as PEFF.\n"
                        "A UniProtKB XML file gives the same results as the PEFF converted from it.",
                        true);
+
+    registerInputFile_("target", "<file>", "",
+                       "Target proteins: a FASTA file with the proteins known to be in the sample (e.g. the purified protein or a construct), "
+                       "without decoys. Needs a FASTA -db with decoys, which measures chance. A target protein whose sequence is in -db is that "
+                       "entry; any other is added to the database for this run with a decoy of its own (its residues shuffled, the first two "
+                       "kept). The search itself is unchanged: a target protein is identified by the same rule as any other protein. With "
+                       "-native, a target protein that the search did not report in a spectrum is characterized there all the same, from its "
+                       "sequence tags and sliding ladders in the spectrum (none of either: no PrSM). The PrSM and proteoform files get two columns: "
+                       "TargetProtein (0: not a target protein; 1: target protein reported by the search; 2: target protein characterized on "
+                       "request only, i.e. not identified by the spectrum) and DecoyMargin (-native: the candidate score minus the score of the "
+                       "best decoy candidate of the same source in the spectrum; the margin an identification needs is in the log). Without "
+                       "this option the outputs are unchanged.",
+                       false);
+    setValidFormats_("target", ListUtils::create<std::string>("fasta"));
 
     registerStringList_("fixed_mod", "<name>", std::vector<std::string>(),
                         "Fixed modifications, by name with the residue (e.g. 'Carbamidomethyl (C)' for alkylated cysteines, 'TMT6plex (K)') or by Unimod "
@@ -214,6 +230,7 @@ protected:
 
     std::string in_file = getStringOption_("in");
     const std::string in_db = getStringOption_("db");
+    const std::string in_target = getStringOption_("target");
 
     // Fixed modifications change the residue masses of the search, the in-process amino acid set (ResidueDB), before anything reads them:
     // every mass of the search -- tags, ladders, the extension, the raw annotation, the reported masses -- is that residue's.
@@ -338,6 +355,7 @@ protected:
     auto tnt_param = getParam_();
     tnt_param.remove("in");
     tnt_param.remove("db");
+    tnt_param.remove("target");
     tnt_param.remove("fixed_mod");
     tnt_param.remove("peff_max_mods");
     tnt_param.remove("peff_mod_masses");
@@ -437,6 +455,70 @@ protected:
       FASTAFile fasta_file;
       fasta_file.load(in_db, fasta_entry);
     }
+    // Target proteins (-target): the entries of -db with their sequence, else added with a decoy of their own (shuffled, the first two
+    // residues kept, as the protein decoys of DecoyDatabase with which the native decoy margin was set)
+    std::set<std::string> target_proteins;
+    if (! in_target.empty())
+    {
+      if (peff)
+      {
+        throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "-target needs a FASTA -db (not PEFF or UniProtKB XML)");
+      }
+      std::unordered_map<std::string, Size> entry_of_sequence, entry_of_identifier;
+      Size db_decoys = 0;
+      for (Size i = 0; i < fasta_entry.size(); i++)
+      {
+        const bool decoy = StringUtils::hasPrefix(fasta_entry[i].identifier, "DECOY");
+        db_decoys += decoy;
+        entry_of_identifier.emplace(fasta_entry[i].identifier, i);
+        if (! decoy) entry_of_sequence.emplace(fasta_entry[i].sequence, i);
+      }
+      if (db_decoys == 0)
+      {
+        throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                          "-target needs decoys in -db (accessions with the prefix DECOY_): they measure chance");
+      }
+      std::vector<FASTAFile::FASTAEntry> targets;
+      FASTAFile().load(in_target, targets);
+      Size in_db_count = 0, added = 0;
+      for (auto& t : targets)
+      {
+        if (t.sequence.empty()) continue;
+        if (StringUtils::hasPrefix(t.identifier, "DECOY"))
+        {
+          throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "-target holds a decoy entry: " + t.identifier);
+        }
+        const auto same = entry_of_sequence.find(t.sequence);
+        if (same != entry_of_sequence.end())
+        {
+          target_proteins.insert(fasta_entry[same->second].identifier);
+          in_db_count++;
+          continue;
+        }
+        if (entry_of_identifier.count(t.identifier) > 0 || entry_of_identifier.count("DECOY_" + t.identifier) > 0)
+        {
+          throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                            "-target entry has the identifier of a -db entry with another sequence: " + t.identifier);
+        }
+        FASTAFile::FASTAEntry decoy("DECOY_" + t.identifier, t.description, t.sequence);
+        if (decoy.sequence.size() > 3)
+        {
+          Math::RandomShuffler shuffler(1);
+          shuffler.portable_random_shuffle(decoy.sequence.begin() + 2, decoy.sequence.end());
+        }
+        entry_of_identifier.emplace(t.identifier, fasta_entry.size());
+        entry_of_sequence.emplace(t.sequence, fasta_entry.size());
+        target_proteins.insert(t.identifier);
+        fasta_entry.push_back(t);
+        entry_of_identifier.emplace(decoy.identifier, fasta_entry.size());
+        fasta_entry.push_back(decoy);
+        added++;
+      }
+      OPENMS_LOG_INFO << "Target proteins: " << target_proteins.size() << " (" << in_db_count << " in the database, " << added
+                      << " added with a decoy each)" << endl;
+      if (target_proteins.empty()) { OPENMS_LOG_WARN << "-target holds no protein" << endl; }
+    }
+    const bool with_targets = ! target_proteins.empty();
     OPENMS_LOG_INFO << "Database read: " << fasta_entry.size() << " entries in "
                     << std::chrono::duration<double>(std::chrono::steady_clock::now() - db_read_start).count() << " s" << endl;
     // Run here!
@@ -456,13 +538,13 @@ protected:
     if (! out_prsm_file.empty())
     {
       out_prsm_stream = fstream(out_prsm_file, fstream::out);
-      FLASHTnTFile::writePrSMHeader(out_prsm_stream, chimeric);
+      FLASHTnTFile::writePrSMHeader(out_prsm_stream, chimeric, with_targets);
     }
 
     if (! out_pro_file.empty())
     {
       out_pro_stream = fstream(out_pro_file, fstream::out);
-      FLASHTnTFile::writeProHeader(out_pro_stream, chimeric);
+      FLASHTnTFile::writeProHeader(out_pro_stream, chimeric, with_targets);
     }
 
     if (! out_protein_file.empty())
@@ -473,6 +555,7 @@ protected:
 
     FLASHTnTAlgorithm tnt;
     tnt.setParameters(tnt_param);
+    tnt.setTargetProteins(target_proteins);
     if (raw_input)
     {
       tnt.setRawSpectrumLoader([&raw_msn_spectra](const std::set<int>& scans, std::map<int, MSSpectrum>& spectra) {
@@ -501,12 +584,12 @@ protected:
     }
     if (! out_prsm_file.empty())
     {
-      FLASHTnTFile::writePrSMs(proteoform_hits, out_prsm_stream, chimeric);
+      FLASHTnTFile::writePrSMs(proteoform_hits, out_prsm_stream, chimeric, with_targets);
       out_prsm_stream.close();
     }
     if (! out_pro_file.empty())
     {
-      FLASHTnTFile::writeProteoforms(proteoform_hits, out_pro_stream, pro_fdr, chimeric);
+      FLASHTnTFile::writeProteoforms(proteoform_hits, out_pro_stream, pro_fdr, chimeric, with_targets);
       out_pro_stream.close();
     }
     if (! out_protein_file.empty())

@@ -324,7 +324,8 @@ void FLASHDeconvAlgorithm::deconvolveSpectrum_(const MSExperiment& map, Spectrum
         job.new_precursor_pg = precursor_pg;
         job.new_precursor = cit->second[best].second;
       }
-      else if ((int)sd.getParameters().getValue("precursor_charge") == 0 && (double)sd.getParameters().getValue("precursor_mz") == 0)
+      else if ((int)sd.getParameters().getValue("precursor_charge") == 0 && (double)sd.getParameters().getValue("precursor_mz") == 0
+               && (double)sd.getParameters().getValue("precursor_mass") == 0)
       {
         // The precursor stays. The deconvolution below differs from round 1 only by the window bounds; when they widen neither the mass
         // nor the charge bound (the heaviest and the most charged mass of the window are the precursor's), both are the same function of
@@ -518,7 +519,7 @@ void FLASHDeconvAlgorithm::runSpectralDeconvolution_(MSExperiment& map, std::vec
 #ifdef _OPENMP
   const Param sd_param = sd_.getParameters();
   if (scan_commands_file_.empty() && ! omp_in_parallel() && (int)sd_param.getValue("precursor_charge") == 0
-      && (double)sd_param.getValue("precursor_mz") == 0)
+      && (double)sd_param.getValue("precursor_mz") == 0 && (double)sd_param.getValue("precursor_mass") == 0)
   {
     std::vector<Size> level_counts(current_max_ms_level_ + 1, 0);
     for (const auto& spec : map)

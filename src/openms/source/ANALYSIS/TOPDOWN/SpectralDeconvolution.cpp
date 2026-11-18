@@ -111,6 +111,15 @@ namespace OpenMS
     defaults_.setMinFloat("precursor_mz", 0.0);
     defaults_.addTag("precursor_mz", "advanced");
 
+    defaults_.setValue(
+      "precursor_mass", 0.0,
+      "Mass of the isolated precursor ion (Da), for when the mass is known and the charge is not: the mass of what was isolated, i.e. of "
+      "the whole complex if a complex was isolated, not of a subunit. Used when -precursor_charge is 0: the precursor charge of each MSn "
+      "spectrum is then round(precursor_mass / (precursor m/z - proton mass)), with the precursor m/z of the mzML file (or -precursor_mz), "
+      "and everything else is as with -precursor_charge at that charge (positive mode). The mass only decides the charge; an average or a "
+      "monoisotopic mass gives the same charge. 0: not used.");
+    defaults_.setMinFloat("precursor_mass", 0.0);
+
     defaults_.setValue("min_cos", DoubleList {.85, .85},
                        "Cosine similarity thresholds between avg. and observed isotope pattern for MS1, 2, ...: e.g., -min_cos 0.3 0.6 to specify 0.3 "
                        "and 0.6 for MS1 and MS2, respectively.");
@@ -149,6 +158,16 @@ namespace OpenMS
                       << std::endl;
       return;
     }
+    // the charge given (precursor_charge), else the one at which the given mass of the isolated ion (precursor_mass) has the precursor m/z
+    int target_charge = target_precursor_charge_;
+    if (target_charge == 0)
+    {
+      const double mz = target_precursor_mz_ > 0 ? target_precursor_mz_ : spec.getPrecursors()[0].getMZ();
+      const double per_charge = mz - FLASHHelperClasses::getChargeMass(true);
+      if (target_precursor_mass_ <= 0 || per_charge <= 0) return;
+      target_charge = (int)std::lround(target_precursor_mass_ / per_charge);
+      if (target_charge < 1) return;
+    }
 
     // Get precursor from spectrum if available, to keep its isolation window and other metadata
     Precursor precursor;
@@ -163,15 +182,15 @@ namespace OpenMS
     }
 
     double target_precursor_mass
-      = (precursor.getMZ() - FLASHHelperClasses::getChargeMass(target_precursor_charge_ > 0)) * std::abs(target_precursor_charge_);
-    precursor.setCharge(target_precursor_charge_);
-    PeakGroup precursorPeakGroup(1, std::abs(target_precursor_charge_), target_precursor_charge_ > 0);
+      = (precursor.getMZ() - FLASHHelperClasses::getChargeMass(target_charge > 0)) * std::abs(target_charge);
+    precursor.setCharge(target_charge);
+    PeakGroup precursorPeakGroup(1, std::abs(target_charge), target_charge > 0);
     precursorPeakGroup.push_back(FLASHHelperClasses::LogMzPeak());
     precursorPeakGroup.setMonoisotopicMass(target_precursor_mass);
     precursorPeakGroup.setSNR(1.0);
 
-    precursorPeakGroup.setRepAbsCharge(std::abs(target_precursor_charge_));
-    precursorPeakGroup.setChargeSNR(std::abs(target_precursor_charge_), 1.0);
+    precursorPeakGroup.setRepAbsCharge(std::abs(target_charge));
+    precursorPeakGroup.setChargeSNR(std::abs(target_charge), 1.0);
     precursorPeakGroup.setQscore(1.0);
 
     deconvolved_spectrum_.setPrecursor(precursor);
@@ -251,7 +270,7 @@ namespace OpenMS
       }
 
       // a target precursor m/z needs its charge (help of precursor_mz): without one it built a precursor of mass 0, which capped the MSn masses
-      if (target_precursor_charge_ != 0) { setTargetPrecursorCharge_(); }
+      if (target_precursor_charge_ != 0 || target_precursor_mass_ > 0) { setTargetPrecursorCharge_(); }
 
       if (deconvolved_spectrum_.getPrecursorPeakGroup().empty())
       {
@@ -320,6 +339,7 @@ namespace OpenMS
 
     target_precursor_mz_ = param_.getValue("precursor_mz");
     target_precursor_charge_ = param_.getValue("precursor_charge");
+    target_precursor_mass_ = param_.getValue("precursor_mass");
   }
 
   const FLASHHelperClasses::PrecalculatedAveragine& SpectralDeconvolution::getAveragine()
