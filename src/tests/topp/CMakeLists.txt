@@ -3520,6 +3520,17 @@ if (NOT MSVC) # currently some minor numeric differences on windows. needs fixin
     -P ${DATA_DIR_TOPP}/OpenNuXL_9_xl_fdr_groups_test.cmake)
   set_tests_properties("TOPP_OpenNuXL_9_xl_fdr_groups" PROPERTIES DEPENDS "TOPP_OpenNuXL_9")
 
+  # TOPP_OpenNuXL_1 with -NuXL:localization consistency: the same hits, localized at the residue most consistent with
+  # all a/b/y ions (allowing for loss of the nucleic acid), with range and delta
+  if (NOT (APPLE AND CMAKE_HOST_SYSTEM_PROCESSOR STREQUAL "arm64")) # (as TOPP_OpenNuXL_1)
+    add_test("TOPP_OpenNuXL_11" ${TOPP_BIN_PATH}/OpenNuXL -test -precursor:mass_tolerance 10.0 -in
+    ${DATA_DIR_TOPP}/OpenNuXL_1_input.mzML -database ${DATA_DIR_TOPP}/OpenNuXL_1_input.fasta -out ${TESTS_TEMP_DIR}/OpenNuXL_11_output.tmp.idXML -NuXL:decoys "false" -NuXL:localization consistency)
+    add_test("TOPP_OpenNuXL_11_consistency_localization" ${CMAKE_COMMAND}
+      -DINPUT_FILE=${TESTS_TEMP_DIR}/OpenNuXL_11_output.tmp.idXML
+      -P ${DATA_DIR_TOPP}/OpenNuXL_11_consistency_localization_test.cmake)
+    set_tests_properties("TOPP_OpenNuXL_11_consistency_localization" PROPERTIES DEPENDS "TOPP_OpenNuXL_11")
+  endif()
+
   # -out_qpx: the QPX mz view of the spectra of the PSMs of -out (runs/<basename>.mz.parquet). The search of
   # TOPP_OpenNuXL_2 with -out_qpx and a small peak filter: its -out is that of TOPP_OpenNuXL_2 (compared where that one
   # is), the stale file of an earlier run in the place of the view is replaced, the log has the phase lines, and

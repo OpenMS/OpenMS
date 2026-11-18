@@ -76,11 +76,18 @@ class NuXLAnnotateAndLocate
          - Writes @c localization_scores (comma-separated @c "0..100" percentages),
            @c best_localization, @c best_localization_score, and
            @c best_localization_position back into the hit.
-         - With @p nhs_localization, chooses @c best_localization and
+         - With @p localization @c NHS, chooses @c best_localization and
            @c best_localization_position instead by the NHS-ester chemistry within the
            residues the fragment ions support (see @ref NuXLSiteLocalization::localizeNHS),
            and stores how the site was chosen and that range in @c localization_method and
            @c localization_range_begin / @c localization_range_end.
+         - With @p localization @c CONSISTENCY, chooses them instead at the residue most
+           consistent with all a/b/y ions, allowing for ions that lost the nucleic acid (see
+           @ref NuXLSiteLocalization::localizeByConsistency), writes its scores to
+           @c localization_scores and @c best_localization_score, and stores the method, the
+           range of residues within the tolerance of the site and the score difference to the
+           next best residue in @c localization_method, @c localization_range_begin /
+           @c localization_range_end and @c localization_delta.
 
     All output goes into @p annotated_hits — no exceptions are thrown by this function;
     malformed alignments emit @c OPENMS_LOG_WARN. Hits whose precursor adduct or
@@ -100,9 +107,10 @@ class NuXLAnnotateAndLocate
     @param[in]     fragment_mass_tolerance          Half-width of the fragment-alignment tolerance window.
     @param[in]     fragment_mass_tolerance_unit_ppm Interpret @p fragment_mass_tolerance as ppm (true) or Da (false).
     @param[in]     all_feasible_adducts             Per-precursor-adduct fragment-adduct definitions used to generate marker and shifted immonium ions.
-    @param[in]     nhs_localization                 Localize by the NHS-ester chemistry (cross-linkers such as SDA) instead of the fragment evidence alone.
-    @param[in]     protein_termini                  Protein-terminal peptides of the digest (see @ref NuXLSiteLocalization::proteinTermini) for @p nhs_localization: a protein N-terminal peptide can carry the cross-link on its free N-terminus; nullptr: none is protein-terminal.
-    @param[in]     enzyme_cleaves_after_lysine      With @p nhs_localization and @p protein_termini: a C-terminal lysine counts as blocked (the enzyme doesn't cleave after a modified lysine) unless the peptide ends a protein.
+    @param[in]     localization                     How cross-links are localized: by the shifted fragment ions (@c FRAGMENTS), by the NHS-ester chemistry (@c NHS, cross-linkers such as SDA) or by the consistency of all fragment ions (@c CONSISTENCY).
+    @param[in]     protein_termini                  Protein-terminal peptides of the digest (see @ref NuXLSiteLocalization::proteinTermini) for @c NHS and @c CONSISTENCY @p localization: with @c NHS, a protein N-terminal peptide can carry the cross-link on its free N-terminus; nullptr: none is protein-terminal.
+    @param[in]     enzyme_cleaves_after_lysine      With @c NHS or @c CONSISTENCY @p localization and @p protein_termini: a C-terminal lysine counts as blocked (the enzyme doesn't cleave after a modified lysine) unless the peptide ends a protein.
+    @param[in]     enzyme_cleaves_after_arginine    As @p enzyme_cleaves_after_lysine for a C-terminal arginine, with @c CONSISTENCY @p localization (NHS esters don't react with arginine).
   */
   static void annotateAndLocate_(
     const PeakMap& exp,
@@ -114,9 +122,10 @@ class NuXLAnnotateAndLocate
     double fragment_mass_tolerance,
     bool fragment_mass_tolerance_unit_ppm,
     const NuXLParameterParsing::PrecursorsToMS2Adducts & all_feasible_adducts,
-    bool nhs_localization = false,
+    NuXLSiteLocalization::Method localization = NuXLSiteLocalization::Method::FRAGMENTS,
     const NuXLSiteLocalization::ProteinTermini* protein_termini = nullptr,
-    bool enzyme_cleaves_after_lysine = false);
+    bool enzyme_cleaves_after_lysine = false,
+    bool enzyme_cleaves_after_arginine = false);
 
 };
 } // namespace OpenMS

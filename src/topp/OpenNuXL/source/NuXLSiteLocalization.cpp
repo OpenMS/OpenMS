@@ -121,6 +121,89 @@ namespace OpenMS
   }
 
   // static
+  vector<double> NuXLSiteLocalization::consistencyScores(const vector<double>& n_shifts,
+                                                         const vector<double>& n_noshifts,
+                                                         const vector<double>& c_shifts,
+                                                         const vector<double>& c_noshifts,
+                                                         double unshifted_weight)
+  {
+    const int length = static_cast<int>(n_shifts.size());
+    vector<double> score(length, 0.0);
+    double total = 0.0; // (weighted) intensity of all ions counted
+    for (int i = 0; i != length; ++i)
+    {
+      // prefix ion ending at residue i: contains residues 0..i
+      if (n_shifts[i] > 0.0)
+      {
+        total += n_shifts[i];
+        for (int k = 0; k != length; ++k) { score[k] += (k <= i ? n_shifts[i] : -n_shifts[i]); }
+      }
+      else if (i > 0 && n_noshifts[i] > 0.0) // unshifted a1/b1 not used (see supportedResidues)
+      {
+        const double w = unshifted_weight * n_noshifts[i];
+        total += w;
+        for (int k = 0; k <= i; ++k) { score[k] -= w; }
+      }
+      // with a shifted ion of this rung, the unshifted one lost the nucleic acid: neutral
+
+      // suffix ion starting at residue i: contains residues i..length-1
+      if (c_shifts[i] > 0.0)
+      {
+        total += c_shifts[i];
+        for (int k = 0; k != length; ++k) { score[k] += (k >= i ? c_shifts[i] : -c_shifts[i]); }
+      }
+      else if (c_noshifts[i] > 0.0)
+      {
+        const double w = unshifted_weight * c_noshifts[i];
+        total += w;
+        for (int k = i; k != length; ++k) { score[k] -= w; }
+      }
+    }
+    if (total <= 0.0) { return {}; } // no fragment evidence for any site
+    for (double& s : score) { s /= total; }
+    return score;
+  }
+
+  // static
+  NuXLSiteLocalization::Site NuXLSiteLocalization::localizeByConsistency(const vector<double>& scores,
+                                                                         double tolerance,
+                                                                         const vector<bool>& blocked)
+  {
+    constexpr double tie = 1e-9; // scores are fractions of the fragment intensity: differences below are rounding
+    Site site;
+    const int length = static_cast<int>(scores.size());
+    const auto candidate = [&blocked](int p) { return p >= static_cast<int>(blocked.size()) || !blocked[p]; };
+
+    // best candidate; ties: the one closer to the N-terminus
+    for (int k = 0; k != length; ++k)
+    {
+      if (candidate(k) && (site.position < 0 || scores[k] > scores[site.position] + tie)) { site.position = k; }
+    }
+    if (site.position < 0) { return site; } // no fragment evidence or no candidate
+    site.method = "consistency";
+
+    const double best = scores[site.position];
+    double second_best = best; // no other candidate: delta 0
+    bool has_second = false;
+    for (int k = 0; k != length; ++k)
+    {
+      if (!candidate(k)) { continue; }
+      if (scores[k] >= best - max(tolerance, tie))
+      {
+        if (site.range_begin < 0) { site.range_begin = k; }
+        site.range_end = k;
+      }
+      if (k != site.position && (!has_second || scores[k] > second_best))
+      {
+        second_best = scores[k];
+        has_second = true;
+      }
+    }
+    site.delta = best - second_best < tie ? 0.0 : best - second_best;
+    return site;
+  }
+
+  // static
   void NuXLSiteLocalization::digestProtein(const EnzymaticDigestion& digestion,
                                            string_view protein,
                                            size_t min_length,

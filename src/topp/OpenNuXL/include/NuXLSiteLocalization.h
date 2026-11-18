@@ -28,6 +28,10 @@ namespace OpenMS
      stretch, like the lower-case range in the MSFragger localization).
   2. @ref localizeNHS picks the site in that stretch by the NHS chemistry.
 
+  For cross-linkers without such a preference (e.g. UV cross-linking), @ref consistencyScores and
+  @ref localizeByConsistency localize by the fragment ions alone, allowing for ions that lost the
+  nucleic acid.
+
   The fragment evidence is passed per residue, as summed intensities of the a/b- and y-ions:
   index @c i of @p n_shifts / @p n_noshifts is the prefix ion that ends at residue @c i (b<sub>i+1</sub>),
   index @c i of @p c_shifts / @p c_noshifts is the suffix ion that starts at residue @c i
@@ -39,8 +43,19 @@ namespace OpenMS
 class NuXLSiteLocalization
 {
 public:
+  /// How cross-links are localized (option NuXL:localization)
+  enum class Method
+  {
+    FRAGMENTS,  ///< at the residue the shifted fragment ions point to (NuXLAnnotateAndLocate)
+    NHS,        ///< by the NHS-ester chemistry within the residues the fragment ions support (@ref localizeNHS)
+    CONSISTENCY ///< at the residue most consistent with all fragment ions, allowing for loss of the nucleic acid (@ref localizeByConsistency)
+  };
+
   /// Default fraction of the fragment intensity by which a residue's support may fall short of the best and still count as supported
   static constexpr double DEFAULT_TOLERANCE = 0.1;
+
+  /// Default weight of an unshifted ion on a rung without a shifted ion, relative to a shifted ion (see @ref consistencyScores)
+  static constexpr double DEFAULT_UNSHIFTED_WEIGHT = 0.5;
 
   /// Result of localizing one cross-link
   struct Site
@@ -48,7 +63,8 @@ public:
     int position = -1;                      ///< localized residue, -1 if unlocalized
     int range_begin = -1;                   ///< first residue supported by the fragment ions, -1 without fragment evidence
     int range_end = -1;                     ///< last residue supported by the fragment ions, -1 without fragment evidence
-    std::string method = "unlocalized";     ///< how the site was chosen: "N-term", "K", "STY+H" or "unlocalized"
+    std::string method = "unlocalized";     ///< how the site was chosen: "N-term", "K", "STY+H" (@ref localizeNHS), "consistency" (@ref localizeByConsistency) or "unlocalized"
+    double delta = 0.0;                     ///< @ref localizeByConsistency only: score of the site minus the best score of another candidate residue; 0 if they tie or there is no other candidate
   };
 
   /**
@@ -106,6 +122,52 @@ public:
                           const std::vector<double>& c_noshifts,
                           double tolerance = DEFAULT_TOLERANCE,
                           const std::vector<bool>& blocked = {});
+
+  /**
+    @brief For every residue, how consistent the fragment ions are with a cross-link there, allowing for ions that lost the nucleic acid.
+
+    Each a/b- or y-ion counts with its intensity:
+    - a shifted ion for the residues it contains and against the others;
+    - an unshifted ion on a rung (ion index) that also has a shifted ion not at all: often only some of the ions of
+      a rung lose the nucleic acid, so the unshifted one doesn't contradict a cross-link on the residues it contains;
+    - an unshifted ion on a rung without a shifted ion against the residues it contains, weighted by
+      @p unshifted_weight, as it, too, may have lost the nucleic acid.
+
+    Unshifted a<sub>1</sub>/b<sub>1</sub> ions are ignored (see @ref supportedResidues). Unlike @ref supportedResidues,
+    an unshifted ion doesn't count for the residues it doesn't contain: these residues are not separated from
+    each other by it.
+
+    @param[in] n_shifts intensity of the shifted prefix (a/b) ions ending at each residue
+    @param[in] n_noshifts intensity of the unshifted prefix (a/b) ions ending at each residue
+    @param[in] c_shifts intensity of the shifted suffix (y) ions starting at each residue
+    @param[in] c_noshifts intensity of the unshifted suffix (y) ions starting at each residue
+    @param[in] unshifted_weight weight of an unshifted ion on a rung without a shifted ion, relative to a shifted ion
+    @return per residue, the summed intensity of the consistent minus the inconsistent ions, as a fraction of the
+            (weighted) intensity of all ions counted: 1 if all of them are consistent, -1 if all contradict it;
+            empty without any fragment evidence
+  */
+  static std::vector<double> consistencyScores(const std::vector<double>& n_shifts,
+                                               const std::vector<double>& n_noshifts,
+                                               const std::vector<double>& c_shifts,
+                                               const std::vector<double>& c_noshifts,
+                                               double unshifted_weight = DEFAULT_UNSHIFTED_WEIGHT);
+
+  /**
+    @brief Localizes a cross-link at the residue with the highest @ref consistencyScores.
+
+    Ties go to the residue closer to the N-terminus: residues that no ion separates get exactly the same score.
+    The range spans the residues whose score is at most @p tolerance below that of the site, so that the residues
+    weak or misassigned ions alone separate count as ambiguous. Residues flagged in @p blocked are no candidates
+    (e.g. a C-terminal lysine or arginine the enzyme would have cleaved after).
+
+    @param[in] scores per residue, from @ref consistencyScores
+    @param[in] tolerance by how much a residue's score may fall short of the best to be in the range
+    @param[in] blocked per residue, whether it can't carry the cross-link; empty: none
+    @return the site, with method "consistency"; unlocalized without @p scores or candidate
+  */
+  static Site localizeByConsistency(const std::vector<double>& scores,
+                                    double tolerance = DEFAULT_TOLERANCE,
+                                    const std::vector<bool>& blocked = {});
 
   /**
     @brief The peptides of a protein as searched: its digest and, optionally, its N-terminal peptides after removal of the initial methionine.

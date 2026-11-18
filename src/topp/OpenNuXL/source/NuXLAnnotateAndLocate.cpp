@@ -22,6 +22,7 @@
 #include <OpenMS/CONCEPT/LogStream.h>
 
 #include <algorithm>
+#include <cmath>
 #include <map>
 #include <regex>
 
@@ -332,9 +333,10 @@ namespace OpenMS
     double fragment_mass_tolerance, 
     bool fragment_mass_tolerance_unit_ppm, 
     const NuXLParameterParsing::PrecursorsToMS2Adducts & all_feasible_adducts,
-    bool nhs_localization,
+    NuXLSiteLocalization::Method localization,
     const NuXLSiteLocalization::ProteinTermini* protein_termini,
-    bool enzyme_cleaves_after_lysine)
+    bool enzyme_cleaves_after_lysine,
+    bool enzyme_cleaves_after_arginine)
   {
     TheoreticalSpectrumGenerator partial_loss_spectrum_generator;
     auto param = partial_loss_spectrum_generator.getParameters();
@@ -437,11 +439,12 @@ namespace OpenMS
           continue; 
         }
 
-        if (nhs_localization) // stays so if no shifted fragment ion is annotated
+        if (localization != NuXLSiteLocalization::Method::FRAGMENTS) // stays so if no shifted fragment ion is annotated
         {
           a.localization_method = "unlocalized";
           a.localization_range_begin = -1;
           a.localization_range_end = -1;
+          a.localization_delta = 0.0;
         }
 
         // ion centric (e.g. b and y-ion) spectrum annotation that records all shifts of specific ions (e.g. y5, y5 + U, y5 + C3O)
@@ -870,9 +873,15 @@ namespace OpenMS
           OPENMS_LOG_DEBUG << endl;
         #endif
 
+        // the enzyme doesn't cleave after a modified lysine or arginine: a C-terminal one it cleaves after can't carry
+        // the cross-link, unless no cleavage was needed because the peptide ends the protein
+        const char c_term = unmodified_sequence.empty() ? '\0' : unmodified_sequence.back();
+        const bool c_term_blocked = ((c_term == 'K' && enzyme_cleaves_after_lysine) || (c_term == 'R' && enzyme_cleaves_after_arginine))
+          && protein_termini != nullptr && !NuXLSiteLocalization::isProteinCTerminal(*protein_termini, unmodified_sequence);
+
         // NHS esters (e.g. SDA) bind the protein N-terminus and lysines (rarely S/T/Y next to a histidine):
         // choose the site by this chemistry among the residues the fragment ions can't tell apart
-        if (nhs_localization)
+        if (localization == NuXLSiteLocalization::Method::NHS)
         {
           const bool reactive_protein_n_term = protein_termini != nullptr
             && !fixed_and_variable_modified_peptide.hasNTerminalModification()
@@ -884,13 +893,7 @@ namespace OpenMS
             const Residue& r = fixed_and_variable_modified_peptide[i];
             blocked[i] = r.isModified() && !isIsotopeLabel(r.getModification());
           }
-          // the enzyme doesn't cleave after a modified lysine: a C-terminal one can't carry the cross-link,
-          // unless no cleavage was needed because the peptide ends the protein
-          if (enzyme_cleaves_after_lysine && protein_termini != nullptr && !unmodified_sequence.empty() && unmodified_sequence.back() == 'K'
-            && !NuXLSiteLocalization::isProteinCTerminal(*protein_termini, unmodified_sequence))
-          {
-            blocked.back() = true;
-          }
+          if (c_term_blocked) { blocked.back() = true; } // (NHS esters don't react with arginine: only a lysine matters)
           const NuXLSiteLocalization::Site site = NuXLSiteLocalization::localizeNHS(unmodified_sequence, reactive_protein_n_term,
             n_shifts, n_noshifts, c_shifts, c_noshifts, NuXLSiteLocalization::DEFAULT_TOLERANCE, blocked);
           best_localization = unmodified_sequence;
@@ -899,6 +902,30 @@ namespace OpenMS
           a.localization_method = site.method;
           a.localization_range_begin = site.range_begin;
           a.localization_range_end = site.range_end;
+        }
+        // the residue most consistent with all a/b/y ions, allowing for ions that lost the nucleic acid
+        // (shifted immonium ions are not used: they name the residue type, not the position)
+        else if (localization == NuXLSiteLocalization::Method::CONSISTENCY)
+        {
+          vector<bool> blocked(unmodified_sequence.size(), false);
+          if (c_term_blocked) { blocked.back() = true; }
+          const vector<double> scores = NuXLSiteLocalization::consistencyScores(n_shifts, n_noshifts, c_shifts, c_noshifts);
+          const NuXLSiteLocalization::Site site = NuXLSiteLocalization::localizeByConsistency(scores, NuXLSiteLocalization::DEFAULT_TOLERANCE, blocked);
+          localization_scores.clear(); // "NA" without a/b/y ion evidence
+          for (Size i = 0; i != scores.size(); ++i)
+          {
+            if (i != 0) { localization_scores += ','; }
+            const double percent = 100.0 * scores[i]; // may be negative: more of the ions contradict a cross-link there
+            localization_scores += std::abs(percent) < 0.005 ? std::string("0") : StringUtils::number(percent, 2);
+          }
+          best_localization = unmodified_sequence;
+          if (site.position >= 0) { best_localization[site.position] = tolower(best_localization[site.position]); }
+          best_localization_position = site.position;
+          best_localization_score = site.position >= 0 ? scores[site.position] : 0.0;
+          a.localization_method = site.method;
+          a.localization_range_begin = site.range_begin;
+          a.localization_range_end = site.range_end;
+          a.localization_delta = site.delta;
         }
 
         // create annotation strings for shifted fragment ions

@@ -242,6 +242,180 @@ START_SECTION((static Site localizeNHS(const std::string& sequence, bool reactiv
 }
 END_SECTION
 
+START_SECTION((static std::vector<double> consistencyScores(const std::vector<double>& n_shifts, const std::vector<double>& n_noshifts, const std::vector<double>& c_shifts, const std::vector<double>& c_noshifts, double unshifted_weight = DEFAULT_UNSHIFTED_WEIGHT)))
+{
+  // no fragment ion: no evidence for any site
+  {
+    const Evidence e(8);
+    TEST_EQUAL(NuXLSiteLocalization::consistencyScores(e.n_shifts, e.n_noshifts, e.c_shifts, e.c_noshifts).empty(), true)
+  }
+
+  // b2 unshifted, b5 shifted: b5 counts for residues 0-4 and against 5-7, b2 (weight 0.5) against 0-1
+  {
+    const Evidence e = prefixEvidence(8, 2, 4);
+    const vector<double> s = NuXLSiteLocalization::consistencyScores(e.n_shifts, e.n_noshifts, e.c_shifts, e.c_noshifts);
+    TEST_EQUAL(s.size(), 8)
+    TEST_REAL_SIMILAR(s[0], 0.5 / 1.5)
+    TEST_REAL_SIMILAR(s[1], 0.5 / 1.5)
+    TEST_REAL_SIMILAR(s[2], 1.0 / 1.5)
+    TEST_REAL_SIMILAR(s[4], 1.0 / 1.5)
+    TEST_REAL_SIMILAR(s[5], -1.0 / 1.5)
+    TEST_REAL_SIMILAR(s[7], -1.0 / 1.5)
+  }
+
+  // an unshifted ion of a rung that also has a shifted one lost the nucleic acid: it doesn't count
+  {
+    Evidence e(8);
+    e.c_shifts[3] = 1.0;   // y5 shifted: residues 3-7
+    e.c_noshifts[4] = 1.0; // y4 unshifted (no shifted y4): against residues 4-7
+    const vector<double> without_loss = NuXLSiteLocalization::consistencyScores(e.n_shifts, e.n_noshifts, e.c_shifts, e.c_noshifts);
+    e.c_noshifts[3] = 2.0; // y5 also unshifted, even more intense
+    const vector<double> with_loss = NuXLSiteLocalization::consistencyScores(e.n_shifts, e.n_noshifts, e.c_shifts, e.c_noshifts);
+    TEST_EQUAL(with_loss == without_loss, true)
+    TEST_REAL_SIMILAR(with_loss[2], -1.0 / 1.5)
+    TEST_REAL_SIMILAR(with_loss[3], 1.0 / 1.5)
+    TEST_REAL_SIMILAR(with_loss[4], 0.5 / 1.5)
+    // supportedResidues takes y5 for evidence against residue 3
+    TEST_EQUAL(NuXLSiteLocalization::supportedResidues(e.n_shifts, e.n_noshifts, e.c_shifts, e.c_noshifts) == residues(0, 2), true)
+  }
+
+  // unshifted ions alone: b3 and y3 unshifted, residues 3-4 contradicted by none
+  {
+    Evidence e(8);
+    e.n_noshifts[2] = 1.0;
+    e.c_noshifts[5] = 1.0;
+    const vector<double> s = NuXLSiteLocalization::consistencyScores(e.n_shifts, e.n_noshifts, e.c_shifts, e.c_noshifts);
+    TEST_EQUAL(s == vector<double>({-0.5, -0.5, -0.5, 0.0, 0.0, -0.5, -0.5, -0.5}), true)
+    // ... count only with a weight above 0
+    TEST_EQUAL(NuXLSiteLocalization::consistencyScores(e.n_shifts, e.n_noshifts, e.c_shifts, e.c_noshifts, 0.0).empty(), true)
+  }
+
+  // an unshifted b1 is ignored (b1 of lysine coincides with common lysine ions)
+  {
+    Evidence e(7);
+    e.n_noshifts[0] = 5.0;
+    TEST_EQUAL(NuXLSiteLocalization::consistencyScores(e.n_shifts, e.n_noshifts, e.c_shifts, e.c_noshifts).empty(), true)
+  }
+}
+END_SECTION
+
+START_SECTION((static Site localizeByConsistency(const std::vector<double>& scores, double tolerance = DEFAULT_TOLERANCE, const std::vector<bool>& blocked = {})))
+{
+  const auto locate = [](const Evidence& e, const vector<bool>& blocked = {}, double unshifted_weight = NuXLSiteLocalization::DEFAULT_UNSHIFTED_WEIGHT)
+  {
+    return NuXLSiteLocalization::localizeByConsistency(
+      NuXLSiteLocalization::consistencyScores(e.n_shifts, e.n_noshifts, e.c_shifts, e.c_noshifts, unshifted_weight),
+      NuXLSiteLocalization::DEFAULT_TOLERANCE, blocked);
+  };
+
+  // no fragment evidence: unlocalized without a range
+  {
+    const NuXLSiteLocalization::Site s = NuXLSiteLocalization::localizeByConsistency({});
+    TEST_EQUAL(s.position, -1)
+    TEST_EQUAL(s.range_begin, -1)
+    TEST_EQUAL(s.range_end, -1)
+    TEST_STRING_EQUAL(s.method, "unlocalized")
+    TEST_REAL_SIMILAR(s.delta, 0.0)
+  }
+
+  // residues no ion separates tie: the one closer to the N-terminus, both in the range, no delta
+  {
+    const NuXLSiteLocalization::Site s = locate(prefixEvidence(8, 2, 4));
+    TEST_EQUAL(s.position, 2)
+    TEST_EQUAL(s.range_begin, 2)
+    TEST_EQUAL(s.range_end, 4)
+    TEST_STRING_EQUAL(s.method, "consistency")
+    TEST_REAL_SIMILAR(s.delta, 0.0)
+  }
+
+  // a weak misassigned shifted ion doesn't pull the site towards the terminus (as when summing all longer shifted ions)
+  {
+    Evidence e(10);
+    e.n_noshifts[2] = 1.0; // b3 unshifted: against residues 0-2 (weight 0.5)
+    e.n_shifts[3] = 1.0;   // b4 shifted: residues 0-3
+    e.c_shifts[3] = 1.0;   // y7 shifted: residues 3-9
+    e.c_noshifts[4] = 1.0; // y6 unshifted: against residues 4-9 (weight 0.5)
+    e.c_shifts[8] = 0.05;  // weak y2 shifted: residues 8-9
+    const NuXLSiteLocalization::Site s = locate(e);
+    TEST_EQUAL(s.position, 3)
+    TEST_EQUAL(s.range_begin, 3)
+    TEST_EQUAL(s.range_end, 3)
+    TEST_REAL_SIMILAR(s.delta, (1.95 - -0.45) / 3.05) // residue 3: 1 + 1 - 0.05, residues 8 and 9: -1 + 1 - 0.5 + 0.05
+  }
+
+  // a blocked residue (e.g. a C-terminal lysine the enzyme would have cleaved after) is no candidate: only y2 shifted
+  {
+    Evidence e(6);
+    e.c_shifts[4] = 1.0;
+    NuXLSiteLocalization::Site s = locate(e);
+    TEST_EQUAL(s.position, 4)
+    TEST_EQUAL(s.range_end, 5)
+    TEST_REAL_SIMILAR(s.delta, 0.0)
+    vector<bool> blocked(6, false);
+    blocked[5] = true;
+    s = locate(e, blocked);
+    TEST_EQUAL(s.position, 4)
+    TEST_EQUAL(s.range_begin, 4)
+    TEST_EQUAL(s.range_end, 4)
+    TEST_REAL_SIMILAR(s.delta, 2.0)
+    s = locate(e, vector<bool>(6, true));
+    TEST_EQUAL(s.position, -1)
+    TEST_STRING_EQUAL(s.method, "unlocalized")
+  }
+
+  // FDQKIIDK+U-H2O (TOPP test OpenNuXL_1): shifted b ions start at K3 and shifted y ions end there. The neighbour rules
+  // of NuXL:localization 'fragments' reject every ladder site there, so that the shifted lysine immonium ions alone
+  // decide and their tie goes to the C-terminal K7.
+  {
+    Evidence e(8);
+    e.n_shifts = {0.0, 0.0, 0.0, 0.146, 0.241, 0.081, 0.087, 0.0};
+    e.n_noshifts = {0.271, 0.125, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+    e.c_shifts = {0.0, 0.213, 0.056, 0.064, 0.0, 0.0, 0.0, 0.0};
+    e.c_noshifts = {0.0, 0.0, 0.0, 0.0, 0.0, 0.124, 0.279, 0.256};
+    const NuXLSiteLocalization::Site s = locate(e);
+    TEST_EQUAL(s.position, 3)
+    // only the shifted y5 separates K3 from Q2; all ions: 0.888 shifted, 0.125 + 0.659 unshifted (weight 0.5)
+    TEST_REAL_SIMILAR(s.delta, 2 * 0.064 / 1.28)
+  }
+
+  // DEPMITLPR+U (TOPP test OpenNuXL_1): the shifted b3 and b4 (0.129) put the cross-link before I4, the about as
+  // intense shifted y6 and y5 (0.128) after P2: P2-I4 can't be told apart
+  {
+    Evidence e(9);
+    e.n_shifts = {0.0, 0.0, 0.100, 0.029, 0.021, 0.0, 0.0, 0.022, 0.0};
+    e.n_noshifts = {0.0, 0.496, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+    e.c_shifts = {0.0, 0.0, 0.534, 0.090, 0.038, 0.0, 0.0, 0.0, 0.0};
+    e.c_noshifts = {0.0, 0.0, 0.038, 0.269, 0.483, 0.700, 0.262, 0.503, 0.147};
+    const NuXLSiteLocalization::Site s = locate(e);
+    TEST_EQUAL(s.position, 2)
+    TEST_EQUAL(s.range_begin, 2)
+    TEST_EQUAL(s.range_end, 4)
+    TEST_EQUAL(s.delta < 0.01, true)
+  }
+
+  // MVFCLSAGK+U-H2O (TOPP data OpenNuXL_1_input): shifted y7 and y6, unshifted y5-y1. Without counting unshifted ions,
+  // C3-G7 can't be told apart (the C-terminal lysine blocked); with them, the unshifted y5 and y4 contradict L4 and S5.
+  {
+    Evidence e(9);
+    e.n_noshifts = {0.0, 0.847, 0.059, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+    e.c_shifts = {0.0, 0.0, 0.341, 0.195, 0.0, 0.0, 0.0, 0.0, 0.0};
+    e.c_noshifts = {0.0, 0.0, 0.0, 0.0, 0.123, 0.197, 0.130, 0.293, 0.216};
+    vector<bool> blocked(9, false);
+    blocked[8] = true;
+    NuXLSiteLocalization::Site s = locate(e, blocked, 0.0);
+    TEST_EQUAL(s.position, 3)
+    TEST_EQUAL(s.range_begin, 3)
+    TEST_EQUAL(s.range_end, 7)
+    TEST_REAL_SIMILAR(s.delta, 0.0)
+    s = locate(e, blocked);
+    TEST_EQUAL(s.position, 3)
+    TEST_EQUAL(s.range_begin, 3)
+    TEST_EQUAL(s.range_end, 4)
+    TEST_EQUAL(s.delta > 0.0, true)
+  }
+}
+END_SECTION
+
 START_SECTION((static void digestProtein(const EnzymaticDigestion& digestion, std::string_view protein, size_t min_length, size_t max_length, bool clip_nterm_methionine, std::vector<std::string_view>& peptides)))
 {
   ProteaseDigestion trypsin;
