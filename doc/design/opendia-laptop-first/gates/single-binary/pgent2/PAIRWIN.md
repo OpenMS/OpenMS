@@ -78,3 +78,26 @@ so this can be measured directly.
     more often, the fix is interference-aware evidence: fragments claimed by a co-eluting identified precursor should not
     count. OpenDIA already has the `i_*` interference features, but they work at score level, not in TDC.
 - **Running in parallel:** the predicted-decoy test (decoys with their own predicted RT, IM and intensities).
+
+## Addendum 2: the shared-ladder test (`interferer.py`, `INTERFERER.txt`)
+The question: does a winner share ≥ 3 of its 12 library fragments (± 15 ppm) with a single accepted human precursor in
+the same isolation window (± 12.5 Th) that elutes within 10 s?
+
+| group | entrapment | decoy |
+|---|---|---|
+| high band (score ≥ the q 0.05 cut) | 3.9 % (23 / 593) | 1.8 % (14 / 793) |
+| random winners | 0.3 % | 0.1 % |
+
+- **Shared ladders are about twice as common for false targets as for decoys,** but they explain only a small share of
+  the excess.
+- In the high band, entrapments exceed decoys (scaled by r ≈ 1.56) by about 160 ≈ 593 − 793 / 1.56 × … in this
+  q ≤ 0.05 band. Shared-ladder cases account for about 10-20 of them.
+- **So one real interferer is not the main mechanism.** Most strong false-target evidence is fragments spread over
+  several co-eluting sources, or partial matches. Natural sequences hit those slightly more often than reversed ones
+  across many fragments.
+- **The pragmatic consequence.** The asymmetry is a property of natural versus reversed sequences on dense diaPASEF
+  data. The usual remedies are:
+  - decoys that look natural: predicted decoys with their own self-consistent RT, IM and intensities (being tested now);
+  - or an empirical correction of q estimated from the run.
+  - A run-derived correction cannot use entrapment labels in the run, so it would need a decoy model that already
+    matches false targets. The predicted-decoy test decides whether that is achievable.
