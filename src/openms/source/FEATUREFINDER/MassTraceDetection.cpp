@@ -45,7 +45,8 @@ namespace OpenMS
       defaults_.setValue("min_sample_rate", 0.5, "Minimum fraction of scans along the mass trace that must contain a peak.", {"advanced"});
       defaults_.setValue("min_trace_length", 5.0, "Minimum expected length of a mass trace (in seconds).", {"advanced"});
       defaults_.setValue("max_trace_length", -1.0, "Maximum expected length of a mass trace (in seconds). Set to a negative value to disable maximal length check during mass trace detection.", {"advanced"});
-
+      defaults_.setValue("max_apex_deviation_ppm", -1.0, "Maximum allowed deviation of a peak from the trace apex m/z (in ppm). Default is -1.0, which automatically derives the bound as 3 * mass_error_ppm. Set to a positive value to override this bound, or 0.0 to disable the apex guard.", {"advanced"}); //Edit
+      
       defaultsToParam_();
 
       this->setLogType(CMD);
@@ -288,9 +289,10 @@ namespace OpenMS
       return;
     } // end of MassTraceDetection::run
 
-    MassTraceDetection::PeakCandidate MassTraceDetection::findBestPeak_(
+      MassTraceDetection::PeakCandidate MassTraceDetection::findBestPeak_(
         const MSSpectrum& spectrum,
         double centroid_mz,
+        double apex_mz,
         double ftl_sd,
         double centroid_im) const
     {
@@ -304,26 +306,47 @@ namespace OpenMS
       double right_bound = centroid_mz + 3 * ftl_sd;
       double left_bound = centroid_mz - 3 * ftl_sd;
 
+      // Bound candidate search within apex tolerance envelope (defaulting to 3 * mass_error_ppm when negative)
+      double apex_dev_ppm = (max_apex_deviation_ppm_ > 0.0)
+                            ? max_apex_deviation_ppm_
+                            : (max_apex_deviation_ppm_ == 0.0 ? -1.0 : 3.0 * mass_error_ppm_);
+      if (apex_dev_ppm > 0.0)
+      {
+        double max_apex_dev = (apex_mz / 1e6) * apex_dev_ppm;
+        left_bound = std::max(left_bound, apex_mz - max_apex_dev);
+        right_bound = std::min(right_bound, apex_mz + max_apex_dev);
+      }
+
+      if (left_bound > right_bound)
+      {
+        return candidate;
+      }
+
+      auto left_bound_it = spectrum.MZBegin(left_bound);
+      Size idx_left = left_bound_it - spectrum.begin();
+      auto right_bound_it = spectrum.MZEnd(right_bound);
+      Size idx_right = right_bound_it - spectrum.begin();
+
       if (!has_centroid_im_)
       {
-        // Standard LC-MS data: find peak closest to target m/z
-        candidate.idx = spectrum.findNearest(centroid_mz);
-        candidate.mz = spectrum[candidate.idx].getMZ();
-        candidate.intensity = spectrum[candidate.idx].getIntensity();
-        candidate.found = true;
+        // Standard LC-MS data: find peak closest to centroid m/z within the valid bounds
+        for (Size i = idx_left; i < idx_right; ++i)
+        {
+          if (!candidate.found || std::abs(spectrum[i].getMZ() - centroid_mz) < std::abs(candidate.mz - centroid_mz))
+          {
+            candidate.idx = i;
+            candidate.mz = spectrum[i].getMZ();
+            candidate.intensity = spectrum[i].getIntensity();
+            candidate.found = true;
+          }
+        }
       }
       else
       {
-        // LC-IMS-MS data: find best peak considering both m/z and ion mobility
+        // LC-IMS-MS data: find best peak considering both m/z and ion mobility within the valid bounds
         double right_bound_im = centroid_im + ion_mobility_tolerance_;
         double left_bound_im = centroid_im - ion_mobility_tolerance_;
 
-        auto left_bound_it = spectrum.MZBegin(left_bound);
-        Size idx_left = left_bound_it - spectrum.begin();
-        auto right_bound_it = spectrum.MZEnd(right_bound);
-        Size idx_right = right_bound_it - spectrum.begin();
-
-        // Search within m/z window for peak with closest ion mobility match
         for (Size i = idx_left; i < idx_right; ++i)
         {
           double im_value = spectrum.getFloatDataArrays()[ion_mobility_idx_][i];
@@ -347,6 +370,7 @@ namespace OpenMS
 
     bool MassTraceDetection::isPeakAcceptable_(const PeakCandidate& candidate,
                                                double centroid_mz,
+                                               double apex_mz,  // Edit
                                                double ftl_sd,
                                                double centroid_im,
                                                Size spectrum_idx,
@@ -356,6 +380,19 @@ namespace OpenMS
       if (!candidate.found)
       {
         return false;
+      }
+
+      // Guard against runaway m/z migration relative to the initial seed apex
+      double apex_dev_ppm = (max_apex_deviation_ppm_ > 0.0)
+                            ? max_apex_deviation_ppm_
+                            : (max_apex_deviation_ppm_ == 0.0 ? -1.0 : 3.0 * mass_error_ppm_);
+      if (apex_dev_ppm > 0.0)
+      {
+        double max_apex_dev = (apex_mz / 1e6) * apex_dev_ppm;
+        if (std::abs(candidate.mz - apex_mz) > max_apex_dev)
+        {
+          return false;
+        }
       }
 
       double right_bound = centroid_mz + 3 * ftl_sd;
@@ -551,9 +588,9 @@ namespace OpenMS
             // Only process spectra that contain peaks
             if (!spec_trace_down.empty())
             {
-              PeakCandidate candidate = findBestPeak_(spec_trace_down, centroid_mz, ftl_sd, centroid_im);
+              PeakCandidate candidate = findBestPeak_(spec_trace_down, centroid_mz, apex_peak.getMZ(),ftl_sd, centroid_im);
               
-              if (isPeakAcceptable_(candidate, centroid_mz, ftl_sd, centroid_im, trace_down_idx - 1, spec_offsets, peak_visited))
+              if (isPeakAcceptable_(candidate, centroid_mz, apex_peak.getMZ(),ftl_sd, centroid_im, trace_down_idx - 1, spec_offsets, peak_visited))
               {
                 processPeak_(candidate, spec_trace_down, current_trace, gathered_idx,
                             fwhms_mz, fwhms_im, centroid_mz, centroid_im,
@@ -604,9 +641,9 @@ namespace OpenMS
             // Only process spectra that contain peaks
             if (!spec_trace_up.empty())
             {
-              PeakCandidate candidate = findBestPeak_(spec_trace_up, centroid_mz, ftl_sd, centroid_im);
+              PeakCandidate candidate = findBestPeak_(spec_trace_up, centroid_mz, apex_peak.getMZ(), ftl_sd, centroid_im);
               
-              if (isPeakAcceptable_(candidate, centroid_mz, ftl_sd, centroid_im, trace_up_idx + 1, spec_offsets, peak_visited))
+              if (isPeakAcceptable_(candidate, centroid_mz, apex_peak.getMZ(), ftl_sd, centroid_im, trace_up_idx + 1, spec_offsets, peak_visited))
               {
                 processPeak_(candidate, spec_trace_up, current_trace, gathered_idx,
                             fwhms_mz, fwhms_im, centroid_mz, centroid_im,
@@ -713,6 +750,7 @@ namespace OpenMS
       min_sample_rate_ = (double)param_.getValue("min_sample_rate");
       min_trace_length_ = (double)param_.getValue("min_trace_length");
       max_trace_length_ = (double)param_.getValue("max_trace_length");
+      max_apex_deviation_ppm_ = (double)param_.getValue("max_apex_deviation_ppm"); //Edit
       reestimate_mt_sd_ = param_.getValue("reestimate_mt_sd").toBool();
     }
 

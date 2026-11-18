@@ -222,4 +222,104 @@ END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
+// Edit
+START_SECTION((max_apex_deviation_ppm parameter))
+{
+  // Test that max_apex_deviation_ppm prevents runaway drift from the apex
+  PeakMap exp;
+  // Construct a synthetic run where peaks progressively drift away from apex
+  for (Size s = 0; s < 10; ++s)
+  {
+    MSSpectrum spec;
+    spec.setRT(s * 1.0);
+    spec.setMSLevel(1);
+    // Apex is at scan 0 with m/z 500.0; subsequent scans drift by 0.05 Th each
+    Peak1D p;
+    p.setMZ(500.0 + s * 0.015);
+    p.setIntensity(10000.0 / (1.0 + s));
+    spec.push_back(p);
+    exp.addSpectrum(spec);
+  }
+
+  std::vector<MassTrace> traces;
+  MassTraceDetection mtd;
+  Param p = mtd.getDefaults();
+  p.setValue("min_trace_length", 0.0);
+  p.setValue("noise_threshold_int", 1.0);
+  p.setValue("chrom_peak_snr", 1.0);
+
+  // 1. With guard disabled (0.0): trace keeps collecting drifting peaks
+  p.setValue("max_apex_deviation_ppm", 0.0);
+  mtd.setParameters(p);
+  mtd.run(exp, traces);
+  TEST_EQUAL(traces.empty(), false);
+  Size unconstrained_len = traces[0].getSize();
+
+  // 2. With default guard (-1.0, automatically derived as 3 * mass_error_ppm = 60.0 ppm):
+  // drifters beyond apex_mz + 0.030 Th are rejected!
+  p.setValue("max_apex_deviation_ppm", -1.0);
+  mtd.setParameters(p);
+  traces.clear();
+  mtd.run(exp, traces);
+  TEST_EQUAL(traces.empty(), false);
+  TEST_TRUE(traces[0].getSize() < unconstrained_len);
+
+  // 3. Verify all collected peaks in the guarded trace are within 60 ppm of the apex
+  for (const auto& pt : traces[0])
+  {
+    double ppm_dev = std::abs(pt.getMZ() - 500.0) / 500.0 * 1e6;
+    TEST_TRUE(ppm_dev <= 60.0);
+  }
+}
+    // Regression test for PR #10929:
+  // Verify that findBestPeak_ does not pick an invalid peak outside the apex window
+  // when an admissible alternative exists in the same scan.
+  {
+    PeakMap exp_two_peaks;
+
+    // Scan 0: Apex at 500.000 (highest intensity)
+    MSSpectrum s0;
+    s0.setRT(0.0);
+    s0.setMSLevel(1);
+    s0.push_back(Peak1D(500.000, 20000.0));
+    exp_two_peaks.addSpectrum(s0);
+
+    // Scans 1-4: Subsequent scans at 500.024 shift the centroid upward (within 50 ppm)
+    for (Size i = 1; i <= 4; ++i)
+    {
+      MSSpectrum s;
+      s.setRT(i * 1.0);
+      s.setMSLevel(1);
+      s.push_back(Peak1D(500.024, 15000.0));
+      exp_two_peaks.addSpectrum(s);
+    }
+
+    // Scan 5 contains two peaks:
+    // Peak A: 500.000 (valid, 0 ppm from apex)
+    // Peak B: 500.026 (outside 50 ppm apex envelope [limit is 500.025], but closer to centroid ~500.018)
+    MSSpectrum s5;
+    s5.setRT(5.0);
+    s5.setMSLevel(1);
+    s5.push_back(Peak1D(500.000, 15000.0));
+    s5.push_back(Peak1D(500.026, 15000.0));
+    exp_two_peaks.addSpectrum(s5);
+
+    MassTraceDetection mtd_two_peaks;
+    Param p_tp = mtd_two_peaks.getDefaults();
+    p_tp.setValue("min_trace_length", 0.0);
+    p_tp.setValue("noise_threshold_int", 1.0);
+    p_tp.setValue("chrom_peak_snr", 1.0);
+    p_tp.setValue("mass_error_ppm", 20.0);
+    p_tp.setValue("max_apex_deviation_ppm", 50.0);
+    mtd_two_peaks.setParameters(p_tp);
+
+    std::vector<MassTrace> traces_tp;
+    mtd_two_peaks.run(exp_two_peaks, traces_tp);
+
+    TEST_EQUAL(traces_tp.empty(), false);
+    TEST_EQUAL(traces_tp[0].getSize(), 6);
+    TEST_REAL_SIMILAR(traces_tp[0].rbegin()->getMZ(), 500.000);
+  }
+END_SECTION
+
 END_TEST

@@ -143,12 +143,14 @@ namespace OpenMS
         /// Find the best matching peak in a spectrum considering m/z and optionally ion mobility
         PeakCandidate findBestPeak_(const MSSpectrum& spectrum,
                                     double centroid_mz,
+                                    double apex_mz,
                                     double ftl_sd,
                                     double centroid_im = -1.0) const;
 
         /// Check if peak candidate meets acceptance criteria
         bool isPeakAcceptable_(const PeakCandidate& candidate,
                                double centroid_mz,
+                               double apex_mz, // Edit
                                double ftl_sd,
                                double centroid_im,
                                Size spectrum_idx,
@@ -198,6 +200,7 @@ namespace OpenMS
         double min_sample_rate_;
         double min_trace_length_;
         double max_trace_length_;
+        double max_apex_deviation_ppm_;
 
         bool reestimate_mt_sd_;
 
