@@ -13,6 +13,9 @@ Only the memory changed.
 
 - **Library:** the fully predicted HeLa entrapment library (r = 1.12).
 - **Not comparable** with the experimental-library numbers (16,116 / 24,000).
+- **Weak calibration:** with this predicted library, the self-calibration on D used only 967 anchors. That is a weak
+  RT/IM fit, and it is shared by CUR and NEW. It may contribute to the absolute FDP_c excess in both arms. It was not
+  examined further.
 
 ## Verdict
 - **FAIL on criterion 1a.** NEW's FDP_c at q ≤ 0.01 is 0.0166 on D, above 0.012. On H it is 0.0186.
