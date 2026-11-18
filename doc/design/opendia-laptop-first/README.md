@@ -34,9 +34,10 @@ The branch's [`src/topp/OpenDIA/README.md`](https://github.com/OpenMS/OpenMS/blo
   far over (1.76 / 1.67 %). diaPASEF q calibration is the open problem, and it is shared by today's default
   (RESULT_PGENT.md).
 - **Is the diaPASEF excess real? (PRECHECK_FOREIGN, 18 Nov):** with Arabidopsis entrapments, the accepted ones are mostly
-  near-homologs of human peptides (3-4x enriched for Hamming <= 2). Excluding those, FDP_c at q <= 0.01 is 1.16 % for the
-  default and 0.97 % with `-pg_scores`, so q is close to calibrated. `-pg_scores` gives +22 % IDs at 1 % true FDR.
-  Next is a frozen plan on a homolog-filtered entrapment library.
+  near-homologs of human peptides (3-4x enriched for Hamming <= 2). A post-hoc homolog filter suggested near-nominal q,
+  but PLAN_PGENT2 removed homologs at library construction and still measured FDP_c 1.43 % (default) and 1.59 %
+  (`-pg_scores`) at q <= 0.01. **diaPASEF q is about 1.5 times optimistic**, and it is real; `-pg_scores` gives +17 %
+  at equal true FDR. Next is locating where in the scorer the asymmetry enters.
 - **Speed and memory, same laptop, Astral raw 01:** 7:18-7:26 against DIA-NN's 7:23. Peak memory is 14.4 GB against
   6.8 GB.
 

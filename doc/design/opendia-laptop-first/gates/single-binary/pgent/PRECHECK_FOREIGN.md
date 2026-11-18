@@ -1,5 +1,10 @@
 # PRECHECK_FOREIGN: is OpenDIA's diaPASEF q too optimistic, or are the entrapments too close to human? (b1, diagnostic)
 
+> **Correction (PLAN_PGENT2 verdict, `pgent2/VERDICT_DESIGN.md`):** the post-hoc homolog filter below flattered both
+> arms. With near-homologs removed at library construction, FDP_c at q ≤ 0.01 is 1.43 % (CUR) and 1.59 % (NEW) over 5
+> seeds. The conclusion "q is close to calibrated" is withdrawn: the diaPASEF excess is real, at about 1.5 times
+> nominal.
+
 Written 18 November 2026. HeLa D, seed 0, CUR and NEW (`-pg_scores`), on codon. Labels are used here for evaluation only.
 
 ## Library (`entlib-ath-20261118`, sha256 b93f2872…)
