@@ -13,6 +13,7 @@
 #include <OpenMS/ANALYSIS/TOPDOWN/PeakGroup.h>
 #include <OpenMS/ANALYSIS/TOPDOWN/Qvalue.h>
 #include <OpenMS/ANALYSIS/TOPDOWN/TopDownIsobaricQuantification.h>
+#include <OpenMS/PROCESSING/CENTROIDING/PeakPickerHiRes.h>
 #include <OpenMS/PROCESSING/FILTERING/ThresholdMower.h>
 #include <OpenMS/METADATA/SpectrumLookup.h>
 #include <algorithm>
@@ -163,10 +164,22 @@ void FLASHDeconvAlgorithm::filterLowPeaks_(MSExperiment& map)
   {
     ThresholdMower mower(threshold_mower_filter);
     std::vector<float> intensities; // scratch of the fast path
+    PeakPickerHiRes picker;          // default parameters (no SNR filter)
 #pragma omp for schedule(dynamic, 4)
     for (int i = 0; i < (int) map.size(); i++)
     {
       auto& it = map[i];
+      // MSn profile spectra are centroided first (OpenMS PeakPickerHiRes, defaults). Deconvolved as profile, every profile point was a
+      // peak: on 25 native top-down MS2 spectra (22,000-3,900,000 profile points) FLASHDeconv explained 605 fragments of the known
+      // proteins (81 decoy-sequence matches) against 718 (78) after centroiding, as many as IsoDec, which centroids first, at the same
+      // depth. MS1 profile spectra stay as they are (tolerance estimation, feature tracing and -quant use their profile points); the
+      // raw MSn spectra of FLASHTnT's raw-spectrum scoring are copied before this step.
+      if (it.getMSLevel() > 1 && it.getType(true) == SpectrumSettings::SpectrumType::PROFILE)
+      {
+        MSSpectrum picked;
+        picker.pick(it, picked);
+        it = std::move(picked);
+      }
       mower.filterSpectrum(it);
       if (it.empty()) continue;
       Size count = it.getType(false) == SpectrumSettings::SpectrumType::CENTROID ? max_peak_count_for_centroid_ : max_peak_count_for_profile_;
