@@ -1,0 +1,9 @@
+OpenDIA 24 alone: 14910
++ elution model fit                  ['VAR_ELUTION_MODEL_FIT_SCORE']: 14910 (+0)
++ isotope (fragment) corr/overlap    ['VAR_ISOTOPE_CORRELATION_SCORE', 'VAR_ISOTOPE_OVERLAP_SCORE']: 15636 (+726)
++ xcorr coelution (+w)               ['VAR_XCORR_COELUTION', 'VAR_XCORR_COELUTION_WEIGHTED']: 15873 (+963)
++ xcorr shape (+w)                   ['VAR_XCORR_SHAPE', 'VAR_XCORR_SHAPE_WEIGHTED']: 15649 (+739)
++ intensity + log S/N                ['VAR_INTENSITY_SCORE', 'VAR_LOG_SN_SCORE']: 15432 (+522)
++ mutual information (3)             ['VAR_MI_SCORE', 'VAR_MI_WEIGHTED_SCORE', 'VAR_MI_RATIO_SCORE']: 15081 (+171)
++ mass deviation (+w)                ['VAR_MASSDEV_SCORE', 'VAR_MASSDEV_SCORE_WEIGHTED']: 15527 (+617)
++ all of the above (14): 16726 (+1816)
