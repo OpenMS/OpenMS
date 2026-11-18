@@ -642,8 +642,9 @@ endif()
 #------------------------------------------------------------------------------
 # openms-thermo-bridge (Thermo RAW file reading)
 if (WITH_THERMO_RAW)
-  # ThermoRawFile uses the typed single-pass scan API of the 1.x series.
-  find_package(OpenMSThermoBridge 1.0.0 QUIET)
+  # ThermoRawFile uses the typed single-pass scan API of the 1.x series, and since 1.1.0 the
+  # labels that come with the trailer values of a scan (ScanHeader::trailer_text_labels).
+  find_package(OpenMSThermoBridge 1.1.0 QUIET)
 
   if(OpenMSThermoBridge_FOUND)
     message(STATUS "openms-thermo-bridge: using system installation")
@@ -671,9 +672,9 @@ if (WITH_THERMO_RAW)
       OpenMSThermoBridge
       GIT_REPOSITORY https://github.com/OpenMS/openms-thermo-bridge.git
       # Pin to a specific reviewed upstream revision to keep builds reproducible.
-      # This is the commit of the v1.0.0 release tag. tools/ci/fetch_thermo_assets.sh checks
+      # This is the commit of the v1.1.0 release tag. tools/ci/fetch_thermo_assets.sh checks
       # that its own pin matches and downloads the matching release assets.
-      GIT_TAG        75849ecf6f600a3e52479823043842e571a774ae  # v1.0.0
+      GIT_TAG        1d12ef8ab841715f2a223f874d3e9445854ee284  # v1.1.0
     )
 
     # Configure the thermo bridge build options
