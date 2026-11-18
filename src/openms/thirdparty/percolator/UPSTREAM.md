@@ -158,6 +158,12 @@ All patches are `git diff` style (a/b/ prefixes, applied with -p1) on the whitel
   loop (`LoopErrors`, `OpenMPThreads.h`): an exception that leaves an OpenMP region ends the process,
   and OpenMS runs the code as a library (e.g. a `std::bad_alloc` of a large run).
 
+Deliberate difference from the executable outside the patches (OpenMS wrapper, `Percolator.cpp`): with
+`train_fdr` 0 the wrapper uses `test_fdr` also in the passes after a capped training (the `-N` second pass,
+the out-of-fold merge, the learning curve), as the cross-validation resolves its selection FDR. The
+executable of a9783ee8 normalizes the `-N` second pass at its unresolved `selectionFdr_` (`Caller.cpp`:
+with `-F 0`, 0), so with `-trainFDR 0 -N` the two differ; with any `train_fdr` > 0 they agree.
+
 ### The spline PEP: fixed upstream (#408)
 
 On a90106b the patch set had four more patches for the P-IRLS spline PEP (`pep_method` `nonparametric`,
