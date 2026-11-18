@@ -1,0 +1,6 @@
+cur accepted q<=0.01                 n  109 | Hamming<=1 0.22 <=2 0.32 | shared y-suffix>=6 0.28
+cur   of which q<=0.005              n   73 | Hamming<=1 0.29 <=2 0.41 | shared y-suffix>=6 0.37
+cur null: random entrapment winners  n  997 | Hamming<=1 0.03 <=2 0.09 | shared y-suffix>=6 0.09
+new accepted q<=0.01                 n  112 | Hamming<=1 0.26 <=2 0.34 | shared y-suffix>=6 0.35
+new   of which q<=0.005              n   56 | Hamming<=1 0.39 <=2 0.45 | shared y-suffix>=6 0.48
+new null: random entrapment winners  n  994 | Hamming<=1 0.03 <=2 0.11 | shared y-suffix>=6 0.09

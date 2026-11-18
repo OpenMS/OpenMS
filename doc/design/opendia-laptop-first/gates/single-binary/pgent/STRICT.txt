@@ -1,0 +1,3 @@
+entrapment peptides 114397, kept as strict (Hamming > 2) 93465 (0.82); r_strict 1.4061
+cur: q<=0.01 N 11026, strict entrapments 75, FDP_c 0.0116 (90 % 0.0095-0.0141); N@FDP_c 1 % 10800
+new: q<=0.01 N 13164, strict entrapments 75, FDP_c 0.0097 (90 % 0.0080-0.0118); N@FDP_c 1 % 13197
