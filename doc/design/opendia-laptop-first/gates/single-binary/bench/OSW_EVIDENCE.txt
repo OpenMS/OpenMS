@@ -1,0 +1,23 @@
+R 4689, A 13212, SVM decoys 63984; SVM d-score R median 1.99, A 3.00, decoys 0.23
+OpenSWATH sub-score AUC, R vs all SVM decoys (top 20):
+                        score   AUC dir
+            VAR_NORM_RT_SCORE 0.850   -
+          VAR_LIBRARY_DOTPROD 0.849   +
+             VAR_LIBRARY_RMSD 0.838   -
+        VAR_LIBRARY_MANHATTAN 0.838   -
+           VAR_LIBRARY_SANGLE 0.832   -
+   VAR_LIBRARY_ROOTMEANSQUARE 0.828   -
+ VAR_XCORR_COELUTION_WEIGHTED 0.824   -
+          VAR_MANHATTAN_SCORE 0.786   -
+            VAR_DOTPROD_SCORE 0.785   +
+             VAR_LIBRARY_CORR 0.775   +
+          VAR_INTENSITY_SCORE 0.747   +
+            VAR_MASSDEV_SCORE 0.712   -
+        VAR_MI_WEIGHTED_SCORE 0.712   +
+          VAR_XCORR_COELUTION 0.708   -
+   VAR_MASSDEV_SCORE_WEIGHTED 0.706   -
+     VAR_XCORR_SHAPE_WEIGHTED 0.698   +
+             VAR_LOG_SN_SCORE 0.696   +
+MS1_VAR_ISOTOPE_OVERLAP_SCORE 0.681   -
+    MS1_VAR_MI_COMBINED_SCORE 0.678   +
+                 VAR_MI_SCORE 0.677   +

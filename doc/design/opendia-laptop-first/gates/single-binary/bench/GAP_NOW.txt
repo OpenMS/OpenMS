@@ -1,0 +1,38 @@
+OpenDIA: 16021 at q<=0.01, score cut 5.135; scored precursors 136749 (69133 targets)
+
+== DIA-NN q<=0.01: 28568 IDs in the library
+g
+accepted                                   14910
+right peak below cut                        9845
+wrong peak, right one never a candidate     3218
+wrong peak, right one is a candidate         493
+not scored                                   102
+  right peak below cut: score quantiles {0.25: 0.28, 0.5: 1.1, 0.75: 3.06, 0.9: 4.65} (cut 5.13)
+  wrong peak with right candidate: right-candidate score median -1000000015047466219876688855040.00, would pass cut 0.000
+
+== OpenSWATH SVM q<=0.01: 19132 IDs in the library
+g
+accepted                                   13212
+right peak below cut                        4689
+wrong peak, right one never a candidate      984
+wrong peak, right one is a candidate         219
+not scored                                    28
+  right peak below cut: score quantiles {0.25: 0.3, 0.5: 1.42, 0.75: 3.82, 0.9: 4.75} (cut 5.13)
+  wrong peak with right candidate: right-candidate score median -1000000015047466219876688855040.00, would pass cut 0.000
+
+DIA-NN and SVM both: 16953; OpenDIA has 12591 (0.743)
+of those, where OpenDIA loses them:
+g
+accepted                                   12591
+right peak below cut                        3615
+wrong peak, right one never a candidate      631
+wrong peak, right one is a candidate         110
+not scored                                     6
+
+DIA-NN abundance percentile median by group:
+g
+accepted                                   0.68
+not scored                                 0.08
+right peak below cut                       0.33
+wrong peak, right one is a candidate       0.23
+wrong peak, right one never a candidate    0.35
