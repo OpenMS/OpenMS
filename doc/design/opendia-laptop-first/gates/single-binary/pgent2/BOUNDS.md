@@ -38,3 +38,21 @@ targets and entrapments are paired one-to-one.
 - Then decide:
   - either `-pg_scores` can be judged against the bound;
   - or there is a calibration defect to fix after all.
+
+## Addendum: bounds across q cuts (PGENT2 library, D, 5 seeds; `BOUNDS_QCUTS.txt`)
+| arm | q cut | lower N_E/N, mean (range) | combined |
+|---|---|---|---|
+| CUR | 0.005 | 0.0054 (0.0049-0.0058) | 0.0089 |
+| CUR | 0.01 | 0.0087 (0.0080-0.0090) | 0.0143 |
+| CUR | 0.02 | **0.0156** (0.0152-0.0166) | 0.0257 |
+| NEW | 0.005 | **0.0053** (0.0052-0.0054) | 0.0087 |
+| NEW | 0.01 | 0.0097 (0.0092-0.0102) | 0.0159 |
+| NEW | 0.02 | **0.0187** (0.0179-0.0199) | 0.0306 |
+
+- At q ≤ 0.02, the **lower** bound is 1.56 % (CUR) and 1.87 % (NEW). That is below 2 %, so control is not shown to
+  fail.
+- At q ≤ 0.005, the **combined upper** bound is 0.89 % and 0.87 %. That is above 0.5 %, so control is not shown to hold.
+- The lower bound tracks about 0.9 times q at every cut. The combined bound tracks about 1.5 times q.
+- Nothing yet shows failure. The r ≈ 5 library is needed to narrow the band.
+- The pattern is consistent with calibrated q and a moderate number of true near-homolog-like matches. It is equally
+  consistent with a mild excess.
