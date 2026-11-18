@@ -20,7 +20,9 @@ The branch's [`src/topp/OpenDIA/README.md`](https://github.com/OpenMS/OpenMS/blo
   17 % (D 18,792, held-out H 28,020) and Astral N@FDP_c 1 % by 2-12 % (92 / 83 / 90 % of DIA-NN). They failed two
   frozen criteria: the DIA-NN agreement on D (0.9104 against a limit of 0.9249), and q calibration on Astral raw 02
   (FDP_c 0.0103 median at q ≤ 0.01). The evidence is real, but some of it separates decoys better than entrapments.
-  The next step is to find which scores do that. See RESULT_PGSCORES.md.
+  A follow-up check (PRECHECK_PGQ) found no single score to blame: on every pg score, entrapments and decoys look the same
+  (AUC 0.45-0.55). The excess is on raw 02 only. Pooled over raws 01-03 it is 0.0072, so the scorer's fit is the next
+  suspect. See RESULT_PGSCORES.md and PRECHECK_PGQ.md.
 - **Speed and memory, same laptop, Astral raw 01:** 7:18-7:26 against DIA-NN's 7:23. Peak memory is 14.4 GB against
   6.8 GB.
 
