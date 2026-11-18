@@ -1,0 +1,6 @@
+cur q<=0.005: lower 0.0091 (0.0091-0.0091)  combined 0.0103
+cur q<=0.01: lower 0.0158 (0.0158-0.0158)  combined 0.0180
+cur q<=0.02: lower 0.0266 (0.0266-0.0266)  combined 0.0304
+new q<=0.005: lower 0.0084 (0.0084-0.0084)  combined 0.0096
+new q<=0.01: lower 0.0161 (0.0161-0.0161)  combined 0.0184
+new q<=0.02: lower 0.0294 (0.0294-0.0294)  combined 0.0335
