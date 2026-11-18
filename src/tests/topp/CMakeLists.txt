@@ -6106,6 +6106,11 @@ set_tests_properties("TOPP_DecoyDatabase_13_out" "TOPP_DecoyDatabase_13_check" P
 add_test("TOPP_DecoyDatabase_14" ${TOPP_BIN_PATH}/DecoyDatabase -test -method shuffle_products -enzyme RNase_T1 -in ${DATA_DIR_TOPP}/DecoyDatabase_1.fasta -out ${TESTS_TEMP_DIR}/DecoyDatabase_14.tmp.fasta)
 add_test("TOPP_DecoyDatabase_15" ${TOPP_BIN_PATH}/DecoyDatabase -test -type RNA -method shuffle_products -in ${DATA_DIR_TOPP}/DecoyDatabase_12.fasta -out ${TESTS_TEMP_DIR}/DecoyDatabase_15.tmp.fasta)
 set_tests_properties("TOPP_DecoyDatabase_14" "TOPP_DecoyDatabase_15" PROPERTIES WILL_FAIL 1)
+# missed-cleavage oligos assembled from products shorter than 'min_length' (review of OpenMS PR #10941): every product of
+# ACGUAG and CAGAUG is shorter than 5, but with one missed cleavage each target is a searchable 6-mer
+add_test("TOPP_DecoyDatabase_16" ${TOPP_BIN_PATH}/DecoyDatabase -test -type RNA -method shuffle_products -enzyme RNase_T1 -min_length 5 -missed_cleavages 1 -in ${DATA_DIR_TOPP}/DecoyDatabase_16.fasta -out ${TESTS_TEMP_DIR}/DecoyDatabase_16.tmp.fasta)
+add_test("TOPP_DecoyDatabase_16_check" ${CMAKE_COMMAND} -DIN=${TESTS_TEMP_DIR}/DecoyDatabase_16.tmp.fasta -DMIN_LENGTH=5 -DMISSED=1 -P ${DATA_DIR_TOPP}/DecoyDatabase_shuffle_products_check.cmake)
+set_tests_properties("TOPP_DecoyDatabase_16_check" PROPERTIES DEPENDS "TOPP_DecoyDatabase_16")
 # EntrapmentEvaluator: entrapment FDP per q-value threshold and class
 add_test("TOPP_EntrapmentEvaluator_1" ${TOPP_BIN_PATH}/EntrapmentEvaluator -test -in ${DATA_DIR_TOPP}/EntrapmentEvaluator_1_input.idXML -out ${TESTS_TEMP_DIR}/EntrapmentEvaluator_1.tmp.tsv -te_ratio 1 -q_value 0.01 0.05 -class_meta_value mod_class)
 add_test("TOPP_EntrapmentEvaluator_1_out" ${DIFF} -in1 ${TESTS_TEMP_DIR}/EntrapmentEvaluator_1.tmp.tsv -in2 ${DATA_DIR_TOPP}/EntrapmentEvaluator_1_output.tsv )

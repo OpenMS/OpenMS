@@ -36,9 +36,14 @@ namespace OpenMS
   nucleotide, e.g. G for RNase T1). The shuffled product therefore digests like the original, and a sequence rewritten
   product by product digests into the rewritten products (and their missed-cleavage combinations).
 
-  Shuffles are deterministic: they depend only on the seed and the product. rewrite() also gives the same product the
-  same replacement every time, so that sequences sharing products (e.g. tRNA isodecoders) share their rewritten
-  products, as the originals do. Replacements never repeat: every replacement is added to the forbidden keys.
+  Shuffles are deterministic: they depend only on the seed and the product. rewrite() gives the same product the same
+  replacement in every sequence, so that sequences sharing products (e.g. tRNA isodecoders) share their rewritten
+  products, as the originals do, and the numbers of distinct original and rewritten products stay balanced.
+  Replacements of products of at least min_length residues never repeat.
+
+  rewrite() also checks the products that a search with missed cleavages makes from the rewritten sequences
+  (combinations of consecutive products, including ones assembled from products shorter than min_length) and
+  changes the shuffles of their components to remove forbidden ones (see rewrite()).
 
   Products are compared by key(): the residues (with modifications) without terminal modifications.
 */
@@ -51,8 +56,9 @@ public:
   /// The residues of @p oligo without terminal modifications, as a string
   static std::string key(const NASequence& oligo);
 
-  /// Keys of the products (no missed cleavages) of @p sequence with at least min_length residues
-  std::vector<std::string> productKeys(const std::string& sequence) const;
+  /// Keys of the searchable products of @p sequence: products and combinations of up to @p missed_cleavages + 1
+  /// consecutive products, with at least min_length residues
+  std::vector<std::string> productKeys(const std::string& sequence, Size missed_cleavages = 0) const;
 
   /// Whether @p residue stays in place in a shuffle (a cleavage residue of the enzyme)
   bool isFixed(const Ribonucleotide& residue) const;
@@ -60,32 +66,50 @@ public:
   /**
     @brief A shuffle of @p product whose key is not forbidden (by @p forbidden or by an earlier replacement of rewrite())
 
-    Tries up to @p max_tries permutations of the movable residues, in an order that depends only on the seed and the
-    product. Returns std::nullopt if none qualifies (e.g. fewer than two different movable residues).
+    Draws up to @p max_tries permutations of the movable residues, in an order that depends only on the seed and the
+    product, and returns the (@p skip + 1)-th that qualifies. Returns std::nullopt if there is none (e.g. fewer than two
+    different movable residues).
   */
   std::optional<NASequence> shuffleProduct(const NASequence& product, const std::function<bool(const std::string&)>& forbidden,
-                                           Size max_tries = 200) const;
+                                           Size max_tries = 200, Size skip = 0) const;
 
   /**
-    @brief @p sequence with each product of at least min_length residues for which @p select is true replaced by a
-    shuffle (shuffleProduct() with up to setMaxTries() tries, avoiding @p forbidden)
+    @brief @p sequences with products replaced by shuffles (shuffleProduct() with up to setMaxTries() tries)
 
-    A product gets the same replacement in every sequence (the first one found). A product without a qualifying shuffle
-    stays as it is and is counted in failed(). Terminal modifications of @p sequence are kept.
+    - Products of at least min_length residues for which @p select is true are replaced by a shuffle that is not
+      @p forbidden (shuffleProduct()). A product without a qualifying shuffle stays as it is (counted in failed()).
+    - With @p shuffle_short, products shorter than min_length are shuffled as well (they are searched only as part of
+      missed-cleavage products, e.g. across a modified G that RNase T1 does not cut).
+    - Then the combinations of up to @p missed_cleavages + 1 consecutive products of every rewritten sequence with at
+      least min_length residues are checked against @p forbidden. The component products of forbidden ones (also
+      products that were not selected) then try other shuffles (up to 20 further qualifying ones; a product shorter
+      than min_length may also stay as it is), and keep the one that leaves the fewest forbidden combinations around
+      its occurrences, if it improves on the current one. Each product keeps one replacement in all sequences. This
+      repeats until nothing improves; forbidden combinations left are counted in failedCombinations().
 
-    With @p shuffle_short, products shorter than min_length (which are only searched as part of missed-cleavage
-    products, e.g. across a modified G that RNase T1 does not cut) are shuffled as well, without a forbidden check.
+    A product keeps its replacement across calls. Terminal modifications of the sequences are kept.
   */
-  std::string rewrite(const std::string& sequence, const std::function<bool(const std::string&)>& select,
-                      const std::function<bool(const std::string&)>& forbidden, bool shuffle_short = false);
+  std::vector<std::string> rewrite(const std::vector<std::string>& sequences, const std::function<bool(const std::string&)>& select,
+                                   const std::function<bool(const std::string&)>& forbidden, bool shuffle_short = false,
+                                   Size missed_cleavages = 0);
 
-  /// Number of distinct products that rewrite() replaced
+  /// rewrite() of a single sequence
+  std::string rewrite(const std::string& sequence, const std::function<bool(const std::string&)>& select,
+                      const std::function<bool(const std::string&)>& forbidden, bool shuffle_short = false, Size missed_cleavages = 0)
+  {
+    return rewrite(std::vector<std::string>{sequence}, select, forbidden, shuffle_short, missed_cleavages).front();
+  }
+
+  /// Number of distinct products of at least min_length residues that rewrite() replaced
   Size rewritten() const { return rewritten_; }
 
-  /// Number of distinct products that rewrite() selected but could not replace
+  /// Number of distinct products of at least min_length residues that rewrite() had to replace but could not
   Size failed() const { return failed_; }
 
-  /// Keys of all replacements made by rewrite()
+  /// Number of forbidden missed-cleavage combinations left after the last rewrite()
+  Size failedCombinations() const { return failed_combinations_; }
+
+  /// Keys of all replacements of products of at least min_length residues made by rewrite()
   const std::set<std::string>& replacements() const { return used_; }
 
   /// Keys of the distinct products that rewrite() selected but could not replace (sorted)
@@ -97,15 +121,30 @@ public:
 private:
   std::vector<NASequence> products_(const NASequence& sequence) const;
 
+  /// The state of one distinct product in rewrite()
+  struct Choice_
+  {
+    NASequence product;
+    bool movable = false;      ///< at least two movable residues
+    bool decided = false;      ///< select/shuffle_short evaluated
+    bool active = false;       ///< to be replaced
+    bool exhausted = false;    ///< no further shuffle qualifies
+    Size skip = 0;             ///< which qualifying shuffle (see shuffleProduct())
+    std::optional<NASequence> replacement;
+  };
+
+  /// (Re)compute the replacement of @p choice from its 'skip'
+  void assign_(Choice_& choice, const std::function<bool(const std::string&)>& forbidden);
+
   RNaseDigestion digestor_;
   std::vector<std::regex> fixed_patterns_;
   Size min_length_;
   std::uint64_t seed_;
-  std::map<std::string, std::optional<NASequence>> replacement_of_;
-  std::map<std::string, std::optional<NASequence>> short_replacement_of_;
+  std::map<std::string, Choice_> choices_;
   std::set<std::string> used_;
   Size rewritten_ = 0;
   Size failed_ = 0;
+  Size failed_combinations_ = 0;
   Size max_tries_ = 200;
 };
 } // namespace OpenMS

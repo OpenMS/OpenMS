@@ -52,8 +52,10 @@ keeping the cleavage residues and the 3' residue of every product in place. Iden
 isodecoders) thus get identical decoy oligos, which keeps the numbers of distinct target and decoy oligos balanced (a shuffle of
 the whole sequence gives them different decoy oligos). Decoy oligos never equal a target oligo, another decoy oligo or an oligo of
 the 'blacklist' sequences (e.g. abundant RNAs of the organism that are not in the database), since such a decoy would collect
-the spectra of a real molecule. Use the same 'enzyme' and minimum oligo length ('min_length') as the search, e.g.:
-DecoyDatabase -type RNA -method shuffle_products -enzyme RNase_T1 -min_length 7 -blacklist background.fasta -in trnas.fasta -out trnas_TD.fasta
+the spectra of a real molecule. This includes missed-cleavage oligos (up to 'missed_cleavages'), also those assembled from
+products shorter than 'min_length'; combinations of products that cannot change (e.g. G, AG) can remain and are reported.
+Use the same 'enzyme', minimum oligo length ('min_length') and 'missed_cleavages' as the search, e.g.:
+DecoyDatabase -type RNA -method shuffle_products -enzyme RNase_T1 -min_length 7 -missed_cleavages 1 -blacklist background.fasta -in trnas.fasta -out trnas_TD.fasta
 
 To get a 'contaminants' database have a look at http://www.thegpm.org/crap/index.html or find/create your own contaminant database.
 
@@ -121,6 +123,11 @@ protected:
     setValidStrings_("method", {"reverse", "shuffle", "shuffle_products"});
     registerIntOption_("min_length", "<int>", 5, "shuffle_products: minimum length of the oligos that must differ from target, decoy and blacklist oligos (use the minimum oligo length of the search). Shorter oligos are shuffled without this check.", false);
     setMinInt_("min_length", 1);
+    registerIntOption_("missed_cleavages", "<int>", 1,
+                       "shuffle_products: missed cleavages of the search. Decoy oligos made of up to this number + 1 consecutive products "
+                       "(including products shorter than 'min_length') must not equal a target or blacklist oligo either. Add the maximum "
+                       "number of variable modifications per oligo if modifications can block cleavage (e.g. m7G for RNase T1).", false);
+    setMinInt_("missed_cleavages", 0);
     registerInputFile_("blacklist", "<file>", "",
                        "shuffle_products: FASTA file of further known RNAs (e.g. a background of abundant RNAs of the organism that the target database lacks, such as share/OpenMS/SEQUENCES/RNA/human_background_rna.fasta "
                        "where available). Decoy oligos never equal one of their oligos (digested like the targets), since a decoy that is a real molecule would collect that molecule's spectra.", false);
@@ -589,6 +596,16 @@ protected:
     // blacklist, which no decoy oligo may equal
     std::optional<RNAProductShuffler> product_shuffler;
     std::unordered_set<std::string> forbidden_oligos;
+    const Size missed_cleavages = static_cast<Size>(getIntOption_("missed_cleavages"));
+    // shuffle_products rewrites all decoys together (RNAProductShuffler::rewrite() changes shuffles of products that
+    // form forbidden missed-cleavage oligos in any sequence), so the output is written at the end
+    struct BufferedEntry
+    {
+      FASTAFile::FASTAEntry entry;
+      bool decoy;
+      bool relevant;
+    };
+    std::vector<BufferedEntry> buffered;
     if (shuffle_products)
     {
       product_shuffler.emplace(*rnase, static_cast<Size>(getIntOption_("min_length")), static_cast<std::uint64_t>(seed));
@@ -601,7 +618,7 @@ protected:
         {
           try
           {
-            for (auto& key : product_shuffler->productKeys(entry.sequence)) forbidden_oligos.insert(std::move(key));
+            for (auto& key : product_shuffler->productKeys(entry.sequence, missed_cleavages)) forbidden_oligos.insert(std::move(key));
           }
           catch (const Exception::BaseException& e)
           {
@@ -620,7 +637,7 @@ protected:
         {
           try
           {
-            for (auto& key : product_shuffler->productKeys(entry.sequence)) forbidden_oligos.insert(std::move(key));
+            for (auto& key : product_shuffler->productKeys(entry.sequence, missed_cleavages)) forbidden_oligos.insert(std::move(key));
           }
           catch (const Exception::BaseException&)
           {
@@ -690,10 +707,17 @@ protected:
         const FASTAFile::FASTAEntry& entry = source;
         if (append)
         {
-          f.writeNext(entry);
-          if (write_relevant)
+          if (shuffle_products)
           {
-            fasta_out_relevant.writeNext(entry);
+            buffered.push_back({entry, false, write_relevant});
+          }
+          else
+          {
+            f.writeNext(entry);
+            if (write_relevant)
+            {
+              fasta_out_relevant.writeNext(entry);
+            }
           }
         }
 
@@ -709,9 +733,9 @@ protected:
           // new decoy sequence
           if (shuffle_products)
           {
-            // per product; products shorter than 'min_length' are shuffled too (without the forbidden check), so that
-            // missed-cleavage decoy oligos do not contain unchanged target stretches
-            decoy_entry.sequence = product_shuffler->rewrite(decoy_entry.sequence, all_products, is_forbidden, true);
+            // rewritten at the end, together with all other decoys
+            buffered.push_back({decoy_entry, true, write_relevant});
+            continue;
           }
           else if (input_type == SeqType::RNA)
           {
@@ -805,8 +829,29 @@ protected:
 
     if (shuffle_products)
     {
+      // per product; products shorter than 'min_length' are shuffled too, so that missed-cleavage decoy oligos do not
+      // contain unchanged target stretches; missed-cleavage decoy oligos that equal a forbidden one are changed
+      std::vector<std::string> decoy_sequences;
+      for (const auto& b : buffered)
+      {
+        if (b.decoy) decoy_sequences.push_back(b.entry.sequence);
+      }
+      decoy_sequences = product_shuffler->rewrite(decoy_sequences, all_products, is_forbidden, true, missed_cleavages);
+      Size next = 0;
+      for (auto& b : buffered)
+      {
+        if (b.decoy) b.entry.sequence = decoy_sequences[next++];
+        f.writeNext(b.entry);
+        if (b.relevant) fasta_out_relevant.writeNext(b.entry);
+      }
       OPENMS_LOG_INFO << "shuffle_products: " << product_shuffler->rewritten() << " distinct oligos of at least " << getIntOption_("min_length")
                       << " residues shuffled into decoy oligos." << endl;
+      if (product_shuffler->failedCombinations() > 0)
+      {
+        OPENMS_LOG_WARN << "Warning: " << product_shuffler->failedCombinations() << " missed-cleavage decoy oligos (up to "
+                        << missed_cleavages << " missed cleavages) still equal a target or blacklist oligo; their component "
+                        << "products cannot change enough (e.g. G, AG)." << endl;
+      }
       const std::vector<std::string> failed = product_shuffler->failedProducts();
       if (!failed.empty())
       {
