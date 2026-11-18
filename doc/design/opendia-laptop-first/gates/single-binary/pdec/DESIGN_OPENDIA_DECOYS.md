@@ -73,6 +73,31 @@ PRECHECK_PDEC found the cause of the diaPASEF excess:
 The PQP reader dropped peptides without a gene mapping whenever GENE had rows. That silently removed merged decoys. It is
 fixed in 2982bd647d, with unchanged row order and a class test that fails without the fix.
 
+## Precheck step 1, result (18 Nov, 22:56; `EVAL_D_osdg.txt`)
+D seed 0, r = 1.56. The tool's own q is used as written. The OpenMS decoys are from the drop variant, with 91.6 % of
+targets paired.
+
+| quantity (CUR / NEW) | DIALibGen-predicted decoys (96.6 % paired) | **OpenMS `-predict_decoys`** (91.6 % paired) |
+|---|---|---|
+| lower bound at q ≤ 0.01 | 0.0069 / 0.0074 | **0.0064 / 0.0064** |
+| combined bound at q ≤ 0.01 | 0.0113 / 0.0121 | **0.0104 / 0.0105** |
+| P(entrapment beats own decoy), best q ≤ 0.05 | 0.497 / 0.513 | 0.518 / 0.531 (±0.027) |
+| N at q ≤ 0.01 | 10,441 / 12,328 | 10,212 / 12,326 |
+| N at FDP_c 1 % | 10,286 / 11,827 | 10,085 / 12,230 |
+
+**Reading:**
+- **OpenMS's own predictor calibrates as well as DIALibGen** on this library and run. Both bounds are within noise of
+  each other and include 1 %. Precheck step 1 is met: OpenMS can replace DIALibGen for decoys. This is one seed at
+  r = 1.56. The tight test is a frozen r ≈ 7 plan.
+- **Why the 8.4 % unpaired costs so little here:**
+  - Only 249 / 334 of the accepted targets are unpaired (2.4-2.7 %), and 6 of them are entrapments.
+  - Their decoys were dropped for having too few fragments in range. Those are mostly short or extreme-m/z peptides,
+    and such targets are rarely accepted.
+  - In PRECHECK_PDEC the 32 % unpaired were missed-cleavage peptides, which are accepted at normal rates.
+- **`-predict_keep_short` is still the right default for OpenDIA.** Unpaired targets bias q in the anti-conservative
+  direction, and the size of that bias depends on the library.
+- **Pair fairness** is 0.52-0.53, slightly above 0.50 but within about 1 SE. It is noted, not acted on.
+
 ## Precheck step 1, build (18 Nov, 22:19)
 `entlib-osdg-20261118`, using `OpenSwathDecoyGenerator -method pseudo-reverse -predict_decoys true` on the PGENT2
 `targets.pqp`:

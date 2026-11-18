@@ -1,0 +1,6 @@
+library: target precursors 441910, r = 1.5602, targets with a paired decoy 404719 (0.9158)
+arm  seed  N_q01  E_q01  lower  combined  N_at_FDPc1
+cur     0  10212     65 0.0064    0.0104       10085
+new     0  12326     79 0.0064    0.0105       12230
+cur: pooled q<=0.01 lower 0.0064 (90 % 0.0051-0.0078), combined 0.0104 (90 % 0.0084-0.0128); E 65, N 10212; median N@FDP_c 1 % 10085 (10085-10085); P(entrapment beats own decoy | best q<=0.05) 0.518 (n 855, 90 % +-0.028)
+new: pooled q<=0.01 lower 0.0064 (90 % 0.0053-0.0077), combined 0.0105 (90 % 0.0086-0.0127); E 79, N 12326; median N@FDP_c 1 % 12230 (12230-12230); P(entrapment beats own decoy | best q<=0.05) 0.531 (n 976, 90 % +-0.026)
