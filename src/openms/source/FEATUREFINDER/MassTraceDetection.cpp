@@ -490,6 +490,11 @@ namespace OpenMS
       this->startProgress(0, total_peak_count, "mass trace detection");
       Size peaks_detected(0);
 
+      // summed intensity of all mass traces, and of those whose re-estimated m/z standard deviation
+      // exceeds the one allowed by 'mass_error_ppm' (see below)
+      double traced_intensity(0.0);
+      double limited_intensity(0.0);
+
       for (auto m_it = chrom_apices.crbegin(); m_it != chrom_apices.crend(); ++m_it)
       {
         Size apex_scan_idx(m_it->scan_idx);
@@ -684,6 +689,12 @@ namespace OpenMS
 
           found_masstraces.push_back(new_trace);
 
+          if (reestimate_mt_sd_)
+          {
+            traced_intensity += intensity_so_far;
+            if (ftl_sd > max_ftl_sd) { limited_intensity += intensity_so_far; }
+          }
+
           peaks_detected += new_trace.getSize();
           this->setProgress(peaks_detected);
 
@@ -692,6 +703,17 @@ namespace OpenMS
         }
       }
       this->endProgress();
+
+      // The m/z window of a trace never exceeds the one of 'mass_error_ppm'. If most of the signal is in
+      // traces whose m/z values scatter more than that, the data is less precise than 'mass_error_ppm'
+      // (e.g., low-resolution data) and the traces are incomplete.
+      if (limited_intensity > 0.5 * traced_intensity)
+      {
+        OPENMS_LOG_WARN << "Warning: " << static_cast<Size>(100.0 * limited_intensity / traced_intensity + 0.5)
+                        << "% of the signal in mass traces is in traces whose m/z values scatter more than 'mass_error_ppm' ("
+                        << mass_error_ppm_ << " ppm) allows. If the data is less precise than that (e.g., low-resolution data), "
+                        << "mass traces are incomplete: increase 'mass_error_ppm'." << std::endl;
+      }
     }
 
 
