@@ -644,7 +644,9 @@ bool CrossValidation::trainsFoldChains() const {
  * the first error, and the first error (by iteration, then stage in the order in which the loop runs the stages for all
  * folds, then fold and pair) is rethrown after the reports of the iterations before it, as the loop throws it: e.g. a
  * failed solve of one fold before a failed count of another, as the loop solves all pairs before it counts. The
- * bookkeeping grows with the iterations that run, not with the iteration cap.
+ * bookkeeping grows with the iterations that run, not with the iteration cap. A runtime may run a task at once, nested
+ * in the task that starts it (a team of one thread): beyond a few steps nested on a thread's stack, a step that a step
+ * starts waits until the thread's outermost step has finished its own, so the stack does not grow with the iterations.
  */
 void CrossValidation::trainFoldChains() {
   const unsigned int numPairsPerFold =
@@ -721,8 +723,46 @@ void CrossValidation::trainFoldChains() {
     fold.errorStage = stage;
     noteError(fold.iteration);
   };
-  std::function<void(unsigned int)> startStep;
-  std::function<void(unsigned int)> finishStep;
+  std::function<void(unsigned int)> runStep;     // the first part of a step
+  std::function<void(unsigned int)> finishStep;  // the second part
+  std::function<void(unsigned int)> startStep;   // a step on this thread (runStep, then the steps that wait)
+  std::function<void(unsigned int)> spawnStep;   // a step as a task (or in the thread's list of waiting steps)
+
+  // A step that a step starts (the fold's next step, or the next steps of all folds) is a task, which the runtime may
+  // run at once on the thread that starts it, nested in the starting task (in a team of one thread, e.g. a nested
+  // parallel region without nested parallelism, or with a full task queue). The steps would then nest without bound,
+  // one more on the stack per iteration. Beyond kMaxNestedSteps steps on a thread's stack a step waits in the thread's
+  // list instead, and the thread's outermost step runs the waiting steps after its own.
+  constexpr int kMaxNestedSteps = 4;
+  std::vector<int> nestedSteps(teamThreads, 0);
+  std::vector<std::vector<unsigned int>> waitingSteps(teamThreads);
+  for (std::vector<unsigned int>& waiting : waitingSteps) {
+    waiting.reserve(numFolds_);  // (a fold has at most one step to start: the tasks do not allocate here)
+  }
+  startStep = [&](unsigned int set) {
+    const std::size_t thread = threadNum();
+    ++nestedSteps[thread];
+    runStep(set);
+    if (--nestedSteps[thread] == 0) {
+      std::vector<unsigned int>& waiting = waitingSteps[thread];
+      while (!waiting.empty()) {
+        const unsigned int next = waiting.back();
+        waiting.pop_back();
+        ++nestedSteps[thread];
+        runStep(next);
+        --nestedSteps[thread];
+      }
+    }
+  };
+  spawnStep = [&](unsigned int set) {
+    const std::size_t thread = threadNum();
+    if (nestedSteps[thread] >= kMaxNestedSteps) {
+      waitingSteps[thread].push_back(set);
+      return;
+    }
+    PERCOLATOR_TASK_PRAGMA(omp task default(shared) firstprivate(set))
+    startStep(set);
+  };
 
   // the second part of a step: after the solves of the fold's pairs
   finishStep = [&](unsigned int set) {
@@ -769,6 +809,7 @@ void CrossValidation::trainFoldChains() {
       if (canFixGrid && !fold.fixed && i + 1u >= gridSearchIterations_) {
         fold.fixed = true;
         fold.selected = std::make_pair(bestCpos, bestCfrac);
+        Scores::FeatureRows().swap(fold.rows);  // (only the counts of the pairs read them, which end with the grid)
       }
       stage = kFoldCount;
       const int positives = trainScores_[set].calcScoresAndQvals(weights_[set], testFdr_);
@@ -794,8 +835,7 @@ void CrossValidation::trainFoldChains() {
       }
       if (!stop && i + 1u <= firstErrorIteration.load(std::memory_order_acquire)) {
         fold.iteration = i + 1u;
-        PERCOLATOR_TASK_PRAGMA(omp task default(shared) firstprivate(set))
-        startStep(set);
+        spawnStep(set);
       }
       return;
     }
@@ -828,26 +868,25 @@ void CrossValidation::trainFoldChains() {
     if (next) {
       for (unsigned int other = 0; other < numFolds_; ++other) {
         folds[other].iteration = i + 1u;
-        PERCOLATOR_TASK_PRAGMA(omp task default(shared) firstprivate(other))
-        startStep(other);
+        spawnStep(other);
       }
     }
   };
 
   // the first part of a step: the training set, the SVM input and the solves of the pairs (as tasks)
-  startStep = [&](unsigned int set) {
+  runStep = [&](unsigned int set) {
     const TaskLoopScope taskLoops;  // its scoring and the copies of the training rows as taskloops
     Fold& fold = folds[set];
     const unsigned int i = fold.iteration;
     if (i > firstErrorIteration.load(std::memory_order_acquire)) {
       return;  // (not in the coupled mode: its next steps start only after an iteration without errors)
     }
-    // (only this fold's chain writes it; the other folds read it in the coupled mode only after this step)
-    fold.positives.resize(i + 1u, -1);
     fold.rowsError = nullptr;
     int stage = kRescore;
     std::vector<unsigned int> pairs;
     try {
+      // (only this fold's chain writes it; the other folds read it in the coupled mode only after this step)
+      fold.positives.resize(i + 1u, -1);
       const double selectionFdr = i == 0u ? initialSelectionFdr_ : selectionFdr_;
       // doStep's options for the step
       options& pOptions = fold.stepOptions;
@@ -957,8 +996,7 @@ void CrossValidation::trainFoldChains() {
 #endif
   {
     for (unsigned int set = 0; set < numFolds_; ++set) {
-      PERCOLATOR_TASK_PRAGMA(omp task default(shared) firstprivate(set))
-      startStep(set);
+      spawnStep(set);
     }
   }
 
