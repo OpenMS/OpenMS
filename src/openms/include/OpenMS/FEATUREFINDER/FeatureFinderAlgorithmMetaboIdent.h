@@ -160,10 +160,11 @@ public:
   PeakMap& getMSData() { return ms_data_; }
   const PeakMap& getMSData() const { return ms_data_; }
 
-  /// @brief Set spectra
-  void setMSData(const PeakMap& m); // needed because pyOpenMS can't wrap the non-const reference version
+  /// @brief Set the spectra: keeps only the MS1 spectra of @p m (all other MS levels are dropped)
+  void setFromMS1Data(const PeakMap& m); // needed because pyOpenMS can't wrap the non-const reference version
 
-  void setMSData(PeakMap&& m); // moves peak data and saves the copy. Note that getMSData() will give back a processed/modified version.
+  /// @brief Move the MS1 spectra of @p m into the algorithm (all other MS levels are dropped)
+  void setFromMS1Data(PeakMap&& m); // moves peak data and saves the copy. Note that getMSData() will give back a processed/modified version.
 
   /// @brief Retrieve chromatograms (empty if run was not executed)
   const PeakMap& getChromatograms() const { return chrom_data_; }

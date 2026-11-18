@@ -204,7 +204,7 @@ namespace OpenMS
       // Create algorithm instance for this group (use same parameters)
       FeatureFinderAlgorithmMetaboIdent ff_group;
       ff_group.setParameters(this->getParameters());
-      ff_group.setMSData(std::move(faims_group));
+      ff_group.setFromMS1Data(std::move(faims_group));
 
       FeatureMap features_cv;
       ff_group.runSingleGroup_(metaboIdentTable, features_cv, spectra_file);
@@ -997,7 +997,7 @@ namespace OpenMS
     trafo_.setDataPoints(points);
   }
 
-  void FeatureFinderAlgorithmMetaboIdent::setMSData(const PeakMap& m)
+  void FeatureFinderAlgorithmMetaboIdent::setFromMS1Data(const PeakMap& m)
   { 
     ms_data_ = m; 
     
@@ -1010,7 +1010,7 @@ namespace OpenMS
       specs.end());
   }
 
-  void FeatureFinderAlgorithmMetaboIdent::setMSData(PeakMap&& m)
+  void FeatureFinderAlgorithmMetaboIdent::setFromMS1Data(PeakMap&& m)
   {
     ms_data_ = std::move(m);
 

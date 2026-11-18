@@ -122,7 +122,7 @@ def test_feature_finder_identification_seeds_without_runs(tmp_path):
     params.setValue("detect:peak_width", 60.0)
     params.setValue("model:type", "none")
     algo.setParameters(params)
-    algo.setMSData(exp)
+    algo.setFromMS1Data(exp)
     features = oms.FeatureMap()
     algo.run(oms.PeptideIdentificationList(), [], features, seeds, "")
     assert features.size() > 0
