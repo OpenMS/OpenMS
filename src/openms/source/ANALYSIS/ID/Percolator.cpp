@@ -273,7 +273,7 @@ Percolator::Percolator()
   defaults_.setValue("test_fdr",         0.01, "Test FDR threshold for SVM direction selection.");
   defaults_.setMinFloat("test_fdr",      0.0);
   defaults_.setMaxFloat("test_fdr",      1.0);
-  defaults_.setValue("train_fdr",        0.01, "Training FDR for SVM iterations.");
+  defaults_.setValue("train_fdr",        0.01, "Training FDR for SVM iterations (0: test_fdr).");
   defaults_.setMinFloat("train_fdr",     0.0);
   defaults_.setMaxFloat("train_fdr",     1.0);
   defaults_.setValue("num_iterations",   10,   "Number of SVM training iterations.");
@@ -1644,6 +1644,9 @@ RescoreOutput Percolator::rescore(const RescoreInput& input)
   validateRescoreInput_(input);
   const bool use_pi0 = resolveUsePi0(impl_->use_pi0, impl_->post_processing_tdc, input);
   const P::ThreadCap thread_cap(capThreads_(impl_->num_threads));
+  // the FDR at which the training selects its positives: train_fdr, or test_fdr if train_fdr is 0, as the
+  // cross-validation resolves it (CrossValidation: selectionFdr_ <= 0 -> testFdr_)
+  const double selection_fdr = impl_->train_fdr > 0.0 ? impl_->train_fdr : impl_->test_fdr;
 
   const size_t n_rows = input.rowCount();
   const size_t n_feat = input.featureCount();
@@ -1938,7 +1941,7 @@ RescoreOutput Percolator::rescore(const RescoreInput& input)
   if (learning_curve)
   {
     // Nested samples of start, 2 start, 4 start ... rows (the last: the largest allowed); each trained out-of-fold.
-    // Fold k's curve: the targets at q <= train_fdr among the validation spectra of the other folds under fold k's
+    // Fold k's curve: the targets at q <= selection_fdr among the validation spectra of the other folds under fold k's
     // model; fold k stops at the first doubling that adds less than subset_curve_min_gain and keeps that model.
     const size_t available = n_rows - oof.validation_rows.size();
     const size_t largest_allowed = impl_->subset_max_train > 0 ? static_cast<size_t>(impl_->subset_max_train)
@@ -2003,7 +2006,7 @@ RescoreOutput Percolator::rescore(const RescoreInput& input)
       {
         if (stopped[f]) continue;
         std::vector<size_t> accepted =
-          acceptedTargets_(input, validation_of_fold[f], at_size.fold_weights[f], impl_->train_fdr);
+          acceptedTargets_(input, validation_of_fold[f], at_size.fold_weights[f], selection_fdr);
         const long count = static_cast<long>(accepted.size());
         info.curve_counts.back()[f] = count;
         trained.fold_weights[f] = std::move(at_size.fold_weights[f]);
@@ -2177,8 +2180,8 @@ RescoreOutput Percolator::rescore(const RescoreInput& input)
 
       all_scores = P::Scores(use_pi0);
       std::vector<std::vector<double>> merge_weights = fold_weights; // Scores::merge rescales them
-      // at the CV's selection FDR (CrossValidation: selectionFdr_ = train_fdr), as it merges its test folds
-      all_scores.merge(fold_scores, impl_->train_fdr, /*skipNormalizeScores=*/false, merge_weights);
+      // at the CV's selection FDR (selection_fdr), as it merges its test folds
+      all_scores.merge(fold_scores, selection_fdr, /*skipNormalizeScores=*/false, merge_weights);
     }
     else if (did_subsample)
     {
@@ -2220,8 +2223,8 @@ RescoreOutput Percolator::rescore(const RescoreInput& input)
       // (as the executable with -N, at the selection FDR of the training; its merge scheme with 3 folds is 'test', the
       // only one that rescales here)
       all_scores.postMergeStep();
-      all_scores.calcQvals(impl_->train_fdr);
-      all_scores.normalizeScores(impl_->train_fdr, avg_weights);
+      all_scores.calcQvals(selection_fdr);
+      all_scores.normalizeScores(selection_fdr, avg_weights);
     }
 
     if (impl_->post_processing_tdc)

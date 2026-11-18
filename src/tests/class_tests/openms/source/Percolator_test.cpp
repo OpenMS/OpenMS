@@ -342,6 +342,34 @@ START_SECTION([EXTRA] the large-set paths do not depend on the number of threads
 }
 END_SECTION
 
+START_SECTION([EXTRA] train_fdr 0 is test_fdr also in the passes after a capped training)
+{
+  // The cross-validation selects its positives at test_fdr if train_fdr is 0; the scoring of all rows after a capped
+  // training (in_sample: the scale of the scores; out_of_fold: the merge of the folds) must use the same FDR.
+  const RescoreInput input = makePortableModeratelySeparableInput_(3000, 31);
+  for (const std::string mode : {"in_sample", "out_of_fold"})
+  {
+    auto run = [&](double train_fdr)
+    {
+      Percolator p;
+      Param par = p.getDefaults();
+      par.setValue("seed", 3);
+      par.setValue("num_threads", 1);
+      par.setValue("test_fdr", 0.02);
+      par.setValue("train_fdr", train_fdr);
+      par.setValue("subset_max_train", 2000);
+      par.setValue("subset_mode", mode);
+      p.setParameters(par);
+      return p.rescore(input);
+    };
+    const RescoreOutput zero = run(0.0), explicit_fdr = run(0.02);
+    TEST_EQUAL(zero.scores == explicit_fdr.scores, true)
+    TEST_EQUAL(zero.q_values == explicit_fdr.q_values, true)
+    TEST_EQUAL(zero.peps == explicit_fdr.peps, true)
+  }
+}
+END_SECTION
+
 START_SECTION([EXTRA] subset_mode out_of_fold: no row is scored by a model that trained on it)
 {
   // 20000 spectra with a target and a decoy hit each (rows 2s, 2s + 1); half of the targets are correct
