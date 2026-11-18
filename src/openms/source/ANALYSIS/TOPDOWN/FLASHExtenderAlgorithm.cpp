@@ -1608,6 +1608,32 @@ namespace OpenMS
                   best_path_map[1] = paths_n->second[mn];
                 }
               }
+              // No pair within the blind modification count (with max_blind_mod_count 1: each path needs a shift of its own): the better
+              // path alone. Before, the path of the suffix mode, set when only that mode had run, stayed whatever the prefix path
+              // scored. Such a one-sided PrSM with a shift is not reported (FLASHTnT drops it), but it shows which protein the spectrum
+              // is of when a similar protein fits the same fragments (FLASHTnT, choice among similar proteins). Eclip_1479 scan 7554,
+              // oxidised E. coli L11 (N-terminal Met loss and two trimethylations, -46.94 Da, and a shift further on): prefix path
+              // 101, suffix path 19, no pair; the suffix path stayed and the hit was dropped for having no tag on it, while the L11 of
+              // B. theta (59 % identical) paired a prefix path of the same fragments (68) with an unshifted suffix path (9).
+              // Letting each path carry its own shift in every PrSM without a mass was tried and cost identifications (three
+              // lysates: 1002 -> 964 proteins, 5256 -> 5158 proteoforms): the decoys gain the same freedom.
+              if (max_score == 0)
+              {
+                for (const auto& [mn, score] : nscores)
+                {
+                  if (mn > max_blind_mod_cntr_ || score <= max_score) continue;
+                  max_score = score;
+                  best_path_map[1] = paths_n->second[mn];
+                  best_path_map.erase(0);
+                }
+                for (const auto& [mc, score] : cscores)
+                {
+                  if (mc > max_blind_mod_cntr_ || score <= max_score) continue;
+                  max_score = score;
+                  best_path_map[0] = paths_c->second[mc];
+                  best_path_map.erase(1);
+                }
+              }
             }
           }
           else if (hi.mode_ == 2)

@@ -3456,6 +3456,15 @@ void FLASHTnTAlgorithm::run(const MSExperiment& map, const std::vector<FASTAFile
         return blindModCount_(h) > 0;
       };
       const Size before = hits.size();
+      // not reported, but remembered: such a PrSM of a similar protein that has a PrSM with a mass may take the spectrum from the
+      // reported one (choice among similar proteins, before the FDR)
+      if (! native_rule && ! multiple_hits_per_spec_ && ! scoring_model_)
+      {
+        for (const auto& h : hits)
+        {
+          if (shifted(h)) alternative_hits_.push_back(h);
+        }
+      }
       hits.erase(std::remove_if(hits.begin(), hits.end(), shifted), hits.end());
       if (hits.size() < before) OPENMS_LOG_INFO << "Undetermined PrSMs with an open terminus and a blind shift: " << before - hits.size() << " dropped" << std::endl;
     };
@@ -3464,6 +3473,7 @@ void FLASHTnTAlgorithm::run(const MSExperiment& map, const std::vector<FASTAFile
     const UInt mi_stage = registry.registerName("SearchStage");
     auto extendStage = [&](int stage, const std::vector<int>& spectra) {
       const bool first_stage = stage == stages[0];
+      const Size stage_first_alternative = alternative_hits_.size(); // the alternatives of this stage follow
       startProgress(0, (SignedSize)spectra.size(),
                     first_stage ? std::string("Running extension algorithm ...") : "Running extension algorithm (search cascade stage " + StringUtils::toStr(stage) + ") ...");
       extendSpectra(spectra, extender_param_);
@@ -3628,7 +3638,11 @@ void FLASHTnTAlgorithm::run(const MSExperiment& map, const std::vector<FASTAFile
               if (map[index].getMSLevel() > 1) spectra[FLASHDeconvAlgorithm::getScanNumber(map, index)] = &map[index];
             applyLearnedScoring_(stage_hits, spectra);
           }
-          else keepBestPerSpectrum_(stage_hits, stage == 0 ? std::string("") : " (search cascade stage " + StringUtils::toStr(stage) + ")", "combined score");
+          else
+          {
+            keepBestPerSpectrum_(stage_hits, stage == 0 ? std::string("") : " (search cascade stage " + StringUtils::toStr(stage) + ")", "combined score",
+                                 native_rule ? nullptr : &alternative_hits_);
+          }
         }
       }
       else { dropOpenTerminusShifts(stage_hits); }
@@ -3637,6 +3651,7 @@ void FLASHTnTAlgorithm::run(const MSExperiment& map, const std::vector<FASTAFile
         if (stage > 0) h.setMetaValue(mi_stage, stage);
         proteoform_hits_.push_back(std::move(h));
       }
+      for (Size k = stage_first_alternative; stage > 0 && k < alternative_hits_.size(); k++) alternative_hits_[k].setMetaValue(mi_stage, stage);
     };
 
     // The spectra identified after a stage of the search cascade: whose best PrSM (by score, of any stage so far) is a target whose
@@ -4227,6 +4242,108 @@ void FLASHTnTAlgorithm::run(const MSExperiment& map, const std::vector<FASTAFile
     // the raw spectra stay loaded for the combined coverage after the FDR (setCombinedCoverage_ releases them)
   }
 
+  // Similar proteins. A PrSM without a mass identifies its protein by the sequence its tags span; where a similar protein has the same
+  // stretches, the tags fit both, and the spectrum's choice by score may take the wrong one (a blind shift takes up what the sequences
+  // differ by). The choice between the two is made here, with the whole run in view: when the reported PrSM of a spectrum has no mass,
+  // all its tags lie in stretches of at least similar_min_residues residues that its protein has in common with another protein, that
+  // protein made a PrSM in the spectrum too (one that lost the spectrum's choice, keepBestPerSpectrum_, or a one-sided PrSM with a
+  // blind shift that is not reported, dropOpenTerminusShifts), and that protein has a PrSM with a mass in the run that scores above
+  // every PrSM with a mass of the first protein (none: any), the spectrum reports the other protein's PrSM. The PrSM that comes in is
+  // classed and counted by the FDR below like any other (one with an open terminus is in the class that is not counted, so the spectrum
+  // then identifies nothing rather than the wrong protein); targets and decoys alike. Three E. coli lysates with B. theta entrapment:
+  // the 50S ribosomal protein L11 of B. theta (59 % identical to that of E. coli, 12 identical residues in a row) was reported in 8 of
+  // 9 runs from spectra of oxidised E. coli L11, 8 of the 24 entrapment protein calls. A tag counts only inside a common
+  // stretch: a tag of four or five residues lies somewhere in a large protein by chance (12 of 1002 E. coli proteins of three lysates
+  // were taken for DnaK, RNase E, EF-G and the like when a tag anywhere was enough). Not with -native (its own homolog rule).
+  if (! alternative_hits_.empty())
+  {
+    constexpr Size similar_min_residues = 8;
+    const auto il = [](std::string seq) {
+      std::replace(seq.begin(), seq.end(), 'I', 'L');
+      return seq;
+    };
+    std::map<std::string, double> mass_anchor; // per protein, the best score of its PrSMs with a mass
+    for (const auto& hit : proteoform_hits_)
+    {
+      if (! isDetermined(hit)) continue;
+      auto [it, fresh] = mass_anchor.try_emplace(hit.getAccession(), hit.getScore());
+      if (! fresh) it->second = std::max(it->second, hit.getScore());
+    }
+    std::map<int, std::vector<Size>> alternatives_of_scan;
+    for (Size k = 0; k < alternative_hits_.size(); k++) alternatives_of_scan[(int)alternative_hits_[k].getMetaValue(tntKey("Scan"))].push_back(k);
+    std::map<std::string, std::string> il_sequence; // accession -> sequence with I as L
+    const auto sequenceOf = [&](const ProteinHit& hit) -> const std::string& {
+      auto it = il_sequence.find(hit.getAccession());
+      if (it == il_sequence.end()) it = il_sequence.emplace(hit.getAccession(), il(hit.getSequence())).first;
+      return it->second;
+    };
+    // every tag of the PrSM inside a stretch of at least similar_min_residues residues that the two sequences have in common
+    const auto tagsInCommonStretches = [&](const ProteinHit& hit, const std::string& seq, const std::string& other) {
+      if (! hit.metaValueExists("TagIndices")) return false;
+      const std::vector<int> indices = hit.getMetaValue("TagIndices").toIntList();
+      if (indices.empty()) return false;
+      for (const int t : indices)
+      {
+        if (t < 0 || t >= (int)tags_.size()) return false;
+        const std::string tag = il(tags_[t].getUppercaseSequence());
+        bool shared = false;
+        for (Size p = seq.find(tag); p != std::string::npos && ! shared; p = seq.find(tag, p + 1))
+        {
+          for (Size q = other.find(tag); q != std::string::npos && ! shared; q = other.find(tag, q + 1))
+          {
+            Size stretch = tag.size();
+            for (Size k = 1; k <= p && k <= q && seq[p - k] == other[q - k]; k++) stretch++;
+            for (Size k = tag.size(); p + k < seq.size() && q + k < other.size() && seq[p + k] == other[q + k]; k++) stretch++;
+            shared = stretch >= similar_min_residues;
+          }
+        }
+        if (! shared) return false;
+      }
+      return true;
+    };
+    Size changed = 0, changed_targets = 0;
+    std::map<std::string, Size> pairs;
+    for (auto& hit : proteoform_hits_)
+    {
+      if (isDetermined(hit)) continue;
+      if ((int)hit.getMetaValue("ChimericRound", 0) > 0) continue; // a residual round: the alternatives are those of the full spectrum
+      const auto alts = alternatives_of_scan.find((int)hit.getMetaValue(tntKey("Scan")));
+      if (alts == alternatives_of_scan.end()) continue;
+      const auto own = mass_anchor.find(hit.getAccession());
+      const double own_anchor = own == mass_anchor.end() ? std::numeric_limits<double>::lowest() : own->second;
+      const std::string& seq = sequenceOf(hit);
+      Size chosen = alternative_hits_.size();
+      double chosen_anchor = own_anchor;
+      for (const Size k : alts->second)
+      {
+        const auto& alt = alternative_hits_[k];
+        if (alt.getAccession() == hit.getAccession()) continue;
+        const auto other = mass_anchor.find(alt.getAccession());
+        if (other == mass_anchor.end() || other->second <= chosen_anchor) continue;
+        if (! tagsInCommonStretches(hit, seq, sequenceOf(alt))) continue;
+        chosen = k;
+        chosen_anchor = other->second;
+      }
+      if (chosen == alternative_hits_.size()) continue;
+      changed++;
+      changed_targets += ! StringUtils::hasPrefix(hit.getAccession(), "DECOY");
+      pairs[hit.getAccession() + " -> " + alternative_hits_[chosen].getAccession()]++;
+      ProteinHit replacement = alternative_hits_[chosen];
+      replacement.setMetaValue("SimilarProteinChoice", hit.getAccession());
+      if (hit.metaValueExists("ChimericRound")) replacement.setMetaValue("ChimericRound", hit.getMetaValue("ChimericRound"));
+      hit = std::move(replacement);
+    }
+    OPENMS_LOG_INFO << "Similar proteins: " << changed << " spectra (" << changed_targets << " of target PrSMs) report the PrSM of a similar protein that has a PrSM with a mass";
+    Size listed = 0;
+    for (const auto& [pair, count] : pairs)
+    {
+      if (listed++ == 20) { OPENMS_LOG_INFO << " ..."; break; }
+      OPENMS_LOG_INFO << (listed == 1 ? ": " : ", ") << pair << " x" << count;
+    }
+    OPENMS_LOG_INFO << std::endl;
+    std::vector<ProteinHit>().swap(alternative_hits_);
+  }
+
   // the order below and every ranking of the FDR need finite scores: a NaN breaks the sorts and never closes a tie group, and an infinite
   // decoy score leaves the null of the protein level undefined
   for (const auto& hit : proteoform_hits_)
@@ -4582,6 +4699,32 @@ void FLASHTnTAlgorithm::run(const MSExperiment& map, const std::vector<FASTAFile
       const auto it = protein_q.find(hit.getAccession());
       hit.setMetaValue("ProteinQvalue", it == protein_q.end() ? 1.0 : it->second);
     }
+  }
+  if (use_fdr && ! native_rule)
+  {
+    // A proteoform needs its protein: its q-value is not below that of its protein. The proteoform classes with a mass are nearly free
+    // of decoys (a lysate: 1463 targets and 14 decoys), so their q-values pass proteoforms of low score that the protein level, counted
+    // over all proteins in one ranking, does not accept. On the reference runs (50350f9203, B. theta entrapment), the proteoforms at 1%
+    // whose protein was above 1% were the larger part of the entrapment proteoforms: three lysates x three seeds 61 of 87 B. theta
+    // among 269 such rows (entrapment proteoforms 0.98 -> 0.30 %), CZE PXD007273 11 of 18 among 101 (0.83 -> 0.33 %), AI-ETD PXD012247
+    // 28 of 74 among 168 (1.09 -> 0.69 %), for 1.4 to 1.8 % of the proteoforms of the E. coli searches. Not with -native (its protein
+    // level is another rule, setProteinQvalues_).
+    Size raised = 0;
+    for (const auto& members : clusters)
+    {
+      const auto& rep = proteoform_hits_[members[0]];
+      if (! rep.metaValueExists("proqvalue") || ! rep.metaValueExists("ProteinQvalue")) continue;
+      raised += (double)rep.getMetaValue("proqvalue") <= rep_q && (double)rep.getMetaValue("ProteinQvalue") > rep_q
+                && ! StringUtils::hasPrefix(rep.getAccession(), "DECOY");
+    }
+    for (auto& hit : proteoform_hits_)
+    {
+      if (! hit.metaValueExists("proqvalue") || ! hit.metaValueExists("ProteinQvalue")) continue;
+      const double protein_q = hit.getMetaValue("ProteinQvalue");
+      if (protein_q > (double)hit.getMetaValue("proqvalue")) hit.setMetaValue("proqvalue", protein_q);
+    }
+    OPENMS_LOG_INFO << "Proteoforms of a protein above q " << rep_q << ": " << raised << " target proteoforms at q <= " << rep_q
+                    << " take their protein's q-value" << std::endl;
   }
   if (use_fdr)
   {
@@ -5650,7 +5793,8 @@ void FLASHTnTAlgorithm::traceCandidates_(const std::vector<ProteinHit>& hits, co
   }
 }
 
-void FLASHTnTAlgorithm::keepBestPerSpectrum_(std::vector<ProteinHit>& hits, const std::string& label, const std::string& score_name)
+void FLASHTnTAlgorithm::keepBestPerSpectrum_(std::vector<ProteinHit>& hits, const std::string& label, const std::string& score_name,
+                                             std::vector<ProteinHit>* alternatives)
 {
   // Of a spectrum's PrSMs, the best one whose proteoform fits the precursor mass (determined) is reported, unless the best one without a
   // mass scores more than three times higher; a PrSM without a mass that wins is then replaced by the best determined PrSM of its protein,
@@ -5695,6 +5839,27 @@ void FLASHTnTAlgorithm::keepBestPerSpectrum_(std::vector<ProteinHit>& hits, cons
     if (! best_with_mass.empty())
       OPENMS_LOG_INFO << "PrSMs" << label << ": " << best_with_mass.size() << " spectra report the protein's PrSM with a mass instead of the one without"
                       << std::endl;
+  }
+  if (alternatives != nullptr)
+  {
+    // per spectrum, the best PrSM of each other protein than the reported one; the three best of them are kept
+    constexpr Size alternative_count = 3;
+    std::map<int, std::map<std::string, Size>> others;
+    for (Size i = 0; i < hits.size(); i++)
+    {
+      const int scan = hits[i].getMetaValue(tntKey("Scan"));
+      const Size b = best[scan];
+      if (i == b || hits[i].getAccession() == hits[b].getAccession()) continue;
+      auto [it, fresh] = others[scan].try_emplace(hits[i].getAccession(), i);
+      if (! fresh && isBetterPrSM(hits[i], hits[it->second])) it->second = i;
+    }
+    for (const auto& [scan, by_protein] : others)
+    {
+      std::vector<Size> order;
+      for (const auto& [acc, i] : by_protein) order.push_back(i);
+      std::sort(order.begin(), order.end(), [&hits](Size a, Size b) { return isBetterPrSM(hits[a], hits[b]) || (! isBetterPrSM(hits[b], hits[a]) && a < b); });
+      for (Size k = 0; k < order.size() && k < alternative_count; k++) alternatives->push_back(hits[order[k]]);
+    }
   }
   std::vector<ProteinHit> kept;
   kept.reserve(best.size());

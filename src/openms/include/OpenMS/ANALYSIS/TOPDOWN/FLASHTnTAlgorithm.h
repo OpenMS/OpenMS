@@ -174,7 +174,9 @@ private:
   int path_alternatives_ = 0;
   /// one PrSM per spectrum: the best by score (a determined mass and termini break a tie, then the coverage, then the earlier PrSM);
   /// @p label and @p score_name go into the log line
-  static void keepBestPerSpectrum_(std::vector<ProteinHit>& hits, const std::string& label, const std::string& score_name);
+  /// @p alternatives (optional) takes, per spectrum, the best PrSM of each of up to three other proteins than the one reported
+  static void keepBestPerSpectrum_(std::vector<ProteinHit>& hits, const std::string& label, const std::string& score_name,
+                                   std::vector<ProteinHit>* alternatives = nullptr);
   /// FLASH_TRACE_FEATURES: every candidate PrSM before the spectrum's choice, appended to @p file (diagnostics)
   void traceCandidates_(const std::vector<ProteinHit>& hits, const char* file) const;
   /// learned PrSM scoring (scoring_model): its choice weights and confidence trees; null when off
@@ -229,6 +231,8 @@ private:
   int min_protein_hits_ = 5;
   double protein_fdr_ = 0.1;
   std::vector<ProteinHit> proteoform_hits_;
+  /// PrSMs of other proteins that lost a spectrum's choice (keepBestPerSpectrum_), for the choice among similar proteins before the FDR
+  std::vector<ProteinHit> alternative_hits_;
   std::vector<ProteinHit> protein_hits_;
   std::vector<FLASHHelperClasses::Tag> tags_;
   std::map<int, std::vector<int>> matching_hits_indices_;
