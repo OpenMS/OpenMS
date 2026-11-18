@@ -43,6 +43,10 @@ before target-decoy competition, for targets and decoys alike.
   place, so that it equals no target, background or decoy oligo. The same product always gets the same shuffle.
 - Decoy oligos of the database that equal a target or background oligo are reshuffled the same way (a decoy that is
   a real molecule collects that molecule's spectra). The log reports how many.
+- Both checks also cover missed-cleavage oligos (@p oligo:missed_cleavages, plus cleavages that modifications such as
+  m7G block): combinations of consecutive decoy products, including ones made of products shorter than
+  @p oligo:min_size, that equal a real oligo are removed by trying other shuffles of their components. Combinations
+  of components that cannot change (e.g. G or AG) can remain; the log reports how many.
 
 Some oligos cannot be shuffled into a new sequence (e.g. U stretches, or short oligos whose every arrangement is
 taken); the log reports them. Below 7 nt, most arrangements of a composition occur in human RNA, so we recommend

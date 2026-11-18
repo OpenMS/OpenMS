@@ -1844,12 +1844,13 @@ protected:
     sequence are reshuffled in place (RNABackgroundDatabase: per digestion product, cleavage residues and the 3' residue stay),
     since a decoy that is a real molecule would collect that molecule's spectra. With @p decoy_pattern, each background
     sequence gets a decoy (accession: @p decoy_pattern + accession), every product of at least @p min_length residues
-    reshuffled so that it equals no target, background or decoy oligo.
+    reshuffled so that it equals no target, background or decoy oligo. Both checks cover the searchable oligos, i.e. also
+    combinations of up to @p missed_cleavages + 1 consecutive products (RNABackgroundDatabase::rewrite()).
 
     @return The background sequences and their decoys, for registration as parent sequences with BACKGROUND_META_
   */
   vector<FASTAFile::FASTAEntry> prepareBackground_(vector<FASTAFile::FASTAEntry>& fasta_db, const std::string& decoy_pattern,
-                                                   const DigestionEnzyme* enzyme, Size min_length)
+                                                   const DigestionEnzyme* enzyme, Size min_length, Size missed_cleavages)
   {
     std::string path = getStringOption_("background:database");
     if (path.empty())
@@ -1872,7 +1873,10 @@ protected:
     std::set<std::string> target_keys, background_keys, decoy_keys;
     for (const auto& entry : fasta_db)
     {
-      for (auto& key : decoy_fix.productKeys(entry.sequence)) (is_decoy(entry.identifier) ? decoy_keys : target_keys).insert(key);
+      for (auto& key : decoy_fix.productKeys(entry.sequence, missed_cleavages))
+      {
+        (is_decoy(entry.identifier) ? decoy_keys : target_keys).insert(key);
+      }
     }
     for (auto& entry : background)
     {
@@ -1883,26 +1887,34 @@ protected:
                                             "'); NASE makes them");
       }
       if (entry.identifier.rfind("BG_", 0) != 0) entry.identifier = "BG_" + entry.identifier;
-      for (auto& key : decoy_fix.productKeys(entry.sequence)) background_keys.insert(key);
+      for (auto& key : decoy_fix.productKeys(entry.sequence, missed_cleavages)) background_keys.insert(key);
     }
     auto real = [&](const std::string& key) { return target_keys.count(key) || background_keys.count(key); };
 
-    Size n_decoy_entries = 0;
-    for (auto& entry : fasta_db)
+    vector<Size> decoy_entries;
+    vector<std::string> decoy_sequences;
+    for (Size i = 0; i < fasta_db.size(); ++i)
     {
-      if (!is_decoy(entry.identifier)) continue;
-      ++n_decoy_entries;
-      entry.sequence = decoy_fix.rewrite(entry.sequence, real, [&](const std::string& key) { return real(key) || decoy_keys.count(key); });
+      if (!is_decoy(fasta_db[i].identifier)) continue;
+      decoy_entries.push_back(i);
+      decoy_sequences.push_back(fasta_db[i].sequence);
     }
-    if (n_decoy_entries > 0)
+    if (!decoy_entries.empty())
     {
+      // a decoy oligo (or missed-cleavage combination) must not be a real one; replacements must not repeat decoy oligos
+      decoy_sequences = decoy_fix.rewrite(decoy_sequences, real, real, false, missed_cleavages);
+      for (Size i = 0; i < decoy_entries.size(); ++i) fasta_db[decoy_entries[i]].sequence = decoy_sequences[i];
       OPENMS_LOG_INFO << "Background: reshuffled " << decoy_fix.rewritten() << " decoy oligos that equal a target or background oligo"
-                      << (decoy_fix.failed() ? " (" + std::to_string(decoy_fix.failed()) + " could not be reshuffled)" : std::string()) << endl;
+                      << (decoy_fix.failed() ? " (" + std::to_string(decoy_fix.failed()) + " could not be reshuffled)" : std::string())
+                      << (decoy_fix.failedCombinations() ? "; " + std::to_string(decoy_fix.failedCombinations()) +
+                                                             " missed-cleavage decoy oligos still equal one"
+                                                         : std::string())
+                      << endl;
     }
     decoy_keys.clear();
     for (const auto& entry : fasta_db)
     {
-      if (is_decoy(entry.identifier)) for (auto& key : decoy_fix.productKeys(entry.sequence)) decoy_keys.insert(key);
+      if (is_decoy(entry.identifier)) for (auto& key : decoy_fix.productKeys(entry.sequence, missed_cleavages)) decoy_keys.insert(key);
     }
 
     vector<FASTAFile::FASTAEntry> result = background;
@@ -1911,12 +1923,15 @@ protected:
       RNABackgroundDatabase background_decoys(*rnase, min_length, 2);
       auto all = [](const std::string&) { return true; };
       auto taken = [&](const std::string& key) { return real(key) || decoy_keys.count(key); };
-      for (const auto& entry : background)
+      vector<std::string> sequences;
+      for (const auto& entry : background) sequences.push_back(entry.sequence);
+      sequences = background_decoys.rewrite(sequences, all, taken, true, missed_cleavages);
+      for (Size i = 0; i < background.size(); ++i)
       {
-        FASTAFile::FASTAEntry decoy = entry;
-        decoy.identifier = decoy_pattern + entry.identifier;
-        decoy.description = "decoy of " + entry.identifier;
-        decoy.sequence = background_decoys.rewrite(entry.sequence, all, taken, true);
+        FASTAFile::FASTAEntry decoy = background[i];
+        decoy.identifier = decoy_pattern + background[i].identifier;
+        decoy.description = "decoy of " + background[i].identifier;
+        decoy.sequence = sequences[i];
         result.push_back(decoy);
       }
       OPENMS_LOG_INFO << "Background: " << background.size() << " sequences (" << background_keys.size() << " distinct oligos of at least "
@@ -1924,6 +1939,9 @@ protected:
                       << (background_decoys.failed() ? " (" + std::to_string(background_decoys.failed()) +
                                                          " background oligos could not be shuffled into a new decoy)"
                                                      : std::string())
+                      << (background_decoys.failedCombinations() ? "; " + std::to_string(background_decoys.failedCombinations()) +
+                                                                     " missed-cleavage decoy oligos equal a real or decoy oligo"
+                                                                 : std::string())
                       << endl;
     }
     else
@@ -2511,7 +2529,11 @@ protected:
       vector<FASTAFile::FASTAEntry> background_db;
       if (getFlag_("background:enable"))
       {
-        background_db = prepareBackground_(fasta_db, decoy_pattern, configured_enzyme, min_oligo_length);
+        // cleavages blocked by modified residues (e.g. m7G for RNase T1) also join products
+        const bool blocked_cleavages = !cleavage_sensitive_groups.cuts_after_sensitive.empty() ||
+                                       !cleavage_sensitive_groups.cuts_before_sensitive.empty();
+        background_db = prepareBackground_(fasta_db, decoy_pattern, configured_enzyme, min_oligo_length,
+                                           search_param.missed_cleavages + (blocked_cleavages ? max_variable_mods_per_oligo : 0));
       }
 
       OPENMS_LOG_INFO << "Performing in-silico digestion..." << endl;

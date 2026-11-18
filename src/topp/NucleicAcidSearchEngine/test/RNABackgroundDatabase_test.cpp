@@ -11,6 +11,7 @@
 #include <OpenMS/CONCEPT/ClassTest.h>
 
 #include <algorithm>
+#include <set>
 
 using namespace OpenMS;
 
@@ -109,6 +110,46 @@ START_SECTION(rewrite: selected products are replaced consistently across sequen
   TEST_EQUAL(short_shuffled.size(), 10)
   TEST_EQUAL(short_shuffled[4], 'G')
   TEST_EQUAL(composition(short_shuffled) == composition("pAUCGCUCCG"), true)
+}
+END_SECTION
+
+START_SECTION(rewrite: missed-cleavage combinations of short products are checked)
+{
+  // review case (OpenMS PR #10941): all products of these targets are shorter than 5, but with one missed cleavage
+  // each target is a searchable 6-mer; a naive shuffle maps each target to the other one
+  const std::vector<std::string> targets = {"ACGUAG", "CAGAUG"};
+  RNABackgroundDatabase db(t1(), 5, 1);
+  std::set<std::string> target_keys;
+  for (const auto& target : targets)
+  {
+    for (const auto& k : db.productKeys(target, 1)) target_keys.insert(k);
+  }
+  TEST_EQUAL(target_keys.size(), 2) // ACGUAG, CAGAUG
+  auto is_target = [&](const std::string& k) { return target_keys.count(k) > 0; };
+  auto all = [](const std::string&) { return true; };
+  const std::vector<std::string> decoys = db.rewrite(targets, all, is_target, true, 1);
+  TEST_EQUAL(decoys.size(), 2)
+  for (const auto& decoy : decoys)
+  {
+    for (const auto& k : db.productKeys(decoy, 1)) TEST_EQUAL(is_target(k), false)
+    TEST_EQUAL(decoy[2], 'G') // cleavage residues stay
+    TEST_EQUAL(decoy[5], 'G')
+  }
+  TEST_EQUAL(db.failedCombinations(), 0)
+  // deterministic
+  RNABackgroundDatabase same(t1(), 5, 1);
+  const std::vector<std::string> again = same.rewrite(targets, all, is_target, true, 1);
+  TEST_EQUAL(again == decoys, true)
+}
+END_SECTION
+
+START_SECTION(productKeys: missed-cleavage combinations)
+{
+  RNABackgroundDatabase db(t1(), 5, 1);
+  // products: ACG, UAG, CCCCCG, A
+  std::vector<std::string> keys = db.productKeys("ACGUAGCCCCCGA", 1);
+  std::set<std::string> expected = {"ACGUAG", "UAGCCCCCG", "CCCCCG", "CCCCCGA"};
+  TEST_EQUAL(std::set<std::string>(keys.begin(), keys.end()) == expected, true)
 }
 END_SECTION
 
