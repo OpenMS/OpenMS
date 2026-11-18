@@ -1,0 +1,7 @@
+NEW added, not in DIA-NN 1 %   n   694 | DIA-NN same peak 0.64 | sum(1-PEP)   188.6 | expected true if unseen are all false: 0.27 | mean (1-PEP) where seen 0.43
+CUR accepted, not in DIA-NN 1 % n  1111 | DIA-NN same peak 0.42 | sum(1-PEP)   192.6 | expected true if unseen are all false: 0.17 | mean (1-PEP) where seen 0.41
+NEW added, in DIA-NN 1 %       n  2359 | DIA-NN same peak 0.98 | sum(1-PEP)  2281.1 | expected true if unseen are all false: 0.97 | mean (1-PEP) where seen 0.99
+score    5.09-   5.45: targets   685, decoys   98, of targets in DIA-NN 1 % 0.69, X 174
+score    5.45-   6.17: targets   951, decoys   68, of targets in DIA-NN 1 % 0.73, X 173
+score    6.17-   8.04: targets  1310, decoys   60, of targets in DIA-NN 1 % 0.79, X 173
+score    8.04-  29.55: targets 12309, decoys   43, of targets in DIA-NN 1 % 0.94, X 174

@@ -35,6 +35,11 @@ default output is unchanged, and 23/23 tests pass. It is there to support this i
   | 0.2-0.5 | 102 |
 
 ## 2. Reading (revised with the decoy null, `PLAUS_D_NULL.txt`)
+**Superseded in part by Q6_PEAK_IDENTITY.md:**
+- The decoy null below is not comparable to false targets: in this band, decoys sit on a real peak only 29 % of the time.
+- DIA-NN's PEP and the target-decoy estimate put the 694 at about 270-500 false, not about 500.
+- The "peak, not identity" hypothesis below was tested and rejected.
+
 The ±30 s shift is the wrong null. Decoy winners in the same score band as the 694 also look "supported" at our apex:
 
 | group | n | DIA-NN q ≤ 0.05, same RT | OpenSWATH q ≤ 0.01, same RT | either | DIA-NN 1 % on run H |

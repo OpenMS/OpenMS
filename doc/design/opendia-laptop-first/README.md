@@ -24,8 +24,9 @@ The branch's [`src/topp/OpenDIA/README.md`](https://github.com/OpenMS/OpenMS/blo
   (AUC 0.45-0.55). The excess is on raw 02 only. Pooled over raws 01-03 it is 0.0072, so the scorer's fit is the next
   suspect. See RESULT_PGSCORES.md and PRECHECK_PGQ.md.
   `-pg_scores` is kept as an opt-in flag for the investigation; the default is unchanged. On D, 2,359 of the 3,053
-  extra IDs are DIA-NN-confirmed and real. Against a decoy null, about 500 of the other 694 look false, so the gain is
-  mostly real but q is too optimistic in the tail (PLAUS_D.md).
+  extra IDs are DIA-NN-confirmed and real. Of the other 694, about 270-500 are false (bounded by DIA-NN's PEP and our decoys),
+  so the gain is mostly real but q is somewhat optimistic in the tail. No pg score rewards peak presence over identity
+  (Q6_PEAK_IDENTITY.md). The next step is a run-derived calibration safeguard under a new frozen plan.
 - **Speed and memory, same laptop, Astral raw 01:** 7:18-7:26 against DIA-NN's 7:23. Peak memory is 14.4 GB against
   6.8 GB.
 
