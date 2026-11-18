@@ -11,6 +11,9 @@
 #include <OpenMS/ANALYSIS/QUANTITATION/PeptideAndProteinQuant.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/CHEMISTRY/EnzymaticDigestion.h>
+#include <OpenMS/CHEMISTRY/ModificationsDB.h>
+#include <OpenMS/CHEMISTRY/Residue.h>
+#include <OpenMS/CHEMISTRY/ResidueModification.h>
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/LogStream.h>
@@ -33,6 +36,35 @@ using namespace std;
 
 namespace OpenMS
 {
+
+  namespace
+  {
+    /// Does @p seq carry at least one of @p modifications (full names, e.g. "Oxidation (M)"), on a
+    /// residue or on a terminus? Names are compared exactly, the way IDFilter's
+    /// 'blacklist:modifications' matches them. Unlike that filter, an empty set matches nothing.
+    bool carriesModification(const AASequence& seq, const std::set<std::string>& modifications)
+    {
+      if (modifications.empty() || !seq.isModified()) { return false; }
+
+      if (seq.hasNTerminalModification() && modifications.contains(seq.getNTerminalModification()->getFullId()))
+      {
+        return true;
+      }
+      if (seq.hasCTerminalModification() && modifications.contains(seq.getCTerminalModification()->getFullId()))
+      {
+        return true;
+      }
+      for (Size i = 0; i < seq.size(); ++i)
+      {
+        const Residue& residue = seq[i];
+        if (residue.isModified() && modifications.contains(residue.getModification()->getFullId()))
+        {
+          return true;
+        }
+      }
+      return false;
+    }
+  } // namespace
 
   PeptideAndProteinQuant::PeptideAndProteinQuant() :
     DefaultParamHandler("PeptideAndProteinQuant"), stats_(), pep_quant_(),
@@ -70,6 +102,17 @@ namespace OpenMS
     defaults_.setValidStrings("consensus:fix_peptides", true_false);
 
     defaults_.setSectionDescription("consensus", "Additional options for consensus maps (and identification results comprising multiple runs)");
+
+    std::vector<std::string> all_mods;
+    ModificationsDB::getInstance()->getAllSearchModifications(all_mods);
+
+    defaults_.setValue("modifications:exclude", std::vector<std::string>(), "Leave peptides with these modifications out of the protein quantification, e.g. a regulated modification whose peptides do not follow the abundance of the protein ('Phospho (S)' 'Phospho (T)' 'Phospho (Y)'). A peptide form that carries at least one of them does not contribute to the protein abundances; whether the other forms of the same peptide sequence still do is decided by 'exclude_counterparts'.\nModifications are matched by their full name including the specificity, as by the 'blacklist:modifications' option of IDFilter, so every residue or terminus to leave out has to be listed. Fixed modifications and labels are affected only if they are listed.\nOnly the protein quantities change: peptide-level results keep every form, and the identifications are not touched, so - unlike after filtering the identifications beforehand - the peptides still take part in protein inference.\nEmpty (the default): the forms of a peptide are summed up, whatever their modifications.", {"advanced"});
+    defaults_.setValidStrings("modifications:exclude", all_mods);
+
+    defaults_.setValue("modifications:exclude_counterparts", "true", "Also leave out every other form of a peptide sequence of which at least one form carries a modification listed in 'exclude': the unmodified form and the forms that carry other modifications. Their abundance depends on the share of the peptide that is modified, so where this share differs between samples they do not follow the abundance of the protein either.\nSet to 'false' to leave out only the forms that carry a listed modification themselves.\nA form counts as observed once it was identified, whether or not it was quantified. No effect while 'exclude' is empty.", {"advanced"});
+    defaults_.setValidStrings("modifications:exclude_counterparts", true_false);
+
+    defaults_.setSectionDescription("modifications", "Options to leave modified peptides out of the protein quantification.");
 
     defaultsToParam_();
   }
@@ -663,8 +706,26 @@ namespace OpenMS
       return;
     }
 
+    // Reverse index: unmodified peptide -> all pep_quant_ entries (modified peptidoforms)
+    // sharing that unmodified sequence. Built once by a single forward pass over pep_quant_.
+    // This replaces the previous full rescan of pep_quant_ (with a toUnmodifiedString() per
+    // entry) that calculateFileAndChannelLevelProteinAbundances_ performed for every
+    // (protein, selected peptide) pair - the dominant O(N_pep^2) cost on large inputs.
+    UnmodifiedToEntriesIndex unmod_to_entries;
+    for (const auto& pep_q : pep_quant_)
+    {
+      unmod_to_entries[pep_q.first.toUnmodifiedString()].push_back(&pep_q);
+    }
+
+    // Peptidoforms that 'modifications:exclude' keeps out of the protein quantification (none by
+    // default). Determined once and handed to BOTH roll-ups below - the assay level in
+    // transferPeptideDataToProteins_() and the file/channel level in
+    // calculateFileAndChannelLevelProteinAbundances_() - so that the two granularities cannot
+    // disagree about which peptidoforms a protein quantity is made of.
+    const ExcludedPeptidoforms excluded = findPeptidoformsExcludedFromProteins_(unmod_to_entries);
+
     // Phase 1: Transfer peptide data to protein structures
-    transferPeptideDataToProteins_(proteins);
+    transferPeptideDataToProteins_(proteins, excluded);
 
     // Phase 2: Extract and validate parameters
     std::string method = param_.getValue("method");
@@ -686,17 +747,6 @@ namespace OpenMS
     // build it once here instead of rebuilding it inside the per-protein loop (which made
     // this phase O(P^2) in the number of proteins).
     const std::map<std::string, std::string> accession_to_leader = mapAccessionToLeader(proteins);
-
-    // Reverse index: unmodified peptide -> all pep_quant_ entries (modified peptidoforms)
-    // sharing that unmodified sequence. Built once by a single forward pass over pep_quant_.
-    // This replaces the previous full rescan of pep_quant_ (with a toUnmodifiedString() per
-    // entry) that calculateFileAndChannelLevelProteinAbundances_ performed for every
-    // (protein, selected peptide) pair - the dominant O(N_pep^2) cost on large inputs.
-    UnmodifiedToEntriesIndex unmod_to_entries;
-    for (const auto& pep_q : pep_quant_)
-    {
-      unmod_to_entries[pep_q.first.toUnmodifiedString()].push_back(&pep_q);
-    }
 
     for (auto& prot_q : prot_quant_)
     {
@@ -735,10 +785,11 @@ namespace OpenMS
       calculateFractionGroupLevelProteinAbundances_(accession, selected_peptides, aggregate,
                                                     top_n, include_all);
 
-      // accession_to_leader and unmod_to_entries are loop-invariant and computed once before
-      // the loop (see above).
+      // accession_to_leader, unmod_to_entries and excluded are loop-invariant and computed once
+      // before the loop (see above).
       calculateFileAndChannelLevelProteinAbundances_(accession, selected_peptides, aggregate,
-                                          top_n, include_all, accession_to_leader, unmod_to_entries);
+                                          top_n, include_all, accession_to_leader, unmod_to_entries,
+                                          excluded);
 
       // Update statistics
       if (prot_q.second.fraction_group_abundances.empty())
@@ -1299,7 +1350,55 @@ namespace OpenMS
   } 
 
 
-  void PeptideAndProteinQuant::transferPeptideDataToProteins_(const ProteinIdentification& proteins)
+  PeptideAndProteinQuant::ExcludedPeptidoforms PeptideAndProteinQuant::findPeptidoformsExcludedFromProteins_(
+    const UnmodifiedToEntriesIndex& unmod_to_entries) const
+  {
+    ExcludedPeptidoforms excluded;
+
+    const std::vector<std::string> names = param_.getValue("modifications:exclude").toStringVector();
+    if (names.empty()) { return excluded; } // the default: every peptidoform contributes
+
+    const std::set<std::string> modifications(names.begin(), names.end());
+    const bool exclude_counterparts = param_.getValue("modifications:exclude_counterparts") == "true";
+
+    Size n_modified = 0; // peptidoforms that carry a listed modification themselves
+    for (const auto& pep_q : pep_quant_)
+    {
+      if (!carriesModification(pep_q.first, modifications)) { continue; }
+
+      ++n_modified;
+      if (exclude_counterparts)
+      {
+        // Every form of this peptide sequence, the unmodified one included. The index holds each
+        // pep_quant_ entry under its unmodified sequence, so the lookup cannot fail.
+        const auto& forms = unmod_to_entries.at(pep_q.first.toUnmodifiedString());
+        excluded.insert(forms.begin(), forms.end());
+      }
+      else
+      {
+        excluded.insert(&pep_q);
+      }
+    }
+
+    if (n_modified == 0)
+    {
+      // Not an error - the data may simply not contain the modification - but worth a warning: names
+      // are matched exactly, so e.g. 'Acetyl (Protein N-term)' does not match 'Acetyl (N-term)'.
+      OPENMS_LOG_WARN << "Warning: no peptide form carries a modification listed in 'modifications:exclude' ("
+                      << ListUtils::concatenate(names, ", ") << "). Nothing is left out of the protein quantification." << endl;
+    }
+    else
+    {
+      OPENMS_LOG_INFO << "Protein quantification ('modifications:exclude'): left out " << excluded.size() << " of "
+                      << pep_quant_.size() << " peptide forms (with a listed modification: " << n_modified
+                      << ", other forms of the same peptide sequences: " << (excluded.size() - n_modified) << ")." << endl;
+    }
+
+    return excluded;
+  }
+
+  void PeptideAndProteinQuant::transferPeptideDataToProteins_(const ProteinIdentification& proteins,
+                                                              const ExcludedPeptidoforms& excluded)
   {
     // if information about (indistinguishable) protein groups is available, map
     // each accession to the accession of the leader of its group of proteins:
@@ -1323,13 +1422,20 @@ namespace OpenMS
       prot_quant_[leader_accession].psm_count += pep_q.second.psm_count; // total PSM count for this group of proteins (represented by the leader accession)
 
       // Transfer assay abundances and counts from peptides to proteins, summing modified
-      // peptidoforms into their unmodified peptide sequence.
-      for (const auto& [fraction_group, label_abundances] : pep_q.second.fraction_group_abundances)
+      // peptidoforms into their unmodified peptide sequence. A peptidoform that
+      // 'modifications:exclude' leaves out contributes no abundance, so a peptide all of whose
+      // forms are left out never becomes a key of peptide_fraction_group_abundances: it is not
+      // selected, not counted towards 'top:N' and not part of any protein quantity. Its
+      // identification evidence (the PSM counts above and below) is deliberately kept.
+      if (!excluded.contains(&pep_q))
       {
-        for (const auto& [label, abundance] : label_abundances)
+        for (const auto& [fraction_group, label_abundances] : pep_q.second.fraction_group_abundances)
         {
-          prot_quant_[leader_accession]
-            .peptide_fraction_group_abundances[peptide][fraction_group][label] += abundance;
+          for (const auto& [label, abundance] : label_abundances)
+          {
+            prot_quant_[leader_accession]
+              .peptide_fraction_group_abundances[peptide][fraction_group][label] += abundance;
+          }
         }
       }
 
@@ -1526,7 +1632,8 @@ namespace OpenMS
                                                                   Size top_n,
                                                                   bool include_all,
                                                                   const std::map<std::string, std::string>& accession_to_leader,
-                                                                  const UnmodifiedToEntriesIndex& unmod_to_entries)
+                                                                  const UnmodifiedToEntriesIndex& unmod_to_entries,
+                                                                  const ExcludedPeptidoforms& excluded)
   {
     auto prot_it = prot_quant_.find(protein_accession);
     if ( prot_it == prot_quant_.end())
@@ -1567,6 +1674,10 @@ namespace OpenMS
 
       for (const auto* pep_q_ptr : idx_it->second)
       {
+        // Left out by 'modifications:exclude' - the same entries the assay level skipped in
+        // transferPeptideDataToProteins_().
+        if (excluded.contains(pep_q_ptr)) { continue; }
+
         const auto& pep_q_check = *pep_q_ptr;
         std::string check_accession = getAccession_(pep_q_check.second.accessions, accession_to_leader);
         if (check_accession != protein_accession) { continue; } // peptidoform of another protein
