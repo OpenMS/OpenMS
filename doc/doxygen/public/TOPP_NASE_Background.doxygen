@@ -45,8 +45,9 @@ before target-decoy competition, for targets and decoys alike.
   a real molecule collects that molecule's spectra). The log reports how many.
 - Both checks also cover missed-cleavage oligos (@p oligo:missed_cleavages, plus cleavages that modifications such as
   m7G block): combinations of consecutive decoy products, including ones made of products shorter than
-  @p oligo:min_size, that equal a real oligo are removed by trying other shuffles of their components. Combinations
-  of components that cannot change (e.g. G or AG) can remain; the log reports how many.
+  @p oligo:min_size, that equal a real oligo are removed by trying other shuffles of their components; a change is
+  only kept if it creates no new such combination. Combinations of components that cannot change (e.g. G or AG) can
+  remain; the log reports how many, and matches to those that equal a background oligo are left out as background.
 
 Some oligos cannot be shuffled into a new sequence (e.g. U stretches, or short oligos whose every arrangement is
 taken); the log reports them. Below 7 nt, most arrangements of a composition occur in human RNA, so we recommend
@@ -54,8 +55,10 @@ taken); the log reports them. Below 7 nt, most arrangements of a composition occ
 
 @section nase_background_hits Which spectra are left out
 
-A spectrum is left out if all its best-scoring hits are background hits (oligos whose parents are all background
-sequences or their decoys). A database oligo tied with a background oligo keeps the spectrum. In other spectra,
+A spectrum is left out if all its best-scoring hits are background hits: oligos with a background parent (a background
+sequence or one of its decoys) and no target parent of the database. This includes database decoy oligos that equal a
+background oligo despite the reshuffling (they are real molecules). A database target oligo tied with a background
+oligo keeps the spectrum. In other spectra,
 lower-ranked background hits are removed. @p background:out lists the left-out spectra with their background hit and
 the best other hit (if the search retained one). These spectra are not identifications of the database; they are
 evidence of what else the sample contains.

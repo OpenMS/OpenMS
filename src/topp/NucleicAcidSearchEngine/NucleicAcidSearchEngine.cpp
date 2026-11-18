@@ -1951,16 +1951,25 @@ protected:
     return result;
   }
 
-  /// Whether every parent of the oligo of @p hit is a background sequence (or a background decoy)
+  /**
+    @brief Whether the oligo of @p hit is a background oligo: it has a background parent (a background sequence or a
+    background decoy) and no target parent of the database
+
+    An oligo that a database decoy shares with a background sequence is a real molecule (the decoy could not be
+    reshuffled away from it, e.g. a missed-cleavage combination of short products); as in subset-neighbor search, matches
+    to it are left out like other background matches. An oligo that a database target shares with the background is a
+    target oligo.
+  */
   static bool isBackgroundHit_(const AnnotatedHit& hit)
   {
     const auto& oligo = hit.parent_override ? *hit.parent_override : *hit.oligo_ref;
-    if (oligo.parent_matches.empty()) return false;
+    bool background = false;
     for (const auto& pair : oligo.parent_matches)
     {
-      if (!pair.first->metaValueExists(BACKGROUND_META_)) return false;
+      if (pair.first->metaValueExists(BACKGROUND_META_)) background = true;
+      else if (!pair.first->is_decoy) return false;
     }
-    return true;
+    return background;
   }
 
   /**
