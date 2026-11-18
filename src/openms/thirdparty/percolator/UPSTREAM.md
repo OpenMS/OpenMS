@@ -187,6 +187,12 @@ All patches are `git diff` style (a/b/ prefixes, applied with -p1) on the whitel
   than the loop at 4 threads on 1,000,000 PSMs and 37% on 100,000; in other configurations 7-29% at 4
   threads and 11-17% at 2; from 1 to 4 threads 2.5-2.9x instead of 2.1-2.7x.
 
+Deliberate difference from the executable outside the patches (OpenMS wrapper, `Percolator.cpp`): with
+`train_fdr` 0 the wrapper uses `test_fdr` also in the passes after a capped training (the `-N` second pass,
+the out-of-fold merge, the learning curve), as the cross-validation resolves its selection FDR. The
+executable of a9783ee8 normalizes the `-N` second pass at its unresolved `selectionFdr_` (`Caller.cpp`:
+with `-F 0`, 0), so with `-trainFDR 0 -N` the two differ; with any `train_fdr` > 0 they agree.
+
 ### The spline PEP: fixed upstream (#408)
 
 On a90106b the patch set had four more patches for the P-IRLS spline PEP (`pep_method` `nonparametric`,

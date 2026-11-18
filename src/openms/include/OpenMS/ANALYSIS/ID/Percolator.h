@@ -70,9 +70,12 @@ namespace OpenMS
     at the call site if parallelism is required.
 
     @section reproducibility Reproducibility
-    Results are reproducible given the same seed, thread count, and input
-    ordering. Changing the thread count can perturb results because of
-    FeatureMemoryPool allocation ordering.
+    Results are reproducible given the same seed, parameters and input
+    order. They do not depend on the number of threads (num_threads): the
+    folds and (Cpos, Cneg) pairs are trained on their own, the sorts use total
+    orders, and the solvers add their partial sums in a fixed order (class test
+    "num_threads does not change the results"). The order of the input rows
+    can change results slightly (class test "input-order invariance").
 
     @see PSM rescoring example: PercolatorAdapter / ProSE.
     @see Transition rescoring example: OpenSwath layer (to be added when needed).
