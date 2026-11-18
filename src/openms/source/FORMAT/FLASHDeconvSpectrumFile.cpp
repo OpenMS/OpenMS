@@ -38,6 +38,54 @@ namespace OpenMS
                                  [](const PeakGroup& pg) { return pg.getTargetDecoyType() == PeakGroup::TargetDecoyType::target; });
     }
 
+    // The masses of the isolation window of an MSn spectrum (DeconvolvedSpectrum::getPrecursorMassIntensityMap) as two space separated
+    // lists, the masses and their shares of the total window intensity, the precursor first; pg_intensity is the window intensity of the
+    // precursor. The window masses are those of the one survey spectrum the precursor was found in. The precursor mass is the mass of
+    // its MS1 feature at the isotope label chosen with the fragments, so it differs from its window mass by a few ppm (1-99 % of 222,663
+    // precursors of 15 iodoTMT runs: -5.8..+5.5 ppm) and at most one isotope. The precursor is therefore the window mass nearest to the
+    // precursor mass within 10 ppm, the same isotope before a neighbouring one. A precursor that is not among the window masses (taken
+    // from another survey spectrum or given from outside) leaves pg_intensity 0 and the lists without a leading precursor entry.
+    void windowMasses(const DeconvolvedSpectrum& dspec, double total_int, double& pg_intensity, std::string& mass_str, std::string& int_str)
+    {
+      const auto& window = dspec.getPrecursorMassIntensityMap();
+      const double pm = dspec.getPrecursorPeakGroup().getMonoMass();
+      const double iso = dspec.getPrecursorPeakGroup().getIsotopeDaDistance();
+      int best = -1;
+      double best_cost = 2.0; // the isotope distance (0 or 1) + the residual relative to 10 ppm (below 1)
+      for (Size i = 0; i < window.size(); i++)
+      {
+        const double m = std::get<0>(window[i]);
+        if (m <= 0) continue; // the total intensity entry
+        const double k = std::round((m - pm) / iso);
+        if (std::abs(k) > 1) continue;
+        const double residual = std::abs(m - pm - k * iso) / (pm * 1e-5);
+        if (residual >= 1) continue;
+        const double cost = std::abs(k) + residual;
+        if (cost < best_cost)
+        {
+          best_cost = cost;
+          best = (int)i;
+        }
+      }
+      std::stringstream mass_ss, int_ss;
+      if (best >= 0)
+      {
+        pg_intensity = std::get<1>(window[best]);
+        mass_ss << std::to_string(std::get<0>(window[best])) << " ";
+        int_ss << pg_intensity / total_int << " ";
+      }
+      for (Size i = 0; i < window.size(); i++)
+      {
+        if ((int)i == best || std::get<0>(window[i]) <= 0) continue;
+        mass_ss << std::to_string(std::get<0>(window[i])) << " ";
+        int_ss << std::get<1>(window[i]) / total_int << " ";
+      }
+      mass_str = mass_ss.str();
+      int_str = int_ss.str();
+      if (! mass_str.empty()) mass_str.pop_back();
+      if (! int_str.empty()) int_str.pop_back();
+    }
+
     /// TopPIC's name of an activation method: TopPIC knows CID, HCD, ETD, ETCID, ETHCD, MPD and UVPD (res/base_data/activation_base.xml
     /// of TopPIC 2.1) and stops at any other name; ECD gives the c/z-dot ions of ETD, photodissociation those of UVPD, infrared
     /// multiphoton dissociation those of MPD, the other collisional methods those of CID. Empty if unknown.
@@ -148,47 +196,9 @@ namespace OpenMS
       }
       else
       {
-        std::stringstream mass_ss, int_ss;
         double pg_intensity = 0;
-        for (const auto& [m, it] : dspec.getPrecursorMassIntensityMap())
-        {
-          if (std::abs(m - dspec.getPrecursorPeakGroup().getMonoMass()) < 0.0001)
-          {
-            pg_intensity = it;
-            mass_ss << std::to_string(m) <<" ";
-            break;
-          }
-        }
-
-        for (const auto& [m, it] : dspec.getPrecursorMassIntensityMap())
-        {
-          if (std::abs(m - dspec.getPrecursorPeakGroup().getMonoMass()) < 0.0001) continue;
-          if (m <= 0)
-          {
-            continue;
-          }
-          mass_ss << std::to_string(m) <<" ";
-        }
-
-        for (const auto& [m, it] : dspec.getPrecursorMassIntensityMap())
-        {
-          if (std::abs(m - dspec.getPrecursorPeakGroup().getMonoMass()) < 0.0001)
-          {
-            int_ss << it / total_int << " ";
-            break;
-          }
-        }
-        for (const auto& [m, it] : dspec.getPrecursorMassIntensityMap())
-        {
-          if (std::abs(m - dspec.getPrecursorPeakGroup().getMonoMass()) < 0.0001) continue;
-          if (m <= 0) continue;
-          int_ss << it / total_int << " ";
-        }
-
-        auto mass_str = mass_ss.str();
-        auto int_str = int_ss.str();
-        if (!mass_str.empty()) mass_str.pop_back();
-        if (!int_str.empty()) int_str.pop_back();
+        std::string mass_str, int_str;
+        windowMasses(dspec, total_int, pg_intensity, mass_str, int_str);
 
         precursor_ss << dspec.getPrecursor().getCharge() << "\t" << dspec.getPrecursorPeakGroup().getChargeSNR(dspec.getPrecursor().getCharge()) << "\t"
                      << std::to_string(dspec.getPrecursorPeakGroup().getMonoMass()) << "\t"
@@ -697,47 +707,9 @@ namespace OpenMS
 
       if (precursor_found)
       {
-        std::stringstream mass_ss, int_ss;
         double pg_intensity = 0;
-        for (const auto& [m, it] : dspec.getPrecursorMassIntensityMap())
-        {
-          if (std::abs(m - dspec.getPrecursorPeakGroup().getMonoMass()) < 0.0001)
-          {
-            pg_intensity = it;
-            mass_ss << std::to_string(m) << " ";
-            break;
-          }
-        }
-
-        for (const auto& [m, it] : dspec.getPrecursorMassIntensityMap())
-        {
-          if (std::abs(m - dspec.getPrecursorPeakGroup().getMonoMass()) < 0.0001) continue;
-          if (m <= 0)
-          {
-            continue;
-          }
-          mass_ss << std::to_string(m) << " ";
-        }
-
-        for (const auto& [m, it] : dspec.getPrecursorMassIntensityMap())
-        {
-          if (std::abs(m - dspec.getPrecursorPeakGroup().getMonoMass()) < 0.0001)
-          {
-            int_ss << it / total_int << " ";
-            break;
-          }
-        }
-        for (const auto& [m, it] : dspec.getPrecursorMassIntensityMap())
-        {
-          if (std::abs(m - dspec.getPrecursorPeakGroup().getMonoMass()) < 0.0001) continue;
-          if (m <= 0) continue;
-          int_ss << it / total_int << " ";
-        }
-
-        auto mass_str = mass_ss.str();
-        auto int_str = int_ss.str();
-        if (! mass_str.empty()) mass_str.pop_back();
-        if (! int_str.empty()) int_str.pop_back();
+        std::string mass_str, int_str;
+        windowMasses(dspec, total_int, pg_intensity, mass_str, int_str);
 
         ss << std::to_string(dspec.getDeconvolvedPrecursor().getMZ()) << "\t" << dspec.getDeconvolvedPrecursor().getIntensity() << "\t"
            << pg_intensity << "\t" << dspec.getPrecursorMassIntensityMap().size() - 1 << "\t" << mass_str << "\t" << int_str << "\t";
