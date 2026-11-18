@@ -95,9 +95,16 @@ class AlgIn {
     rowTable_.reserve(numExamples);
     Y.reserve(numExamples);
   }
-  // appends one example (features of row, label)
+  // appends one example (features of row, label); row may be a row of this set
   void add(const double* row, double label) {
     const std::size_t last = rowTable_.size();
+    if (!borrowed_ && last + 1 > storageRows_) {
+      // the growth frees the old storage, which may hold row: copy the features first
+      const std::vector<double> features(row, row + (n - 1));
+      resizeExamples(last + 1);
+      set(last, features.data(), label);
+      return;
+    }
     resizeExamples(last + 1);
     set(last, row, label);
   }

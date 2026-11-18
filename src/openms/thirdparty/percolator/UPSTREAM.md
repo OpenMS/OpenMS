@@ -202,11 +202,13 @@ sort gives the same order.
 
 The patches are the commits of a port branch: a commit with the pristine upstream files of the pinned
 SHA (`whitelist.txt`) and the OpenMS-local files, then one commit per patch that touches only
-whitelisted files (OpenMS-local files may change in separate commits). For each patch commit:
+whitelisted files (OpenMS-local files may change in separate commits). For each patch commit, run in
+`src/openms/thirdparty/percolator/` of the port branch (the pathspecs are relative to it; `--no-relative`
+keeps the paths in the patch relative to the repository root, as `sync-from-upstream.sh` applies them):
 
 ```bash
-files=$(grep -v '^#' whitelist.txt | grep -v '^$' | sed 's#^#src/openms/thirdparty/percolator/#')
-git diff --no-color --full-index <commit>~1 <commit> -- $files > patches/NN-name.patch
+files=$(grep -v '^#' whitelist.txt | grep -v '^$')
+git diff --no-color --no-relative --full-index <commit>~1 <commit> -- $files > patches/NN-name.patch
 ```
 
 To rebuild such a branch from this directory: copy the whitelisted files of the pinned SHA into a fresh

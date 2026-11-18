@@ -704,10 +704,15 @@ index b00c9795af39f03cde64039749e105262dc97131..7e0595e36b1451ab0c5f100d11f904aa
  #endif
  
 diff --git a/src/openms/thirdparty/percolator/PAVARegressor.h b/src/openms/thirdparty/percolator/PAVARegressor.h
-index e267e44a9dfb74816418dedd536b6d8b52c9ced3..4997dc6007a35a124e14cbbb081abe011f387f2d 100644
+index e267e44a9dfb74816418dedd536b6d8b52c9ced3..61c1abed4b32eec8400cc0d8be3bab617510f705 100644
 --- a/src/openms/thirdparty/percolator/PAVARegressor.h
 +++ b/src/openms/thirdparty/percolator/PAVARegressor.h
-@@ -4,6 +4,9 @@
+@@ -1,9 +1,14 @@
++#pragma once
++
+ #include "MonotoneRegressor.h"
+ #include <algorithm>
+ #include <cassert>
  #include <numeric>
  #include <stdexcept>
  
@@ -717,7 +722,7 @@ index e267e44a9dfb74816418dedd536b6d8b52c9ced3..4997dc6007a35a124e14cbbb081abe01
  class PAVARegressor final : public MonotoneRegressor {
  public:
    using MonotoneRegressor::MonotoneRegressor;
-@@ -132,3 +135,5 @@ inline std::vector<double> PAVARegressor::pava_impl(
+@@ -132,3 +137,5 @@ inline std::vector<double> PAVARegressor::pava_impl(
      }
      return result;
  }
