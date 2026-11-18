@@ -27,8 +27,12 @@ The branch's [`src/topp/OpenDIA/README.md`](https://github.com/OpenMS/OpenMS/blo
   extra IDs are DIA-NN-confirmed and real. Of the other 694, about 270-500 are false (bounded by DIA-NN's PEP and our decoys),
   so the gain is mostly real but q is somewhat optimistic in the tail. No pg score rewards peak presence over identity
   (Q6_PEAK_IDENTITY.md). The raw 02 "failure" is within one run's counting noise (Q7_NEXT.md). Pooled over raws
-  01-03, NEW is at 0.0073 against CUR's 0.0088. The next step is an entrapment HeLa library so diaPASEF has a true FDR,
-  then a frozen plan for making `-pg_scores` the default.
+  01-03, NEW is at 0.0073 against CUR's 0.0088.
+- **HeLa entrapment library and PLAN_PGENT (18 Nov): true FDR on diaPASEF.** Built on codon: a predicted library of
+  58,998 peptide pairs. At equal true FDR, `-pg_scores` gives D 9,701 -> 12,033 (+24 %) and held-out H 23,136 -> 26,924
+  (+16 %). It fails the absolute bound (FDP_c at q <= 0.01 must be <= 1.2 %; NEW is at 1.66 / 1.86 %), but CUR is just as
+  far over (1.76 / 1.67 %). diaPASEF q calibration is the open problem, and it is shared by today's default
+  (RESULT_PGENT.md).
 - **Speed and memory, same laptop, Astral raw 01:** 7:18-7:26 against DIA-NN's 7:23. Peak memory is 14.4 GB against
   6.8 GB.
 
