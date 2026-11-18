@@ -2809,6 +2809,130 @@ START_SECTION(([EXTRA] modifications:exclude rejects names that are not modifica
 }
 END_SECTION
 
+START_SECTION((void annotateQuantificationsToProteins(const ProteinQuant& protein_quants, ProteinIdentification& proteins, bool remove_unquantified) drops the stored quantities of groups it does not quantify))
+{
+  // Protein groups read from a consensusXML that a workflow wrote already carry the quantities
+  // of that run. The exporters (mzTab, QPX) write every array of a group, so a group that the
+  // current run does not quantify must not keep them: it would be reported with the abundance
+  // it had then. Three groups, all with stored quantities:
+  //   ProtA - only peptide is left out by 'modifications:exclude', i.e. unquantified now
+  //   ProtB - quantified now (1000)
+  //   ProtC - no peptide at all in the current data
+  ConsensusMap consensus;
+  ExperimentalDesign design;
+  make_detailed_input({"fileA"},
+                      {{0, "PEPTIDEMK", 2, 100.0},
+                       {0, "PEPTIDEM(Oxidation)K", 2, 900.0}},
+                      "ProtA", consensus, design);
+  make_detailed_input({"fileA"}, {{0, "GGGGGK", 2, 1000.0}}, "ProtB", consensus, design);
+
+  const std::string abundance_array = "fraction_group_level_abundance";
+  auto make_proteins = [&abundance_array](bool foreign_array_on_prot_a)
+  {
+    ProteinIdentification proteins;
+    std::vector<ProteinHit> hits;
+    for (const char* accession : {"ProtA", "ProtB", "ProtC"})
+    {
+      ProteinHit hit;
+      hit.setAccession(accession);
+      hits.push_back(hit);
+
+      ProteinIdentification::ProteinGroup group;
+      group.accessions = {accession};
+      group.probability = 1.0;
+
+      // quantities of an earlier run
+      DataArrays::FloatDataArray abundance;
+      abundance.setName(abundance_array);
+      abundance.push_back(12345.0f);
+      group.getFloatDataArrays().push_back(abundance);
+      DataArrays::IntegerDataArray label;
+      label.setName("fraction_group_level_label");
+      label.push_back(1);
+      group.getIntegerDataArrays().push_back(label);
+      DataArrays::StringDataArray filename;
+      filename.setName("file_channel_level_filename");
+      filename.push_back("fileA");
+      group.getStringDataArrays().push_back(filename);
+
+      // an array that the quantifier does not write and must not touch
+      if (foreign_array_on_prot_a && (std::string(accession) == "ProtA"))
+      {
+        DataArrays::FloatDataArray foreign;
+        foreign.setName("written_by_another_annotator");
+        foreign.push_back(1.5f);
+        group.getFloatDataArrays().push_back(foreign);
+      }
+      proteins.getIndistinguishableProteins().push_back(group);
+    }
+    proteins.setHits(hits);
+    return proteins;
+  };
+
+  auto find_group = [](const ProteinIdentification& proteins, const std::string& accession) -> const ProteinIdentification::ProteinGroup*
+  {
+    for (const auto& group : proteins.getIndistinguishableProteins())
+    {
+      if (group.accessions[0] == accession) { return &group; }
+    }
+    return nullptr;
+  };
+
+  PeptideAndProteinQuant quantifier;
+  Param p = quantifier.getDefaults();
+  p.setValue("top:N", 0);
+  p.setValue("top:aggregate", "sum");
+  p.setValue("modifications:exclude", std::vector<std::string>{"Oxidation (M)"});
+  quantifier.setParameters(p);
+  quantifier.readQuantData(consensus, design);
+  quantifier.quantifyPeptides();
+
+  // keeping unquantified groups: they stay, but without the stored quantities
+  {
+    ProteinIdentification proteins = make_proteins(true);
+    quantifier.quantifyProteins(proteins);
+    const auto& quant = quantifier.getProteinResults();
+    TEST_TRUE(quant.at("ProtA").fraction_group_abundances.empty())
+    TEST_REAL_SIMILAR(quant.at("ProtB").fraction_group_abundances.at(1).at(1), 1000.0)
+    TEST_TRUE(quant.find("ProtC") == quant.end())
+
+    quantifier.annotateQuantificationsToProteins(quant, proteins, false);
+    TEST_EQUAL(proteins.getIndistinguishableProteins().size(), 3)
+
+    const auto* prot_a = find_group(proteins, "ProtA");
+    TEST_TRUE(prot_a != nullptr)
+    TEST_EQUAL(prot_a->getFloatDataArrays().size(), 1)
+    TEST_STRING_EQUAL(prot_a->getFloatDataArrays()[0].getName(), "written_by_another_annotator")
+    TEST_REAL_SIMILAR(prot_a->getFloatDataArrays()[0][0], 1.5)
+    TEST_TRUE(prot_a->getIntegerDataArrays().empty())
+    TEST_TRUE(prot_a->getStringDataArrays().empty())
+
+    const auto* prot_c = find_group(proteins, "ProtC");
+    TEST_TRUE(prot_c != nullptr)
+    TEST_TRUE(prot_c->getFloatDataArrays().empty())
+    TEST_TRUE(prot_c->getIntegerDataArrays().empty())
+    TEST_TRUE(prot_c->getStringDataArrays().empty())
+
+    // the quantified group reports this run's value, not the stored one
+    const auto* prot_b = find_group(proteins, "ProtB");
+    TEST_TRUE(prot_b != nullptr)
+    const auto abundance = getDataArrayByName(prot_b->getFloatDataArrays(), abundance_array);
+    TEST_TRUE(abundance != prot_b->getFloatDataArrays().end())
+    TEST_EQUAL(abundance->size(), 1)
+    TEST_REAL_SIMILAR((*abundance)[0], 1000.0)
+  }
+
+  // removing unquantified groups: without stored quantities they are recognized as such
+  {
+    ProteinIdentification proteins = make_proteins(false);
+    quantifier.quantifyProteins(proteins);
+    quantifier.annotateQuantificationsToProteins(quantifier.getProteinResults(), proteins, true);
+    TEST_EQUAL(proteins.getIndistinguishableProteins().size(), 1)
+    TEST_STRING_EQUAL(proteins.getIndistinguishableProteins()[0].accessions[0], "ProtB")
+  }
+}
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST

@@ -31,6 +31,7 @@
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <algorithm>
+#include <array>
 
 using namespace std;
 
@@ -1142,6 +1143,22 @@ namespace OpenMS
       it->clear();
       return *it;
     }
+
+    /// The arrays annotateQuantificationsToProteins() writes on a protein group, by container, in
+    /// the order the consensusXML writer emits them in.
+    const std::array<const char*, 4> QUANT_FLOAT_ARRAYS = {"psm_count", "distinct_peptides", "file_channel_level_abundance", "fraction_group_level_abundance"};
+    const std::array<const char*, 4> QUANT_INTEGER_ARRAYS = {"file_channel_level_channel", "file_level_psm_count", "fraction_group_level_fraction_group", "fraction_group_level_label"};
+    const std::array<const char*, 2> QUANT_STRING_ARRAYS = {"file_channel_level_filename", "file_level_filename"};
+
+    /// Remove (not merely empty) the data arrays named @p names; arrays of other names are kept.
+    template <typename ArraysT, typename NamesT>
+    void removeArraysByName(ArraysT& arrays, const NamesT& names)
+    {
+      std::erase_if(arrays, [&names](const typename ArraysT::value_type& data_array)
+      {
+        return std::find(names.begin(), names.end(), data_array.getName()) != names.end();
+      });
+    }
   } // namespace
 
   void PeptideAndProteinQuant::annotateQuantificationsToProteins(
@@ -1179,6 +1196,10 @@ namespace OpenMS
       }
     }
 
+    // The groups that receive quantities in this pass. Every other group is stripped of
+    // quantities below, see there.
+    std::set<const ProteinIdentification::ProteinGroup*> annotated_groups;
+
     for (const auto& q : protein_quants)
     {
       // accession of quantified protein(group)
@@ -1197,6 +1218,7 @@ namespace OpenMS
       if (group_it != accession_to_group.end())
       {
         ProteinIdentification::ProteinGroup* id_group = group_it->second;
+        annotated_groups.insert(id_group);
         const SampleAbundances& total_psm_counts = q.second.total_psm_counts;
         const SampleAbundances& total_distinct_peptides = q.second.total_distinct_peptides;
         const auto& file_level_psm_counts = q.second.file_level_psm_counts;
@@ -1207,16 +1229,9 @@ namespace OpenMS
         // Created here, all of them, before any reference is taken below: clearedArrayByName() may
         // append, which would invalidate a reference taken earlier. The order is the order the
         // consensusXML writer emits them in, which is not the order they are filled in below.
-        clearedArrayByName(id_group->getFloatDataArrays(), "psm_count");
-        clearedArrayByName(id_group->getFloatDataArrays(), "distinct_peptides");
-        clearedArrayByName(id_group->getFloatDataArrays(), "file_channel_level_abundance");
-        clearedArrayByName(id_group->getFloatDataArrays(), "fraction_group_level_abundance");
-        clearedArrayByName(id_group->getIntegerDataArrays(), "file_channel_level_channel");
-        clearedArrayByName(id_group->getIntegerDataArrays(), "file_level_psm_count");
-        clearedArrayByName(id_group->getIntegerDataArrays(), "fraction_group_level_fraction_group");
-        clearedArrayByName(id_group->getIntegerDataArrays(), "fraction_group_level_label");
-        clearedArrayByName(id_group->getStringDataArrays(), "file_channel_level_filename");
-        clearedArrayByName(id_group->getStringDataArrays(), "file_level_filename");
+        for (const char* name : QUANT_FLOAT_ARRAYS) { clearedArrayByName(id_group->getFloatDataArrays(), name); }
+        for (const char* name : QUANT_INTEGER_ARRAYS) { clearedArrayByName(id_group->getIntegerDataArrays(), name); }
+        for (const char* name : QUANT_STRING_ARRAYS) { clearedArrayByName(id_group->getStringDataArrays(), name); }
         
         // Spectral-count metadata remains sample-indexed independently of abundance grain. Do not
         // pre-size these arrays: psm_counts currently has no producer, and an empty array round
@@ -1337,6 +1352,20 @@ namespace OpenMS
           OPENMS_PRETTY_FUNCTION, 
           "Protein group quantified that is not present in inference data.");
       } 
+    }
+
+    // A group that was not quantified in this pass must not keep the quantities of an earlier one.
+    // The protein groups of a consensusXML written by a workflow carry them, and the exporters write
+    // every array of a group: a protein that 'top:N' or 'modifications:exclude' leaves unquantified
+    // now would be reported with the abundances it had then. The arrays are removed rather than
+    // emptied, because a group counts as unquantified below by having no float array at all.
+    // Arrays of other annotators (other names) are not touched.
+    for (auto& g : id_groups)
+    {
+      if (annotated_groups.contains(&g)) { continue; }
+      removeArraysByName(g.getFloatDataArrays(), QUANT_FLOAT_ARRAYS);
+      removeArraysByName(g.getIntegerDataArrays(), QUANT_INTEGER_ARRAYS);
+      removeArraysByName(g.getStringDataArrays(), QUANT_STRING_ARRAYS);
     }
 
     if (remove_unquantified)
