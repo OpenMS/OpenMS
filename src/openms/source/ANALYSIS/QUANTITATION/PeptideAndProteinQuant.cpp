@@ -1168,6 +1168,12 @@ namespace OpenMS
     const std::array<const char*, 4> QUANT_INTEGER_ARRAYS = {"file_channel_level_channel", "file_level_psm_count", "fraction_group_level_fraction_group", "fraction_group_level_label"};
     const std::array<const char*, 2> QUANT_STRING_ARRAYS = {"file_channel_level_filename", "file_level_filename"};
 
+    /// Sample-level abundance array of a grain that is no longer written. Files of older versions
+    /// still carry it and the mzTab and QPX exporters still look for it, so it is a quantity of an
+    /// earlier run like the arrays above - but kept apart from them, because that list is also the
+    /// list of arrays to create for a quantified group.
+    const std::array<const char*, 1> LEGACY_QUANT_FLOAT_ARRAYS = {"abundances"};
+
     /// Remove (not merely empty) the data arrays named @p names; arrays of other names are kept.
     template <typename ArraysT, typename NamesT>
     void removeArraysByName(ArraysT& arrays, const NamesT& names)
@@ -1376,23 +1382,29 @@ namespace OpenMS
     // The protein groups of a consensusXML written by a workflow carry them, and the exporters write
     // every array of a group: a protein that 'top:N' or 'modifications:exclude' leaves unquantified
     // now would be reported with the abundances it had then. The arrays are removed rather than
-    // emptied, because a group counts as unquantified below by having no float array at all.
+    // emptied, so that a group that is kept carries no empty quantity array either.
     // Arrays of other annotators (other names) are not touched.
     for (auto& g : id_groups)
     {
       if (annotated_groups.contains(&g)) { continue; }
       removeArraysByName(g.getFloatDataArrays(), QUANT_FLOAT_ARRAYS);
+      removeArraysByName(g.getFloatDataArrays(), LEGACY_QUANT_FLOAT_ARRAYS);
       removeArraysByName(g.getIntegerDataArrays(), QUANT_INTEGER_ARRAYS);
       removeArraysByName(g.getStringDataArrays(), QUANT_STRING_ARRAYS);
     }
 
     if (remove_unquantified)
     {
-      // remove all protein groups that have not been quantified
-      auto notQuantified = [] (const ProteinIdentification::ProteinGroup& g)->bool { return g.getFloatDataArrays().empty(); };
-      id_groups.erase(
-          remove_if(id_groups.begin(), id_groups.end(), notQuantified),
-          id_groups.end());
+      // Remove all protein groups that have not been quantified in this pass. Deliberately not
+      // "that carry no float array": a group can hold arrays of another annotator without being
+      // quantified, and would then stay although nothing was quantified for it.
+      std::vector<ProteinIdentification::ProteinGroup> quantified_groups;
+      quantified_groups.reserve(annotated_groups.size());
+      for (auto& g : id_groups)
+      {
+        if (annotated_groups.contains(&g)) { quantified_groups.push_back(std::move(g)); }
+      }
+      id_groups = std::move(quantified_groups);
     }
   } 
 

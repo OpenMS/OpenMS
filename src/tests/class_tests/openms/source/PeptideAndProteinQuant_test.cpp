@@ -2921,7 +2921,12 @@ START_SECTION((void annotateQuantificationsToProteins(const ProteinQuant& protei
       group.accessions = {accession};
       group.probability = 1.0;
 
-      // quantities of an earlier run
+      // quantities of an earlier run, in the current layout and in the sample-level layout of
+      // older versions, which the exporters still read
+      DataArrays::FloatDataArray legacy_abundance;
+      legacy_abundance.setName("abundances");
+      legacy_abundance.push_back(54321.0f);
+      group.getFloatDataArrays().push_back(legacy_abundance);
       DataArrays::FloatDataArray abundance;
       abundance.setName(abundance_array);
       abundance.push_back(12345.0f);
@@ -3002,9 +3007,11 @@ START_SECTION((void annotateQuantificationsToProteins(const ProteinQuant& protei
     TEST_REAL_SIMILAR((*abundance)[0], 1000.0)
   }
 
-  // removing unquantified groups: without stored quantities they are recognized as such
+  // removing unquantified groups: only the group quantified in this pass remains - whether or
+  // not an unquantified one still carries the array of another annotator
+  for (bool foreign_array_on_prot_a : {false, true})
   {
-    ProteinIdentification proteins = make_proteins(false);
+    ProteinIdentification proteins = make_proteins(foreign_array_on_prot_a);
     quantifier.quantifyProteins(proteins);
     quantifier.annotateQuantificationsToProteins(quantifier.getProteinResults(), proteins, true);
     TEST_EQUAL(proteins.getIndistinguishableProteins().size(), 1)

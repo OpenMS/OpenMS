@@ -203,8 +203,8 @@ public:
          The quantities are written as named data arrays on the protein groups of @p proteins. A group
          that @p protein_quants does not quantify loses these arrays if it carries them from an earlier
          annotation (e.g. groups read from a consensusXML that already held quantities), so that it is
-         not reported with outdated values. With @p remove_unquantified, the groups without quantities
-         are then removed altogether.
+         not reported with outdated values. With @p remove_unquantified, the groups that were not
+         quantified are removed altogether, whatever other annotations they carry.
     */
     void annotateQuantificationsToProteins(
       const ProteinQuant& protein_quants, 
