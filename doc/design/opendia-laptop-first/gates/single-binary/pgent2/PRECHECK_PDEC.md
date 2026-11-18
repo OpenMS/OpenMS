@@ -63,3 +63,44 @@ Which is preferable is a design decision for the user. Either way, the next froz
 **Independent corroboration:** DIALibGen's own help text for `-search:intensities` describes the target-assay decoy (the
 decoy in its target's fragment slots) as giving "weaker decoys". The predicted option is its default for its built-in
 search.
+
+## Full coverage (added 18 November 2026, 21:45)
+The 32 % unpaired targets above came from the test build, not the method:
+- `make_decoy_fasta.py` reversed the **FASTA entries** (117,996 sequences, many of them peptides with a missed cleavage).
+  The targets.pqp holds the **digested** peptides (184,662 unique). A reversed entry does not digest back into the
+  reverse of each sub-peptide, so many targets got no decoy.
+- `make_decoy_fasta2.py` reverses every digested target peptide instead, and the decoys are predicted with
+  `-generation:enzyme 'no cleavage'` as before.
+
+**Library** `entlib-pdec2-20261118/hela_pdec.pqp` (sha256 c590d2e6…):
+- 426,869 of 441,910 target precursors have a predicted decoy (96.6 %, was 68 %).
+- Matched on sequence and charge only, just 160 targets lack a decoy. These are charge 3 and 4 peptides with an
+  internal K/R, which the predictor drops.
+- The rest of the gap is modification variants: the predictor emitted a different set of M-ox / C-carbamidomethyl
+  forms for the reversed sequence.
+
+**Results** (D, seed 0; `EVAL_D_pdec2.txt`, `BOUNDS_pdec2.txt`, `PAIRWIN_pdec2.txt`). This is the **tool's own q-value
+as written**, with no re-competition:
+
+| quantity (CUR / NEW) | pseudo-reverse decoys (PGENT2, s0) | predicted, 68 % paired | **predicted, 96.6 % paired** |
+|---|---|---|---|
+| lower bound N_E/N at q ≤ 0.01 | 0.0088 / 0.0095 | 0.0100 / 0.0102 | **0.0069 / 0.0074** |
+| combined bound at q ≤ 0.01 | 0.0145 / 0.0155 | 0.0164 / 0.0168 | **0.0113 / 0.0121** |
+| lower / combined at q ≤ 0.005 | | 0.0053 / 0.0086 (CUR) | 0.0035 / 0.0057 (CUR), 0.0037 / 0.0060 (NEW) |
+| lower / combined at q ≤ 0.02 | | 0.0204 / 0.0335 (CUR) | 0.0118 / 0.0193 (CUR), 0.0147 / 0.0241 (NEW) |
+| P(entrapment beats own decoy), best q ≤ 0.05 | 0.579 / 0.581 | 0.503 / 0.502 | 0.497 / 0.513 |
+| N at q ≤ 0.01 | 11,452 / 13,416 | 11,372 / 13,012 | 10,441 / 12,328 |
+| N at combined FDP 1 % | 10,610 / 12,384 | 10,470 / 12,075 | 10,286 / 11,827 |
+
+**Reading:**
+1. **The tool's own q is now within the bounds at every cut.** At q ≤ 0.01 the true FDP lies between 0.69 % and 1.13 %
+   (CUR) and between 0.74 % and 1.21 % (NEW). Nominal 1 % is inside both intervals. This is one seed at r = 1.56, so the
+   bounds are wide (E = 72 / 91). The r ≈ 7 library is needed for a tight verdict.
+2. **The asymmetry stays gone** (P 0.50-0.51 at q ≤ 0.05).
+3. **N at q ≤ 0.01 drops by 8-9 %** (11,452 → 10,441 CUR), as expected when the reported list stops being
+   anti-conservative. **N at combined FDP 1 % is almost unchanged** (10,610 → 10,286, −3 %). That is the honest number,
+   and it holds.
+4. **`-pg_scores` keeps its gain:** +18 % N at q ≤ 0.01 and +15 % at combined FDP 1 %.
+
+**Next:** a frozen plan on the r ≈ 7 foreign entrapment (BOUNDS_R5 library with predicted decoys), as written under
+"Consequence (b)". Which side carries the predicted decoys (library or OpenDIA) is the user's call.

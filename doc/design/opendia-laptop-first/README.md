@@ -47,6 +47,10 @@ The branch's [`src/topp/OpenDIA/README.md`](https://github.com/OpenMS/OpenMS/blo
   of the time instead of 50 %. With decoys predicted like targets (DIA-NN style) it is 50 %, and paired-only q <= 0.01
   gives a true FDP of 0.4-1.0 %. Fix: one predicted decoy per target, either in the library generator or in OpenDIA.
   User to choose; then a frozen plan on the r ~7 entrapment.
+- **Tool's own q with predicted decoys for 96.6 % of targets (PRECHECK_PDEC "Full coverage", 18 Nov):** the first test
+  library left 32 % of targets without a decoy (decoys were reversed from FASTA entries, not digested peptides). Fixed,
+  the tool's own q <= 0.01 gives true FDP 0.69-1.13 % (CUR) and 0.74-1.21 % (NEW), D seed 0, r = 1.56. IDs at 1 %
+  combined FDP barely move (-3 %). The r ~7 frozen plan is the tight test.
 - **Speed and memory, same laptop, Astral raw 01:** 7:18-7:26 against DIA-NN's 7:23. Peak memory is 14.4 GB against
   6.8 GB.
 
