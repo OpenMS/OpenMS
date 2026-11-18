@@ -397,6 +397,27 @@ START_SECTION([EXTRA] AlgIn: copies of owned and borrowed rows)
 }
 END_SECTION
 
+START_SECTION([EXTRA] AlgIn: add() of one of its own rows while the owned storage grows)
+{
+  // the 257th row of a fresh AlgIn grows its storage (256 rows first), which frees the block that holds row(5)
+  AlgIn in(3);
+  for (int i = 0; i < 256; ++i)
+  {
+    const double row[2] = {double(i), double(-i)};
+    in.add(row, 1.0);
+  }
+  TEST_EQUAL(in.capacity(), 256)
+  in.add(in.row(5), -1.0);
+  TEST_TRUE(in.capacity() > 256)
+  TEST_EQUAL(in.m, 257)
+  TEST_EQUAL(in.row(256)[0], 5.0)
+  TEST_EQUAL(in.row(256)[1], -5.0)
+  TEST_EQUAL(in.row(256)[2], 1.0)
+  TEST_EQUAL(in.Y[256], -1.0)
+  TEST_EQUAL(in.row(5)[0], 5.0)
+}
+END_SECTION
+
 START_SECTION([EXTRA] tron: concurrent solves)
 {
   // per-thread workspaces: solves on several threads at once give the bits of the serial reference

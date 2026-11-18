@@ -237,7 +237,8 @@ protected:
   /// metadata on every ProteinIdentification (Percolator::markRescoredRuns()):
   /// search_engine, version, the "percolator" marker UserParam, and the 23
   /// Percolator:* SearchParameter UserParams recording the adapter's CLI
-  /// configuration. Both backends (in-process and subprocess) must produce
+  /// configuration (24 on the in-process path, which adds classic_training).
+  /// Both backends (in-process and subprocess) must produce otherwise
   /// equivalent metadata so that downstream tools see the same provenance
   /// regardless of which path ran.
   ///
@@ -249,11 +250,14 @@ protected:
   ///                        PEP from Percolator's protein-level results to
   ///                        be stamped back onto each ProteinHit). nullptr
   ///                        on the in-process path skips that block.
+  /// @param in_process      the in-process backend ran: records -classic_training
+  ///                        (the subprocess path removes it; the option does not apply there)
   void stampPercolatorAdapterMetadata_(
     vector<ProteinIdentification>& prot_ids,
     bool peptide_level_fdrs,
     bool protein_level_fdrs,
     const std::string& version_string,
+    bool in_process,
     map<std::string, PercolatorProteinResult>* protein_map = nullptr) const
   {
     // Guard: it would be a silent metadata lie to stamp
@@ -335,7 +339,9 @@ protected:
       {"fasta",               getStringOption_("fasta")},
       {"decoy_pattern",       getStringOption_("decoy_pattern")},
       {"post_processing_tdc", static_cast<int>(getFlag_("post_processing_tdc"))},
-      {"train_best_positive", static_cast<int>(getFlag_("train_best_positive"))}};
+      {"train_best_positive", static_cast<int>(getFlag_("train_best_positive"))},
+      // the training schedule of the in-process backend ("true" or "false", explicitly: its default differs from ProSE's)
+      {"classic_training",    in_process ? DataValue(getStringOption_("classic_training")) : DataValue::EMPTY}};
     Percolator::markRescoredRuns(prot_ids, "PercolatorAdapter", settings, version_string);
   }
 
@@ -1072,11 +1078,12 @@ protected:
         }
 
         // Stamp PercolatorAdapter provenance metadata (search engine identity +
-        // 23 SearchParameter UserParams) so the in-process output matches the
-        // historical subprocess output's metadata contract downstream tools rely on.
+        // the SearchParameter UserParams of the options) so the in-process output matches the
+        // historical subprocess output's metadata contract downstream tools rely on
+        // (plus Percolator:classic_training, which only the in-process backend has).
         stampPercolatorAdapterMetadata_(all_protein_ids,
           peptide_level_fdrs, protein_level_fdrs,
-          /*version_string=*/Percolator::VENDORED_VERSION);
+          /*version_string=*/Percolator::VENDORED_VERSION, /*in_process=*/true);
 
         // Apply the same post-filters the subprocess path uses, so the two
         // backends produce equivalent output for -score:fdr / -best_per_spectrum_only.
@@ -1416,7 +1423,7 @@ protected:
       stampPercolatorAdapterMetadata_(all_protein_ids,
         peptide_level_fdrs, protein_level_fdrs,
         /*version_string=*/"3.07",  // TODO: read from percolator binary --version
-        protein_level_fdrs ? &protein_map : nullptr);
+        /*in_process=*/false, protein_level_fdrs ? &protein_map : nullptr);
 
       applyPostFilters_(all_peptide_ids);
 
