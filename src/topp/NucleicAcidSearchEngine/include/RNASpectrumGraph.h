@@ -95,10 +95,11 @@ public:
     @brief Build a mass DAG from a read-only processed MS2 spectrum.
     @param[in] spectrum Processed MS2; original indices are retained.
     @param[in] max_charge Largest fragment charge magnitude for this spectrum.
+    @param[in] peak_tolerances Optional absolute m/z tolerances aligned with the input peaks; empty uses the configured tolerance.
     @return Compact graph or an explicit enumeration fallback.
-    @throws Exception::IllegalArgument If max_charge is zero.
+    @throws Exception::IllegalArgument If max_charge is zero or peak tolerances are invalid or misaligned.
   */
-  Result build(const MSSpectrum& spectrum, Size max_charge) const;
+  Result build(const MSSpectrum& spectrum, Size max_charge, const std::vector<double>& peak_tolerances = {}) const;
 
   /**
     @brief Convenience entry point for a single spectrum.

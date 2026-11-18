@@ -45,6 +45,68 @@ MSSpectrum theory(const NASequence& sequence, Int charge = -1, const std::set<st
 START_TEST(RNASensitivity, "$Id$")
 auto* db = RibonucleotideDB::getInstance();
 
+START_SECTION((premodified database residues cannot expand the variable modification panel))
+{
+  const auto input = NASequence::fromString("[mA]UUUU");
+  const auto* methyl = db->getRibonucleotide("mA");
+  RNARouteCandidateGenerator::Options options;
+  options.complete_unanchored_modifications = true;
+  options.max_modifications = options.max_unanchored_modifications = 1;
+  for (const auto& [base, placed] : std::vector<std::pair<std::string, std::string>> {{"GGCCA", "GGCC[mA]"}, {"AACGU", "A[mA]CGU"}})
+  {
+    const auto unmodified = NASequence::fromString(base), modified = NASequence::fromString(placed);
+    const auto observed = theory(modified, -1, {"c"});
+    for (Int policy = 0; policy < 3; ++policy)
+    {
+      const std::set<const Ribonucleotide*> variables = policy ? std::set<const Ribonucleotide*> {methyl} : std::set<const Ribonucleotide*> {};
+      RNAModificationDiagnostics::Evidence evidence;
+      if (policy == 2) { evidence.tested.insert("mA"); }
+      const auto result
+        = RNARouteCandidateGenerator({unmodified, input}, variables, options).generate(observed, {modified.getMonoWeight()}, evidence, true, 1);
+      TEST_TRUE(result.complete)
+      const bool found = std::any_of(result.candidates.begin(), result.candidates.end(), [&](const auto& hit) { return hit.sequence == modified; });
+      TEST_EQUAL(found, policy == 1)
+    }
+  }
+  // The original premodified input remains searchable without declaring it variable.
+  const auto own = RNARouteCandidateGenerator({input}, {}, options).generate(theory(input, -1, {"c"}), {input.getMonoWeight()}, {}, true, 1);
+  TEST_TRUE(own.complete)
+  TEST_TRUE(std::any_of(own.candidates.begin(), own.candidates.end(), [&](const auto& hit) { return hit.sequence == input; }))
+}
+END_SECTION
+
+START_SECTION((Da route anchors retain the observed tolerance after decharging))
+{
+  const auto candidate = NASequence::fromString("ACUGUACGp");
+  RNARouteCandidateGenerator::Options options;
+  options.tolerance = 0.02;
+  options.tolerance_ppm = false;
+  options.max_modifications = 0;
+  options.min_route_nodes = 3;
+  for (Int polarity : {-1, 1})
+  {
+    const auto model = theory(candidate, polarity * 2, {"c"});
+    for (double error : {0.015, 0.025})
+    {
+      MSSpectrum observed;
+      auto& charges = observed.getIntegerDataArrays().emplace_back();
+      charges.setName("NASE:legacy_fragment_charge");
+      for (Size i = 0; i < model.size(); ++i)
+      {
+        if (std::abs(model.getIntegerDataArrays()[0][i]) != 2) { continue; }
+        observed.emplace_back(model[i].getMZ() + (observed.size() % 2 ? error : -error), 10);
+        charges.push_back(2);
+      }
+      observed.sortByPosition();
+      const auto result = RNARouteCandidateGenerator({candidate}, {}, options).generate(observed, {candidate.getMonoWeight()}, {}, polarity < 0, 2);
+      TEST_TRUE(result.complete)
+      const bool found = std::any_of(result.candidates.begin(), result.candidates.end(), [&](const auto& hit) { return hit.sequence == candidate; });
+      TEST_EQUAL(found, error < options.tolerance)
+    }
+  }
+}
+END_SECTION
+
 START_SECTION((raw diagnostic evidence is spectrum - specific and does not assert localization))
 {
   const std::set<const Ribonucleotide*> mods {db->getRibonucleotide("mU"), db->getRibonucleotide("t6A")};
@@ -82,7 +144,10 @@ START_SECTION((multiply charged diagnostics require a raw isotope partner and re
     MSSpectrum raw;
     raw.push_back(Peak1D(mz, 100));
     TEST_FALSE(charged.evaluate(raw).allowed.contains("mU"))
+    RNAModificationDiagnostics wide(mods, {}, polarity < 0, 0.6, false, 0.0, 2);
+    TEST_FALSE(wide.evaluate(raw).allowed.contains("mU"))
     raw.push_back(Peak1D(mz + Constants::C13C12_MASSDIFF_U / 2, 50));
+    TEST_TRUE(wide.evaluate(raw).allowed.contains("mU"))
     TEST_FALSE(legacy.evaluate(raw).allowed.contains("mU"))
     const auto evidence = charged.evaluate(raw);
     TEST_TRUE(evidence.allowed.contains("mU"))

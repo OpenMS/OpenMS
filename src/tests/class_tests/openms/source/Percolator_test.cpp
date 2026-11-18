@@ -342,6 +342,60 @@ START_SECTION([EXTRA] the large-set paths do not depend on the number of threads
 }
 END_SECTION
 
+START_SECTION([EXTRA] fold chains: the early stops of the new training give the results of one thread)
+{
+  // With more than one thread, CrossValidation::train runs each fold as a chain of OpenMP tasks (trainFoldChains); with
+  // one thread it runs its loop over the iterations. The new training (classic_training false) can stop before
+  // num_iterations: in_sample on the sum over the folds (the last fold to finish an iteration decides for all of them),
+  // out_of_fold (fixed folds) on each fold's own count. Both stops must give the loop's results, and they must actually
+  // happen here: the vendored code reports them on std::cerr at its default verbosity (2).
+  struct CerrCapture
+  {
+    std::ostringstream text;
+    std::streambuf* previous;
+    CerrCapture() : previous(std::cerr.rdbuf(text.rdbuf())) {}
+    ~CerrCapture() { std::cerr.rdbuf(previous); }
+  };
+  const RescoreInput input = makePortableTwoSignalInput_(5000, 29);
+  for (const std::string mode : {"in_sample", "out_of_fold"})
+  {
+    std::vector<RescoreOutput> outs;
+    std::vector<std::string> logs;
+    for (const int threads : {1, 3})
+    {
+#ifdef _OPENMP
+      const int max_threads = omp_get_max_threads();
+      omp_set_num_threads(threads);
+#endif
+      Percolator p;
+      Param par = p.getDefaults();
+      par.setValue("seed", 11);
+      par.setValue("num_threads", threads);
+      par.setValue("classic_training", "false");
+      par.setValue("subset_mode", mode);
+      par.setValue("subset_max_train", mode == "out_of_fold" ? 6000 : 0);
+      par.setValue("pep_method", "nonparametric");
+      p.setParameters(par);
+      {
+        CerrCapture capture;
+        outs.push_back(p.rescore(input));
+        logs.push_back(capture.text.str());
+      }
+#ifdef _OPENMP
+      omp_set_num_threads(max_threads);
+#endif
+    }
+    // the stop of the mode: on the sum over the folds (train), or a fold on its own count
+    const std::string stopped = mode == "in_sample" ? "indicate that the algorithm has converged" : " has converged (";
+    TEST_TRUE(logs[0].find(stopped) != std::string::npos)
+    TEST_TRUE(logs[1].find(stopped) != std::string::npos)
+    TEST_TRUE(outs[0].scores == outs[1].scores)
+    TEST_TRUE(outs[0].q_values == outs[1].q_values)
+    TEST_TRUE(outs[0].peps == outs[1].peps)
+  }
+}
+END_SECTION
+
 START_SECTION([EXTRA] capped in_sample training (-N) scores as the percolator executable)
 {
   // With subset_mode in_sample and a cap, each PSM of the training sample is scored by the model of the fold in which

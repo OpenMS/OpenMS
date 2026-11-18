@@ -192,6 +192,7 @@ RNARouteCandidateGenerator::Result RNARouteCandidateGenerator::generate(const MS
   }
   auto* db = RibonucleotideDB::getInstance();
   std::set<const Ribonucleotide*> alphabet;
+  std::set<const Ribonucleotide*> permitted_variable;
   for (const auto& code : {"A", "C", "G", "U"})
   {
     alphabet.insert(db->getRibonucleotide(code));
@@ -203,7 +204,11 @@ RNARouteCandidateGenerator::Result RNARouteCandidateGenerator::generate(const MS
       fail("terminal_variable_modification");
       return result;
     }
-    if (! evidence.tested.contains(residue->getCode()) || evidence.allowed.contains(residue->getCode())) { alphabet.insert(residue); }
+    if (! evidence.tested.contains(residue->getCode()) || evidence.allowed.contains(residue->getCode()))
+    {
+      alphabet.insert(residue);
+      permitted_variable.insert(residue);
+    }
   }
   // Fixed/premodified residues have explicit identities and remain available.
   for (const auto& sequence : database_)
@@ -219,6 +224,8 @@ RNARouteCandidateGenerator::Result RNARouteCandidateGenerator::generate(const MS
   MSSpectrum neutral;
   MSSpectrum::IntegerDataArray peak_ids;
   peak_ids.setName("NASE:original_peak");
+  MSSpectrum::IntegerDataArray peak_charges;
+  peak_charges.setName("NASE:neutral_peak_charge");
   const auto* legacy_charges = RNASpectrumGraph::legacyCharges(spectrum);
   // Unassigned legacy peaks retain bounded charge hypotheses for graph use only.
   // The scoring spectrum is never decharged or mutated by this operation.
@@ -244,11 +251,25 @@ RNARouteCandidateGenerator::Result RNARouteCandidateGenerator::generate(const MS
       {
         neutral.push_back(Peak1D(mass + Constants::PROTON_MASS_U, spectrum[index].getIntensity()));
         peak_ids.push_back(index);
+        peak_charges.push_back(charge);
       }
     }
   }
   neutral.getIntegerDataArrays().push_back(std::move(peak_ids));
+  neutral.getIntegerDataArrays().push_back(std::move(peak_charges));
   neutral.sortByPosition();
+  std::vector<double> neutral_tolerances;
+  double seed_tolerance = options_.tolerance;
+  if (! options_.tolerance_ppm)
+  {
+    // The tolerance is specified in observed m/z. Decharging scales each
+    // peak's absolute uncertainty by its own charge, including graph edges.
+    for (Int charge : neutral.getIntegerDataArrays()[1])
+    {
+      neutral_tolerances.push_back(options_.tolerance * charge);
+      seed_tolerance = std::max(seed_tolerance, neutral_tolerances.back());
+    }
+  }
   RNASpectrumGraph::Options graph_options;
   graph_options.tolerance = options_.tolerance;
   graph_options.tolerance_ppm = options_.tolerance_ppm;
@@ -257,7 +278,7 @@ RNARouteCandidateGenerator::Result RNARouteCandidateGenerator::generate(const MS
   graph_options.max_peaks = std::max<Size>(2, neutral.size());
   graph_options.max_charge = 1;
   graph_options.max_edges = options_.max_states;
-  const auto graph = RNASpectrumGraph(alphabet, graph_options).build(neutral, 1);
+  const auto graph = RNASpectrumGraph(alphabet, graph_options).build(neutral, 1, neutral_tolerances);
   result.graph_nodes = graph.peaks;
   result.graph_edges = graph.edges;
   if (! graph.fallback_reason.empty())
@@ -309,8 +330,9 @@ RNARouteCandidateGenerator::Result RNARouteCandidateGenerator::generate(const MS
     }
     return node;
   };
-  const auto within = [&](double observed, double expected) {
-    return std::abs(observed - expected) <= options_.tolerance * (options_.tolerance_ppm ? expected * 1e-6 : 1.0);
+  const auto within = [&](Size peak, double expected) {
+    const double tolerance = options_.tolerance_ppm ? options_.tolerance * expected * 1e-6 : neutral_tolerances[peak];
+    return std::abs(neutral[peak].getMZ() - expected) <= tolerance;
   };
   // Equivalent mass offsets share state, but terminal assignments stay distinct.
   for (Size side = 0; side < 2 && result.complete; ++side)
@@ -363,7 +385,7 @@ RNARouteCandidateGenerator::Result RNARouteCandidateGenerator::generate(const MS
               const Size next_trie = advance(trie_node, step, side);
               if (next_trie == Size(-1)) { continue; }
               const double next_mass = increment + step.mass;
-              if (! within(neutral[graph.peak_indices[edge.to]].getMZ(), next_mass + offset)) { continue; }
+              if (! within(graph.peak_indices[edge.to], next_mass + offset)) { continue; }
               const Size old_size = codes.size();
               codes.insert(codes.end(), step.residues.begin(), step.residues.begin() + step.length);
               extend(edge.to, next_trie, codes, next_mass, observed_nodes + 1, used_peaks);
@@ -377,11 +399,12 @@ RNARouteCandidateGenerator::Result RNARouteCandidateGenerator::generate(const MS
           const Size trie_node = advance(0, seed, side);
           if (trie_node == Size(-1)) { continue; }
           const double expected = seed.mass + offset;
-          const double delta = options_.tolerance * (options_.tolerance_ppm ? expected * 1e-6 : 1.0);
+          const double delta = options_.tolerance_ppm ? options_.tolerance * expected * 1e-6 : seed_tolerance;
           auto first = std::lower_bound(graph.peak_indices.begin(), graph.peak_indices.end(), expected - delta,
                                         [&](Size index, double mz) { return neutral[index].getMZ() < mz; });
           for (auto it = first; it != graph.peak_indices.end() && neutral[*it].getMZ() <= expected + delta; ++it)
           {
+            if (! within(*it, expected)) { continue; }
             std::vector<UInt> codes(seed.residues.begin(), seed.residues.begin() + seed.length);
             extend(it - graph.peak_indices.begin(), trie_node, codes, seed.mass, 1, {});
           }
@@ -457,7 +480,7 @@ RNARouteCandidateGenerator::Result RNARouteCandidateGenerator::generate(const MS
     for (const auto& original_residue : database_[id])
     {
       double smallest = 0, largest = 0;
-      for (const auto* residue : alphabet)
+      for (const auto* residue : permitted_variable)
       {
         if (residue->getOrigin() == original_residue.getCode()[0]
             && (options_.complete_unanchored_modifications || evidence.labile.contains(residue->getCode())))
@@ -583,6 +606,13 @@ RNARouteCandidateGenerator::Result RNARouteCandidateGenerator::generate(const MS
               compatible = false;
               break;
             }
+            // Premodified residues belong to their original database sites.
+            // Moving one to another site requires an explicitly permitted variable mod.
+            if (residue->isModified() && database_[id][location] != residue && ! permitted_variable.contains(residue))
+            {
+              compatible = false;
+              break;
+            }
             if (fixed[location] && fixed[location] != residue)
             {
               const auto* modified = residue->isModified() ? residue : fixed[location];
@@ -647,7 +677,7 @@ RNARouteCandidateGenerator::Result RNARouteCandidateGenerator::generate(const MS
         const auto* original_residue = database_[id][pos];
         choices[pos].push_back(fixed[pos] ? fixed[pos] : original_residue);
         if (original_residue->isModified()) { continue; }
-        for (const auto* residue : alphabet)
+        for (const auto* residue : permitted_variable)
         {
           if (! residue->isModified() || residue->getOrigin() != original_residue->getCode()[0]) { continue; }
           if ((! fixed[pos] && options_.complete_unanchored_modifications)

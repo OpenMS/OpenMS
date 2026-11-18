@@ -115,7 +115,7 @@ START_SECTION(computeSpectrum)
   best.native_score = 10.0;
   best.sequence = NASequence::fromString("[m1A]UCGG");
   best.precursor_error_ppm = -2.5;
-  best.isotope_offset = 1;
+  best.isotope_offset = -1;
   best.charge = -2;
   best.annotations = &annotations;
   best.route_matched_intensity = 3.0;
@@ -146,7 +146,7 @@ START_SECTION(computeSpectrum)
   TEST_REAL_SIMILAR(feature(features, row, "delta_next"), 3.0)
   TEST_REAL_SIMILAR(feature(features, row, "delta_best"), 0.0)
   TEST_REAL_SIMILAR(feature(features, row, "abs_ppm_error"), 2.5)
-  TEST_REAL_SIMILAR(feature(features, row, "isotope_offset"), 1.0)
+  TEST_REAL_SIMILAR(feature(features, row, "isotope_offset"), -1.0)
   TEST_REAL_SIMILAR(feature(features, row, "charge_1"), 0.0)
   TEST_REAL_SIMILAR(feature(features, row, "charge_2"), 1.0)
   TEST_REAL_SIMILAR(feature(features, row, "length"), 5.0)
