@@ -5,7 +5,7 @@
 // $Authors: Samuel Wein $
 // --------------------------------------------------------------------------
 
-#include <RNABackgroundDatabase.h>
+#include <OpenMS/CHEMISTRY/RNAProductShuffler.h>
 
 #include <OpenMS/CHEMISTRY/Ribonucleotide.h>
 #include <OpenMS/DATASTRUCTURES/StringUtils.h>
@@ -45,7 +45,7 @@ namespace
   };
 } // namespace
 
-RNABackgroundDatabase::RNABackgroundDatabase(const DigestionEnzymeRNA& enzyme, Size min_length, std::uint64_t seed) :
+RNAProductShuffler::RNAProductShuffler(const DigestionEnzymeRNA& enzyme, Size min_length, std::uint64_t seed) :
   min_length_(min_length), seed_(seed)
 {
   digestor_.setEnzyme(&enzyme);
@@ -68,7 +68,7 @@ RNABackgroundDatabase::RNABackgroundDatabase(const DigestionEnzymeRNA& enzyme, S
   }
 }
 
-std::string RNABackgroundDatabase::key(const NASequence& oligo)
+std::string RNAProductShuffler::key(const NASequence& oligo)
 {
   NASequence copy = oligo;
   copy.setFivePrimeMod(nullptr);
@@ -76,7 +76,7 @@ std::string RNABackgroundDatabase::key(const NASequence& oligo)
   return copy.toString();
 }
 
-bool RNABackgroundDatabase::isFixed(const Ribonucleotide& residue) const
+bool RNAProductShuffler::isFixed(const Ribonucleotide& residue) const
 {
   for (const auto& regex : fixed_patterns_)
   {
@@ -85,14 +85,14 @@ bool RNABackgroundDatabase::isFixed(const Ribonucleotide& residue) const
   return false;
 }
 
-std::vector<NASequence> RNABackgroundDatabase::products_(const NASequence& sequence) const
+std::vector<NASequence> RNAProductShuffler::products_(const NASequence& sequence) const
 {
   std::vector<NASequence> products;
   digestor_.digest(sequence, products);
   return products;
 }
 
-std::vector<std::string> RNABackgroundDatabase::productKeys(const std::string& sequence) const
+std::vector<std::string> RNAProductShuffler::productKeys(const std::string& sequence) const
 {
   std::vector<std::string> keys;
   for (const NASequence& product : products_(NASequence::fromString(sequence)))
@@ -102,7 +102,7 @@ std::vector<std::string> RNABackgroundDatabase::productKeys(const std::string& s
   return keys;
 }
 
-std::optional<NASequence> RNABackgroundDatabase::shuffleProduct(const NASequence& product,
+std::optional<NASequence> RNAProductShuffler::shuffleProduct(const NASequence& product,
                                                                 const std::function<bool(const std::string&)>& forbidden,
                                                                 Size max_tries) const
 {
@@ -130,7 +130,17 @@ std::optional<NASequence> RNABackgroundDatabase::shuffleProduct(const NASequence
   return std::nullopt;
 }
 
-std::string RNABackgroundDatabase::rewrite(const std::string& sequence, const std::function<bool(const std::string&)>& select,
+std::vector<std::string> RNAProductShuffler::failedProducts() const
+{
+  std::vector<std::string> failed;
+  for (const auto& [product_key, replacement] : replacement_of_)
+  {
+    if (!replacement) failed.push_back(product_key);
+  }
+  return failed;
+}
+
+std::string RNAProductShuffler::rewrite(const std::string& sequence, const std::function<bool(const std::string&)>& select,
                                            const std::function<bool(const std::string&)>& forbidden, bool shuffle_short)
 {
   const NASequence parent = NASequence::fromString(sequence);
@@ -145,7 +155,7 @@ std::string RNABackgroundDatabase::rewrite(const std::string& sequence, const st
       auto pos = replacement_of_.find(product_key);
       if (pos == replacement_of_.end())
       {
-        std::optional<NASequence> shuffled = shuffleProduct(product, forbidden);
+        std::optional<NASequence> shuffled = shuffleProduct(product, forbidden, max_tries_);
         if (shuffled)
         {
           used_.insert(key(*shuffled));
@@ -164,7 +174,7 @@ std::string RNABackgroundDatabase::rewrite(const std::string& sequence, const st
       auto pos = short_replacement_of_.find(product_key);
       if (pos == short_replacement_of_.end())
       {
-        pos = short_replacement_of_.emplace(product_key, shuffleProduct(product, [](const std::string&) { return false; })).first;
+        pos = short_replacement_of_.emplace(product_key, shuffleProduct(product, [](const std::string&) { return false; }, max_tries_)).first;
       }
       if (pos->second) replacement = &*pos->second;
     }

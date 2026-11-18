@@ -6091,6 +6091,21 @@ set_tests_properties("TOPP_DecoyDatabase_10_out" PROPERTIES DEPENDS "TOPP_DecoyD
 # ... entrapment is not supported for RNA
 add_test("TOPP_DecoyDatabase_11" ${TOPP_BIN_PATH}/DecoyDatabase -test -type RNA -in ${DATA_DIR_TOPP}/DecoyDatabase_4.fasta -out ${TESTS_TEMP_DIR}/DecoyDatabase_11.tmp.fasta -entrapment_ratio 1)
 set_tests_properties("TOPP_DecoyDatabase_11" PROPERTIES WILL_FAIL 1)
+# RNA, per-product shuffle (tRNA isodecoders share oligos): deterministic output, balanced distinct target/decoy oligos,
+# no decoy oligo equals a target oligo; without 'blacklist', a decoy oligo that the blacklist of test 13 contains is made
+add_test("TOPP_DecoyDatabase_12" ${TOPP_BIN_PATH}/DecoyDatabase -test -type RNA -method shuffle_products -enzyme RNase_T1 -min_length 5 -in ${DATA_DIR_TOPP}/DecoyDatabase_12.fasta -out ${TESTS_TEMP_DIR}/DecoyDatabase_12.tmp.fasta)
+add_test("TOPP_DecoyDatabase_12_out" ${DIFF} -in1 ${TESTS_TEMP_DIR}/DecoyDatabase_12.tmp.fasta -in2 ${DATA_DIR_TOPP}/DecoyDatabase_12_out.fasta )
+add_test("TOPP_DecoyDatabase_12_check" ${CMAKE_COMMAND} -DIN=${TESTS_TEMP_DIR}/DecoyDatabase_12.tmp.fasta -DMIN_LENGTH=5 -DEXPECT_DECOY_OLIGO=UCACAG -P ${DATA_DIR_TOPP}/DecoyDatabase_shuffle_products_check.cmake)
+set_tests_properties("TOPP_DecoyDatabase_12_out" "TOPP_DecoyDatabase_12_check" PROPERTIES DEPENDS "TOPP_DecoyDatabase_12")
+# ... with a blacklist: its oligos are avoided as well
+add_test("TOPP_DecoyDatabase_13" ${TOPP_BIN_PATH}/DecoyDatabase -test -type RNA -method shuffle_products -enzyme RNase_T1 -min_length 5 -blacklist ${DATA_DIR_TOPP}/DecoyDatabase_12_blacklist.fasta -in ${DATA_DIR_TOPP}/DecoyDatabase_12.fasta -out ${TESTS_TEMP_DIR}/DecoyDatabase_13.tmp.fasta)
+add_test("TOPP_DecoyDatabase_13_out" ${DIFF} -in1 ${TESTS_TEMP_DIR}/DecoyDatabase_13.tmp.fasta -in2 ${DATA_DIR_TOPP}/DecoyDatabase_13_out.fasta )
+add_test("TOPP_DecoyDatabase_13_check" ${CMAKE_COMMAND} -DIN=${TESTS_TEMP_DIR}/DecoyDatabase_13.tmp.fasta -DMIN_LENGTH=5 -DBLACKLIST=${DATA_DIR_TOPP}/DecoyDatabase_12_blacklist.fasta -P ${DATA_DIR_TOPP}/DecoyDatabase_shuffle_products_check.cmake)
+set_tests_properties("TOPP_DecoyDatabase_13_out" "TOPP_DecoyDatabase_13_check" PROPERTIES DEPENDS "TOPP_DecoyDatabase_13")
+# shuffle_products needs 'type' RNA and an RNase
+add_test("TOPP_DecoyDatabase_14" ${TOPP_BIN_PATH}/DecoyDatabase -test -method shuffle_products -enzyme RNase_T1 -in ${DATA_DIR_TOPP}/DecoyDatabase_1.fasta -out ${TESTS_TEMP_DIR}/DecoyDatabase_14.tmp.fasta)
+add_test("TOPP_DecoyDatabase_15" ${TOPP_BIN_PATH}/DecoyDatabase -test -type RNA -method shuffle_products -in ${DATA_DIR_TOPP}/DecoyDatabase_12.fasta -out ${TESTS_TEMP_DIR}/DecoyDatabase_15.tmp.fasta)
+set_tests_properties("TOPP_DecoyDatabase_14" "TOPP_DecoyDatabase_15" PROPERTIES WILL_FAIL 1)
 # EntrapmentEvaluator: entrapment FDP per q-value threshold and class
 add_test("TOPP_EntrapmentEvaluator_1" ${TOPP_BIN_PATH}/EntrapmentEvaluator -test -in ${DATA_DIR_TOPP}/EntrapmentEvaluator_1_input.idXML -out ${TESTS_TEMP_DIR}/EntrapmentEvaluator_1.tmp.tsv -te_ratio 1 -q_value 0.01 0.05 -class_meta_value mod_class)
 add_test("TOPP_EntrapmentEvaluator_1_out" ${DIFF} -in1 ${TESTS_TEMP_DIR}/EntrapmentEvaluator_1.tmp.tsv -in2 ${DATA_DIR_TOPP}/EntrapmentEvaluator_1_output.tsv )

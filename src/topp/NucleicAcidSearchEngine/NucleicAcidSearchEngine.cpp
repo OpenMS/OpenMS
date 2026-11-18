@@ -37,6 +37,7 @@
 // digestion enzymes
 #include <OpenMS/CHEMISTRY/RNaseDigestion.h>
 #include <OpenMS/CHEMISTRY/RNaseDB.h>
+#include <OpenMS/CHEMISTRY/RNAProductShuffler.h>
 #include <OpenMS/SYSTEM/File.h>
 
 // ribonucleotides
@@ -51,7 +52,6 @@
 #include "RNARouteScorer.h"
 #include "RNARouteCandidateGenerator.h"
 #include "RNARescoringFeatures.h"
-#include "RNABackgroundDatabase.h"
 #include <OpenMS/CHEMISTRY/NASequence.h>
 
 // preprocessing and filtering of spectra
@@ -1841,7 +1841,7 @@ protected:
 
     The background comes from 'background:database' or the built-in human background. Its accessions get the prefix 'BG_'
     if they lack it. Decoy oligos of @p fasta_db (by @p decoy_pattern) that equal an oligo of a target or background
-    sequence are reshuffled in place (RNABackgroundDatabase: per digestion product, cleavage residues and the 3' residue stay),
+    sequence are reshuffled in place (RNAProductShuffler: per digestion product, cleavage residues and the 3' residue stay),
     since a decoy that is a real molecule would collect that molecule's spectra. With @p decoy_pattern, each background
     sequence gets a decoy (accession: @p decoy_pattern + accession), every product of at least @p min_length residues
     reshuffled so that it equals no target, background or decoy oligo.
@@ -1868,7 +1868,7 @@ protected:
       return !decoy_pattern.empty() && StringUtils::hasSubstring(accession, decoy_pattern);
     };
     // the seeds are fixed: the same inputs always give the same decoys
-    RNABackgroundDatabase decoy_fix(*rnase, min_length, 1);
+    RNAProductShuffler decoy_fix(*rnase, min_length, 1);
     std::set<std::string> target_keys, background_keys, decoy_keys;
     for (const auto& entry : fasta_db)
     {
@@ -1908,7 +1908,7 @@ protected:
     vector<FASTAFile::FASTAEntry> result = background;
     if (!decoy_pattern.empty())
     {
-      RNABackgroundDatabase background_decoys(*rnase, min_length, 2);
+      RNAProductShuffler background_decoys(*rnase, min_length, 2);
       auto all = [](const std::string&) { return true; };
       auto taken = [&](const std::string& key) { return real(key) || decoy_keys.count(key); };
       for (const auto& entry : background)

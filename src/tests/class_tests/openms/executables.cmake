@@ -518,6 +518,7 @@ set(chemistry_executables_list
   ProteaseDigestion_test
   RNaseDB_test
   RNaseDigestion_test
+  RNAProductShuffler_test
   RealMassDecomposer_test
   ResidueDB_test
   ResidueModification_test

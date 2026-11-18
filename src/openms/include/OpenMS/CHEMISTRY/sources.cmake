@@ -42,6 +42,7 @@ ResidueDB.h
 ResidueModification.h
 RNaseDB.h
 RNaseDigestion.h
+RNAProductShuffler.h
 Ribonucleotide.h
 RibonucleotideDB.h
 RibonucleotideDataProvider.h

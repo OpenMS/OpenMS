@@ -22,7 +22,13 @@
 namespace OpenMS
 {
 /**
-  @brief Per-product shuffling of RNA sequences for NASE's background search ('background:enable').
+  @brief Per-product shuffling of RNA sequences, for RNA decoys (DecoyDatabase, method 'shuffle_products') and for
+  NucleicAcidSearchEngine's background search ('background:enable').
+
+  Unlike a shuffle of the whole sequence, a per-product shuffle keeps shared oligos shared: target sequences that
+  share a digestion product (e.g. tRNA isodecoders) get decoys that share its shuffle, so the numbers of distinct target
+  and decoy oligos stay balanced. Shuffles that equal a target oligo or another known RNA oligo can be avoided via the
+  'forbidden' callbacks.
 
   Sequences are handled one digestion product at a time (the products of a digestion without missed cleavages, which
   tile the sequence). A shuffle permutes the movable residues of a product: every residue except the last one and
@@ -36,11 +42,11 @@ namespace OpenMS
 
   Products are compared by key(): the residues (with modifications) without terminal modifications.
 */
-class RNABackgroundDatabase
+class OPENMS_DLLAPI RNAProductShuffler
 {
 public:
   /// @p min_length: products shorter than this are never rewritten (they are not searched)
-  RNABackgroundDatabase(const DigestionEnzymeRNA& enzyme, Size min_length, std::uint64_t seed);
+  RNAProductShuffler(const DigestionEnzymeRNA& enzyme, Size min_length, std::uint64_t seed);
 
   /// The residues of @p oligo without terminal modifications, as a string
   static std::string key(const NASequence& oligo);
@@ -62,7 +68,7 @@ public:
 
   /**
     @brief @p sequence with each product of at least min_length residues for which @p select is true replaced by a
-    shuffle (shuffleProduct(), avoiding @p forbidden)
+    shuffle (shuffleProduct() with up to setMaxTries() tries, avoiding @p forbidden)
 
     A product gets the same replacement in every sequence (the first one found). A product without a qualifying shuffle
     stays as it is and is counted in failed(). Terminal modifications of @p sequence are kept.
@@ -82,6 +88,12 @@ public:
   /// Keys of all replacements made by rewrite()
   const std::set<std::string>& replacements() const { return used_; }
 
+  /// Keys of the distinct products that rewrite() selected but could not replace (sorted)
+  std::vector<std::string> failedProducts() const;
+
+  /// Maximum number of shuffles that rewrite() tries per product (default: 200)
+  void setMaxTries(Size max_tries) { max_tries_ = max_tries; }
+
 private:
   std::vector<NASequence> products_(const NASequence& sequence) const;
 
@@ -94,5 +106,6 @@ private:
   std::set<std::string> used_;
   Size rewritten_ = 0;
   Size failed_ = 0;
+  Size max_tries_ = 200;
 };
 } // namespace OpenMS
