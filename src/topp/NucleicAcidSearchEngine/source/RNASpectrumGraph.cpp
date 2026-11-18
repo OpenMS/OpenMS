@@ -110,9 +110,15 @@ std::vector<Size> RNASpectrumGraph::selectPeakIndices(const MSSpectrum& spectrum
   return peaks;
 }
 
-RNASpectrumGraph::Result RNASpectrumGraph::build(const MSSpectrum& spectrum, Size max_charge) const
+RNASpectrumGraph::Result RNASpectrumGraph::build(const MSSpectrum& spectrum, Size max_charge, const std::vector<double>& peak_tolerances) const
 {
   if (max_charge == 0) { throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "RNA graph fragment charge must be positive"); }
+  if (! peak_tolerances.empty()
+      && (peak_tolerances.size() != spectrum.size()
+          || std::any_of(peak_tolerances.begin(), peak_tolerances.end(), [](double value) { return ! std::isfinite(value) || value <= 0; })))
+  {
+    throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "RNA graph peak tolerances must be positive and aligned");
+  }
   Result result;
   result.alphabet = alphabet_;
   result.options = options_;
@@ -122,6 +128,7 @@ RNASpectrumGraph::Result RNASpectrumGraph::build(const MSSpectrum& spectrum, Siz
   const auto& peaks = result.peak_indices;
   result.peaks = peaks.size();
   const auto& transitions = alphabet_->transitions;
+  const double maximum_peak_tolerance = peak_tolerances.empty() ? 0.0 : *std::max_element(peak_tolerances.begin(), peak_tolerances.end());
   for (Size charge = 1; charge <= std::min(max_charge, options_.max_charge); ++charge)
   {
     Layer layer;
@@ -136,8 +143,14 @@ RNASpectrumGraph::Result RNASpectrumGraph::build(const MSSpectrum& spectrum, Siz
         const double mass = (mz2 - mz1) * charge;
         // Both endpoints contribute uncertainty; the charge carrier cancels.
         const double fraction = options_.tolerance * 1e-6;
-        const double tolerance = charge * (options_.tolerance_ppm ? (mz1 + mz2) * fraction / (1.0 - fraction) : 2.0 * options_.tolerance);
-        if (mass > transitions.back().mass + tolerance) { break; }
+        const double tolerance
+          = charge
+            * (peak_tolerances.empty() ? (options_.tolerance_ppm ? (mz1 + mz2) * fraction / (1.0 - fraction) : 2.0 * options_.tolerance)
+                                       : peak_tolerances[peaks[i]] + peak_tolerances[peaks[j]]);
+        // A later neutral peak may have a larger charge-scaled uncertainty.
+        // Only an upper bound on all remaining tolerances permits early exit.
+        const double cutoff_tolerance = peak_tolerances.empty() ? tolerance : charge * (peak_tolerances[peaks[i]] + maximum_peak_tolerance);
+        if (mass > transitions.back().mass + cutoff_tolerance) { break; }
         const auto first = std::lower_bound(transitions.begin(), transitions.end(), mass - tolerance,
                                             [](const auto& transition, double value) { return transition.mass < value; });
         const auto past = std::upper_bound(first, transitions.end(), mass + tolerance,

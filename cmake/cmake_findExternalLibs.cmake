@@ -226,30 +226,6 @@ else()
 endif()
 
 #------------------------------------------------------------------------------
-# Find Crawdad libraries if requested
-# cmake args: -DCrawdad_DIR=/path/to/Crawdad/ -DWITH_CRAWDAD=TRUE
-## TODO check if necessary
-if (WITH_CRAWDAD)
-  message(STATUS "Will compile with Crawdad support: ${Crawdad_DIR}" )
-  find_package(Crawdad REQUIRED)
-  # find archive (static) version and add it to the OpenMS library
-  find_library(Crawdad_LIBRARY
-   NAMES Crawdad.a Crawdad
-    HINTS ${Crawdad_DIR})
-endif()
-
-#------------------------------------------------------------------------------
-# HDF5
-if (WITH_HDF5)
-  # For MSVC use static linking to the HDF5 libraries
-  if(MSVC)
-    set(HDF5_USE_STATIC_LIBRARIES ON)
-  endif()
-  find_package(HDF5 MODULE REQUIRED COMPONENTS C CXX)
-endif()
-
-
-#------------------------------------------------------------------------------
 # libcurl (used for HTTP in OpenMS core, e.g. HTTPInputSource, which needs curl_multi_poll() of 7.66; also needed by
 # Apache Arrow 23+)
 find_package(CURL 7.66 REQUIRED)

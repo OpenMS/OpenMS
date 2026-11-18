@@ -286,6 +286,13 @@ class CrossValidation {
   std::vector<AlgIn>& svmInputsOfPass(bool singleSolves,
                                       unsigned int& foldsPerPass);
   void initializeGridSearch(double targetDecoySizeRatio);
+  // OpenMS: whether train() runs the folds as chains of steps (trainFoldChains): with OpenMP tasks and more than one
+  // thread, without nested cross-validation, -R or verbosity above 2, with all folds active and their training sets
+  // held at once
+  bool trainsFoldChains() const;
+  // OpenMS: the iterations of train(), each fold as a chain of tasks that waits only for its own (Cpos, Cneg) pairs,
+  // with the results and reports of the iterations of train()
+  void trainFoldChains();
   // OpenMS: group, the TronPairGroup of svmInput (or nullptr)
   void trainCpCnPair(CandidateCposCfrac& cpCnFold,
                      const options& pOptions,

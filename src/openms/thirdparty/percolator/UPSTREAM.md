@@ -93,10 +93,12 @@ least 8 blocks run as tasks (`OpenMPTasks.h`). Class test `PercolatorNewton_test
 
 ### Local additions: `OpenMPThreads.h`, `OpenMPTasks.h`, `InProcessSampler.*`, stubs
 
-- `OpenMPThreads.h`: the thread cap of the vendored code (`maxThreads()`, `ThreadCap`, patch 02)
-  and `LoopErrors` (patch 06).
+- `OpenMPThreads.h`: the thread cap of the vendored code (`maxThreads()`, `ThreadCap`, patch 02),
+  `LoopErrors` (patch 06) and `TaskLoopScope` / `taskLoopThreads()` (the taskloops of the fold
+  chains, patch 07).
 - `OpenMPTasks.h`: `PERCOLATOR_OMP_TASKS` / `PERCOLATOR_TASK_PRAGMA` (OpenMP tasks only where the
-  compiler has them; MSVC's OpenMP 2.0 has none). Used by `newton_svm.cpp`; upstream uses no tasks.
+  compiler has them; MSVC's OpenMP 2.0 has none). Used by `newton_svm.cpp` and the fold chains
+  (patch 07); upstream uses no tasks.
 - `InProcessSampler.{h,cpp}`: the reservoir and out-of-fold samples of OpenMS' capped training.
 - `Globals.h`, `Version.h`, `config.h`: stubs for upstream's CMake-generated headers
   (`Globals.h` is upstream's `Globals.h.cmake` with the values of its `CommonCMake.txt`).
@@ -158,6 +160,40 @@ All patches are `git diff` style (a/b/ prefixes, applied with -p1) on the whitel
   loop (`LoopErrors`, `OpenMPThreads.h`): an exception that leaves an OpenMP region ends the process,
   and OpenMS runs the code as a library (e.g. a `std::bad_alloc` of a large run).
 
+- `patches/07-cv-fold-chains.patch` (the fold chains of the former set's 11, 12 and 33, on upstream's
+  new training) — `CrossValidation::trainFoldChains`: the iterations of `train()` as one chain of OpenMP
+  tasks per fold. A step of a fold is what `doStep` and `mergeCpCnPairs` do for it, in the same
+  order: its training set scored with its weights, its SVM input, one task per (Cpos, Cneg) pair
+  that solves the pair and counts its positives right after, the choice of the best pair and the
+  count of the fold's positives. The last pair of a step runs the rest of it and starts the fold's
+  next step, so a fold waits only for its own pairs, and the threads run whatever task is ready.
+  No task waits for other tasks of the chains: a task waits only at the end of the taskloops it runs
+  (the row loops of Scores, Newton's blocks), and the solves of a step's pairs while they build their
+  shared copy of the SVM input (TronPairGroup); the per-thread buffers and `TaskLoopScope` rely on the
+  tasks being tied. With fixed folds (each fold stops on its own count) and with classic
+  training (no early stop without quick validation) the chains never wait for each other; with upstream's stop rule on the sum of the folds
+  the last fold to finish an iteration decides and starts the next steps. Inside the chains the
+  scoring of a set (`Scores::calcScores`) and the copies of its training rows (`appendTrainingRows`)
+  run as taskloops (`TaskLoopScope`, `OpenMPThreads.h`). The reports of the iterations are printed
+  afterwards as the loop prints them; after an error no fold starts a step beyond the iteration of
+  the first error, which is rethrown after the reports of the iterations before it. The first error is the loop's:
+  by iteration, then by stage in the order in which the loop runs the stages for all folds (e.g. the solves of all
+  pairs before the feature rows and the counts), then fold and pair. The per-iteration bookkeeping grows with the
+  iterations that run, not with the iteration cap. A step that a step starts is a task, which a runtime may run at once,
+  nested in the starting task (e.g. libomp in a team of one thread): beyond four steps nested on a thread's stack the
+  step waits in the thread's list until the thread's outermost step has finished its own, so the stack does not grow
+  with the iterations. A fold's feature rows for the counts of its pairs are released when its grid is fixed, the
+  per-thread buffers of the counts once the grids of all folds are fixed.
+  `trainsFoldChains()`: with OpenMP tasks and more than one thread, without nested cross-validation, `-R` or verbosity above 2, with all folds active and held
+  at once; otherwise the loop runs. The results are those of the loop, bit for bit (scores, q-values
+  and PEPs of `perc_bench` on 100,000 and 1,000,000 synthetic PSMs at 1, 2 and 4 threads: TRON,
+  Newton and LDA, classic and new training, c_pos 0 and 0.1, `out_of_fold`, `out_of_fold_avg`,
+  in-sample caps, learning curve, nested cross-validation, warm starts; on a90106b, whose training code
+  is that of a9783ee8, and with OpenMS' defaults on a9783ee8). Measured with `perc_bench` (synthetic
+  PSMs, 30 features, 3 interleaved repetitions on 4 cores): with OpenMS' defaults 16-17% less time
+  than the loop at 4 threads on 1,000,000 PSMs and 37% on 100,000; in other configurations 7-29% at 4
+  threads and 11-17% at 2; from 1 to 4 threads 2.5-2.9x instead of 2.1-2.7x.
+
 Deliberate difference from the executable outside the patches (OpenMS wrapper, `Percolator.cpp`): with
 `train_fdr` 0 the wrapper uses `test_fdr` also in the passes after a capped training (the `-N` second pass,
 the out-of-fold merge, the learning curve), as the cross-validation resolves its selection FDR. The
@@ -191,11 +227,12 @@ and stops at a gain below 0.1%). Measured on synthetic PINs (`perc_bench`, 4 thr
 `Percolator::rescore`, peak RSS), the new tree with upstream's defaults is 3-4x faster than the former
 tree with all 35 patches, with less memory, so they were not ported:
 
-- superseded by upstream: 02 (the static flag is gone), 05, 08, 10 (folds and sorts), 09, 11, 12 (stages,
-  fold chains), 13, 17, 28, 30 (initial direction, normalization), 20 and 32 (the
+- superseded by upstream: 02 (the static flag is gone), 05, 08, 10 (folds and sorts), 09, 11, 12 (stages;
+  its fold chains are re-implemented as 07), 13, 17, 28, 30 (initial direction, normalization), 20 and 32 (the
   best-scoring positive per spectrum: `OrderScanLabel` orders by score since 25cb5124; issue #10720),
   21 (PSM ownership: DataSet no longer owns its PSMs, the feature pool no longer zero-fills), 22-26
-  (sort certificates, packed keys, set-up in tasks), 33 (OpenMP tasks: upstream uses none), 34
+  (sort certificates, packed keys, set-up in tasks), 33 (OpenMP tasks: upstream uses none; the fold
+  chains as 07), 34
   (comments of removed code);
 - not ported: 27 (reuse of the validation scores), 29, 31 (code gone);
 - ported: 01, 04, 14, 15, 16, 18, 19 (as 01-04 above); 03, 35, 06 and 07 were ported to a90106b and are

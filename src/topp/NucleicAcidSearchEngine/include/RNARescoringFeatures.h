@@ -83,7 +83,7 @@ public:
     double native_score = 0.0;
     NASequence sequence;
     double precursor_error_ppm = 0.0;
-    Size isotope_offset = 0;
+    Int isotope_offset = 0;
     Int charge = 0;
     bool adduct = false;
     const std::vector<PeptideHit::PeakAnnotation>* annotations = nullptr;

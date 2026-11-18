@@ -85,6 +85,30 @@ RNATagCandidateFilter::Evidence checkedMatch(const NASequence& candidate,
 
 START_TEST(RNASpectrumGraph, "$Id$")
 
+START_SECTION((heterogeneous peak tolerances preserve later valid graph edges))
+{
+  const auto* residue = RibonucleotideDB::getInstance()->getRibonucleotide("G");
+  const double increment = residue->getMonoMass() + EmpiricalFormula("H-1PO2").getMonoWeight();
+  MSSpectrum spectrum;
+  spectrum.emplace_back(100, 1);
+  spectrum.emplace_back(100 + increment + 0.10, 1);
+  spectrum.emplace_back(100 + increment + 0.12, 1);
+  RNASpectrumGraph::Options options;
+  options.tolerance = 0.01;
+  options.tolerance_ppm = false;
+  options.min_tag_length = options.max_tag_length = options.max_step = 1;
+  const auto result = RNASpectrumGraph({residue}, options).build(spectrum, 1, {0.01, 0.01, 0.20});
+  TEST_TRUE(result.fallback_reason.empty())
+  TEST_EQUAL(result.layers.size(), 1)
+  if (! result.layers.empty())
+  {
+    const auto& edges = result.layers[0].outgoing[0];
+    TEST_EQUAL(edges.size(), 1)
+    if (! edges.empty()) { TEST_EQUAL(edges[0].to, 2) }
+  }
+}
+END_SECTION
+
 START_SECTION((prefix and suffix tags preserve charge, orientation, and scoring spectra))
 {
   const auto sequence = NASequence::fromString("ACGU");
