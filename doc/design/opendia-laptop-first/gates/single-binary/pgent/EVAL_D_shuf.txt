@@ -1,0 +1,6 @@
+library: target precursors 366357, r = 1.1225
+arm  seed  N_q01  E_q01  FDPc_q01  N_at_FDPc1
+cur     0  10202     71    0.0132        9766
+new     0  12849    126    0.0185       11660
+cur: pooled FDP_c at q<=0.01 0.0132 (E 71, N 10202); median N@FDP_c 1 % 9766 (9766-9766); median N at q<=0.01 10202
+new: pooled FDP_c at q<=0.01 0.0185 (E 126, N 12849); median N@FDP_c 1 % 11660 (11660-11660); median N at q<=0.01 12849
