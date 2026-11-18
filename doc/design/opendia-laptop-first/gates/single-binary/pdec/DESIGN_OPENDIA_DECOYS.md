@@ -72,3 +72,20 @@ PRECHECK_PDEC found the cause of the diaPASEF excess:
 ## Done already
 The PQP reader dropped peptides without a gene mapping whenever GENE had rows. That silently removed merged decoys. It is
 fixed in 2982bd647d, with unchanged row order and a class test that fails without the fix.
+
+## Precheck step 1, build (18 Nov, 22:19)
+`entlib-osdg-20261118`, using `OpenSwathDecoyGenerator -method pseudo-reverse -predict_decoys true` on the PGENT2
+`targets.pqp`:
+- **Models:** staged into `models/`, hashes in `models.sha256`.
+- **Output:** `hela_osdg.pqp`, sha256 d1c44334…
+- **Settings estimated from the library:** timsTOF at NCE 30, with mean cosine 1 to the library intensities. That is
+  expected: the same model family predicted the library.
+  - RT line: identity.
+  - Cost: 1:48 wall and 4.5 GB on 16 threads.
+- **Coverage:** 404,719 decoys predicted and 0 rejected by the models. But 36,927 (8.4 % of targets) were **dropped**,
+  because they had fewer fragments than their target inside 200-1800 m/z.
+  - Those targets compete without a decoy. This is the same failure mode PRECHECK_PDEC found at 32 %.
+  - So the fallback in design item 4 is required, not optional: keep a pseudo-reverse decoy when the predicted one is
+    dropped.
+- **Search:** D seed 0 CUR/NEW were submitted (34769520/1). The results will be compared with PRECHECK_PDEC "Full
+  coverage" using `eval_pdec.py`.
