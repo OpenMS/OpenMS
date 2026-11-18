@@ -89,3 +89,17 @@ fixed in 2982bd647d, with unchanged row order and a class test that fails withou
     dropped.
 - **Search:** D seed 0 CUR/NEW were submitted (34769520/1). The results will be compared with PRECHECK_PDEC "Full
   coverage" using `eval_pdec.py`.
+
+## Fallback implemented: `-predict_keep_short` (OpenMS fa75f8f46d, default off, output unchanged)
+- **How DIALibGen handles it:** it never drops a decoy for having fewer fragments. On the PRECHECK_PDEC library, 8.0 % of
+  its decoys have fewer fragments than their target and 7.4 % have more. That library calibrated at 0.69-1.13 %.
+- **What OpenSwathDecoyGenerator now does with `-predict_keep_short true`:** the same thing. A short decoy keeps all of
+  its usable fragments (at least one) instead of being dropped. A decoy with no usable fragment is still dropped.
+- **Tests:**
+  - The class test shows short decoys are dropped without the flag and kept with it, holding 1 to k−1 fragments.
+  - Decoys kept before are unchanged.
+  - 342 OpenSwath, PQP and OpenDIA tests pass.
+- **Unrelated failure:** `TOPP_OpenDIA_write_ini_massim_defaults` fails with and without this change. It is not caused by
+  it.
+- **Next:** rebuild the container, then rerun precheck step 1 with `-predict_keep_short true`. The design's item 4 should
+  then hold: no target competes alone, except for decoys with zero usable fragments.
