@@ -8,6 +8,8 @@
 
 #include "OpenDIAWorkflow.h"
 
+#include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathLibraryPreparation.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/TransitionPQPFile.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/SYSTEM/SysInfo.h>
@@ -18,6 +20,7 @@
 #include <filesystem>
 #include <fstream>
 #include <map>
+#include <set>
 
 using namespace OpenMS;
 
@@ -59,6 +62,13 @@ protected:
     registerFlag_("pg_scores", "Experimental (PLAN_PGSCORES): add 10 OpenSWATH-style peak-group scores (cross-correlation, S/N, mass deviation, fragment isotopes) to the scorer", true);
     registerStringOption_("calibration", "<files>", "", "Advanced: comma-separated OpenDIACalibrate JSON per run to reuse instead of calibrating", false, true);
     registerStringOption_("anchors", "<files>", "", "Advanced: comma-separated anchor TSV per run, with -calibration", false, true);
+    registerStringOption_("decoys", "<mode>", "library",
+                          "library: use the library's decoys. predict: replace them by pseudo-reversed decoys predicted like the "
+                          "targets (own RT, ion mobility and fragment intensities, PeptDeep; DESIGN_OPENDIA_DECOYS), written to "
+                          "<out_dir>/<lib>.predicted_decoys.pqp. Needs a WITH_ONNX build; for predicted libraries", false);
+    setValidStrings_("decoys", {"library", "predict"});
+    registerStringOption_("decoy_model_dir", "<dir>", "",
+                          "decoys predict: directory with peptdeep_{rt,ms2,ccs}_dynamic.onnx; empty uses the installed models", false, true);
   }
 
   static std::string stem_(const std::string& path)
@@ -79,6 +89,60 @@ protected:
     char buffer[32];
     const auto r = std::to_chars(buffer, buffer + sizeof(buffer), v);
     row.append(1, '\t').append(buffer, r.ptr);
+  }
+
+  /// -decoys predict: drop the library's decoys and give every target a pseudo-reversed decoy predicted like a target
+  /// (OpenSwathLibraryPreparation::generateDecoys with predict_decoys and predict_keep_short, settings estimated from the
+  /// library). Returns the path of the target/decoy PQP it writes.
+  std::string predictDecoys_(const std::string& lib, const std::string& out_dir)
+  {
+    OpenSwath::LightTargetedExperiment all;
+    // The written library has canonical precursor IDs (the output's precursor_id refers to it); sequence, charge and
+    // proteins are those of the input.
+    TransitionPQPFile().convertPQPToTargetedExperiment(lib.c_str(), all);
+    OpenSwath::LightTargetedExperiment targets;
+    std::set<std::string> decoy_ids;
+    for (const auto& t : all.transitions)
+    {
+      if (t.getDecoy()) decoy_ids.insert(t.peptide_ref);
+    }
+    for (auto& c : all.compounds)
+    {
+      if (!decoy_ids.contains(c.id)) targets.compounds.push_back(std::move(c));
+    }
+    for (auto& t : all.transitions)
+    {
+      if (!t.getDecoy()) targets.transitions.push_back(std::move(t));
+    }
+    std::set<std::string> used;
+    for (const auto& c : targets.compounds) used.insert(c.protein_refs.begin(), c.protein_refs.end());
+    for (auto& p : all.proteins)
+    {
+      if (used.contains(p.id)) targets.proteins.push_back(std::move(p));
+    }
+    all = OpenSwath::LightTargetedExperiment();
+    writeLogInfo_("Predicting decoys for " + std::to_string(targets.compounds.size()) + " target precursors (" +
+                  std::to_string(decoy_ids.size()) + " library decoys dropped)");
+
+    const std::string stem = stem_(lib);
+    const std::string targets_pqp = out_dir + "/" + stem + ".targets.tmp.pqp";
+    const std::string out = out_dir + "/" + stem + ".predicted_decoys.pqp";
+    std::filesystem::remove(targets_pqp);
+    std::filesystem::remove(out);
+    TransitionPQPFile().convertLightTargetedExperimentToPQP(targets_pqp.c_str(), targets);
+    targets = OpenSwath::LightTargetedExperiment();
+
+    OpenSwathLibraryPreparation::DecoyGeneratorParameters parameters;
+    parameters.method = "pseudo-reverse";
+    parameters.predict_decoys = true;
+    parameters.predict_keep_short = true;
+    parameters.predict_model_directory = getStringOption_("decoy_model_dir");
+    parameters.predict_threads = std::max(1, getIntOption_("threads"));
+    OpenSwathLibraryPreparation preparation;
+    preparation.setLogType(log_type_);
+    preparation.generateDecoys(targets_pqp, FileTypes::PQP, out, FileTypes::PQP, parameters);
+    std::filesystem::remove(targets_pqp);
+    return out;
   }
 
   ExitCodes main_(int, const char**) override
@@ -110,8 +174,18 @@ protected:
       }
     }
 
-    writeLogInfo_("Reading library " + getStringOption_("lib"));
-    OpenDIA::AnalysisLibrary library = OpenDIA::AnalysisLibrary::read(getStringOption_("lib"), getStringOption_("scoring_lib"));
+    std::string lib_path = getStringOption_("lib");
+    if (getStringOption_("decoys") == "predict")
+    {
+      if (!getStringOption_("scoring_lib").empty())
+      {
+        writeLogError_("-decoys predict does not support -scoring_lib (its decoys would not match the predicted ones).");
+        return ILLEGAL_PARAMETERS;
+      }
+      lib_path = predictDecoys_(lib_path, out_dir);
+    }
+    writeLogInfo_("Reading library " + lib_path);
+    OpenDIA::AnalysisLibrary library = OpenDIA::AnalysisLibrary::read(lib_path, getStringOption_("scoring_lib"));
     std::size_t library_rss = 0;
     SysInfo::getProcessMemoryConsumption(library_rss);
     writeLogInfo_("Library: precursors=" + std::to_string(library.precursors.size()) + " pairs=" + std::to_string(library.pairs) +
