@@ -10,6 +10,9 @@
 #include <OpenMS/CHEMISTRY/Ribonucleotide.h>
 #include <OpenMS/DATASTRUCTURES/StringUtils.h>
 
+#include <algorithm>
+#include <tuple>
+
 namespace OpenMS
 {
 namespace
@@ -241,10 +244,10 @@ std::vector<std::string> RNAProductShuffler::rewrite(const std::vector<std::stri
     }
     return count;
   };
-  // forbidden combinations that contain any occurrence of a product
+  // forbidden combinations (sequence, first product, last product) that contain any occurrence of a product
+  using Combination = std::tuple<Size, Size, Size>;
   auto local_forbidden = [&](const std::string& product_key) {
-    Size count = 0;
-    std::map<Size, std::set<std::pair<Size, Size>>> seen; // per sequence: (start, end) already counted
+    std::set<Combination> found;
     for (const auto& [s, position] : occurrences[product_key])
     {
       const Size first = (position >= missed_cleavages) ? position - missed_cleavages : 0;
@@ -258,11 +261,11 @@ std::vector<std::string> RNAProductShuffler::rewrite(const std::vector<std::stri
         {
           joined += text(keys[k]);
           length += choices_[keys[k]].product.size();
-          if ((k > i) && (k >= position) && (length >= min_length_) && forbidden(joined) && seen[s].emplace(i, k).second) ++count;
+          if ((k > i) && (k >= position) && (length >= min_length_) && forbidden(joined)) found.emplace(s, i, k);
         }
       }
     }
-    return count;
+    return found;
   };
   auto total_forbidden = [&]() {
     Size count = 0;
@@ -299,19 +302,21 @@ std::vector<std::string> RNAProductShuffler::rewrite(const std::vector<std::stri
     {
       Choice_& choice = choices_[product_key];
       const bool searched_alone = choice.product.size() >= min_length_;
-      const Size before = local_forbidden(product_key);
-      if (before == 0) continue;
-      // candidates: further shuffles; a product not searched on its own may also stay as it is
+      const std::set<Combination> before = local_forbidden(product_key);
+      if (before.empty()) continue;
+      // candidates: further shuffles; a product not searched on its own may also stay as it is. A candidate is only taken
+      // if it removes forbidden combinations without making any new one (trading collisions could move one onto an
+      // abundant real molecule)
       std::optional<NASequence> current = choice.replacement;
       if (searched_alone && current) used_.erase(key(*current));
       std::optional<NASequence> best = current;
-      Size best_count = before;
+      Size best_count = before.size();
       auto try_candidate = [&](const std::optional<NASequence>& candidate) {
         choice.replacement = candidate;
-        const Size count = local_forbidden(product_key);
-        if (count < best_count)
+        const std::set<Combination> after = local_forbidden(product_key);
+        if ((after.size() < best_count) && std::includes(before.begin(), before.end(), after.begin(), after.end()))
         {
-          best_count = count;
+          best_count = after.size();
           best = candidate;
         }
       };
@@ -326,7 +331,7 @@ std::vector<std::string> RNAProductShuffler::rewrite(const std::vector<std::stri
       if (!searched_alone && current) try_candidate(std::nullopt);
       choice.replacement = best;
       if (searched_alone && choice.replacement) used_.insert(key(*choice.replacement));
-      if (best_count < before)
+      if (best_count < before.size())
       {
         improved = true;
         choice.active = choice.active || bool(choice.replacement);

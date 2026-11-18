@@ -84,8 +84,8 @@ public:
       least min_length residues are checked against @p forbidden. The component products of forbidden ones (also
       products that were not selected) then try other shuffles (up to 20 further qualifying ones; a product shorter
       than min_length may also stay as it is), and keep the one that leaves the fewest forbidden combinations around
-      its occurrences, if it improves on the current one. Each product keeps one replacement in all sequences. This
-      repeats until nothing improves; forbidden combinations left are counted in failedCombinations().
+      its occurrences, provided it removes some and makes no new one. Each product keeps one replacement in all
+      sequences. This repeats until nothing improves; forbidden combinations left are counted in failedCombinations().
 
     A product keeps its replacement across calls. Terminal modifications of the sequences are kept.
   */
