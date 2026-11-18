@@ -164,7 +164,7 @@
 
     @subsection install_vcpkg_optional_deps Optional Dependencies
 
-    Optional %OpenMS features that pull in additional dependencies (HDF5, ONNX Runtime, the Wasserstein network alignment libraries, etc.) need **two** things to be turned on together: the corresponding CMake option (e.g. `-DWITH_HDF5=ON`, `-DWITH_ONNX=ON`) *and* the matching vcpkg manifest feature via `-DVCPKG_MANIFEST_FEATURES="<feature1>;<feature2>;..."`, so that vcpkg actually installs the extra dependency. The `*-ci` presets show an example enabling several of these together:
+    Optional %OpenMS features that pull in additional dependencies (ONNX Runtime, the Wasserstein network alignment libraries, etc.) need **two** things to be turned on together: the corresponding CMake option (e.g. `-DWITH_ONNX=ON`, `-DWITH_WNETALIGN=ON`) *and* the matching vcpkg manifest feature via `-DVCPKG_MANIFEST_FEATURES="<feature1>;<feature2>;..."`, so that vcpkg actually installs the extra dependency. The `*-ci` presets show an example enabling several of these together:
 
     \code
     -DVCPKG_MANIFEST_FEATURES="isospec;wnetalign;onnxruntime" \

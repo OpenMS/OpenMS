@@ -126,7 +126,6 @@ if(WITH_GUI)
     "are built by https://github.com/OpenMS/OpenMS-TOPP-GUI against an installed OpenMS. "
     "Drop -DWITH_GUI=ON. A build directory that still has the option cached needs 'cmake -U WITH_GUI'.")
 endif()
-option(WITH_HDF5 "Build HDF5 parts of OpenMS." OFF)
 option(WITH_OPENTIMS "Build with Bruker TimsTOF .d file support via opentims" ON)
 option(OPENMS_ENABLE_MZPEAK "Build with mzPeak (HUPO-PSI Parquet-based raw data format) support via the vendored mzPeak library (needs Arrow/Parquet, which OpenMS requires anyway)" ON)
 option(WITH_ONNX "Build with ONNX Runtime support for PeptDeep ML bindings" OFF)
