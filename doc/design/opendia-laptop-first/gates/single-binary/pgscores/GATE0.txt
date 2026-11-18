@@ -1,0 +1,22 @@
+                        mean    std    min     max
+pg_xcorr_coelution     3.845  2.404  0.000  12.157
+pg_xcorr_coelution_w   2.202  2.250  0.000  10.000
+pg_xcorr_shape         0.615  0.212  0.000   1.000
+pg_xcorr_shape_w       0.612  0.220  0.000   1.000
+pg_log_sn              0.602  0.435  0.000   5.251
+pg_intensity_fraction  0.245  0.167  0.000   1.000
+pg_massdev             0.409  0.215  0.025   1.000
+pg_massdev_w           0.392  0.226  0.013   1.000
+pg_isotope_corr        0.349  0.348 -0.936   1.000
+pg_isotope_overlap     0.381  0.377  0.000   3.435
+common set 126871 | 24 alone 14988 | 24 + pg 17304 | gain +2316 | gate 0 (>= +300): PASS
+  AUC pg_xcorr_coelution       0.179
+  AUC pg_xcorr_coelution_w     0.108
+  AUC pg_xcorr_shape           0.810
+  AUC pg_xcorr_shape_w         0.846
+  AUC pg_log_sn                0.855
+  AUC pg_intensity_fraction    0.814
+  AUC pg_massdev               0.198
+  AUC pg_massdev_w             0.197
+  AUC pg_isotope_corr          0.822
+  AUC pg_isotope_overlap       0.198
