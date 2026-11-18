@@ -156,6 +156,30 @@ START_SECTION((void run(const PeakMap &, std::vector< MassTrace > &)))
       }
 
     }
+
+    // The spectra must be sorted by RT, MS2 spectra included (checked in debug builds). A file that lists all MS1 spectra
+    // before its MS2 spectra (like the share/OpenMS/examples/FRACTIONS files ProteomicsLFQ is tested with) is not, even
+    // though its MS1 spectra are in order; after MSExperiment::sortSpectra() the same traces are found.
+    {
+      PeakMap ms1_then_ms2 = input;
+      MSSpectrum ms2;
+      ms2.setMSLevel(2);
+      ms2.setRT((input[0].getRT() + input[1].getRT()) / 2.0);
+      ms2.push_back(Peak1D(500.0, 6000.0f));
+      ms1_then_ms2.addSpectrum(ms2);
+      TEST_EQUAL(ms1_then_ms2.isSorted(false), false)
+      TEST_PRECONDITION_VIOLATED(test_mtd.run(ms1_then_ms2, output_mt))
+
+      ms1_then_ms2.sortSpectra(false);
+      output_mt.clear();
+      test_mtd.run(ms1_then_ms2, output_mt);
+      TEST_EQUAL(output_mt.size(), 3)
+      for (Size i = 0; i < output_mt.size(); ++i)
+      {
+        TEST_EQUAL(output_mt[i].getSize(), exp_mt_lengths[i]);
+        TEST_REAL_SIMILAR(output_mt[i].getCentroidRT(), exp_mt_rts[i]);
+      }
+    }
 }
 END_SECTION
 

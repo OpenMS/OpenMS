@@ -557,6 +557,16 @@ protected:
       return INCOMPATIBLE_INPUT_DATA;
     }
 
+    // Everything below expects the spectra in RT order: precursor correction and the feature finder look spectra up
+    // by RT (binary search), and MassTraceDetection requires sorted input. Not every file is in that order, e.g. the
+    // share/OpenMS/examples/FRACTIONS files list all MS1 spectra before all MS2 spectra. Spectra with equal RT keep
+    // their order, so files that are sorted already are left as they are.
+    if (!ms_raw.isSorted(false))
+    {
+      ms_raw.sortSpectra(false);
+      writeLogInfo_("Info: Sorted spectra by retention time.");
+    }
+
     // remove MS2 peak data and check if spectra are sorted
     // TODO can we load just MS1 or do we need precursor information?
     for (auto& spec : ms_raw)
