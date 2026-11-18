@@ -176,7 +176,10 @@ All patches are `git diff` style (a/b/ prefixes, applied with -p1) on the whitel
   scoring of a set (`Scores::calcScores`) and the copies of its training rows (`appendTrainingRows`)
   run as taskloops (`TaskLoopScope`, `OpenMPThreads.h`). The reports of the iterations are printed
   afterwards as the loop prints them; after an error no fold starts a step beyond the iteration of
-  the first error, which is rethrown after the reports of the iterations before it.
+  the first error, which is rethrown after the reports of the iterations before it. The first error is the loop's:
+  by iteration, then by stage in the order in which the loop runs the stages for all folds (e.g. the solves of all
+  pairs before the feature rows and the counts), then fold and pair. The per-iteration bookkeeping grows with the
+  iterations that run, not with the iteration cap.
   `trainsFoldChains()`: with OpenMP tasks and more than one thread, without nested cross-validation, `-R` or verbosity above 2, with all folds active and held
   at once; otherwise the loop runs. The results are those of the loop, bit for bit (scores, q-values
   and PEPs of `perc_bench` on 100,000 and 1,000,000 synthetic PSMs at 1, 2 and 4 threads: TRON,
