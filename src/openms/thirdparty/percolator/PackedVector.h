@@ -9,12 +9,12 @@
 #ifndef _PackedVector_H
 #define _PackedVector_H
 
-
 #define PACK
 #define ALLOW_ZERO
 #include "Vector.h"
 
 namespace OpenMS { namespace Internal { namespace Percolator {
+
 
 class PackedVector : public Vector
 {

@@ -89,12 +89,11 @@ namespace
 
   Result solve(const Problem& p, double cpos, double cneg, double lambda = 1.0)
   {
-    AlgIn in(p.m, p.nf + 1);
-    in.m = p.m;
+    AlgIn in(p.nf + 1, /*rowsInPlace=*/true);
+    in.resizeExamples(size_t(p.m));
     for (int i = 0; i < p.m; ++i)
     {
-      in.vals[i] = const_cast<double*>(p.vals.data() + size_t(i) * p.nf);
-      in.Y[i] = p.y[i];
+      in.set(size_t(i), p.vals.data() + size_t(i) * p.nf, p.y[i]);
     }
     options opts;
     opts.lambda = lambda;
@@ -102,28 +101,22 @@ namespace
     opts.epsilon = EPSILON;
     opts.cgitermax = CGITERMAX;
     opts.mfnitermax = MFNITERMAX;
-    vector_double w, out;
-    w.d = p.nf + 1;
-    w.vec = new double[w.d]();
-    out.d = p.m;
-    out.vec = new double[out.d]();
     Result res;
+    res.w.assign(size_t(p.nf + 1), 0.0);
+    res.out.assign(size_t(p.m), 0.0);
     res.ratio = -1.0;
-    res.converged = tron(in, opts, w, out, cpos, cneg, &res.ratio);
-    res.w.assign(w.vec, w.vec + w.d);
-    res.out.assign(out.vec, out.vec + out.d);
+    res.converged = tron(in, opts, res.w, res.out, cpos, cneg, &res.ratio);
     return res;
   }
 
   // an AlgIn on the rows of p (shared by the solves of a TronPairGroup)
   unique_ptr<AlgIn> makeInput(const Problem& p)
   {
-    unique_ptr<AlgIn> in(new AlgIn(p.m, p.nf + 1));
-    in->m = p.m;
+    unique_ptr<AlgIn> in(new AlgIn(p.nf + 1, /*rowsInPlace=*/true));
+    in->resizeExamples(size_t(p.m));
     for (int i = 0; i < p.m; ++i)
     {
-      in->vals[i] = const_cast<double*>(p.vals.data() + size_t(i) * p.nf);
-      in->Y[i] = p.y[i];
+      in->set(size_t(i), p.vals.data() + size_t(i) * p.nf, p.y[i]);
     }
     return in;
   }
@@ -138,16 +131,11 @@ namespace
     opts.cgitermax = CGITERMAX;
     opts.mfnitermax = MFNITERMAX;
     opts.weightsOnly = weightsOnly;
-    vector_double w, out;
-    w.d = in.n;
-    w.vec = new double[w.d]();
-    out.d = in.m;
-    out.vec = new double[out.d]();
     Result res;
+    res.w.assign(size_t(in.n), 0.0);
+    res.out.assign(size_t(in.m), 0.0);
     res.ratio = -1.0;
-    res.converged = tron(in, opts, w, out, cpos, cneg, &res.ratio, group);
-    res.w.assign(w.vec, w.vec + w.d);
-    res.out.assign(out.vec, out.vec + out.d);
+    res.converged = tron(in, opts, res.w, res.out, cpos, cneg, &res.ratio, group);
     return res;
   }
 
@@ -312,12 +300,11 @@ START_SECTION([EXTRA] function object: f and gradient and Hv with infinite or Na
       {
         Problem p = makeProblem(m, n - 1, kind, 31 * n + m + kind);
         if (kind == 2 && n > 1) p.vals[0] = 1e300; // a huge value
-        AlgIn in(p.m, n);
-        in.m = p.m;
+        AlgIn in(n, /*rowsInPlace=*/true);
+        in.resizeExamples(size_t(p.m));
         for (int i = 0; i < p.m; ++i)
         {
-          in.vals[i] = p.vals.data() + size_t(i) * (n - 1);
-          in.Y[i] = p.y[i];
+          in.set(size_t(i), p.vals.data() + size_t(i) * (n - 1), p.y[i]);
         }
         Rng r{uint64_t(7 * n + 13 * m + kind)};
         for (int variant = 0; variant < 6; ++variant)
@@ -351,10 +338,10 @@ START_SECTION([EXTRA] function object: f and gradient and Hv with infinite or Na
   // the overflowing gradient of 3 rows x = 1e10 with C = 5e299 (TRON's direction is then -g = +Inf)
   {
     vector<double> vals = {1e10, 1e10, 1e10};
-    AlgIn in(3, 2);
-    in.m = 3;
+    AlgIn in(2, /*rowsInPlace=*/true);
+    in.resizeExamples(3);
     const double y[3] = {1.0, -1.0, 1.0};
-    for (int i = 0; i < 3; ++i) { in.vals[i] = vals.data() + i; in.Y[i] = y[i]; }
+    for (int i = 0; i < 3; ++i) { in.set(size_t(i), vals.data() + i, y[i]); }
     vector<double> w = {0.0, 0.0}, s = {inf, inf}, f_ref(2), g_ref(4), h_ref(4);
     tronEvaluateForTest("ref", in, 1.0, 1.0, 1e-300, w.data(), s.data(), f_ref.data(), g_ref.data(), h_ref.data());
     TEST_FALSE(std::isfinite(g_ref[0]))
@@ -368,6 +355,66 @@ START_SECTION([EXTRA] function object: f and gradient and Hv with infinite or Na
   }
   STATUS(identical << " of " << evaluations << " evaluations identical")
   TEST_EQUAL(identical, evaluations)
+}
+END_SECTION
+
+START_SECTION([EXTRA] AlgIn: copies of owned and borrowed rows)
+{
+  // owned rows: the features of each row and the bias value 1.0 are copied; a copy is independent of its source
+  const vector<double> feats = {1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0};
+  auto sameExamples = [](const AlgIn& a, const AlgIn& b)
+  {
+    bool same = a.m == b.m && a.n == b.n && a.positives == b.positives && a.negatives == b.negatives && a.Y == b.Y;
+    for (int i = 0; same && i < a.m; ++i)
+    {
+      for (int j = 0; j < a.n; ++j) { same = same && a.row(i)[j] == b.row(i)[j]; }
+    }
+    return same;
+  };
+  AlgIn owned(3);  // two features and the bias
+  for (int i = 0; i < 5; ++i) { owned.add(feats.data() + 2 * i, i % 2 == 0 ? 1.0 : -1.0); }
+  owned.positives = 3;
+  owned.negatives = 2;
+  TEST_EQUAL(owned.row(4)[1], 10.0)
+  TEST_EQUAL(owned.row(4)[2], 1.0)
+  AlgIn copy(owned);
+  TEST_TRUE(sameExamples(copy, owned))
+  TEST_TRUE(copy.row(0) != owned.row(0))
+  // assignment onto a filled AlgIn with more rows
+  AlgIn assigned(3);
+  for (int i = 0; i < 300; ++i) { assigned.add(feats.data(), 1.0); }
+  assigned = owned;
+  TEST_TRUE(sameExamples(assigned, owned))
+  copy.set(0, feats.data() + 8, -1.0);
+  TEST_EQUAL(owned.row(0)[0], 1.0)
+  TEST_EQUAL(owned.Y[0], 1.0)
+  // borrowed rows: the copy points to the same rows
+  AlgIn borrowed(3, /*rowsInPlace=*/true);
+  for (int i = 0; i < 4; ++i) { borrowed.add(feats.data() + 2 * i, 1.0); }
+  AlgIn borrowed_copy(borrowed);
+  TEST_TRUE(borrowed_copy.rowsInPlace())
+  TEST_TRUE(borrowed_copy.row(3) == borrowed.row(3))
+}
+END_SECTION
+
+START_SECTION([EXTRA] AlgIn: add() of one of its own rows while the owned storage grows)
+{
+  // the 257th row of a fresh AlgIn grows its storage (256 rows first), which frees the block that holds row(5)
+  AlgIn in(3);
+  for (int i = 0; i < 256; ++i)
+  {
+    const double row[2] = {double(i), double(-i)};
+    in.add(row, 1.0);
+  }
+  TEST_EQUAL(in.capacity(), 256)
+  in.add(in.row(5), -1.0);
+  TEST_TRUE(in.capacity() > 256)
+  TEST_EQUAL(in.m, 257)
+  TEST_EQUAL(in.row(256)[0], 5.0)
+  TEST_EQUAL(in.row(256)[1], -5.0)
+  TEST_EQUAL(in.row(256)[2], 1.0)
+  TEST_EQUAL(in.Y[256], -1.0)
+  TEST_EQUAL(in.row(5)[0], 5.0)
 }
 END_SECTION
 

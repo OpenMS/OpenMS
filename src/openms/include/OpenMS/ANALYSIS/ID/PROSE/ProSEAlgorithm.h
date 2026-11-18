@@ -202,7 +202,8 @@ class OPENMS_DLLAPI ProSEAlgorithm :
       double curve_min_gain = 0.002;           ///< learning_curve: relative gain below which a fold stops
       int iterations = 10;       ///< iterations of the cross-validation training
       double tron_epsilon = 1e-7;  ///< stopping tolerance of the SVM solver (TRON)
-      bool warm_start = false;     ///< SVM trainings start from the previous iteration's weights
+      bool warm_start = false;     ///< SVM trainings start from the previous iteration's weights (classic training)
+      bool classic_training = false; ///< Percolator's training up to 3.09 (parameter 'rescoring:classic_training')
       bool single_cneg = false;    ///< one Cneg candidate instead of three
       std::string solver = "newton"; ///< Percolator's SVM solver (parameter 'rescore_solver', default 'newton')
       std::string use_pi0 = "true"; ///< pi0 estimate in the q-values and PEPs ('rescoring:use_pi0': true, false (the executable with TDC), auto)
@@ -569,7 +570,7 @@ class OPENMS_DLLAPI ProSEAlgorithm :
      * hit per spectrum is kept (with the q-value of its peptide among the run's peptides, 'peptide q-value', see
      * annotatePeptideQValues(); not with rescore_method 'reset'), and the runs are marked as post-processed by
      * Percolator (search
-     * engine "Percolator", version "3.08-vendored", meta value 'percolator' and the
+     * engine "Percolator", version "3.09-vendored", meta value 'percolator' and the
      * "Percolator:*" search parameter meta values PercolatorAdapter writes).
      *
      * The searches of this class call it for every run when the parameter 'rescore' is on (the

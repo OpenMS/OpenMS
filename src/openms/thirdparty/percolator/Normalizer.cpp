@@ -15,7 +15,9 @@
 
  *******************************************************************************/
 #include <assert.h>
+#include <cmath>
 #include <iostream>
+#include <sstream>
 #include <vector>
 #include <set>
 #include <string>
@@ -23,19 +25,15 @@
 #include "StdvNormalizer.h"
 #include "UniNormalizer.h"
 #include "NoNormalizer.h"
+#include "DataSet.h"
 #include "FeatureNames.h"
 #include "Globals.h"
-
-#ifdef _OPENMP
-#include <omp.h>
-#endif
+#include "MyException.h"
 
 namespace OpenMS { namespace Internal { namespace Percolator {
 
 using namespace std;
 
-int Normalizer::subclass_type = STDV;
-Normalizer* Normalizer::theNormalizer = NULL;
 
 Normalizer::Normalizer() {
 }
@@ -59,42 +57,6 @@ void Normalizer::normalizeSet(vector<double*>& featuresV,
   }
 }
 
-/**
- * OpenMS: normalizeSet(featuresV, rtFeaturesV) for DISTINCT rows that do not overlap (the feature
- * rows of the PSMs of a SetHandler: each PSM has its own row of a FeatureMemoryPool), on large
- * sets without retention features by static blocks of rows on all threads: each value is
- * normalized as by normalize(), so the rows get the same values. A row that occurs twice would be
- * normalized by two threads at once: the pool never gives a row to two PSMs.
- */
-void Normalizer::normalizeRowsByFeature(vector<double*>& featuresV,
-                                        vector<double*>& rtFeaturesV) {
-#ifdef _OPENMP
-  // (with a team of one thread, the row-major loop of normalizeSet below, which is faster then)
-  bool byFeature = false;
-  if (rtFeaturesV.empty() && numRetentionFeatures == 0 && featuresV.size() >= 4096 &&
-      numFeatures >= 2 && omp_get_max_threads() > 1 && !omp_in_parallel()) {
-    const std::ptrdiff_t nf = static_cast<std::ptrdiff_t>(numFeatures);
-#pragma omp parallel
-    if (omp_get_num_threads() > 1) {
-#pragma omp single
-      byFeature = true;
-      // OpenMS: by blocks of rows (each row's features in a row: one pass over the rows, all threads), the same
-      // expression for every value as by feature
-      const std::ptrdiff_t numRows = static_cast<std::ptrdiff_t>(featuresV.size());
-#pragma omp for schedule(static)
-      for (std::ptrdiff_t r = 0; r < numRows; ++r) {
-        double* features = featuresV[static_cast<std::size_t>(r)];
-        for (std::ptrdiff_t ix = 0; ix < nf; ++ix) {
-          features[ix] = (features[ix] - sub[static_cast<std::size_t>(ix)]) / div[static_cast<std::size_t>(ix)];
-        }
-      }
-    }
-  }
-  if (byFeature) return;
-#endif
-  normalizeSet(featuresV, rtFeaturesV);
-}
-
 void Normalizer::normalize(const double* in, double* out, size_t offset,
                            size_t numFeatures) {
   for (unsigned int ix = 0; ix < numFeatures; ++ix) {
@@ -102,22 +64,31 @@ void Normalizer::normalize(const double* in, double* out, size_t offset,
   }
 }
 
-Normalizer* Normalizer::getNormalizer() {
-  if (theNormalizer == NULL) {
-    if (subclass_type == UNI) {
-      theNormalizer = new UniNormalizer();
-    } else if (subclass_type == STDV) {
-      theNormalizer = new StdvNormalizer();
-    } else {
-     theNormalizer = new NoNormalizer();
-    }
+void Normalizer::checkFactorsFinite(size_t begin, size_t end,
+                                    const char* subName,
+                                    const char* divName) const {
+  for (size_t ix = begin; ix < end; ++ix) {
+    if (std::isfinite(sub[ix]) && std::isfinite(div[ix])) continue;
+    ostringstream oss;
+    oss << "ERROR: Cannot normalize feature "
+        << DataSet::getFeatureNames().describeFeature(ix) << ": its "
+        << subName << " is " << sub[ix] << " and its " << divName << " is "
+        << div[ix] << ", because some of its values are too large in "
+        << "magnitude. Check the input, or rescale this feature, e.g. by "
+        << "taking its logarithm." << std::endl;
+    throw MyException(oss.str());
   }
-  return theNormalizer;
 }
 
-void Normalizer::setType(int type) {
+std::unique_ptr<Normalizer> Normalizer::create(int type) {
   assert(type == UNI || type == STDV || type == NONORM);
-  subclass_type = type;
+  if (type == UNI) {
+    return std::unique_ptr<Normalizer>(new UniNormalizer());
+  } else if (type == STDV) {
+    return std::unique_ptr<Normalizer>(new StdvNormalizer());
+  } else {
+    return std::unique_ptr<Normalizer>(new NoNormalizer());
+  }
 }
 
 // Before merging cross validation bins, the scores are renormalized to an uniform range.

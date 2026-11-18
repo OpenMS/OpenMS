@@ -1,22 +1,18 @@
---- /tmp/percolator-preserved/Array.h
-+++ src/openms/thirdparty/percolator/Array.h
-@@ -8,6 +8,7 @@
- #define _Array_H
- 
- 
-+
- #include <iostream>
- #include <vector>
- #include <cmath>
-@@ -16,6 +17,7 @@
+diff --git a/src/openms/thirdparty/percolator/Array.h b/src/openms/thirdparty/percolator/Array.h
+index c443dfac4082a99dadca0de3931712c8bcb55e83..b5abb78bd02f482534d059f7b3307ad58cd5a09a 100644
+--- a/src/openms/thirdparty/percolator/Array.h
++++ b/src/openms/thirdparty/percolator/Array.h
+@@ -16,6 +16,9 @@
  #include <algorithm>
  #include <functional>
  
 +namespace OpenMS { namespace Internal { namespace Percolator {
++
++
  
  template <typename T>
  class Array 
-@@ -420,5 +422,7 @@
+@@ -420,5 +423,7 @@ std::vector<T> Array<T>::getVector() const {
    return this->data;
  }
  
@@ -24,289 +20,298 @@
 +
  #endif
  
---- /tmp/percolator-preserved/BaseSpline.cpp
-+++ src/openms/thirdparty/percolator/BaseSpline.cpp
-@@ -24,6 +24,8 @@
+diff --git a/src/openms/thirdparty/percolator/BaseSpline.cpp b/src/openms/thirdparty/percolator/BaseSpline.cpp
+index 491dfa07d8ec6ded91f86b649b814fc4dc5d03b9..65685a89133768c45f101ef0e796a8da8abb53bb 100644
+--- a/src/openms/thirdparty/percolator/BaseSpline.cpp
++++ b/src/openms/thirdparty/percolator/BaseSpline.cpp
+@@ -24,6 +24,9 @@
  #include "BaseSpline.h"
  #include "Globals.h"
  
 +namespace OpenMS { namespace Internal { namespace Percolator {
 +
++
  using namespace std;
  
  class SplinePredictor {
-@@ -570,3 +572,5 @@
-     cout << endl;
+@@ -400,3 +403,5 @@ void BaseSpline::setData(const vector<double>& xx) {
    }
+   transform(xx.begin(), xx.end(), back_inserter(x), transf);
  }
 +
 +}}}  // namespace OpenMS::Internal::Percolator
---- /tmp/percolator-preserved/BaseSpline.h
-+++ src/openms/thirdparty/percolator/BaseSpline.h
-@@ -18,11 +18,14 @@
- #ifndef BASESPLINE_H_
- #define BASESPLINE_H_
- 
-+
- #include <assert.h>
+diff --git a/src/openms/thirdparty/percolator/BaseSpline.h b/src/openms/thirdparty/percolator/BaseSpline.h
+index 637ea133ab6faa5e14829780faae34a3c000ea75..6c9aa4886ad1812dba67deb664710b83ef74eaa6 100644
+--- a/src/openms/thirdparty/percolator/BaseSpline.h
++++ b/src/openms/thirdparty/percolator/BaseSpline.h
+@@ -22,6 +22,9 @@
  #include "Transform.h"
  #include "PackedVector.h"
- #include "PackedMatrix.h"
  
 +namespace OpenMS { namespace Internal { namespace Percolator {
++
 +
  class BaseSpline {
    public:
      BaseSpline(){};
-@@ -71,4 +74,6 @@
+@@ -68,4 +71,6 @@ class BaseSpline {
      vector<double> x;
  };
  
 +}}}  // namespace OpenMS::Internal::Percolator
 +
  #endif /*BASESPLINE_H_*/
---- /tmp/percolator-preserved/CrossValidation.cpp
-+++ src/openms/thirdparty/percolator/CrossValidation.cpp
-@@ -21,6 +21,9 @@
+diff --git a/src/openms/thirdparty/percolator/CrossValidation.cpp b/src/openms/thirdparty/percolator/CrossValidation.cpp
+index 7f17b4d30499f7b45c8bb735ab5fe2cf9adcc090..a907b032ba884d9ff606e3b3455c35905910259a 100644
+--- a/src/openms/thirdparty/percolator/CrossValidation.cpp
++++ b/src/openms/thirdparty/percolator/CrossValidation.cpp
+@@ -24,6 +24,9 @@
+ #ifdef _OPENMP
  #include <omp.h>
- #include <algorithm>
  #endif
 +
 +namespace OpenMS { namespace Internal { namespace Percolator {
 +
  // checks cross validation convergence in case of quickValidation_
  const double CrossValidation::requiredIncreaseOver2Iterations_ = 0.01;
- 
-@@ -656,3 +659,5 @@
+ // checks convergence in normal (not classic) training
+@@ -998,3 +1001,5 @@ void CrossValidation::printAllRawWeightsColumns(ostream& weightStream,
    }
    printAllWeightsColumns(ww, weightStream);
  }
 +
 +}}}  // namespace OpenMS::Internal::Percolator
---- /tmp/percolator-preserved/CrossValidation.h
-+++ src/openms/thirdparty/percolator/CrossValidation.h
-@@ -17,6 +17,7 @@
- #ifndef CROSSVALIDATION_H_
- #define CROSSVALIDATION_H_
- 
-+
- #include <iomanip>
- #include <iostream>
- #include <vector>
-@@ -30,6 +31,8 @@
+diff --git a/src/openms/thirdparty/percolator/CrossValidation.h b/src/openms/thirdparty/percolator/CrossValidation.h
+index 1c3920c2895be06c09de1b258b9d23c7f87059c8..8181e9668f3b7ef011027bc723abdcef91ff6f8e 100644
+--- a/src/openms/thirdparty/percolator/CrossValidation.h
++++ b/src/openms/thirdparty/percolator/CrossValidation.h
+@@ -30,6 +30,9 @@
  #include "Scores.h"
  #include "ssl.h"
  
 +namespace OpenMS { namespace Internal { namespace Percolator {
 +
++
  struct CandidateCposCfrac {
    double cpos;
    double cfrac;
-@@ -147,4 +150,6 @@
+@@ -258,4 +261,6 @@ class CrossValidation {
        ostream& weightStream);
  };
  
 +}}}  // namespace OpenMS::Internal::Percolator
 +
  #endif /*CROSSVALIDATION_H_*/
---- /tmp/percolator-preserved/DataSet.cpp
-+++ src/openms/thirdparty/percolator/DataSet.cpp
-@@ -16,8 +16,11 @@
-  *******************************************************************************/
- 
- #include "DataSet.h"
-+#include "TabReader.h"
+diff --git a/src/openms/thirdparty/percolator/DataSet.cpp b/src/openms/thirdparty/percolator/DataSet.cpp
+index 1a8ed81cca0826e54c74de46ff4bc12219bc57de..4f2e3598d959d2c1ef1a4a6d6b473856149a0775 100644
+--- a/src/openms/thirdparty/percolator/DataSet.cpp
++++ b/src/openms/thirdparty/percolator/DataSet.cpp
+@@ -19,6 +19,9 @@
  #include <cmath>
+ #include "NumberFormatter.h"
  
 +namespace OpenMS { namespace Internal { namespace Percolator {
 +
++
  FeatureNames DataSet::featureNames_;
  bool DataSet::decoyWarningTripped_ = false;
- 
-@@ -192,7 +195,7 @@
-     temp << "ERROR: Reading tab file, error reading PSM " << myPsm->getId() 
-       << ". Check if a peptide and at least one protein are specified." << std::endl;
+ bool DataSet::flankWarningTripped_ = false;
+@@ -417,7 +420,7 @@ void DataSet::checkUnflankedPeptide(std::string_view peptide,
+          << FeatureNames::getNumFeatures() << " features)." << std::endl;
      throw MyException(temp.str());
--  } else if (ProteinProbEstimator::getCalcProteinLevelProb()) {
-+  } else if (false) {   // OPENMS_MODIFIED: protein-inference dropped in vendored subset
-     // MT: we only need the peptide sequences to be well formatted if protein inference is applied
-     if (peptide_seq.size() < 5) {
-       ostringstream temp;
-@@ -268,3 +271,5 @@
+   }
+-  if (ProteinProbEstimator::getCalcProteinLevelProb()) {
++  if (false) {   // OPENMS_MODIFIED: protein-inference dropped in vendored subset
+     // the protein inference digests the protein sequences and needs flanks
+     ostringstream temp;
+     temp << "ERROR: Reading tab file, the peptide " << peptide << " of PSM "
+@@ -444,3 +447,5 @@ void DataSet::registerPsm(PSMDescription* myPsm) {
    }
    psms_.push_back(myPsm);
  }
 +
 +}}}  // namespace OpenMS::Internal::Percolator
---- /tmp/percolator-preserved/DataSet.h
-+++ src/openms/thirdparty/percolator/DataSet.h
-@@ -17,6 +17,7 @@
- #ifndef DATASET_H_
- #define DATASET_H_
- 
-+
- #include <string>
- #include <cassert>
- #include <cctype>
-@@ -36,9 +37,8 @@
+diff --git a/src/openms/thirdparty/percolator/DataSet.h b/src/openms/thirdparty/percolator/DataSet.h
+index 5f6364f787a1ce2c028113eed942c3447dc11ee7..aa569490dcc2d3c2d0aa609248b946ff9401b9ed 100644
+--- a/src/openms/thirdparty/percolator/DataSet.h
++++ b/src/openms/thirdparty/percolator/DataSet.h
+@@ -35,10 +35,12 @@
+ #include "Globals.h"
  #include "PSMDescription.h"
+ #include "PsmStore.h"
++#include "TabReader.h"
  #include "FeatureNames.h"
  #include "FeatureMemoryPool.h"
 -#include "ProteinProbEstimator.h"
 -#include "TabFileValidator.h"
- 
++
 +namespace OpenMS { namespace Internal { namespace Percolator {
++
+ 
  
  // Optional columns in tab delimited input
- enum OptionalField {
-@@ -90,4 +90,6 @@
-   static bool decoyWarningTripped_;
+@@ -130,4 +132,6 @@ class DataSet {
+     PsmStore& psmStore, const std::string& decoyPrefix);
  };
  
 +}}}  // namespace OpenMS::Internal::Percolator
 +
  #endif /*DATASET_H_*/
---- /tmp/percolator-preserved/FeatureMemoryPool.cpp
-+++ src/openms/thirdparty/percolator/FeatureMemoryPool.cpp
-@@ -17,6 +17,8 @@
+diff --git a/src/openms/thirdparty/percolator/FdrWalk.h b/src/openms/thirdparty/percolator/FdrWalk.h
+index 184b977e7781b8c41e322be68e3d2550f08cf15e..d7bdd66c8bdccd4a662f825b12de13eeef565572 100644
+--- a/src/openms/thirdparty/percolator/FdrWalk.h
++++ b/src/openms/thirdparty/percolator/FdrWalk.h
+@@ -23,6 +23,9 @@
  
- #include "FeatureMemoryPool.h"
+ #include "Globals.h"
  
 +namespace OpenMS { namespace Internal { namespace Percolator {
 +
- void FeatureMemoryPool::createPool(size_t numFeatures) {
-   numFeatures_ = static_cast<unsigned int>(numFeatures);
-   numRowsPerBlock_ = kBlockSize / numFeatures_;
-@@ -58,3 +60,5 @@
++
+ /*
+  * The walk over a list of targets and decoys, best first, that estimates the
+  * FDR at the end of each group of tied scores: the one loop behind
+@@ -131,4 +134,6 @@ void walkFdrEstimates(std::size_t n,
+   }
+ }
+ 
++}}}  // namespace OpenMS::Internal::Percolator
++
+ #endif /* FDRWALK_H_ */
+diff --git a/src/openms/thirdparty/percolator/FeatureMemoryPool.cpp b/src/openms/thirdparty/percolator/FeatureMemoryPool.cpp
+index 8b3fa7621d1169865b8bb97794c2205b8df67a97..ce445405e3f7bf36475f02b9a6b6305d0c070e75 100644
+--- a/src/openms/thirdparty/percolator/FeatureMemoryPool.cpp
++++ b/src/openms/thirdparty/percolator/FeatureMemoryPool.cpp
+@@ -24,6 +24,9 @@
+ #include <sys/mman.h>
+ #endif
+ 
++namespace OpenMS { namespace Internal { namespace Percolator {
++
++
+ namespace {
+ #if defined(__linux__)
+ const std::size_t kHugePageSize = std::size_t(1) << 21;
+@@ -110,3 +113,5 @@ double* FeatureMemoryPool::allocate() {
  void FeatureMemoryPool::deallocate(double* p) {
    freeRows_.push_back(p);
  }
 +
 +}}}  // namespace OpenMS::Internal::Percolator
---- /tmp/percolator-preserved/FeatureMemoryPool.h
-+++ src/openms/thirdparty/percolator/FeatureMemoryPool.h
-@@ -17,11 +17,14 @@
- #ifndef FEATURE_MEMORY_POOL_H_
- #define FEATURE_MEMORY_POOL_H_
- 
-+
- /* Adapted from https://www.thinkmind.org/download.php?articleid=computation_tools_2012_1_10_80006 */
- 
+diff --git a/src/openms/thirdparty/percolator/FeatureMemoryPool.h b/src/openms/thirdparty/percolator/FeatureMemoryPool.h
+index 8201662574fdb43a8569fde5bd80db515e0580c5..06b7fd7e207a398326ebb3a9b0e3df921ca0b763 100644
+--- a/src/openms/thirdparty/percolator/FeatureMemoryPool.h
++++ b/src/openms/thirdparty/percolator/FeatureMemoryPool.h
+@@ -23,6 +23,9 @@
  #include <vector>
  #include <iostream>
  
 +namespace OpenMS { namespace Internal { namespace Percolator {
 +
++
+ /* Storage of the feature rows of the PSMs, in blocks of 8 MiB. */
  class FeatureMemoryPool {
   private:
-    static const unsigned int kBlockSize = 65536; // in number of doubles, e.g. 0.5MB if sizeof(double) = 8
-@@ -47,4 +50,6 @@
+@@ -72,4 +75,6 @@ class FeatureMemoryPool {
    void deallocate(double* p);
  };
  
 +}}}  // namespace OpenMS::Internal::Percolator
 +
  #endif /* FEATURE_MEMORY_POOL_H_ */
---- /tmp/percolator-preserved/FeatureNames.cpp
-+++ src/openms/thirdparty/percolator/FeatureNames.cpp
-@@ -1,4 +1,3 @@
--
- /*******************************************************************************
-  Copyright 2006-2012 Lukas Käll <lukas.kall@scilifelab.se>
- 
-@@ -19,6 +18,8 @@
+diff --git a/src/openms/thirdparty/percolator/FeatureNames.cpp b/src/openms/thirdparty/percolator/FeatureNames.cpp
+index 98b49c78f69a7ddce69f5c232a8855a1aaf02cc8..77c64846a95df0af9b6597d29300ae0e1474a9d7 100644
+--- a/src/openms/thirdparty/percolator/FeatureNames.cpp
++++ b/src/openms/thirdparty/percolator/FeatureNames.cpp
+@@ -19,6 +19,9 @@
  #include "FeatureNames.h"
  #include "Globals.h"
  
 +namespace OpenMS { namespace Internal { namespace Percolator {
 +
++
  size_t FeatureNames::numFeatures = 0;
  
  FeatureNames::FeatureNames() {
-@@ -80,3 +81,5 @@
+@@ -72,3 +75,5 @@ int FeatureNames::getFeatureNumber(const string& featureName) {
    }
    return 0;
  }
 +
 +}}}  // namespace OpenMS::Internal::Percolator
---- /tmp/percolator-preserved/FeatureNames.h
-+++ src/openms/thirdparty/percolator/FeatureNames.h
-@@ -17,6 +17,7 @@
- #ifndef FEATURENAMES_H_
- #define FEATURENAMES_H_
- 
-+
- #include <string>
- #include <vector>
- #include <algorithm>
-@@ -26,6 +27,8 @@
+diff --git a/src/openms/thirdparty/percolator/FeatureNames.h b/src/openms/thirdparty/percolator/FeatureNames.h
+index 3932c35683625e1452f76ae38436cd99e0b564a0..7deb041db7095d3ce7fdbd3041a6fbd89093c6a1 100644
+--- a/src/openms/thirdparty/percolator/FeatureNames.h
++++ b/src/openms/thirdparty/percolator/FeatureNames.h
+@@ -26,6 +26,9 @@
  #include <cctype>
  #include <iterator>
  
 +namespace OpenMS { namespace Internal { namespace Percolator {
 +
++
  using namespace std;
  
  class FeatureNames {
-@@ -93,4 +96,6 @@
-         intraSetFeatNum, quadraticFeatNum;
+@@ -65,4 +68,6 @@ class FeatureNames {
+     static size_t numFeatures;
  };
  
 +}}}  // namespace OpenMS::Internal::Percolator
 +
  #endif /*FEATURENAMES_H_*/
---- /tmp/percolator-preserved/Globals.cpp
-+++ src/openms/thirdparty/percolator/Globals.cpp
-@@ -20,6 +20,8 @@
+diff --git a/src/openms/thirdparty/percolator/Globals.cpp b/src/openms/thirdparty/percolator/Globals.cpp
+index 48eb0a168cf2efdf55a5edb0a5b217ba4bbb7e41..a53b871f427ff6a71939df78e4a808ce2f802a3b 100644
+--- a/src/openms/thirdparty/percolator/Globals.cpp
++++ b/src/openms/thirdparty/percolator/Globals.cpp
+@@ -20,6 +20,9 @@
  #include <iostream>
  #include <cstdlib>
  
 +namespace OpenMS { namespace Internal { namespace Percolator {
 +
- Globals* Globals::glob = 0;
- 
- Globals::~Globals() {
-@@ -125,3 +127,5 @@
++
+ Globals* Globals::getInstance() {
+   static Globals instance;  // thread-safe initialisation
+   return &instance;
+@@ -37,3 +40,5 @@ void Globals::failUnlessNoTerminate(const std::string& error,
    }
-   glob = 0;
+   std::cerr << error << recovery << std::endl;
  }
 +
 +}}}  // namespace OpenMS::Internal::Percolator
---- /tmp/percolator-preserved/ISplineTRRRegressor.h
-+++ src/openms/thirdparty/percolator/ISplineTRRRegressor.h
-@@ -1,3 +1,5 @@
-+#pragma once
-+
- #include "MonotoneRegressor.h"
- #include <iostream> // for std::cerr, std::endl
- #include <Eigen/Dense>
-@@ -5,6 +7,8 @@
- #include <numeric>
- #include <cassert>
+diff --git a/src/openms/thirdparty/percolator/ISplineTRRRegressor.h b/src/openms/thirdparty/percolator/ISplineTRRRegressor.h
+index 9b41e71d421e6f4ea9883c4d49fe0349d4e63bf8..ff081a90fdee6108595193ba42fb08296a31c3a4 100644
+--- a/src/openms/thirdparty/percolator/ISplineTRRRegressor.h
++++ b/src/openms/thirdparty/percolator/ISplineTRRRegressor.h
+@@ -12,6 +12,9 @@
+ #include <sstream>
+ #include <vector>
  
 +namespace OpenMS { namespace Internal { namespace Percolator {
 +
- using Eigen::MatrixXd;
- using Eigen::VectorXd;
- 
-@@ -474,3 +478,5 @@
-   }
++
+ // Small dense linear algebra for the p x p problems of the I-spline fit
+ // (p is about 200), on std::vector.
+ typedef std::vector<double> Vec;
+@@ -553,4 +556,6 @@ public:
  
  };
-+
+ 
 +}}}  // namespace OpenMS::Internal::Percolator
---- /tmp/percolator-preserved/IsotonicPEP.cpp
-+++ src/openms/thirdparty/percolator/IsotonicPEP.cpp
-@@ -8,14 +8,17 @@
++
+ #endif /* ISPLINE_TRR_REGRESSOR_H_ */
+diff --git a/src/openms/thirdparty/percolator/IsotonicPEP.cpp b/src/openms/thirdparty/percolator/IsotonicPEP.cpp
+index 74aeb2a95ffb2efe9bc03ee92ba34700fff6d86f..651fdd3127d9af488485a2f0c5fbb834932bea6d 100644
+--- a/src/openms/thirdparty/percolator/IsotonicPEP.cpp
++++ b/src/openms/thirdparty/percolator/IsotonicPEP.cpp
+@@ -8,12 +8,14 @@
  #include <cassert>
  #include <iostream>
  #include <chrono>
 -using clock_type = std::chrono::high_resolution_clock;
- 
- #include <Eigen/Dense>
--#include <Eigen/Sparse> 
-+#include <Eigen/Sparse>
- 
+-
+-
  #include "MonotoneRegressor.h"
  #include "IsotonicPEP.h"
  
@@ -314,48 +319,52 @@
 +
 +using clock_type = std::chrono::high_resolution_clock;
 +
++
  namespace {
  std::vector<double> q_values_to_raw_pep(const std::vector<double>& q_values) {
    const size_t n = q_values.size();
-@@ -133,3 +136,5 @@
+@@ -132,3 +134,5 @@ InferPEP::tdc_to_pep(const std::vector<double>& is_decoy,
  
    return pep_iso;
  }
 +
 +}}}  // namespace OpenMS::Internal::Percolator
---- /tmp/percolator-preserved/IsotonicPEP.h
-+++ src/openms/thirdparty/percolator/IsotonicPEP.h
-@@ -8,6 +8,8 @@
+diff --git a/src/openms/thirdparty/percolator/IsotonicPEP.h b/src/openms/thirdparty/percolator/IsotonicPEP.h
+index c3e3b80ae230510f0afcc06b1c7bc62d09e02d36..606fd8fb5ed3bcffd62c7e4dc53b8aef832be185 100644
+--- a/src/openms/thirdparty/percolator/IsotonicPEP.h
++++ b/src/openms/thirdparty/percolator/IsotonicPEP.h
+@@ -8,6 +8,9 @@
  #include <cmath>
  #include "MonotoneRegressor.h"
  
 +namespace OpenMS { namespace Internal { namespace Percolator {
 +
++
  class MonotoneRegressor;
  
  class InferPEP {
-@@ -33,4 +35,6 @@
+@@ -36,4 +39,6 @@ class InferPEP {
          // std::vector<double> pep_iso;
      };
  
 +}}}  // namespace OpenMS::Internal::Percolator
 +
      #endif /* ISOTONICPEP_H_ */
---- /tmp/percolator-preserved/LabelType.h
-+++ src/openms/thirdparty/percolator/LabelType.h
-@@ -17,8 +17,11 @@
- #ifndef LABEL_TYPE_H_
- #define LABEL_TYPE_H_
+diff --git a/src/openms/thirdparty/percolator/LabelType.h b/src/openms/thirdparty/percolator/LabelType.h
+index 83940a749d53ec704c12a45d2721acd229c35522..691e9d79422fdb854d336089a73e4c531762d66e 100644
+--- a/src/openms/thirdparty/percolator/LabelType.h
++++ b/src/openms/thirdparty/percolator/LabelType.h
+@@ -19,6 +19,9 @@
  
-+
  #include <iostream>
  
 +namespace OpenMS { namespace Internal { namespace Percolator {
 +
++
  enum class LabelType {
    DECOY = -1,
    UNDEFINED = 0,
-@@ -31,4 +34,6 @@
+@@ -31,4 +34,6 @@ inline std::ostream& operator<<(std::ostream& os, LabelType label) {
    return os;
  }
  
@@ -363,120 +372,14 @@
 +
  #endif /*LABEL_TYPE_H_*/
 \ No newline at end of file
---- /tmp/percolator-preserved/Logger.cpp
-+++ src/openms/thirdparty/percolator/Logger.cpp
-@@ -7,17 +7,14 @@
- 
-  http://www.apache.org/licenses/LICENSE-2.0
- 
-- Unless required by applicable law or agreed to in writing, software
-- distributed under the License is distributed on an "AS IS" BASIS,
-- WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-- See the License for the specific language governing permissions and
-- limitations under the License.
--
-  *******************************************************************************/
- 
- 
- #include "Logger.h"
- 
-+namespace OpenMS { namespace Internal { namespace Percolator {
-+using namespace std;
-+
- Logger::Logger()
- {
-   file_log = false;
-@@ -45,3 +42,5 @@
-   std::cerr.flush();
-   std_log.close();
- }
-+
-+}}}  // namespace OpenMS::Internal::Percolator
---- /tmp/percolator-preserved/Logger.h
-+++ src/openms/thirdparty/percolator/Logger.h
-@@ -7,63 +7,54 @@
- 
-  http://www.apache.org/licenses/LICENSE-2.0
- 
-- Unless required by applicable law or agreed to in writing, software
-- distributed under the License is distributed on an "AS IS" BASIS,
-- WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-- See the License for the specific language governing permissions and
-- limitations under the License.
--
-  *******************************************************************************/
- 
--
--
- #ifndef LOGGER_H
- #define LOGGER_H
- #include <iostream>
- #include <fstream>
-+
-+namespace OpenMS { namespace Internal { namespace Percolator {
-+
- using namespace std;
- 
- class Logger
- {
-   public:
--  
-+
-     Logger();
-     Logger(const char* file);
-     virtual ~Logger();
--    
-+
-     void attach_file(const char* file);
-     inline void activate_file_log(){file_log = true;}
-     inline void disactivate_file_log(){file_log = false;}
--    
--    // overload << to send x to cerr and file_log is activated
-+
-     template<class T>
--    Logger& operator<<(const T& x) 
-+    Logger& operator<<(const T& x)
-     {
-        std::cerr << x;
-        if(file_log) std_log << x;
-        return *this;
-     }
--    
--    // this is the type of std::cout/std::cerr
--    typedef std::basic_ostream<char, std::char_traits<char> > CoutType;
- 
--    // this is the function signature of std::endl
-+    typedef std::basic_ostream<char, std::char_traits<char> > CoutType;
-     typedef CoutType& (*StandardEndLine)(CoutType&);
- 
--    // define an operator<< to take in std::endl
-     Logger& operator<<(StandardEndLine manip)
-     {
-         manip(std::cerr);
--	if(file_log) manip(std_log);
-+        if(file_log) manip(std_log);
-         return *this;
-     }
- 
-   private:
--    
-+
-     bool file_log;
-     std::ofstream std_log;
--  
-+
- };
- 
--#endif // LOGGER_H
-+}}}  // namespace OpenMS::Internal::Percolator
- 
-+#endif // LOGGER_H
---- /tmp/percolator-preserved/LogisticRegression.cpp
-+++ src/openms/thirdparty/percolator/LogisticRegression.cpp
-@@ -21,11 +21,14 @@
- #include<functional>
- #include<fstream>
+diff --git a/src/openms/thirdparty/percolator/LogisticRegression.cpp b/src/openms/thirdparty/percolator/LogisticRegression.cpp
+index 678b038adb4e1530fd6e5c68424a0c585bc4363f..422a83e383c41405b33823176d1f6040d04396e8 100644
+--- a/src/openms/thirdparty/percolator/LogisticRegression.cpp
++++ b/src/openms/thirdparty/percolator/LogisticRegression.cpp
+@@ -23,11 +23,15 @@
  #include<sstream>
+ #include<cmath>
+ #include<iostream>
 -using namespace std;
  
  #include "Globals.h"
@@ -486,63 +389,63 @@
 +
 +using namespace std;
 +
++
  const double LogisticRegression::gRange = 35.0;
  
  void invlogit(double& out, double in) {
-@@ -98,3 +101,5 @@
+@@ -190,3 +194,4 @@ void LogisticRegression::initg() {
  #endif
  }
  
-+
 +}}}  // namespace OpenMS::Internal::Percolator
---- /tmp/percolator-preserved/LogisticRegression.h
-+++ src/openms/thirdparty/percolator/LogisticRegression.h
-@@ -18,11 +18,14 @@
- #ifndef LOGISTICREGRESSION_H_
- #define LOGISTICREGRESSION_H_
- 
-+
- #include <vector>
- 
+diff --git a/src/openms/thirdparty/percolator/LogisticRegression.h b/src/openms/thirdparty/percolator/LogisticRegression.h
+index 3c87ae1669c69f66600616d1c5523f58c931caef..1f9f5f2c31640f1c6c486d7b955e3cf393f4ac6b 100644
+--- a/src/openms/thirdparty/percolator/LogisticRegression.h
++++ b/src/openms/thirdparty/percolator/LogisticRegression.h
+@@ -23,6 +23,9 @@
  #include "BaseSpline.h"
  #include "Array.h"
  
 +namespace OpenMS { namespace Internal { namespace Percolator {
 +
++
  class LogisticRegression : public BaseSpline {
    public:
      LogisticRegression(){};
-@@ -46,4 +49,6 @@
+@@ -55,4 +58,6 @@ class LogisticRegression : public BaseSpline {
      Array<double> p;
  };
  
 +}}}  // namespace OpenMS::Internal::Percolator
 +
  #endif /*LOGISTICREGRESSION_H_*/
---- /tmp/percolator-preserved/MassHandler.cpp
-+++ src/openms/thirdparty/percolator/MassHandler.cpp
-@@ -18,6 +18,8 @@
+diff --git a/src/openms/thirdparty/percolator/MassHandler.cpp b/src/openms/thirdparty/percolator/MassHandler.cpp
+index c6f58329bb49b4f4e4e7ce97b192e7621a34ff8f..03e36aa9d88d393c0862d4bad3e8d04dcd7698c2 100644
+--- a/src/openms/thirdparty/percolator/MassHandler.cpp
++++ b/src/openms/thirdparty/percolator/MassHandler.cpp
+@@ -18,6 +18,9 @@
  #include <cmath>
  #include "MassHandler.h"
  
 +namespace OpenMS { namespace Internal { namespace Percolator {
 +
++
  MassHandler::MassHandler() {
  }
  
-@@ -42,3 +44,5 @@
+@@ -42,3 +45,5 @@ double MassHandler::massDiff(double observedMass, double calculatedMass, unsigne
    }
    return dm / charge;
  }
 +
 +}}}  // namespace OpenMS::Internal::Percolator
---- /tmp/percolator-preserved/MassHandler.h
-+++ src/openms/thirdparty/percolator/MassHandler.h
-@@ -17,7 +17,11 @@
- #ifndef MASSHANDLER_H_
+diff --git a/src/openms/thirdparty/percolator/MassHandler.h b/src/openms/thirdparty/percolator/MassHandler.h
+index 1ebdf2d9b2b3107e135c958203e34c2dcbceb377..81aaec6ba74f7e5e8ee4d37adaedc1623f7e421e 100644
+--- a/src/openms/thirdparty/percolator/MassHandler.h
++++ b/src/openms/thirdparty/percolator/MassHandler.h
+@@ -18,6 +18,9 @@
  #define MASSHANDLER_H_
  
-+
  #include<string>
 +
 +namespace OpenMS { namespace Internal { namespace Percolator {
@@ -550,145 +453,147 @@
  using namespace std;
  
  class MassHandler {
-@@ -31,4 +35,6 @@
+@@ -31,4 +34,6 @@ class MassHandler {
      static bool monoisotopic;
  };
  
 +}}}  // namespace OpenMS::Internal::Percolator
 +
  #endif /*MASSHANDLER_H_*/
---- /tmp/percolator-preserved/MonotoneRegressor.cpp
-+++ src/openms/thirdparty/percolator/MonotoneRegressor.cpp
-@@ -3,6 +3,8 @@
+diff --git a/src/openms/thirdparty/percolator/MonotoneRegressor.cpp b/src/openms/thirdparty/percolator/MonotoneRegressor.cpp
+index 4062c32aa6c89bfffdefe71f7016ee5732bdb122..70b3c1f611236062f59ccf0cd7c303fbb30a09e3 100644
+--- a/src/openms/thirdparty/percolator/MonotoneRegressor.cpp
++++ b/src/openms/thirdparty/percolator/MonotoneRegressor.cpp
+@@ -3,6 +3,9 @@
  #include "ISplineTRRRegressor.h"
  #include <stdexcept>
  
 +namespace OpenMS { namespace Internal { namespace Percolator {
 +
++
  std::unique_ptr<MonotoneRegressor> make_monotone_regressor(RegressorType type) {
    std::unique_ptr<MonotoneRegressor> ptr;
    switch (type) {
-@@ -18,3 +20,5 @@
+@@ -18,3 +21,5 @@ std::unique_ptr<MonotoneRegressor> make_monotone_regressor(RegressorType type) {
    ptr->set_params(MonotoneParams());
    return ptr;
  }
 +
 +}}}  // namespace OpenMS::Internal::Percolator
---- /tmp/percolator-preserved/MonotoneRegressor.h
-+++ src/openms/thirdparty/percolator/MonotoneRegressor.h
-@@ -3,6 +3,8 @@
+diff --git a/src/openms/thirdparty/percolator/MonotoneRegressor.h b/src/openms/thirdparty/percolator/MonotoneRegressor.h
+index 6ac3ac5178763328c650a79990659cd9b9de5df7..0584d4db34778e59e5eda215d4160cc9a8181a38 100644
+--- a/src/openms/thirdparty/percolator/MonotoneRegressor.h
++++ b/src/openms/thirdparty/percolator/MonotoneRegressor.h
+@@ -2,6 +2,9 @@
+ #include <vector>
  #include <memory>
- 
  
 +namespace OpenMS { namespace Internal { namespace Percolator {
 +
++
+ 
  // Constants for tuning
  constexpr double DEFAULT_LAMBDA = 1e-4;
- constexpr double DEFAULT_SMOOTH_LAMBDA = 1e-3;
-@@ -52,3 +54,5 @@
+@@ -55,3 +58,5 @@ enum class RegressorType {
  };
  
  std::unique_ptr<MonotoneRegressor> make_monotone_regressor(RegressorType type);
 +
 +}}}  // namespace OpenMS::Internal::Percolator
---- /tmp/percolator-preserved/MyException.cpp
-+++ src/openms/thirdparty/percolator/MyException.cpp
-@@ -17,7 +17,9 @@
+diff --git a/src/openms/thirdparty/percolator/MyException.cpp b/src/openms/thirdparty/percolator/MyException.cpp
+index 9edc979ae2ccfe074dceb2bce940c9e0ae88b7d9..88cf1a101f49ac08e3bb520efe2cce7a7e7be3bd 100644
+--- a/src/openms/thirdparty/percolator/MyException.cpp
++++ b/src/openms/thirdparty/percolator/MyException.cpp
+@@ -19,6 +19,9 @@ limitations under the License.
  
- #include "MyException.h"
+ #include <iostream>
  
--MyException::MyException(const string& ss)  : msg(ss) 
 +namespace OpenMS { namespace Internal { namespace Percolator {
 +
-+MyException::MyException(const string& ss)  : msg(ss)
++
+ MyException::MyException(const string& ss)  : msg(ss) 
  {
    
+@@ -58,3 +61,5 @@ void flushStandardOutput() {
+                       "output.\n");
+   }
  }
-@@ -37,6 +39,8 @@
- 
- const char* MyException::what() const throw()
- {
--  return msg.c_str(); 
-+  return msg.c_str();
- }
- 
-+}}}  // namespace OpenMS::Internal::Percolator
 +
---- /tmp/percolator-preserved/MyException.h
-+++ src/openms/thirdparty/percolator/MyException.h
-@@ -22,6 +22,8 @@
- #include <exception>
++}}}  // namespace OpenMS::Internal::Percolator
+diff --git a/src/openms/thirdparty/percolator/MyException.h b/src/openms/thirdparty/percolator/MyException.h
+index 1953526757640e9cc0affe79f1320b4c67cfc8a2..4b14db61e0d37e464ed6d96f370c632e5a93324b 100644
+--- a/src/openms/thirdparty/percolator/MyException.h
++++ b/src/openms/thirdparty/percolator/MyException.h
+@@ -23,6 +23,9 @@ limitations under the License.
+ #include <fstream>
  #include <sstream>
  
 +namespace OpenMS { namespace Internal { namespace Percolator {
 +
++
  using namespace std;
  
  class MyException : public std::exception {
-@@ -31,8 +33,10 @@
-   ~MyException() throw();
-   const char* what() const throw();
-  
-- protected:   
-+ protected:
-   std::string msg;
- };
+@@ -43,4 +46,6 @@ void closeOutputFile(std::ofstream& out, const std::string& fileName);
+ // Flushes standard output and throws if it could not be written.
+ void flushStandardOutput();
  
 +}}}  // namespace OpenMS::Internal::Percolator
 +
  #endif
---- /tmp/percolator-preserved/NoNormalizer.cpp
-+++ src/openms/thirdparty/percolator/NoNormalizer.cpp
-@@ -15,19 +15,16 @@
- 
-  *******************************************************************************/
- #include <iostream>
--#ifdef WIN32
--#include <float.h>
--#define isfinite _finite
--#endif
- #include <cmath>
+diff --git a/src/openms/thirdparty/percolator/NoNormalizer.cpp b/src/openms/thirdparty/percolator/NoNormalizer.cpp
+index a099757a5d659711211daf9f7cf9871df0559dba..2e36fe6860201640e428560ac529efa67975d47d 100644
+--- a/src/openms/thirdparty/percolator/NoNormalizer.cpp
++++ b/src/openms/thirdparty/percolator/NoNormalizer.cpp
+@@ -19,11 +19,15 @@
  #include <vector>
  #include <string>
  
 -using namespace std;
--
+ 
  #include "Normalizer.h"
  #include "NoNormalizer.h"
  
 +namespace OpenMS { namespace Internal { namespace Percolator {
 +
 +using namespace std;
++
++
  
  NoNormalizer::NoNormalizer() {
  }
-@@ -74,3 +71,5 @@
+@@ -60,3 +64,5 @@ void NoNormalizer::setSet(std::vector<double*>& /* featuresV */,
      div[ix] = 1.0;
    }
  }
 +
 +}}}  // namespace OpenMS::Internal::Percolator
---- /tmp/percolator-preserved/NoNormalizer.h
-+++ src/openms/thirdparty/percolator/NoNormalizer.h
-@@ -17,6 +17,8 @@
+diff --git a/src/openms/thirdparty/percolator/NoNormalizer.h b/src/openms/thirdparty/percolator/NoNormalizer.h
+index 4c7141f7764733a7a02b6a14fec8c122a7cd488a..267aa6bf4292cc7ace31f25eac5fd3250d1a3702 100644
+--- a/src/openms/thirdparty/percolator/NoNormalizer.h
++++ b/src/openms/thirdparty/percolator/NoNormalizer.h
+@@ -17,6 +17,9 @@
  #ifndef NONORMALIZER_H_
  #define NONORMALIZER_H_
  
-+
 +namespace OpenMS { namespace Internal { namespace Percolator {
++
++
  class NoNormalizer : public Normalizer { // virtual Normalizer
   public:
    NoNormalizer();
-@@ -30,4 +32,6 @@
+@@ -28,4 +31,6 @@ class NoNormalizer : public Normalizer { // virtual Normalizer
    void normalizeweight(const vector<double>& in, vector<double>& out) const;
  };
  
 +}}}  // namespace OpenMS::Internal::Percolator
 +
  #endif /*NONORMALIZER_H_*/
---- /tmp/percolator-preserved/Normalizer.cpp
-+++ src/openms/thirdparty/percolator/Normalizer.cpp
-@@ -19,7 +19,6 @@
+diff --git a/src/openms/thirdparty/percolator/Normalizer.cpp b/src/openms/thirdparty/percolator/Normalizer.cpp
+index 47ec283420d6ebb5d8cb3bd99cea8ea47acc99c3..e76b756ba754c66548efc168030fc349d9784915 100644
+--- a/src/openms/thirdparty/percolator/Normalizer.cpp
++++ b/src/openms/thirdparty/percolator/Normalizer.cpp
+@@ -21,7 +21,6 @@
  #include <vector>
  #include <set>
  #include <string>
@@ -696,97 +601,101 @@
  #include "Normalizer.h"
  #include "StdvNormalizer.h"
  #include "UniNormalizer.h"
-@@ -27,6 +26,10 @@
- #include "FeatureNames.h"
+@@ -31,6 +30,11 @@ using namespace std;
  #include "Globals.h"
+ #include "MyException.h"
  
 +namespace OpenMS { namespace Internal { namespace Percolator {
 +
 +using namespace std;
 +
- int Normalizer::subclass_type = STDV;
- Normalizer* Normalizer::theNormalizer = NULL;
- 
-@@ -68,9 +71,6 @@
-     } else {
-      theNormalizer = new NoNormalizer();
-     }
--  } else {
--    assert(false);
--    cerr << "Multiple instantiations of Normalizer" << endl;
-   }
-   return theNormalizer;
++
+ Normalizer::Normalizer() {
  }
-@@ -90,3 +90,5 @@
+ 
+@@ -97,3 +101,5 @@ void Normalizer::endScoreNormalizeWeights(const std::vector<double>& in,
    }
    out[i] = (in[i] - subScore) / scale; // update the intercept m0
  }
 +
 +}}}  // namespace OpenMS::Internal::Percolator
---- /tmp/percolator-preserved/Normalizer.h
-+++ src/openms/thirdparty/percolator/Normalizer.h
-@@ -16,10 +16,13 @@
-  *******************************************************************************/
- #ifndef NORMALIZER_H_
- #define NORMALIZER_H_
-+
- #include <set>
+diff --git a/src/openms/thirdparty/percolator/Normalizer.h b/src/openms/thirdparty/percolator/Normalizer.h
+index c12088136d701fc0e4d54d5929ed278815ba5286..131e00a53ae23b1cebb28de55e4978926b02d6fa 100644
+--- a/src/openms/thirdparty/percolator/Normalizer.h
++++ b/src/openms/thirdparty/percolator/Normalizer.h
+@@ -21,6 +21,9 @@
  #include <vector>
  #include <iostream>
  
 +namespace OpenMS { namespace Internal { namespace Percolator {
 +
++
  using namespace std;
  
  class Normalizer {
-@@ -49,6 +52,7 @@
- 
-   static Normalizer* getNormalizer();
-   static void resetNormalizer() {
-+    delete theNormalizer;
-     theNormalizer = NULL;
-   }
-   static void setType(int type);
-@@ -107,4 +111,6 @@
+@@ -107,4 +110,6 @@ class Normalizer {
    vector<double> div;
  };
  
 +}}}  // namespace OpenMS::Internal::Percolator
 +
  #endif /*NORMALIZER_H_*/
---- /tmp/percolator-preserved/Numerical.cpp
-+++ src/openms/thirdparty/percolator/Numerical.cpp
-@@ -2,6 +2,7 @@
- // see license for more information
+diff --git a/src/openms/thirdparty/percolator/NumberFormatter.h b/src/openms/thirdparty/percolator/NumberFormatter.h
+index b3eb04cb652743bc7ec87c50b0fa8beff60dfc98..68ba544eebf910577107931fb6489e02fe5f4a08 100644
+--- a/src/openms/thirdparty/percolator/NumberFormatter.h
++++ b/src/openms/thirdparty/percolator/NumberFormatter.h
+@@ -26,6 +26,9 @@
+ 
+ #include "Globals.h"
+ 
++namespace OpenMS { namespace Internal { namespace Percolator {
++
++
+ // Set by src/CMakeLists.txt to whether std::to_chars for double compiles
+ // and links; libc++ provides it without announcing it.
+ #ifndef PERCOLATOR_TO_CHARS_DOUBLE
+@@ -100,4 +103,6 @@ class NumberFormatter {
+   bool sameAsStream_;
+ };
+ 
++}}}  // namespace OpenMS::Internal::Percolator
++
+ #endif /* NUMBER_FORMATTER_H_ */
+diff --git a/src/openms/thirdparty/percolator/Numerical.cpp b/src/openms/thirdparty/percolator/Numerical.cpp
+index 4a85892295696e16ef8bab16fe97f763537b3014..e083352ae1cf66ec1736050fa8e91b04ac5d2f5c 100644
+--- a/src/openms/thirdparty/percolator/Numerical.cpp
++++ b/src/openms/thirdparty/percolator/Numerical.cpp
+@@ -3,6 +3,9 @@
  
  #include "Numerical.h"
-+namespace OpenMS { namespace Internal { namespace Percolator {
  
++namespace OpenMS { namespace Internal { namespace Percolator {
++
++
  bool Numerical::isPos(double d) {
    return d > epsilon;
-@@ -38,3 +39,5 @@
+ }
+@@ -38,3 +41,5 @@ bool Numerical::isInequal(double a, double b) {
  bool Numerical::isDifferentSign(double a, double b) {
    return (isPos(a) && isNeg(b)) || (isNeg(a) && isPos(b));
  }
 +
 +}}}  // namespace OpenMS::Internal::Percolator
---- /tmp/percolator-preserved/Numerical.h
-+++ src/openms/thirdparty/percolator/Numerical.h
-@@ -4,10 +4,13 @@
- #ifndef _Numerical_H
- #define _Numerical_H
- 
-+
- #include <iostream>
+diff --git a/src/openms/thirdparty/percolator/Numerical.h b/src/openms/thirdparty/percolator/Numerical.h
+index b00c9795af39f03cde64039749e105262dc97131..7e0595e36b1451ab0c5f100d11f904aa4e8e63ef 100644
+--- a/src/openms/thirdparty/percolator/Numerical.h
++++ b/src/openms/thirdparty/percolator/Numerical.h
+@@ -8,6 +8,9 @@
  #include <cmath>
  #include <limits>
  
 +namespace OpenMS { namespace Internal { namespace Percolator {
 +
++
  using namespace std;
  
  const double Pi = 3.14159;
-@@ -45,5 +48,7 @@
+@@ -45,5 +48,7 @@ class Numerical {
    }
  };
  
@@ -794,9 +703,11 @@
 +
  #endif
  
---- /tmp/percolator-preserved/PAVARegressor.h
-+++ src/openms/thirdparty/percolator/PAVARegressor.h
-@@ -1,9 +1,13 @@
+diff --git a/src/openms/thirdparty/percolator/PAVARegressor.h b/src/openms/thirdparty/percolator/PAVARegressor.h
+index e267e44a9dfb74816418dedd536b6d8b52c9ced3..61c1abed4b32eec8400cc0d8be3bab617510f705 100644
+--- a/src/openms/thirdparty/percolator/PAVARegressor.h
++++ b/src/openms/thirdparty/percolator/PAVARegressor.h
+@@ -1,9 +1,14 @@
 +#pragma once
 +
  #include "MonotoneRegressor.h"
@@ -807,159 +718,152 @@
  
 +namespace OpenMS { namespace Internal { namespace Percolator {
 +
++
  class PAVARegressor final : public MonotoneRegressor {
  public:
    using MonotoneRegressor::MonotoneRegressor;
-@@ -114,3 +118,5 @@
+@@ -132,3 +137,5 @@ inline std::vector<double> PAVARegressor::pava_impl(
      }
      return result;
  }
 +
 +}}}  // namespace OpenMS::Internal::Percolator
---- /tmp/percolator-preserved/PSMDescription.cpp
-+++ src/openms/thirdparty/percolator/PSMDescription.cpp
-@@ -22,6 +22,7 @@
+diff --git a/src/openms/thirdparty/percolator/PSMDescription.cpp b/src/openms/thirdparty/percolator/PSMDescription.cpp
+index 661c704ac87171b37f886df393ca65060647ac1a..2d849975eab85122a7ba389079a634854b520789 100644
+--- a/src/openms/thirdparty/percolator/PSMDescription.cpp
++++ b/src/openms/thirdparty/percolator/PSMDescription.cpp
+@@ -22,6 +22,9 @@
  
  #include "Globals.h"
  
 +namespace OpenMS { namespace Internal { namespace Percolator {
++
++
  
- PSMDescription::PSMDescription() : features(NULL), expMass(0.), calcMass(0.), retentionTime_(nan("")), scan(0u), specFileNr(0u), id_(""), peptide("") {
- }
-@@ -79,3 +80,5 @@
+ std::string PSMDescription::proteinNameSeparator_ = "\t";
+ std::vector<string> PSMDescription::spectraFileNames_(0);
+@@ -77,3 +80,5 @@ void PSMDescription::appendProteins(std::string& out) const {
          }
      }
  }
 +
 +}}}  // namespace OpenMS::Internal::Percolator
---- /tmp/percolator-preserved/PSMDescription.h
-+++ src/openms/thirdparty/percolator/PSMDescription.h
-@@ -16,13 +16,13 @@
+diff --git a/src/openms/thirdparty/percolator/PSMDescription.h b/src/openms/thirdparty/percolator/PSMDescription.h
+index ee500df0e56cb1fdc0b1633617dc9c7c3e627363..4c1a9ce5b51721bf038e115527ce5d5c358d2030 100644
+--- a/src/openms/thirdparty/percolator/PSMDescription.h
++++ b/src/openms/thirdparty/percolator/PSMDescription.h
+@@ -16,6 +16,7 @@
   *******************************************************************************/
  #ifndef PSMDESCRIPTION_H_
  #define PSMDESCRIPTION_H_
-+
 +#include <algorithm>
- #include <iostream>
- #include <map>
- #include <string>
+ #include <cmath>
+ #include <cstdint>
+ #include <cstring>
+@@ -26,7 +27,9 @@
+ #include <string_view>
  #include <vector>
  
 -#include "Enzyme.h"
--
++
++namespace OpenMS { namespace Internal { namespace Percolator {
++
+ 
  /*
   * PSMDescription
-  *
-@@ -30,6 +30,8 @@
-  * PSM - Peptide Spectrum Match
-  *
-  */
-+namespace OpenMS { namespace Internal { namespace Percolator {
-+using namespace std;
- class PSMDescription {
-    public:
-     PSMDescription();
-@@ -128,14 +130,16 @@
-     std::string id_;
-     std::string peptide;
+@@ -247,14 +250,14 @@ class PSMDescription {
+     unsigned int numProteins_ = 0u;
+     unsigned int lineNr_ = 0u;
      static std::string proteinNameSeparator_;
 -    static vector<std::string> spectraFileNames_;
 +    static std::vector<std::string> spectraFileNames_;
+     static size_t lastSpectrumFileIndex_;
  };
  
  inline std::ostream& operator<<(std::ostream& out, PSMDescription& psm) {
--    out << "Peptide: " << psm.peptide << endl;
+-    out << "Peptide: " << psm.getFullPeptide() << endl;
 -    out << "Spectrum scan number: " << psm.scan << endl;
 -    out << endl;
-+    out << "Peptide: " << psm.peptide << std::endl;
++    out << "Peptide: " << psm.getFullPeptide() << std::endl;
 +    out << "Spectrum scan number: " << psm.scan << std::endl;
 +    out << std::endl;
      return out;
  }
  
+@@ -262,4 +265,6 @@ inline std::ostream& operator<<(std::ostream& out, PSMDescription& psm) {
+ static_assert(sizeof(void*) != 8 || sizeof(PSMDescription) == 56,
+               "PSMDescription has grown");
+ 
 +}}}  // namespace OpenMS::Internal::Percolator
 +
  #endif /*PSMDESCRIPTION_H_*/
---- /tmp/percolator-preserved/PackedMatrix.cpp
-+++ src/openms/thirdparty/percolator/PackedMatrix.cpp
-@@ -6,6 +6,7 @@
-  */
- 
- #include "PackedMatrix.h"
-+namespace OpenMS { namespace Internal { namespace Percolator {
- 
- PackedMatrix PackedMatrix::packedTranspose(const PackedMatrix& mat) {
-   PackedMatrix res = PackedMatrix(mat.numCols(), mat.numRows());
-@@ -89,3 +90,5 @@
-   }
-   cerr << "}"<<endl;
- }
-+
-+}}}  // namespace OpenMS::Internal::Percolator
---- /tmp/percolator-preserved/PackedMatrix.h
-+++ src/openms/thirdparty/percolator/PackedMatrix.h
-@@ -8,9 +8,12 @@
- #ifndef _PackedMatrix_H
- #define _PackedMatrix_H
- 
-+
- #include "PackedVector.h"
- #include "Array.h"
- 
-+namespace OpenMS { namespace Internal { namespace Percolator {
-+
- class PackedMatrix
- {
-   public:
-@@ -59,4 +62,6 @@
-     Array<PackedVector> rows;
- };
- 
-+}}}  // namespace OpenMS::Internal::Percolator
-+
- #endif
---- /tmp/percolator-preserved/PackedVector.cpp
-+++ src/openms/thirdparty/percolator/PackedVector.cpp
-@@ -8,6 +8,7 @@
- #include "Numerical.h"
+diff --git a/src/openms/thirdparty/percolator/PackedVector.cpp b/src/openms/thirdparty/percolator/PackedVector.cpp
+index 62be8cb468729f374b63db698cf543c4cff7669b..79ef642fd11d83c224232f09cc4593db75fc51b6 100644
+--- a/src/openms/thirdparty/percolator/PackedVector.cpp
++++ b/src/openms/thirdparty/percolator/PackedVector.cpp
+@@ -9,6 +9,9 @@
  #include "PackedVector.h"
  #include "assert.h"
-+namespace OpenMS { namespace Internal { namespace Percolator {
  
++namespace OpenMS { namespace Internal { namespace Percolator {
++
++
  PackedVector PackedVector::packedProd(double val) {
    for (int k = 0; k<size(); k++)
-@@ -166,3 +167,5 @@
+     packedReplace(k, values[k]*val);
+@@ -166,3 +169,5 @@ bool operator == (const PackedVector & lhs, const PackedVector & rhs){
    }
    return !different;
  }
 +
 +}}}  // namespace OpenMS::Internal::Percolator
---- /tmp/percolator-preserved/PackedVector.h
-+++ src/openms/thirdparty/percolator/PackedVector.h
-@@ -9,10 +9,13 @@
- #ifndef _PackedVector_H
- #define _PackedVector_H
- 
-+
- #define PACK
+diff --git a/src/openms/thirdparty/percolator/PackedVector.h b/src/openms/thirdparty/percolator/PackedVector.h
+index a3c829f93f5da2f3ab148ba21b4ec3179e7079a6..a49f28abdbc0a9da654f700cdc7d0eda686aa8c4 100644
+--- a/src/openms/thirdparty/percolator/PackedVector.h
++++ b/src/openms/thirdparty/percolator/PackedVector.h
+@@ -13,6 +13,9 @@
  #define ALLOW_ZERO
  #include "Vector.h"
  
 +namespace OpenMS { namespace Internal { namespace Percolator {
 +
++
  class PackedVector : public Vector
  {
    public:
-@@ -106,4 +109,6 @@
+@@ -106,4 +109,6 @@ double packedNorm(const PackedVector& vec);
   */
  bool operator == (const PackedVector & lhs, const PackedVector & rhs);
  
 +}}}  // namespace OpenMS::Internal::Percolator
 +
  #endif
---- /tmp/percolator-preserved/PosteriorEstimator.cpp
-+++ src/openms/thirdparty/percolator/PosteriorEstimator.cpp
-@@ -26,17 +26,19 @@
+diff --git a/src/openms/thirdparty/percolator/ParallelSort.h b/src/openms/thirdparty/percolator/ParallelSort.h
+index 0fe70e2f1b7d8319f42ff611fc025c18a95837d5..3da364433867521f0bb9e5538dc432d4aebfdf54 100644
+--- a/src/openms/thirdparty/percolator/ParallelSort.h
++++ b/src/openms/thirdparty/percolator/ParallelSort.h
+@@ -27,6 +27,9 @@
+ #include <omp.h>
+ #endif
+ 
++namespace OpenMS { namespace Internal { namespace Percolator {
++
++
+ /*
+  * parallelSort(first, last, comp) sorts like std::sort, on the OpenMP
+  * threads. For a comparator that is a total order, as the comparators of
+@@ -225,4 +228,6 @@ void parallelSort(RandomIt first, RandomIt last, Compare comp) {
+ #endif
+ }
+ 
++}}}  // namespace OpenMS::Internal::Percolator
++
+ #endif /* PARALLEL_SORT_H_ */
+diff --git a/src/openms/thirdparty/percolator/PosteriorEstimator.cpp b/src/openms/thirdparty/percolator/PosteriorEstimator.cpp
+index 882c4a5916bc809809dfe2b349efba8570620bb9..122fba776faab6b883aa2d9a7b1efc41881e3abe 100644
+--- a/src/openms/thirdparty/percolator/PosteriorEstimator.cpp
++++ b/src/openms/thirdparty/percolator/PosteriorEstimator.cpp
+@@ -26,13 +26,11 @@
  #include<algorithm>
  #include<numeric>
  #include<functional>
@@ -970,19 +874,22 @@
  #endif
  
 -#include "Option.h"
--#include "Version.h"
+ #include "Version.h"
  #include "PosteriorEstimator.h"
  #include "Transform.h"
- #include "Globals.h"
-+#include "Version.h"
-+
+@@ -40,6 +38,11 @@ using namespace std;
+ #include "IsotonicPEP.h"
+ #include "FdrWalk.h"
+ 
 +namespace OpenMS { namespace Internal { namespace Percolator {
 +
 +using namespace std;
- 
- static int noIntervals = 500;
++
++
+ static const int kDefaultNoIntervals = 500;
+ static int noIntervals = kDefaultNoIntervals;
  static unsigned int numLambda = 100;
-@@ -603,104 +605,6 @@
+@@ -744,159 +747,4 @@ string PosteriorEstimator::greeter() {
    return oss.str();
  }
  
@@ -1004,6 +911,8 @@
 -      << "Alternatively, accuate p-value could be provided in a single file pvalue_file."
 -      << endl << endl;
 -  intro << "The method reports score, PEP, and q-value calculated directly from scores" << endl; 
+-  intro << "By default the PEPs are estimated by I-spline regression of the target q values" << endl;
+-  intro << "on the score." << endl;
 -  intro << "Convergence of the method can be checked by comparing the average PEP of identifications" << endl;
 -  intro << "above threshold with the q-value" << endl; 
 -  CommandLineParser cmd(intro.str());
@@ -1043,8 +952,48 @@
 -                   "Include decoy probabilities in the output.",
 -		    "",
 -		    TRUE_IF_SET);
+-  cmd.defineOption("",
+-                   "pava-pep",
+-                   "Estimate PEPs by PAVA isotonic regression instead of I-spline regression.",
+-                   "",
+-                   TRUE_IF_SET);
+-  cmd.defineOption("",
+-                   "tdc-pep",
+-                   "Estimate PEPs from the decoy rate p as a monotone function of the score, "
+-                   "instead of from the target q values: PEP = p/(1-p), multiplied by "
+-                   "pi0 * numTargets / max(1, numDecoys); -Y sets this factor to 1. "
+-                   "Requires a null_file.",
+-                   "",
+-                   TRUE_IF_SET);
+-  cmd.defineOption("",
+-                   "rank-pep",
+-                   "Use the rank instead of the score as independent variable for I-spline and PAVA PEPs.",
+-                   "",
+-                   TRUE_IF_SET);
+-  cmd.defineOption("",
+-                   "irls-pep",
+-                   "Estimate PEPs with the cubic spline fitted by penalized logistic regression "
+-                   "(PMID:18689838), the method of earlier versions. The options -n, -s and -c apply "
+-                   "to this method only.",
+-                   "",
+-                   TRUE_IF_SET);
+-
+-  cmd.defineOption(Option::NO_SHORT_OPT,
+-                   "version",
+-                   "Print the version of qvality on standard output and exit.",
+-                   "",
+-                   TRUE_IF_SET);
 -
 -  cmd.parseArgs(argc, argv);
+-  if (cmd.helpRequested()) {
+-    nothingToRun_ = true;  // the parser printed the help
+-    return true;
+-  }
+-  if (cmd.isOptionSet("version")) {
+-    std::cout << "qvality version " << VERSION << std::endl;
+-    nothingToRun_ = true;
+-    return true;
+-  }
 -  if (cmd.isOptionSet("verbose")) {
 -    Globals::getInstance()->setVerbose(cmd.getInt("verbose", 0, 10));
 -  }
@@ -1061,49 +1010,57 @@
 -    resultFileName = cmd.options["output-file"];
 -  }
 -  if (cmd.isOptionSet("reverse")) {
--    PosteriorEstimator::setReversed(true);
+-    reversed_ = true;
 -  }
 -  if (cmd.isOptionSet("tdc-input")) {
 -    PosteriorEstimator::setUsePi0(false);
 -  }
 -  if (cmd.isOptionSet("include-negative")) {
--    PosteriorEstimator::setNegative(true);
+-    includeNegativesInResult_ = true;
+-  }
+-  irlsPep_ = cmd.isOptionSet("irls-pep");
+-  pavaPep_ = cmd.isOptionSet("pava-pep");
+-  tdcPep_ = cmd.isOptionSet("tdc-pep");
+-  rankPep_ = cmd.isOptionSet("rank-pep");
+-  if (irlsPep_ && (pavaPep_ || tdcPep_ || rankPep_)) {
+-    cerr << "Warning: --pava-pep, --tdc-pep and --rank-pep have no effect "
+-         << "with --irls-pep." << endl;
 -  }
 -  if (cmd.arguments.size() > 2) {
+-    // ends with the help and exit status 0, as when help() ended the process
 -    cerr << "Too many arguments given" << endl;
 -    cmd.help();
+-    nothingToRun_ = true;
+-    return true;
 -  }
 -  if (cmd.arguments.size() == 0) {
 -    cerr << "No arguments given" << endl;
 -    cmd.help();
+-    nothingToRun_ = true;
+-    return true;
 -  }
 -  targetFile = cmd.arguments[0];
 -  if (cmd.arguments.size() == 2) {
 -    decoyFile = cmd.arguments[1];
 -  } else {
--    PosteriorEstimator::setReversed(true);
+-    reversed_ = true;
 -    pvalInput = true;
 -  }
 -  return true;
 -}
-+
+-
 +}}}  // namespace OpenMS::Internal::Percolator
- 
---- /tmp/percolator-preserved/PosteriorEstimator.h
-+++ src/openms/thirdparty/percolator/PosteriorEstimator.h
-@@ -17,6 +17,7 @@
- 
- #ifndef POSTERIORESTIMATOR_H_
- #define POSTERIORESTIMATOR_H_
-+
- #include <vector>
- #include <string>
- #include <utility>
-@@ -25,12 +26,12 @@
+diff --git a/src/openms/thirdparty/percolator/PosteriorEstimator.h b/src/openms/thirdparty/percolator/PosteriorEstimator.h
+index cdc8fecce2fe3242dd9675122e2ec4db1389a936..5b1a37e2b8d5a7556a77e69876bcb591b7b8e762 100644
+--- a/src/openms/thirdparty/percolator/PosteriorEstimator.h
++++ b/src/openms/thirdparty/percolator/PosteriorEstimator.h
+@@ -25,12 +25,14 @@
  #include "LogisticRegression.h"
  #include "PseudoRandom.h"
  
 +namespace OpenMS { namespace Internal { namespace Percolator {
++
++
  
  class PosteriorEstimator {
   public:
@@ -1112,26 +1069,29 @@
 -  bool parseOptions(int argc, char** argv);
    string greeter();
    int run();
-   static void estimatePEP(std::vector<std::pair<double, bool> >& combined,
-@@ -79,4 +80,6 @@
-   std::string resultFileName;
+   // PEP = oddsFactor * (fitted decoy odds), capped at 1; oddsFactor is the
+@@ -104,4 +106,6 @@ class PosteriorEstimator {
+   bool nothingToRun_ = false;  // --version, --help: run does nothing
  };
  
 +}}}  // namespace OpenMS::Internal::Percolator
 +
  #endif /*POSTERIORESTIMATOR_H_*/
---- /tmp/percolator-preserved/PseudoRandom.cpp
-+++ src/openms/thirdparty/percolator/PseudoRandom.cpp
-@@ -17,6 +17,8 @@
+diff --git a/src/openms/thirdparty/percolator/PseudoRandom.cpp b/src/openms/thirdparty/percolator/PseudoRandom.cpp
+index 1bc08c0774268697ac77baee322c520ae10d3236..773676d7a0eedd7829deab104acfe80107c33d37 100644
+--- a/src/openms/thirdparty/percolator/PseudoRandom.cpp
++++ b/src/openms/thirdparty/percolator/PseudoRandom.cpp
+@@ -17,6 +17,9 @@
  
  #include "PseudoRandom.h"
  
 +namespace OpenMS { namespace Internal { namespace Percolator {
 +
++
  uint64_t PseudoRandom::seed_ = 1u;
  
  // Park–Miller random number generator
-@@ -29,4 +31,6 @@
+@@ -29,4 +32,6 @@ unsigned long PseudoRandom::lcg_rand() {
  // Generates a random double between 0 and 1
  double PseudoRandom::lcg_uniform_rand() {
    return (double)PseudoRandom::lcg_rand() / ((double)PseudoRandom::kRandMax + (double)1);
@@ -1140,159 +1100,134 @@
 +}
 +
 +}}}  // namespace OpenMS::Internal::Percolator
---- /tmp/percolator-preserved/PseudoRandom.h
-+++ src/openms/thirdparty/percolator/PseudoRandom.h
-@@ -18,8 +18,11 @@
- #ifndef PSEUDO_RANDOM_H
- #define PSEUDO_RANDOM_H
+diff --git a/src/openms/thirdparty/percolator/PseudoRandom.h b/src/openms/thirdparty/percolator/PseudoRandom.h
+index 3dcfa73605e057da7024aed9c026c45f450d4e56..292d6f8a90bc0b6ebbf30250d17f86c515a37e11 100644
+--- a/src/openms/thirdparty/percolator/PseudoRandom.h
++++ b/src/openms/thirdparty/percolator/PseudoRandom.h
+@@ -20,6 +20,9 @@
  
-+
  #include <stdint.h>
  
 +namespace OpenMS { namespace Internal { namespace Percolator {
 +
++
  /*
  * Random is a helper class generating pseudo random numbers starting from a seed
  *
-@@ -38,4 +41,6 @@
+@@ -44,4 +47,6 @@ class PseudoRandom {
  };
  
  
 +}}}  // namespace OpenMS::Internal::Percolator
 +
  #endif // RANDOM_H
---- /tmp/percolator-preserved/ResultHolder.cpp
-+++ src/openms/thirdparty/percolator/ResultHolder.cpp
-@@ -16,9 +16,12 @@
-  *******************************************************************************/
- #include <iostream>
- #include <string>
--using namespace std;
- #include "ResultHolder.h"
+diff --git a/src/openms/thirdparty/percolator/PsmStore.h b/src/openms/thirdparty/percolator/PsmStore.h
+index 53b846ca4da10e9d44c1995acc6f30cbffa53f26..61dac2059f87f2f27919a82ef52dd88885a2c68a 100644
+--- a/src/openms/thirdparty/percolator/PsmStore.h
++++ b/src/openms/thirdparty/percolator/PsmStore.h
+@@ -27,6 +27,9 @@
+ 
+ #include "PSMDescription.h"
  
 +namespace OpenMS { namespace Internal { namespace Percolator {
 +
-+using namespace std;
 +
- ResultHolder::ResultHolder() : score(0.0), q(1.0), posterior(1.0), pepSeq(""), prot(""), outputRT(false) {
- }
- 
-@@ -51,3 +54,5 @@
-     }
-     return out;
- }
-+
-+}}}  // namespace OpenMS::Internal::Percolator
---- /tmp/percolator-preserved/ResultHolder.h
-+++ src/openms/thirdparty/percolator/ResultHolder.h
-@@ -16,8 +16,11 @@
-  *******************************************************************************/
- #ifndef RESULTHOLDER_H_
- #define RESULTHOLDER_H_
-+
- #include <cmath>
- 
-+namespace OpenMS { namespace Internal { namespace Percolator {
-+
- using namespace std;
- 
- class ResultHolder {
-@@ -36,4 +39,6 @@
- bool operator<(const ResultHolder& one, const ResultHolder& other);
- ostream& operator<<(ostream& out, const ResultHolder& obj);
+ /*
+  * PsmStore owns PSMDescription objects in fixed-size blocks, together with
+  * the records of their ids, peptides and protein lists. All addresses stay
+@@ -127,4 +130,6 @@ class PsmStore {
+   std::vector<const std::string*> proteinList_;  // reused by storeStrings
+ };
  
 +}}}  // namespace OpenMS::Internal::Percolator
 +
- #endif /*RESULTHOLDER_H_*/
---- /tmp/percolator-preserved/SanityCheck.cpp
-+++ src/openms/thirdparty/percolator/SanityCheck.cpp
-@@ -17,13 +17,15 @@
- #include <string>
+ #endif /* PSM_STORE_H_ */
+diff --git a/src/openms/thirdparty/percolator/SanityCheck.cpp b/src/openms/thirdparty/percolator/SanityCheck.cpp
+index 596b5e8f6578f21e6dcb9a832ab70a3607cae987..590fb951a14b2c508b7cb8dfd9d130a7a1666b4d 100644
+--- a/src/openms/thirdparty/percolator/SanityCheck.cpp
++++ b/src/openms/thirdparty/percolator/SanityCheck.cpp
+@@ -20,7 +20,6 @@
  #include <fstream>
  #include <iostream>
+ #include <sstream>
 -using namespace std;
  #include "DataSet.h"
  #include "Scores.h"
  #include "Normalizer.h"
- #include "SanityCheck.h"
+@@ -28,6 +27,11 @@ using namespace std;
  #include "Globals.h"
--#include "SqtSanityCheck.h"
-+
+ #include "PosteriorEstimator.h"
+ 
 +namespace OpenMS { namespace Internal { namespace Percolator {
 +
 +using namespace std;
- 
- // Class doing the sanity check for non SQT file condition
- // In most sence a place holder as very little logic is build-in in this case
-@@ -49,8 +51,6 @@
- SanityCheck* SanityCheck::initialize(string otherCall){
-   if(initWeightFN != "" || initDefaultDirName.size() > 0) {
-     return new SanityCheck();
--  } else if (otherCall.find(SqtSanityCheck::fingerPrint)!= string::npos){
--    return new SqtSanityCheck();
-   } else {
-     return new SanityCheck();
-   }
-@@ -203,3 +203,5 @@
++
++
+ namespace {
+ // why a merged count finds no usable list, see Scores::countMergedTargets
+ const char* const kUnusableListReasons =
+@@ -506,3 +510,4 @@ void SanityCheck::resetDirection(vector<Scores>& trainset,
    }
  }
  
-+
 +}}}  // namespace OpenMS::Internal::Percolator
---- /tmp/percolator-preserved/SanityCheck.h
-+++ src/openms/thirdparty/percolator/SanityCheck.h
-@@ -17,6 +17,8 @@
- #ifndef SANITYCHECK_H_
- #define SANITYCHECK_H_
+diff --git a/src/openms/thirdparty/percolator/SanityCheck.h b/src/openms/thirdparty/percolator/SanityCheck.h
+index 52b9ea3fa272e6de129d13a867f5af35ce65dba3..cb7a782cf7b22992f31201079b7d4ec434757b0f 100644
+--- a/src/openms/thirdparty/percolator/SanityCheck.h
++++ b/src/openms/thirdparty/percolator/SanityCheck.h
+@@ -24,6 +24,9 @@
  
-+
+ #include "Scores.h"
+ 
 +namespace OpenMS { namespace Internal { namespace Percolator {
- class Scores;
++
++
  class Normalizer;
  
-@@ -87,4 +89,6 @@
-   bool concatenatedSearch_;
+ /*
+@@ -189,4 +192,6 @@ class SanityCheck {
+   std::vector<std::pair<int, int> > resetCounts_;
  };
  
 +}}}  // namespace OpenMS::Internal::Percolator
 +
  #endif /*SANITYCHECK_H_*/
---- /tmp/percolator-preserved/ScoreHolder.cpp
-+++ src/openms/thirdparty/percolator/ScoreHolder.cpp
-@@ -23,6 +23,8 @@
- #include <iomanip>
- #include <regex>
+diff --git a/src/openms/thirdparty/percolator/ScanIdTable.h b/src/openms/thirdparty/percolator/ScanIdTable.h
+index e8635b12b5eac0010dfd32e79a4eabbe2a701434..6b08a3bdb060d49bf449ed7e51ac60d31fb9df33 100644
+--- a/src/openms/thirdparty/percolator/ScanIdTable.h
++++ b/src/openms/thirdparty/percolator/ScanIdTable.h
+@@ -24,6 +24,9 @@
+ #include <limits>
+ #include <vector>
  
 +namespace OpenMS { namespace Internal { namespace Percolator {
 +
- bool operator>(const ScoreHolder& one, const ScoreHolder& other) {
-   return (one.score > other.score) ||
-          (one.score == other.score && one.pPSM->scan > other.pPSM->scan) ||
-@@ -245,4 +247,6 @@
-   os << "                </search_hit>" << endl;
-   os << "            </search_result>" << endl;
-   os << "        </spectrum_query>" << endl;
--}
-\ No newline at end of file
-+}
 +
-+}}}  // namespace OpenMS::Internal::Percolator
---- /tmp/percolator-preserved/ScoreHolder.h
-+++ src/openms/thirdparty/percolator/ScoreHolder.h
-@@ -17,9 +17,12 @@
- #ifndef SCORE_HOLDER_H_
- #define SCORE_HOLDER_H_
+ /*
+  * Tells whether a scan id, i.e. a scan number and an experimental mass,
+  * occurs both in a PSM with a decoy label and in a PSM with another label,
+@@ -191,4 +194,6 @@ class ScanIdPriorityTable {
+   uint8_t unstoredByte_ = 0u;  // the byte of a scan id with a NaN mass
+ };
  
++}}}  // namespace OpenMS::Internal::Percolator
 +
+ #endif /* SCAN_ID_TABLE_H_ */
+diff --git a/src/openms/thirdparty/percolator/ScoreHolder.h b/src/openms/thirdparty/percolator/ScoreHolder.h
+index 30dfa41a7f87b54abcf6e0bc564375a1c6fe9603..732086041d2c751cee27eb116253d488b2bc5b9f 100644
+--- a/src/openms/thirdparty/percolator/ScoreHolder.h
++++ b/src/openms/thirdparty/percolator/ScoreHolder.h
+@@ -20,6 +20,9 @@
  #include "LabelType.h"
  #include "PSMDescription.h"
  
 +namespace OpenMS { namespace Internal { namespace Percolator {
-+using namespace std;
- class Scores;  // forward declaration
- 
++
++
  /*
-@@ -194,4 +197,6 @@
+  * ScoreHolder is a class that provides a way to assign score value to a
+  * PSMDescription and have a way to compare PSMs based on the assigned
+@@ -189,4 +192,6 @@ struct UniqueScanLabel {
    }
  };
  
@@ -1300,72 +1235,81 @@
 +
  #endif /*SCORE_HOLDER_H_*/
 \ No newline at end of file
---- /tmp/percolator-preserved/Scores.cpp
-+++ src/openms/thirdparty/percolator/Scores.cpp
-@@ -38,6 +38,8 @@
- #include "ssl.h"
+diff --git a/src/openms/thirdparty/percolator/Scores.cpp b/src/openms/thirdparty/percolator/Scores.cpp
+index add90c6b15b5856931938a785df034755d680ae7..7d610a947c9540cb9772baf6dd1da465c598ed2c 100644
+--- a/src/openms/thirdparty/percolator/Scores.cpp
++++ b/src/openms/thirdparty/percolator/Scores.cpp
+@@ -50,6 +50,9 @@
  #include "IsotonicPEP.h"
+ #include "NumberFormatter.h"
  
 +namespace OpenMS { namespace Internal { namespace Percolator {
 +
- void Scores::merge(std::vector<Scores>& sv,
-                    double fdr,
-                    bool skipNormalizeScores,
-@@ -803,3 +805,5 @@
++
+ namespace {
+ 
+ // The number of threads that a loop over the PSMs may use: one inside a
+@@ -1849,3 +1852,5 @@ void Scores::calcPep(const bool spline, const bool interp, const bool pava,
  void Scores::setUsePi0(bool usePi0) {
    usePi0_ = usePi0;
  }
 +
 +}}}  // namespace OpenMS::Internal::Percolator
---- /tmp/percolator-preserved/Scores.h
-+++ src/openms/thirdparty/percolator/Scores.h
-@@ -38,6 +38,8 @@
- 
- #include <boost/unordered/unordered_map.hpp>
+diff --git a/src/openms/thirdparty/percolator/Scores.h b/src/openms/thirdparty/percolator/Scores.h
+index 31961d0fc2fa6c9092bbe13bf0b885189c366bb0..0dc87563433e38593cec08934370dcd35b052c21 100644
+--- a/src/openms/thirdparty/percolator/Scores.h
++++ b/src/openms/thirdparty/percolator/Scores.h
+@@ -39,6 +39,9 @@
+ #include "PseudoRandom.h"
+ #include "ScoreHolder.h"
  
 +namespace OpenMS { namespace Internal { namespace Percolator {
++
 +
  class SetHandler;
  class AlgIn;
  
-@@ -170,4 +172,6 @@
+@@ -418,4 +421,6 @@ class Scores {
    bool is_output_rt_ = false;
  };
  
 +}}}  // namespace OpenMS::Internal::Percolator
 +
  #endif /*SCORES_H_*/
---- /tmp/percolator-preserved/Set.cpp
-+++ src/openms/thirdparty/percolator/Set.cpp
-@@ -2,6 +2,7 @@
- // see license for more information
+diff --git a/src/openms/thirdparty/percolator/Set.cpp b/src/openms/thirdparty/percolator/Set.cpp
+index a14d8c9dd740b5499f664cb30a1e792162a5fc8b..281eaf241f94644ba4b269f0e248298539616827 100644
+--- a/src/openms/thirdparty/percolator/Set.cpp
++++ b/src/openms/thirdparty/percolator/Set.cpp
+@@ -3,6 +3,9 @@
  
  #include "Set.h"
-+namespace OpenMS { namespace Internal { namespace Percolator {
  
- void Set::add(int el) {
++namespace OpenMS { namespace Internal { namespace Percolator {
++
++
+ void Set::add(const int& el) {
    #ifdef SAFE_ARRAYS
-@@ -221,3 +222,5 @@
+   if (!isEmpty() && el <= back()) {
+@@ -224,3 +227,4 @@ Set Set::FullSet(int low, int high) {
    return result;
  }
  
-+
 +}}}  // namespace OpenMS::Internal::Percolator
---- /tmp/percolator-preserved/Set.h
-+++ src/openms/thirdparty/percolator/Set.h
-@@ -4,8 +4,11 @@
- #ifndef _Set_H
- #define _Set_H
+diff --git a/src/openms/thirdparty/percolator/Set.h b/src/openms/thirdparty/percolator/Set.h
+index 1d546843f42b4a50d2d9c0f531c8adf8bc50cb03..7c3154d39734be78864c7b0d89b38dd40cbf7686 100644
+--- a/src/openms/thirdparty/percolator/Set.h
++++ b/src/openms/thirdparty/percolator/Set.h
+@@ -6,6 +6,9 @@
  
-+
  #include "Array.h"
  
 +namespace OpenMS { namespace Internal { namespace Percolator {
 +
++
  class Set : public Array<int> {
   public:
    Set() {}
-@@ -60,5 +63,7 @@
+@@ -60,5 +63,7 @@ Set operator &(Set lhs, const Set & rhs); // intersection
  Set operator |(Set lhs, const Set & rhs); // union
  
  
@@ -1373,139 +1317,122 @@
 +
  #endif
  
---- /tmp/percolator-preserved/SetHandler.cpp
-+++ src/openms/thirdparty/percolator/SetHandler.cpp
-@@ -16,6 +16,9 @@
-  *******************************************************************************/
- 
+diff --git a/src/openms/thirdparty/percolator/SetHandler.cpp b/src/openms/thirdparty/percolator/SetHandler.cpp
+index d1e42bdb8713d75b8e024741c187bc98f5930dcd..5dfb7a9801b3c0b61ecc54891c40c6f6bd5ebb95 100644
+--- a/src/openms/thirdparty/percolator/SetHandler.cpp
++++ b/src/openms/thirdparty/percolator/SetHandler.cpp
+@@ -18,6 +18,9 @@
  #include "SetHandler.h"
-+#include "TabReader.h"
-+
-+namespace OpenMS { namespace Internal { namespace Percolator {
+ #include <cmath>
  
++namespace OpenMS { namespace Internal { namespace Percolator {
++
++
  SetHandler::SetHandler(unsigned int maxPSMs) : maxPSMs_(maxPSMs) {}
  
-@@ -534,3 +537,5 @@
+ SetHandler::~SetHandler() {
+@@ -890,3 +893,5 @@ std::string& SetHandler::rtrim(std::string &s) {
    s.erase(std::find_if(s.rbegin(), s.rend(), [](unsigned char ch) { return !std::isspace(ch); }).base(), s.end());
    return s;
  }
 +
 +}}}  // namespace OpenMS::Internal::Percolator
---- /tmp/percolator-preserved/SetHandler.h
-+++ src/openms/thirdparty/percolator/SetHandler.h
-@@ -18,6 +18,7 @@
- #ifndef SETHANDLER_H_
- #define SETHANDLER_H_
- 
-+
- #include <assert.h>
- #include <iostream>
- #include <fstream>
-@@ -42,6 +43,8 @@
+diff --git a/src/openms/thirdparty/percolator/SetHandler.h b/src/openms/thirdparty/percolator/SetHandler.h
+index 48d380094cc9ed03e9336bececfafd0d9154fe30..c64e0460e357e75a18e227bf54a1c408fa073988 100644
+--- a/src/openms/thirdparty/percolator/SetHandler.h
++++ b/src/openms/thirdparty/percolator/SetHandler.h
+@@ -42,7 +42,17 @@
  #include "PseudoRandom.h"
  #include "FeatureMemoryPool.h"
- 
+ #include "ScanIdTable.h"
+-#include "ValidateTabFile.h"
++
 +namespace OpenMS { namespace Internal { namespace Percolator {
 +
- using namespace std;
++// OPENMS_MODIFIED: the input files of a multi-file input, from ValidateTabFile.h (the multi-file reader is not in the
++// vendored subset)
++struct InputSegment {
++  unsigned int firstLine;
++  unsigned int firstFileLine;
++  std::string fileName;
++};
++
  
  struct PSMDescriptionPriority {
-@@ -133,4 +136,6 @@
-     std::vector<double>& rawWeights, Scores& allScores);
+   PSMDescription* psm;
+@@ -236,4 +246,6 @@ class SetHandler {
+     const std::vector<std::pair<unsigned int, unsigned int> >& lineFolds);
  };
  
 +}}}  // namespace OpenMS::Internal::Percolator
 +
  #endif /*SETHANDLER_H_*/
---- /tmp/percolator-preserved/StdvNormalizer.cpp
-+++ src/openms/thirdparty/percolator/StdvNormalizer.cpp
-@@ -15,20 +15,17 @@
- 
-  *******************************************************************************/
- #include <iostream>
--#ifdef WIN32
--#include <float.h>
--#define isfinite _finite
--#endif
- #include <cmath>
+diff --git a/src/openms/thirdparty/percolator/StdvNormalizer.cpp b/src/openms/thirdparty/percolator/StdvNormalizer.cpp
+index 15d007118e8caeb83e0eb346c251fd8c8186fdc6..420f95b9e9d6f0f4518fc97506593ef21588eaaf 100644
+--- a/src/openms/thirdparty/percolator/StdvNormalizer.cpp
++++ b/src/openms/thirdparty/percolator/StdvNormalizer.cpp
+@@ -20,7 +20,6 @@
  #include <vector>
  #include <string>
  
 -using namespace std;
--
+ 
  #include "Normalizer.h"
  #include "StdvNormalizer.h"
+@@ -28,6 +27,11 @@ using namespace std;
+ #include "FeatureNames.h"
  #include "Globals.h"
  
 +namespace OpenMS { namespace Internal { namespace Percolator {
 +
 +using namespace std;
++
++
+ namespace {
  
- StdvNormalizer::StdvNormalizer() {
- }
-@@ -97,7 +94,7 @@
-   for (it = featuresV.begin(); it != featuresV.end(); ++it) {
-     features = *it;
-     for (ix = 0; ix < numFeatures; ++ix) {
--      if (!isfinite(features[ix])) {
-+      if (!std::isfinite(features[ix])) {
-         cerr << "Reached strange feature with val=" << features[ix]
-             << " at col=" << ix << endl;
-       }
-@@ -108,7 +105,7 @@
-   for (it = rtFeaturesV.begin(); it != rtFeaturesV.end(); ++it) {
-     features = *it;
-     for (ix = numFeatures; ix < numFeatures + numRetentionFeatures; ++ix) {
--      if (!isfinite(features[ix-numFeatures])) {
-+      if (!std::isfinite(features[ix-numFeatures])) {
-         cerr << "Reached strange feature with val=" << features[ix
-             - numFeatures] << " at col=" << ix << endl;
-       }
-@@ -163,7 +160,7 @@
-   for (it = featuresV.begin(); it != featuresV.end(); ++it) {
-     features = *it;
-     for (ix = 0; ix < numFeatures; ++ix) {
--      if (!isfinite(features[ix])) {
-+      if (!std::isfinite(features[ix])) {
-         cerr << "Reached strange feature with val=" << features[ix]
-             << " at col=" << ix << endl;
-       }
-@@ -189,3 +186,5 @@
-     cerr << endl;
-   }
+ // The smallest and the largest value of each column. A column is constant
+@@ -186,3 +190,5 @@ void StdvNormalizer::setSet(std::vector<double*>& featuresV,
+   checkFactorsFinite(0, numFeatures + numRetentionFeatures, "mean",
+                      "standard deviation");
  }
 +
 +}}}  // namespace OpenMS::Internal::Percolator
---- /tmp/percolator-preserved/StdvNormalizer.h
-+++ src/openms/thirdparty/percolator/StdvNormalizer.h
-@@ -17,6 +17,8 @@
+diff --git a/src/openms/thirdparty/percolator/StdvNormalizer.h b/src/openms/thirdparty/percolator/StdvNormalizer.h
+index a1ccf0ae13a03ac43079efd06234d9943a4e4ef5..0c951366b4221946f4ca31968bc7407e8df4f83f 100644
+--- a/src/openms/thirdparty/percolator/StdvNormalizer.h
++++ b/src/openms/thirdparty/percolator/StdvNormalizer.h
+@@ -17,6 +17,9 @@
  #ifndef STDVNORMALIZER_H_
  #define STDVNORMALIZER_H_
  
-+
 +namespace OpenMS { namespace Internal { namespace Percolator {
++
++
  class StdvNormalizer : public Normalizer { // virtual Normalizer
   public:
    StdvNormalizer();
-@@ -30,4 +32,6 @@
+@@ -28,4 +31,6 @@ class StdvNormalizer : public Normalizer { // virtual Normalizer
    void normalizeweight(const vector<double>& in, vector<double>& out) const;
  };
  
 +}}}  // namespace OpenMS::Internal::Percolator
 +
  #endif /*STDVNORMALIZER_H_*/
---- /tmp/percolator-preserved/TabReader.h
-+++ src/openms/thirdparty/percolator/TabReader.h
-@@ -22,6 +22,8 @@
+diff --git a/src/openms/thirdparty/percolator/TabReader.h b/src/openms/thirdparty/percolator/TabReader.h
+index 93ae98de4227d180ef8f904bcfdb92c385a632d9..e94fd1d3dbbe5e482231ffe5bc48229a5be11201 100644
+--- a/src/openms/thirdparty/percolator/TabReader.h
++++ b/src/openms/thirdparty/percolator/TabReader.h
+@@ -28,6 +28,9 @@
+ #include <cstdlib>
  #include <cstring>
- #include <cmath>
  
 +namespace OpenMS { namespace Internal { namespace Percolator {
 +
- // using char pointers is much faster than istringstream
- class TabReader {
-  public:
-@@ -92,4 +94,6 @@
++
+ // Set by src/CMakeLists.txt to whether std::from_chars for double compiles
+ // and links; libc++ never announces it with __cpp_lib_to_chars.
+ #ifndef PERCOLATOR_FROM_CHARS_DOUBLE
+@@ -226,4 +229,6 @@ class TabReader {
    int err;
  };
  
@@ -1513,69 +1440,74 @@
 +
  #endif /*TABREADER_H_*/
 \ No newline at end of file
---- /tmp/percolator-preserved/Timer.cpp
-+++ src/openms/thirdparty/percolator/Timer.cpp
-@@ -4,6 +4,7 @@
+diff --git a/src/openms/thirdparty/percolator/Timer.cpp b/src/openms/thirdparty/percolator/Timer.cpp
+index 0e71f6435d1ae170d13c39670be26124b6101833..849e2b2b2f265707a0c1827d10fec39fdc073842 100644
+--- a/src/openms/thirdparty/percolator/Timer.cpp
++++ b/src/openms/thirdparty/percolator/Timer.cpp
+@@ -12,6 +12,9 @@
  
- #include <iostream>
- #include <sstream>
+ #include "Globals.h"
+ 
 +namespace OpenMS { namespace Internal { namespace Percolator {
- 
++
++
  Timer::Timer(){
      reset();
-@@ -44,3 +45,5 @@
-     return ctime(&wallStartTime);
  }
- 
+@@ -113,3 +116,5 @@ StageTimer::~StageTimer()
+                   << formatMemoryUsage(getMemoryUsage()) << std::endl;
+     }
+ }
 +
 +}}}  // namespace OpenMS::Internal::Percolator
---- /tmp/percolator-preserved/Timer.h
-+++ src/openms/thirdparty/percolator/Timer.h
-@@ -2,9 +2,12 @@
- #ifndef TIMER_H_
- #define TIMER_H_
- 
-+
+diff --git a/src/openms/thirdparty/percolator/Timer.h b/src/openms/thirdparty/percolator/Timer.h
+index 9a20844250d93c164507aa5460f734e56f1331e9..7f23adcae2733cc8d5df14d398b9403aed4dec71 100644
+--- a/src/openms/thirdparty/percolator/Timer.h
++++ b/src/openms/thirdparty/percolator/Timer.h
+@@ -7,6 +7,9 @@
+ #include <istream>
  #include <string>
- #include <ctime>
  
 +namespace OpenMS { namespace Internal { namespace Percolator {
++
 +
  /* Timer is for measuring wall clock time and CPU time of different code sections. Stop is used to make a checkpoint in time and reset for restarting the timer. */
  class Timer
  {
-@@ -24,5 +27,7 @@
-     std::string getTimeStr(double time, int numDecimals);
+@@ -59,5 +62,7 @@ private:
+     clock_t cpuStart_;
  };
  
 +}}}  // namespace OpenMS::Internal::Percolator
 +
  #endif
  
---- /tmp/percolator-preserved/Transform.h
-+++ src/openms/thirdparty/percolator/Transform.h
-@@ -17,8 +17,11 @@
- #ifndef TRANSFORM_H_
- #define TRANSFORM_H_
+diff --git a/src/openms/thirdparty/percolator/Transform.h b/src/openms/thirdparty/percolator/Transform.h
+index 54f33f70de290677de447c6eec6bc1234c378100..713a9f384d51957751335217bf74dad22ecf93b2 100644
+--- a/src/openms/thirdparty/percolator/Transform.h
++++ b/src/openms/thirdparty/percolator/Transform.h
+@@ -19,6 +19,9 @@
  
-+
  #include <cmath>
  
 +namespace OpenMS { namespace Internal { namespace Percolator {
 +
++
  class Transform {
    public:
      Transform(double deltL = 0.0, double deltH = 0.0, bool dLt = false,
-@@ -49,4 +52,6 @@
+@@ -49,4 +52,6 @@ class Transform {
      bool doLogit, doLog;
  };
  
 +}}}  // namespace OpenMS::Internal::Percolator
 +
  #endif /*TRANSFORM_H_*/
---- /tmp/percolator-preserved/UniNormalizer.cpp
-+++ src/openms/thirdparty/percolator/UniNormalizer.cpp
-@@ -18,10 +18,13 @@
+diff --git a/src/openms/thirdparty/percolator/UniNormalizer.cpp b/src/openms/thirdparty/percolator/UniNormalizer.cpp
+index d87910451ab9a7e057e985a1f34ca6a70bb64ea8..9023ab309a51f90cbe1f2c1f58ec573f57cf03f2 100644
+--- a/src/openms/thirdparty/percolator/UniNormalizer.cpp
++++ b/src/openms/thirdparty/percolator/UniNormalizer.cpp
+@@ -18,10 +18,14 @@
  #include <iostream>
  #include <cmath>
  #include <algorithm>
@@ -1587,53 +1519,59 @@
 +
 +using namespace std;
 +
++
  UniNormalizer::UniNormalizer() {
  }
  
-@@ -107,3 +110,5 @@
-     }
-   }
+@@ -86,3 +90,5 @@ void UniNormalizer::setSet(vector<double*> & featuresV,
+   checkFactorsFinite(0, numFeatures + numRetentionFeatures, "minimum",
+                      "range");
  }
 +
 +}}}  // namespace OpenMS::Internal::Percolator
---- /tmp/percolator-preserved/UniNormalizer.h
-+++ src/openms/thirdparty/percolator/UniNormalizer.h
-@@ -17,6 +17,8 @@
+diff --git a/src/openms/thirdparty/percolator/UniNormalizer.h b/src/openms/thirdparty/percolator/UniNormalizer.h
+index 7faab218b53e425dada949f5d6073ad800c39bc2..5a7bfb20b7c9b5e7d67224011fa5b5126c0dc0c3 100644
+--- a/src/openms/thirdparty/percolator/UniNormalizer.h
++++ b/src/openms/thirdparty/percolator/UniNormalizer.h
+@@ -17,6 +17,9 @@
  #ifndef UNINORMALIZER_H_
  #define UNINORMALIZER_H_
  
-+
 +namespace OpenMS { namespace Internal { namespace Percolator {
++
++
  class UniNormalizer : public Normalizer { // virtual Normalizer
   public:
    UniNormalizer();
-@@ -30,4 +32,6 @@
+@@ -28,4 +31,6 @@ class UniNormalizer : public Normalizer { // virtual Normalizer
    void normalizeweight(const vector<double>& in, vector<double>& out) const;
  };
  
 +}}}  // namespace OpenMS::Internal::Percolator
 +
  #endif /*UNINORMALIZER_H_*/
---- /tmp/percolator-preserved/Vector.cpp
-+++ src/openms/thirdparty/percolator/Vector.cpp
-@@ -2,6 +2,8 @@
- // see license for more information
+diff --git a/src/openms/thirdparty/percolator/Vector.cpp b/src/openms/thirdparty/percolator/Vector.cpp
+index d9c8288d33a7c5a7a067b7d6d41ed655651f3b92..f29a10523b9ba7d7201ad17014853dd20356e0ef 100644
+--- a/src/openms/thirdparty/percolator/Vector.cpp
++++ b/src/openms/thirdparty/percolator/Vector.cpp
+@@ -3,6 +3,9 @@
  
  #include "Vector.h"
-+namespace OpenMS { namespace Internal { namespace Percolator {
-+using namespace std;
  
++namespace OpenMS { namespace Internal { namespace Percolator {
++
++
  Numerical Vector::sparseChecker(1e-15);
  Numerical Vector::comparator(1e-8);
-@@ -450,12 +452,12 @@
+ 
+@@ -450,12 +453,12 @@ double Vector::min() const
   
    for ( Set::Iterator iter = beginNonzero(); iter != endNonzero(); iter++ )
      {
 -      currentMin = ::min( currentMin, values[ *iter ] );     
-+      currentMin = std::min( currentMin, values[ *iter ] );
++      currentMin = std::min( currentMin, values[ *iter ] );     
      }
-- 
-+
+  
    if ( ! zeroIndices.isEmpty() )
      {
 -      currentMin = ::min( currentMin, 0.0 );
@@ -1641,19 +1579,14 @@
      }
  
    return currentMin;
-@@ -466,15 +468,15 @@
-   double currentMax = -Numerical::inf();
- 
-   Set zeroIndices = Set::FullSet(0, size()-1 ).without( nonzeroIndices );
-- 
-+
+@@ -469,12 +472,12 @@ double Vector::max() const
+  
    for ( Set::Iterator iter = beginNonzero(); iter != endNonzero(); iter++ )
      {
 -      currentMax = ::max( currentMax, values[ *iter ] );     
-+      currentMax = std::max( currentMax, values[ *iter ] );
++      currentMax = std::max( currentMax, values[ *iter ] );     
      }
-- 
-+
+  
    if ( ! zeroIndices.isEmpty() )
      {
 -      currentMax = ::max( currentMax, 0.0 );
@@ -1661,30 +1594,27 @@
      }
  
    return currentMax;
-@@ -566,3 +568,5 @@
+@@ -566,3 +569,5 @@ double diffNormSquared(const Vector & u, const Vector & v)
      }
    return sqrt(res);
  }
 +
 +}}}  // namespace OpenMS::Internal::Percolator
---- /tmp/percolator-preserved/Vector.h
-+++ src/openms/thirdparty/percolator/Vector.h
-@@ -3,11 +3,14 @@
- 
- #ifndef _Vector_H
- #define _Vector_H
-+
- #include <cmath>
- #include "Set.h"
+diff --git a/src/openms/thirdparty/percolator/Vector.h b/src/openms/thirdparty/percolator/Vector.h
+index afccaf3369586cfb06fcd542f35a69e7567618b3..6eff3b9a86f56e8564cf2865dc22f24419817a56 100644
+--- a/src/openms/thirdparty/percolator/Vector.h
++++ b/src/openms/thirdparty/percolator/Vector.h
+@@ -8,6 +8,9 @@
  #include "Numerical.h"
  #include "Array.h"
  
 +namespace OpenMS { namespace Internal { namespace Percolator {
 +
++
  class Vector
  {
  public:
-@@ -166,5 +169,7 @@
+@@ -166,5 +169,7 @@ double norm(const Array<double> & vec);
  Array<double> operator -(const Array<double> & rhs);
  
  
