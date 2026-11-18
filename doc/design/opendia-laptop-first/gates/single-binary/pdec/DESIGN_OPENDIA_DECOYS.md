@@ -194,3 +194,10 @@ N@FDP_c 1 % 10,610 / 12,384.
   it.
 - **Next:** rebuild the container, then rerun precheck step 1 with `-predict_keep_short true`. The design's item 4 should
   then hold: no target competes alone, except for decoys with zero usable fragments.
+
+## Container fixed (23:45)
+`entlib-pdsif-20261118/opendia-pd2-01d5ded04a.sif` (sha256 3cb281b9…):
+- It has the same binary as `opendia-pd-01d5ded04a.sif`.
+- The PeptDeep models are now under `<build>/src/openms/share/OpenMS/models`, so `-decoys predict` finds them without
+  `-decoy_model_dir`.
+- Checked with a local run on the 49-target library: 49/49 decoys predicted.
