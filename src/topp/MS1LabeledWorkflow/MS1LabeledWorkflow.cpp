@@ -262,8 +262,8 @@ sections, QPX @c intensities): the summed peptide intensities per channel, like 
 Dividing two of those is a ratio of aggregates, a different statistic from the ratios above, which weights
 peptides by their intensity. @p ProteinQuantification:consensus:normalize scales every assay to the overall
 median, which for a labeled experiment forces the median channel ratio to 1; leave it off unless that is intended.
-@p ProteinQuantification:modifications:exclude likewise acts on these abundances only: the ratios above are still
-computed from the peptide ratios of all peptides of a protein group, whatever their modifications.
+@p ProteinQuantification:modifications:exclude likewise acts on these abundances only: the ratios above do not
+take it into account, i.e. a peptide enters them whatever its modifications.
 
 @p max_nr_labelled_aas is used for both the feature detection and the resolver: it is the maximum number of
 labelled amino acids per peptide minus one, i.e. for tryptic SILAC the number of allowed missed cleavages.

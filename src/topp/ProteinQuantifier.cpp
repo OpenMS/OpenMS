@@ -87,7 +87,7 @@ The accumulated value stands for the amount of a peptide irrespective of how muc
 - With @p modifications:exclude_counterparts @p false only the variants that carry a listed modification themselves are left out; the remaining ones are still accumulated.
 - Modifications are matched by their full name, specificity included, and only listed ones have an effect. Fixed modifications and labels (carbamidomethylation, TMT, SILAC labels, ...) therefore need no special treatment.
 - Only protein quantities change. The peptide-level output still reports every variant, and @p consensus:normalize, a peptide-level step, still uses all of them. A peptide that is left out does not count towards @p top:N.
-- The identifications are not touched. Unlike after removing them beforehand (@ref TOPP_IDFilter, @p blacklist:modifications), the peptides still support the identification of their protein: protein inference results and PSM counts are unaffected. A protein all of whose peptides are left out is not quantified and, like every unquantified protein, is not listed in @p out.
+- The identifications are not touched. Unlike after removing them beforehand (@ref TOPP_IDFilter, @p blacklist:modifications), the peptides still support the identification of their protein: the quantification does not change the protein inference results or the PSM counts. A protein all of whose peptides are left out is not quantified. Like every protein that this tool does not quantify, it is then absent from the protein-level outputs: @p out, the protein rows of @p mztab and the protein group view of @p out_qpx.
 
 <B>Output granularity: assays vs. files and channels</B>
 
