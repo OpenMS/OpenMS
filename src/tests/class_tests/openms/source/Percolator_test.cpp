@@ -342,6 +342,96 @@ START_SECTION([EXTRA] the large-set paths do not depend on the number of threads
 }
 END_SECTION
 
+START_SECTION([EXTRA] capped in_sample training (-N) scores as the percolator executable)
+{
+  // With subset_mode in_sample and a cap, each PSM of the training sample is scored by the model of the fold in which
+  // it was a test PSM (rescaled per fold), the other PSMs by the average of the fold models: the executable's -N since
+  // upstream a3527fac/94154bd2. The reference holds the targets that the a9783ee8 executable accepts at q <= 0.01 and
+  // 0.05 on this fixture (how it was made: see the file). The fixture is the same on every platform: std::mt19937
+  // uniforms combined by exact additions only (Irwin-Hall sums), one PSM per spectrum; the learned direction finds far
+  // more targets than any single feature, so the direction check keeps it and the fold scoring runs. The in-process
+  // results match the executable exactly here (identical sets, score correlation 1.0); scoring every PSM with the
+  // average of the fold models (as before) accepted 2458 instead of 2247 targets at 1% (231 differ; 63 at 5%). A few
+  // differing rows are allowed for the last bits of the solves on other platforms.
+  RescoreInput input;
+  {
+    const std::size_t n_per_class = 10000;
+    std::mt19937 gen(7);
+    auto u = [&gen]() { return static_cast<double>(gen()) / 4294967296.0; };
+    auto irwin_hall = [&u]()
+    {
+      const double a = u();
+      const double b = u();
+      const double c = u();
+      const double d = u();
+      return ((a + b) + (c + d)) - 2.0;
+    };
+    for (int j = 0; j < 10; ++j) input.feature_names.push_back("f" + std::to_string(j));
+    for (std::size_t i = 0; i < 2 * n_per_class; ++i)
+    {
+      const bool decoy = i >= n_per_class;
+      const bool correct = !decoy && i % 2 == 0;  // half of the targets are correct
+      std::vector<double> row(10);
+      for (double& v : row) v = irwin_hall() + (correct ? 0.5 : 0.0);
+      input.features.push_back(row);
+      input.is_decoy.push_back(decoy);
+      input.scan_numbers.push_back(static_cast<int>(i + 1));
+      input.spec_file_numbers.push_back(0);
+      input.exp_masses.push_back(1000.0);
+      input.calc_masses.push_back(1000.0);
+    }
+  }
+  // the reference: training, q-value threshold, accepted target rows
+  std::map<std::pair<std::string, std::string>, std::set<size_t>> reference;
+  {
+    std::ifstream is(OPENMS_GET_TEST_DATA_PATH("Percolator_test_capped_in_sample_ref.txt"));
+    std::string line;
+    while (std::getline(is, line))
+    {
+      if (line.empty() || line[0] == '#') continue;
+      std::istringstream ls(line);
+      std::string training, fdr;
+      ls >> training >> fdr;
+      std::set<size_t>& rows = reference[{training, fdr}];
+      for (size_t row; ls >> row;) rows.insert(row);
+    }
+  }
+  TEST_EQUAL(reference.size(), 4)
+  for (const std::string training : {"new", "classic"})
+  {
+    Percolator p;
+    Param par = p.getDefaults();
+    par.setValue("seed", 1);                // -S 1
+    par.setValue("num_threads", 2);
+    par.setValue("solver", "tron");          // the optimum of the executable's solver, along its path
+    par.setValue("classic_training", training == "classic" ? "true" : "false");
+    par.setValue("subset_max_train", 5000);  // -N 5000 (subset_mode in_sample: the default)
+    par.setValue("c_pos", 0.1);              // -p 0.1
+    par.setValue("post_processing_tdc", "false");  // as the executable without -Y and --train-best-positive
+    par.setValue("train_best_positive", "false");
+    p.setParameters(par);
+    const RescoreOutput out = p.rescore(input);
+    TEST_EQUAL(p.usedDefaultDirection(), false)
+    for (const auto& [fdr_text, fdr] : {std::pair<std::string, double>{"0.01", 0.01}, {"0.05", 0.05}})
+    {
+      std::set<size_t> accepted;
+      for (size_t i = 0; i < out.q_values.size(); ++i)
+      {
+        if (!input.is_decoy[i] && out.q_values[i] <= fdr) accepted.insert(i);
+      }
+      const std::set<size_t>& expected = reference[{training, fdr_text}];
+      std::vector<size_t> differing;
+      std::set_symmetric_difference(accepted.begin(), accepted.end(), expected.begin(), expected.end(),
+                                    std::back_inserter(differing));
+      STATUS(training << " training, q <= " << fdr_text << ": " << accepted.size() << " targets (executable: "
+                      << expected.size() << "), " << differing.size() << " differ")
+      TEST_TRUE(expected.size() > 2000)
+      TEST_TRUE(differing.size() <= 5)
+    }
+  }
+}
+END_SECTION
+
 START_SECTION([EXTRA] train_fdr 0 is test_fdr also in the passes after a capped training)
 {
   // The cross-validation selects its positives at test_fdr if train_fdr is 0; the scoring of all rows after a capped
