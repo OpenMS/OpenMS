@@ -8,6 +8,12 @@ Written 18 November 2026. Entrapment and DIA-NN labels are used here for evaluat
 - **Band:** winners with run q from 0.002 to 0.05 (about 65 entrapment and 118 decoy winners per raw).
 
 ## 1. Raw 02's FDP excess is real
+
+**Correction (Q7_NEXT.md):**
+- The intervals below pool seeds of the same raw as if they were independent. They are not: the seeds share the run's
+  data, so the run is the unit.
+- With one run, NEW's raw 02 count of 10 entrapments is what an exactly calibrated 1 % scorer gives half of the time.
+- The excess is therefore **not** shown to be real. The heading is kept for the record.
 Entrapments at q ≤ 0.01 pooled over 5 seeds, with Poisson 90 % intervals (`Q4_FDP_POOLED.txt`). Entrapments per seed:
 raw 01 CUR 7 7 4 8 4, NEW 4 4 7 5 5; raw 02 CUR 8 4 3 4 1, NEW 12 10 7 7 13; raw 03 CUR 9 5 6 8 7, NEW 5 7 5 6 7.
 

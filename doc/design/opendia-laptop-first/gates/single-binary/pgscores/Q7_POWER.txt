@@ -1,0 +1,12 @@
+raw01 new: median N 1862, median E 5 -> FDP_c 0.0054 (one-run 90 % 0.0021-0.0113); expected E at exactly 1 % = 9.3, P(E >= 5) = 0.95
+raw01 cur: median N 1709, median E 7 -> FDP_c 0.0082 (one-run 90 % 0.0038-0.0154); expected E at exactly 1 % = 8.5, P(E >= 7) = 0.75
+raw02 new: median N 1949, median E 10 -> FDP_c 0.0103 (one-run 90 % 0.0056-0.0174); expected E at exactly 1 % = 9.7, P(E >= 10) = 0.51
+raw02 cur: median N 1811, median E 4 -> FDP_c 0.0044 (one-run 90 % 0.0015-0.0101); expected E at exactly 1 % = 9.0, P(E >= 4) = 0.98
+raw03 new: median N 1930, median E 6 -> FDP_c 0.0062 (one-run 90 % 0.0027-0.0123); expected E at exactly 1 % = 9.6, P(E >= 6) = 0.92
+raw03 cur: median N 1849, median E 7 -> FDP_c 0.0076 (one-run 90 % 0.0036-0.0142); expected E at exactly 1 % = 9.2, P(E >= 7) = 0.81
+seed 0 pooled over raws 01-03 (new): E 21, N 5779, FDP_c 0.0073 (90 % 0.0049-0.0105)
+seed 0 pooled over raws 01-03 (cur): E 24, N 5462, FDP_c 0.0088 (90 % 0.0061-0.0124)
+true FDR 0.005: P(observed FDP_c > 0.010) = 0.03
+true FDR 0.007: P(observed FDP_c > 0.010) = 0.15
+true FDR 0.010: P(observed FDP_c > 0.010) = 0.51
+true FDR 0.013: P(observed FDP_c > 0.010) = 0.81

@@ -26,7 +26,9 @@ The branch's [`src/topp/OpenDIA/README.md`](https://github.com/OpenMS/OpenMS/blo
   `-pg_scores` is kept as an opt-in flag for the investigation; the default is unchanged. On D, 2,359 of the 3,053
   extra IDs are DIA-NN-confirmed and real. Of the other 694, about 270-500 are false (bounded by DIA-NN's PEP and our decoys),
   so the gain is mostly real but q is somewhat optimistic in the tail. No pg score rewards peak presence over identity
-  (Q6_PEAK_IDENTITY.md). The next step is a run-derived calibration safeguard under a new frozen plan.
+  (Q6_PEAK_IDENTITY.md). The raw 02 "failure" is within one run's counting noise (Q7_NEXT.md). Pooled over raws
+  01-03, NEW is at 0.0073 against CUR's 0.0088. The next step is an entrapment HeLa library so diaPASEF has a true FDR,
+  then a frozen plan for making `-pg_scores` the default.
 - **Speed and memory, same laptop, Astral raw 01:** 7:18-7:26 against DIA-NN's 7:23. Peak memory is 14.4 GB against
   6.8 GB.
 
