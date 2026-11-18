@@ -23,13 +23,17 @@ Written 18 November 2026, after the D design runs and before any H run. Evaluati
 - On this predicted entrapment library, both arms are above 1 % true FDR at q ≤ 0.01: CUR 1.76 %, NEW 1.66 %.
 - The failure of 1a is today's default too. It is not caused by the new scores, and the scores make it slightly better.
 - At equal true FDR, the new scores add 24 % more IDs on diaPASEF.
-- **Why both arms miss nominal:** this is open, and it is likely the same parent-interference effect seen on Astral
-  (RESULT_PAIRLIB: rho 1.3-1.6).
-  - Every HeLa entrapment shares length, cleavage sites and composition with a parent that is in the library and
-    usually elutes.
-  - So entrapments get real, partly matching signal that decoys (pseudo-reverse) do not.
-  - That makes FDP_c with these entrapments an upper estimate of the false rate for unrelated false targets.
-  - This is a property of the benchmark construction. It was not foreseen in the plan, and it does not change the
-    verdict.
+- **Why both arms miss nominal:** this is open. The parent-interference explanation was checked and is **not** the main
+  cause (`parent_check.py`, D seed 0):
+  - Of the accepted entrapments, 15 % (CUR) and 25 % (NEW) have their parent's apex within 5 s.
+  - 17 % and 20 % have their parent also accepted.
+  - So most accepted entrapments are not riding on their parent's signal.
+- The remaining candidates, none tested yet:
+  1. **Library mismatch.** A fully predicted library on an Evosep 5-min run, where the RT and IM prediction errors are
+     large, may favour random matches. Targets and entrapments get the same prediction quality, but decoys
+     (pseudo-reverse) inherit it as well.
+  2. **Decoy model.** Pseudo-reverse decoys may be easier to reject than shuffled targets on this data.
+  3. **The scorer's self-training.** On a library where far fewer targets are present, the scorer may drift.
+- CUR shows the same excess, so this is a property of today's pipeline on this library, not of the new scores.
 
 H is run next and reported either way.
