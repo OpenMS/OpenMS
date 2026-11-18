@@ -212,4 +212,5 @@ A glossary of common terms used throughout OpenMS documentation.
         <https://archive.openms.de/openms/Documentation/nightly/latest/html/TOPP_documentation.html>`__.
 
     TOPPView
-        TOPPView is a viewer for MS and HPLC-MS data and shipped with every OpenMS release.
+        TOPPView is a viewer for MS and HPLC-MS data, one of the graphical tools of OpenMS
+        (installed separately from `OpenMS-TOPP-GUI <https://github.com/OpenMS/OpenMS-TOPP-GUI>`__).

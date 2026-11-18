@@ -76,7 +76,7 @@ See the OpenMS::LogStream class for details.
 
 In a similar vein: If you are writing an %OpenMS tool, you can also use the ProgressLogger to indicate how many percent of the processing has already been performed:
 <br><br>
-<b>Example: openms/doc/code_examples/data/Tutorial_Logger.cpp</b>
+<b>Example: doc/code_examples/Tutorial_Logger.cpp</b>
 <br>
 Logging the Tool Progress
 

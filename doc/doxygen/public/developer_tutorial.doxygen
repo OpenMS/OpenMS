@@ -614,7 +614,7 @@ set_tests_properties("TOPP_DatabaseFilter_2_out" PROPERTIES DEPENDS "TOPP_Databa
 These tests run the program with the given parameters and then call a diff tool to compare the generated output to the expected output.
 
 @subsection tutorial_doc Finish documentation
-We add it to the UTILS docu page (in doc/doxygen/public/UTILS.doxygen).
+We add it to the TOPP docu page (in doc/doxygen/public/TOPP.doxygen).
 Later (when we have a working application) we will write an application test (this is optional but recommended for Utils. For Tools it is mandatory). See TOPP tools above and add the test to the bottom of src/tests/topp/CMakeLists.txt.
 
 @subsection tutorial_polish Polish your code 

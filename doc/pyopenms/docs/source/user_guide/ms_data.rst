@@ -184,8 +184,9 @@ Finally, we add the spectrum to an :py:class:`~.MSExperiment` container to save 
 :py:class:`~.MzMLFile` class in a file called ``testfile.mzML``.
 
 You can now open the resulting mass spectrum in a mass spectrum viewer. We use the OpenMS
-viewer :term:`TOPPView` (which you will get when you install OpenMS from the
-official website) and look at our mass spectrum:
+viewer :term:`TOPPView` (one of the graphical tools of OpenMS, which are installed
+on top of OpenMS from `OpenMS-TOPP-GUI <https://github.com/OpenMS/OpenMS-TOPP-GUI>`__)
+and look at our mass spectrum:
 
 .. image:: img/spectrum1.png
 

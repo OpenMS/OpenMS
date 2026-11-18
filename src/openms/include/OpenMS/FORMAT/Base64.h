@@ -379,7 +379,7 @@ private:
       }
     }
 
-    // encode with compression (use Qt because of zlib support)
+    // encode with compression (zlib)
     if (zlib_compression)
     {
       std::string compressed;

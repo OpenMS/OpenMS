@@ -27,7 +27,7 @@ namespace OpenMS
     /*!
       @brief Raise a more informative database error
 
-      Add context to an SQL error encountered by Qt and throw it as a FailedAPICall exception.
+      Add context to an SQL error encountered by SQLite and throw it as a FailedAPICall exception.
 
       @param[in] error The error that occurred
       @param[in] line Line in the code where error occurred
