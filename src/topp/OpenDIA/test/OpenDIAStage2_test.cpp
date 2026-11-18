@@ -339,6 +339,95 @@ int main()
     require(repeated, "repeated byion group accepted");
   }
 
+  // 11. Peak-group scores (PLAN_PGSCORES).
+  {
+    const std::array<std::int8_t, 6> charge{1, 1, 1, 1, 1, 1};
+    OpenDIA::PeakGroupEvidence pg;
+    for (std::size_t c = 0; c < 6; ++c)
+    {
+      pg.mono[c] = static_cast<float>(library[c]);
+      pg.ppm_sum[c] = static_cast<float>(library[c] * 2.0);  // +2 ppm each
+      // Averagine-like decreasing isotopes and nothing before the monoisotope.
+      for (std::size_t i = 0; i < 4; ++i) pg.isotope[c][i] = static_cast<float>(library[c] * std::pow(0.4, i + 1));
+    }
+    std::vector<std::vector<double>> p, shifted;
+    for (std::size_t c = 0; c < 6; ++c)
+    {
+      p.push_back(gaussian(library[c], 16.0, 2.0));
+      shifted.push_back(gaussian(library[c], 16.0 + (c % 2 == 0 ? -2.0 : 2.0), 2.0));
+    }
+    const auto good = OpenDIA::stage2PeakGroupFeatures(tensor(p).data(), library, mz, charge, fullEvidence(), pg, 10.0, 1.0);
+    require(OpenDIA::stage2PeakGroupFeatureNames().size() == good.size(), "names match features");
+    require(good[0] == 0.0 && good[1] == 0.0, "co-eluting traces have zero best lag");
+    require(good[2] > 0.95 && good[3] > 0.95, "identical shapes correlate");
+    require(good[4] > std::log1p(1.0), "a peak over a flat background has S/N above 1");
+    require(good[5] > 0.9 && good[5] <= 1.0, "nearly all signal inside the peak");
+    require(std::abs(good[6] - 0.2) < 1e-6 && std::abs(good[7] - 0.2) < 1e-6, "2 ppm of 10 ppm tolerance");
+    require(good[8] > 0.8 && good[9] == 0.0, "decreasing isotopes correlate with a small-fragment averagine, no overlap");
+    const auto bad = OpenDIA::stage2PeakGroupFeatures(tensor(shifted).data(), library, mz, charge, fullEvidence(), pg, 10.0, 1.0);
+    require(bad[0] > good[0] && bad[2] < good[2], "shifted fragments have a best lag and a lower best shape");
+    // A larger peak one 13C spacing below at charges 1 and 2 counts twice per fragment.
+    auto overlap = pg;
+    for (std::size_t c = 0; c < 6; ++c) overlap.before[c] = {1e6f, 1e6f, 0.0f, 0.0f};
+    const auto o = OpenDIA::stage2PeakGroupFeatures(tensor(p).data(), library, mz, charge, fullEvidence(), overlap, 10.0, 1.0);
+    require(std::abs(o[9] - 2.0) < 1e-6, "two larger preceding peaks per fragment");
+    // No signal: lags 10, shapes 0, mass deviation 1.
+    const std::vector<float> empty(TraceCollector::SAMPLE_SIZE, 0.0f);
+    const auto z = OpenDIA::stage2PeakGroupFeatures(empty.data(), library, mz, charge, fullEvidence(), OpenDIA::PeakGroupEvidence{}, 10.0, 1.0);
+    require(z[0] == 10.0 && z[2] == 0.0 && std::abs(z[6] - 1.0) < 1e-12 && z[8] == 0.0, "empty window defaults");
+
+    // Collection: core-window monoisotope, ppm and isotope sums per channel; the tensor is unchanged.
+    OpenSwath::LightTargetedExperiment lib;
+    OpenSwath::LightCompound compound;
+    compound.id = "1";
+    compound.charge = 2;
+    lib.compounds.push_back(compound);
+    for (int k = 0; k < 2; ++k)
+    {
+      OpenSwath::LightTransition t;
+      t.transition_name = "t" + std::to_string(k);
+      t.peptide_ref = "1";
+      t.precursor_mz = 500.0;
+      t.product_mz = 300.0 + 100.0 * k;
+      t.library_intensity = 10.0 - k;
+      t.fragment_charge = static_cast<std::int8_t>(k + 1);
+      lib.transitions.push_back(t);
+    }
+    const auto collect = [&](bool pg_on)
+    {
+      TraceCollector collector({{"s1", "1", "g1", -1, 100.0}}, lib);
+      collector.enableEvidence(20.0, 4.0);
+      if (pg_on) collector.enablePeakGroupEvidence(10.0);
+      for (double rt = 90.0; rt <= 110.0; rt += 1.0)
+      {
+        MSSpectrum ms2;
+        ms2.setMSLevel(2);
+        ms2.setRT(rt + 0.5);
+        Precursor precursor;
+        precursor.setMZ(500.0);
+        precursor.setIsolationWindowLowerOffset(5.0);
+        precursor.setIsolationWindowUpperOffset(5.0);
+        ms2.setPrecursors({precursor});
+        ms2.push_back(Peak1D(300.0 - 1.0033548, 50.0));            // before fragment 0 (charge 1)
+        ms2.push_back(Peak1D(300.0 * (1 + 3e-6), 10.0));           // +3 ppm
+        ms2.push_back(Peak1D(300.0 + 1.0033548, 4.0));             // M+1 of the singly charged fragment
+        ms2.push_back(Peak1D(400.0, 10.0));
+        ms2.push_back(Peak1D(400.0 + 1.0033548 / 2.0, 6.0));       // M+1 of the doubly charged fragment
+        collector.consumeSpectrum(ms2);
+      }
+      return collector;
+    };
+    const auto off = collect(false);
+    const auto on = collect(true);
+    require(off.intensities() == on.intensities(), "peak-group evidence leaves the tensor unchanged");
+    const auto& e = on.peakGroupEvidence(0);
+    // Spectra at 96.5 .. 103.5 lie within the 4 s core: 8 spectra.
+    require(std::abs(e.mono[0] - 80.0f) < 1e-3 && std::abs(e.ppm_sum[0] / e.mono[0] - 3.0f) < 1e-2, "core monoisotope and ppm");
+    require(std::abs(e.isotope[0][0] - 32.0f) < 1e-3 && std::abs(e.isotope[1][0] - 48.0f) < 1e-3, "isotopes at the fragment charge");
+    require(std::abs(e.before[0][0] - 400.0f) < 1e-3 && e.before[1][0] == 0.0f, "preceding peak at charge 1");
+    require(on.fragmentCharges(0)[0] == 1 && on.fragmentCharges(0)[1] == 2, "fragment charges kept");
+  }
+
   std::cout << "OpenDIAStage2_test passed\n";
   return 0;
 }

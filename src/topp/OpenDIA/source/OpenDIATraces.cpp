@@ -142,6 +142,7 @@ namespace OpenMS::OpenDIA
       {
         sample.fragment_mz[i] = fragments[i]->product_mz;
         sample.library_intensity[i] = fragments[i]->library_intensity;
+        sample.fragment_charge[i] = fragments[i]->fragment_charge;
       }
       samples_.push_back(std::move(sample));
     }
@@ -175,6 +176,14 @@ namespace OpenMS::OpenDIA
     ms1_ppm_ = ms1_ppm;
     core_half_width_ = core_half_width_s;
     evidence_.assign(samples_.size(), TraceEvidence{});
+  }
+
+  void TraceCollector::enablePeakGroupEvidence(double ppm)
+  {
+    require(!evidence_.empty(), "Peak-group evidence requires enableEvidence() first.");
+    require(std::isfinite(ppm) && ppm > 0.0, "Peak-group evidence tolerance must be finite and positive.");
+    pg_ppm_ = ppm;
+    pg_evidence_.assign(samples_.size(), PeakGroupEvidence{});
   }
 
   std::size_t TraceCollector::rtBin_(double rt, double apex_rt) const
@@ -462,6 +471,38 @@ namespace OpenMS::OpenDIA
           {
             evidence->ms2_ppm_sum += intensity * (point->getMZ() - mz) / mz * 1e6;
             evidence->ms2_weight += intensity;
+          }
+        }
+        if (core && !pg_evidence_.empty())
+        {
+          // Sum of the points within pg_ppm_ of target (and the tensor's mobility window); optionally their ppm sum.
+          const auto sum_at = [&](double target, double* ppm_sum)
+          {
+            const double tol = target * pg_ppm_ * 1e-6;
+            double total = 0.0;
+            for (auto point = spectrum.MZBegin(target - tol); point != spectrum.end() && point->getMZ() <= target + tol; ++point)
+            {
+              const double intensity = point->getIntensity();
+              if (!std::isfinite(intensity) || intensity <= 0.0) continue;
+              if (compatible_im)
+              {
+                const double im = mobilities != nullptr ? (*mobilities)[point - spectrum.begin()] : scalar_im;
+                if (!std::isfinite(im) || im <= 0.0 || std::abs(im - sample.precursor_im) > im_half_width_) continue;
+              }
+              total += intensity;
+              if (ppm_sum != nullptr) *ppm_sum += intensity * (point->getMZ() - target) / target * 1e6;
+            }
+            return total;
+          };
+          auto& pg = pg_evidence_[index];
+          double ppm_sum = 0.0;
+          pg.mono[fragment] += static_cast<float>(sum_at(mz, &ppm_sum));
+          pg.ppm_sum[fragment] += static_cast<float>(ppm_sum);
+          const double z = std::abs(sample.fragment_charge[fragment] != 0 ? static_cast<double>(sample.fragment_charge[fragment]) : 1.0);
+          for (std::size_t iso = 0; iso < PeakGroupEvidence::ISOTOPES; ++iso)
+          {
+            pg.isotope[fragment][iso] += static_cast<float>(sum_at(mz + (iso + 1) * 1.0033548 / z, nullptr));
+            pg.before[fragment][iso] += static_cast<float>(sum_at(mz - 1.0033548 / static_cast<double>(iso + 1), nullptr));
           }
         }
       }
