@@ -1,5 +1,7 @@
 # PLAN_PGENT2 design verdict: FAIL on criterion 1; the excess over 1 % is real, not only near-homologs
 
+> **Correction (BOUNDS.md):** FDP_c here is the combined estimator, an *upper bound*. The lower bounds (0.87 % CUR, 0.97 % NEW) are below 1 %, so "q is about 1.5 times optimistic" is not shown. The true FDP lies between about 0.9 % and 1.6 %, which is inconclusive. The verdict on the frozen criterion stands.
+
 Written 18 November 2026, after the D design runs and before any H run.
 - **Library:** `hela_ath2.pqp` (sha256 e1ac12b8…), r = 1.560.
 - **Evaluation:** `eval.py`, written to `EVAL_D.txt`.

@@ -1,5 +1,7 @@
 # PLAN_PGENT result: FAIL (criterion 1a); `-pg_scores` stays opt-in
 
+> **Correction (pgent2/BOUNDS.md):** FDP_c is the combined estimator, an *upper bound*. The lower bounds are 0.88-0.99 %, so "neither arm is calibrated" is not shown. The result is inconclusive between about 0.9 % and 1.9 %. The verdict on the frozen criterion stands.
+
 Written 18 November 2026. The design verdict (`VERDICT_DESIGN.md`, fe183d4a95, 12:09:37) was committed before any H run.
 The H jobs were submitted at 12:09 and resubmitted at 12:17 with 96 GB, after all ten were killed for memory at 32 GB.
 Only the memory changed.

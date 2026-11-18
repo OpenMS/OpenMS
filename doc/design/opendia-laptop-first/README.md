@@ -36,8 +36,10 @@ The branch's [`src/topp/OpenDIA/README.md`](https://github.com/OpenMS/OpenMS/blo
 - **Is the diaPASEF excess real? (PRECHECK_FOREIGN, 18 Nov):** with Arabidopsis entrapments, the accepted ones are mostly
   near-homologs of human peptides (3-4x enriched for Hamming <= 2). A post-hoc homolog filter suggested near-nominal q,
   but PLAN_PGENT2 removed homologs at library construction and still measured FDP_c 1.43 % (default) and 1.59 %
-  (`-pg_scores`) at q <= 0.01. **diaPASEF q is about 1.5 times optimistic**, and it is real; `-pg_scores` gives +17 %
-  at equal true FDR. Next is locating where in the scorer the asymmetry enters.
+  (`-pg_scores`) at q <= 0.01. **Correction (BOUNDS.md):** those are combined estimates, which are upper bounds. The lower
+  bounds are 0.87-0.99 % in every run, so diaPASEF q is neither shown to fail nor shown to hold (true FDP about
+  0.9-1.9 %). The "~1.7 % true FDR" above is an upper bound. Next is an entrapment library with r of about 5, to make the
+  bounds tight.
 - **Speed and memory, same laptop, Astral raw 01:** 7:18-7:26 against DIA-NN's 7:23. Peak memory is 14.4 GB against
   6.8 GB.
 
