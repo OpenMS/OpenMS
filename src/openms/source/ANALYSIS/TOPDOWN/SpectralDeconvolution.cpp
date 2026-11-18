@@ -689,10 +689,40 @@ namespace OpenMS
             const int nibr
               = abs_charge > 1 ? (int)getBinNumber_(log_mz + (d > 0 ? iso_div_lower : -iso_div_lower), mz_bin_min_value_, bin_mul_factor) : 0;
             const int nibl = (int)getBinNumber_(log_mz + (d > 0 ? iso_div_upper : -iso_div_upper), mz_bin_min_value_, bin_mul_factor);
-            if (std::abs(nib - nibr) < tol_div_factor
-                || std::abs(nib - nibl)
-                     < tol_div_factor) // if different charges are not distinguishable, we ignore. Not informative and the source of the errors.
-              break;
+            // When the neighbouring isotope peak cannot tell this charge from the charges next to it (their isotope positions within the
+            // tolerance of each other: m/z x z x (z + 1) above about 100,000 at 10 ppm), the check is not informative and a source of
+            // errors, so MS1 skips it (its high charges come from chains of consecutive charges). In MSn a fragment mostly has one charge
+            // and its chain needs the same mass bin, so such fragments were lost: on Eclip_1480, FLASHDeconv reported 16% of the b and y
+            // fragments TopFD found there (charges 10-20) against 82% elsewhere, and 17% against 68% of the fragments of known proteins
+            // IsoDec found in 25 native MS2 spectra. In MSn the isotope far_k that does tell the charges apart (the difference of the
+            // spacings grows with the isotope count) is required instead, with all the isotopes up to it present, far_k within the
+            // isotope count of the averagine. With it: 64% on Eclip_1480 (identifications and entrapment unchanged), and on the expert
+            // annotation of PXD018043 precision 0.68 -> 0.75 and recall 0.42 -> 0.46 at Qscore >= 0.5 (TopFD 0.73 and 0.47).
+            int far_k = 0;
+            const bool before_d = pass_first_check;
+            if (std::abs(nib - nibr) < tol_div_factor || std::abs(nib - nibl) < tol_div_factor)
+            {
+              if (ms_level_ == 1) break;
+              const double mass_here = mz * abs_charge;
+              const int span = (int)(activeAveragine_().getLeftCountFromApex(mass_here) + activeAveragine_().getRightCountFromApex(mass_here));
+              // the spacings of this charge and the next higher one differ by this many bins per isotope; the binned positions can be
+              // tol_div_factor (2.5) bins apart only when the exact ones are more than 2 apart: no smaller k needs a look
+              const double bins_per_isotope = iso_div_by_mz * bin_mul_factor / ((double)abs_charge * (abs_charge + 1));
+              const double first_k = 2.0 / bins_per_isotope;
+              if (first_k > span) break;
+              for (int k2 = std::max(2, (int)first_k); k2 <= span; k2++)
+              {
+                const int b = (int)getBinNumber_(log_mz + std::log1p(d * k2 * iso_div_this), mz_bin_min_value_, bin_mul_factor);
+                const int br = abs_charge > 1 ? (int)getBinNumber_(log_mz + std::log1p(d * k2 * iso_div_lower), mz_bin_min_value_, bin_mul_factor) : -1000000;
+                const int bl = (int)getBinNumber_(log_mz + std::log1p(d * k2 * iso_div_upper), mz_bin_min_value_, bin_mul_factor);
+                if (std::abs(b - br) >= tol_div_factor && std::abs(b - bl) >= tol_div_factor)
+                {
+                  far_k = k2;
+                  break;
+                }
+              }
+              if (far_k == 0) break;
+            }
 
             // in MSn the neighbouring isotope peak is looked for within +-2 bins (~0.8 x the input tolerance), not within +-1 bin
             // (~0.4 x, 2 ppm at 5 ppm): on Eclip_1480 the +-1 bin window lost 11% of the real fragment envelopes (fragments of the
@@ -707,6 +737,25 @@ namespace OpenMS
                 iso_exist = true;
                 pass_first_check = true;
                 if (next_iso_bin == 0 || mz_intensities[next_iso_bin] < mz_intensities[nibt]) { next_iso_bin = nibt; }
+              }
+            }
+            if (far_k > 0 && iso_exist) // the isotopes 2..far_k of this charge must be there too
+            {
+              for (int k2 = 2; k2 <= far_k && iso_exist; k2++)
+              {
+                const int b = (int)getBinNumber_(log_mz + std::log1p(d * k2 * iso_div_this), mz_bin_min_value_, bin_mul_factor);
+                bool found = false;
+                for (int t = -iso_t; t <= iso_t && ! found; t++)
+                {
+                  const int bt = b + t;
+                  found = bt > 0 && bt < (int)binned_log_mz_peaks_.size() && binned_log_mz_peaks_[bt];
+                }
+                iso_exist = found;
+              }
+              if (! iso_exist)
+              {
+                pass_first_check = before_d;
+                next_iso_bin = 0;
               }
             }
 
