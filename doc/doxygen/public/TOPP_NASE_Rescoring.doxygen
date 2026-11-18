@@ -77,10 +77,18 @@ spectrometry") showed that this lets Percolator's PSM-level q-values understate 
 wrongly explained analyte pull each other up when the wrong match is a target and push each other down when it is a
 decoy. Entrapment checks of NASE on HAP1 files with simplified settings showed the same pattern: accepted entrapment
 matches clustered on a few repeated oligos, with estimated FDPs of about 7-13% at q <= 1% in one check and about 12%
-at q <= 5% on one file in another; with the full HAP1 recipe the estimates stayed near nominal. Until rescoring groups
-the spectra of one analyte (e.g. oligo-level training, or Percolator-RESET by Freestone, Käll, Noble and Keich), the
-rescored q-values are experimental. Shuffled decoys (DecoyDatabase with @p type RNA and @p method shuffle) gave the
-lower estimated FDP in these checks and are recommended over reversed ones.
+at q <= 5% on one file in another; with the full HAP1 recipe the estimates stayed near nominal. Shuffled decoys
+(DecoyDatabase with @p type RNA and @p method shuffle, or better @p method shuffle_products) gave the lower estimated FDP
+in these checks and are recommended over reversed ones.
+
+Rescoring that keeps the spectra of one oligo together did not help on these data. With the human background search
+(@ref TOPP_NASE_Background), a HAP1 file has only about 150 distinct target oligos: Percolator's sanity check rejected
+models trained on one row per oligo in all of 36 searches and models with folds grouped by oligo in most of them, and
+Percolator-RESET (oligo-level FDR; Freestone, Käll, Noble and Keich) accepted no more oligos than the native score.
+Percolator's gain is in spectra of oligos that the native score already identifies, which is where fold leakage acts:
+in 18 entrapment searches it accepted about 20% more target spectra than the native score at q <= 5%, but per oligo
+it accepted about as many oligos with a higher estimated FDP. The rescored q-values therefore remain experimental.
+For claims about molecules (which oligos are present), use @p fdr:oligo_level, preferably on the native score.
 
 Results are reproducible for the same @p rescoring:seed and input order; with 1 and 4 threads, the scores and q-values
 were identical in our checks and only the PEPs differed slightly (core Percolator's PEP estimation). The tests use
