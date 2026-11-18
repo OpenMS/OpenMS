@@ -90,8 +90,8 @@ the same isolation window (± 12.5 Th) that elutes within 10 s?
 
 - **Shared ladders are about twice as common for false targets as for decoys,** but they explain only a small share of
   the excess.
-- In the high band, entrapments exceed decoys (scaled by r ≈ 1.56) by about 160 ≈ 593 − 793 / 1.56 × … in this
-  q ≤ 0.05 band. Shared-ladder cases account for about 10-20 of them.
+- In the high band, decoys predict about 793 × r / (1 + r) ≈ 483 entrapments, and 593 are observed, an excess of about
+  110. The extra shared-ladder entrapments are about 23 − 14 × 483 / 793 ≈ 14, so about 13 % of that excess.
 - **So one real interferer is not the main mechanism.** Most strong false-target evidence is fragments spread over
   several co-eluting sources, or partial matches. Natural sequences hit those slightly more often than reversed ones
   across many fragments.
