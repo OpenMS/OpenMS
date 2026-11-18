@@ -150,7 +150,9 @@ The q-values of @p fdr:cutoff are per spectrum. When a molecule produces many sp
 elution), they understate the FDR of the reported oligos: a wrong match to an abundant molecule brings all its spectra.
 With @p fdr:oligo_level, NASE also calculates q-values per unmodified oligo sequence (each sequence represented by its
 best-scoring spectrum; target and decoy sequences compete) and reports them for every hit as "oligo-level q-value";
-@p fdr:oligo_cutoff removes hits of sequences above it. Use them for claims about which oligos are present.
+@p fdr:oligo_cutoff removes hits of sequences above it. Use them for claims about which oligos are present. They count
+one decoy more, (decoys + 1) / targets, as needed for FDR control with the few sequences of RNA samples
+(@p fdr:oligo_plus_one): with n target sequences no q-value is below 1/n, so q <= 0.01 needs at least 100 sequences.
 
 <B>The command line parameters of this tool are:</B>
 @verbinclude TOPP_NucleicAcidSearchEngine.cli
@@ -512,9 +514,15 @@ protected:
     registerFlag_("fdr:oligo_level",
                   "Also estimate the FDR per oligonucleotide sequence (unmodified): each spectrum's best hit competes, every sequence "
                   "is represented by its best-scoring spectrum, and targets compete with decoys by these scores (q-value = "
-                  "decoys / targets at or above a score). Every hit gets the 'oligo-level q-value' of its sequence. Many spectra of "
-                  "one molecule count once, so this is the FDR of the reported sequences; the spectrum-level FDR understates it "
-                  "when molecules produce many spectra.", false);
+                  "(decoys + 1) / targets at or above a score, see 'fdr:oligo_plus_one'). Every hit gets the 'oligo-level q-value' "
+                  "of its sequence. Many spectra of one molecule count once, so this is the FDR of the reported sequences; the "
+                  "spectrum-level FDR understates it when molecules produce many spectra.", false);
+    registerStringOption_("fdr:oligo_plus_one", "<choice>", "true",
+                          "With 'fdr:oligo_level': count one decoy more, (decoys + 1) / targets, as needed for FDR control with few "
+                          "sequences (target-decoy competition with the +1 correction). With n target sequences, no q-value is below 1 / n, "
+                          "so q <= 0.01 needs at least 100 sequences. 'false': decoys / targets, as the spectrum-level q-values.",
+                          false, true);
+    setValidStrings_("fdr:oligo_plus_one", {"true", "false"});
     registerDoubleOption_("fdr:oligo_cutoff", "<value>", 1.0,
                           "With 'fdr:oligo_level': remove hits whose sequence has a higher oligo-level q-value (applied together with "
                           "'fdr:cutoff')", false);
@@ -2175,8 +2183,9 @@ protected:
     @brief Oligo-level q-values ('fdr:oligo_level'), from target-decoy competition of unmodified oligo sequences
 
     Each spectrum contributes its best hit (by @p score_ref). A sequence (with its target/decoy status) is represented by
-    the best score of its spectra; q-value of a target sequence = decoy sequences / target sequences with at least its
-    score (ties count for the decoys), made monotone, as FalseDiscoveryRate does for spectra. Every observation match
+    the best score of its spectra; q-value of a target sequence = (decoy sequences + 1) / target sequences with at least
+    its score ('fdr:oligo_plus_one'; without the +1 as FalseDiscoveryRate does for spectra; ties count for the decoys),
+    made monotone. Every observation match
     gets the q-value of its sequence (1 if no spectrum's best hit has that sequence).
 
     @return The score type of the oligo-level q-values
@@ -2184,6 +2193,7 @@ protected:
   IdentificationData::ScoreTypeRef calculateOligoFDR_(IdentificationData& id_data, IdentificationData::ScoreTypeRef score_ref)
   {
     const bool higher_better = score_ref->higher_better;
+    const double plus_one = (getStringOption_("fdr:oligo_plus_one") == "true") ? 1.0 : 0.0;
     auto key_of = [](const IdentificationData::ObservationMatch& match) {
       const auto oligo = match.identified_molecule_var.getIdentifiedOligoRef();
       return std::make_pair(unmodifiedSequence_(oligo->sequence), oligo->allParentsAreDecoys());
@@ -2223,7 +2233,7 @@ protected:
       {
         ranked[order[j]].second ? ++decoys : ++targets;
       }
-      for (Size k = i; k < j; ++k) fdr[k] = targets ? std::min(1.0, double(decoys) / double(targets)) : 1.0;
+      for (Size k = i; k < j; ++k) fdr[k] = targets ? std::min(1.0, (double(decoys) + plus_one) / double(targets)) : 1.0;
       i = j;
     }
     std::map<std::pair<std::string, bool>, double> q_of;
