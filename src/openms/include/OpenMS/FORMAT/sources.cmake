@@ -116,10 +116,6 @@ ZlibCompression.h
 ZstdCompression.h
 )
 
-if (WITH_HDF5)
-  list(APPEND sources_list_h HDF5Connector.h)
-endif()
-
 list(APPEND sources_list_h ZipArchiveFile.h)
 list(APPEND sources_list_h MSExperimentArrowExport.h)
 list(APPEND sources_list_h ConsensusMapArrowExport.h)
