@@ -72,11 +72,12 @@ searches, maximum in brackets).
 
 | Decoys and entrapment | Score | q-value | Background | Target spectra | Estimated FDP |
 | --- | --- | --- | --- | --- | --- |
-| shuffled per T1 product, avoiding human RNA oligos | native | 5% | off / on | 1020 / 1570 | 3.3% (17.6%) / 2.1% (13.0%) |
-| | Percolator | 5% | off / on | 1718 / 1855 | 5.9% (15.9%) / 3.4% (16.9%) |
-| | Percolator | 10% | off / on | 1936 / 1954 | 11.0% (21.1%) / 5.9% (20.0%) |
-| DecoyDatabase (whole tRNAs shuffled) | native | 5% | off / on | 1198 / 1532 | 5.3% (8.6%) / 3.9% (8.8%) |
-| | Percolator | 5% | off / on | 1828 / 1882 | 7.2% (13.7%) / 5.3% (13.8%) |
+| shuffled per T1 product, avoiding human RNA oligos | native | 5% | off / on | 1020 / 1519 | 3.3% (17.6%) / 2.4% (12.4%) |
+| | Percolator | 5% | off / on | 1718 / 1848 | 5.9% (15.9%) / 3.4% (16.0%) |
+| | Percolator | 10% | off / on | 1936 / 1954 | 11.0% (21.1%) / 5.2% (20.7%) |
+| DecoyDatabase (whole tRNAs shuffled) | native | 5% | off / on | 1198 / 1592 | 5.3% (8.6%) / 5.0% (12.5%) |
+| | Percolator | 5% | off / on | 1828 / 1893 | 7.2% (13.7%) / 5.1% (15.6%) |
+| | Percolator | 10% | off / on | 2013 / 1982 | 10.8% (21.9%) / 9.2% (21.5%) |
 
 The background left out about 3300-3500 spectra per search, mostly spectra that had no database hit at all. It
 gains the most with decoys (and entrapment sequences) shuffled per digestion product: whole-sequence shuffles of
