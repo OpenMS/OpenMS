@@ -110,48 +110,6 @@ namespace OpenMS::OpenDIA
                                                                       const std::array<double, 6>& fragment_mz, const TraceEvidence& evidence,
                                                                       const Stage2ExtractionOptions& options);
 
-  /// OpenSWATH-style peak-group scores (PLAN_PGSCORES), over the boundary picker's peak and the core-window spectra.
-  enum class Stage2PeakGroupFeature : std::size_t
-  {
-    XCORR_COELUTION = 0,   ///< Mean + sample sd of |best lag| over fragment pairs i <= j (OpenSWATH xcorr_coelution).
-    XCORR_COELUTION_W,     ///< Library-weighted sum of |best lag| (xcorr_coelution_weighted).
-    XCORR_SHAPE,           ///< Mean best normalised cross-correlation (xcorr_shape).
-    XCORR_SHAPE_W,         ///< Library-weighted best cross-correlation (xcorr_shape_weighted).
-    LOG_SN,                ///< log1p(mean over fragments of apex / (median over scan bins + run floor)).
-    INTENSITY_FRACTION,    ///< Fragment signal inside the picked peak over the signal of all scan bins.
-    MASSDEV,               ///< Mean over fragments of min(1, |ppm| / tolerance); 1 for a fragment without signal.
-    MASSDEV_W,             ///< Library-weighted MASSDEV.
-    ISOTOPE_CORR,          ///< Area-weighted Pearson of M+0..M+4 against averagine (dia_isotope_scores isotope_corr).
-    ISOTOPE_OVERLAP,       ///< Area-weighted count of charges 1..4 with a larger peak one 13C spacing below.
-    COUNT
-  };
-  constexpr std::size_t STAGE2_PEAKGROUP_FEATURES = static_cast<std::size_t>(Stage2PeakGroupFeature::COUNT);
-  /// Peak-group column names, in Stage2PeakGroupFeature order.
-  const std::array<std::string, STAGE2_PEAKGROUP_FEATURES>& stage2PeakGroupFeatureNames();
-  /**
-    @brief Peak-group scores of one window (PLAN_PGSCORES); identical for targets and decoys and free of training.
-
-    Library weights w are the non-padding library intensities normalised to sum 1; area shares a are the fragment
-    areas inside the picked peak over their total. Without a picked peak of at least 3 scan bins and 2 fragments with
-    signal the cross-correlation lags are 10, the shapes 0 and the S/N, intensity and isotope features 0.
-
-    @param[in] tensor One window of TraceCollector::SAMPLE_SIZE floats.
-    @param[in] library_intensities Library intensity per channel.
-    @param[in] fragment_mz Fragment m/z per channel; zero marks padding.
-    @param[in] fragment_charge Library fragment charge per channel (0 = unknown, taken as 1).
-    @param[in] evidence Window evidence (ms2_mask).
-    @param[in] pg Core-window spectrum evidence of the window.
-    @param[in] tolerance_ppm The run's fragment tolerance (positive).
-    @param[in] floor The run's intensity floor (peakGroupNoiseFloor()).
-  */
-  std::array<double, STAGE2_PEAKGROUP_FEATURES> stage2PeakGroupFeatures(const float* tensor, const std::array<double, 6>& library_intensities,
-                                                                        const std::array<double, 6>& fragment_mz,
-                                                                        const std::array<std::int8_t, 6>& fragment_charge,
-                                                                        const TraceEvidence& evidence, const PeakGroupEvidence& pg,
-                                                                        double tolerance_ppm, double floor);
-  /// Median nonzero mobility-summed per-bin fragment intensity over up to 20,000 evenly strided windows (1 if none).
-  double peakGroupNoiseFloor(const TraceCollector& traces);
-
   /// b/y ion evidence of the isolating MS2 spectrum nearest the window apex (all theoretical ions, not only the library's six).
   enum class Stage2ByIonFeature : std::size_t
   {

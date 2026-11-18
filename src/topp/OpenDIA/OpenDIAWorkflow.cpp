@@ -56,7 +56,6 @@ protected:
     registerIntOption_("seed", "<n>", 0, "Scorer seed", false);
     setMinInt_("seed", 0);
     registerFlag_("im_array_as_vssc", "Interpret a spectrum ion-mobility array whose unit is not CCS as 1/K0");
-    registerFlag_("pg_scores", "Experimental (PLAN_PGSCORES): add 10 OpenSWATH-style peak-group scores (cross-correlation, S/N, mass deviation, fragment isotopes) to the scorer", true);
     registerStringOption_("calibration", "<files>", "", "Advanced: comma-separated OpenDIACalibrate JSON per run to reuse instead of calibrating", false, true);
     registerStringOption_("anchors", "<files>", "", "Advanced: comma-separated anchor TSV per run, with -calibration", false, true);
   }
@@ -121,7 +120,6 @@ protected:
     options.threads = std::max(1, getIntOption_("threads"));
     options.seed = static_cast<std::uint64_t>(getIntOption_("seed"));
     options.im_array_as_vssc = getFlag_("im_array_as_vssc");
-    options.pg_scores = getFlag_("pg_scores");
     options.calibration.panel_targets = 40000;
 
     // Best (calibrated) score of each precursor per run, for the global q-value.

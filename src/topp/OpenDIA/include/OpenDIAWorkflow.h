@@ -86,7 +86,6 @@ namespace OpenMS::OpenDIA
     std::uint64_t seed = 0;
     int threads = 1;
     bool im_array_as_vssc = false;
-    bool pg_scores = false;  ///< PLAN_PGSCORES: append the 10 peak-group scores (Stage2PeakGroupFeature).
     /// Optional: reuse an OpenDIACalibrate JSON and anchor TSV instead of calibrating (reproduction of earlier runs).
     std::string calibration_json;
     std::string anchors_tsv;
@@ -144,6 +143,6 @@ namespace OpenMS::OpenDIA
     Log log_;
   };
 
-  /// Feature names of RunAnalysis, in column order (with the PLAN_PGSCORES block when @p pg_scores).
-  std::vector<std::string> runFeatureNames(bool pg_scores = false);
+  /// Feature names of RunAnalysis, in column order.
+  const std::vector<std::string>& runFeatureNames();
 }

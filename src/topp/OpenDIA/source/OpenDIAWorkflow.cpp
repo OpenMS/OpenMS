@@ -148,18 +148,20 @@ namespace OpenMS::OpenDIA
     }
   }
 
-  std::vector<std::string> runFeatureNames(bool pg_scores)
+  const std::vector<std::string>& runFeatureNames()
   {
-    std::vector<std::string> n;
-    for (const auto& s : stage2SearchFeatureNames()) n.push_back(s);
-    for (const auto& s : stage2BoundaryFeatureNames()) n.push_back(s);
-    for (const auto& s : stage2ByIonFeatureNames()) n.push_back(s);
-    for (const char* s : FragmentGrid::evidenceNames()) n.emplace_back(s);
-    for (const char* s : FragmentGrid::deficitNames()) n.emplace_back(s);
-    for (const char* s : InterferenceResolver::featureNames()) n.emplace_back(s);
-    if (pg_scores)
-      for (const auto& s : stage2PeakGroupFeatureNames()) n.push_back(s);
-    return n;
+    static const std::vector<std::string> names = []
+    {
+      std::vector<std::string> n;
+      for (const auto& s : stage2SearchFeatureNames()) n.push_back(s);
+      for (const auto& s : stage2BoundaryFeatureNames()) n.push_back(s);
+      for (const auto& s : stage2ByIonFeatureNames()) n.push_back(s);
+      for (const char* s : FragmentGrid::evidenceNames()) n.emplace_back(s);
+      for (const char* s : FragmentGrid::deficitNames()) n.emplace_back(s);
+      for (const char* s : InterferenceResolver::featureNames()) n.emplace_back(s);
+      return n;
+    }();
+    return names;
   }
 
   // ------------------------------------------------------------------------------------------------ library
@@ -487,7 +489,6 @@ namespace OpenMS::OpenDIA
     traces.setIonMobilityArrayAsVSSC(options_.im_array_as_vssc);
     traces.enableEvidence(20.0, options_.core_half_width_s);
     traces.enableByIonCounts(trace_library, options_.byion_ppm, options_.byion_intensity_min);
-    if (options_.pg_scores) traces.enablePeakGroupEvidence(cal.ms2_tolerance_ppm);
     {
       TeeConsumer both(grids, traces);
       readSpectra(path, both, {1, 2});
@@ -501,7 +502,7 @@ namespace OpenMS::OpenDIA
 
     // 5. Features.
     const auto t_features = std::chrono::steady_clock::now();
-    const auto names = runFeatureNames(options_.pg_scores);
+    const auto& names = runFeatureNames();
     const std::size_t d = names.size();
     result.feature_names = names;
     result.features.assign(n * d, 0.0f);
@@ -512,7 +513,6 @@ namespace OpenMS::OpenDIA
     Stage2ExtractionOptions extraction;
     extraction.rt_half_width = options_.grid_half_width_s;
     extraction.core_half_width = options_.core_half_width_s;
-    const double pg_floor = options_.pg_scores ? peakGroupNoiseFloor(traces) : 0.0;
 #pragma omp parallel num_threads(options_.threads)
     {
       std::array<float, TraceCollector::SAMPLE_SIZE> view;
@@ -536,16 +536,9 @@ namespace OpenMS::OpenDIA
         const auto& gp = grid_precursors[grid_windows[i].precursor];
         for (float v : FragmentGrid::deficit(grid_windows[i].core_area, gp.library, gp.search, noise)) f[o++] = v;
         for (std::size_t k = 0; k < InterferenceResolver::FEATURES; ++k) f[o++] = interference[i * InterferenceResolver::FEATURES + k];
-        if (options_.pg_scores)
-        {
-          for (double v : stage2PeakGroupFeatures(tensor, traces.libraryIntensities(i), traces.fragmentMZ(i), traces.fragmentCharges(i),
-                                                  traces.evidence(i), traces.peakGroupEvidence(i), cal.ms2_tolerance_ppm, pg_floor))
-            f[o++] = static_cast<float>(v);
-        }
       }
     }
-    say("Features: " + std::to_string(d) + " per window, noise=" + std::to_string(noise) +
-        (options_.pg_scores ? " pg_floor=" + std::to_string(pg_floor) : std::string()) + " seconds=" + std::to_string(seconds(t_features)));
+    say("Features: " + std::to_string(d) + " per window, noise=" + std::to_string(noise) + " seconds=" + std::to_string(seconds(t_features)));
 
     // 6. Scorer.
     const auto t_score = std::chrono::steady_clock::now();
