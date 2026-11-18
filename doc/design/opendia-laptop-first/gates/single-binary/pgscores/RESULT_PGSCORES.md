@@ -1,7 +1,7 @@
 # PLAN_PGSCORES result: FAIL (D criterion 2, Astral raw 02 criterion 3); code removed
 
 Written 18 November 2026. The design verdict (`VERDICT_DESIGN.md`, commit 0bea8cd75f, 09:13:44) was committed before any
-held-out run. The Astral design runs finished after it, and they fail a criterion too.
+held-out run. The Astral design runs had finished by 09:09 but were evaluated only after it; they fail a criterion too.
 
 - **Code:** 5a7c95fd68, flag `-pg_scores`, 10 features. Reverted.
 - **Container:** `opendia-pg-5a7c95fd68.sif` (sha256 314ed0bc…).

@@ -1,8 +1,11 @@
 # PLAN_PGSCORES design verdict: FAIL (criterion 2)
 
-Written 18 November 2026, after the D design runs and before any held-out run (H or Astral raw 03). The Astral design
-runs (raws 01/02, NEW seeds 0-4) were still queued on codon at this point. They cannot change the verdict and are reported
-when done.
+Written 18 November 2026, after the D design runs and before any held-out run (H or Astral raw 03).
+
+**Correction (10:07, from file timestamps):** The Astral design runs (raws 01/02, NEW seeds 0-4) had in fact finished on
+codon by 09:09, before this verdict. They had not been fetched or evaluated, and I wrongly wrote that they were still
+queued. They cannot change the verdict, and their result is in RESULT_PGSCORES.md. The held-out timing holds: the raw 03
+jobs were submitted at 09:14 and H started at 09:14, both after this commit (09:13:44).
 
 | D (design) | N median (min-max) | agreement with DIA-NN, median |
 |---|---|---|
