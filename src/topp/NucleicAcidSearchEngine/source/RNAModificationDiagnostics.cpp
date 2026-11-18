@@ -120,8 +120,9 @@ RNAModificationDiagnostics::Evidence RNAModificationDiagnostics::evaluate(const 
           // a lone coincident peak must not relax modification permissions.
           const double partner_mz = found->first + Constants::C13C12_MASSDIFF_U / ion.charge;
           const double partner_delta = tolerance_ * (tolerance_ppm_ ? partner_mz * 1e-6 : 1.0);
-          const auto partner = std::lower_bound(peaks.begin(), peaks.end(), partner_mz - partner_delta,
-                                                [](const auto& peak, double mass) { return peak.first < mass; });
+          auto partner = std::lower_bound(peaks.begin(), peaks.end(), partner_mz - partner_delta,
+                                          [](const auto& peak, double mass) { return peak.first < mass; });
+          if (partner == found) { ++partner; }
           if (partner == peaks.end() || partner->first > partner_mz + partner_delta) { continue; }
           isotope_match = partner->first;
         }

@@ -32,8 +32,20 @@ falls back to exhaustive placement if its per-oligo placement bound is exceeded.
 completes modifications, and validates exact precursor masses. Its explicit
 state, completion, candidate, and support limits fail the entire search rather
 than export partial results. `routes:verify_candidates` checks complete
-candidate identities and scaffold witnesses against the unindexed oracle;
-`routes:precursor_index=false` selects that oracle directly.
+candidate identities and scaffold witnesses against an unindexed reference with
+both route-state and equivalent-route compression disabled.
+`routes:precursor_index=false` disables the index while retaining the other reductions.
+Da fragment tolerances remain in observed m/z units; each peak's uncertainty is
+scaled by its charge when constructing the neutral-mass graph and route anchors.
+
+With theoretical-ion blacklists, placement keeps precursor-mass pruning and
+defers graph rejection to the theoretical matcher. This preserves native-scoring
+fallback when blacklisting removes every modeled ion in the available graph charges.
+Only scans with searchable precursor hypotheses consume the graph cache budget;
+`out_graph` marks the other scans as `not_searched_no_precursor`.
+Graph, route and diagnostic backends require positive fragment tolerance, and
+route generation also requires positive precursor tolerance. Native paths that
+support exact matching can still use zero tolerance.
 
 ## Reuse and RNA-specific code
 
@@ -94,7 +106,12 @@ each completed product against its parent and missed-cleavage budget.
 Cuts created by a modification (e.g. RNase T1 after inosine) count against
 that budget, so such a product at the full budget is dropped here although
 enumeration keeps it. A cached digest supplies its own missed-cleavage budget.
-`oligo:cleavage_model=canonical` is an explicit alternative for `graph_routes`.
+`oligo:cleavage_model=canonical` is an explicit alternative for `graph_routes`:
+cut positions come from the unmodified parent, while extracted products retain
+their internal fixed and pre-existing modifications.
+Premodified input residues remain available at their original sites. Placing a
+modification elsewhere requires it in the configured variable panel and, when
+diagnostic filtering applies, permission from the current spectrum's evidence.
 Cached digests must match the database and digestion model and come from
 `digest_out`; files containing search observation matches are rejected. Enumeration/tag modes
 reject route digests because cleavage-sensitive placements have not been pre-expanded. Route generation
@@ -108,7 +125,9 @@ an RNase group, again as in enumeration. `routes:terminal_states=all` additional
 physical assignments for every oligonucleotide: OH/OH, OH/P, OH/cyclic-P, P/OH,
 P/P and P/cyclic-P. Linkage modifications (codes ending in `*`) have
 neighbor-dependent masses and are rejected. Explicit input/fixed termini
-remain constrained; variable terminal/linkage modifications use enumeration/tag
+remain constrained at ends where the RNase does not replace them; `all` also
+retains enzyme-produced assignments that replace a stored terminal group.
+Variable terminal/linkage modifications use enumeration/tag
 modes.
 
 ## Scoring

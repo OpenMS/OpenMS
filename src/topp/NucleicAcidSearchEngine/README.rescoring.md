@@ -5,6 +5,8 @@ Percolator of OpenMS (`Percolator::rescore`). It is off by default and needs
 decoy sequences (`fdr:decoy_pattern`). The search, the candidate methods and
 the native scores are unchanged; rescoring only changes the score that the
 q-values are calculated on.
+Percolator uses TOPP's resolved thread count, capped at the linked library's
+supported maximum; `threads=0` therefore retains TOPP's automatic core selection.
 
 **Experimental:** the rescored q-values can understate the FDR when an analyte
 produces several spectra (see [FDR control](#fdr-control)). Check them with an
@@ -33,7 +35,18 @@ As a consequence:
 - With `report:top_hits` above 1, the lower-ranked hits get no Percolator
   score and therefore no q-value; with `fdr:cutoff` below 1 they are removed.
 - The q-values count each spectrum once (its best hit), whatever
-  `report:top_hits` is, so the reporting limit does not change them.
+  `report:top_hits` is. The feature pool is fixed by `rescoring:top_hits`, so
+  changing the reporting limit within that pool does not change the learned q-values.
+
+When rescoring is enabled, `rescoring:top_hits` must be at least
+`report:top_hits`; 0 retains all hits. Reporting all hits therefore also requires
+`rescoring:top_hits=0`. Invalid combinations are rejected instead of silently
+enlarging the feature pool. On native-score fallback, the original native
+reporting cutoff is preserved even when ambiguity resolution merges tied hits.
+
+Training and FDR use the same final molecule identity and merged parent set.
+If a placed oligo has a target parent as well as a decoy parent, both paths
+classify it as a target.
 
 Runner-ups are not rescored as rows of their own. Every RNA target has an
 isobaric reversed decoy, so most spectra have a strong decoy runner-up.
