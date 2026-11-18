@@ -17,7 +17,7 @@ Counts are N at entrapment FDP_c 1 % on raw 01 / raw 02, unless the row says oth
 
 ## Now
 
-Rows of 12-16 November 2026. Earlier rows (voxel v2-v19, CNN + LDA) are in the R-WP sections and in git history.
+Rows of 12-18 November 2026. Earlier rows (voxel v2-v19, CNN + LDA) are in the R-WP sections and in git history.
 
 | Step | WP | State | Record |
 |---|---|---|---|
@@ -34,9 +34,9 @@ Rows of 12-16 November 2026. Earlier rows (voxel v2-v19, CNN + LDA) are in the R
 | Self-calibrated RT spread: CALSPREAD fails offline; CALREFINE / CALREFINE2 (5 seeds) +5.8 % / −3.1 %, fail | R-WP2 | Done (fail) | [calspread](gates/single-binary/calspread/RESULT_CALSPREAD.md), [calrefine](gates/single-binary/calrefine/RESULT_CALREFINE2.md) |
 | RT window width rule: density crossing undefined, P_win against the evidence; cross-fitted width on IDs (PLAN_RTWIN2) −2.2 % raw 01, held-out raw 03 −2.3 %, removed | R-WP2 | Done (fail) | [RESULT_RTWIN2.md](gates/single-binary/rtwin/RESULT_RTWIN2.md) |
 | ID-based recalibration with RT-dependent window (PLAN_RTPROFILE): ends recovered, middle loses; raw 02 −1.05 %, raw 01 s4 FDP_c 0.0104, raw 03 −0.6 %, removed | R-WP2 | Done (fail) | [RESULT_RTPROFILE.md](gates/single-binary/rtwin/RESULT_RTPROFILE.md) |
-| Close the gap to DIA-NN (DIA-NN from .raw: 2204 / 2356 / 2259 at FDP_c 1 %; OpenDIA 81-84 %) | R-WP5 | In progress | [RESULT_GAP.md](gates/extraction-parity/gap/RESULT_GAP.md) |
+| Close the gap to DIA-NN. Astral (from .raw): 81-84 % at FDP_c 1 %. HeLa diaPASEF after RTCENTRE + IMGRID: 56 % (design) / 63 % (held out), 84 % of OpenSWATH SVM | R-WP5 | In progress | [RESULT_GAP.md](gates/extraction-parity/gap/RESULT_GAP.md), [RESULT_IMGRID.md](gates/single-binary/imgrid/RESULT_IMGRID.md) |
 | HeLa diaPASEF final benchmark: OpenDIA 11,653 vs DIA-NN 28,950 (40 %), OpenSWATH SVM 19,132 (61 %); below the earlier rewrite (13,253), so the Astral changes regress diaPASEF | R-WP5, R-WP6 | Done (diagnostic) | [RESULT_HELA.md](gates/single-binary/bench/RESULT_HELA.md) |
-| HeLa diagnosis: uncalibrated 1/K0 in the evidence pass (fixed 0e9e4fc3a5, 11,653 → 13,290); early-gradient RT map bias in the single-pass calibration (old map: 13,984); 6 of 24 inputs nearly constant and grid/interference mobility-blind on diaPASEF | R-WP2, R-WP5 | In progress | [DIAG_HELA.md](gates/single-binary/bench/DIAG_HELA.md) |
+| HeLa diagnosis: uncalibrated 1/K0 in the evidence pass (fixed 0e9e4fc3a5), early-gradient RT map bias (fixed by RTCENTRE 6dd893b954), mobility-blind grid/interference (fixed by IMGRID 963543c7f0); still open: b/y-ion floor, no 12-fragment HeLa library | R-WP2, R-WP5 | Done (diagnostic) | [DIAG_HELA.md](gates/single-binary/bench/DIAG_HELA.md) |
 | Fair same-laptop benchmark (raw 01, 8 threads, both read .raw): OpenDIA 10:14, 15.6 GB, 172 % CPU; DIA-NN 7:23, 6.8 GB, 765 % CPU | R-WP6 | Done (diagnostic) | [README snapshot](README.md), [bench/](gates/single-binary/bench/) |
 | Raw-pass speed: m/z-bucketed evidence pass (271 → 111 s) and level-aware Thermo read-ahead; laptop raw 01 10:14 → 7:18 (DIA-NN 7:23), byte-identical | R-WP6 | Done | [README snapshot](README.md) |
 | Calibration memory (14.4 GB peak after eaa2c95cd0, from the 600k-member windowed pass; DIA-NN 6.8 GB) | R-WP6 | Open | [README snapshot](README.md) |
@@ -127,7 +127,8 @@ Rows of 12-16 November 2026. Earlier rows (voxel v2-v19, CNN + LDA) are in the R
 | Step | State | Record |
 |---|---|---|
 | HeLa loss funnel | Done (diagnostic) | [R5](work-packages/R5-id-gap.md) |
-| HeLa regression diagnosis: 1/K0 bug fixed (0e9e4fc3a5, 11,653 → 13,290); early-gradient RT map bias and mobility-blind / empty evidence on diaPASEF open | In progress | [DIAG_HELA.md](gates/single-binary/bench/DIAG_HELA.md) |
+| HeLa regression diagnosis: 1/K0 bug, RT map and mobility-blind grid fixed (11,653 → 16,116); open: b/y-ion floor, 12-fragment HeLa library | Done (diagnostic) | [DIAG_HELA.md](gates/single-binary/bench/DIAG_HELA.md) |
+| diaPASEF scoring: run-derived b/y-ion intensity floor; 12-fragment scoring library for HeLa | Open | [DIAG_HELA.md](gates/single-binary/bench/DIAG_HELA.md) |
 | One-pass stage 3 centred on the stage-1 map (PLAN_RTCENTRE): HeLa 13,127 → 14,875 (+13.3 %), held-out HeLa 19,725 → 21,682 (+9.9 %), agreement with DIA-NN held, Astral identical; kept (6dd893b954) | Done (pass) | [RESULT_RTCENTRE.md](gates/single-binary/rtcentre/RESULT_RTCENTRE.md) |
 | Mobility-resolved 12-fragment grid and interference (PLAN_IMGRID): HeLa 14,875 → 16,116 (+8.3 %), held-out 21,682 → 24,000 (+10.7 %), agreement held, Astral identical; kept (963543c7f0) | Done (pass) | [RESULT_IMGRID.md](gates/single-binary/imgrid/RESULT_IMGRID.md) |
 | Astral gap against DIA-NN and same-library OSW + Percolator | Done (diagnostic) | [diann-reference-gap](gates/astral-diann-reference-gap/GAP.md) |

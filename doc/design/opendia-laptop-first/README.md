@@ -1,13 +1,25 @@
 # OpenDIA rewrite: master plan
 
-**Status, 16 November 2026.** This plan replaced the laptop-first WP-00 to WP-10 plan on 7 November 2026. The old plan is closed and kept unchanged under [archive/legacy-wp-plan-20261107](archive/legacy-wp-plan-20261107/README.md).
+**Status, 18 November 2026.** This plan replaced the laptop-first WP-00 to WP-10 plan on 7 November 2026. The old plan is closed and kept unchanged under [archive/legacy-wp-plan-20261107](archive/legacy-wp-plan-20261107/README.md).
 
 The rewrite lives on [`OpenMS/OpenMS:feature/opendia-clean-rewrite`](https://github.com/OpenMS/OpenMS/tree/feature/opendia-clean-rewrite).
-All of its code is under `src/topp/OpenDIA/`, and it makes no changes to the shared OpenMS API. The branch tip is `219d6ee6ea`.
+All of its code is under `src/topp/OpenDIA/`, apart from the Thermo read-ahead change, which is split out as OpenMS#10925 (approved). The branch tip is `963543c7f0`.
 It is an experimental branch, not a pull request. It must not merge into `develop` until the acceptance gates of R-WP6 pass.
 The branch's [`src/topp/OpenDIA/README.md`](https://github.com/OpenMS/OpenMS/blob/feature/opendia-clean-rewrite/src/topp/OpenDIA/README.md) describes the tools. The evidence is in [`gates/`](gates/).
 
-## Current state, 16 November 2026
+## Current state, 18 November 2026
+
+**Summary.**
+- **Astral (entrapment, true FDR):** OpenDIA reaches 81-84 % of DIA-NN at FDP_c 1 %, unchanged since 16 Nov (the table
+  below). Every lever tried there has failed or shown no room.
+- **HeLa diaPASEF (own q ≤ 0.01, no entrapment):** three fixes on 17 Nov raised the design run from 11,653 to 16,116 and
+  the held-out run from 19,725 to 24,000. That is 56 % / 63 % of DIA-NN and 84 % of OpenSWATH SVM on the design run.
+  Each fix passed a frozen plan with a held-out run and is byte-identical on Astral. See "Current HeLa result" below,
+  RESULT_RTCENTRE.md and RESULT_IMGRID.md.
+- **Speed and memory, same laptop, Astral raw 01:** 7:18-7:26 against DIA-NN's 7:23. Peak memory is 14.4 GB against
+  6.8 GB.
+
+## Astral snapshot, 16 November 2026
 
 ### Snapshot against DIA-NN (16 Nov, `gates/single-binary/STATUS_vs_DIANN.txt`)
 - **Setup:**
