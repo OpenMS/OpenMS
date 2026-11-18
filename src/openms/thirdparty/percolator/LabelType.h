@@ -17,10 +17,10 @@
 #ifndef LABEL_TYPE_H_
 #define LABEL_TYPE_H_
 
-
 #include <iostream>
 
 namespace OpenMS { namespace Internal { namespace Percolator {
+
 
 enum class LabelType {
   DECOY = -1,
