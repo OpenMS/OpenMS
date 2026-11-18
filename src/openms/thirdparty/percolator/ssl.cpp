@@ -51,22 +51,6 @@ void adviseHugePages(const void* p, std::size_t bytes) {
 }
 
 
-// AlgIn lifecycle — was previously defined in the legacy SVMlin
-// ssl.cpp; carried forward unchanged so existing callers (CrossValidation,
-// tests) keep their construction sites.
-AlgIn::AlgIn(const unsigned int size, const int numFeat) {
-  vals = new double*[size];
-  Y = new double[size];
-  n = numFeat;
-  positives = 0;
-  negatives = 0;
-}
-
-AlgIn::~AlgIn() {
-  delete[] vals;
-  delete[] Y;
-}
-
 namespace {
 
 // Row-major dense matrix — TRON's hot paths (X*w in fun, row scatter
@@ -487,10 +471,10 @@ int gradRatioConverged(const Eigen::VectorXd& g0, const Eigen::VectorXd& g_final
 }
 
 // the reference: TronFunction on a row-major Eigen matrix
-int tronRef(const AlgIn& set, options& opts, vector_double& Weights, vector_double& Outputs,
+int tronRef(const AlgIn& set, const options& opts, std::vector<double>& Weights, std::vector<double>& Outputs,
             double cpos, double cneg, double* gradRatio) {
   const int m = set.m;
-  const int n = Weights.d;
+  const int n = set.n;
   const int num_real = n - 1;
 
   // Build dense matrix X of shape (m, n) with synthesized 1.0 bias column.
@@ -499,7 +483,7 @@ int tronRef(const AlgIn& set, options& opts, vector_double& Weights, vector_doub
   DenseRowMatrix X(m, n);
   for (int i = 0; i < m; ++i) {
     for (int j = 0; j < num_real; ++j) {
-      X(i, j) = set.vals[i][j];
+      X(i, j) = set.row(i)[j];
     }
     X(i, num_real) = 1.0;
   }
@@ -519,16 +503,17 @@ int tronRef(const AlgIn& set, options& opts, vector_double& Weights, vector_doub
   TronFunction fn(X, t_eig, C_eig);
   TRON tron_solver(&fn, opts.epsilon, kTronEpsCg, opts.mfnitermax);
   tron_solver.set_print_string(silent_print);
-  tron_solver.tron(Weights.vec);
+  tron_solver.tron(Weights.data());
   if (opts.weightsOnly) return 1;
 
   // Reconstruct Outputs[i] = X.row(i) . w  (bias is already inside w[n-1]).
-  Eigen::Map<const Eigen::VectorXd> w_eig(Weights.vec, n);
-  Eigen::Map<Eigen::VectorXd> y_out(Outputs.vec, m);
+  if (Outputs.size() < static_cast<std::size_t>(m)) Outputs.resize(static_cast<std::size_t>(m));
+  Eigen::Map<const Eigen::VectorXd> w_eig(Weights.data(), n);
+  Eigen::Map<Eigen::VectorXd> y_out(Outputs.data(), m);
   y_out = X * w_eig;
 
   // Post-solve convergence indicator: ||grad(w_final)|| / ||grad(w_0)||.
-  // w_0 = 0 here (caller passes zero-initialized Weights).
+  // (w_0 = 0 as in TRON's stopping test, also after a warm start)
   Eigen::VectorXd g0, g_final;
   Eigen::VectorXd w_zero = Eigen::VectorXd::Zero(n);
   fn.compute_grad_at(w_zero, g0);
@@ -591,9 +576,9 @@ TronPairGroup::State* tronGroupX(TronPairGroup* group, const TronKernels::Ops& o
     g->mp = mp;
     g->n = n;
     g->np = np;
-    g->vals = set.vals;
-    g->firstRow = set.vals[0];
-    g->lastRow = set.vals[m - 1];
+    g->vals = set.rows();
+    g->firstRow = set.row(0);
+    g->lastRow = set.row(m - 1);
     g->positives = set.positives;
     g->negatives = set.negatives;
     lock.unlock();
@@ -615,8 +600,8 @@ TronPairGroup::State* tronGroupX(TronPairGroup* group, const TronKernels::Ops& o
   } else {
     g->cv.wait(lock, [g] { return g->build != State::kAllocating; });
   }
-  if (g->ops != &ops || g->m != m || g->n != n || g->vals != set.vals || g->firstRow != set.vals[0] ||
-      g->lastRow != set.vals[m - 1] || g->positives != set.positives || g->negatives != set.negatives) {
+  if (g->ops != &ops || g->m != m || g->n != n || g->vals != set.rows() || g->firstRow != set.row(0) ||
+      g->lastRow != set.row(m - 1) || g->positives != set.positives || g->negatives != set.negatives) {
     return nullptr;
   }
   if (g->build == State::kBuilding) {
@@ -626,7 +611,7 @@ TronPairGroup::State* tronGroupX(TronPairGroup* group, const TronKernels::Ops& o
     for (int r0; (r0 = g->nextBuildRow.fetch_add(kTronGroupBuildRows)) < mp;) {
       const int r1 = std::min(mp, r0 + kTronGroupBuildRows);
       // rows [r0, min(r1, m)), zero rows up to r1 (a multiple of 32, or mp)
-      finite &= ops.build_bt(set.vals + r0, std::min(r1, m) - r0, n - 1, np, g->XB + (std::ptrdiff_t)r0 * np) != 0;
+      finite &= ops.build_bt(set.rows() + r0, std::min(r1, m) - r0, n - 1, np, g->XB + (std::ptrdiff_t)r0 * np) != 0;
       rows += r1 - r0;
     }
     lock.lock();
@@ -642,10 +627,10 @@ TronPairGroup::State* tronGroupX(TronPairGroup* group, const TronKernels::Ops& o
 }
 
 // the same with FastTronFunction on X in BT4 layout (m >= 2); X is the group's if it can serve the solve
-int tronFast(const TronKernels::Ops& ops, const AlgIn& set, options& opts, vector_double& Weights,
-             vector_double& Outputs, double cpos, double cneg, double* gradRatio, TronPairGroup* group) {
+int tronFast(const TronKernels::Ops& ops, const AlgIn& set, const options& opts, std::vector<double>& Weights,
+             std::vector<double>& Outputs, double cpos, double cneg, double* gradRatio, TronPairGroup* group) {
   const int m = set.m;
-  const int n = Weights.d;
+  const int n = set.n;
   const int num_real = n - 1;
   const double inv_2lambda = 1.0 / (2.0 * opts.lambda);
   TronPairGroup::State* g = tronGroupX(group, ops, set, n);
@@ -665,7 +650,7 @@ int tronFast(const TronKernels::Ops& ops, const AlgIn& set, options& opts, vecto
     } else {
       // X (m, n) with the 1.0 bias column, in BT4 layout, zero-padded to (mp, np)
       double* xb = ws.xb.get((size_t)mp * (size_t)np);
-      finite = ops.build_bt(set.vals, m, num_real, np, xb) != 0;
+      finite = ops.build_bt(set.rows(), m, num_real, np, xb) != 0;
       ws.t.assign(mp, 0.0);
       for (int i = 0; i < m; ++i) ws.t[i] = set.Y[i];
       XB = xb;
@@ -679,21 +664,22 @@ int tronFast(const TronKernels::Ops& ops, const AlgIn& set, options& opts, vecto
     FastTronFunction fn(ops, ws, XB, m, n, t, ws.C.data(), finite);
     TRON tron_solver(&fn, opts.epsilon, kTronEpsCg, opts.mfnitermax);
     tron_solver.set_print_string(silent_print);
-    tron_solver.tron(Weights.vec);
+    tron_solver.tron(Weights.data());
     if (opts.weightsOnly) return 1;
 
     // Outputs = X * w: the margins with t = 1 ((0 + cc) * 1, as Eigen's 0 + 1 * cc)
     ws.ones.assign(mp, 1.0);
     growTo(ws.out, mp);
-    ops.margins_bt(XB, n, np, Weights.vec, ws.ones.data(), 0, mp, ws.out.data());
-    std::copy(ws.out.begin(), ws.out.begin() + m, Outputs.vec);
+    ops.margins_bt(XB, n, np, Weights.data(), ws.ones.data(), 0, mp, ws.out.data());
+    if (Outputs.size() < static_cast<std::size_t>(m)) Outputs.resize(static_cast<std::size_t>(m));
+    std::copy(ws.out.begin(), ws.out.begin() + m, Outputs.begin());
 
     Eigen::VectorXd g0(n), g_final(n);
     Eigen::VectorXd w_zero = Eigen::VectorXd::Zero(n);
     fn.fun(w_zero.data());
     fn.grad(w_zero.data(), g0.data());
-    fn.fun(Weights.vec);
-    fn.grad(Weights.vec, g_final.data());
+    fn.fun(Weights.data());
+    fn.grad(Weights.data(), g_final.data());
     ret = gradRatioConverged(g0, g_final, opts.epsilon, gradRatio);
   }
   return ret;
@@ -712,33 +698,29 @@ bool selfCheckOnce(const TronKernels::Ops& ops) {
   const int sizes[2][2] = {{160, 8}, {64, 45}};  // (m, features): n = 9 (one kernel), 46 (generic)
   for (const auto& sz : sizes) {
     const int m = sz[0], nf = sz[1];
-    std::vector<double> vals((size_t)m * nf);
-    AlgIn in(m, nf + 1);
-    in.m = m;
+    std::vector<double> row(nf);
+    AlgIn in(nf + 1);
     for (int i = 0; i < m; ++i) {
       const double label = uniform() < 0.4 ? 1.0 : -1.0;
-      in.Y[i] = label;
       for (int j = 0; j < nf; ++j) {
         const double v = uniform() + uniform() - 1.0 + (j % 3 == 0 ? 0.3 * label : 0.0);
-        vals[(size_t)i * nf + j] = v * (j % 4 == 1 ? 1e3 : j % 4 == 2 ? 1e-3 : 1.0);
+        row[j] = v * (j % 4 == 1 ? 1e3 : j % 4 == 2 ? 1e-3 : 1.0);
       }
-      in.vals[i] = vals.data() + (size_t)i * nf;
+      in.add(row.data(), label);
     }
     options opts{1.0, 1.0, EPSILON, CGITERMAX, MFNITERMAX};
-    vector_double w[2], out[2];
+    std::vector<double> w[2], out[2];
     double ratio[2];
     int conv[2];
     for (int k = 0; k < 2; ++k) {
-      w[k].d = nf + 1;
-      w[k].vec = new double[nf + 1]();
-      out[k].d = m;
-      out[k].vec = new double[m]();
+      w[k].assign(nf + 1, 0.0);
+      out[k].assign(m, 0.0);
     }
     conv[0] = tronRef(in, opts, w[0], out[0], 1.0, 3.0, &ratio[0]);
     conv[1] = tronFast(ops, in, opts, w[1], out[1], 1.0, 3.0, &ratio[1], nullptr);
     if (conv[0] != conv[1] || std::memcmp(&ratio[0], &ratio[1], sizeof(double)) != 0 ||
-        std::memcmp(w[0].vec, w[1].vec, sizeof(double) * (nf + 1)) != 0 ||
-        std::memcmp(out[0].vec, out[1].vec, sizeof(double) * m) != 0) {
+        std::memcmp(w[0].data(), w[1].data(), sizeof(double) * (nf + 1)) != 0 ||
+        std::memcmp(out[0].data(), out[1].data(), sizeof(double) * m) != 0) {
       return false;
     }
   }
@@ -857,7 +839,7 @@ bool tronEvaluateForTest(const char* isa, const AlgIn& set, double cpos, double 
     DenseRowMatrix X(m, n);
     Eigen::VectorXd t(m), C(m);
     for (int i = 0; i < m; ++i) {
-      for (int j = 0; j < n - 1; ++j) X(i, j) = set.vals[i][j];
+      for (int j = 0; j < n - 1; ++j) X(i, j) = set.row(i)[j];
       X(i, n - 1) = 1.0;
       t(i) = set.Y[i];
       C(i) = (set.Y[i] > 0.0 ? cpos : cneg) * inv_2lambda;
@@ -875,7 +857,7 @@ bool tronEvaluateForTest(const char* isa, const AlgIn& set, double cpos, double 
   TronWorkspace ws;
   const int np = (n + 3) & ~3, mp = (m + 31) & ~31;
   double* XB = ws.xb.get((size_t)mp * (size_t)np);
-  const bool finite = ops.build_bt(set.vals, m, n - 1, np, XB) != 0;
+  const bool finite = ops.build_bt(set.rows(), m, n - 1, np, XB) != 0;
   ws.t.assign(mp, 0.0);
   ws.C.assign(mp, 0.0);
   for (int i = 0; i < m; ++i) {
@@ -890,9 +872,15 @@ bool tronEvaluateForTest(const char* isa, const AlgIn& set, double cpos, double 
 #endif
 }
 
-int tron(const AlgIn& set, options& opts,
-         vector_double& Weights, vector_double& Outputs,
+int tron(const AlgIn& set, const options& opts,
+         std::vector<double>& Weights, std::vector<double>& Outputs,
          double cpos, double cneg, double* gradRatio, TronPairGroup* group) {
+  if (Weights.size() < static_cast<std::size_t>(set.n)) Weights.resize(static_cast<std::size_t>(set.n), 0.0);
+  if (set.m == 0) {  // no examples: the minimum of (1/2)||w||^2 (as upstream's solver, which returns zero weights)
+    std::fill(Weights.begin(), Weights.begin() + set.n, 0.0);
+    if (gradRatio != nullptr) *gradRatio = 0.0;
+    return 1;
+  }
   if (opts.lambda <= 0.0) {
     std::fprintf(stderr,
                  "TRON adapter: opts.lambda must be > 0 (got %g); aborting.\n",
@@ -902,7 +890,7 @@ int tron(const AlgIn& set, options& opts,
 
 #ifdef PERCOLATOR_TRON_KERNELS
   const int kernels = tronKernels().load(std::memory_order_relaxed);
-  const int m = set.m, n = Weights.d;
+  const int m = set.m, n = set.n;
   if (kernels != kTronRef && fastDimensions(m, n) && kernelsVerified(kernels)) {
     return tronFast(tronOps(kernels), set, opts, Weights, Outputs, cpos, cneg, gradRatio, group);
   }

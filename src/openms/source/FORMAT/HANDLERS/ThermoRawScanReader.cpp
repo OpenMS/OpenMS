@@ -229,21 +229,35 @@ namespace
 
   /**
     Typed view of one scan header for the precursor parser. Trailer values are the
-    vendor-formatted strings (ReadOptions::trailer_text) paired with the labels of the
-    file's trailer layout; reaction values that are not finite stay unset.
+    vendor-formatted strings (ReadOptions::trailer_text); reaction values that are not finite stay unset.
+
+    The values come from RawFileReader's GetTrailerExtraInformation(), which lists only the trailer
+    fields that apply to the scan. Usually these are all fields of the file's trailer layout, in
+    layout order, and the values are paired with the layout labels. Some instruments leave fields
+    out (Orbitrap Ascend: a control-character label, 'Source CID Compensation Factor:', 'SPS Masses:'
+    and others in MS2 scans, also 'Charge State:' and 'Monoisotopic M/Z:' in MS1 scans). Then there
+    are fewer values than layout labels, and pairing them by position would give every label after
+    the first missing field the value of another field. The labels of such a scan are taken from the
+    same vendor call instead (RawFile::trailer_extra_labels()), as ThermoRawFileParser and msconvert do.
   */
-  void toThermoScan(const tb::ScanHeader& header, const tb::TrailerLayout& layout, ThermoScan& scan)
+  void toThermoScan(const tb::ScanHeader& header, const tb::RawFile& raw, ThermoScan& scan)
   {
     scan.scan_number = header.scan_number;
     scan.ms_level = header.ms_level();
     scan.filter = header.filter;
     scan.native_id = header.native_id();
-    const Size entries = std::min(layout.labels.size(), header.trailer_text.size());
-    scan.trailer.resize(entries);
-    for (Size i = 0; i < entries; ++i)
+    const std::vector<std::string>& values = header.trailer_text;
+    const tb::TrailerLayout& layout = raw.trailer_layout();
+    const bool layout_order = values.size() == layout.labels.size();
+    std::vector<std::string> labels; // labels of the values, only needed if they are not the layout labels
+    if (! layout_order && ! values.empty()) { labels = raw.trailer_extra_labels(header.scan_number); }
+    // Labels and values come from the same vendor call, so their numbers agree; never mislabel values if not.
+    const bool paired = layout_order || labels.size() == values.size();
+    scan.trailer.resize(paired ? values.size() : 0);
+    for (Size i = 0; i < scan.trailer.size(); ++i)
     {
-      scan.trailer[i].label = layout.labels[i].label;
-      scan.trailer[i].value = header.trailer_text[i];
+      scan.trailer[i].label = layout_order ? layout.labels[i].label : labels[i];
+      scan.trailer[i].value = values[i];
     }
     scan.reactions.clear();
     for (const auto& reaction : header.reactions)
@@ -632,17 +646,27 @@ struct ThermoRawScanReader::Impl
   {
     static constexpr int chunk = 128;
     int first = 0, last = 0, peaks_from = 0;
+    std::vector<int> peak_levels; ///< If not empty, peaks are only read ahead for scans of these MS levels.
     tb::ReadOptions header_options, full_options;
+    tb::ReadOptions peak_options; ///< Peaks of a scan whose header was already read (no trailers, as convert() reads them).
     std::vector<std::thread> workers;
     std::mutex mutex;
     std::condition_variable produced, consumed;
-    std::map<int, std::pair<std::vector<tb::Spectrum>, std::exception_ptr>> ready; ///< chunk -> scans
+    /// One chunk of read-ahead scans: the scans, whether each one carries its peaks, and a read error.
+    struct Chunk
+    {
+      std::vector<tb::Spectrum> scans;
+      std::vector<char> has_peaks;
+      std::exception_ptr error;
+    };
+    std::map<int, Chunk> ready; ///< chunk index -> chunk
     int next_chunk = 0, current_chunk = -1, window = 0;
     bool stop = false;
-    std::vector<tb::Spectrum> current;
+    Chunk current;
 
     void run(tb::RawFile accessor)
     {
+      tb::Spectrum peaks; // scratch for the peak read of a level-selected scan
       for (;;)
       {
         int c;
@@ -655,45 +679,69 @@ struct ThermoRawScanReader::Impl
         const int begin = first + c * chunk;
         if (begin > last) { return; }
         const int end = std::min(last, begin + chunk - 1);
-        std::vector<tb::Spectrum> scans(end - begin + 1);
-        std::exception_ptr error;
+        Chunk out;
+        out.scans.resize(end - begin + 1);
+        out.has_peaks.assign(out.scans.size(), 0);
         try
         {
           for (int scan = begin; scan <= end; ++scan)
           {
-            accessor.read_scan(scan, scans[scan - begin], scan >= peaks_from ? full_options : header_options);
+            tb::Spectrum& spectrum = out.scans[scan - begin];
+            bool with_peaks = scan >= peaks_from;
+            if (with_peaks && ! peak_levels.empty())
+            {
+              // The header decides; the peaks of a selected scan follow in a second read without trailers. The level
+              // is clamped as in header(), which maps every MS order of 0 or below to level 0.
+              accessor.read_scan(scan, spectrum, header_options);
+              const int level = std::max(spectrum.header.ms_level(), 0);
+              with_peaks = std::find(peak_levels.begin(), peak_levels.end(), level) != peak_levels.end();
+              if (with_peaks)
+              {
+                accessor.read_scan(scan, peaks, peak_options);
+                std::swap(spectrum.mz, peaks.mz);
+                std::swap(spectrum.intensities, peaks.intensities);
+                std::swap(spectrum.charges, peaks.charges);
+                std::swap(spectrum.noise_mz, peaks.noise_mz);
+                std::swap(spectrum.noise_intensities, peaks.noise_intensities);
+                std::swap(spectrum.noise_baselines, peaks.noise_baselines);
+              }
+            }
+            else
+            {
+              accessor.read_scan(scan, spectrum, with_peaks ? full_options : header_options);
+            }
+            out.has_peaks[scan - begin] = with_peaks;
           }
         }
-        catch (...) { error = std::current_exception(); }
+        catch (...) { out.error = std::current_exception(); }
         {
           std::lock_guard<std::mutex> lock(mutex);
-          ready.emplace(c, std::make_pair(std::move(scans), error));
+          ready.emplace(c, std::move(out));
         }
         produced.notify_all();
       }
     }
 
-    /// Swap the read-ahead data of @p scan into @p out; false if @p scan is not covered.
-    bool take(int scan, tb::Spectrum& out)
+    /// Swap the read-ahead data of @p scan into @p out (@p has_peaks: peaks were read too); false if @p scan is not covered.
+    bool take(int scan, tb::Spectrum& out, bool& has_peaks)
     {
       if (scan < first || scan > last) { return false; }
       const int c = (scan - first) / chunk;
       if (c != current_chunk)
       {
-        std::exception_ptr error;
         {
           std::unique_lock<std::mutex> lock(mutex);
           produced.wait(lock, [&] { return ready.count(c) > 0; });
           auto it = ready.find(c);
-          current = std::move(it->second.first);
-          error = it->second.second;
+          current = std::move(it->second);
           ready.erase(it);
           current_chunk = c;
         }
         consumed.notify_all();
-        if (error) { std::rethrow_exception(error); }
+        if (current.error) { std::rethrow_exception(current.error); }
       }
-      std::swap(out, current[scan - first - c * chunk]);
+      std::swap(out, current.scans[scan - first - c * chunk]);
+      has_peaks = current.has_peaks[scan - first - c * chunk] != 0;
       return true;
     }
 
@@ -860,7 +908,7 @@ void ThermoRawScanReader::fillSettings(ExperimentalSettings& settings) const
   settings.setInstrument(d.instrument);
 }
 
-void ThermoRawScanReader::readAhead(int last_scan, int peaks_from)
+void ThermoRawScanReader::readAhead(int last_scan, int peaks_from, std::vector<int> peak_levels)
 {
   Impl& d = *impl_;
   if (d.read_ahead) { d.read_ahead->shutdown(); d.read_ahead.reset(); }
@@ -877,12 +925,14 @@ void ThermoRawScanReader::readAhead(int last_scan, int peaks_from)
   ahead->first = first;
   ahead->last = last_scan;
   ahead->peaks_from = peaks_from;
+  ahead->peak_levels = std::move(peak_levels);
   ahead->window = 4 * workers;
   ahead->full_options = d.peakReadOptions();
   ahead->full_options.trailer_text = true;
   ahead->header_options = ahead->full_options;
   ahead->header_options.peaks = false;
   ahead->header_options.noise = false;
+  ahead->peak_options = d.peakReadOptions();
   std::vector<tb::RawFile> accessors;
   for (int i = 0; i < workers; ++i) { accessors.push_back(d.raw->thread_accessor()); }
   for (auto& accessor : accessors)
@@ -897,9 +947,10 @@ const ThermoRawScanReader::ScanInfo& ThermoRawScanReader::header(int scan, bool 
   Impl& d = *impl_;
   if (d.first_seen == 0) { d.first_seen = scan; }
   else if (scan != d.info.scan + 1) { throw std::logic_error("ThermoRawScanReader::header() must visit scans in order"); }
-  if (d.read_ahead && d.read_ahead->take(scan, d.header_read))
+  bool ahead_peaks = false;
+  if (d.read_ahead && d.read_ahead->take(scan, d.header_read, ahead_peaks))
   {
-    d.header_has_peaks = scan >= d.read_ahead->peaks_from;
+    d.header_has_peaks = ahead_peaks;
   }
   else
   {
@@ -911,7 +962,7 @@ const ThermoRawScanReader::ScanInfo& ThermoRawScanReader::header(int scan, bool 
     d.header_has_peaks = with_peaks;
   }
   const tb::ScanHeader& h = d.header_read.header;
-  toThermoScan(h, d.raw->trailer_layout(), d.scan);
+  toThermoScan(h, *d.raw, d.scan);
   d.order = tb::ms_order_name(h.ms_order);
   d.neutral = h.ms_order == tb::MsOrder::Nl || h.ms_order == tb::MsOrder::Ng;
   // The precursor parser has to see every scan in acquisition order, also those that are not converted.
@@ -954,7 +1005,7 @@ void ThermoRawScanReader::scanHeaders(int first, int last, bool precursors, cons
       info.precursor_mz = std::numeric_limits<double>::quiet_NaN();
       if (precursors && h.ms_order != tb::MsOrder::Nl && h.ms_order != tb::MsOrder::Ng)
       {
-        toThermoScan(h, d.raw->trailer_layout(), parsed);
+        toThermoScan(h, *d.raw, parsed);
         const auto resolved = parser.precursors(parsed);
         if (! resolved.empty()) { info.precursor_mz = resolved.front().selected_mz; }
       }
@@ -1069,7 +1120,7 @@ void ThermoRawScanReader::Accessor::convert(const ScanRecord& record, MSSpectrum
   read.noise = peaks && read.noise;
   read.trailer_text = true;
   d.raw.read_scan(record.info.scan, d.read, read);
-  toThermoScan(d.read.header, d.raw.trailer_layout(), d.parsed);
+  toThermoScan(d.read.header, d.raw, d.parsed);
   convertScan(d.converter, record.info.scan, d.read.header, d.parsed, record.precursors, record.configuration_id, d.first_seen,
               [&d](int parent_scan) -> const MSSpectrum& { return d.parent(parent_scan); }, peaks ? &d.read : nullptr, spectrum);
 }

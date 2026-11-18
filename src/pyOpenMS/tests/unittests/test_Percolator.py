@@ -205,7 +205,7 @@ def test_feature_set_and_mark_rescored_runs():
     assert len(runs) == 1
     marked = runs[0]
     assert marked.getSearchEngine() == "Percolator"
-    assert marked.getSearchEngineVersion() == "3.08-vendored"
+    assert marked.getSearchEngineVersion() == "3.09-vendored"
     assert marked.getMetaValue("percolator") == "MyTool"
     sp = marked.getSearchParameters()
     assert sp.getMetaValue("Percolator:testFDR") == 0.05

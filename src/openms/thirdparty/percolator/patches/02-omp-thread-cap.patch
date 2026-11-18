@@ -1,0 +1,186 @@
+diff --git a/src/openms/thirdparty/percolator/CrossValidation.cpp b/src/openms/thirdparty/percolator/CrossValidation.cpp
+index a907b032ba884d9ff606e3b3455c35905910259a..191cfe0999b1563977b76e5112b5d5adaa18dc18 100644
+--- a/src/openms/thirdparty/percolator/CrossValidation.cpp
++++ b/src/openms/thirdparty/percolator/CrossValidation.cpp
+@@ -24,6 +24,7 @@
+ #ifdef _OPENMP
+ #include <omp.h>
+ #endif
++#include "OpenMPThreads.h"  // OpenMS: maxThreads()
+ 
+ namespace OpenMS { namespace Internal { namespace Percolator {
+ 
+@@ -37,12 +38,10 @@ const unsigned int CrossValidation::gridSearchIterations_ = 3u;
+ 
+ // the number of threads a parallel region can have, and the number of the
+ // calling thread in its region
++// OpenMS: maxThreads() (OpenMPThreads.h), omp_get_max_threads() at most the cap of the calling thread; the regions
++// below get it as num_threads, so that the thread numbers stay below it
+ static std::size_t maxNumThreads() {
+-#ifdef _OPENMP
+-  return static_cast<std::size_t>(std::max(1, omp_get_max_threads()));
+-#else
+-  return 1u;
+-#endif
++  return static_cast<std::size_t>(maxThreads());
+ }
+ 
+ static std::size_t threadNum() {
+@@ -494,7 +493,7 @@ int CrossValidation::doStep(const Normalizer* /* pNorm */, double selectionFdr)
+       // the pairs are ordered by fold
+       const int firstPair = static_cast<int>(firstSet * pairsPerFold);
+       const int endPair = static_cast<int>(endSet * pairsPerFold);
+-#pragma omp parallel for schedule(dynamic, 1)
++#pragma omp parallel for schedule(dynamic, 1) num_threads(static_cast<int>(maxNumThreads()))
+       for (int pairIdx = firstPair; pairIdx < endPair; pairIdx++) {
+         CandidateCposCfrac* cpCnFold = &classWeightsPerFold_[pairIdx];
+         if (!isSelectedPair(*cpCnFold)) {
+@@ -602,14 +601,14 @@ int CrossValidation::mergeCpCnPairs(
+   const int numTestSets =
+       needCounts ? static_cast<int>(numFolds_ * nestedXvalBins_) : 0;
+   std::vector<Scores::FeatureRows> testRows(numTestSets);
+-#pragma omp parallel for schedule(dynamic, 1)
++#pragma omp parallel for schedule(dynamic, 1) num_threads(static_cast<int>(maxNumThreads()))
+   for (int idx = 0; idx < numTestSets; ++idx) {
+     testSet(idx / nestedXvalBins_, idx % nestedXvalBins_)
+         .getFeatureRows(testRows[idx]);
+   }
+ 
+   std::vector<int> truePositives(classWeightsPerFold_.size());
+-#pragma omp parallel
++#pragma omp parallel num_threads(static_cast<int>(maxNumThreads()))
+   {
+     Scores::CountBuffers buffers;  // one per thread, for all its pairs
+ #pragma omp for schedule(dynamic, 1)
+@@ -684,7 +683,7 @@ int CrossValidation::mergeCpCnPairs(
+          firstSet += foldsPerPass) {
+       const unsigned int endSet =
+           (std::min)(numFolds_, firstSet + foldsPerPass);
+-#pragma omp parallel for schedule(dynamic, 1)
++#pragma omp parallel for schedule(dynamic, 1) num_threads(static_cast<int>(maxNumThreads()))
+       for (int set = static_cast<int>(firstSet);
+            set < static_cast<int>(endSet); ++set) {
+         AlgIn& svmInput = svmInputs[
+diff --git a/src/openms/thirdparty/percolator/ParallelSort.h b/src/openms/thirdparty/percolator/ParallelSort.h
+index 3da364433867521f0bb9e5538dc432d4aebfdf54..10f182c229b138bde503f8c6b1fa336b3d3d443e 100644
+--- a/src/openms/thirdparty/percolator/ParallelSort.h
++++ b/src/openms/thirdparty/percolator/ParallelSort.h
+@@ -26,6 +26,7 @@
+ #ifdef _OPENMP
+ #include <omp.h>
+ #endif
++#include "OpenMPThreads.h"  // OpenMS: maxThreads(), threadsFor()
+ 
+ namespace OpenMS { namespace Internal { namespace Percolator {
+ 
+@@ -71,7 +72,7 @@ inline std::ptrdiff_t scaled(std::ptrdiff_t x, long long num, long long den) {
+ template <class F>
+ void parallelFor(int n, const F& f) {
+   std::exception_ptr error;
+-#pragma omp parallel for schedule(static)
++#pragma omp parallel for schedule(static) num_threads(threadsFor(n))
+   for (int i = 0; i < n; ++i) {
+     try {
+       f(i);
+@@ -195,7 +196,7 @@ void parallelSort(RandomIt first, RandomIt last, Compare comp) {
+ #ifdef _OPENMP
+   using parallel_sort_detail::parallelFor;
+   const std::ptrdiff_t n = last - first;
+-  const int p = omp_in_parallel() ? 1 : omp_get_max_threads();
++  const int p = inParallel() ? 1 : maxThreads();  // OpenMS: the cap of the calling thread (OpenMPThreads.h)
+   if (p < 2 || n < parallel_sort_detail::kMinParallelSize) {
+     std::sort(first, last, comp);
+     return;
+diff --git a/src/openms/thirdparty/percolator/Scores.cpp b/src/openms/thirdparty/percolator/Scores.cpp
+index 7d610a947c9540cb9772baf6dd1da465c598ed2c..99b874c2eafcda43aca510ca7d763dd37bc531cc 100644
+--- a/src/openms/thirdparty/percolator/Scores.cpp
++++ b/src/openms/thirdparty/percolator/Scores.cpp
+@@ -18,6 +18,7 @@
+ #ifdef _OPENMP
+ #include <omp.h>
+ #endif
++#include "OpenMPThreads.h"  // OpenMS: maxThreads(), inParallel()
+ #include <algorithm>
+ #include <cassert>
+ #include <cmath>
+@@ -57,12 +58,10 @@ namespace {
+ 
+ // The number of threads that a loop over the PSMs may use: one inside a
+ // parallel region, where the loops of this file run on the calling thread.
++// OpenMS: maxThreads() (OpenMPThreads.h), omp_get_max_threads() at most the cap of the calling thread; the loops
++// get their number as num_threads
+ int numLoopThreads() {
+-#ifdef _OPENMP
+-  return omp_in_parallel() ? 1 : std::max(1, omp_get_max_threads());
+-#else
+-  return 1;
+-#endif
++  return inParallel() ? 1 : maxThreads();
+ }
+ 
+ }  // namespace
+@@ -417,7 +416,7 @@ void Scores::print(LabelType label, std::ostream& os) {
+     std::vector<std::string> buffers(static_cast<std::size_t>(numBuffers));
+     std::exception_ptr error;
+     for (long start = 0; start < numScores; start += kBlockSize * numBuffers) {
+-#pragma omp parallel for schedule(static, 1) if (numBuffers > 1)
++#pragma omp parallel for schedule(static, 1) num_threads(numBuffers) if (numBuffers > 1)
+       for (int b = 0; b < numBuffers; ++b) {
+         std::string& buffer = buffers[static_cast<std::size_t>(b)];
+         buffer.clear();
+@@ -875,8 +874,8 @@ int Scores::calcScores(const std::vector<double>& w) {
+   std::size_t ix;
+   const long numScores = static_cast<long>(scores_.size());
+   const int numFeatures = static_cast<int>(FeatureNames::getNumFeatures());
+-#pragma omp parallel for schedule(static) \
+-    if (numScores > 100000 && !omp_in_parallel())
++#pragma omp parallel for schedule(static) num_threads(maxThreads()) \
++    if (numScores > 100000 && !inParallel())
+   for (long i = 0; i < numScores; ++i) {
+     // The PSM records and their feature rows are scattered in memory, in
+     // an order that the processor cannot predict: the record is requested
+@@ -1243,7 +1242,7 @@ int appendTrainingRows(const std::vector<ScoreHolder>& scores, AlgIn& data,
+   const int numChunks = numScores > 100000 ? numLoopThreads() : 1;
+   // offset[c]: the number of selected PSMs before chunk c
+   std::vector<std::size_t> offset(static_cast<std::size_t>(numChunks) + 1, 0);
+-#pragma omp parallel for schedule(static, 1) if (numChunks > 1)
++#pragma omp parallel for schedule(static, 1) num_threads(numChunks) if (numChunks > 1)
+   for (int c = 0; c < numChunks; ++c) {
+     const long begin = numScores / numChunks * c;
+     const long end =
+@@ -1266,7 +1265,7 @@ int appendTrainingRows(const std::vector<ScoreHolder>& scores, AlgIn& data,
+   // requested ahead, and the rows are then copied, requested ahead likewise.
+   const int kBlock = 256;
+   const int numValues = data.n - 1;
+-#pragma omp parallel for schedule(static, 1) if (numChunks > 1)
++#pragma omp parallel for schedule(static, 1) num_threads(numChunks) if (numChunks > 1)
+   for (int c = 0; c < numChunks; ++c) {
+     const long begin = numScores / numChunks * c;
+     const long end =
+@@ -1443,7 +1442,7 @@ void Scores::keepBestPsmPerPeptide(
+       new PeptideKey[static_cast<std::size_t>(numScores)]);
+   PeptideKey* const keys = keyBuffer.get();
+   const bool parallel = numScores > 100000 && numLoopThreads() > 1;
+-#pragma omp parallel for schedule(static) if (parallel)
++#pragma omp parallel for schedule(static) num_threads(numLoopThreads()) if (parallel)
+   for (long i = 0; i < numScores; ++i) {
+     // the PSM is requested 16 PSMs ahead and its peptide, whose address is
+     // in the PSM, 8 ahead
+@@ -1489,7 +1488,7 @@ void Scores::keepBestPsmPerPeptide(
+   auto peptideOf = [&scores](const PeptideKey& key) {
+     return scores[key.index()].pPSM->getPeptideSequenceView();
+   };
+-#pragma omp parallel for schedule(static, 1) if (numChunks > 1)
++#pragma omp parallel for schedule(static, 1) num_threads(numChunks) if (numChunks > 1)
+   for (int c = 0; c < numChunks; ++c) {
+     const long chunkEnd = chunkBegin[static_cast<std::size_t>(c) + 1];
+     // Only the peptides of runs of several PSMs are read. Their scores,
+@@ -1592,7 +1591,7 @@ int Scores::bestInitDirection(double initialSelectionFdr, int& bestFeature,
+   FeatureRows rows;
+   getFeatureRows(rows);
+   const std::size_t numRows = rows.size();
+-#pragma omp parallel
++#pragma omp parallel num_threads(threadsFor(numFeatures))
+   {
+     CountBuffers buffers;  // one per thread, for all its features
+     buffers.values.resize(numRows);

@@ -7,8 +7,9 @@
 # $Authors: Timo Sachsenberg $
 # --------------------------------------------------------------------------
 #
-# Fetch the assets the pyOpenMS wheel builds need for native Thermo RAW support,
-# without going through NuGet or the .NET SDK's package restore:
+# Fetch the assets the pyOpenMS wheel builds and the container image build
+# (dockerfiles/Dockerfile) need for native Thermo RAW support, without going through
+# NuGet or the .NET SDK's package restore:
 #
 #   1. the pre-built managed half of openms-thermo-bridge (ThermoWrapperManaged.dll,
 #      its runtimeconfig.json and the Thermo CommonCore assemblies), published as a
@@ -19,21 +20,31 @@
 #      Compiling the native bridge still needs the nethost headers from a .NET
 #      SDK / host pack. When no release asset has been published for the pinned
 #      bridge revision (the per-platform SHA-256 below is empty), this step is
-#      skipped and the wheel jobs let the bridge publish the managed assemblies
-#      with the .NET SDK they install anyway.
+#      skipped and the calling build lets the bridge publish the managed assemblies
+#      with the .NET SDK it installs anyway.
 #   2. PNNL's Angiotensin_AllScans.raw from archive.openms.de, used to smoke-test
 #      the finished wheel.
 #
 # Every download is retried and verified against a pinned SHA-256, and the bridge
 # tag is checked against the FetchContent pin in cmake/cmake_findExternalLibs.cmake
-# so the two cannot drift apart silently.
+# so the two cannot drift apart silently. The vcpkg overlay port
+# (vcpkg-overlays/ports/openms-thermo-bridge/portfile.cmake) downloads the same zips
+# itself and pins their SHA-512; update both together.
 #
-# Usage: tools/ci/fetch_thermo_assets.sh <linux-x64|linux-arm64|osx-arm64|win-x64> [dest-dir]
+# Usage: tools/ci/fetch_thermo_assets.sh [--managed-only] <linux-x64|linux-arm64|osx-arm64|win-x64> [dest-dir]
 #   dest-dir defaults to the current directory; creates <dest-dir>/thermo-managed
 #   and <dest-dir>/thermo-testdata. Existing, verified files are reused, so the
 #   two directories can be put into a CI cache.
+#   --managed-only fetches the managed bridge (1.) alone, for builds that do not
+#   test a wheel; <dest-dir>/thermo-testdata is then not created.
 
 set -euo pipefail
+
+managed_only=false
+if [[ "${1:-}" == "--managed-only" ]]; then
+  managed_only=true
+  shift
+fi
 
 # Commit of openms-thermo-bridge; must equal the FetchContent GIT_TAG in
 # cmake/cmake_findExternalLibs.cmake (checked below). BRIDGE_TAG is the release tag
@@ -56,7 +67,7 @@ case "$platform" in
   win-x64)     managed_sha256="c07c805865a755828f05833e24af95b2c1986fab66b220bdde1ff58532dacea5" ;;
   linux-arm64) managed_sha256="3066896cde15eb1e953c971495854d0634958b9a3f9021c325c12cb0e4e75b83" ;;
   *)
-    echo "usage: $0 <linux-x64|linux-arm64|osx-arm64|win-x64> [dest-dir]" >&2
+    echo "usage: $0 [--managed-only] <linux-x64|linux-arm64|osx-arm64|win-x64> [dest-dir]" >&2
     exit 2
     ;;
 esac
@@ -110,7 +121,7 @@ download() {
   fi
 }
 
-mkdir -p "${dest}/thermo-managed" "${dest}/thermo-testdata"
+mkdir -p "${dest}/thermo-managed"
 
 # The managed directory is handed to CMake verbatim and installed as-is, so keep the
 # zip out of it. A fully extracted directory (e.g. restored from a CI cache) is reused.
@@ -145,7 +156,10 @@ else
   done
 fi
 
-download "$RAW_URL" "${dest}/thermo-testdata/Angiotensin_AllScans.raw" "$RAW_SHA256"
+if [[ "$managed_only" == false ]]; then
+  mkdir -p "${dest}/thermo-testdata"
+  download "$RAW_URL" "${dest}/thermo-testdata/Angiotensin_AllScans.raw" "$RAW_SHA256"
+fi
 
 echo "Thermo assets ready:"
 managed_complete=true
@@ -157,4 +171,6 @@ if [[ "$managed_complete" == true ]]; then
 else
   echo "  managed bridge: built from source (dotnet publish)"
 fi
-echo "  RAW test file:  ${dest}/thermo-testdata/Angiotensin_AllScans.raw"
+if [[ "$managed_only" == false ]]; then
+  echo "  RAW test file:  ${dest}/thermo-testdata/Angiotensin_AllScans.raw"
+fi

@@ -2,8 +2,9 @@
 // see license for more information
 
 #include "Vector.h"
+
 namespace OpenMS { namespace Internal { namespace Percolator {
-using namespace std;
+
 
 Numerical Vector::sparseChecker(1e-15);
 Numerical Vector::comparator(1e-8);
@@ -18,7 +19,7 @@ const Vector & Vector::operator =(const Array<double> & simpleVector)
   return *this;
 }
 
-Vector::Vector(const Array<double> & simpleVector, bool pack)
+Vector::Vector(const Array<double> & simpleVector, bool /* pack */)
 {
   values = simpleVector;
   createNonzeroIndices();
@@ -384,7 +385,7 @@ istream & operator >>(istream & is, Vector & rhs)
 double operator *(const Array<double> & lhs, const Array<double> & rhs)
 {
   double tot = 0;
-  for (int k=0; k<lhs.size(); k++)
+  for (std::size_t k=0; k<lhs.size(); k++)
     {
       tot += lhs[k] * rhs[k];
     }
@@ -394,7 +395,7 @@ double operator *(const Array<double> & lhs, const Array<double> & rhs)
 
 const Array<double> & operator *=(Array<double> & lhs, double val)
 {
-  for (int k=0; k<lhs.size(); k++)
+  for (std::size_t k=0; k<lhs.size(); k++)
     lhs[k] *= val;
   return lhs;
 }
@@ -452,9 +453,9 @@ double Vector::min() const
  
   for ( Set::Iterator iter = beginNonzero(); iter != endNonzero(); iter++ )
     {
-      currentMin = std::min( currentMin, values[ *iter ] );
+      currentMin = std::min( currentMin, values[ *iter ] );     
     }
-
+ 
   if ( ! zeroIndices.isEmpty() )
     {
       currentMin = std::min( currentMin, 0.0 );
@@ -468,12 +469,12 @@ double Vector::max() const
   double currentMax = -Numerical::inf();
 
   Set zeroIndices = Set::FullSet(0, size()-1 ).without( nonzeroIndices );
-
+ 
   for ( Set::Iterator iter = beginNonzero(); iter != endNonzero(); iter++ )
     {
-      currentMax = std::max( currentMax, values[ *iter ] );
+      currentMax = std::max( currentMax, values[ *iter ] );     
     }
-
+ 
   if ( ! zeroIndices.isEmpty() )
     {
       currentMax = std::max( currentMax, 0.0 );
@@ -532,7 +533,7 @@ Array<double> operator -(const Array<double> & rhs)
 {
   Array<double> result = rhs;
 
-  for (int k=0; k<result.size(); k++)
+  for (std::size_t k=0; k<result.size(); k++)
     {
       result[k] = -result[k];
     }
@@ -544,10 +545,10 @@ void Vector::displayVector() const
 {
   Array<double> u = unpack();
 
-  for (int k=0; k<u.size(); k++)
+  for (std::size_t k=0; k<u.size(); k++)
     {
       cout << u[k];
-      if ( k != u.size() - 1 )
+      if ( k + 1 != u.size() )
 	{
 	  cout << "\t";
 	}
@@ -561,7 +562,7 @@ double diffNormSquared(const Vector & u, const Vector & v)
 
   Set s = u.nonzeroIndices & v.nonzeroIndices;
   
-  for (int i=0; i<s.size(); i++)
+  for (std::size_t i=0; i<s.size(); i++)
     {
       int ind = s[i];
       res += pow(u[ind] - v[ind], 2.0);
