@@ -158,6 +158,10 @@ protected:
                           "target library's intensities", false, true);
     registerStringOption_("predict_model_directory", "<dir>", "",
                           "predict_decoys: directory with peptdeep_{rt,ms2,ccs}_dynamic.onnx; empty uses the installed models", false, true);
+    registerStringOption_("predict_keep_short", "<true/false>", "false",
+                          "predict_decoys: keep a decoy with fewer usable fragments than its target (all it has, at least one) "
+                          "instead of dropping it, so its target still competes against a decoy", false, true);
+    setValidStrings_("predict_keep_short", {"true", "false"});
   }
 
   ExitCodes main_(int, const char **) override
@@ -250,6 +254,7 @@ protected:
     decoy_parameters.predict_instrument = getStringOption_("predict_instrument");
     decoy_parameters.predict_model_directory = getStringOption_("predict_model_directory");
     decoy_parameters.predict_threads = getIntOption_("threads");
+    decoy_parameters.predict_keep_short = getStringOption_("predict_keep_short") == "true";
 
     OpenSwathLibraryPreparation preparation;
     preparation.setLogType(log_type_);

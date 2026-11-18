@@ -543,6 +543,58 @@ START_SECTION([EXTRA] generateDecoys with predict_decoys gives each decoy its ow
   }
   TEST_TRUE(same_assays)
 
+  // predict_keep_short: a decoy with fewer usable fragments than its target is kept (with all it has)
+  // instead of dropped. A decoy keeps as many fragments as its target has, so giving every target 8 copies
+  // of its six transitions (k = 48) leaves short decoys without enough usable b/y fragments.
+  // Compare with and without the flag on the same input.
+  {
+    OpenSwath::LightTargetedExperiment widened = targets;
+    widened.transitions.clear();
+    for (int copy = 0; copy < 8; ++copy)
+    {
+      for (auto transition : targets.transitions)
+      {
+        transition.transition_name += "_c" + std::to_string(copy);
+        widened.transitions.push_back(transition);
+      }
+    }
+    std::string wide_targets;
+    NEW_TMP_FILE_EXT(wide_targets, ".pqp")
+    File::remove(wide_targets);
+    pqp.convertLightTargetedExperimentToPQP(wide_targets.c_str(), widened);
+    std::map<std::string, Size> decoy_counts[2];
+    Size decoy_compounds[2] = {0, 0};
+    for (const bool keep : {false, true})
+    {
+      OpenSwathLibraryPreparation::DecoyGeneratorParameters parameters = predicted;
+      parameters.predict_nce = 27.0;
+      parameters.predict_instrument = "Lumos";
+      parameters.predict_keep_short = keep;
+      std::string out;
+      NEW_TMP_FILE_EXT(out, ".pqp")
+      File::remove(out);
+      prep.generateDecoys(wide_targets, FileTypes::PQP, out, FileTypes::PQP, parameters);
+      OpenSwath::LightTargetedExperiment result;
+      pqp.convertPQPToTargetedExperiment(out.c_str(), result);
+      for (const auto& transition : result.transitions) ++decoy_counts[keep][transition.peptide_ref];
+      decoy_compounds[keep] = decoy_counts[keep].size();
+    }
+    // Without the flag every kept decoy has all 48 fragments, and some decoys are dropped.
+    bool dropped_all_full = true;
+    for (const auto& [id, n] : decoy_counts[0]) dropped_all_full = dropped_all_full && n == 48;
+    TEST_TRUE(dropped_all_full)
+    TEST_TRUE(decoy_compounds[1] > decoy_compounds[0])
+    // With it, every decoy kept before is unchanged in count, and the extra ones have 1-47 fragments.
+    bool superset = true, extras_short = true;
+    for (const auto& [id, n] : decoy_counts[0]) superset = superset && decoy_counts[1].count(id) && decoy_counts[1][id] == n;
+    for (const auto& [id, n] : decoy_counts[1])
+    {
+      if (!decoy_counts[0].count(id)) extras_short = extras_short && n >= 1 && n < 48;
+    }
+    TEST_TRUE(superset)
+    TEST_TRUE(extras_short)
+  }
+
   // TraML input has no predicted-decoy path.
   std::string traml_out;
   NEW_TMP_FILE_EXT(traml_out, ".TraML")

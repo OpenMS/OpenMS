@@ -911,7 +911,7 @@ namespace OpenMS
 
       std::vector<OpenSwath::LightTransition> transitions;
       std::set<std::string> kept;
-      Size rejected = 0, too_few = 0;
+      Size rejected = 0, too_few = 0, short_kept = 0;
       ProgressLogger progress;
       progress.setLogType(log_type);
       progress.startProgress(0, decoys.compounds.size(), "Predicting decoy assays");
@@ -947,14 +947,15 @@ namespace OpenMS
               candidates.push_back(transition);
             }
           }
-          if (candidates.size() < k)
+          if (candidates.size() < k && !(parameters.predict_keep_short && !candidates.empty()))
           {
             ++too_few;
             continue;
           }
+          short_kept += candidates.size() < k;
           std::stable_sort(candidates.begin(), candidates.end(),
                            [](const auto* a, const auto* b) { return a->library_intensity > b->library_intensity; });
-          candidates.resize(k);
+          candidates.resize(std::min(k, candidates.size()));
           const double top = candidates.front()->library_intensity;
 
           if (rt_line) decoy->rt = rt_line->first + rt_line->second * compound.rt;
@@ -991,7 +992,8 @@ namespace OpenMS
       if (log_type != ProgressLogger::NONE)
       {
         OPENMS_LOG_INFO << "Decoy prediction: " << kept.size() << " decoys predicted; " << too_few << " dropped with fewer fragments than "
-                        << "their target inside " << product_lo << "-" << product_hi << " m/z; " << rejected << " rejected by the models."
+                        << "their target inside " << product_lo << "-" << product_hi << " m/z; " << short_kept << " kept with fewer fragments; "
+                        << rejected << " rejected by the models."
                         << std::endl;
       }
     }

@@ -151,6 +151,14 @@ namespace OpenMS
       std::string predict_model_directory;
       /// Threads of the decoy predictor.
       Int predict_threads = 4;
+      /**
+        @brief Keep a predicted decoy that has fewer usable fragments than its target.
+
+        By default such a decoy is dropped, so its target competes without one (8.4 % of a 442k-precursor timsTOF
+        library). With this set it keeps all of its usable fragments instead (at least one), as DIALibGen does
+        for its own decoys. A decoy with no usable fragment is still dropped.
+      */
+      bool predict_keep_short = false;
     };
 
     OpenSwathLibraryPreparation();
