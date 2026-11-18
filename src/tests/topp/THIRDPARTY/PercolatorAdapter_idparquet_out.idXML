@@ -42,6 +42,7 @@
 				<UserParam type="string" name="Percolator:decoy_pattern" value="random"/>
 				<UserParam type="int" name="Percolator:post_processing_tdc" value="0"/>
 				<UserParam type="int" name="Percolator:train_best_positive" value="0"/>
+				<UserParam type="string" name="Percolator:classic_training" value="true"/>
 	</SearchParameters>
 	<IdentificationRun date="2026-04-28T20:04:03" search_engine="Percolator" search_engine_version="3.09-vendored" search_parameters_ref="SP_0" >
 		<ProteinIdentification score_type="" higher_score_better="true" significance_threshold="0.0" >
