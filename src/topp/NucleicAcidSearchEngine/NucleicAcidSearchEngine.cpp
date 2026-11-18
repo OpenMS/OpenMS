@@ -1342,6 +1342,26 @@ protected:
     return oligo.allParentsAreDecoys();
   }
 
+  /// Resolve the labels of the complete feature pool without changing native output parents.
+  static map<NASequence, bool> resolvedDecoyLabels_(const vector<HitsByScore>& annotated_hits, const IdentificationData& id_data)
+  {
+    map<NASequence, bool> labels;
+    for (const auto& hits : annotated_hits)
+    {
+      for (const auto& [score, hit] : hits)
+      {
+        auto [entry, inserted] = labels.try_emplace(hit.sequence, true);
+        entry->second = entry->second && isDecoyHit_(hit);
+        if (inserted)
+        {
+          const auto existing = id_data.getIdentifiedOligos().find(hit.sequence);
+          if (existing != id_data.getIdentifiedOligos().end()) { entry->second = entry->second && existing->allParentsAreDecoys(); }
+        }
+      }
+    }
+    return labels;
+  }
+
   /// Preserve the raw native reporting boundary before ambiguity variants merge.
   static double nativeReportCutoff_(const HitsByScore& hits, Size top_hits)
   {
@@ -1351,14 +1371,14 @@ protected:
     return cutoff->first;
   }
 
-  /// Register all reported parent sets before assigning training labels to resolved molecules.
-  static void registerHitOligos_(vector<HitsByScore>& annotated_hits, IdentificationData& id_data, const vector<double>& report_cutoffs)
+  /// Register the full rescoring pool, or only native reported parents when cutoffs are supplied.
+  static void registerHitOligos_(vector<HitsByScore>& annotated_hits, IdentificationData& id_data, const vector<double>& report_cutoffs = {})
   {
     for (Size scan = 0; scan < annotated_hits.size(); ++scan)
     {
       for (auto& [score, hit] : annotated_hits[scan])
       {
-        if (score < report_cutoffs[scan]) { break; }
+        if (! report_cutoffs.empty() && score < report_cutoffs[scan]) { break; }
         auto oligo = hit.parent_override ? *hit.parent_override : *hit.oligo_ref;
         oligo.sequence = hit.sequence;
         hit.registered_oligo = id_data.registerIdentifiedOligo(oligo);
@@ -1394,8 +1414,9 @@ protected:
     @return False (no Percolator scores) if Percolator cannot run (e.g. with too few decoys), its sanity check
             rejects the learned model, or route evidence fails.
   */
-  bool rescoreHits_(const PeakMap& exp, vector<HitsByScore>& annotated_hits, const RouteEvidence& route_evidence)
+  bool rescoreHits_(const PeakMap& exp, vector<HitsByScore>& annotated_hits, const RouteEvidence& route_evidence, const IdentificationData& id_data)
   {
+    const auto decoy_labels = resolvedDecoyLabels_(annotated_hits, id_data);
     Size min_charge = std::numeric_limits<Size>::max(), max_charge = 0, n_rows = 0, n_decoys = 0;
     for (const auto& hits : annotated_hits)
     {
@@ -1405,7 +1426,7 @@ protected:
       min_charge = std::min(min_charge, charge);
       max_charge = std::max(max_charge, charge);
       ++n_rows;
-      if (isDecoyHit_(best)) ++n_decoys;
+      if (decoy_labels.at(best.sequence)) ++n_decoys;
     }
     const Size min_decoys = getIntOption_("rescoring:min_decoys");
     if ((n_decoys < min_decoys) || (n_decoys == n_rows))
@@ -1513,7 +1534,7 @@ protected:
     {
       if (annotated_hits[scan_index].empty()) continue;
       input.features.push_back(std::move(scan_rows[scan_index]));
-      input.is_decoy.push_back(isDecoyHit_(annotated_hits[scan_index].begin()->second));
+      input.is_decoy.push_back(decoy_labels.at(annotated_hits[scan_index].begin()->second.sequence));
       input.scan_numbers.push_back(static_cast<int>(scan_index));
       row_scans.push_back(scan_index);
     }
@@ -1622,10 +1643,11 @@ protected:
       }
     }
 
-    // The same placed sequence may come from target and decoy scaffolds. Resolve
-    // their complete reported parent sets before Percolator reads either label.
-    registerHitOligos_(annotated_hits, id_data, report_cutoffs);
-    const bool rescored = rescoring && rescoreHits_(exp, annotated_hits, route_evidence);
+    // Training labels use the complete report-independent feature pool. Merge
+    // those parents into output identities only after a successful rescore;
+    // fallback keeps the native reporting boundary and its original parent sets.
+    const bool rescored = rescoring && rescoreHits_(exp, annotated_hits, route_evidence, id_data);
+    registerHitOligos_(annotated_hits, id_data, rescored ? vector<double>() : report_cutoffs);
 
 // @TODO: change OpenMP schedule from default ("static") to "dynamic"/"guided"?
 #pragma omp parallel for
@@ -2145,6 +2167,22 @@ protected:
     map<double, IdentificationData::AdductOpt> adduct_masses;
     adduct_masses[0.0] = std::nullopt; // always consider "no adduct"
     bool use_adducts = getFlag_("precursor:use_adducts");
+    vector<AdductInfo> parsed_adducts;
+    if (use_adducts)
+    {
+      try
+      {
+        for (const auto& name : potential_adducts)
+        {
+          parsed_adducts.push_back(parseAdduct_(name));
+        }
+      }
+      catch (const Exception::BaseException& error)
+      {
+        OPENMS_LOG_ERROR << "Invalid 'precursor:potential_adducts': " << error.what() << '\n';
+        return ILLEGAL_PARAMETERS;
+      }
+    }
     bool include_unknown_charge = getFlag_("precursor:include_unknown_charge");
     bool single_charge_spectra = getFlag_("decharge_ms2");
     const std::string deisotoping = getStringOption_("preprocessing:deisotoping");
@@ -2672,12 +2710,11 @@ protected:
     }
     if (use_adducts)
     {
-      for (const std::string& adduct_name : potential_adducts)
+      for (const auto& adduct : parsed_adducts)
       {
-        AdductInfo adduct = parseAdduct_(adduct_name);
         const double mass = adduct.getMassShift(use_avg_mass);
         adduct_masses[mass] = id_data.registerAdduct(adduct);
-        OPENMS_LOG_DEBUG << "Added adduct: " << adduct_name << ", mass shift: " << mass << endl;
+        OPENMS_LOG_DEBUG << "Added adduct: " << adduct.getName() << ", mass shift: " << mass << endl;
       }
     }
 
@@ -3002,17 +3039,16 @@ protected:
         const Size three = ! sequence.hasThreePrimeMod() ? 0 : (sequence.getThreePrimeMod()->getCode() == "3'-p" ? 1 : 2);
         return 3 * Size(sequence.hasFivePrimeMod()) + three;
       };
-      const auto allowsOwnTermini = [&](const NASequence& stored, Size state) {
+      // Explicit groups constrain each end independently. At an internal cut,
+      // an RNase gain replaces that end's stored group. In "all" mode the
+      // replaced or otherwise unconstrained end may take any physical state.
+      const auto allowsTerminalState = [&](const NASequence& stored, const IdentificationData::ParentMatch& match, Size parent_size, Size state) {
         const Size own = ownTerminalState(stored);
-        return (! stored.hasFivePrimeMod() || state / 3 == own / 3) && (! stored.hasThreePrimeMod() || state % 3 == own % 3);
-      };
-      // As in enumeration, an end takes the group gained from the RNase. An
-      // end without one (a parent end, or no gain) keeps the group stored
-      // with the digest: the parent's own or a fixed terminal modification.
-      const auto enzymeTerminalState = [&](const NASequence& stored, const IdentificationData::ParentMatch& match, Size parent_size) {
-        const Size own = ownTerminalState(stored);
-        return 3 * (match.start_pos == 0 || five_gain == 0 ? own / 3 : five_gain)
-               + (match.end_pos + 1 >= parent_size || three_gain == 0 ? own % 3 : three_gain);
+        const bool replace_five = match.start_pos != 0 && five_gain != 0;
+        const bool replace_three = match.end_pos + 1 < parent_size && three_gain != 0;
+        if (enzyme_termini) { return state == 3 * (replace_five ? five_gain : own / 3) + (replace_three ? three_gain : own % 3); }
+        return (! stored.hasFivePrimeMod() || replace_five || state / 3 == own / 3)
+               && (! stored.hasThreePrimeMod() || replace_three || state % 3 == own % 3);
       };
       // Parse each parent once; products are validated against it below.
       std::map<IdentificationData::ParentSequenceRef, NASequence> route_parents;
@@ -3022,15 +3058,6 @@ protected:
         if (known_terminal_gains) { terminal_masks.assign(digest.size(), 0); }
         for (Size index = 0; index < digest.size(); ++index)
         {
-          if (known_terminal_gains && ! enzyme_termini)
-          {
-            // "all" extends the scaffold's explicit terminal assignments with
-            // enzyme-produced ends; it must include the enzyme-mode search space.
-            for (Size state = 0; state < 6; ++state)
-            {
-              if (allowsOwnTermini(digest[index]->sequence, state)) { terminal_masks[index] |= Byte(1) << state; }
-            }
-          }
           for (const auto& [parent_ref, matches] : digest[index]->parent_matches)
           {
             auto found = route_parents.find(parent_ref);
@@ -3043,7 +3070,10 @@ protected:
             if (! known_terminal_gains) { continue; }
             for (const auto& match : matches)
             {
-              terminal_masks[index] |= Byte(1) << enzymeTerminalState(digest[index]->sequence, match, found->second.size());
+              for (Size state = 0; state < 6; ++state)
+              {
+                if (allowsTerminalState(digest[index]->sequence, match, found->second.size(), state)) { terminal_masks[index] |= Byte(1) << state; }
+              }
             }
           }
         }
@@ -3191,11 +3221,7 @@ protected:
                   for (const auto& match : matches)
                   {
                     const auto& stored = digest[placed.database_index]->sequence;
-                    if (known_terminal_gains && enzymeTerminalState(stored, match, parent.size()) != terminal_state
-                        && (enzyme_termini || ! allowsOwnTermini(stored, terminal_state)))
-                    {
-                      continue;
-                    }
+                    if (known_terminal_gains && ! allowsTerminalState(stored, match, parent.size(), terminal_state)) { continue; }
                     if (canonical_cleavage || cleavageCompatible(validator, parent, match.start_pos, candidate))
                     {
                       parent_override->parent_matches[parent_ref].insert(match);

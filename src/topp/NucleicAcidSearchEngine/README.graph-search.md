@@ -126,7 +126,9 @@ physical assignments for every oligonucleotide: OH/OH, OH/P, OH/cyclic-P, P/OH,
 P/P and P/cyclic-P. Linkage modifications (codes ending in `*`) have
 neighbor-dependent masses and are rejected. Explicit input/fixed termini
 remain constrained at ends where the RNase does not replace them; `all` also
-retains enzyme-produced assignments that replace a stored terminal group.
+allows every physical assignment at an end whose stored group is replaced by
+an RNase gain. Each end is checked independently, so an unconstrained 5' end
+can carry phosphate alongside an enzyme-produced 3' phosphate.
 Variable terminal/linkage modifications use enumeration/tag
 modes.
 

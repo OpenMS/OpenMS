@@ -44,9 +44,12 @@ When rescoring is enabled, `rescoring:top_hits` must be at least
 enlarging the feature pool. On native-score fallback, the original native
 reporting cutoff is preserved even when ambiguity resolution merges tied hits.
 
-Training and FDR use the same final molecule identity and merged parent set.
-If a placed oligo has a target parent as well as a decoy parent, both paths
-classify it as a target.
+Training labels are resolved across the complete `rescoring:top_hits` pool,
+including runner-ups from other spectra, before applying `report:top_hits`.
+After a successful rescore, FDR uses those same molecule identities and merged
+parent sets. If a placed oligo has a target parent as well as a decoy parent,
+both paths classify it as a target. On fallback, only parents within the native
+reporting cutoff are merged, preserving the native output identities.
 
 Runner-ups are not rescored as rows of their own. Every RNA target has an
 isobaric reversed decoy, so most spectra have a strong decoy runner-up.

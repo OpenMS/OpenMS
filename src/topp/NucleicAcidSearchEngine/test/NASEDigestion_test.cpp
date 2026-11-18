@@ -37,6 +37,7 @@ public:
   using NucleicAcidSearchEngine::retainTopHit_;
   using NucleicAcidSearchEngine::sortHitsByValue_;
   using NucleicAcidSearchEngine::isDecoyHit_;
+  using NucleicAcidSearchEngine::resolvedDecoyLabels_;
   using NucleicAcidSearchEngine::registerHitOligos_;
   using NucleicAcidSearchEngine::nativeReportCutoff_;
   using NucleicAcidSearchEngine::rescoringThreads_;
@@ -230,6 +231,55 @@ START_SECTION(([EXTRA] resolved training labels include target parents from anot
     TEST_FALSE(TestNASE::isDecoyHit_(hit))
     TEST_EQUAL((*hit.registered_oligo)->parent_matches.size(), 2)
     TEST_FALSE((*hit.registered_oligo)->allParentsAreDecoys())
+  }
+}
+END_SECTION
+
+START_SECTION(([EXTRA] Cross spectrum runner up parents resolve training labels independently of native reporting))
+{
+  for (Size report_top_hits : {Size(1), Size(2)})
+  {
+    for (bool rescored : {false, true})
+    {
+      IdentificationData data;
+      IdentificationData::ParentSequence decoy("DECOY", IdentificationData::MoleculeType::RNA, "[mA]ACGU");
+      decoy.is_decoy = true;
+      const auto d = data.registerParentSequence(decoy);
+      const auto t = data.registerParentSequence(IdentificationData::ParentSequence("TARGET", IdentificationData::MoleculeType::RNA, "AACGU"));
+      IdentificationData::IdentifiedOligo premodified(NASequence::fromString("[mA]ACGU"));
+      premodified.parent_matches[d].insert(IdentificationData::ParentMatch(0, 4));
+      IdentificationData::IdentifiedOligo scaffold(NASequence::fromString("AACGU"));
+      scaffold.parent_matches[t].insert(IdentificationData::ParentMatch(0, 4));
+      TestNASE::AnnotatedHit decoy_winner, target_runner, target_winner;
+      decoy_winner.oligo_ref = data.registerIdentifiedOligo(premodified);
+      decoy_winner.sequence = premodified.sequence;
+      target_runner.oligo_ref = target_winner.oligo_ref = data.registerIdentifiedOligo(scaffold);
+      target_runner.parent_override = scaffold;
+      target_runner.sequence = premodified.sequence;
+      target_winner.sequence = NASequence::fromString("A[mA]CGU");
+      std::vector<TestNASE::HitsByScore> hits(2);
+      hits[0].emplace(10, decoy_winner);
+      hits[1].emplace(10, target_winner);
+      hits[1].emplace(9, target_runner);
+      const std::vector<double> cutoffs {TestNASE::nativeReportCutoff_(hits[0], report_top_hits),
+                                         TestNASE::nativeReportCutoff_(hits[1], report_top_hits)};
+      const auto labels = TestNASE::resolvedDecoyLabels_(hits, data);
+      TEST_EQUAL(labels.size(), 2)
+      TEST_FALSE(labels.at(premodified.sequence))
+      TEST_FALSE(labels.at(target_winner.sequence))
+      // Label resolution must not change the native registry if rescoring falls back.
+      TEST_TRUE(TestNASE::isDecoyHit_(hits[0].begin()->second))
+      TestNASE::registerHitOligos_(hits, data, rescored ? std::vector<double>() : cutoffs);
+      const auto& winner = hits[0].begin()->second;
+      TEST_EQUAL(TestNASE::isDecoyHit_(winner), ! rescored && report_top_hits == 1)
+      TEST_EQUAL((*winner.registered_oligo)->parent_matches.size(), rescored || report_top_hits == 2 ? 2 : 1)
+      if (rescored) { TEST_EQUAL(TestNASE::isDecoyHit_(winner), labels.at(winner.sequence)) }
+      for (Size scan = 0; scan < hits.size(); ++scan)
+      {
+        hits[scan].erase(hits[scan].upper_bound(cutoffs[scan]), hits[scan].end());
+        TEST_EQUAL(hits[scan].size(), scan == 0 ? 1 : report_top_hits)
+      }
+    }
   }
 }
 END_SECTION
@@ -2372,6 +2422,8 @@ START_SECTION(([EXTRA] graph audit and fallback preserve scoring with FLASH MS1 
   NEW_TMP_FILE(early_spectra)
   early_digest += ".oms";
   early_spectra += ".mzML";
+  File::remove(early_digest);
+  File::remove(early_spectra);
   for (const auto& backend : {"routes_precursor", "routes_fragment", "route_score", "diagnostics", "route_features"})
   {
     std::vector<std::string> extra {"-digest_out", early_digest, "-out_preprocessed", early_spectra};
@@ -2379,11 +2431,66 @@ START_SECTION(([EXTRA] graph audit and fallback preserve scoring with FLASH MS1 
     extra.insert(extra.end(), {std::string(backend) == "routes_precursor" ? "-precursor:mass_tolerance" : "-fragment:mass_tolerance", "0"});
     if (std::string(backend) == "route_score") { extra.insert(extra.end(), {"-scoring:method", "route"}); }
     if (std::string(backend) == "diagnostics") { extra.push_back("-diagnostic:filter"); }
-    if (std::string(backend) == "route_features") { extra.insert(extra.end(), {"-rescoring:enable", "-rescoring:route_features"}); }
+    if (std::string(backend) == "route_features")
+    {
+      extra.insert(extra.end(), {"-rescoring:enable", "-rescoring:route_features", "-fdr:decoy_pattern", "DECOY_"});
+    }
     rejects_without_results(route ? "graph_routes" : "enumeration", extra);
     TEST_FALSE(File::exists(early_digest))
     TEST_FALSE(File::exists(early_spectra))
   }
+  // The same route-feature invocation reaches input processing at positive tolerance.
+  std::string valid_route_features;
+  NEW_TMP_FILE(valid_route_features)
+  valid_route_features += ".mzTab";
+  TEST_EQUAL(runSearch({"-in",
+                        mzml,
+                        "-database",
+                        fasta,
+                        "-out",
+                        valid_route_features,
+                        "-oligo:enzyme",
+                        "no cleavage",
+                        "-oligo:min_size",
+                        "1",
+                        "-rescoring:enable",
+                        "-rescoring:route_features",
+                        "-fdr:decoy_pattern",
+                        "DECOY_",
+                        "-fragment:mass_tolerance",
+                        "10",
+                        "-digest_out",
+                        early_digest,
+                        "-out_preprocessed",
+                        early_spectra,
+                        "-threads",
+                        "2"}),
+             0)
+  TEST_TRUE(File::exists(valid_route_features))
+  TEST_TRUE(File::exists(early_digest))
+  TEST_TRUE(File::exists(early_spectra))
+  File::remove(early_digest);
+  File::remove(early_spectra);
+  // Parse the entire enabled adduct list before either early output is written.
+  for (const auto& adduct : {"Na", "Na:+-", "NotAnElement:+"})
+  {
+    rejects_without_results("graph_routes", {"-precursor:use_adducts", "-precursor:potential_adducts", "Na:+", adduct, "-digest_out", early_digest,
+                                             "-out_preprocessed", early_spectra});
+    TEST_FALSE(File::exists(early_digest))
+    TEST_FALSE(File::exists(early_spectra))
+  }
+  // Invalid parameters must not replace existing output files, either.
+  std::ofstream(early_digest) << "existing digest";
+  std::ofstream(early_spectra) << "existing spectra";
+  rejects_without_results("graph_routes", {"-precursor:use_adducts", "-precursor:potential_adducts", "Na", "-digest_out", early_digest,
+                                           "-out_preprocessed", early_spectra});
+  const TextFile retained_digest(early_digest), retained_spectra(early_spectra);
+  TEST_EQUAL(std::distance(retained_digest.begin(), retained_digest.end()), 1)
+  TEST_EQUAL(std::distance(retained_spectra.begin(), retained_spectra.end()), 1)
+  TEST_STRING_EQUAL(*retained_digest.begin(), "existing digest")
+  TEST_STRING_EQUAL(*retained_spectra.begin(), "existing spectra")
+  File::remove(early_digest);
+  File::remove(early_spectra);
   // Graph-only options and invalid bounds fail before starting a search.
   std::string graph_output;
   NEW_TMP_FILE(graph_output)
@@ -2708,9 +2815,22 @@ START_SECTION(([EXTRA] route products follow RNase termini with missed cleavages
   fixture("AAAAUp");
   TEST_TRUE(search("graph_routes", false, "3'-c", "enzyme", "RNase_A", "canonical").contains("AAAAUp"))
   TEST_TRUE(search("graph_routes", false, "3'-c", "all", "RNase_A", "canonical").contains("AAAAUp"))
+  // All mode combines an unconstrained 5' phosphate with the enzyme-replaced 3' end.
+  fixture("pAAAAUp");
+  TEST_FALSE(search("graph_routes", false, "3'-c", "enzyme", "RNase_A", "canonical").contains("pAAAAUp"))
+  const auto both_phosphates = search("graph_routes", false, "3'-c", "all", "RNase_A", "canonical");
+  TEST_TRUE(both_phosphates.contains("pAAAAUp"))
+  TEST_TRUE(search("graph_routes", true, "3'-c", "all", "RNase_A", "canonical") == both_phosphates)
+  TEST_TRUE(search("graph_routes", false, "3'-c", "all", "RNase_A").contains("pAAAAUp"))
+  fixture("pAAAAU");
+  TEST_TRUE(search("graph_routes", false, "3'-c", "all", "RNase_A", "canonical").contains("pAAAAU"))
   // The original parent end still has its explicit cyclic-phosphate constraint.
   fixture("AAAAAp");
   TEST_FALSE(search("graph_routes", false, "3'-c", "all", "RNase_A", "canonical").contains("AAAAAp"))
+  fixture("pAAAAAp");
+  TEST_FALSE(search("graph_routes", false, "3'-c", "all", "RNase_A", "canonical").contains("pAAAAAp"))
+  fixture("pAAAAAc");
+  TEST_TRUE(search("graph_routes", false, "3'-c", "all", "RNase_A", "canonical").contains("pAAAAAc"))
 }
 END_SECTION
 
