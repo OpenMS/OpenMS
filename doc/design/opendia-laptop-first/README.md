@@ -16,6 +16,11 @@ The branch's [`src/topp/OpenDIA/README.md`](https://github.com/OpenMS/OpenMS/blo
   the held-out run from 19,725 to 24,000. That is 56 % / 63 % of DIA-NN and 84 % of OpenSWATH SVM on the design run.
   Each fix passed a frozen plan with a held-out run and is byte-identical on Astral. See "Current HeLa result" below,
   RESULT_RTCENTRE.md and RESULT_IMGRID.md.
+- **Peak-group scores (PLAN_PGSCORES, 18 Nov): failed, removed.** Ten OpenSWATH-style scores raised HeLa by about
+  17 % (D 18,792, held-out H 28,020) and Astral N@FDP_c 1 % by 2-12 % (92 / 83 / 90 % of DIA-NN). They failed two
+  frozen criteria: the DIA-NN agreement on D (0.9104 against a limit of 0.9249), and q calibration on Astral raw 02
+  (FDP_c 0.0103 median at q ≤ 0.01). The evidence is real, but some of it separates decoys better than entrapments.
+  The next step is to find which scores do that. See RESULT_PGSCORES.md.
 - **Speed and memory, same laptop, Astral raw 01:** 7:18-7:26 against DIA-NN's 7:23. Peak memory is 14.4 GB against
   6.8 GB.
 
