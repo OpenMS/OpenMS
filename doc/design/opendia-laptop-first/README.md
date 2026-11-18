@@ -55,6 +55,11 @@ The branch's [`src/topp/OpenDIA/README.md`](https://github.com/OpenMS/OpenMS/blo
   generating its own decoys as the downstream goal. The test is the r ~7 foreign entrapment. Library: 99.93 % of 1.39 M
   targets paired. D seeds 0-4 are running on codon. Side fix: the PQP reader no longer drops peptides without a gene
   mapping (2982bd647d).
+- **OpenDIA predicts its own decoys (DESIGN_OPENDIA_DECOYS, 18 Nov):** `OpenDIAWorkflow -decoys predict` is opt-in
+  (01d5ded04a). It replaces a library's decoys with PeptDeep-predicted pseudo-reversed ones, with 99.9 % of targets paired.
+  End to end on the r = 1.56 library (D seed 0), q <= 0.01 gives a true FDP of 0.62-1.02 % (CUR) and 0.53-0.86 % (NEW),
+  against 1.45 / 1.55 % (upper bound) with the library's own decoys. IDs at true 1 % FDP are within 3-4 %. One seed only;
+  the frozen r ~7 plan comes after PLAN_PDEC.
 - **Speed and memory, same laptop, Astral raw 01:** 7:18-7:26 against DIA-NN's 7:23. Peak memory is 14.4 GB against
   6.8 GB.
 

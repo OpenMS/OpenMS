@@ -124,6 +124,46 @@ OpenDIAWorkflow `-decoys predict` end to end, on D seed 0, CUR and NEW:
 - **Location:** `entlib-odp-20261118`, jobs 34839294/5.
 - **Expectation:** the same bounds as precheck 1, with pairing close to 100 %.
 
+## Precheck 2, result (23:41; `EVAL_D_odp.txt`)
+OpenDIAWorkflow `-decoys predict` end to end, on the PGENT2 library `hela_ath2.pqp`, D seed 0.
+
+**First attempt failed:** the container looked for the models under the wrong build path (`models/` was not found). It
+was rerun with `-decoy_model_dir` pointing at the staged models. The recipe is fixed for the next container: models go
+under `src/openms/share/OpenMS/models`, where `PeptDeepLibraryPredictor` looks.
+
+**Prediction:**
+- 441,408 of 441,910 targets got a decoy (**99.89 %**): 36,689 kept short and 238 dropped with no usable fragment.
+- Estimated setting: timsTOF at NCE 30, with the RT line equal to identity.
+- The predicted library is written as sha256 bf019d11…, the same for CUR and NEW.
+
+| quantity (CUR / NEW) | DIALibGen decoys (96.6 %) | OSDG `-predict_decoys` (91.6 %) | **OpenDIA `-decoys predict`** (99.9 %) |
+|---|---|---|---|
+| lower bound at q ≤ 0.01 | 0.0069 / 0.0074 | 0.0064 / 0.0064 | **0.0062 / 0.0053** |
+| combined bound at q ≤ 0.01 | 0.0113 / 0.0121 | 0.0104 / 0.0105 | **0.0102 / 0.0086** |
+| P(entrapment beats own decoy), q ≤ 0.05 | 0.497 / 0.513 | 0.518 / 0.531 | **0.509 / 0.501** |
+| N at q ≤ 0.01 | 10,441 / 12,328 | 10,212 / 12,326 | 10,254 / 11,777 |
+| N at FDP_c 1 % | 10,286 / 11,827 | 10,085 / 12,230 | 10,192 / 12,003 |
+| wall / peak RSS | | | 11:54 / 28.8 GB (CUR), 13:37 / 29.2 GB (NEW) |
+
+**For comparison:** the same library with its own pseudo-reverse decoys (PGENT2, s0) gave combined 1.45 / 1.55 % and
+N@FDP_c 1 % 10,610 / 12,384.
+
+**Reading:**
+- **The single-binary route works.** OpenDIA alone, from a target library with ordinary decoys, gives q ≤ 0.01 with a true
+  FDP of 0.62-1.02 % (CUR) and 0.53-0.86 % (NEW).
+  - Pairing is 99.9 %, and pair fairness is 0.50-0.51.
+  - Only one seed was run, at r = 1.56.
+- **IDs at true 1 % FDP are about the same as with pseudo-reverse decoys** (10,192 against 10,610 CUR; 12,003 against
+  12,384 NEW, −3 to −4 %). The q-values are now honest without giving up sensitivity.
+- **Cost:**
+  - Total wall is about 12-14 min, against about 8-10 min with the plain library (BOUNDS_R5 note). The breakdown was
+    not measured. Prediction alone took 1:48 on 16 threads in precheck 1, so the rest is likely writing and re-reading
+    the library.
+  - Peak RSS is 29 GB, against about 24 GB.
+  - Caching the predicted library is the obvious follow-up.
+- **Next:** a frozen plan for `-decoys predict` on the r ≈ 7 library with PLAN_PDEC's criteria, written after the
+  PLAN_PDEC verdict.
+
 ## Precheck step 1, build (18 Nov, 22:19)
 `entlib-osdg-20261118`, using `OpenSwathDecoyGenerator -method pseudo-reverse -predict_decoys true` on the PGENT2
 `targets.pqp`:
