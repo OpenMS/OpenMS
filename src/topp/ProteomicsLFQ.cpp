@@ -1802,7 +1802,10 @@ protected:
 
     // Run FeatureFinderIdentification
     FeatureFinderIdentificationAlgorithm ffi;
-    ffi.getMSData().swap(ms_centroided);
+    // setMSData keeps only the MS1 spectra. The MS2 spectra (peaks removed above) must not reach FFId: it scores each
+    // feature on the spectrum closest to its apex (mass deviation, MS1 fullscan scores), which could then be an empty
+    // MS2 spectrum.
+    ffi.setMSData(std::move(ms_centroided));
     ffi.getProgressLogger().setLogType(log_type_);
 
     Param ffi_param = getParam_().copy("PeptideQuantification:", true);
