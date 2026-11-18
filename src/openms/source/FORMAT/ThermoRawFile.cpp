@@ -224,7 +224,10 @@ void ThermoRawFile::transform(const std::string& path, Interfaces::IMSDataConsum
       MSChromatogram tic;
       bool complete = last == reader.lastScan(); // all headers read, so the TIC can be built from them
       const bool prefetch_peaks = ! header_filtered && ! options_.metadata_only;
-      reader.readAhead(last, prefetch_peaks ? options_.first_scan : std::numeric_limits<int>::max());
+      // Selected by MS level only: the read-ahead workers also read the peaks of scans at those levels (an empty level
+      // list, the unfiltered case, reads all peaks). Other header filters keep the header-only read-ahead.
+      const bool level_only = ! options_.ms_levels.empty() && ! select.precursorFiltered() && ! select.rtFiltered() && ! options_.metadata_only;
+      reader.readAhead(last, (prefetch_peaks || level_only) ? options_.first_scan : std::numeric_limits<int>::max(), options_.ms_levels);
       startProgress(first, last, "Streaming Thermo RAW file");
       for (int scan = first; scan <= last; ++scan)
       {
