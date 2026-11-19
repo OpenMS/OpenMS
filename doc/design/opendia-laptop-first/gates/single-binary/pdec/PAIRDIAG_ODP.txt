@@ -1,0 +1,42 @@
+  P=T.join(D[['precursor_id','nf','rt']],rsuffix='_d',how='inner'); P=P[P.e==1]
+pairs 11388 P(win) 0.537
+-- z
+    mean  size     se
+z                    
+2  0.533  7828  0.006
+3  0.551  2346  0.010
+4  0.535  1214  0.014
+-- length
+           mean  size     se
+len                         
+(0, 9]    0.538  2073  0.011
+(9, 12]   0.538  3062  0.009
+(12, 16]  0.542  3924  0.008
+(16, 44]  0.524  2329  0.010
+-- decoy has fewer fragments
+        mean   size     se
+short                     
+False  0.542  10643  0.005
+True   0.455    745  0.018
+-- internal K/R
+        mean  size     se
+ikr                      
+False  0.553  7456  0.006
+True   0.505  3932  0.008
+-- |RT decoy - RT target| quartile
+                        mean  size     se
+drt                                      
+(-0.0009475, 0.00859]  0.553  2848  0.009
+(0.00859, 0.0267]      0.547  2854  0.009
+(0.0267, 0.0641]       0.492  2841  0.009
+(0.0641, 0.351]        0.555  2845  0.009
+-- target <6 fragments
+        mean   size     se
+nf                        
+False  0.538  10669  0.005
+True   0.519    719  0.019
+-- decoy vs target fragment count
+              mean   size     se
+rel                             
+decoy fewer  0.455    745  0.018
+equal        0.542  10643  0.005
