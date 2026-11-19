@@ -15,6 +15,7 @@
 #include <algorithm>
 #include <bit>
 #include <cmath>
+#include <exception>
 #include <fstream>
 #include <iomanip>
 #include <limits>
@@ -313,10 +314,15 @@ namespace OpenMS::OpenDIA
       }
       return total;
     };
-    for (auto active = first; active != by_rt_.end() && samples_[*active].window.apex_rt <= rt + rt_half_width_; ++active)
+    std::vector<std::size_t> ms1_hits;
+    for (auto active = first; active != by_rt_.end() && samples_[*active].window.apex_rt <= rt + rt_half_width_; ++active) ms1_hits.push_back(*active);
+    // Each sample writes only its own evidence, so the samples are independent (thread-count invariant).
+#pragma omp parallel for schedule(dynamic, 256) num_threads(threads_) if (threads_ > 1 && ms1_hits.size() >= 1024)
+    for (std::ptrdiff_t h = 0; h < static_cast<std::ptrdiff_t>(ms1_hits.size()); ++h)
     {
-      const Sample& sample = samples_[*active];
-      TraceEvidence& evidence = evidence_[*active];
+      const std::size_t index = ms1_hits[static_cast<std::size_t>(h)];
+      const Sample& sample = samples_[index];
+      TraceEvidence& evidence = evidence_[index];
       const std::size_t bin = rtBin_(rt, sample.window.apex_rt);
       evidence.ms1_mask |= std::uint32_t{1} << bin;
       const bool core = std::abs(rt - sample.window.apex_rt) <= core_half_width_;
@@ -396,31 +402,40 @@ namespace OpenMS::OpenDIA
     const std::size_t bucket_first = static_cast<std::size_t>(bucket_low);
     const std::size_t bucket_last = static_cast<std::size_t>(bucket_high);
     // Each sample sits in one bucket, so it is visited at most once per spectrum; per-sample state is independent of
-    // the visiting order, so the result equals the former scan over all samples in by_rt_ order.
+    // the visiting order, so the result equals the former scan over all samples in by_rt_ order. The isolated samples
+    // are collected (and their tensors assigned) serially, then filled in parallel: a sample's work writes only its
+    // own tensor and evidence, in the same order as before, so the result does not depend on the thread count.
+    hits_.clear();
     for (std::size_t bucket = bucket_first; bucket <= bucket_last; ++bucket)
     {
-    const auto& in_bucket = by_mz_rt_[bucket];
-    auto from_rt = std::lower_bound(in_bucket.begin(), in_bucket.end(), rt - rt_half_width_,
-                                    [this](std::uint32_t i, double value) { return samples_[i].window.apex_rt < value; });
-    for (auto active = from_rt; active != in_bucket.end() && samples_[*active].window.apex_rt <= rt + rt_half_width_; ++active)
-    {
-      const std::size_t index = *active;
-      Sample& sample = samples_[index];
-      bool isolated = false;
-      for (const auto& [from, to] : isolation)
+      const auto& in_bucket = by_mz_rt_[bucket];
+      auto from_rt = std::lower_bound(in_bucket.begin(), in_bucket.end(), rt - rt_half_width_,
+                                      [this](std::uint32_t i, double value) { return samples_[i].window.apex_rt < value; });
+      for (auto active = from_rt; active != in_bucket.end() && samples_[*active].window.apex_rt <= rt + rt_half_width_; ++active)
       {
-        if (from <= sample.precursor_mz && to >= sample.precursor_mz)
+        const double precursor_mz = samples_[*active].precursor_mz;
+        for (const auto& [from, to] : isolation)
         {
-          isolated = true;
-          break;
+          if (from <= precursor_mz && to >= precursor_mz)
+          {
+            hits_.push_back(*active);
+            hit_tensor_.resize(hits_.size());
+            hit_tensor_.back() = tensor_(*active);
+            break;
+          }
         }
       }
-      if (!isolated)
-      {
-        continue;
-      }
+    }
+    std::exception_ptr error = nullptr;
+#pragma omp parallel for schedule(dynamic, 64) num_threads(threads_) if (threads_ > 1 && hits_.size() >= 256)
+    for (std::ptrdiff_t h = 0; h < static_cast<std::ptrdiff_t>(hits_.size()); ++h)
+    {
+    try
+    {
+      const std::size_t index = hits_[static_cast<std::size_t>(h)];
+      Sample& sample = samples_[index];
       const bool compatible_im = sample.precursor_im > 0.0 && (mobilities != nullptr || scalar_valid);
-      float* const tensor = tensor_(index);
+      float* const tensor = hit_tensor_[static_cast<std::size_t>(h)];
       // Mixed availability cannot be represented by one sample mask. Collapse
       // such a sample to an XIC instead of inventing an IM position for missing data.
       if (!compatible_im && !sample.saw_missing_im && im_bins_ == IM_BINS)
@@ -521,7 +536,15 @@ namespace OpenMS::OpenDIA
         }
       }
     }
+    catch (...)
+    {
+#pragma omp critical (OpenDIA_TraceCollector_error)
+      {
+        if (!error) error = std::current_exception();
+      }
     }
+    }
+    if (error) std::rethrow_exception(error);
   }
 
   float* TraceCollector::tensor_(std::size_t index)

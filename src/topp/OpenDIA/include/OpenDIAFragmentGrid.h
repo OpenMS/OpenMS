@@ -135,6 +135,8 @@ namespace OpenMS::OpenDIA
     std::size_t spectraUsed() const { return spectra_used_; }
     /// Largest number of grids held at once.
     std::size_t peakOpenGrids() const { return peak_open_; }
+    /// Worker threads for the per-spectrum fragment sums (results do not depend on it). Default 1.
+    void setThreads(int threads) { threads_ = threads < 1 ? 1 : threads; }
 
   private:
     struct Lane
@@ -166,5 +168,9 @@ namespace OpenMS::OpenDIA
     double last_rt_ = -1e300;
     std::size_t spectra_used_ = 0, open_ = 0, peak_open_ = 0;
     bool finished_ = false;
+    int threads_ = 1;
+    std::vector<std::uint32_t> reached_;                         ///< Precursors reached by the current spectrum.
+    std::vector<std::array<double, FragmentGrid::FRAGMENTS>> sums_; ///< Their fragment sums.
+    std::vector<std::uint8_t> any_;
   };
 }

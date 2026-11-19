@@ -119,6 +119,8 @@ namespace OpenMS::OpenDIA
     void finish();
     /// Streaming mode: largest number of tensors held at one time.
     std::size_t peakHeldTensors() const { return peak_held_; }
+    /// Worker threads for the per-spectrum extraction (results do not depend on it). Default 1.
+    void setThreads(int threads) { threads_ = threads < 1 ? 1 : threads; }
 
     /**
       @brief Stored raw tensor in sample, fragment, RT, mobility order, also consumed directly by the native CNN.
@@ -245,6 +247,9 @@ namespace OpenMS::OpenDIA
     std::size_t close_cursor_ = 0;
     std::size_t held_ = 0;
     std::size_t peak_held_ = 0;
+    int threads_ = 1;
+    std::vector<std::uint32_t> hits_;   ///< Samples isolated by the current MS2 spectrum.
+    std::vector<float*> hit_tensor_;    ///< Their tensors.
 
     float* tensor_(std::size_t index);
     const float* storedTensor_(std::size_t index) const;

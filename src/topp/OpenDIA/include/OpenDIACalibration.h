@@ -244,6 +244,8 @@ namespace OpenMS::OpenDIA
 
     /// Treat a spectrum ion-mobility array with a non-CCS unit as 1/K0 (VSSC).
     void setIonMobilityArrayAsVSSC(bool value) { ion_mobility_array_as_vssc_ = value; }
+    /// Worker threads for the per-spectrum trace collection (results do not depend on it). Default 1.
+    void setThreads(int threads) { threads_ = threads < 1 ? 1 : threads; }
 
     /**
       @brief Run stages 1-4 on the collected traces.
@@ -302,6 +304,7 @@ namespace OpenMS::OpenDIA
     std::vector<std::size_t> by_mz_;
     bool ion_mobility_array_as_vssc_ = false;
     bool saw_im_ = false;
+    int threads_ = 1;
     double first_rt_ = 0.0, last_rt_ = 0.0;
     bool saw_spectrum_ = false;
   };

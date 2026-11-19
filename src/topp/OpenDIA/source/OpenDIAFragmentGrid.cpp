@@ -305,6 +305,10 @@ namespace OpenMS::OpenDIA
     }
     const bool spectrum_has_im = mobilities != nullptr || scalar_im > 0.0;
     bool used = false;
+    // Serially: the precursors this spectrum reaches, in the former visiting order. In parallel: their fragment sums
+    // (independent, read-only on the spectrum). Serially again: the grid additions in that same order, so every grid
+    // cell receives the same sums in the same order as before (thread-count invariant, byte-identical).
+    reached_.clear();
     for (const OpenMS::Precursor& precursor : spectrum.getPrecursors())
     {
       const double centre = precursor.getMZ();
@@ -327,30 +331,49 @@ namespace OpenMS::OpenDIA
           open = std::abs(rt - windows_[window_index_[k]].rt_apex) < half_;
         }
         if (!open) continue;
-        // Fragment sums of this spectrum, once per precursor: |ppm| < tolerance (open interval), and, with mobility
-        // filtering, |1/K0 - precursor 1/K0| <= im half width.
         const double precursor_im = precursors_[p].im;
         const bool filter_im = spectrum_has_im && precursor_im > 0.0;
         if (filter_im && mobilities == nullptr && std::abs(scalar_im - precursor_im) > im_half_) continue;
-        std::array<double, K> sum{};
-        bool any = false;
-        for (std::size_t s = 0; s < K; ++s)
+        reached_.push_back(p);
+      }
+    }
+    sums_.resize(reached_.size());
+    any_.assign(reached_.size(), 0);
+#pragma omp parallel for schedule(dynamic, 64) num_threads(threads_) if (threads_ > 1 && reached_.size() >= 256)
+    for (std::ptrdiff_t r = 0; r < static_cast<std::ptrdiff_t>(reached_.size()); ++r)
+    {
+      const std::uint32_t p = reached_[static_cast<std::size_t>(r)];
+      // Fragment sums of this spectrum, once per precursor: |ppm| < tolerance (open interval), and, with mobility
+      // filtering, |1/K0 - precursor 1/K0| <= im half width.
+      const double precursor_im = precursors_[p].im;
+      const bool filter_im = spectrum_has_im && precursor_im > 0.0;
+      std::array<double, K>& sum = sums_[static_cast<std::size_t>(r)];
+      sum.fill(0.0);
+      bool any = false;
+      for (std::size_t s = 0; s < K; ++s)
+      {
+        const double target = precursors_[p].extraction_mz[s];
+        if (!(target > 0.0)) continue;
+        const double width = target * ppm_ * 1e-6;
+        double total = 0.0;
+        for (auto point = spectrum.MZBegin(target - width); point != spectrum.end() && point->getMZ() <= target + width; ++point)
         {
-          const double target = precursors_[p].extraction_mz[s];
-          if (!(target > 0.0)) continue;
-          const double width = target * ppm_ * 1e-6;
-          double total = 0.0;
-          for (auto point = spectrum.MZBegin(target - width); point != spectrum.end() && point->getMZ() <= target + width; ++point)
-          {
-            if (!(std::abs((point->getMZ() - target) / target * 1e6) < ppm_)) continue;
-            if (filter_im && mobilities != nullptr && !(std::abs((*mobilities)[point - spectrum.begin()] - precursor_im) <= im_half_)) continue;
-            total += point->getIntensity();
-          }
-          sum[s] = total;
-          any = any || total != 0.0;
+          if (!(std::abs((point->getMZ() - target) / target * 1e6) < ppm_)) continue;
+          if (filter_im && mobilities != nullptr && !(std::abs((*mobilities)[point - spectrum.begin()] - precursor_im) <= im_half_)) continue;
+          total += point->getIntensity();
         }
-        if (!any) continue;
-        used = true;
+        sum[s] = total;
+        any = any || total != 0.0;
+      }
+      any_[static_cast<std::size_t>(r)] = any ? 1 : 0;
+    }
+    for (std::size_t r = 0; r < reached_.size(); ++r)
+    {
+      if (!any_[r]) continue;
+      const std::uint32_t p = reached_[r];
+      const std::array<double, K>& sum = sums_[r];
+      used = true;
+      {
         for (std::uint32_t k = window_offsets_[p]; k < window_offsets_[p + 1]; ++k)
         {
           const std::uint32_t w = window_index_[k];

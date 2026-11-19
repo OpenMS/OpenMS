@@ -352,6 +352,7 @@ namespace OpenMS::OpenDIA
       while (!calibrated)
       {
         CalibrationCollector collector(targeted, lib.traml_ids, copt, window);
+        collector.setThreads(options_.threads);
         collector.setIonMobilityArrayAsVSSC(options_.im_array_as_vssc);
         const std::string io = readSpectra(path, collector, {2});
         ++passes;
@@ -501,6 +502,7 @@ namespace OpenMS::OpenDIA
     // With a mobility calibration the 12-fragment grid (and with it the interference inputs) is extracted within the
     // calibrated 1/K0 tolerance of each precursor, as the search is; without one it pools all points as before.
     if (cal.has_im && cal.im_tolerance > 0.0) grids.enableIonMobility(cal.im_tolerance, options_.im_array_as_vssc);
+    grids.setThreads(options_.threads);
     // The 6-fragment tensor uses the calibrated search library (as OpenDIACNN -apply_calibration_coordinates):
     // fragment m/z shifted by the ppm offset and precursor 1/K0 mapped by the calibrated line. That is exactly
     // `targeted` after step 2 (it differs from it only in the mapped RT, which TraceCollector does not read), so it is
@@ -551,6 +553,7 @@ namespace OpenMS::OpenDIA
     TraceCollector traces(std::move(trace_windows), trace_library, 0.02, options_.grid_half_width_s, 0.03, n, options_.trace_tensor_gb << 30,
                           on_close);
     traces.setIonMobilityArrayAsVSSC(options_.im_array_as_vssc);
+    traces.setThreads(options_.threads);
     traces.enableEvidence(20.0, options_.core_half_width_s);
     traces.enableByIonCounts(trace_library, options_.byion_ppm, options_.byion_intensity_min);
     if (options_.pg_scores) traces.enablePeakGroupEvidence(cal.ms2_tolerance_ppm);

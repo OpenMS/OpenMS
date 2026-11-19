@@ -14,6 +14,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <exception>
 #include <numbers>
 #include <fstream>
 #include <iomanip>
@@ -444,10 +445,19 @@ namespace OpenMS::OpenDIA
       {
         continue;
       }
-      auto it = std::lower_bound(by_mz_.begin(), by_mz_.end(), lower, [this](std::size_t i, double mz) { return panel_[i].precursor_mz < mz; });
-      for (; it != by_mz_.end() && panel_[*it].precursor_mz <= upper; ++it)
+      auto first = std::lower_bound(by_mz_.begin(), by_mz_.end(), lower, [this](std::size_t i, double mz) { return panel_[i].precursor_mz < mz; });
+      auto last = first;
+      while (last != by_mz_.end() && panel_[*last].precursor_mz <= upper) ++last;
+      // Members of one isolation window are distinct and each touches only its own traces, so they are processed in
+      // parallel; isolation windows stay sequential (a member covered by two merges in the same order as before).
+      const auto count = static_cast<std::ptrdiff_t>(last - first);
+      std::exception_ptr error = nullptr;
+#pragma omp parallel for schedule(dynamic, 32) num_threads(threads_) if (threads_ > 1 && count >= 256)
+      for (std::ptrdiff_t m = 0; m < count; ++m)
       {
-        Member& member = panel_[*it];
+      try
+      {
+        Member& member = panel_[*(first + m)];
         if (rt < member.window_low)
         {
           continue; // Outside the windowed pass's collection range (never in the default whole-run pass).
@@ -532,6 +542,15 @@ namespace OpenMS::OpenDIA
         // Without a library 1/K0 the mean mobility is never computed (always 0), so it is not stored.
         if (member.library_im > 0.0) member.im.push_back(im);
       }
+      catch (...)
+      {
+#pragma omp critical (OpenDIA_CalibrationCollector_error)
+        {
+          if (!error) error = std::current_exception();
+        }
+      }
+      }
+      if (error) std::rethrow_exception(error);
     }
   }
 
