@@ -22,7 +22,8 @@ The branch's [`src/topp/OpenDIA/README.md`](https://github.com/OpenMS/OpenMS/blo
 - **RT x ion-mobility candidate picking (`-im_peaks`, 07131138b8, opt-in): no gain on r ~7 (PLAN_IM2D D FAIL, 19 Nov).**
   - It recovers right-RT candidates for the DIA-NN IDs that had none: 84 % → 94 % on r ≈ 1.56.
   - On r ≈ 7 D, IDs at 1 % true FDP move only from 11,332 to 11,420 (+0.8 %, needs +3 %), at +49 % wall. The recovered
-    peaks are faint and still score low, so scoring remains the bottleneck. It stays opt-in. H is being reported.
+    peaks are faint and still score low, so scoring remains the bottleneck. Held-out H: +2.6 % at +47 % wall, with
+    calibration unchanged. It stays opt-in.
 - **Astral (entrapment, true FDR):** OpenDIA reaches 81-84 % of DIA-NN at FDP_c 1 %, unchanged since 16 Nov (the table
   below). Every lever tried there has failed or shown no room.
 - **DIA-NN on the r ≈ 7 HeLa entrapment library (19 Nov, `gates/single-binary/pdec/RESULT_DIANN_R5.md`).**
