@@ -128,3 +128,44 @@ transition name, precursor ref, intensity, m/z, fragment charge, decoy flag, ann
   - `OpenDIACalibrate` and `OpenDIAInterference` have 0.
 - **The guard ctest catches a reintroduction.** Adding the DIAHelper include to `OpenDIAStage2.cpp` makes
   `OpenDIA_no_openswath` fail, and it passes again once the include is removed.
+
+## Read vs process split, and parallel per-spectrum work (19 Nov, OpenMS fc24ce9efc / 00cd8bb987)
+
+`fc24ce9efc` logs per raw pass the time spent reading (decoding spectra) and the time spent in OpenDIA's consumer.
+Before `00cd8bb987` the consumers ran on one thread. All values below are in seconds, 8 threads on codon, r ≈ 7
+library, PLAN_ODP CUR seed 0, with outputs byte-identical to PLAN_ODP throughout.
+
+| Run D | read | process before | process after |
+|---|---|---|---|
+| calibration pass | 4.7 | 17.9 | **3.7** |
+| search pass | 4.5 | 22.0 | 25.0 (already parallel per batch) |
+| extraction pass | 7.1 | 715.4 | **205.2** |
+| interference resolver | | 215.1 | 266.2 (unchanged code, node noise) |
+| run total | | 1,195 (pd4) | **622** |
+| wall incl. `-decoys predict` | | 26:12 | **18:34** |
+| peak RSS | | 37.7 GB | 38.3 GB |
+
+| Run H | read | process after |
+|---|---|---|
+| calibration pass | 13.5 | 11.3 |
+| search pass | 12.2 | 61.6 |
+| extraction pass | 17.3 | 294.1 |
+| interference resolver | | 151.8 |
+| run total / wall | | 677 s / 19:40 (from 33:13) |
+| peak RSS | | 34.0 GB |
+
+**Reading.** Reading the timsTOF file is 4.5-17 s per pass, under 3 % of the time before. The cost was OpenDIA's
+serial per-spectrum work.
+
+**Parallelisation (`00cd8bb987`).**
+- Each spectrum's independent per-member or per-window work now runs on the workers.
+- Order-dependent steps stay serial: tensor slot assignment, grid additions, and isolation windows in order. The
+  results therefore do not depend on the thread count.
+- Plain HeLa D, default and `-pg_scores`: byte-identical.
+
+**What remains on D (18.5 min wall).**
+- About 8 min is `-decoys predict`, which predicts 1.39 M decoys and writes a library before the run. DIA-NN's
+  2.6 min does not include an equivalent step.
+- The interference resolver takes 266 s.
+- The extraction consumer takes 205 s, about 3.5x from 8 threads.
+- Search takes 25 s.
