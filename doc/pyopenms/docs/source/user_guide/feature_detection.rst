@@ -237,8 +237,8 @@ Now we can use the following code to detect features with :py:class:`~.FeatureFi
 
   # edit some parameters
   params = ff.getParameters()
-  params["extract:mz_window"] = 5.0  # 5 ppm
-  params["extract:rt_window"] = 20.0  # 20 seconds
+  params["extract:mz_window"] = 5.0  # full window width: +/- 2.5 ppm around the target m/z
+  params["extract:rt_window"] = 20.0  # full window width: +/- 10 seconds around the target RT
   params["detect:peak_width"] = 3.0  # 3 seconds
   ff.setParameters(params)
 

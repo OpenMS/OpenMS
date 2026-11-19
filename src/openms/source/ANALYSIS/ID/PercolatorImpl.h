@@ -87,7 +87,7 @@ namespace OpenMS
     int    subset_curve_max = 1000000;
     /// Out-of-fold capped training of the last rescore() (empty otherwise).
     Percolator::CappedTrainingInfo capped_info;
-    double tron_epsilon = 1e-7;               ///< TRON stopping tolerance (Percolator: EPSILON = 1e-7)
+    double tron_epsilon = 1e-7;               ///< stopping tolerance of the TRON and Newton solves (Percolator: EPSILON = 1e-7)
     bool   warm_start = false;                ///< pairs start from their previous iteration's weights
     bool   classic_training = true;           ///< train as Percolator 3.09 (fixed iterations, full grid, solves from 0)
     bool   single_cneg = false;               ///< one Cneg candidate (3 x ratio) instead of three
