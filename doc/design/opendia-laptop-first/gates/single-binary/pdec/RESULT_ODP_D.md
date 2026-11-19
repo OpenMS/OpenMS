@@ -18,6 +18,16 @@
 
 **Verdict: FAIL** (criteria 1 and 2, narrowly). Nothing is retuned.
 
+**How narrow, checked 19 Nov 07:39.** The plan judges pooled point estimates.
+- **Exact values:** lower bound 0.01059 / 0.01062 against the 0.010 limit, and combined bound 0.01209 / 0.01212 against
+  0.012.
+- **Intervals:** the 90 % intervals contain both limits (lower 0.0098-0.0114, combined 0.0112-0.0131). So the fail rests on
+  the point estimates and is not a significant exceedance.
+- **H gives the same picture:** CUR lower 0.0106, combined 0.0121.
+- The verdict stands as frozen.
+- Re-verified: `PLAN_ODP.sha256` OK, written 23:45:28Z before any r ≈ 7 result. Evaluator sha256 bb03387d. Container
+  `opendia-pd2-01d5ded04a.sif`. Coverage 0.99846. Criterion 3 limit 6,234.85.
+
 **Reported, not criteria:**
 - `-pg_scores` gives +22.7 % N@FDP_c 1 % (10,100 against 8,233).
 - P(entrapment beats its own decoy | q ≤ 0.05) is 0.534 / 0.539.
