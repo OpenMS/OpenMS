@@ -496,7 +496,7 @@ void FLASHTnTAlgorithm::setDefaultParams_()
                      "Learned PrSM scoring (needs -in_raw): a model whose linear choice score picks each spectrum's PrSM among its candidates and "
                      "whose gradient-boosted trees give the chosen PrSM's confidence, which replaces its score in the FDR (the combined score is kept "
                      "as CombinedScore). 'default': the model shipped with OpenMS (share/OpenMS/TOPDOWN/FLASHTnT_scoring_model.txt; not used with "
-                     "-native); 'none' (default): no model, the PrSM by the combined score (the determined one unless the undetermined one scores over 3x); otherwise a model file.",
+                     "-native); 'none' (default): no model, the PrSM with the lowest q-value among the PrSMs of its own FDR class (then the determined one, then the combined score); otherwise a model file.",
                      {"advanced"});
   defaults_.setValue("protein_open_terminus_model", "false",
                      "Protein q-values: score an undetermined PrSM with an open terminus with the model of the class \"undetermined, both "
@@ -2700,6 +2700,32 @@ void FLASHTnTAlgorithm::run(const MSExperiment& map, const std::vector<FASTAFile
                                                                                             : (left.getCoverage() > right.getCoverage()))
                                                : (left.getScore() > right.getScore());
   };
+  // The q-values for the choice of a spectrum's PrSM (keepBestPerSpectrum_), per PrSM of @p hits: the PrSMs of each FDR class are counted
+  // against the decoys of that class, with the best PrSM of the class per spectrum (targets and decoys compete), before any PrSM is
+  // chosen. A PrSM that is not the best of its class in its spectrum, or is in no class, gets infinity. Without decoys every q-value is 0.
+  auto choiceQvalues = [&](const std::vector<ProteinHit>& hits) {
+    std::vector<double> q(hits.size(), std::numeric_limits<double>::infinity());
+    std::map<std::pair<int, int>, Size> best_of_class; // (class, scan)
+    for (Size i = 0; i < hits.size(); i++)
+    {
+      const int c = fdrClassOf(hits[i]);
+      if (c < 0) continue;
+      const auto [it, fresh] = best_of_class.try_emplace({c, (int)hits[i].getMetaValue(tntKey("Scan"))}, i);
+      if (! fresh && isBetterPrSM(hits[i], hits[it->second])) it->second = i;
+    }
+    std::vector<std::vector<Size>> class_hits(fdr_class_count);
+    for (const auto& [key, i] : best_of_class) class_hits[key.first].push_back(i);
+    for (auto& members : class_hits)
+    {
+      std::sort(members.begin(), members.end(), [&](Size a, Size b) { return byScore(hits[a], hits[b]); });
+      std::vector<RankedItem<double>> ranked;
+      ranked.reserve(members.size());
+      for (Size i : members) ranked.push_back({hits[i].getScore(), is_decoy(hits[i]), is_decoy(hits[i]) ? decoy_weight(hits[i]) : 0.0});
+      const auto class_qvalues = targetDecoyQvalues(ranked);
+      for (Size k = 0; k < members.size(); k++) q[members[k]] = decoy_factor_ > 0 ? class_qvalues[k] : 0.0;
+    }
+    return q;
+  };
   // The PrSM and proteoform q-values of proteoform_hits_ (sorted by byScore), as described at the FDR below: per PrSM its FDR class
   // (hit_class), PrSM q-value, decoy flag and decoy weight; the proteoforms (markRepresentativeProteoformHits_) are returned and every
   // PrSM gets its proteoform's q-value (proqvalue). With @p log, the classes are logged. Used by the FDR below and, on a copy, by the
@@ -3625,7 +3651,7 @@ void FLASHTnTAlgorithm::run(const MSExperiment& map, const std::vector<FASTAFile
           else
           {
             keepBestPerSpectrum_(stage_hits, stage == 0 ? std::string("") : " (search cascade stage " + StringUtils::toStr(stage) + ")", "combined score",
-                                 native_rule ? nullptr : &alternative_hits_);
+                                 choiceQvalues(stage_hits), native_rule ? nullptr : &alternative_hits_);
           }
         }
       }
@@ -3972,7 +3998,8 @@ void FLASHTnTAlgorithm::run(const MSExperiment& map, const std::vector<FASTAFile
         }
         const Size all_prsms = round_hits.size();
         if (raw_loader_ && ! round_hits.empty()) annotateOnRawSpectra_(round_hits);
-        if (! multiple_hits_per_spec_) keepBestPerSpectrum_(round_hits, " (chimeric round " + StringUtils::toStr(round) + ")", raw_loader_ ? "combined score" : "score");
+        if (! multiple_hits_per_spec_)
+          keepBestPerSpectrum_(round_hits, " (chimeric round " + StringUtils::toStr(round) + ")", raw_loader_ ? "combined score" : "score", choiceQvalues(round_hits));
         Size targets = 0, decoys = 0;
         for (auto& h : round_hits)
         {
@@ -5777,35 +5804,32 @@ void FLASHTnTAlgorithm::traceCandidates_(const std::vector<ProteinHit>& hits, co
 }
 
 void FLASHTnTAlgorithm::keepBestPerSpectrum_(std::vector<ProteinHit>& hits, const std::string& label, const std::string& score_name,
-                                             std::vector<ProteinHit>* alternatives)
+                                             const std::vector<double>& choice_qvalues, std::vector<ProteinHit>* alternatives)
 {
-  // Of a spectrum's PrSMs, the best one whose proteoform fits the precursor mass (determined) is reported, unless the best one without a
-  // mass scores more than three times higher; a PrSM without a mass that wins is then replaced by the best determined PrSM of its protein,
-  // if there is one (the protein by the fragments, the proteoform by the mass).
-  // A higher score without a mass is weak evidence: the terminal paths are scored apart, so the b and y ions of one bond count twice there
-  // and once on the precursor-mass path, which is also penalised for an internal end (Eclip_1480: RL3 180-209 at the right MS1 mass scored
-  // 116, the same range without a mass 169). And a blind shift on a PrSM without a mass can take up the sequence differences of a similar
-  // protein (B. theta entrapment, Eclip_1480 scan 9171: KPRS_ECOLI 243-315 at the MS1 mass 78, Q8A535_BACTN 1-799 without a mass 112).
-  // A mass is no strong evidence for its protein either: one blind shift fits any precursor mass, and a weak PrSM with one (Eclip_1479
-  // scan 10849: Q8A047_BACTN 44) was reported instead of the right protein without a mass (AHPC_ECOLI 449); as the spectrum then counted
-  // as identified, the gapped tags of the search cascade did not see it. Where the protein changed against always keeping the determined
-  // PrSM (B. theta entrapment of the Eclip lysates), the PrSM without a mass was more often a B. theta or decoy protein than the determined
-  // one below three times its score, and less often above.
-  constexpr double undetermined_score_factor = 3.0;
-  std::map<int, Size> best_determined, best_undetermined;
+  // Of a spectrum's PrSMs, the one least likely to be wrong by the decoys of its own FDR class is reported: the lowest q-value among the
+  // PrSMs of its class (choice_qvalues), then a PrSM whose proteoform fits the precursor mass (determined), then the higher score. A PrSM
+  // without a mass that wins is then replaced by the best determined PrSM of its protein, if there is one (the protein by the fragments,
+  // the proteoform by the mass).
+  // The scores of two classes do not compare: the same score is wrong at different rates in each. A PrSM without a mass scores higher
+  // for the same fragments (the terminal paths are scored apart; Eclip_1480: RL3 180-209 at the right MS1 mass scored 116, the same
+  // range without a mass 169), and a blind shift on it can take up the sequence differences of a similar protein (B. theta entrapment,
+  // Eclip_1480 scan 9171: KPRS_ECOLI 243-315 at the MS1 mass 78, Q8A535_BACTN 1-799 without a mass 112). A mass is no strong evidence
+  // for its protein either: one blind shift fits any precursor mass, and a weak PrSM with one (Eclip_1479 scan 10849: Q8A047_BACTN 44)
+  // was reported instead of the right protein without a mass (AHPC_ECOLI 449). The decoys of each class measure this, so that no fixed
+  // exchange rate between the classes is needed. Until 2026-11-19 the determined PrSM was reported unless the best one without a mass
+  // scored more than three times higher; on the B. theta entrapment of three lysates, among the 687 spectra where that rule and the
+  // plain score chose different proteins, the PrSM with a mass was a B. theta or decoy protein in 43 and the one without in 224; the
+  // lower class q-value in 35.
+  auto better = [&](Size a, Size b) {
+    if (choice_qvalues[a] != choice_qvalues[b]) return choice_qvalues[a] < choice_qvalues[b];
+    if (isDetermined(hits[a]) != isDetermined(hits[b])) return isDetermined(hits[a]);
+    return isBetterPrSM(hits[a], hits[b]);
+  };
+  std::map<int, Size> best;
   for (Size i = 0; i < hits.size(); i++)
   {
-    auto& best_of_kind = isDetermined(hits[i]) ? best_determined : best_undetermined;
-    const int scan = hits[i].getMetaValue(tntKey("Scan"));
-    auto it = best_of_kind.find(scan);
-    if (it == best_of_kind.end()) best_of_kind[scan] = i;
-    else if (isBetterPrSM(hits[i], hits[it->second])) it->second = i;
-  }
-  std::map<int, Size> best = best_determined;
-  for (const auto& [scan, u] : best_undetermined)
-  {
-    auto it = best.find(scan);
-    if (it == best.end() || hits[u].getScore() > undetermined_score_factor * hits[it->second].getScore()) best[scan] = u;
+    const auto [it, fresh] = best.try_emplace((int)hits[i].getMetaValue(tntKey("Scan")), i);
+    if (! fresh && better(i, it->second)) it->second = i;
   }
   {
     std::map<int, Size> best_with_mass;

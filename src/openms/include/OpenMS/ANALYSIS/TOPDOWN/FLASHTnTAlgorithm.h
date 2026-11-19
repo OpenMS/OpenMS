@@ -172,11 +172,12 @@ private:
   std::function<double(const ProteinHit&)> alternativeRawScorer_() const;
   /// path alternatives per candidate protein and extension mode (native: 2, else 0)
   int path_alternatives_ = 0;
-  /// one PrSM per spectrum: the best by score (a determined mass and termini break a tie, then the coverage, then the earlier PrSM);
-  /// @p label and @p score_name go into the log line
+  /// one PrSM per spectrum: the one with the lowest q-value among the PrSMs of its own FDR class (@p choice_qvalues, per PrSM of @p hits;
+  /// each class counted against its own decoys before the choice), then a determined mass and termini, then the higher score, then the
+  /// coverage, then the earlier PrSM; @p label and @p score_name go into the log line
   /// @p alternatives (optional) takes, per spectrum, the best PrSM of each of up to three other proteins than the one reported
   static void keepBestPerSpectrum_(std::vector<ProteinHit>& hits, const std::string& label, const std::string& score_name,
-                                   std::vector<ProteinHit>* alternatives = nullptr);
+                                   const std::vector<double>& choice_qvalues, std::vector<ProteinHit>* alternatives = nullptr);
   /// FLASH_TRACE_FEATURES: every candidate PrSM before the spectrum's choice, appended to @p file (diagnostics)
   void traceCandidates_(const std::vector<ProteinHit>& hits, const char* file) const;
   /// learned PrSM scoring (scoring_model): its choice weights and confidence trees; null when off
