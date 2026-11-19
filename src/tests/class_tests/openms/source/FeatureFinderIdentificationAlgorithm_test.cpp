@@ -164,7 +164,7 @@ START_SECTION([EXTRA] run() counts the distinct identified peptides for the summ
   Param param = algo.getParameters();
   param.setValue("model:type", "none"); // the synthetic peaks need no elution model
   algo.setParameters(param);
-  algo.setMSData(std::move(ms1));
+  algo.setFromMS1Data(std::move(ms1));
   FeatureMap features;
   algo.run(peptides, proteins, features, FeatureMap(), "");
   TEST_EQUAL(algo.getPeptideCount(), 3)

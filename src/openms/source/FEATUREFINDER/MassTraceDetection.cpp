@@ -10,6 +10,7 @@
 
 #include <OpenMS/MATH/StatisticFunctions.h>
 
+#include <algorithm>
 #include <vector>
 
 #include <OpenMS/KERNEL/SpectrumHelper.h>
@@ -26,12 +27,12 @@ namespace OpenMS
     MassTraceDetection::MassTraceDetection() :
             DefaultParamHandler("MassTraceDetection"), ProgressLogger()
     {
-      defaults_.setValue("mass_error_ppm", 20.0, "Allowed mass deviation (in ppm).");
+      defaults_.setValue("mass_error_ppm", 20.0, "Allowed mass deviation (in ppm): the expected standard deviation of the m/z of the peaks of a mass trace. Peaks within three times this value of the centroid m/z of a mass trace can extend it.");
       defaults_.setValue("noise_threshold_int", 10.0, "Intensity threshold below which peaks are removed as noise.");
       defaults_.setValue("chrom_peak_snr", 3.0, "Minimum intensity above noise_threshold_int (signal-to-noise) a peak should have to be considered an apex.");
       defaults_.setValue("ion_mobility_tolerance", 0.01, "Allowed ion mobility deviation (in 1/K0 units, e.g., 0.01-0.05). For CCS data, use larger values (e.g., 2-10 square angstroms).");
 
-      defaults_.setValue("reestimate_mt_sd", "true", "Enables dynamic re-estimation of m/z variance during mass trace collection stage.");
+      defaults_.setValue("reestimate_mt_sd", "true", "Enables dynamic re-estimation of m/z variance during mass trace collection stage. The re-estimated variance narrows the m/z window in which peaks extend a mass trace, if the trace is more precise than mass_error_ppm. It never widens the window.");
       defaults_.setValidStrings("reestimate_mt_sd", {"true","false"});
 
       defaults_.setValue("quant_method",std::string(MassTrace::names_of_quantmethod[0]), "Method of quantification for mass traces. For LC data 'area' is recommended, 'median' for direct injection data. 'max_height' simply uses the most intense peak in the trace.");
@@ -489,6 +490,11 @@ namespace OpenMS
       this->startProgress(0, total_peak_count, "mass trace detection");
       Size peaks_detected(0);
 
+      // summed intensity of all mass traces, and of those whose re-estimated m/z standard deviation
+      // exceeds the one allowed by 'mass_error_ppm' (see below)
+      double traced_intensity(0.0);
+      double limited_intensity(0.0);
+
       for (auto m_it = chrom_apices.crbegin(); m_it != chrom_apices.crend(); ++m_it)
       {
         Size apex_scan_idx(m_it->scan_idx);
@@ -537,6 +543,11 @@ namespace OpenMS
         Size trace_up_idx(apex_scan_idx);
 
         double ftl_sd((centroid_mz / 1e6) * mass_error_ppm_);
+        // The standard deviation that is re-estimated from the peaks of the trace ('reestimate_mt_sd') narrows
+        // the m/z window, but never widens it beyond the one of 'mass_error_ppm'. The estimate comes from the
+        // peaks that the window let in: peaks of noise or of other ions near its edge inflate it, a window that
+        // grows with it lets in more distant peaks, and the trace runs away over neighboring signals (#10905).
+        const double max_ftl_sd(ftl_sd);
         double intensity_so_far(apex_peak.getIntensity());
 
         while ((trace_down_idx > 0 && down_state.active) || (trace_up_idx < work_exp.size() - 1 && up_state.active))
@@ -551,9 +562,10 @@ namespace OpenMS
             // Only process spectra that contain peaks
             if (!spec_trace_down.empty())
             {
-              PeakCandidate candidate = findBestPeak_(spec_trace_down, centroid_mz, ftl_sd, centroid_im);
+              const double window_sd = std::min(ftl_sd, max_ftl_sd);
+              PeakCandidate candidate = findBestPeak_(spec_trace_down, centroid_mz, window_sd, centroid_im);
               
-              if (isPeakAcceptable_(candidate, centroid_mz, ftl_sd, centroid_im, trace_down_idx - 1, spec_offsets, peak_visited))
+              if (isPeakAcceptable_(candidate, centroid_mz, window_sd, centroid_im, trace_down_idx - 1, spec_offsets, peak_visited))
               {
                 processPeak_(candidate, spec_trace_down, current_trace, gathered_idx,
                             fwhms_mz, fwhms_im, centroid_mz, centroid_im,
@@ -604,9 +616,10 @@ namespace OpenMS
             // Only process spectra that contain peaks
             if (!spec_trace_up.empty())
             {
-              PeakCandidate candidate = findBestPeak_(spec_trace_up, centroid_mz, ftl_sd, centroid_im);
+              const double window_sd = std::min(ftl_sd, max_ftl_sd);
+              PeakCandidate candidate = findBestPeak_(spec_trace_up, centroid_mz, window_sd, centroid_im);
               
-              if (isPeakAcceptable_(candidate, centroid_mz, ftl_sd, centroid_im, trace_up_idx + 1, spec_offsets, peak_visited))
+              if (isPeakAcceptable_(candidate, centroid_mz, window_sd, centroid_im, trace_up_idx + 1, spec_offsets, peak_visited))
               {
                 processPeak_(candidate, spec_trace_up, current_trace, gathered_idx,
                             fwhms_mz, fwhms_im, centroid_mz, centroid_im,
@@ -676,6 +689,12 @@ namespace OpenMS
 
           found_masstraces.push_back(new_trace);
 
+          if (reestimate_mt_sd_)
+          {
+            traced_intensity += intensity_so_far;
+            if (ftl_sd > max_ftl_sd) { limited_intensity += intensity_so_far; }
+          }
+
           peaks_detected += new_trace.getSize();
           this->setProgress(peaks_detected);
 
@@ -684,6 +703,17 @@ namespace OpenMS
         }
       }
       this->endProgress();
+
+      // The m/z window of a trace never exceeds the one of 'mass_error_ppm'. If most of the signal is in
+      // traces whose m/z values scatter more than that, the data is less precise than 'mass_error_ppm'
+      // (e.g., low-resolution data) and the traces are incomplete.
+      if (limited_intensity > 0.5 * traced_intensity)
+      {
+        OPENMS_LOG_WARN << "Warning: " << static_cast<Size>(100.0 * limited_intensity / traced_intensity + 0.5)
+                        << "% of the signal in mass traces is in traces whose m/z values scatter more than 'mass_error_ppm' ("
+                        << mass_error_ppm_ << " ppm) allows. If the data is less precise than that (e.g., low-resolution data), "
+                        << "mass traces are incomplete: increase 'mass_error_ppm'." << std::endl;
+      }
     }
 
 
