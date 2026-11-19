@@ -1,0 +1,14 @@
+== D
+library: targets 1390163, r = 7.0539; DIA-NN report precursors 58769, not matched to the library 0
+DIA-NN: q<=0.01 N 26118, E 237, lower 0.0091 (90 % 0.0081-0.0101), combined 0.0104 (90 % 0.0093-0.0115); N@FDP_c 1 % 26006
+  at q<=0.005: N 24294, E 115, lower 0.0047, combined 0.0054
+  at q<=0.02: N 27694, E 441, lower 0.0159, combined 0.0182
+  overlap with D_cur_s0.tsv.gz: OpenDIA non-entrapment q<=0.01 8390, in DIA-NN 0.974; DIA-NN 25881 in OpenDIA 0.316
+  overlap with D_new_s0.tsv.gz: OpenDIA non-entrapment q<=0.01 10338, in DIA-NN 0.963; DIA-NN 25881 in OpenDIA 0.385
+== H
+library: targets 1390163, r = 7.0539; DIA-NN report precursors 84276, not matched to the library 0
+DIA-NN: q<=0.01 N 41649, E 418, lower 0.0100 (90 % 0.0092-0.0109), combined 0.0115 (90 % 0.0106-0.0124); N@FDP_c 1 % 41272
+  at q<=0.005: N 40047, E 235, lower 0.0059, combined 0.0067
+  at q<=0.02: N 43432, E 797, lower 0.0184, combined 0.0210
+  overlap with H_cur_s0.tsv.gz: OpenDIA non-entrapment q<=0.01 21157, in DIA-NN 0.960; DIA-NN 41231 in OpenDIA 0.493
+  overlap with H_new_s0.tsv.gz: OpenDIA non-entrapment q<=0.01 25009, in DIA-NN 0.951; DIA-NN 41231 in OpenDIA 0.577

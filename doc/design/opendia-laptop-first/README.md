@@ -12,6 +12,14 @@ The branch's [`src/topp/OpenDIA/README.md`](https://github.com/OpenMS/OpenMS/blo
 **Summary.**
 - **Astral (entrapment, true FDR):** OpenDIA reaches 81-84 % of DIA-NN at FDP_c 1 %, unchanged since 16 Nov (the table
   below). Every lever tried there has failed or shown no room.
+- **DIA-NN on the r ≈ 7 HeLa entrapment library (19 Nov, `gates/single-binary/pdec/RESULT_DIANN_R5.md`).**
+  - **DIA-NN 2.2 is calibrated on this library:** at its own q ≤ 0.01 the true FDP is 0.91-1.04 % on D and 1.00-1.15 %
+    on H. OpenDIA with `-decoys predict` sits at 1.06-1.21 % (D) and 1.06-1.26 % (H).
+  - **The larger gap is IDs at 1 % true FDP:**
+    - DIA-NN finds 26,006 (D) and 41,272 (H).
+    - OpenDIA finds 8,233 / 10,100 on D (32 % / 39 %) and 20,745 / 24,549 on H (50 % / 59 %).
+  - 95-97 % of OpenDIA's IDs are in DIA-NN's list.
+  - **Cost:** DIA-NN takes 2.6-4.1 min and under 7 GB. OpenDIA takes 1-2.5 h and 89-115 GB.
 - **HeLa diaPASEF (own q ≤ 0.01, no entrapment):** three fixes on 17 Nov raised the design run from 11,653 to 16,116 and
   the held-out run from 19,725 to 24,000. That is 56 % / 63 % of DIA-NN and 84 % of OpenSWATH SVM on the design run.
   Each fix passed a frozen plan with a held-out run and is byte-identical on Astral. See "Current HeLa result" below,
