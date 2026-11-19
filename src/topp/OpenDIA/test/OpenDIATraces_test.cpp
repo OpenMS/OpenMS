@@ -283,6 +283,54 @@ int main(int argc, char** argv)
     missing.enableEvidence(20, 4);
     rejects([&] { missing.enableByIonCounts(no_sequence, 10, 300); });
   }
+  // Streaming mode: each window's tensor reaches the callback once, after its RT range has passed, equal to the retained
+  // tensor; tensors are released after the callback and a spectrum reaching a closed window is rejected.
+  {
+    const std::vector<OpenDIA::TraceWindow> sw = {{"a", "target", "g", -1, 10}, {"b", "target", "g", -1, 40}, {"c", "target", "g", -1, 12}};
+    OpenDIA::TraceCollector retained(sw, library);
+    std::vector<std::vector<float>> seen(sw.size());
+    std::vector<double> closed_at(sw.size(), -1.0);
+    double now = 0.0;
+    OpenDIA::TraceCollector streamed(sw, library, 0.02, 15.0, 0.03, 16384, OpenDIA::TraceCollector::DEFAULT_MAX_TENSOR_BYTES,
+                                     [&](const std::vector<std::uint32_t>& closed, const OpenDIA::TraceCollector& tc)
+                                     {
+                                       for (const auto i : closed)
+                                       {
+                                         require(seen[i].empty(), "streamed window closed twice");
+                                         std::array<float, OpenDIA::TraceCollector::SAMPLE_SIZE> buffer;
+                                         const float* t = tc.windowTensor(i, buffer);
+                                         seen[i].assign(t, t + OpenDIA::TraceCollector::SAMPLE_SIZE);
+                                         closed_at[i] = now;
+                                       }
+                                     });
+    for (const double rt : {5.0, 10.0, 20.0, 30.0, 45.0, 54.0})
+    {
+      now = rt;
+      auto a = scan(rt), b = scan(rt);
+      retained.consumeSpectrum(a);
+      streamed.consumeSpectrum(b);
+    }
+    now = 1e9;
+    streamed.finish();
+    require(streamed.intensities().empty(), "streaming mode must not retain the run-wide tensor");
+    for (std::size_t i = 0; i < sw.size(); ++i)
+    {
+      std::array<float, OpenDIA::TraceCollector::SAMPLE_SIZE> buffer;
+      const float* t = retained.windowTensor(i, buffer);
+      require(seen[i] == std::vector<float>(t, t + OpenDIA::TraceCollector::SAMPLE_SIZE), "streamed tensor differs from the retained tensor");
+      require(closed_at[i] > sw[i].apex_rt + 15.0, "window closed before its RT range passed");
+    }
+    require(streamed.peakHeldTensors() >= 1 && streamed.peakHeldTensors() <= 3, "held tensor count");
+    std::array<float, OpenDIA::TraceCollector::SAMPLE_SIZE> buffer;
+    const float* released = streamed.windowTensor(0, buffer);
+    require(std::accumulate(released, released + OpenDIA::TraceCollector::SAMPLE_SIZE, 0.0f) == 0.0f, "released tensor reads as zero");
+    // Out of RT order: a spectrum that would reach a closed window throws.
+    OpenDIA::TraceCollector late(sw, library, 0.02, 15.0, 0.03, 16384, OpenDIA::TraceCollector::DEFAULT_MAX_TENSOR_BYTES,
+                                 [](const std::vector<std::uint32_t>&, const OpenDIA::TraceCollector&) {});
+    auto first_scan = scan(30), back = scan(10);
+    late.consumeSpectrum(first_scan);
+    rejects([&] { late.consumeSpectrum(back); });
+  }
   // Retain the tiny .npy/metadata fixture for a real NumPy interoperability check.
   return 0;
 }

@@ -151,10 +151,9 @@ namespace OpenMS::OpenDIA
       for (std::size_t b = 0; b < BINS; ++b) cumulative[i][b + 1] = cumulative[i][b] + windows[i].profile[b];
     }
 
-    // Windows of linked isolation windows sorted by rt_start. For a window a the overlapping partners are the later
-    // windows with rt_start <= a.rt_end and the earlier windows with rt_end >= a.rt_start; a running maximum of rt_end
-    // bounds the backward scan. Each window computes its own features from its partners, so results are written by
-    // exactly one iteration and do not depend on the thread count or schedule.
+    // Windows of linked isolation windows sorted by rt_start (groups of one isolation window). Each window computes its
+    // own features from its partners, so results are written by exactly one iteration and do not depend on the thread
+    // count or schedule.
     std::vector<std::uint32_t> order;
     order.reserve(n);
     for (std::uint32_t i = 0; i < n; ++i)
@@ -169,20 +168,12 @@ namespace OpenMS::OpenDIA
       return x < y;
     });
     const std::size_t m = order.size();
-    std::vector<std::uint32_t> group_begin(m), group_end(m);
-    std::vector<double> running_end(m);
+    std::vector<std::uint32_t> group_end(m);
     for (std::size_t g = 0; g < m;)
     {
       const auto iso = precursors[windows[order[g]].precursor].isolation;
       std::size_t h = g;
-      double running = -std::numeric_limits<double>::infinity();
-      while (h < m && precursors[windows[order[h]].precursor].isolation == iso)
-      {
-        running = std::max(running, windows[order[h]].rt_end);
-        running_end[h] = running;
-        ++h;
-      }
-      std::fill(group_begin.begin() + g, group_begin.begin() + h, static_cast<std::uint32_t>(g));
+      while (h < m && precursors[windows[order[h]].precursor].isolation == iso) ++h;
       std::fill(group_end.begin() + g, group_end.begin() + h, static_cast<std::uint32_t>(h));
       g = h;
     }
@@ -195,11 +186,46 @@ namespace OpenMS::OpenDIA
     }
     std::size_t pairs_total = 0, links_total = 0, used_total = 0, with_claimant = 0;
 
+    // Partners are looked up through a fragment index of one isolation window at a time: every window is entered once
+    // per fragment under the log(m/z) bin of width log(1 + tol), sorted by (bin, rt_start). A partner b of a must share a
+    // fragment (|m_a - m_b| <= tol x m_a, so ln m_b lies within ln m_a + [ln(1 - tol), ln(1 + tol)]), and its range
+    // must overlap a's (b.rt_start in [a.rt_start - widest range of the group, a.rt_end]). The lookup returns a superset
+    // of the linked windows (one spare bin on each side), and consider() applies exactly the tests of the former scan
+    // over all overlapping windows, so the claims and the features are unchanged. Only pairs_tested counts fewer pairs.
+    const double bin_width = std::log1p(tol);
+    const double lo_shift = std::log1p(-tol), hi_shift = std::log1p(tol);
+    struct Entry
+    {
+      std::int64_t bin;
+      double rt_start;
+      std::uint32_t pos;
+    };
+    std::vector<Entry> index;
+    for (std::size_t g = 0; g < m;)
+    {
+      const std::size_t h = group_end[g];
+      index.clear();
+      double widest = 0.0;
+      for (std::size_t q = g; q < h; ++q)
+      {
+        const Window& b = windows[order[q]];
+        widest = std::max(widest, b.rt_end - b.rt_start);
+        const SortedFragments& sb = sorted[b.precursor];
+        for (std::size_t k = 0; k < sb.count; ++k)
+          index.push_back({static_cast<std::int64_t>(std::floor(std::log(sb.mz[k]) / bin_width)), b.rt_start, static_cast<std::uint32_t>(q)});
+      }
+      std::sort(index.begin(), index.end(), [](const Entry& x, const Entry& y)
+      {
+        if (x.bin != y.bin) return x.bin < y.bin;
+        if (x.rt_start != y.rt_start) return x.rt_start < y.rt_start;
+        return x.pos < y.pos;
+      });
 #pragma omp parallel num_threads(threads) reduction(+ : pairs_total, links_total, used_total, with_claimant)
     {
       std::vector<Claim> claims;
+      std::vector<std::uint32_t> partners;
 #pragma omp for schedule(dynamic, 512)
-      for (std::ptrdiff_t pos = 0; pos < static_cast<std::ptrdiff_t>(m); ++pos)
+      for (std::ptrdiff_t pos = static_cast<std::ptrdiff_t>(g); pos < static_cast<std::ptrdiff_t>(h); ++pos)
       {
         const std::uint32_t ai = order[pos];
         const Window& a = windows[ai];
@@ -222,12 +248,28 @@ namespace OpenMS::OpenDIA
           c.window = bi;
           claims.push_back(c);
         };
-        for (std::size_t q = static_cast<std::size_t>(pos); q-- > group_begin[pos];)
+        partners.clear();
+        const double rt_from = a.rt_start - widest;
+        const auto before = [](const Entry& x, const Entry& y) { return x.bin != y.bin ? x.bin < y.bin : x.rt_start < y.rt_start; };
+        for (std::size_t f = 0; f < K; ++f)
         {
-          if (running_end[q] < a.rt_start) break;
-          consider(q);
+          const double mz = pa.fragment_mz[f];
+          if (!(mz > 0.0)) continue;
+          const double l = std::log(mz);
+          const auto first_bin = static_cast<std::int64_t>(std::floor((l + lo_shift) / bin_width)) - 1;
+          const auto last_bin = static_cast<std::int64_t>(std::floor((l + hi_shift) / bin_width)) + 1;
+          for (std::int64_t bin = first_bin; bin <= last_bin; ++bin)
+          {
+            for (auto it = std::lower_bound(index.begin(), index.end(), Entry{bin, rt_from, 0}, before);
+                 it != index.end() && it->bin == bin && it->rt_start <= a.rt_end; ++it)
+            {
+              if (it->pos != static_cast<std::uint32_t>(pos)) partners.push_back(it->pos);
+            }
+          }
         }
-        for (std::size_t q = static_cast<std::size_t>(pos) + 1; q < group_end[pos] && windows[order[q]].rt_start <= a.rt_end; ++q) consider(q);
+        std::sort(partners.begin(), partners.end());
+        partners.erase(std::unique(partners.begin(), partners.end()), partners.end());
+        for (const std::uint32_t q : partners) consider(q);
         if (claims.empty()) continue;
         ++with_claimant;
         // One claimant window per precursor: nearest apex, ties by window index.
@@ -287,6 +329,8 @@ namespace OpenMS::OpenDIA
         o[2] = static_cast<float>(c_res - c_obs);
         o[3] = static_cast<float>(std::log1p(static_cast<double>(claimants)));
       }
+    }
+      g = h;
     }
     if (stats)
     {

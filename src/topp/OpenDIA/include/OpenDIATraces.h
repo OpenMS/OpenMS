@@ -11,7 +11,9 @@
 
 #include <array>
 #include <cstdint>
+#include <functional>
 #include <limits>
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -83,6 +85,12 @@ namespace OpenMS::OpenDIA
     static constexpr std::size_t SAMPLE_SIZE = FRAGMENTS * RT_BINS * IM_BINS;
     /// Default raw tensor budget (2 GiB).
     static constexpr std::size_t DEFAULT_MAX_TENSOR_BYTES = std::size_t{2} << 30;
+    /**
+      @brief Streaming mode callback: receives windows that can no longer receive spectra (apex + RT half width before
+      the current spectrum), while their tensors are still held. windowTensor(), evidence() and the per-window accessors
+      are valid for these windows during the call; the tensors are released after it returns.
+    */
+    using CloseCallback = std::function<void(const std::vector<std::uint32_t>& closed, const TraceCollector& traces)>;
 
     /** @brief Construct a bounded candidate tensor collector.
       @param[in] windows Explicit candidate windows, labels and related-peptide group IDs.
@@ -91,17 +99,26 @@ namespace OpenMS::OpenDIA
       @param[in] rt_half_width RT half width in seconds.
       @param[in] im_half_width Mobility half width in 1/K0.
       @param[in] max_samples Maximum allowed sample count.
-      @param[in] max_tensor_bytes Hard cap on the retained raw tensor size in bytes.
+      @param[in] max_tensor_bytes Hard cap on the retained raw tensor size in bytes (all windows; in streaming mode the
+                 windows held at one time).
+      @param[in] on_close If set, streaming mode: a window's tensor is held only from its first spectrum until it is
+                 closed, then passed to @p on_close in batches and released, so memory follows the windows co-eluting
+                 at one time instead of all windows. Spectra must arrive in RT order (an out-of-order spectrum that would
+                 reach a closed window throws). Call finish() after the last spectrum. intensities() is empty.
     */
     TraceCollector(std::vector<TraceWindow> windows, const OpenSwath::LightTargetedExperiment& library,
                    double mz_tolerance = 0.02, double rt_half_width = 15.0,
                    double im_half_width = 0.03, std::size_t max_samples = 16384,
-                   std::size_t max_tensor_bytes = DEFAULT_MAX_TENSOR_BYTES);
+                   std::size_t max_tensor_bytes = DEFAULT_MAX_TENSOR_BYTES, CloseCallback on_close = {});
 
     void consumeSpectrum(MSSpectrum& spectrum) override;
     void consumeChromatogram(MSChromatogram&) override;
     void setExpectedSize(std::size_t, std::size_t) override;
     void setExperimentalSettings(const ExperimentalSettings&) override;
+    /// Streaming mode: close and pass on every remaining window. No effect otherwise.
+    void finish();
+    /// Streaming mode: largest number of tensors held at one time.
+    std::size_t peakHeldTensors() const { return peak_held_; }
 
     /**
       @brief Stored raw tensor in sample, fragment, RT, mobility order, also consumed directly by the native CNN.
@@ -213,6 +230,26 @@ namespace OpenMS::OpenDIA
     double byion_intensity_min_ = 0.0;
     std::vector<PeakGroupEvidence> pg_evidence_;
     double pg_ppm_ = 0.0;
+    // Streaming mode (see the constructor).
+    static constexpr std::uint32_t NO_SLOT = std::numeric_limits<std::uint32_t>::max();
+    static constexpr std::size_t SLOT_CHUNK = 16384;
+    static constexpr std::size_t CLOSE_BATCH = 4096;
+    CloseCallback on_close_;
+    std::size_t stride_ = 0;                         ///< Stored floats per window.
+    std::size_t max_held_ = 0;                       ///< Tensor budget in windows (streaming mode).
+    std::vector<std::unique_ptr<float[]>> chunks_;   ///< Slot storage, SLOT_CHUNK slots per chunk.
+    std::vector<std::uint32_t> slot_of_;
+    std::vector<std::uint32_t> free_slots_;
+    std::vector<std::uint8_t> closed_;
+    std::vector<std::uint32_t> pending_;
+    std::size_t close_cursor_ = 0;
+    std::size_t held_ = 0;
+    std::size_t peak_held_ = 0;
+
+    float* tensor_(std::size_t index);
+    const float* storedTensor_(std::size_t index) const;
+    void close_(double rt);
+    void flush_();
 
     void consumeMS1_(MSSpectrum& spectrum);
     void countByIons_(const MSSpectrum& spectrum, std::size_t index, double dt);

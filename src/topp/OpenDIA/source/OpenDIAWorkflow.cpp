@@ -483,7 +483,37 @@ namespace OpenMS::OpenDIA
       for (auto& c : trace_library.compounds)
         if (std::isfinite(c.drift_time) && c.drift_time > 0.0) c.drift_time = cal.im_intercept + cal.im_slope * c.drift_time;
     }
-    TraceCollector traces(std::move(trace_windows), trace_library, 0.02, options_.grid_half_width_s, 0.03, n, options_.trace_tensor_gb << 30);
+    // Default (no -pg_scores): streaming tensors. The boundary features are the only tensor-derived features; they are
+    // computed as each window's RT range closes and its tensor is released, so tensor memory follows the windows
+    // co-eluting at one time. The features are computed from the same tensor values as before (byte-identical).
+    // -pg_scores needs a run-wide floor over the tensors and keeps the retained tensors.
+    Stage2ExtractionOptions extraction;
+    extraction.rt_half_width = options_.grid_half_width_s;
+    extraction.core_half_width = options_.core_half_width_s;
+    const bool stream_tensors = !options_.pg_scores;
+    std::vector<float> boundary;
+    TraceCollector::CloseCallback on_close;
+    if (stream_tensors)
+    {
+      boundary.assign(n * STAGE2_BOUNDARY_FEATURES, 0.0f);
+      const int threads = options_.threads;
+      on_close = [&boundary, &extraction, threads](const std::vector<std::uint32_t>& closed, const TraceCollector& tc)
+      {
+#pragma omp parallel num_threads(threads)
+        {
+          std::array<float, TraceCollector::SAMPLE_SIZE> view;
+#pragma omp for schedule(dynamic, 256)
+          for (std::ptrdiff_t c = 0; c < static_cast<std::ptrdiff_t>(closed.size()); ++c)
+          {
+            const std::size_t i = closed[static_cast<std::size_t>(c)];
+            const auto f = stage2BoundaryFeatures(tc.windowTensor(i, view), tc.libraryIntensities(i), tc.fragmentMZ(i), tc.evidence(i), extraction);
+            for (std::size_t k = 0; k < STAGE2_BOUNDARY_FEATURES; ++k) boundary[i * STAGE2_BOUNDARY_FEATURES + k] = static_cast<float>(f[k]);
+          }
+        }
+      };
+    }
+    TraceCollector traces(std::move(trace_windows), trace_library, 0.02, options_.grid_half_width_s, 0.03, n, options_.trace_tensor_gb << 30,
+                          on_close);
     traces.setIonMobilityArrayAsVSSC(options_.im_array_as_vssc);
     traces.enableEvidence(20.0, options_.core_half_width_s);
     traces.enableByIonCounts(trace_library, options_.byion_ppm, options_.byion_intensity_min);
@@ -492,11 +522,13 @@ namespace OpenMS::OpenDIA
       TeeConsumer both(grids, traces);
       readSpectra(path, both, {1, 2});
     }
+    traces.finish();
     grids.finish();
     const auto isolation = grids.isolationIndices();
     for (std::size_t l = 0; l < resolver_precursors.size(); ++l) resolver_precursors[l].isolation = isolation[l];
     say("Extraction: windows=" + std::to_string(n) + " precursors=" + std::to_string(local_precursors.size()) +
         " isolation_windows=" + std::to_string(grids.isolationWindowCount()) + " peak_open_grids=" + std::to_string(grids.peakOpenGrids()) +
+        (stream_tensors ? " peak_held_tensors=" + std::to_string(traces.peakHeldTensors()) : std::string()) +
         " seconds=" + std::to_string(seconds(t_extract)));
 
     // 5. Features.
@@ -506,12 +538,11 @@ namespace OpenMS::OpenDIA
     result.feature_names = names;
     result.features.assign(n * d, 0.0f);
     const double noise = FragmentGrid::noiseLevel(grid_windows, resolver_precursors);
+    const auto t_interference = std::chrono::steady_clock::now();
     const auto interference = InterferenceResolver::compute(resolver_precursors, grid_windows, cal.ms2_tolerance_ppm,
                                                             2.0 * options_.grid_half_width_s / InterferenceResolver::BINS, options_.threads,
                                                             nullptr, cal.has_im ? 2.0 * cal.im_tolerance : 0.0);
-    Stage2ExtractionOptions extraction;
-    extraction.rt_half_width = options_.grid_half_width_s;
-    extraction.core_half_width = options_.core_half_width_s;
+    const double interference_s = seconds(t_interference);
     const double pg_floor = options_.pg_scores ? peakGroupNoiseFloor(traces) : 0.0;
 #pragma omp parallel num_threads(options_.threads)
     {
@@ -529,8 +560,15 @@ namespace OpenMS::OpenDIA
         peak.peak_width_seconds = w.peak.rt_end - w.peak.rt_start;
         peak.abs_rt_error_seconds = lib.precursors[w.precursor].has_library_rt ? std::abs(w.peak.apex_rt_error_seconds) : 0.0;
         for (double v : stage2SearchFeatures(peak)) f[o++] = static_cast<float>(v);
-        const float* tensor = traces.windowTensor(i, view);
-        for (double v : stage2BoundaryFeatures(tensor, traces.libraryIntensities(i), traces.fragmentMZ(i), traces.evidence(i), extraction)) f[o++] = static_cast<float>(v);
+        const float* tensor = stream_tensors ? nullptr : traces.windowTensor(i, view);
+        if (stream_tensors)
+        {
+          for (std::size_t k = 0; k < STAGE2_BOUNDARY_FEATURES; ++k) f[o++] = boundary[i * STAGE2_BOUNDARY_FEATURES + k];
+        }
+        else
+        {
+          for (double v : stage2BoundaryFeatures(tensor, traces.libraryIntensities(i), traces.fragmentMZ(i), traces.evidence(i), extraction)) f[o++] = static_cast<float>(v);
+        }
         for (double v : stage2ByIonFeatures(traces.evidence(i))) f[o++] = static_cast<float>(v);
         for (float v : grids.evidence()[i]) f[o++] = v;
         const auto& gp = grid_precursors[grid_windows[i].precursor];
@@ -545,7 +583,8 @@ namespace OpenMS::OpenDIA
       }
     }
     say("Features: " + std::to_string(d) + " per window, noise=" + std::to_string(noise) +
-        (options_.pg_scores ? " pg_floor=" + std::to_string(pg_floor) : std::string()) + " seconds=" + std::to_string(seconds(t_features)));
+        (options_.pg_scores ? " pg_floor=" + std::to_string(pg_floor) : std::string()) + " seconds=" + std::to_string(seconds(t_features)) +
+        " interference_seconds=" + std::to_string(interference_s));
 
     // 6. Scorer.
     const auto t_score = std::chrono::steady_clock::now();

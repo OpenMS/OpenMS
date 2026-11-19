@@ -80,8 +80,8 @@ namespace OpenMS::OpenDIA
 
   TraceCollector::TraceCollector(std::vector<TraceWindow> windows, const OpenSwath::LightTargetedExperiment& library,
                                  double mz_tolerance, double rt_half_width, double im_half_width,
-                                 std::size_t max_samples, std::size_t max_tensor_bytes) :
-    mz_tolerance_(mz_tolerance), rt_half_width_(rt_half_width), im_half_width_(im_half_width)
+                                 std::size_t max_samples, std::size_t max_tensor_bytes, CloseCallback on_close) :
+    mz_tolerance_(mz_tolerance), rt_half_width_(rt_half_width), im_half_width_(im_half_width), on_close_(std::move(on_close))
   {
     require(std::isfinite(mz_tolerance_) && mz_tolerance_ > 0.0 &&
             std::isfinite(rt_half_width_) && rt_half_width_ > 0.0 &&
@@ -150,8 +150,20 @@ namespace OpenMS::OpenDIA
     // consumeSpectrum), so storing only that bin gives the same tensor at 1/8 of the memory.
     im_bins_ = std::any_of(samples_.begin(), samples_.end(), [](const Sample& s) { return s.precursor_im > 0.0; }) ? IM_BINS : 1;
     const std::size_t stored = SAMPLE_SIZE / IM_BINS * im_bins_;
-    require(samples_.size() <= max_tensor_bytes / (stored * sizeof(float)), "Trace sample count exceeds the raw tensor byte budget.");
-    intensities_.resize(samples_.size() * stored, 0.0f);
+    stride_ = stored;
+    if (on_close_)
+    {
+      // Streaming: tensors live in reusable slots between a window's first spectrum and its closing.
+      max_held_ = max_tensor_bytes / (stored * sizeof(float));
+      require(max_held_ > 0, "Trace tensor budget holds no window.");
+      slot_of_.assign(samples_.size(), NO_SLOT);
+      closed_.assign(samples_.size(), 0);
+    }
+    else
+    {
+      require(samples_.size() <= max_tensor_bytes / (stored * sizeof(float)), "Trace sample count exceeds the raw tensor byte budget.");
+      intensities_.resize(samples_.size() * stored, 0.0f);
+    }
     by_rt_.resize(samples_.size());
     std::iota(by_rt_.begin(), by_rt_.end(), 0);
     std::stable_sort(by_rt_.begin(), by_rt_.end(), [this](std::size_t a, std::size_t b)
@@ -327,6 +339,7 @@ namespace OpenMS::OpenDIA
 
   void TraceCollector::consumeSpectrum(MSSpectrum& spectrum)
   {
+    if (on_close_ && std::isfinite(spectrum.getRT()) && (spectrum.getMSLevel() == 1 || spectrum.getMSLevel() == 2)) close_(spectrum.getRT());
     if (spectrum.getMSLevel() == 1 && !evidence_.empty() && !spectrum.empty() && std::isfinite(spectrum.getRT()))
     {
       consumeMS1_(spectrum);
@@ -407,16 +420,17 @@ namespace OpenMS::OpenDIA
         continue;
       }
       const bool compatible_im = sample.precursor_im > 0.0 && (mobilities != nullptr || scalar_valid);
+      float* const tensor = tensor_(index);
       // Mixed availability cannot be represented by one sample mask. Collapse
       // such a sample to an XIC instead of inventing an IM position for missing data.
       if (!compatible_im && !sample.saw_missing_im && im_bins_ == IM_BINS)
       {
-        for (std::size_t offset = index * SAMPLE_SIZE; offset < (index + 1) * SAMPLE_SIZE; offset += IM_BINS)
+        for (std::size_t offset = 0; offset < SAMPLE_SIZE; offset += IM_BINS)
         {
-          const double sum = std::accumulate(intensities_.begin() + offset, intensities_.begin() + offset + IM_BINS, 0.0);
+          const double sum = std::accumulate(tensor + offset, tensor + offset + IM_BINS, 0.0);
           require(sum <= std::numeric_limits<float>::max(), "Collapsed trace intensity overflow.");
-          std::fill_n(intensities_.begin() + offset, IM_BINS, 0.0f);
-          intensities_[offset + IM_BINS / 2] = static_cast<float>(sum);
+          std::fill_n(tensor + offset, IM_BINS, 0.0f);
+          tensor[offset + IM_BINS / 2] = static_cast<float>(sum);
         }
         sample.saw_missing_im = true;
         sample.has_im = false;
@@ -463,8 +477,8 @@ namespace OpenMS::OpenDIA
                 std::max(0.0, (im - sample.precursor_im + im_half_width_) / (2.0 * im_half_width_)) * IM_BINS));
             }
           }
-          float& value = im_bins_ == IM_BINS ? intensities_[((index * FRAGMENTS + fragment) * RT_BINS + rt_bin) * IM_BINS + im_bin]
-                                             : intensities_[(index * FRAGMENTS + fragment) * RT_BINS + rt_bin];
+          float& value = im_bins_ == IM_BINS ? tensor[(fragment * RT_BINS + rt_bin) * IM_BINS + im_bin]
+                                             : tensor[fragment * RT_BINS + rt_bin];
           require(intensity <= std::numeric_limits<float>::max() - static_cast<double>(value), "Trace intensity overflow.");
           value += static_cast<float>(intensity);
           if (core)
@@ -510,12 +524,82 @@ namespace OpenMS::OpenDIA
     }
   }
 
+  float* TraceCollector::tensor_(std::size_t index)
+  {
+    if (!on_close_) return intensities_.data() + index * stride_;
+    require(!closed_[index], "TraceCollector: spectrum out of RT order reaches a closed window.");
+    std::uint32_t& slot = slot_of_[index];
+    if (slot == NO_SLOT)
+    {
+      require(held_ < max_held_, "Trace windows held at one time exceed the raw tensor byte budget.");
+      if (free_slots_.empty())
+      {
+        const std::size_t base = chunks_.size() * SLOT_CHUNK;
+        chunks_.emplace_back(new float[SLOT_CHUNK * stride_]());
+        for (std::size_t s = SLOT_CHUNK; s-- > 0;) free_slots_.push_back(static_cast<std::uint32_t>(base + s));
+      }
+      slot = free_slots_.back();
+      free_slots_.pop_back();
+      peak_held_ = std::max(peak_held_, ++held_);
+    }
+    return chunks_[slot / SLOT_CHUNK].get() + (slot % SLOT_CHUNK) * stride_;
+  }
+
+  const float* TraceCollector::storedTensor_(std::size_t index) const
+  {
+    if (!on_close_) return intensities_.data() + index * stride_;
+    const std::uint32_t slot = slot_of_[index];
+    return slot == NO_SLOT ? nullptr : chunks_[slot / SLOT_CHUNK].get() + (slot % SLOT_CHUNK) * stride_;
+  }
+
+  void TraceCollector::close_(double rt)
+  {
+    // A window receives spectra with RT in [apex - half, apex + half]; once rt passes apex + half it is complete.
+    while (close_cursor_ < by_rt_.size() && samples_[by_rt_[close_cursor_]].window.apex_rt < rt - rt_half_width_)
+    {
+      const auto index = static_cast<std::uint32_t>(by_rt_[close_cursor_++]);
+      closed_[index] = 1;
+      pending_.push_back(index);
+    }
+    if (pending_.size() >= CLOSE_BATCH) flush_();
+  }
+
+  void TraceCollector::flush_()
+  {
+    if (pending_.empty()) return;
+    on_close_(pending_, *this);
+    for (const std::uint32_t index : pending_)
+    {
+      std::uint32_t& slot = slot_of_[index];
+      if (slot == NO_SLOT) continue;
+      std::fill_n(chunks_[slot / SLOT_CHUNK].get() + (slot % SLOT_CHUNK) * stride_, stride_, 0.0f);
+      free_slots_.push_back(slot);
+      slot = NO_SLOT;
+      --held_;
+    }
+    pending_.clear();
+  }
+
+  void TraceCollector::finish()
+  {
+    if (!on_close_) return;
+    close_(std::numeric_limits<double>::infinity());
+    flush_();
+    std::vector<std::unique_ptr<float[]>>().swap(chunks_);
+    std::vector<std::uint32_t>().swap(free_slots_);
+  }
+
   const float* TraceCollector::windowTensor(std::size_t i, std::array<float, SAMPLE_SIZE>& buffer) const
   {
     require(i < samples_.size(), "Window index out of range.");
-    if (im_bins_ == IM_BINS) { return intensities_.data() + i * SAMPLE_SIZE; }
+    const float* stored = storedTensor_(i);
+    if (stored == nullptr)
+    {
+      buffer.fill(0.0f);
+      return buffer.data();
+    }
+    if (im_bins_ == IM_BINS) { return stored; }
     buffer.fill(0.0f);
-    const float* stored = intensities_.data() + i * FRAGMENTS * RT_BINS;
     for (std::size_t k = 0; k < FRAGMENTS * RT_BINS; ++k) { buffer[k * IM_BINS + IM_BINS / 2] = stored[k]; }
     return buffer.data();
   }
