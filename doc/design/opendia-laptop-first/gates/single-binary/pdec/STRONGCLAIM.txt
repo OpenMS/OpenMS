@@ -1,0 +1,12 @@
+D accepted 8567
+  >= 2 fragments shared with a stronger co-eluting winner: entrapment 0.138 (13)  decoy(entr pair) 0.175 (11)  decoy(HeLa pair) 0.150 (3)  HeLa 0.027 (229)
+  >= 3 fragments shared with a stronger co-eluting winner: entrapment 0.096 (9)  decoy(entr pair) 0.079 (5)  decoy(HeLa pair) 0.100 (2)  HeLa 0.015 (128)
+  >= 4 fragments shared with a stronger co-eluting winner: entrapment 0.074 (7)  decoy(entr pair) 0.032 (2)  decoy(HeLa pair) 0.000 (0)  HeLa 0.013 (107)
+  drop >= 3: targets 8484 -> 8347 (-1.61%); lower bound 0.0111 -> 0.0102; combined 0.0127 -> 0.0116 (q not recomputed)
+  drop >= 4: targets 8484 -> 8370 (-1.34%); lower bound 0.0111 -> 0.0104; combined 0.0127 -> 0.0119 (q not recomputed)
+H accepted 21598
+  >= 2 fragments shared with a stronger co-eluting winner: entrapment 0.144 (33)  decoy(entr pair) 0.128 (22)  decoy(HeLa pair) 0.150 (6)  HeLa 0.018 (376)
+  >= 3 fragments shared with a stronger co-eluting winner: entrapment 0.114 (26)  decoy(entr pair) 0.058 (10)  decoy(HeLa pair) 0.050 (2)  HeLa 0.011 (229)
+  >= 4 fragments shared with a stronger co-eluting winner: entrapment 0.070 (16)  decoy(entr pair) 0.029 (5)  decoy(HeLa pair) 0.000 (0)  HeLa 0.010 (203)
+  drop >= 3: targets 21386 -> 21131 (-1.19%); lower bound 0.0107 -> 0.0096; combined 0.0122 -> 0.0110 (q not recomputed)
+  drop >= 4: targets 21386 -> 21167 (-1.02%); lower bound 0.0107 -> 0.0101; combined 0.0122 -> 0.0115 (q not recomputed)

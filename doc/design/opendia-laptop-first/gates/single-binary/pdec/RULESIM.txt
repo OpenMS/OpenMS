@@ -1,0 +1,6 @@
+D: tool q<=0.01 N 8484 lower 0.0111 combined 0.0127 | plain TDC baseline N 8483 lower 0.0111 combined 0.0127
+   rule k=3: dropped 310 (decoys 42); N 8461 (-0.26%) lower 0.0106 combined 0.0121
+   rule k=4: dropped 232 (decoys 21); N 8403 (-0.94%) lower 0.0106 combined 0.0121
+H: tool q<=0.01 N 21386 lower 0.0107 combined 0.0122 | plain TDC baseline N 21386 lower 0.0107 combined 0.0122
+   rule k=3: dropped 534 (decoys 90); N 21306 (-0.37%) lower 0.0102 combined 0.0117
+   rule k=4: dropped 389 (decoys 41); N 21221 (-0.77%) lower 0.0102 combined 0.0117

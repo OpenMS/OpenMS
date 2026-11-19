@@ -54,3 +54,40 @@ changes. Script `interfdiag.py`, output `INTERFDIAG.txt`.
   coelution score.
 - **Properties:** run-derived, identical for targets and decoys.
 - **How to test:** a frozen plan on the r ≈ 7 library with the PLAN_ODP criteria. D is design, H is held out.
+
+## Addendum (07:40): what a label-free shared-signal rule could gain
+Three follow-up checks on the same two runs. Labels are used for evaluation only.
+
+1. **Siblings are not the explaining claimant** (`SIBDIAG.txt`).
+   - Of the 5,843 fully explained HeLa targets, only 9 % have a co-eluting sibling, meaning the same sequence at another
+     charge or modification state. 5,317 have none.
+   - So the "fully explained" HeLa targets are mostly explained by *other* co-eluting HeLa peptides. That is a
+     limitation of `i_explained`, which overattributes in dense regions. A sibling exemption would not fix it.
+2. **Stronger-claimant fragment sharing** (`STRONGCLAIM.txt`). The rule: ≥ k of a winner's fragments match a co-eluting,
+   higher-scoring accepted winner.
+   - At k ≥ 3, the share of each class that matches is: entrapments 9.6 / 11.4 %, decoys of entrapment pairs
+     7.9 / 5.8 %, HeLa targets 1.5 / 1.1 % (D / H).
+   - That is an enrichment, but with an overlap.
+3. **Fair simulation** (`RULESIM.txt`). The rule is applied to targets and decoys alike among winners with q ≤ 0.05, and
+   q is recomputed by plain TDC. The baseline with plain TDC reproduces the tool exactly: N 8,483 against 8,484 on D, and
+   21,386 on H.
+
+| run | baseline lower / combined | rule k = 3: N change, lower / combined | rule k = 4: N change, lower / combined |
+|---|---|---|---|
+| D s0 | 0.0111 / 0.0127 | −0.26 %, **0.0106 / 0.0121** | −0.94 %, 0.0106 / 0.0121 |
+| H s0 | 0.0107 / 0.0122 | −0.37 %, **0.0102 / 0.0117** | −0.77 %, 0.0102 / 0.0117 |
+
+**Reading.**
+- A label-free, run-derived rule (drop a winner whose fragments are claimed by a stronger co-eluting winner) moves the
+  true FDP at q ≤ 0.01 by about −0.05 percentage points at a cost of 0.3-0.9 % of IDs.
+- That is real but small: roughly a quarter to a third of the remaining excess, in line with the 14 % estimate above. It
+  would bring H to about 1.02-1.17 %. D would still exceed the 1.0 / 1.2 % limits (1.06 / 1.21 %).
+- **This is one seed per run, and the effect (about 20 entrapments) is within seed noise.** A frozen plan would need
+  5 seeds. Even then it is unlikely to meet the PLAN_ODP limits on its own.
+
+**Recommendation.**
+- **Not yet:** a frozen plan for this rule alone. The expected gain does not close the gap.
+- **Better next step:** accept that predicted decoys bring q to about 1.1× at r ≈ 7. For realistic libraries, the
+  r = 1.56 results were calibrated at 0.53-1.02 %.
+- **Or treat this as a residual to model rather than remove.** For example, add a small, label-free q correction from
+  the decoy-vs-target fragment-sharing rate. That is a separate design question for the user.

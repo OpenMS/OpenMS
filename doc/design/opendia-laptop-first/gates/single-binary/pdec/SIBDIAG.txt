@@ -1,0 +1,4 @@
+entrapment targets         n    323  fully explained 0.294 | with co-eluting sibling: all 0.012, fully explained 0.011, not fully explained 0.013
+decoys (entrapment pairs)  n    235  fully explained 0.234 | with co-eluting sibling: all 0.009, fully explained 0.000, not fully explained 0.011
+HeLa targets               n  29547  fully explained 0.198 | with co-eluting sibling: all 0.120, fully explained 0.090, not fully explained 0.127
+HeLa fully explained without a co-eluting sibling: 5317 of 5843
