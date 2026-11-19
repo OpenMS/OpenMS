@@ -1,0 +1,13 @@
+runs ['D', 'H']
+accepted winners 30165 {'ES': 45, 'EO': 278, 'DE': 235, 'HT': 2000}
+i_explained      median: ES 1.000  EO 0.831  DE 0.857  HT 0.764   AUC(ES>DE) 0.744  AUC(EO>DE) 0.483  AUC(HT>DE) 0.416
+i_libcos_resid   median: ES 0.000  EO 0.510  DE 0.496  HT 0.617   AUC(ES>DE) 0.292  AUC(EO>DE) 0.510  AUC(HT>DE) 0.601
+i_dlibcos        median: ES -0.927  EO -0.436  DE -0.466  HT -0.365   AUC(ES>DE) 0.264  AUC(EO>DE) 0.497  AUC(HT>DE) 0.562
+i_nclaim         median: ES 5.323  EO 4.086  DE 4.111  HT 3.989   AUC(ES>DE) 0.747  AUC(EO>DE) 0.504  AUC(HT>DE) 0.469
+score            median: ES 32.977  EO 26.747  DE 23.776  HT 43.397   AUC(ES>DE) 0.707  AUC(EO>DE) 0.590  AUC(HT>DE) 0.881
+-- fraction with i_explained >= t, and with i_libcos_resid == 0, per class
+i_explained>=0.95: ES 0.733  EO 0.335  DE 0.311  HT 0.256
+i_explained>=0.99: ES 0.556  EO 0.266  DE 0.260  HT 0.196
+i_explained>=0.999: ES 0.533  EO 0.255  DE 0.234  HT 0.186
+i_libcos_resid==0: ES 0.533  EO 0.255  DE 0.234  HT 0.186
+all accepted winners: 30165  fully explained 6011 (19.927%); of those decoys 73, entrapments 95, HeLa 5843
