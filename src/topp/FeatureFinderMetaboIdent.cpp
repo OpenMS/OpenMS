@@ -331,7 +331,7 @@ protected:
     //-------------------------------------------------------------
     FeatureFinderAlgorithmMetaboIdent ff_mident;
     ff_mident.setParameters(tool_parameter);
-    ff_mident.setMSData(std::move(exp));
+    ff_mident.setFromMS1Data(std::move(exp));
 
     FeatureMap features;
     ff_mident.run(table, features, in);
