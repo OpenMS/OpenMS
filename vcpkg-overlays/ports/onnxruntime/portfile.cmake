@@ -7,11 +7,19 @@ if(VCPKG_TARGET_IS_OSX OR VCPKG_TARGET_IS_IOS)
     endif()
 endif()
 
-vcpkg_from_github(
-    OUT_SOURCE_PATH SOURCE_PATH
-    REPO microsoft/onnxruntime
-    REF "v${VERSION}"
+# Keep upstream first; PhotoPrism mirrors the byte-identical source archive while
+# Microsoft's repository is unavailable. Both URLs must match the same SHA512.
+vcpkg_download_distfile(ARCHIVE
+    URLS
+        "https://github.com/microsoft/onnxruntime/archive/v${VERSION}.tar.gz"
+        "https://dl.photoprism.app/onnx/runtime/v${VERSION}/v${VERSION}.tar.gz"
+    FILENAME "microsoft-onnxruntime-v${VERSION}.tar.gz"
     SHA512 373c51575ada457b8aead5d195a5f3eba62fb747b6370a2a9889fff875c40ea30af8fd49104d58cc86f79247410e829086b0979f37ca8635c6dd34960e9cc424
+)
+
+vcpkg_extract_source_archive(SOURCE_PATH
+    ARCHIVE "${ARCHIVE}"
+    SOURCE_BASE "v${VERSION}"
     PATCHES
         fix-cmake.patch # .framework install, external library workarounds(abseil-cpp, eigen3)
         fix-cmake-cuda.patch

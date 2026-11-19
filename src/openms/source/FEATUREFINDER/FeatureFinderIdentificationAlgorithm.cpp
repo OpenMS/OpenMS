@@ -179,7 +179,7 @@ namespace OpenMS
     return ms_data_;
   }
 
-  void FeatureFinderIdentificationAlgorithm::setMSData(const PeakMap& ms_data)
+  void FeatureFinderIdentificationAlgorithm::setFromMS1Data(const PeakMap& ms_data)
   {
     ms_data_ = ms_data; 
     
@@ -192,7 +192,7 @@ namespace OpenMS
       specs.end());    
   }
 
-  void FeatureFinderIdentificationAlgorithm::setMSData(PeakMap&& ms_data)
+  void FeatureFinderIdentificationAlgorithm::setFromMS1Data(PeakMap&& ms_data)
   {
     ms_data_ = std::move(ms_data); 
     
@@ -540,7 +540,7 @@ namespace OpenMS
         __LINE__,
         OPENMS_PRETTY_FUNCTION,
         "No spectra in the MS data passed to FeatureFinderIdentification. Set the MS data via "
-        "setMSData() before calling run(); note that an experiment consumed by another algorithm "
+        "setFromMS1Data() before calling run(); note that an experiment consumed by another algorithm "
         "may have been left empty.");
     }
 
@@ -585,7 +585,7 @@ namespace OpenMS
       FeatureFinderIdentificationAlgorithm ffid_group;
       ffid_group.getProgressLogger().setLogType(prog_log_.getLogType());
       ffid_group.setParameters(this->getParameters());
-      ffid_group.setMSData(std::move(faims_group));
+      ffid_group.setFromMS1Data(std::move(faims_group));
 
       // Seeds found at this CV (DDAWorkflowCommons::calculateSeeds and Biosaur2 label them with FAIMS_CV); seeds
       // without a CV are tried at every CV, like identifications without one
