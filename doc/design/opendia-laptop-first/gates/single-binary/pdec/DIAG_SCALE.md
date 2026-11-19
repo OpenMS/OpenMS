@@ -201,3 +201,26 @@ byte-identical to PLAN_ODP on D and H:
 On D, roughly 8 of the 16 minutes of wall time are still `-decoys predict`. Without that step the run itself is
 8 min, against DIA-NN's 2.6-4.1 min on 16 threads. Memory (33-38 GB against DIA-NN's under 7 GB) is now the larger
 gap.
+
+## Predicted decoys once per library (19 Nov, OpenMS 08cda2c3fb)
+
+Within one `OpenDIAWorkflow` call, `-decoys predict` already ran only once, before the loop over the `-in` runs. But
+every scale and plan run here was a separate call (one per raw file and seed), and each call wrote the predicted
+library into its own `out_dir`. So the same library was predicted again every time, about 8 min on r ≈ 7.
+
+- **Reusing the library is output-identical.** Running the r ≈ 1.56 HeLa D search with `-lib` set to an earlier
+  call's predicted library gives byte-identical outputs (16:13 → 5:23).
+- **New `-decoy_cache <dir>` (default `out_dir`).** The predicted library is written there with a `.key` file holding
+  the input library's SHA-1, the model directory and the OpenMS version, and a call with a matching key reuses it.
+  Writes go to a temporary name (tagged with the process ID) that is renamed at the end, and the temporaries are
+  removed if prediction fails.
+- **Test, r ≈ 1.56 HeLa D, 8 threads, local.**
+  - The first call predicts and takes 15:56. The second reuses the library and takes 5:53.
+  - Both calls' outputs, and the cached library, are byte-identical to an uncached run.
+  - All 25 ctests pass.
+- **Caveat.** The key's OpenMS revision is the version string ("exported" in this build, not a git hash). A rebuild
+  that changes the prediction code without a version bump would therefore reuse a stale library, so clear the cache
+  in that case.
+
+On r ≈ 7 D this should bring a reused call to about the 8 min run time (482 s on pd7), against DIA-NN's 2.6-4.1 min
+on 16 threads. This has not been measured on codon yet.
