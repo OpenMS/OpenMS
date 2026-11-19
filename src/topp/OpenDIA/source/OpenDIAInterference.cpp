@@ -204,6 +204,9 @@ namespace OpenMS::OpenDIA
       double im;
     };
     std::vector<Entry> index;
+    // Distinct bins of the index and the start of each bin's entries (bin_start[k + 1] ends bin k).
+    std::vector<std::int64_t> bins;
+    std::vector<std::uint32_t> bin_start;
     for (std::size_t g = 0; g < m;)
     {
       const std::size_t h = group_end[g];
@@ -224,6 +227,17 @@ namespace OpenMS::OpenDIA
         if (x.rt_start != y.rt_start) return x.rt_start < y.rt_start;
         return x.pos < y.pos;
       });
+      bins.clear();
+      bin_start.clear();
+      for (std::size_t e = 0; e < index.size(); ++e)
+      {
+        if (e == 0 || index[e].bin != index[e - 1].bin)
+        {
+          bins.push_back(index[e].bin);
+          bin_start.push_back(static_cast<std::uint32_t>(e));
+        }
+      }
+      bin_start.push_back(static_cast<std::uint32_t>(index.size()));
 #pragma omp parallel num_threads(threads) reduction(+ : pairs_total, links_total, used_total, with_claimant)
     {
       std::vector<Claim> claims;
@@ -254,7 +268,7 @@ namespace OpenMS::OpenDIA
         };
         partners.clear();
         const double rt_from = a.rt_start - widest;
-        const auto before = [](const Entry& x, const Entry& y) { return x.bin != y.bin ? x.bin < y.bin : x.rt_start < y.rt_start; };
+        const auto before = [](const Entry& x, double rt) { return x.rt_start < rt; };
         // The entry carries the fields of the cheap rejection tests of consider() (same precursor, no RT overlap,
         // 1/K0 too far), so most index hits are rejected without touching the windows; consider() repeats every test.
         const bool test_im = im_link_width > 0.0 && pa.im > 0.0;
@@ -265,10 +279,12 @@ namespace OpenMS::OpenDIA
           const double l = std::log(mz);
           const auto first_bin = static_cast<std::int64_t>(std::floor((l + lo_shift) / bin_width)) - 1;
           const auto last_bin = static_cast<std::int64_t>(std::floor((l + hi_shift) / bin_width)) + 1;
-          for (std::int64_t bin = first_bin; bin <= last_bin; ++bin)
+          for (std::size_t k = static_cast<std::size_t>(std::lower_bound(bins.begin(), bins.end(), first_bin) - bins.begin());
+               k < bins.size() && bins[k] <= last_bin; ++k)
           {
-            for (auto it = std::lower_bound(index.begin(), index.end(), Entry{bin, rt_from, 0}, before);
-                 it != index.end() && it->bin == bin && it->rt_start <= a.rt_end; ++it)
+            const auto bin_end = index.begin() + bin_start[k + 1];
+            for (auto it = std::lower_bound(index.begin() + bin_start[k], bin_end, rt_from, before);
+                 it != bin_end && it->rt_start <= a.rt_end; ++it)
             {
               if (it->pos == static_cast<std::uint32_t>(pos) || it->precursor == a.precursor || it->rt_end < a.rt_start) continue;
               if (test_im && it->im > 0.0 && std::abs(pa.im - it->im) > im_link_width) continue;
