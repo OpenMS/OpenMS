@@ -11,6 +11,8 @@
 #include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathLibraryPreparation.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/TransitionPQPFile.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
+#include <OpenMS/CONCEPT/VersionInfo.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/SYSTEM/SysInfo.h>
 
@@ -19,8 +21,10 @@
 #include <chrono>
 #include <filesystem>
 #include <fstream>
+#include <iterator>
 #include <map>
 #include <set>
+#include <unistd.h>
 
 using namespace OpenMS;
 
@@ -72,6 +76,10 @@ protected:
     setValidStrings_("decoys", {"library", "predict"});
     registerStringOption_("decoy_model_dir", "<dir>", "",
                           "decoys predict: directory with peptdeep_{rt,ms2,ccs}_dynamic.onnx; empty uses the installed models", false, true);
+    registerStringOption_("decoy_cache", "<dir>", "",
+                          "decoys predict: directory of the predicted library (default: out_dir). A library predicted earlier from the "
+                          "same input library, models and OpenMS revision is reused instead of predicted again, so a study pays the "
+                          "prediction once even when every run is a separate call", false, true);
   }
 
   static std::string stem_(const std::string& path)
@@ -96,10 +104,28 @@ protected:
 
   /// -decoys predict: drop the library's decoys and give every target a pseudo-reversed decoy predicted like a target
   /// (OpenSwathLibraryPreparation::generateDecoys with predict_decoys and predict_keep_short, settings estimated from the
-  /// library). Returns the path of the target/decoy PQP it writes.
+  /// library). Returns the path of the target/decoy PQP it writes to @p cache_dir. The library is predicted once per
+  /// input: <stem>.predicted_decoys.pqp.key holds the SHA-1 of the input library, the model directory and the OpenMS
+  /// revision, and a library with a matching key is reused. Prediction writes to a temporary name and renames, so a
+  /// concurrent or interrupted call never leaves a partial library under the final name.
   /// ponytail: the only remaining OpenSWATH dependency of OpenDIA; to be removed or replaced (decision pending).
-  std::string predictDecoys_(const std::string& lib, const std::string& out_dir)
+  std::string predictDecoys_(const std::string& lib, const std::string& cache_dir)
   {
+    const std::string stem = stem_(lib);
+    const std::string out = cache_dir + "/" + stem + ".predicted_decoys.pqp";
+    const std::string key_file = out + ".key";
+    const std::string key = "lib_sha1=" + FileHandler::computeFileHash(lib) + "\nmodel_dir=" + getStringOption_("decoy_model_dir") +
+                            "\nopenms=" + VersionInfo::getVersion() + " " + VersionInfo::getRevision() + "\n";
+    {
+      std::ifstream in(key_file);
+      const std::string cached((std::istreambuf_iterator<char>(in)), std::istreambuf_iterator<char>());
+      if (cached == key && std::filesystem::exists(out))
+      {
+        writeLogInfo_("Decoy prediction: reusing " + out + " (same input library, models and OpenMS revision)");
+        return out;
+      }
+    }
+    std::filesystem::create_directories(cache_dir);
     OpenSwath::LightTargetedExperiment all;
     // The written library has canonical precursor IDs (the output's precursor_id refers to it); sequence, charge and
     // proteins are those of the input.
@@ -128,11 +154,22 @@ protected:
     writeLogInfo_("Predicting decoys for " + std::to_string(targets.compounds.size()) + " target precursors (" +
                   std::to_string(decoy_ids.size()) + " library decoys dropped)");
 
-    const std::string stem = stem_(lib);
-    const std::string targets_pqp = out_dir + "/" + stem + ".targets.tmp.pqp";
-    const std::string out = out_dir + "/" + stem + ".predicted_decoys.pqp";
+    const std::string tag = "." + std::to_string(::getpid()) + ".tmp.pqp";
+    const std::string targets_pqp = cache_dir + "/" + stem + ".targets" + tag;
+    const std::string partial = cache_dir + "/" + stem + ".predicted_decoys" + tag;
     std::filesystem::remove(targets_pqp);
-    std::filesystem::remove(out);
+    std::filesystem::remove(partial);
+    std::filesystem::remove(key_file);
+    // Remove the temporaries also when prediction throws (e.g. too few annotated targets).
+    struct Cleanup
+    {
+      std::vector<std::string> paths;
+      ~Cleanup()
+      {
+        std::error_code ignored;
+        for (const auto& p : paths) std::filesystem::remove(p, ignored);
+      }
+    } cleanup{{targets_pqp, partial}};
     TransitionPQPFile().convertLightTargetedExperimentToPQP(targets_pqp.c_str(), targets);
     targets = OpenSwath::LightTargetedExperiment();
 
@@ -144,8 +181,9 @@ protected:
     parameters.predict_threads = std::max(1, getIntOption_("threads"));
     OpenSwathLibraryPreparation preparation;
     preparation.setLogType(log_type_);
-    preparation.generateDecoys(targets_pqp, FileTypes::PQP, out, FileTypes::PQP, parameters);
-    std::filesystem::remove(targets_pqp);
+    preparation.generateDecoys(targets_pqp, FileTypes::PQP, partial, FileTypes::PQP, parameters);
+    std::filesystem::rename(partial, out);
+    std::ofstream(key_file) << key;
     return out;
   }
 
@@ -186,7 +224,8 @@ protected:
         writeLogError_("-decoys predict does not support -scoring_lib (its decoys would not match the predicted ones).");
         return ILLEGAL_PARAMETERS;
       }
-      lib_path = predictDecoys_(lib_path, out_dir);
+      const std::string cache = getStringOption_("decoy_cache");
+      lib_path = predictDecoys_(lib_path, cache.empty() ? out_dir : cache);
     }
     writeLogInfo_("Reading library " + lib_path);
     OpenDIA::AnalysisLibrary library = OpenDIA::AnalysisLibrary::read(lib_path, getStringOption_("scoring_lib"));
