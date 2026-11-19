@@ -1,0 +1,10 @@
+D_cur_s0
+  entrapment target            n    94  mean shared 0.96  >=2 0.191  >=3 0.138
+  decoy, entrapment pair       n    63  mean shared 0.78  >=2 0.190  >=3 0.095
+  decoy, HeLa pair             n    20  mean shared 0.90  >=2 0.200  >=3 0.150
+  HeLa target (sample 1000)    n  1000  mean shared 0.41  >=2 0.041  >=3 0.023
+H_cur_s0
+  entrapment target            n   229  mean shared 0.88  >=2 0.170  >=3 0.140
+  decoy, entrapment pair       n   172  mean shared 0.51  >=2 0.122  >=3 0.052
+  decoy, HeLa pair             n    40  mean shared 0.62  >=2 0.150  >=3 0.050
+  HeLa target (sample 1000)    n  1000  mean shared 0.34  >=2 0.041  >=3 0.029
