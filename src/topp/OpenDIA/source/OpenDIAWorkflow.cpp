@@ -483,35 +483,48 @@ namespace OpenMS::OpenDIA
       for (auto& c : trace_library.compounds)
         if (std::isfinite(c.drift_time) && c.drift_time > 0.0) c.drift_time = cal.im_intercept + cal.im_slope * c.drift_time;
     }
-    // Default (no -pg_scores): streaming tensors. The boundary features are the only tensor-derived features; they are
-    // computed as each window's RT range closes and its tensor is released, so tensor memory follows the windows
-    // co-eluting at one time. The features are computed from the same tensor values as before (byte-identical).
-    // -pg_scores needs a run-wide floor over the tensors and keeps the retained tensors.
+    // Streaming tensors: a window's 6-fragment tensor is held only while its RT range is being read. The tensor-derived
+    // features (boundary, and with -pg_scores the peak-group scores) are computed when the window closes and the tensor
+    // is released, so tensor memory follows the windows co-eluting at one time. The peak-group LOG_SN needs the run floor
+    // (median over a fixed stride of windows); its floor-independent parts are kept and it is finished after the pass.
+    // Every feature is computed from the same tensor values as before (byte-identical).
     Stage2ExtractionOptions extraction;
     extraction.rt_half_width = options_.grid_half_width_s;
     extraction.core_half_width = options_.core_half_width_s;
-    const bool stream_tensors = !options_.pg_scores;
-    std::vector<float> boundary;
-    TraceCollector::CloseCallback on_close;
-    if (stream_tensors)
+    const bool pg = options_.pg_scores;
+    std::vector<float> boundary(n * STAGE2_BOUNDARY_FEATURES, 0.0f), peak_group(pg ? n * STAGE2_PEAKGROUP_FEATURES : 0, 0.0f);
+    std::vector<PeakGroupSNParts> sn_parts(pg ? n : 0);
+    std::vector<float> floor_values;
+    const std::size_t floor_step = peakGroupFloorStep(n);
+    const double pg_ppm = cal.ms2_tolerance_ppm;
+    const int threads = options_.threads;
+    TraceCollector::CloseCallback on_close = [&, pg, pg_ppm, threads](const std::vector<std::uint32_t>& closed, const TraceCollector& tc)
     {
-      boundary.assign(n * STAGE2_BOUNDARY_FEATURES, 0.0f);
-      const int threads = options_.threads;
-      on_close = [&boundary, &extraction, threads](const std::vector<std::uint32_t>& closed, const TraceCollector& tc)
-      {
 #pragma omp parallel num_threads(threads)
-        {
-          std::array<float, TraceCollector::SAMPLE_SIZE> view;
+      {
+        std::array<float, TraceCollector::SAMPLE_SIZE> view;
 #pragma omp for schedule(dynamic, 256)
-          for (std::ptrdiff_t c = 0; c < static_cast<std::ptrdiff_t>(closed.size()); ++c)
+        for (std::ptrdiff_t c = 0; c < static_cast<std::ptrdiff_t>(closed.size()); ++c)
+        {
+          const std::size_t i = closed[static_cast<std::size_t>(c)];
+          const float* tensor = tc.windowTensor(i, view);
+          const auto b = stage2BoundaryFeatures(tensor, tc.libraryIntensities(i), tc.fragmentMZ(i), tc.evidence(i), extraction);
+          for (std::size_t k = 0; k < STAGE2_BOUNDARY_FEATURES; ++k) boundary[i * STAGE2_BOUNDARY_FEATURES + k] = static_cast<float>(b[k]);
+          if (pg)
           {
-            const std::size_t i = closed[static_cast<std::size_t>(c)];
-            const auto f = stage2BoundaryFeatures(tc.windowTensor(i, view), tc.libraryIntensities(i), tc.fragmentMZ(i), tc.evidence(i), extraction);
-            for (std::size_t k = 0; k < STAGE2_BOUNDARY_FEATURES; ++k) boundary[i * STAGE2_BOUNDARY_FEATURES + k] = static_cast<float>(f[k]);
+            const auto p = stage2PeakGroupFeatures(tensor, tc.libraryIntensities(i), tc.fragmentMZ(i), tc.fragmentCharges(i), tc.evidence(i),
+                                                   tc.peakGroupEvidence(i), pg_ppm, 0.0, &sn_parts[i]);
+            for (std::size_t k = 0; k < STAGE2_PEAKGROUP_FEATURES; ++k) peak_group[i * STAGE2_PEAKGROUP_FEATURES + k] = static_cast<float>(p[k]);
           }
         }
-      };
-    }
+      }
+      if (pg)
+      {
+        std::array<float, TraceCollector::SAMPLE_SIZE> view;
+        for (const std::uint32_t i : closed)
+          if (i % floor_step == 0) appendPeakGroupFloorValues(tc.windowTensor(i, view), floor_values);
+      }
+    };
     TraceCollector traces(std::move(trace_windows), trace_library, 0.02, options_.grid_half_width_s, 0.03, n, options_.trace_tensor_gb << 30,
                           on_close);
     traces.setIonMobilityArrayAsVSSC(options_.im_array_as_vssc);
@@ -528,7 +541,7 @@ namespace OpenMS::OpenDIA
     for (std::size_t l = 0; l < resolver_precursors.size(); ++l) resolver_precursors[l].isolation = isolation[l];
     say("Extraction: windows=" + std::to_string(n) + " precursors=" + std::to_string(local_precursors.size()) +
         " isolation_windows=" + std::to_string(grids.isolationWindowCount()) + " peak_open_grids=" + std::to_string(grids.peakOpenGrids()) +
-        (stream_tensors ? " peak_held_tensors=" + std::to_string(traces.peakHeldTensors()) : std::string()) +
+        " peak_held_tensors=" + std::to_string(traces.peakHeldTensors()) +
         " seconds=" + std::to_string(seconds(t_extract)));
 
     // 5. Features.
@@ -543,10 +556,10 @@ namespace OpenMS::OpenDIA
                                                             2.0 * options_.grid_half_width_s / InterferenceResolver::BINS, options_.threads,
                                                             nullptr, cal.has_im ? 2.0 * cal.im_tolerance : 0.0);
     const double interference_s = seconds(t_interference);
-    const double pg_floor = options_.pg_scores ? peakGroupNoiseFloor(traces) : 0.0;
+    const double pg_floor = pg ? peakGroupFloorFromValues(floor_values) : 0.0;
+    std::vector<float>().swap(floor_values);
 #pragma omp parallel num_threads(options_.threads)
     {
-      std::array<float, TraceCollector::SAMPLE_SIZE> view;
 #pragma omp for schedule(dynamic, 1024)
       for (std::ptrdiff_t ii = 0; ii < static_cast<std::ptrdiff_t>(n); ++ii)
       {
@@ -560,25 +573,19 @@ namespace OpenMS::OpenDIA
         peak.peak_width_seconds = w.peak.rt_end - w.peak.rt_start;
         peak.abs_rt_error_seconds = lib.precursors[w.precursor].has_library_rt ? std::abs(w.peak.apex_rt_error_seconds) : 0.0;
         for (double v : stage2SearchFeatures(peak)) f[o++] = static_cast<float>(v);
-        const float* tensor = stream_tensors ? nullptr : traces.windowTensor(i, view);
-        if (stream_tensors)
-        {
-          for (std::size_t k = 0; k < STAGE2_BOUNDARY_FEATURES; ++k) f[o++] = boundary[i * STAGE2_BOUNDARY_FEATURES + k];
-        }
-        else
-        {
-          for (double v : stage2BoundaryFeatures(tensor, traces.libraryIntensities(i), traces.fragmentMZ(i), traces.evidence(i), extraction)) f[o++] = static_cast<float>(v);
-        }
+        for (std::size_t k = 0; k < STAGE2_BOUNDARY_FEATURES; ++k) f[o++] = boundary[i * STAGE2_BOUNDARY_FEATURES + k];
         for (double v : stage2ByIonFeatures(traces.evidence(i))) f[o++] = static_cast<float>(v);
         for (float v : grids.evidence()[i]) f[o++] = v;
         const auto& gp = grid_precursors[grid_windows[i].precursor];
         for (float v : FragmentGrid::deficit(grid_windows[i].core_area, gp.library, gp.search, noise)) f[o++] = v;
         for (std::size_t k = 0; k < InterferenceResolver::FEATURES; ++k) f[o++] = interference[i * InterferenceResolver::FEATURES + k];
-        if (options_.pg_scores)
+        if (pg)
         {
-          for (double v : stage2PeakGroupFeatures(tensor, traces.libraryIntensities(i), traces.fragmentMZ(i), traces.fragmentCharges(i),
-                                                  traces.evidence(i), traces.peakGroupEvidence(i), cal.ms2_tolerance_ppm, pg_floor))
-            f[o++] = static_cast<float>(v);
+          for (std::size_t k = 0; k < STAGE2_PEAKGROUP_FEATURES; ++k)
+          {
+            const auto feature = static_cast<std::size_t>(Stage2PeakGroupFeature::LOG_SN);
+            f[o++] = k == feature ? static_cast<float>(peakGroupLogSN(sn_parts[i], pg_floor)) : peak_group[i * STAGE2_PEAKGROUP_FEATURES + k];
+          }
         }
       }
     }

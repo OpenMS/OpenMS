@@ -129,6 +129,17 @@ namespace OpenMS::OpenDIA
   /// Peak-group column names, in Stage2PeakGroupFeature order.
   const std::array<std::string, STAGE2_PEAKGROUP_FEATURES>& stage2PeakGroupFeatureNames();
   /**
+    @brief Inputs of LOG_SN that do not depend on the run floor, so the feature can be finished once the floor is known
+    (streaming tensors). peakGroupLogSN() with the floor reproduces the LOG_SN of stage2PeakGroupFeatures() exactly.
+  */
+  struct PeakGroupSNParts
+  {
+    bool valid = false;                ///< False when LOG_SN is 0 regardless of the floor.
+    std::uint8_t channels = 0;
+    std::array<float, 6> apex{};       ///< Trace value at the consensus apex per channel.
+    std::array<float, 6> median{};     ///< Median over the scan bins per channel.
+  };
+  /**
     @brief Peak-group scores of one window (PLAN_PGSCORES); identical for targets and decoys and free of training.
 
     Library weights w are the non-padding library intensities normalised to sum 1; area shares a are the fragment
@@ -143,14 +154,23 @@ namespace OpenMS::OpenDIA
     @param[in] pg Core-window spectrum evidence of the window.
     @param[in] tolerance_ppm The run's fragment tolerance (positive).
     @param[in] floor The run's intensity floor (peakGroupNoiseFloor()).
+    @param[out] sn_parts If set, receives the floor-independent inputs of LOG_SN (see PeakGroupSNParts).
   */
   std::array<double, STAGE2_PEAKGROUP_FEATURES> stage2PeakGroupFeatures(const float* tensor, const std::array<double, 6>& library_intensities,
                                                                         const std::array<double, 6>& fragment_mz,
                                                                         const std::array<std::int8_t, 6>& fragment_charge,
                                                                         const TraceEvidence& evidence, const PeakGroupEvidence& pg,
-                                                                        double tolerance_ppm, double floor);
+                                                                        double tolerance_ppm, double floor, PeakGroupSNParts* sn_parts = nullptr);
   /// Median nonzero mobility-summed per-bin fragment intensity over up to 20,000 evenly strided windows (1 if none).
   double peakGroupNoiseFloor(const TraceCollector& traces);
+  /// Windows sampled by peakGroupNoiseFloor(): every peakGroupFloorStep(n)-th window index, from 0.
+  std::size_t peakGroupFloorStep(std::size_t windows);
+  /// Append the nonzero mobility-summed per-bin fragment intensities of one window tensor (peakGroupNoiseFloor() input).
+  void appendPeakGroupFloorValues(const float* tensor, std::vector<float>& values);
+  /// The floor from all sampled values (order does not matter); 1 if none.
+  double peakGroupFloorFromValues(std::vector<float>& values);
+  /// LOG_SN from its parts and the run floor.
+  double peakGroupLogSN(const PeakGroupSNParts& parts, double floor);
 
   /// b/y ion evidence of the isolating MS2 spectrum nearest the window apex (all theoretical ions, not only the library's six).
   enum class Stage2ByIonFeature : std::size_t

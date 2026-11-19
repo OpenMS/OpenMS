@@ -408,8 +408,9 @@ namespace OpenMS::OpenDIA
                                                                         const std::array<double, 6>& fragment_mz,
                                                                         const std::array<std::int8_t, 6>& fragment_charge,
                                                                         const TraceEvidence& evidence, const PeakGroupEvidence& pg,
-                                                                        double tolerance_ppm, double floor)
+                                                                        double tolerance_ppm, double floor, PeakGroupSNParts* sn_parts)
   {
+    if (sn_parts != nullptr) *sn_parts = PeakGroupSNParts{};
     constexpr int MAX_DELAY = 10;  // OpenSWATH MRMScoring XCORR_MAX_DELAY
     std::array<double, STAGE2_PEAKGROUP_FEATURES> f{};
     f[0] = f[1] = MAX_DELAY;
@@ -499,15 +500,19 @@ namespace OpenMS::OpenDIA
     f[3] = shape_w;
 
     // Signal to noise at the consensus apex, against each fragment's median over the scan bins plus the run floor.
-    double sn = 0.0;
     std::vector<double> scratch(n);
+    PeakGroupSNParts parts;
+    parts.valid = true;
+    parts.channels = static_cast<std::uint8_t>(m);
     for (std::size_t k = 0; k < m; ++k)
     {
       for (std::size_t s = 0; s < n; ++s) scratch[s] = picked.traces[k * n + s];
       std::nth_element(scratch.begin(), scratch.begin() + n / 2, scratch.end());
-      sn += picked.traces[k * n + peak.apex] / (scratch[n / 2] + floor);
+      parts.apex[k] = picked.traces[k * n + peak.apex];
+      parts.median[k] = static_cast<float>(scratch[n / 2]);
     }
-    f[4] = std::log1p(sn / static_cast<double>(m));
+    f[4] = peakGroupLogSN(parts, floor);
+    if (sn_parts != nullptr) *sn_parts = parts;
     f[5] = total_all > 0.0 ? area_total / total_all : 0.0;
 
     // Fragment isotopes (OpenSWATH DIAScoring::dia_isotope_scores), weighted by the observed area share.
@@ -540,28 +545,47 @@ namespace OpenMS::OpenDIA
     return f;
   }
 
-  double peakGroupNoiseFloor(const TraceCollector& traces)
+  double peakGroupLogSN(const PeakGroupSNParts& parts, double floor)
   {
-    const std::size_t n = traces.size();
-    const std::size_t step = std::max<std::size_t>(1, (n + 19999) / 20000);
-    std::vector<float> values;
-    std::array<float, TraceCollector::SAMPLE_SIZE> buffer;
-    for (std::size_t i = 0; i < n; i += step)
+    if (!parts.valid) return 0.0;
+    double sn = 0.0;
+    for (std::size_t k = 0; k < parts.channels; ++k) sn += parts.apex[k] / (static_cast<double>(parts.median[k]) + floor);
+    return std::log1p(sn / static_cast<double>(parts.channels));
+  }
+
+  std::size_t peakGroupFloorStep(std::size_t windows)
+  {
+    return std::max<std::size_t>(1, (windows + 19999) / 20000);
+  }
+
+  void appendPeakGroupFloorValues(const float* t, std::vector<float>& values)
+  {
+    for (std::size_t c = 0; c < FRAGMENTS; ++c)
     {
-      const float* t = traces.windowTensor(i, buffer);
-      for (std::size_t c = 0; c < FRAGMENTS; ++c)
+      for (std::size_t b = 0; b < RT_BINS; ++b)
       {
-        for (std::size_t b = 0; b < RT_BINS; ++b)
-        {
-          float v = 0.0f;
-          for (std::size_t q = 0; q < IM_BINS; ++q) v += t[(c * RT_BINS + b) * IM_BINS + q];
-          if (v > 0.0f) values.push_back(v);
-        }
+        float v = 0.0f;
+        for (std::size_t q = 0; q < IM_BINS; ++q) v += t[(c * RT_BINS + b) * IM_BINS + q];
+        if (v > 0.0f) values.push_back(v);
       }
     }
+  }
+
+  double peakGroupFloorFromValues(std::vector<float>& values)
+  {
     if (values.empty()) return 1.0;
     std::nth_element(values.begin(), values.begin() + values.size() / 2, values.end());
     return values[values.size() / 2];
+  }
+
+  double peakGroupNoiseFloor(const TraceCollector& traces)
+  {
+    const std::size_t n = traces.size();
+    const std::size_t step = peakGroupFloorStep(n);
+    std::vector<float> values;
+    std::array<float, TraceCollector::SAMPLE_SIZE> buffer;
+    for (std::size_t i = 0; i < n; i += step) appendPeakGroupFloorValues(traces.windowTensor(i, buffer), values);
+    return peakGroupFloorFromValues(values);
   }
 
   std::array<double, STAGE2_SEARCH_FEATURES> stage2SearchFeatures(const SearchPeakFeatures& peak)
