@@ -105,3 +105,26 @@ These are the same runs as PLAN_ODP CUR seed 0 on codon (8 threads). All outputs
 - **Remaining wall time is extraction (807 s / 1,074 s).** That is the single 6-fragment plus 12-fragment pass over the
   raw file.
 - **Plain HeLa D (laptop, 8 threads):** byte-identical, 5:25 to 2:38. Peak memory there (4.5 GB) is not tensor-bound.
+
+## OpenSWATH removal check (19 Nov, OpenMS 1f29ce2da8)
+
+**Library reader equivalence (`libreader_equiv.cpp`, validation only).** For each library, `OpenDIA::readLibrary` was
+compared with `TransitionPQPFile`, in order. The fields compared were id, RT, 1/K0, charge, sequence, proteins,
+transition name, precursor ref, intensity, m/z, fragment charge, decoy flag, annotation, and the TraML id map.
+
+| Library | Precursors | Transitions | Mismatches |
+|---|---|---|---|
+| plain HeLa | 146,788 | 880,728 | 0 |
+| test fixture with compounds | 8 | 44 | 0 |
+| r ≈ 1.56 entrapment | 732,674 | 4,310,998 | 0 |
+| r ≈ 7 predicted-decoy library | 2,778,189 | 15,049,076 | 0 |
+
+**No OpenSWATH in the core.**
+- `ninja -t deps` lists 0 transitive OpenSWATH or OPENSWATHALGO headers in every `OpenDIA_impl` object.
+- `libOpenDIA_impl.a` has 0 undefined OpenSwath, TransitionPQPFile, DIAHelpers or PeakMapExtractor symbols.
+- The remaining symbols sit in tool objects only.
+  - `OpenDIAWorkflow.cpp.o` has 7 (`-decoys predict`).
+  - `OpenDIA.cpp.o` has the XIPM writer (`-out_xipm`).
+  - `OpenDIACalibrate` and `OpenDIAInterference` have 0.
+- **The guard ctest catches a reintroduction.** Adding the DIAHelper include to `OpenDIAStage2.cpp` makes
+  `OpenDIA_no_openswath` fail, and it passes again once the include is removed.
