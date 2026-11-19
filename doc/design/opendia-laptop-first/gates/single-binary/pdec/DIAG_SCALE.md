@@ -82,3 +82,26 @@ DIA-NN 2.2 on the same r ≈ 7 library takes 2:38 and 4.6 GB on D, and 4:08 and 
    for example about 1,000. This is label-free, and it restores seeds on large libraries.
 5. **Sensitivity at low abundance.** This is the main gap on every library. It is a scorer and feature question: the
    right peak is found but scored low. It is the largest and least certain item.
+
+## Result of the output-identical fixes (19 Nov, OpenMS 8edbda8426, container pd4 sha256 7e0a574f)
+
+These are the same runs as PLAN_ODP CUR seed 0 on codon (8 threads). All outputs, `precursors.tsv` (both) and
+`calibration.json`, are **byte-identical** to the PLAN_ODP runs.
+
+| | before (PLAN_ODP) | after | DIA-NN 2.2 |
+|---|---|---|---|
+| D wall | 2:28 h | **29:04** | 2:38 |
+| D peak RSS | 87 GB | **41.9 GB** | 4.6 GB |
+| D features stage | 7,491 s | **268 s** (interference 267 s) | |
+| H wall | 1:01 h | **33:13** | 4:08 |
+| H peak RSS | 107 GB | **36.7 GB** | 6.8 GB |
+
+- **Tensors are held only while a window's RT range is being read:** at most 1.79 M of 9.50 M on D and 0.66 M of 12.4 M
+  on H.
+- **D peak RSS comes from extraction (41 GB),** now set by the 1.79 M held tensors (11 GB) plus grids, evidence and
+  the library.
+- **The interference resolver is still 267 s on D.** The fragment index removed the all-pairs scan, but crowded
+  isolation windows still give many shared-fragment partners.
+- **Remaining wall time is extraction (807 s / 1,074 s).** That is the single 6-fragment plus 12-fragment pass over the
+  raw file.
+- **Plain HeLa D (laptop, 8 threads):** byte-identical, 5:25 to 2:38. Peak memory there (4.5 GB) is not tensor-bound.
