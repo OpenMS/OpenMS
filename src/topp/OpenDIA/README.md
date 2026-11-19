@@ -16,13 +16,16 @@ Per run:
 3. **Population**: every candidate of each target-decoy pair whose best candidate has at least 3 supporting fragments.
 4. **One more pass over the spectra** collects the scoring evidence: 6-fragment traces and apex b/y ions, and the
    12-fragment grid of every window. A grid is held only while its window is open.
-5. **24 features**:
+5. **36 features**:
    - search 4;
    - boundary 5;
    - b/y ions 2;
    - 12-fragment evidence 6;
    - fragment deficit 3;
-   - shared-signal interference 4.
+   - shared-signal interference 4;
+   - evidence block 12 (core fragment and MS1 mass error, MS1 co-elution, isotope and area, MS2 area, ion-mobility
+     centroid, co-elution and share; PLAN_EXTRA, +38 % / +24 % IDs at 1 % true FDP on the r ≈ 7 HeLa entrapment).
+     `-no_extra_scores` leaves it out (24 features, the earlier default).
 6. **Scoring**: `OpenDIA::CrossFitScorer`, three folds by peptide family. Seeds are the calibration anchors' windows
    and decoy windows. The scorer is a small network with a decoy-whitened readout and two self-training rounds. Then
    comes one window per precursor, decoy-tail calibrated scores, and pooled paired target-decoy q-values.
@@ -33,7 +36,7 @@ Across runs, a precursor's global q-value comes from its best run score, by pair
 - `<run>.precursors.tsv`: one row per precursor, with its window, score and run q-value;
 - `<run>.calibration.json`;
 - `precursors.tsv`: target precursors at run and global q ≤ `-q`, all runs;
-- with `-features_out`, `<run>.features.tsv`: every scored window with its 24 features.
+- with `-features_out`, `<run>.features.tsv`: every scored window with its features.
 
 **Raw files** need a .NET 8 runtime (set `DOTNET_ROOT` if it is not in a standard location); mzML works without it.
 

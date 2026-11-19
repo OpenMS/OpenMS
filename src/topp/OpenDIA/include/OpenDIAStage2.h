@@ -129,7 +129,7 @@ namespace OpenMS::OpenDIA
   /// Peak-group column names, in Stage2PeakGroupFeature order.
   const std::array<std::string, STAGE2_PEAKGROUP_FEATURES>& stage2PeakGroupFeatureNames();
 
-  /// Experimental evidence block (-extra_scores, PRECHECK_EVIDENCE): core-window mass error, MS1 and ion mobility.
+  /// Evidence block (on by default since PLAN_EXTRA; -no_extra_scores leaves it out): core-window mass error, MS1 and ion mobility.
   enum class Stage2ExtraFeature : std::size_t
   {
     FRAGMENT_FRACTION = 0, ///< Stage2Feature::FRAGMENT_FRACTION.
