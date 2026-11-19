@@ -87,6 +87,7 @@ namespace OpenMS::OpenDIA
     int threads = 1;
     bool im_array_as_vssc = false;
     bool pg_scores = false;  ///< PLAN_PGSCORES: append the 10 peak-group scores (Stage2PeakGroupFeature).
+    std::size_t trace_tensor_gb = 64;  ///< Hard cap on the 6-fragment trace tensor (raw floats), in GiB.
     /// Optional: reuse an OpenDIACalibrate JSON and anchor TSV instead of calibrating (reproduction of earlier runs).
     std::string calibration_json;
     std::string anchors_tsv;

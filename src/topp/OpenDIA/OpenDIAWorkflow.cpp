@@ -60,6 +60,9 @@ protected:
     setMinInt_("seed", 0);
     registerFlag_("im_array_as_vssc", "Interpret a spectrum ion-mobility array whose unit is not CCS as 1/K0");
     registerFlag_("pg_scores", "Experimental (PLAN_PGSCORES): add 10 OpenSWATH-style peak-group scores (cross-correlation, S/N, mass deviation, fragment isotopes) to the scorer", true);
+    registerIntOption_("trace_tensor_gb", "<GiB>", 64, "Advanced: hard cap on the 6-fragment trace tensor in GiB (about 6.1 KiB per candidate window with ion mobility); "
+                       "raise it for very large libraries, memory permitting", false, true);
+    setMinInt_("trace_tensor_gb", 1);
     registerStringOption_("calibration", "<files>", "", "Advanced: comma-separated OpenDIACalibrate JSON per run to reuse instead of calibrating", false, true);
     registerStringOption_("anchors", "<files>", "", "Advanced: comma-separated anchor TSV per run, with -calibration", false, true);
     registerStringOption_("decoys", "<mode>", "library",
@@ -196,6 +199,7 @@ protected:
     options.seed = static_cast<std::uint64_t>(getIntOption_("seed"));
     options.im_array_as_vssc = getFlag_("im_array_as_vssc");
     options.pg_scores = getFlag_("pg_scores");
+    options.trace_tensor_gb = static_cast<std::size_t>(getIntOption_("trace_tensor_gb"));
     options.calibration.panel_targets = 40000;
 
     // Best (calibrated) score of each precursor per run, for the global q-value.

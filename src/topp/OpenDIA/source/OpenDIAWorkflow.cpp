@@ -483,7 +483,7 @@ namespace OpenMS::OpenDIA
       for (auto& c : trace_library.compounds)
         if (std::isfinite(c.drift_time) && c.drift_time > 0.0) c.drift_time = cal.im_intercept + cal.im_slope * c.drift_time;
     }
-    TraceCollector traces(std::move(trace_windows), trace_library, 0.02, options_.grid_half_width_s, 0.03, n, std::size_t{64} << 30);
+    TraceCollector traces(std::move(trace_windows), trace_library, 0.02, options_.grid_half_width_s, 0.03, n, options_.trace_tensor_gb << 30);
     traces.setIonMobilityArrayAsVSSC(options_.im_array_as_vssc);
     traces.enableEvidence(20.0, options_.core_half_width_s);
     traces.enableByIonCounts(trace_library, options_.byion_ppm, options_.byion_intensity_min);
