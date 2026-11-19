@@ -1610,7 +1610,7 @@ namespace OpenMS
               }
               // No pair within the blind modification count (with max_blind_mod_count 1: each path needs a shift of its own): the better
               // path alone. Before, the path of the suffix mode, set when only that mode had run, stayed whatever the prefix path
-              // scored. Such a one-sided PrSM with a shift is not reported (FLASHTnT drops it), but it shows which protein the spectrum
+              // scored. Such a one-sided PrSM with a shift is in a class that is not counted, but it shows which protein the spectrum
               // is of when a similar protein fits the same fragments (FLASHTnT, choice among similar proteins). Eclip_1479 scan 7554,
               // oxidised E. coli L11 (N-terminal Met loss and two trimethylations, -46.94 Da, and a shift further on): prefix path
               // 101, suffix path 19, no pair; the suffix path stayed and the hit was dropped for having no tag on it, while the L11 of

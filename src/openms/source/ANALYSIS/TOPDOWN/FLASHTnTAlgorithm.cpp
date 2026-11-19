@@ -3445,29 +3445,14 @@ void FLASHTnTAlgorithm::run(const MSExperiment& map, const std::vector<FASTAFile
       alternative_scorer = alternativeRawScorer_();
     }
 
-    // An undetermined PrSM (no mass) with an open terminus has no precursor mass to constrain a blind shift: the shift takes up whatever
-    // the sequence of a similar protein differs by. On the B. theta entrapment of the three lysates, 7 of the 8 B. theta proteoforms of the
-    // class at 1% had one, against 11 of the 58 E. coli ones; without such PrSMs the class held 1 B. theta of 58, and the three lysates gave
-    // 85 more proteoforms (the spectra's next PrSMs). Targets and decoys alike.
-    auto dropOpenTerminusShifts = [&](std::vector<ProteinHit>& hits) {
-      const auto shifted = [&](const ProteinHit& h) {
-        if ((double)h.getMetaValue(tntKey("Mass"), -1.0) > 0) return false;
-        if ((int)h.getMetaValue(tntKey("StartPosition"), -1) > 0 && (int)h.getMetaValue(tntKey("EndPosition"), -1) > 0) return false;
-        return blindModCount_(h) > 0;
-      };
-      const Size before = hits.size();
-      // not reported, but remembered: such a PrSM of a similar protein that has a PrSM with a mass may take the spectrum from the
-      // reported one (choice among similar proteins, before the FDR)
-      if (! native_rule && ! multiple_hits_per_spec_ && ! scoring_model_)
-      {
-        for (const auto& h : hits)
-        {
-          if (shifted(h)) alternative_hits_.push_back(h);
-        }
-      }
-      hits.erase(std::remove_if(hits.begin(), hits.end(), shifted), hits.end());
-      if (hits.size() < before) OPENMS_LOG_INFO << "Undetermined PrSMs with an open terminus and a blind shift: " << before - hits.size() << " dropped" << std::endl;
-    };
+    // Undetermined PrSMs (no mass) with an open terminus and a blind shift stay among the PrSMs of their spectrum. They were removed
+    // here (2026-10-23 to 2026-11-18) because the shift takes up what the sequence of a similar protein differs by. Since then the
+    // spectrum's choice prefers a PrSM with a mass (keepBestPerSpectrum_), the class with an open terminus is not counted, and a similar
+    // protein is chosen with the whole run in view (below). The removal judged the terminus as the extension left it, before the
+    // native rules open a terminus placed by chance: of two PrSMs that are reported alike (EFG -1-704 with a 0.02 Da shift), the one
+    // whose N-terminus was open already at the extension was removed and the one with a chance N-terminal path was kept. Without the
+    // removal: three lysates 5182 -> 5186 proteoforms and 1004 -> 1014 proteins, B. theta entrapment unchanged (5 proteoforms and 5
+    // proteins of seed 1); native set H 25 -> 27 of 27 named proteins (EFG, RBSB), null-database calls unchanged.
 
     // The PrSMs of the spectra of one stage (@p spectra; the first stage: every spectrum), appended to proteoform_hits_ in spectrum order.
     const UInt mi_stage = registry.registerName("SearchStage");
@@ -3620,7 +3605,6 @@ void FLASHTnTAlgorithm::run(const MSExperiment& map, const std::vector<FASTAFile
         for (const auto& hit : stage_hits) scans.insert((int)hit.getMetaValue("Scan"));
         loadRawSpectra_(scans);
         annotateOnRawSpectra_(stage_hits);
-        dropOpenTerminusShifts(stage_hits);
         if (const char* trace_file = std::getenv("FLASH_TRACE_FEATURES"))
         {
           try { traceCandidates_(stage_hits, trace_file); }
@@ -3645,7 +3629,6 @@ void FLASHTnTAlgorithm::run(const MSExperiment& map, const std::vector<FASTAFile
           }
         }
       }
-      else { dropOpenTerminusShifts(stage_hits); }
       for (auto& h : stage_hits)
       {
         if (stage > 0) h.setMetaValue(mi_stage, stage);
@@ -4246,8 +4229,8 @@ void FLASHTnTAlgorithm::run(const MSExperiment& map, const std::vector<FASTAFile
   // stretches, the tags fit both, and the spectrum's choice by score may take the wrong one (a blind shift takes up what the sequences
   // differ by). The choice between the two is made here, with the whole run in view: when the reported PrSM of a spectrum has no mass,
   // all its tags lie in stretches of at least similar_min_residues residues that its protein has in common with another protein, that
-  // protein made a PrSM in the spectrum too (one that lost the spectrum's choice, keepBestPerSpectrum_, or a one-sided PrSM with a
-  // blind shift that is not reported, dropOpenTerminusShifts), and that protein has a PrSM with a mass in the run that scores above
+  // protein made a PrSM in the spectrum too (one that lost the spectrum's choice, keepBestPerSpectrum_), and that protein has a PrSM
+  // with a mass in the run that scores above
   // every PrSM with a mass of the first protein (none: any), the spectrum reports the other protein's PrSM. The PrSM that comes in is
   // classed and counted by the FDR below like any other (one with an open terminus is in the class that is not counted, so the spectrum
   // then identifies nothing rather than the wrong protein); targets and decoys alike. Three E. coli lysates with B. theta entrapment:
