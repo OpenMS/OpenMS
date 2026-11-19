@@ -88,6 +88,9 @@ namespace OpenMS::OpenDIA
     bool im_array_as_vssc = false;
     bool pg_scores = false;  ///< PLAN_PGSCORES: append the 10 peak-group scores (Stage2PeakGroupFeature).
     bool extra_scores = true;  ///< PLAN_EXTRA (D pass, H reported): append the evidence block (Stage2ExtraFeature).
+    std::size_t search_im_bins = 0;  ///< Experimental RT x ion-mobility candidate picking (SearchOptions::im_bins); 0 off.
+    std::size_t search_im_extra_peaks = 2;   ///< SearchOptions::im_extra_peaks.
+    std::size_t search_im_min_support = 1;   ///< SearchOptions::im_min_support.
     std::size_t trace_tensor_gb = 64;  ///< Hard cap on the 6-fragment trace tensor (raw floats), in GiB.
     /// Optional: reuse an OpenDIACalibrate JSON and anchor TSV instead of calibrating (reproduction of earlier runs).
     std::string calibration_json;

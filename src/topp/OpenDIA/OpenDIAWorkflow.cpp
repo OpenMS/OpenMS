@@ -65,6 +65,14 @@ protected:
     registerFlag_("im_array_as_vssc", "Interpret a spectrum ion-mobility array whose unit is not CCS as 1/K0");
     registerFlag_("pg_scores", "Experimental (PLAN_PGSCORES): add 10 OpenSWATH-style peak-group scores (cross-correlation, S/N, mass deviation, fragment isotopes) to the scorer", true);
     registerFlag_("no_extra_scores", "Advanced: leave out the evidence block (core-window mass error, MS1 and ion-mobility evidence, 12 features; PLAN_EXTRA) and score with the 24 base features only", true);
+    registerIntOption_("im_peaks", "<bins>", 0, "Experimental: RT x ion-mobility candidate picking with this many 1/K0 bins over the search mobility window (0 off, 3-16): "
+                       "peaks masked in the pooled trace by a precursor at another mobility get their own candidate", false, true);
+    setMinInt_("im_peaks", 0);
+    setMaxInt_("im_peaks", 16);
+    registerIntOption_("im_extra_peaks", "<n>", 2, "Experimental, with -im_peaks: at most this many mobility-band candidates added per precursor", false, true);
+    setMinInt_("im_extra_peaks", 1);
+    registerIntOption_("im_min_support", "<n>", 1, "Experimental, with -im_peaks: mobility-band candidates need at least this many supporting fragments", false, true);
+    setMinInt_("im_min_support", 1);
     registerIntOption_("trace_tensor_gb", "<GiB>", 64, "Advanced: hard cap on the 6-fragment trace tensor in GiB (about 6.1 KiB per candidate window with ion mobility); "
                        "raise it for very large libraries, memory permitting", false, true);
     setMinInt_("trace_tensor_gb", 1);
@@ -241,6 +249,14 @@ protected:
     options.im_array_as_vssc = getFlag_("im_array_as_vssc");
     options.pg_scores = getFlag_("pg_scores");
     options.extra_scores = !getFlag_("no_extra_scores");
+    options.search_im_bins = static_cast<std::size_t>(getIntOption_("im_peaks"));
+    options.search_im_extra_peaks = static_cast<std::size_t>(getIntOption_("im_extra_peaks"));
+    options.search_im_min_support = static_cast<std::size_t>(getIntOption_("im_min_support"));
+    if (options.search_im_bins > 0 && options.search_im_bins < 3)
+    {
+      writeLogError_("-im_peaks must be 0 or 3..16.");
+      return ILLEGAL_PARAMETERS;
+    }
     options.trace_tensor_gb = static_cast<std::size_t>(getIntOption_("trace_tensor_gb"));
     options.calibration.panel_targets = 40000;
 

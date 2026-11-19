@@ -412,6 +412,9 @@ namespace OpenMS::OpenDIA
       so.picker.max_peaks = options_.max_peaks;
       so.picker.boundary_half_widths = cal.boundary_half_widths;
       so.min_transitions = options_.min_transitions;
+      so.im_bins = cal.has_im ? options_.search_im_bins : 0;
+      so.im_extra_peaks = options_.search_im_extra_peaks;
+      so.im_min_support = options_.search_im_min_support;
       // The peak table text is not needed: candidates are kept in memory. A stream without a buffer discards it.
       std::ostream sink(nullptr);
       StreamSearch search(makeQueries(targeted), so, sink, nullptr);
@@ -420,6 +423,7 @@ namespace OpenMS::OpenDIA
       const auto t_finish = std::chrono::steady_clock::now();
       search.finish();
       search_io += " finish_s=" + std::to_string(seconds(t_finish));
+      if (so.im_bins > 0) search_io += " im_peaks_added=" + std::to_string(search.mobilityPeaksAdded());
       candidates = search.candidates();
       search_to_library.resize(search.precursorCount());
       for (std::size_t p = 0; p < search.precursorCount(); ++p) search_to_library[p] = lib.index.at(search.precursorId(p));
