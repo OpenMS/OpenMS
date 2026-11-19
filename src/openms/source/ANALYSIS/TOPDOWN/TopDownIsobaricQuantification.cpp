@@ -16,6 +16,8 @@
 #include <OpenMS/ANALYSIS/QUANTITATION/TMTSixteenPlexQuantitationMethod.h>
 #include <OpenMS/ANALYSIS/QUANTITATION/TMTTenPlexQuantitationMethod.h>
 #include <OpenMS/ANALYSIS/TOPDOWN/TopDownIsobaricQuantification.h>
+#include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/METADATA/SpectrumLookup.h>
 #include <cmath>
@@ -47,6 +49,14 @@ namespace OpenMS
     defaults_.setValue("isotope_correction", "true",
                        "Enable isotope correction (highly recommended).");
     defaults_.setValidStrings("isotope_correction", {"true", "false"});
+    defaults_.setValue("correction_matrix", std::vector<std::string>(),
+                       "The reporter ion isotope impurities of the reagent lot, used by isotope_correction: one entry per channel, in the order of "
+                       "the channels, each entry <-2Da>/<-1Da>/<+1Da>/<+2Da> in percent as on the product sheet of the lot (e.g. 0.0/0.0/8.6/0.3). "
+                       "Empty (default): the matrix built into the method of 'type' is used (tmt6plex: TMTsixplex lot ZE386964). "
+                       "Given: it replaces the built-in matrix. It needs as many entries as the method has channels and the number of values per "
+                       "entry of the built-in matrix; otherwise the tool stops with an error before any quantification. "
+                       "A reagent that shares the reporter masses of a method but not its impurities (e.g. iodoTMTsixplex with tmt6plex) needs "
+                       "the values of its own lot here, or isotope_correction false.");
     defaults_.setValue("reporter_mz_tol", 2e-3, "Specifies the m/z tolerance (in Th) for reporter ion detection.");
     defaults_.setValue("only_fully_quantified", "false", "Restricts analysis to spectra that are fully quantified, meaning all channels have non-zero intensity reporter ions.");
     defaults_.setValidStrings("only_fully_quantified", {"true", "false"});
@@ -77,6 +87,70 @@ namespace OpenMS
 
     const auto& quant_method = quant_methods_[type];
 
+    // the impurities of the user's reagent lot instead of the built-in ones
+    const StringList correction_matrix = ListUtils::toStringList<std::string>(getParameters().getValue("correction_matrix"));
+    if (! correction_matrix.empty())
+    {
+      if (correction_matrix.size() != quant_method->getNumberOfChannels())
+      {
+        throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                          "correction_matrix has " + std::to_string(correction_matrix.size()) + " entries, but the method '" + type + "' has "
+                                            + std::to_string(quant_method->getNumberOfChannels()) + " channels (one entry per channel is needed).");
+      }
+      Param method_param = quant_method->getParameters();
+      method_param.setValue("correction_matrix", correction_matrix);
+      quant_method->setParameters(method_param);
+      quant_method->getIsotopeCorrectionMatrix(); // stops here on a malformed entry
+    }
+
+    // The channel extractor needs the precursor of every spectrum it quantifies. It stops with an exception on an MSn (n > 2) spectrum
+    // whose MS(n-1) spectrum is not in the file (e.g. a file of MS3 spectra only), and it takes the first precursor of a spectrum
+    // without a check that there is one. Such spectra are handled on a copy of the experiment: an MSn spectrum without its MS(n-1)
+    // spectrum is passed as an MS2 spectrum, so that its reporter ions are quantified in the spectrum itself and assigned to its own
+    // scan (in a file that also holds complete MSn spectra the extractor quantifies only those, as before); a spectrum above MS1
+    // without a precursor, and an MSn spectrum whose MS(n-1) spectrum has none, are left out. A complete file is passed as it is.
+    const MSExperiment* quant_exp = &exp;
+    MSExperiment adapted_exp;
+    {
+      std::vector<bool> left_out(exp.size(), false), orphan(exp.size(), false);
+      Size left_out_count = 0, orphan_count = 0;
+      for (auto it = exp.begin(); it != exp.end(); ++it)
+      {
+        if (it->getMSLevel() < 2) continue;
+        const Size i = (Size)std::distance(exp.begin(), it);
+        if (it->getPrecursors().empty()) { left_out[i] = true; }
+        else if (it->getMSLevel() > 2)
+        {
+          const auto parent = exp.getPrecursorSpectrum(it);
+          if (parent == exp.end()) { orphan[i] = true; }
+          else if (parent->getPrecursors().empty()) { left_out[i] = true; }
+        }
+        left_out_count += left_out[i];
+        orphan_count += orphan[i];
+      }
+      if (left_out_count + orphan_count > 0)
+      {
+        static_cast<ExperimentalSettings&>(adapted_exp) = exp;
+        adapted_exp.reserveSpaceSpectra(exp.size() - left_out_count);
+        for (Size i = 0; i < exp.size(); i++)
+        {
+          if (left_out[i]) continue;
+          adapted_exp.addSpectrum(exp[i]);
+          if (orphan[i]) adapted_exp[adapted_exp.size() - 1].setMSLevel(2);
+        }
+        quant_exp = &adapted_exp;
+        if (orphan_count > 0)
+        {
+          OPENMS_LOG_WARN << "Isobaric quantification: " << orphan_count
+                          << " MSn (n > 2) spectra without their MS(n-1) spectrum in the file are quantified by their own reporter ions.\n";
+        }
+        if (left_out_count > 0)
+        {
+          OPENMS_LOG_WARN << "Isobaric quantification: " << left_out_count << " spectra without precursor information are not quantified.\n";
+        }
+      }
+    }
+
     IsobaricChannelExtractor channel_extractor(quant_method.get());
     Param extract_param = channel_extractor.getDefaults();
     extract_param.setValue("reporter_mass_shift", getParameters().getValue("reporter_mz_tol"));
@@ -91,7 +165,7 @@ namespace OpenMS
     ConsensusMap consensus_map_raw, consensus_map_quant;
 
     // extract channel information
-    channel_extractor.extractChannels(exp, consensus_map_raw);
+    channel_extractor.extractChannels(*quant_exp, consensus_map_raw);
     quantifier.quantify(consensus_map_raw, consensus_map_quant);
 
     std::map<double, int> rt_scan_map;
