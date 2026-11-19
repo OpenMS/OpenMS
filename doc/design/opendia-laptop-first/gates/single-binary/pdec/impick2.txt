@@ -1,0 +1,9 @@
+RT tolerance +-35.2 s, 1/K0 tolerance +-0.0524, 1/K0 map 0.0157 + 0.9896 x
+DIA-NN IDs 25881; right peak not a candidate 4109 (0.159)
+  (a) DIA-NN RT outside the RT window          0.010
+  (b) DIA-NN 1/K0 outside the 1/K0 window      0.001  (all DIA-NN IDs: 0.001)
+  (c) inside both windows, 5-candidate cap hit 0.067
+  (d) inside both windows, below the cap       0.921
+  |1/K0 error| p50 / p95: all DIA-NN IDs 0.0089 / 0.0311; not-a-candidate 0.0083 / 0.0294
+  |RT error| p50 / p95 s: all 5.3 / 20.6; not-a-candidate 4.9 / 19.7
+  not-a-candidate share by DIA-NN quantity quartile: {'Q1': 0.223, 'Q2': 0.222, 'Q3': 0.148, 'Q4': 0.043}

@@ -1,0 +1,29 @@
+DIA-NN non-entrapment q<=0.01 IDs mapped into this library: 25881; with an OpenDIA candidate: 25881
+candidates per precursor median 3
+
+Outcome of DIA-NN IDs (share), overall and by DIA-NN quantity quartile:
+qq                                              Q1     Q2     Q3     Q4    all
+cat                                                                           
+accepted, other peak                         0.002  0.004  0.002  0.003  0.003
+accepted, right peak                         0.197  0.328  0.532  0.836  0.473
+missed: right peak a candidate but not kept  0.126  0.068  0.039  0.014  0.062
+missed: right peak kept, scored low          0.453  0.380  0.280  0.105  0.305
+missed: right peak not a candidate           0.222  0.221  0.147  0.042  0.158
+
+Choice errors (kept window wrong, right peak among candidates): 1644
+  x_im_centroid_offset   right p50   0.828  kept-wrong p50   0.903  right is lower in 0.53 of pairs (ties 0.00)
+  x_im_central_share     right p50   0.543  kept-wrong p50   0.554  right is higher in 0.49 of pairs (ties 0.01)
+  x_im_coelution         right p50   0.226  kept-wrong p50   0.232  right is higher in 0.48 of pairs (ties 0.00)
+  abs_library_rt_error   right p50   5.935  kept-wrong p50  19.813  right is lower in 0.82 of pairs (ties 0.00)
+  f12_libcos             right p50   0.916  kept-wrong p50   0.896  right is higher in 0.58 of pairs (ties 0.00)
+  x_ms2_log_area         right p50   9.202  kept-wrong p50   8.833  right is higher in 0.63 of pairs (ties 0.00)
+  kept-wrong windows with mobility centroid > 2 bins off centre: 0.11; right windows: 0.08
+
+Among DIA-NN IDs with a right candidate (21772): share where the rule picks a right window
+  tool (kept window)               0.924
+  smallest mobility centroid offset 0.437
+  largest central mobility share    0.544
+  smallest |library RT error|        0.786
+  largest MS2 area                   0.663
+
+All candidate windows of DIA-NN IDs: right windows with centroid offset <= 1 bin 0.61, wrong windows 0.52
