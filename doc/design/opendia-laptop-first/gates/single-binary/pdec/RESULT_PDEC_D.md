@@ -39,3 +39,17 @@
 
 **H** (held out) is submitted now, after this verdict commit, as the plan says. It is reported either way.
 H submitted 2026-11-19T00:45:54Z (jobs 34992382..34992392), after verdict commit 1f393c2184 (00:45:45Z).
+
+## Amendment 1 (19 Nov 01:48): H could not run with the frozen binary (mechanical, no criteria change)
+- **Failure:** all 10 H runs (34992382..92) stopped with exit 6 after the search: "Trace sample count exceeds the raw
+  tensor byte budget".
+  - The r ≈ 7 library on the 21-min H run gives 13.6 M candidate windows. The hard-coded trace tensor cap is 64 GiB,
+    about 11.2 M windows. D (9.9 M) fits.
+  - The cap was never reached before, because BOUNDS_R5 did not run H.
+- **Fix:** OpenMS bc4e4f8d9b adds `-trace_tensor_gb` (default 64, so output is unchanged). H is rerun with
+  `-trace_tensor_gb 96` and 192 GB of memory.
+- **Container:** `entlib-pdsif-20261118/opendia-pd3-bc4e4f8d9b.sif` (sha256 b635b2ee…). Compared with a2aa8fc56c it adds:
+  - 2982bd647d, the gene-join fix. It does not affect this library: 0 of 1,493,505 peptides lack a gene mapping.
+  - fa75f8f46d and 01d5ded04a, which are off by default.
+  - bc4e4f8d9b, the cap option.
+- **What stays the same:** the frozen library, D verdict and criteria. H is still reported only, as the plan says.
