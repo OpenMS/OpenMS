@@ -43,7 +43,8 @@ namespace OpenMS
 
   rewrite() also checks the products that a search with missed cleavages makes from the rewritten sequences
   (combinations of consecutive products, including ones assembled from products shorter than min_length) and
-  changes the shuffles of their components to remove forbidden ones (see rewrite()).
+  changes the shuffles of their components to remove forbidden ones and collisions between distinct original oligos
+  (see rewrite()). Repairs are bounded; unresolved collisions are reported by failedCombinations().
 
   Products are compared by key(): the residues (with modifications) without terminal modifications.
 */
@@ -84,8 +85,11 @@ public:
       least min_length residues are checked against @p forbidden. The component products of forbidden ones (also
       products that were not selected) then try other shuffles (up to 20 further qualifying ones; a product shorter
       than min_length may also stay as it is), and keep the one that leaves the fewest forbidden combinations around
-      its occurrences, provided it removes some and makes no new one. Each product keeps one replacement in all
-      sequences. This repeats until nothing improves; forbidden combinations left are counted in failedCombinations().
+      its occurrences, provided it removes some and makes no new one. Distinct original searchable products must not
+      share a rewritten key; identical originals may share it. The same repair checks both constraints, including
+      products assembled from short components. Each product keeps one replacement in all sequences. This repeats
+      until nothing improves or the repair budget is exhausted. Remaining forbidden or non-unique searchable windows
+      are counted in failedCombinations(); bounded repair cannot guarantee that every collision is resolved.
 
     A product keeps its replacement across calls. Terminal modifications of the sequences are kept.
   */
@@ -106,7 +110,7 @@ public:
   /// Number of distinct products of at least min_length residues that rewrite() had to replace but could not
   Size failed() const { return failed_; }
 
-  /// Number of forbidden missed-cleavage combinations left after the last rewrite()
+  /// Number of searchable windows still forbidden or shared by distinct originals after the last rewrite()
   Size failedCombinations() const { return failed_combinations_; }
 
   /// Keys of all replacements of products of at least min_length residues made by rewrite()

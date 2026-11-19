@@ -168,11 +168,70 @@ START_SECTION(rewrite: missed-cleavage combinations of short products are checke
     TEST_EQUAL(decoy[2], 'G') // cleavage residues stay
     TEST_EQUAL(decoy[5], 'G')
   }
+  std::set<std::string> decoy_keys;
+  for (const auto& decoy : decoys)
+  {
+    for (const auto& k : db.productKeys(decoy, 1))
+      decoy_keys.insert(k);
+  }
+  TEST_EQUAL(decoy_keys.size(), target_keys.size())
   TEST_EQUAL(db.failedCombinations(), 0)
   // deterministic
   RNAProductShuffler same(t1(), 5, 1);
   const std::vector<std::string> again = same.rewrite(targets, all, is_target, true, 1);
   TEST_EQUAL(again == decoys, true)
+}
+END_SECTION
+
+START_SECTION(rewrite : distinct assembled products stay distinct while repeated originals share a decoy)
+{
+  const std::vector<std::string> targets {"ACUGAG", "AUCGAG", "CAUGAG", "CUAGAG", "UACGAG", "UCAGAG", "ACUGAG"};
+  auto all = [](const std::string&) { return true; };
+  for (Size seed = 1; seed <= 8; ++seed)
+  {
+    RNAProductShuffler db(t1(), 5, seed);
+    const auto decoys = db.rewrite(targets, all, nothing, true, 1);
+    std::set<std::string> decoy_keys;
+    for (const auto& decoy : decoys)
+    {
+      for (const auto& k : db.productKeys(decoy, 1))
+        decoy_keys.insert(k);
+    }
+    TEST_EQUAL(decoy_keys.size(), 6)
+    TEST_STRING_EQUAL(decoys.front(), decoys.back())
+    TEST_EQUAL(db.failedCombinations(), 0)
+  }
+}
+END_SECTION
+
+START_SECTION(rewrite : unresolved duplicate windows are counted when the shuffle budget is small)
+{
+  const std::vector<std::string> targets {"ACUGAG", "AUCGAG", "CAUGAG", "CUAGAG", "UACGAG", "UCAGAG"};
+  bool unresolved = false;
+  for (Size seed = 1; seed <= 16; ++seed)
+  {
+    RNAProductShuffler db(t1(), 5, seed);
+    db.setMaxTries(1);
+    const auto decoys = db.rewrite(targets, [](const std::string&) { return true; }, nothing, true, 1);
+    std::set<std::string> keys;
+    for (const auto& decoy : decoys)
+    {
+      for (const auto& k : db.productKeys(decoy, 1))
+      {
+        keys.insert(k);
+      }
+    }
+    if (keys.size() < targets.size())
+    {
+      unresolved = true;
+      TEST_TRUE(db.failedCombinations() > 0)
+    }
+    else
+    {
+      TEST_EQUAL(db.failedCombinations(), 0)
+    }
+  }
+  TEST_TRUE(unresolved)
 }
 END_SECTION
 
