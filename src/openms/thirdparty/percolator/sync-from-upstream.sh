@@ -4,7 +4,7 @@
 set -euo pipefail
 
 UPSTREAM_URL="https://github.com/percolator/percolator.git"
-UPSTREAM_REF="${1:-eb157f74e963430e559e0d0bcd31291e4ad660ba}"
+UPSTREAM_REF="${1:-a9783ee8ded0af8148566bdff4d43d2ba444ce5e}"
 
 here=$(pwd)
 tmpdir=$(mktemp -d)
@@ -42,13 +42,12 @@ while IFS= read -r f; do
 done < whitelist.txt
 
 echo ">>> Applying local patches..."
-# The namespace-wrap patch was generated against upstream's CRLF-ending source,
-# so apply FIRST (while copied files still have their original line endings),
-# THEN normalize to LF for repo consistency.
+# The patches are applied in name order to the copied upstream files, then the
+# line endings are normalized to LF (upstream has none other since 3.09).
 #
-# Patch format varies: 01-namespace-wrap.patch uses `diff -urN` with full
-# paths (apply with -p0); 02-06 use `git format-patch` style with a/b/
-# prefixes (apply with -p1). Auto-detect per-patch by inspecting first line.
+# All patches are `git diff` style with a/b/ prefixes (apply with -p1); a patch
+# in `diff -urN` style with full paths (the former 01-namespace-wrap.patch) is
+# applied with -p0. Auto-detect per-patch by inspecting the first line.
 for p in "$here/patches/"*.patch; do
   [ -e "$p" ] || continue
   echo "  applying $p"

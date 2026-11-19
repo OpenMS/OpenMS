@@ -345,10 +345,6 @@ set(format_executables_list
   SiriusFragmentAnnotation_test
 )
 
-if(WITH_HDF5)
-  list(APPEND format_executables_list HDF5_test)
-endif()
-
 list(APPEND format_executables_list Arrow_test MSExperimentArrowExport_test ConsensusMapArrowExport_test
   ProteinGroupArrowExport_test QPXFile_test QPXCollectionExport_test QPXValueValidation_test QPXDatasetExport_test
   QPXIdentity_test

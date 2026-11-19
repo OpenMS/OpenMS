@@ -50,7 +50,6 @@ namespace OpenMS
     std::unique_ptr<OpenMS::Internal::Percolator::SetHandler> set_handler;
     std::unique_ptr<OpenMS::Internal::Percolator::DataSet> target_ds;
     std::unique_ptr<OpenMS::Internal::Percolator::DataSet> decoy_ds;
-    std::vector<std::string> synthesized_ids;
     /// PSMs are owned by the DataSets inside set_handler (rescore(): by psm_slab); this vector is for
     /// bookkeeping only (so we can count rows). Do NOT delete these pointers
     /// directly — DataSet::~DataSet will.
@@ -90,10 +89,11 @@ namespace OpenMS
     Percolator::CappedTrainingInfo capped_info;
     double tron_epsilon = 1e-7;               ///< TRON stopping tolerance (Percolator: EPSILON = 1e-7)
     bool   warm_start = false;                ///< pairs start from their previous iteration's weights
+    bool   classic_training = true;           ///< train as Percolator 3.09 (fixed iterations, full grid, solves from 0)
     bool   single_cneg = false;               ///< one Cneg candidate (3 x ratio) instead of three
     int    num_threads = 3;                   ///< max OpenMP threads for CV, within omp_get_max_threads()
     std::string initial_direction;            ///< feature name; prefix "-" = lower is better; empty = auto
-    int    solver = 0;                        ///< SvmSolver of the cross-validation (param "solver"; 0 = TRON)
+    int    solver = 1;                        ///< SvmSolver of the cross-validation (param "solver"; 0 = TRON, 1 = Newton)
     bool   calc_mass_feature = false;         ///< rescorePSMs(): CalcMass is a training feature (param "calc_mass_feature")
     std::string use_pi0 = "auto";             ///< "auto" | "true" | "false": pi0 correction on q-values; false = pure TDA (pi0=1)
     std::string report_as_main_score = "none"; ///< "none"|"q-value"|"pep"|"svm" — which Percolator output to promote to hit.getScore()

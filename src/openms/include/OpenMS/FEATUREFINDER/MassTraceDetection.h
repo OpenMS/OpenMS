@@ -32,6 +32,15 @@ namespace OpenMS
       retention time. During this extension phase, the centroid m/z is computed
       on-line as an intensity-weighted mean of peaks.
 
+      A peak extends a mass trace if its m/z lies within three standard
+      deviations of the centroid m/z of the trace. The standard deviation is the
+      parameter mass_error_ppm. With reestimate_mt_sd, it is also estimated
+      on-line from the peaks of the trace, which narrows the m/z window of traces
+      that are more precise than mass_error_ppm. The estimate never widens the
+      window beyond three times mass_error_ppm: it is computed from the peaks
+      that the window let in, so a window that grows with it would let in ever
+      more distant peaks (of noise or of other ions) and run away.
+
       The extension phase ends when either the frequency of gathered peaks drops
       below a threshold (min_sample_rate, see @ref MassTraceDetection parameters)
       or when the number of missed scans exceeds a threshold

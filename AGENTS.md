@@ -93,7 +93,7 @@ OpenMS/
 - libxml2 2.13+, Boost 1.81+ (date_time, regex, iostreams), Eigen3 (3.4.0+), libSVM (2.91+), HiGHS (LP solver; fetched automatically if not found), ZLIB, BZip2, zstd, libcurl
 - No Qt: the Qt-based GUI library and the GUI tools (TOPPView, TOPPAS, INIFileEditor, ExecutePipeline, ImageCreator) live in the separate repository [OpenMS-TOPP-GUI](https://github.com/OpenMS/OpenMS-TOPP-GUI), built against an installed OpenMS of the same version. GUI and Qt questions (build, tests, `QT_QPA_PLATFORM`, WebEngine) belong there.
 
-**Optional:** HDF5 (`-DWITH_HDF5=ON`); Bruker TimsTOF `.d` directory support via opentims (`-DWITH_OPENTIMS=ON`, default on; set `-DENABLE_OPENTIMS_TESTS=ON` to also fetch and run integration tests); Thermo RAW file reading via openms-thermo-bridge (`-DWITH_THERMO_RAW=ON`, default on except on Linux/aarch64; requires .NET 8+ runtime at run time; set `-DENABLE_THERMO_RAW_TESTS=ON` to download test data and run integration tests)
+**Optional:** Bruker TimsTOF `.d` directory support via opentims (`-DWITH_OPENTIMS=ON`, default on; set `-DENABLE_OPENTIMS_TESTS=ON` to also fetch and run integration tests); Thermo RAW file reading via openms-thermo-bridge (`-DWITH_THERMO_RAW=ON`, default on except on Linux/aarch64; requires .NET 8+ runtime at run time; set `-DENABLE_THERMO_RAW_TESTS=ON` to download test data and run integration tests)
 
 **Disabled by default (fetched via FetchContent when enabled; requires network or `FETCHCONTENT_SOURCE_DIR_*` override):** WNetAlign/WNet/PyLMCF for `FeatureLinkerWNet` (`-DWITH_WNETALIGN=ON` to enable)
 
@@ -108,7 +108,6 @@ OpenMS/
 - **Keep build paths short** to avoid path length issues
 - **Never mix Release/Debug libraries** — causes stack corruption and segfaults
 - The Windows triplets fix the runtime: `windows-x64-debug` uses `x64-windows-static-md` (dependencies in debug and release form, so it is the preset for a Debug or multi-configuration build), the release presets use `x64-windows-static-md-release` (release dependencies only)
-- HDF5 forced to static linking on MSVC
 - OpenMP requires `/openmp:experimental` flag (set automatically) for SIMD support
 - Nested OpenMP (`MT_ENABLE_NESTED_OPENMP`) defaults to OFF on MSVC
 

@@ -10,8 +10,10 @@
 # taken from the bridge's pre-built release zip via tools/ci/fetch_thermo_assets.sh
 # (retried, SHA-256 pinned, cached between runs) when one is published for the pinned
 # bridge revision; otherwise the bridge publishes it with the .NET SDK during the OpenMS
-# build (NuGet restore + Thermo package download). The Linux wheels take the bridge from
-# the openms-thermo-bridge vcpkg port, which publishes the managed half the same way.
+# build (NuGet restore + Thermo package download). The Linux and Windows wheels take the
+# bridge from the openms-thermo-bridge vcpkg port, which downloads the same release zip
+# itself (SHA-512 pinned in its portfile) and publishes the managed half only when no zip
+# is published for its pin.
 # Compiling the native bridge always needs the nethost headers from a .NET SDK. The
 # finished wheels are smoke-tested by loading a real RAW file.
 
@@ -569,8 +571,9 @@ jobs:
           key: thermo-assets-win-x64-${{ hashFiles('tools/ci/fetch_thermo_assets.sh') }}
 
       # Only the RAW test file is used here: the bridge comes from vcpkg's
-      # openms-thermo-bridge port, which publishes its managed assemblies with the
-      # .NET SDK of the runner image when the binary cache misses.
+      # openms-thermo-bridge port, which downloads the pre-built managed assemblies of
+      # the bridge release when the binary cache misses (and publishes them with the
+      # .NET SDK of the runner image only if its pin has no release zip).
       - name: Fetch Thermo RAW test file
         shell: bash
         run: bash tools/ci/fetch_thermo_assets.sh win-x64 "$GITHUB_WORKSPACE"

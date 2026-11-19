@@ -26,10 +26,12 @@ done
 sudo add-apt-repository universe
 sudo apt update
 
-# Required dependencies:
+# Required dependencies (vcpkg's Apache Thrift port needs flex and bison):
 sudo apt-get -qq install -y \
+  bison \
   build-essential \
   cmake \
+  flex \
   git \
   ninja-build \
   patch \
