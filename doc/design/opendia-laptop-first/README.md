@@ -51,6 +51,10 @@ The branch's [`src/topp/OpenDIA/README.md`](https://github.com/OpenMS/OpenMS/blo
   library left 32 % of targets without a decoy (decoys were reversed from FASTA entries, not digested peptides). Fixed,
   the tool's own q <= 0.01 gives true FDP 0.69-1.13 % (CUR) and 0.74-1.21 % (NEW), D seed 0, r = 1.56. IDs at 1 %
   combined FDP barely move (-3 %). The r ~7 frozen plan is the tight test.
+- **Held-out H (19 Nov, RESULT_H.md, reported only):** H reproduces D for both decoy routes. At q <= 0.01 the true FDP is
+  1.06-1.27 % (DIALibGen 1.09-1.27 %, OpenDIA 1.06-1.26 %), and IDs at true 1 % FDP are about 20.8 k (CUR) and 24.5 k (NEW).
+  With OpenDIA's decoys on H the pairs are fair (win 0.500-0.505), but the excess is unchanged. So the remaining ~1.1x
+  is not decoy asymmetry and points at q estimation at r ~7. Proposed next: PRECHECK_TDC on the existing outputs.
 - **PLAN_ODP D verdict (19 Nov, 480991c28a): FAIL on criteria 1/2, narrowly.** OpenDIA's own `-decoys predict` at r ~7
   (5 seeds) gives q <= 0.01 a true FDP of 1.06-1.21 %, the same as the DIALibGen route (1.09-1.24 %). Coverage is 99.85 %
   and IDs at true 1 % FDP are 8,233 (CUR) and 10,100 (NEW, `-pg_scores` +22.7 %). OpenDIA alone is as good as the two-tool
