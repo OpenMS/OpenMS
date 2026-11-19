@@ -1,0 +1,9 @@
+PRECHECK_EVIDENCE, r~1.56 HeLa D seed 0, OpenDIA-predicted decoys (cached library), OpenMS 83a0f6c14a, local 8 threads.
+eval_pdec.py:
+arm  seed  N_q01  E_q01  lower  combined  N_at_FDPc1
+cur     0   9953     55 0.0055    0.0104        9863
+new     0  13034    103 0.0079    0.0149       12357
+pair win cur 0.505 (n 739), new 0.524 (n 920)
+wall cur 6:28 / 11.0 GB, new 7:08 / 11.3 GB
+ev_asym.py (entrapment vs decoy AUC, kept windows q<=0.05; |AUC-0.5|>0.05 flagged): only the interference block
+(i_*, 0.433-0.558) and x_ms1_coelution (0.553) flagged; other x_* 0.479-0.536.

@@ -1,0 +1,36 @@
+A tool score                         q<=0.01 N   8520 lower 0.0113 combined 0.0129 | N@FDP_c 1 %   7968 | in DIA-NN 0.963
+B label-free GBM (3 rounds)          q<=0.01 N   8869 lower 0.0121 combined 0.0138 | N@FDP_c 1 %   8052 | in DIA-NN 0.958
+C DIA-NN-labelled GBM ceiling        q<=0.01 N   8628 lower 0.0122 combined 0.0139 | N@FDP_c 1 %   7798 | in DIA-NN 0.958
+
+DIA-NN-confirmed best windows 21276; decoy precursor best windows (sample) 200000
+AUC vs decoys by DIA-NN quantity quartile (0.5 = no separation)
+                                 Q1     Q2     Q3     Q4
+feature                                                 
+score                         0.514  0.666  0.807  0.943
+transition_support            0.766  0.800  0.816  0.823
+log_matched_scans             0.619  0.668  0.662  0.594
+log_peak_width                0.614  0.658  0.651  0.581
+abs_library_rt_error          0.243  0.234  0.233  0.239
+boundary_log_fwhm             0.531  0.552  0.540  0.452
+boundary_log_width            0.619  0.685  0.743  0.818
+boundary_coelution            0.686  0.759  0.830  0.920
+boundary_library_correlation  0.620  0.676  0.728  0.800
+boundary_apex_agreement       0.654  0.696  0.748  0.851
+byion_b                       0.498  0.498  0.499  0.506
+byion_y                       0.494  0.495  0.499  0.527
+f12_support                   0.623  0.723  0.821  0.937
+f12_coelution                 0.671  0.766  0.844  0.946
+f12_libcos                    0.758  0.795  0.831  0.887
+f12_extra_support             0.500  0.500  0.500  0.500
+f12_extra_coelution           0.500  0.500  0.500  0.500
+f12_extra_share               0.409  0.292  0.197  0.089
+d_max                         0.430  0.456  0.463  0.463
+d6_max                        0.430  0.456  0.463  0.463
+d_lib                         0.489  0.489  0.489  0.489
+i_explained                   0.362  0.371  0.371  0.283
+i_libcos_resid                0.654  0.644  0.648  0.745
+i_dlibcos                     0.545  0.518  0.509  0.614
+i_nclaim                      0.303  0.343  0.369  0.386
+
+DIA-NN-confirmed best window present per quartile (of DIA-NN q<=0.01 non-entrapment):
+{'Q1': 0.747, 'Q2': 0.751, 'Q3': 0.838, 'Q4': 0.952}

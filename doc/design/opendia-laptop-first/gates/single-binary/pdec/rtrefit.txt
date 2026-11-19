@@ -1,0 +1,7 @@
+first-pass IDs used for the refit: 8520
+refit residual on kept IDs: |res| p50 4.81 s, p95 17.15 s (kept 8247)
+old RT error: DIA-NN-confirmed windows p50 5.78 p95 22.58 s; decoy windows p50 17.13 s; AUC by quartile Q1 0.756 Q2 0.765 Q3 0.766 Q4 0.760
+new RT error: DIA-NN-confirmed windows p50 5.42 p95 20.69 s; decoy windows p50 17.03 s; AUC by quartile Q1 0.767 Q2 0.778 Q3 0.780 Q4 0.782
+A tool score                             q<=0.01 N   8520 lower 0.0113 combined 0.0129 | N@FDP_c 1 %   7968 | in DIA-NN 0.963
+B label-free GBM, old RT error           q<=0.01 N   8920 lower 0.0126 combined 0.0143 | N@FDP_c 1 %   7573 | in DIA-NN 0.959
+B label-free GBM, refit RT error         q<=0.01 N   8356 lower 0.0124 combined 0.0142 | N@FDP_c 1 %   4739 | in DIA-NN 0.960
