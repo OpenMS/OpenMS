@@ -137,13 +137,39 @@ namespace OpenMS::OpenDIA
       return queries;
     }
 
-    void readSpectra(const std::string& path, Interfaces::IMSDataConsumer& consumer, std::vector<Int> levels)
+    /// Forwards spectra and accumulates the time spent inside the wrapped consumer (the rest of a pass is reading).
+    struct TimedConsumer final : Interfaces::IMSDataConsumer
     {
+      explicit TimedConsumer(Interfaces::IMSDataConsumer& c) : inner(c) {}
+      void consumeSpectrum(MSSpectrum& s) override
+      {
+        const auto t = std::chrono::steady_clock::now();
+        inner.consumeSpectrum(s);
+        consume_s += std::chrono::duration<double>(std::chrono::steady_clock::now() - t).count();
+        ++spectra;
+        peaks += s.size();
+      }
+      void consumeChromatogram(MSChromatogram& c) override { inner.consumeChromatogram(c); }
+      void setExpectedSize(Size s, Size c) override { inner.setExpectedSize(s, c); }
+      void setExperimentalSettings(const ExperimentalSettings& e) override { inner.setExperimentalSettings(e); }
+      Interfaces::IMSDataConsumer& inner;
+      double consume_s = 0.0;
+      std::size_t spectra = 0, peaks = 0;
+    };
+
+    /// Stream a run into @p consumer; returns " read_s=.. consume_s=.. spectra=.. peaks=.." for the stage log.
+    std::string readSpectra(const std::string& path, Interfaces::IMSDataConsumer& consumer, std::vector<Int> levels)
+    {
+      const auto t = std::chrono::steady_clock::now();
+      TimedConsumer timed(consumer);
       FileHandler reader;
       PeakFileOptions options;
       options.setMSLevels(levels);
       reader.setOptions(options);
-      reader.transformExperiment(path, &consumer, {}, ProgressLogger::NONE);
+      reader.transformExperiment(path, &timed, {}, ProgressLogger::NONE);
+      const double total = std::chrono::duration<double>(std::chrono::steady_clock::now() - t).count();
+      return " read_s=" + std::to_string(total - timed.consume_s) + " consume_s=" + std::to_string(timed.consume_s) +
+             " spectra=" + std::to_string(timed.spectra) + " peaks=" + std::to_string(timed.peaks);
     }
   }
 
@@ -327,9 +353,9 @@ namespace OpenMS::OpenDIA
       {
         CalibrationCollector collector(targeted, lib.traml_ids, copt, window);
         collector.setIonMobilityArrayAsVSSC(options_.im_array_as_vssc);
-        readSpectra(path, collector, {2});
+        const std::string io = readSpectra(path, collector, {2});
         ++passes;
-        say("Calibration: pass " + std::to_string(passes) + " collected panel=" + std::to_string(collector.panelSize()));
+        say("Calibration: pass " + std::to_string(passes) + " collected panel=" + std::to_string(collector.panelSize()) + io);
         CalibrationDiagnostics diagnostics;
         try
         {
@@ -373,6 +399,7 @@ namespace OpenMS::OpenDIA
     for (auto& t : targeted.transitions) t.product_mz *= 1.0 + cal.ms2_offset_ppm * 1e-6;
     std::vector<std::uint32_t> search_to_library;
     std::vector<SearchCandidate> candidates;
+    std::string search_io;
     {
       SearchOptions so;
       so.rt_window_seconds = cal.tolerance_s;
@@ -386,13 +413,15 @@ namespace OpenMS::OpenDIA
       std::ostream sink(nullptr);
       StreamSearch search(makeQueries(targeted), so, sink, nullptr);
       search.keepCandidates();
-      readSpectra(path, search, {2});
+      search_io = readSpectra(path, search, {2});
+      const auto t_finish = std::chrono::steady_clock::now();
       search.finish();
+      search_io += " finish_s=" + std::to_string(seconds(t_finish));
       candidates = search.candidates();
       search_to_library.resize(search.precursorCount());
       for (std::size_t p = 0; p < search.precursorCount(); ++p) search_to_library[p] = lib.index.at(search.precursorId(p));
     }
-    say("Search: candidates=" + std::to_string(candidates.size()) + " seconds=" + std::to_string(seconds(t_search)));
+    say("Search: candidates=" + std::to_string(candidates.size()) + " seconds=" + std::to_string(seconds(t_search)) + search_io);
 
     // 3. Population: every candidate of pairs whose best candidate has enough supporting fragments.
     std::vector<std::uint32_t> pair_support(lib.pairs, 0);
@@ -525,9 +554,10 @@ namespace OpenMS::OpenDIA
     traces.enableEvidence(20.0, options_.core_half_width_s);
     traces.enableByIonCounts(trace_library, options_.byion_ppm, options_.byion_intensity_min);
     if (options_.pg_scores) traces.enablePeakGroupEvidence(cal.ms2_tolerance_ppm);
+    std::string extract_io;
     {
       TeeConsumer both(grids, traces);
-      readSpectra(path, both, {1, 2});
+      extract_io = readSpectra(path, both, {1, 2});
     }
     traces.finish();
     grids.finish();
@@ -536,7 +566,7 @@ namespace OpenMS::OpenDIA
     say("Extraction: windows=" + std::to_string(n) + " precursors=" + std::to_string(local_precursors.size()) +
         " isolation_windows=" + std::to_string(grids.isolationWindowCount()) + " peak_open_grids=" + std::to_string(grids.peakOpenGrids()) +
         " peak_held_tensors=" + std::to_string(traces.peakHeldTensors()) +
-        " seconds=" + std::to_string(seconds(t_extract)));
+        " seconds=" + std::to_string(seconds(t_extract)) + extract_io);
 
     // 5. Features.
     const auto t_features = std::chrono::steady_clock::now();
