@@ -121,6 +121,88 @@ namespace OpenMS
   }
 
   // static
+  NuXLSiteLocalization::LossAwareSite NuXLSiteLocalization::localizeLossAware(const vector<double>& n_shifts,
+                                                                             const vector<double>& n_noshifts,
+                                                                             const vector<double>& c_shifts,
+                                                                             const vector<double>& c_noshifts,
+                                                                             const vector<double>& residue_evidence,
+                                                                             const vector<bool>& blocked,
+                                                                             double unshifted_weight)
+  {
+    LossAwareSite site;
+    const int length = static_cast<int>(n_shifts.size());
+    if (length == 0) { return site; }
+
+    // votes[k]: prefix rungs via a difference array (a prefix ending at i contains residues 0..i,
+    // a suffix starting at i contains residues i..length-1)
+    vector<double> scores(length, 0.0);
+    double shifted_total = 0.0;
+    for (int i = 0; i != length; ++i)
+    {
+      if (n_shifts[i] > 0.0) // shifted prefix: for 0..i, against i+1..
+      {
+        const double w = sqrt(n_shifts[i]);
+        shifted_total += w;
+        for (int k = 0; k != length; ++k) { scores[k] += (k <= i ? w : -w); }
+      }
+      else if (n_noshifts[i] > 0.0) // unshifted prefix only: against 0..i
+      {
+        const double w = unshifted_weight * sqrt(n_noshifts[i]);
+        for (int k = 0; k <= i; ++k) { scores[k] -= w; }
+      }
+
+      if (c_shifts[i] > 0.0) // shifted suffix: for i.., against 0..i-1
+      {
+        const double w = sqrt(c_shifts[i]);
+        shifted_total += w;
+        for (int k = 0; k != length; ++k) { scores[k] += (k >= i ? w : -w); }
+      }
+      else if (c_noshifts[i] > 0.0) // unshifted suffix only: against i..
+      {
+        const double w = unshifted_weight * sqrt(c_noshifts[i]);
+        for (int k = i; k != length; ++k) { scores[k] -= w; }
+      }
+    }
+
+    double evidence_max = 0.0;
+    for (int k = 0; k != length && k < static_cast<int>(residue_evidence.size()); ++k)
+    {
+      scores[k] += residue_evidence[k];
+      evidence_max = max(evidence_max, residue_evidence[k]);
+    }
+    if (shifted_total <= 0.0 && evidence_max <= 0.0) { return site; } // nothing carries the cross-link
+
+    const double norm = shifted_total > 0.0 ? shifted_total : evidence_max;
+    for (double& s : scores) { s /= norm; }
+
+    const auto allowed = [&blocked](int k) { return k >= static_cast<int>(blocked.size()) || !blocked[k]; };
+    bool found = false;
+    double best = 0.0;
+    for (int k = 0; k != length; ++k)
+    {
+      if (allowed(k) && (!found || scores[k] > best)) { best = scores[k]; found = true; }
+    }
+    if (!found) { return site; }
+
+    const double eps = 1e-9;
+    double second = best;
+    bool has_second = false;
+    for (int k = 0; k != length; ++k)
+    {
+      if (!allowed(k)) { continue; }
+      if (scores[k] >= best - eps) { site.best.push_back(k); }
+      else if (!has_second || scores[k] > second) { second = scores[k]; has_second = true; }
+    }
+    site.position = site.best.front();
+    site.range_begin = site.best.front();
+    site.range_end = site.best.back();
+    site.score = best;
+    site.delta = has_second ? best - second : 0.0;
+    site.scores = std::move(scores);
+    return site;
+  }
+
+  // static
   void NuXLSiteLocalization::digestProtein(const EnzymaticDigestion& digestion,
                                            string_view protein,
                                            size_t min_length,

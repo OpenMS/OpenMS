@@ -107,6 +107,55 @@ public:
                           double tolerance = DEFAULT_TOLERANCE,
                           const std::vector<bool>& blocked = {});
 
+  /// Default weight of an unshifted ion without a shifted ion on the same rung, relative to a shifted ion (see @ref localizeLossAware)
+  static constexpr double DEFAULT_UNSHIFTED_WEIGHT = 0.5;
+
+  /// Result of @ref localizeLossAware
+  struct LossAwareSite
+  {
+    int position = -1;                      ///< localized residue (the N-terminal-most of the best-scoring ones), -1 if unlocalized
+    int range_begin = -1;                   ///< first of the best-scoring residues, -1 if unlocalized
+    int range_end = -1;                     ///< last of the best-scoring residues, -1 if unlocalized
+    double score = 0.0;                     ///< score of the localized residue
+    double delta = 0.0;                     ///< score distance to the best residue that scores lower (0 if there is none)
+    std::vector<double> scores;             ///< score of every residue; empty if unlocalized
+    std::vector<int> best;                  ///< all best-scoring residues (ascending); the fragment ions can't tell them apart
+  };
+
+  /**
+    @brief Localizes a cross-link by how consistent the fragment ions are with each residue, tolerating the loss of the cross-link.
+
+    Every rung of the prefix (a/b) and suffix (y) ladder votes with the square root of its summed intensity:
+    - a rung with a shifted ion counts for the residues the ion contains and against all others;
+    - an unshifted ion on a rung that also has a shifted ion is ignored: the cross-linked nucleotide (or
+      cross-linker) is frequently lost completely, so it doesn't contradict a cross-link in that ion;
+    - a rung with unshifted ions only counts against the residues the ion contains, with weight @p unshifted_weight.
+
+    @p residue_evidence (e.g. the square-root intensities of shifted immonium ions of that amino acid) is added
+    per residue. Scores are reported in units of the summed shifted-rung votes (1: all shifted ions contain the
+    residue and nothing speaks against it). Residues flagged in @p blocked are scored but never chosen.
+
+    Unlike the 'fragments' localization, a residue does not inherit a higher score from longer shifted ions
+    than the residues next to it, missing neighbouring rungs do not disqualify a residue, and residues the
+    ions can't tell apart are reported as such (@c range_begin, @c range_end, @c best).
+
+    @param[in] n_shifts intensity of the shifted prefix (a/b) ions ending at each residue
+    @param[in] n_noshifts intensity of the unshifted prefix (a/b) ions ending at each residue
+    @param[in] c_shifts intensity of the shifted suffix (y) ions starting at each residue
+    @param[in] c_noshifts intensity of the unshifted suffix (y) ions starting at each residue
+    @param[in] residue_evidence additional evidence for a cross-link at each residue (same scale as the votes); empty: none
+    @param[in] blocked per residue, whether it can't carry the cross-link (e.g. the C-terminal residue the enzyme cleaved after); empty: none
+    @param[in] unshifted_weight weight of rungs with unshifted ions only
+    @return unlocalized (position -1) without any shifted evidence or if all residues are blocked
+  */
+  static LossAwareSite localizeLossAware(const std::vector<double>& n_shifts,
+                                         const std::vector<double>& n_noshifts,
+                                         const std::vector<double>& c_shifts,
+                                         const std::vector<double>& c_noshifts,
+                                         const std::vector<double>& residue_evidence = {},
+                                         const std::vector<bool>& blocked = {},
+                                         double unshifted_weight = DEFAULT_UNSHIFTED_WEIGHT);
+
   /**
     @brief The peptides of a protein as searched: its digest and, optionally, its N-terminal peptides after removal of the initial methionine.
 

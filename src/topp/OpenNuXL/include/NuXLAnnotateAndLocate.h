@@ -103,6 +103,8 @@ class NuXLAnnotateAndLocate
     @param[in]     nhs_localization                 Localize by the NHS-ester chemistry (cross-linkers such as SDA) instead of the fragment evidence alone.
     @param[in]     protein_termini                  Protein-terminal peptides of the digest (see @ref NuXLSiteLocalization::proteinTermini) for @p nhs_localization: a protein N-terminal peptide can carry the cross-link on its free N-terminus; nullptr: none is protein-terminal.
     @param[in]     enzyme_cleaves_after_lysine      With @p nhs_localization and @p protein_termini: a C-terminal lysine counts as blocked (the enzyme doesn't cleave after a modified lysine) unless the peptide ends a protein.
+    @param[in]     loss_aware_localization          Localize by the loss-aware consistency of the fragment ions (see @ref NuXLSiteLocalization::localizeLossAware) instead of the summed shifted-ion intensities; ignored with @p nhs_localization.
+    @param[in]     enzyme_cleavage_residues         With @p loss_aware_localization: residues the enzyme cleaves after (e.g. "KR"). Such a C-terminal residue can't carry the cross-link (the enzyme doesn't cleave after a cross-linked residue) unless the peptide ends a protein (@p protein_termini).
   */
   static void annotateAndLocate_(
     const PeakMap& exp,
@@ -116,7 +118,9 @@ class NuXLAnnotateAndLocate
     const NuXLParameterParsing::PrecursorsToMS2Adducts & all_feasible_adducts,
     bool nhs_localization = false,
     const NuXLSiteLocalization::ProteinTermini* protein_termini = nullptr,
-    bool enzyme_cleaves_after_lysine = false);
+    bool enzyme_cleaves_after_lysine = false,
+    bool loss_aware_localization = false,
+    const std::string& enzyme_cleavage_residues = "");
 
 };
 } // namespace OpenMS
