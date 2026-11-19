@@ -1726,7 +1726,8 @@ void FLASHTnTAlgorithm::run(const MSExperiment& map, const std::vector<FASTAFile
              mi_precursor_ladder = registry.registerName("PrecursorLadder"),
              mi_pl_start = registry.registerName("PrecursorLadderStart"), mi_pl_end = registry.registerName("PrecursorLadderEnd"),
              mi_pl_isotope = registry.registerName("PrecursorLadderIsotope"), mi_entry_of_kept = registry.registerName("EntryOfKeptProtein"),
-             mi_description = registry.registerName("Description"), mi_margin = registry.registerName("DecoyMargin");
+             mi_description = registry.registerName("Description"), mi_margin = registry.registerName("DecoyMargin"),
+             mi_native_margin = registry.registerName("NativeMargin");
   // gapped tags (only for spectra in which no sequence tag proposes a protein); their tags are kept per spectrum until appended to tags_
   FLASHGappedTaggerAlgorithm gapped_tagger;
   lap();
@@ -1862,7 +1863,7 @@ void FLASHTnTAlgorithm::run(const MSExperiment& map, const std::vector<FASTAFile
       if ((int)kept.size() >= max_protein_hits_ || score_of(c) < best_decoy + run_margin) break;
       if (is_decoy(c)) continue;
       names += std::string(kept.empty() ? " " : ", ") + fasta_entry[protein_of(c)].identifier + " " + StringUtils::number(score_of(c), 1);
-      if (has_target_proteins) margins.push_back((double)score_of(c) - best_decoy);
+      margins.push_back((double)score_of(c) - best_decoy); // NativeMargin of every kept candidate; DecoyMargin with target proteins
       kept.push_back(std::move(c));
     }
     if (target_round)
@@ -2260,7 +2261,11 @@ void FLASHTnTAlgorithm::run(const MSExperiment& map, const std::vector<FASTAFile
       std::vector<double> margins;
       nativeCut(ranked_hits, [](const ProteinHit& h) { return h.getScore(); }, [&](const ProteinHit& h) { return (Size)(int)h.getMetaValue(mi_fasta_index); },
                 false, 0, note, margins);
-      for (Size i = 0; i < margins.size(); i++) ranked_hits[i].setMetaValue(mi_margin, margins[i]);
+      for (Size i = 0; i < margins.size(); i++)
+      {
+        ranked_hits[i].setMetaValue(mi_native_margin, margins[i]);
+        if (has_target_proteins || target_round) ranked_hits[i].setMetaValue(mi_margin, margins[i]);
+      }
     }
     else
     {
@@ -2411,7 +2416,11 @@ void FLASHTnTAlgorithm::run(const MSExperiment& map, const std::vector<FASTAFile
         const auto& cand = found[ci];
         ProteinHit hit = ladderCandidateHit(dspec, cand, gtags);
         hit.setMetaValue(native_rule ? mi_sliding : mi_terminal, 1);
-        if (ci < margins.size()) hit.setMetaValue(mi_margin, margins[ci]);
+        if (ci < margins.size())
+        {
+          hit.setMetaValue(mi_native_margin, margins[ci]);
+          if (has_target_proteins || target_round) hit.setMetaValue(mi_margin, margins[ci]);
+        }
         ladder_out.push_back(std::move(hit));
       }
     }
@@ -2449,7 +2458,11 @@ void FLASHTnTAlgorithm::run(const MSExperiment& map, const std::vector<FASTAFile
           const auto& cand = found[n].candidates[ci];
           ProteinHit hit = ladderCandidateHit(dspec, cand, gtags);
           hit.setMetaValue(mi_precursor_ladder, 1);
-          if (ci < pl_margins[n].size()) hit.setMetaValue(mi_margin, pl_margins[n][ci]);
+          if (ci < pl_margins[n].size())
+          {
+            hit.setMetaValue(mi_native_margin, pl_margins[n][ci]);
+            if (has_target_proteins || target_round) hit.setMetaValue(mi_margin, pl_margins[n][ci]);
+          }
           // residues i..j-1 (0-based) are i+1..j (1-based, inclusive); on the protein (the entry's offset), as the decoded PrSMs
           hit.setMetaValue(mi_pl_start, cand.window_start + 1 + db->entries[cand.protein].offset);
           hit.setMetaValue(mi_pl_end, cand.window_end + db->entries[cand.protein].offset);
@@ -4128,6 +4141,68 @@ void FLASHTnTAlgorithm::run(const MSExperiment& map, const std::vector<FASTAFile
       proteoform_hits_.resize(w);
       OPENMS_LOG_INFO << "Native: " << tested << " PrSMs beside a better PrSM of their spectrum, " << dropped
                       << " removed without evidence of their own (unique-mass score below " << StringUtils::number(unique_min, 2) << ")" << std::endl;
+
+      // Native mode: a sliding-ladder PrSM without a proteoform mass and with an undetermined terminus needs twice the margin
+      // (native_margin + run_margin). Such a ladder places the protein by masses read from any start or to any end, and when one of its
+      // termini rests on no fragments of its own (open after the extension, or its side's terminal fragment envelopes on the raw spectrum
+      // at chance, the test of setNativeTermini_), nothing but the ladder's score separates it from a window of a random protein. Measured
+      // on the 58 native development spectra and 52 external files (b8f7cd4e15): all five null-database calls were such ladders, margins
+      // 2.8 to 3.1, while sequence-tag PrSMs gave none in 168 spectra; the lowest margin of such a ladder of the sample was 5.2 apart from
+      // one expected protein at 2.8. Sequence tags, precursor ladders, ladders with both termini determined and PrSMs with a mass keep
+      // run_margin. Without raw spectra only the open termini are tested.
+      const double ladder_min = native_margin + run_margin;
+      std::vector<Size> ladder_hits;
+      for (Size i = 0; i < proteoform_hits_.size(); i++)
+      {
+        const auto& h = proteoform_hits_[i];
+        if (! h.metaValueExists(mi_sliding) || ! h.metaValueExists(mi_native_margin)) continue;
+        if ((double)h.getMetaValue(tntKey("Mass"), -1.0) > 0) continue;
+        if ((double)h.getMetaValue(mi_native_margin) >= ladder_min) continue;
+        ladder_hits.push_back(i);
+      }
+      std::vector<std::array<int, 2>> at_chance;
+      if (! ladder_hits.empty() && raw_loader_)
+      {
+        std::vector<Size> closed;
+        for (Size i : ladder_hits)
+        {
+          if ((int)proteoform_hits_[i].getMetaValue(tntKey("StartPosition")) > 0 || (int)proteoform_hits_[i].getMetaValue(tntKey("EndPosition")) > 0) closed.push_back(i);
+        }
+        const auto tested_sides = nativeSidesAtChance_(closed);
+        std::map<Size, std::array<int, 2>> by_hit;
+        for (Size j = 0; j < closed.size(); j++) by_hit[closed[j]] = tested_sides[j];
+        for (Size i : ladder_hits) at_chance.push_back(by_hit.count(i) ? by_hit[i] : std::array<int, 2> {-1, -1});
+      }
+      else { at_chance.assign(ladder_hits.size(), {-1, -1}); }
+      std::vector<bool> drop_ladder(proteoform_hits_.size(), false);
+      Size ladder_dropped = 0;
+      for (Size j = 0; j < ladder_hits.size(); j++)
+      {
+        const auto& h = proteoform_hits_[ladder_hits[j]];
+        const bool open_n = (int)h.getMetaValue(tntKey("StartPosition")) <= 0, open_c = (int)h.getMetaValue(tntKey("EndPosition")) <= 0;
+        std::string why;
+        if (open_n) why += " open N-terminus";
+        if (open_c) why += " open C-terminus";
+        if (! open_n && at_chance[j][0] == 1) why += " N side at chance";
+        if (! open_c && at_chance[j][1] == 1) why += " C side at chance";
+        const bool drop_it = ! why.empty();
+        if (! drop_it) continue;
+        OPENMS_LOG_INFO << "Native ladder rule: scan " << (int)h.getMetaValue(tntKey("Scan")) << " " << h.getAccession() << " "
+                        << (int)h.getMetaValue(tntKey("StartPosition")) << "-" << (int)h.getMetaValue(tntKey("EndPosition")) << " margin "
+                        << StringUtils::number((double)h.getMetaValue(mi_native_margin), 2) << " removed:" << why << std::endl;
+        drop_ladder[ladder_hits[j]] = true;
+        ladder_dropped++;
+      }
+      Size wl = 0;
+      for (Size i = 0; i < proteoform_hits_.size(); i++)
+      {
+        if (drop_ladder[i]) continue;
+        if (wl != i) proteoform_hits_[wl] = std::move(proteoform_hits_[i]);
+        wl++;
+      }
+      proteoform_hits_.resize(wl);
+      OPENMS_LOG_INFO << "Native: " << ladder_hits.size() << " sliding-ladder PrSMs without a proteoform mass below a margin of "
+                      << StringUtils::number(ladder_min, 2) << ", " << ladder_dropped << " removed for an undetermined terminus" << std::endl;
     }
     // Target round (setTargetProteins, native mode): a protein known to be in the sample is characterized in every spectrum in which the
     // search above did not report it. Its candidates are searched as in the first search (the sequence tags of the spectrum and the sliding
@@ -5061,16 +5136,38 @@ void FLASHTnTAlgorithm::setNativeTermini_()
   // It runs after the FDR, the proteins and the combined coverage, which take the termini as the search found them.
   if (! raw_loader_) return;
   std::vector<Size> hits;
-  std::set<int> scans;
   for (Size i = 0; i < proteoform_hits_.size(); i++)
   {
     const auto& h = proteoform_hits_[i];
     if ((double)h.getMetaValue(tntKey("Mass"), -1.0) > 0) continue;
     if ((int)h.getMetaValue(tntKey("StartPosition")) <= 0 && (int)h.getMetaValue(tntKey("EndPosition")) <= 0) continue;
     hits.push_back(i);
-    scans.insert((int)h.getMetaValue(tntKey("Scan")));
   }
   if (hits.empty()) return;
+  const auto at_chance = nativeSidesAtChance_(hits);
+  Size undetermined[2] = {0, 0}, tested = 0;
+  for (Size j = 0; j < hits.size(); j++)
+  {
+    auto& hit = proteoform_hits_[hits[j]];
+    tested += (at_chance[j][0] >= 0 || at_chance[j][1] >= 0) ? 1 : 0;
+    for (int side = 0; side < 2; side++)
+    {
+      if (at_chance[j][side] != 1) continue;
+      hit.setMetaValue(tntKey(side == 0 ? "StartPosition" : "EndPosition"), -1);
+      undetermined[side]++;
+    }
+  }
+  releaseRawSpectra_();
+  OPENMS_LOG_INFO << "Native termini: " << tested << " PrSMs without a proteoform mass; reported undetermined for fragments at chance: "
+                  << undetermined[0] << " N-termini, " << undetermined[1] << " C-termini" << std::endl;
+}
+
+std::vector<std::array<int, 2>> FLASHTnTAlgorithm::nativeSidesAtChance_(const std::vector<Size>& hits)
+{
+  std::vector<std::array<int, 2>> out(hits.size(), {-1, -1});
+  if (! raw_loader_ || hits.empty()) return out;
+  std::set<int> scans;
+  for (Size i : hits) scans.insert((int)proteoform_hits_[i].getMetaValue(tntKey("Scan")));
   loadRawSpectra_(scans);
   FLASHAnnotatorAlgorithm annotator;
   Param aparam = annotator_param_;
@@ -5078,25 +5175,22 @@ void FLASHTnTAlgorithm::setNativeTermini_()
   aparam.setValue("report_decoy_envelopes", "true");
   annotator.setParameters(aparam);
   const std::vector<double> shifts = aparam.getValue("decoy_shifts").toDoubleVector();
-  if (shifts.empty())
-  {
-    releaseRawSpectra_();
-    return;
-  }
+  if (shifts.empty()) return out;
   std::vector<FLASHAnnotatorAlgorithm::PrSM> prsms;
   std::vector<double> precursor_masses;
-  std::vector<Size> hit_of; // proteoform_hits_ index of prsms[j]
+  std::vector<Size> slot_of; // position in @p hits of prsms[j]
   double max_mass = 0;
-  for (Size i : hits)
+  for (Size s = 0; s < hits.size(); s++)
   {
     FLASHAnnotatorAlgorithm::PrSM prsm;
     double precursor_mass = -1.0;
-    if (! toRawPrSM_(proteoform_hits_[i], prsm, precursor_mass)) continue;
+    if (! toRawPrSM_(proteoform_hits_[hits[s]], prsm, precursor_mass)) continue;
     max_mass = std::max({max_mass, precursor_mass, FLASHAnnotatorAlgorithm::getProteoformMass(prsm.sequence, prsm.modifications)});
     prsms.push_back(std::move(prsm));
     precursor_masses.push_back(precursor_mass);
-    hit_of.push_back(i);
+    slot_of.push_back(s);
   }
+  if (prsms.empty()) return out;
   std::vector<double> iso_mzs, iso_intensities;
   annotator.getIsotopeEnvelope(max_mass + 200.0, 1, iso_mzs, iso_intensities);
   for (Size j = 0; j < prsms.size(); j++)
@@ -5108,7 +5202,6 @@ void FLASHTnTAlgorithm::setNativeTermini_()
   std::vector<FLASHAnnotatorAlgorithm::Result> results;
   annotator.annotate(raw_peaks_, prsms, results);
   const auto& ion_types = annotator.getIonTypes();
-  Size undetermined[2] = {0, 0};
   for (Size j = 0; j < prsms.size(); j++)
   {
     if (! results[j].annotated) continue;
@@ -5119,21 +5212,16 @@ void FLASHTnTAlgorithm::setNativeTermini_()
       const int side = (ion_types[e.ion_type][0] == 'a' || ion_types[e.ion_type][0] == 'b' || ion_types[e.ion_type][0] == 'c') ? 0 : 1;
       (e.decoy_shift == 0 ? k : d)[side] += 1;
     }
-    auto& hit = proteoform_hits_[hit_of[j]];
+    const auto& hit = proteoform_hits_[hits[slot_of[j]]];
     for (int side = 0; side < 2; side++)
     {
-      const auto key = tntKey(side == 0 ? "StartPosition" : "EndPosition");
-      if ((int)hit.getMetaValue(key) <= 0) continue;
+      if ((int)hit.getMetaValue(tntKey(side == 0 ? "StartPosition" : "EndPosition")) <= 0) continue;
       const double lambda = std::max(d[side] / (double)shifts.size(), 1e-12);
       const double p = k[side] > 0 ? boost::math::gamma_p(k[side], lambda) : 1.0;
-      if (p <= 0.01) continue;
-      hit.setMetaValue(key, -1);
-      undetermined[side]++;
+      out[slot_of[j]][side] = p <= 0.01 ? 0 : 1;
     }
   }
-  releaseRawSpectra_();
-  OPENMS_LOG_INFO << "Native termini: " << prsms.size() << " PrSMs without a proteoform mass; reported undetermined for fragments at chance: "
-                  << undetermined[0] << " N-termini, " << undetermined[1] << " C-termini" << std::endl;
+  return out;
 }
 
 void FLASHTnTAlgorithm::loadRawSpectra_(const std::set<int>& scans)
