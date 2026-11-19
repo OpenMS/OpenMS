@@ -57,3 +57,4 @@
 - **What changes:** H runs with OpenMS bc4e4f8d9b (`opendia-pd3-bc4e4f8d9b.sif`), `-trace_tensor_gb 96` and 192 GB.
   - bc4e4f8d9b only adds the option. Its default is unchanged, and `-decoys predict` is identical to 01d5ded04a.
 - **What stays the same:** criteria, library recipe and evaluation.
+H submitted 2026-11-19T02:17:41Z (jobs 35153852..61), after verdict commit 480991c28a (02:17:25Z).
