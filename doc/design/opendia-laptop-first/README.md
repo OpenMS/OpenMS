@@ -3,21 +3,22 @@
 **Status, 18 November 2026.** This plan replaced the laptop-first WP-00 to WP-10 plan on 7 November 2026. The old plan is closed and kept unchanged under [archive/legacy-wp-plan-20261107](archive/legacy-wp-plan-20261107/README.md).
 
 The rewrite lives on [`OpenMS/OpenMS:feature/opendia-clean-rewrite`](https://github.com/OpenMS/OpenMS/tree/feature/opendia-clean-rewrite).
-All of its code is under `src/topp/OpenDIA/`, apart from the Thermo read-ahead change, which is split out as OpenMS#10925 (approved). The branch tip is `83a0f6c14a`.
+All of its code is under `src/topp/OpenDIA/`, apart from the Thermo read-ahead change, which is split out as OpenMS#10925 (approved). The branch tip is `969b474a51`.
 It is an experimental branch, not a pull request. It must not merge into `develop` until the acceptance gates of R-WP6 pass.
 The branch's [`src/topp/OpenDIA/README.md`](https://github.com/OpenMS/OpenMS/blob/feature/opendia-clean-rewrite/src/topp/OpenDIA/README.md) describes the tools. The evidence is in [`gates/`](gates/).
 
 ## Current state, 18 November 2026
 
 **Summary.**
-- **`-extra_scores` closes part of the r ≈ 7 ID gap (PLAN_EXTRA D PASS, 19 Nov, `pdec/RESULT_EXTRA_D.md`).**
-  - PRECHECK_IDGAP: on the 24 default features even a GBM trained on DIA-NN labels gains nothing, so the gap was
+- **The evidence block is now the default (PLAN_EXTRA, 19 Nov, `pdec/RESULT_EXTRA_D.md`, `RESULT_EXTRA_H.md`; OpenMS 969b474a51).**
+  - PRECHECK_IDGAP: on the 24 base features even a GBM trained on DIA-NN labels gains nothing, so the gap was
     evidence, not the learner.
-  - The opt-in block adds 12 features: core mass error, MS1 area, co-elution and isotope, and ion-mobility
-    centroid, co-elution and share.
-  - Result on D, 5 seeds: IDs at 1 % true FDP go from 8,233 to 11,332 (+37.6 %), which is 32 % → 44 % of DIA-NN.
-  - Own q ≤ 0.01 true FDP: 1.16-1.33 % against 1.06-1.21 %, inside the frozen tolerance. Pair win is 0.515.
-  - H was submitted after the verdict (d44389e9bd). It decides whether the block becomes the default.
+  - The block adds 12 features: core mass error, MS1 area, co-elution and isotope, and ion-mobility centroid,
+    co-elution and share. `-no_extra_scores` restores the old scorer.
+  - IDs at 1 % true FDP on the r ≈ 7 library: D 8,233 → 11,332 (+37.6 %), H 20,745 → 25,643 (+23.6 %). That is
+    44 % / 62 % of DIA-NN, up from 32 % / 50 %.
+  - Own q ≤ 0.01 true FDP: D 1.16-1.33 % against 1.06-1.21 % (within the frozen tolerance), H unchanged at 1.07-1.23 %.
+  - The default equals the tested arm byte for byte.
 - **Astral (entrapment, true FDR):** OpenDIA reaches 81-84 % of DIA-NN at FDP_c 1 %, unchanged since 16 Nov (the table
   below). Every lever tried there has failed or shown no room.
 - **DIA-NN on the r ≈ 7 HeLa entrapment library (19 Nov, `gates/single-binary/pdec/RESULT_DIANN_R5.md`).**
