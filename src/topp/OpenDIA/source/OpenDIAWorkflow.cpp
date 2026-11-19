@@ -475,14 +475,10 @@ namespace OpenMS::OpenDIA
     // calibrated 1/K0 tolerance of each precursor, as the search is; without one it pools all points as before.
     if (cal.has_im && cal.im_tolerance > 0.0) grids.enableIonMobility(cal.im_tolerance, options_.im_array_as_vssc);
     // The 6-fragment tensor uses the calibrated search library (as OpenDIACNN -apply_calibration_coordinates):
-    // fragment m/z shifted by the ppm offset and precursor 1/K0 mapped by the calibrated line.
-    OpenSwath::LightTargetedExperiment trace_library = lib.search;
-    for (auto& t : trace_library.transitions) t.product_mz *= 1.0 + cal.ms2_offset_ppm * 1e-6;
-    if (cal.has_im)
-    {
-      for (auto& c : trace_library.compounds)
-        if (std::isfinite(c.drift_time) && c.drift_time > 0.0) c.drift_time = cal.im_intercept + cal.im_slope * c.drift_time;
-    }
+    // fragment m/z shifted by the ppm offset and precursor 1/K0 mapped by the calibrated line. That is exactly
+    // `targeted` after step 2 (it differs from it only in the mapped RT, which TraceCollector does not read), so it is
+    // reused instead of a further copy of the library.
+    OpenSwath::LightTargetedExperiment& trace_library = targeted;
     // Streaming tensors: a window's 6-fragment tensor is held only while its RT range is being read. The tensor-derived
     // features (boundary, and with -pg_scores the peak-group scores) are computed when the window closes and the tensor
     // is released, so tensor memory follows the windows co-eluting at one time. The peak-group LOG_SN needs the run floor
