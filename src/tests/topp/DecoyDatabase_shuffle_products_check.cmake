@@ -6,6 +6,9 @@
 #    oligos with up to MISSED missed cleavages (also those made of products shorter than MIN_LENGTH)
 #  - EXPECT_DECOY_OLIGO (if given) is a decoy oligo
 
+# Script mode needs its own policy settings for IN_LIST (CMP0057).
+cmake_minimum_required(VERSION 3.24)
+
 function(read_fasta file ids_var seqs_var)
   file(STRINGS "${file}" lines)
   set(ids "")
