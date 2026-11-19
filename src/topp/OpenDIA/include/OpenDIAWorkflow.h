@@ -74,6 +74,7 @@ namespace OpenMS::OpenDIA
     CalibrationOptions calibration;
     std::size_t window_panel_targets = 300000;  ///< Windowed second calibration pass (0 disables).
     std::size_t max_peaks = 5;
+    double search_valley_fraction = 0.5;        ///< XicPickerOptions::valley_fraction of the candidate search.
     std::size_t min_transitions = 1;
     std::size_t population_min_support = 3;     ///< Pairs whose best candidate has fewer supporting fragments are dropped.
     double grid_half_width_s = 15.0;

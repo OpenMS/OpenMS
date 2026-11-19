@@ -410,6 +410,7 @@ namespace OpenMS::OpenDIA
       if (cal.has_im) so.ion_mobility_tolerance_vssc = cal.im_tolerance;
       so.ion_mobility_array_as_vssc = options_.im_array_as_vssc;
       so.picker.max_peaks = options_.max_peaks;
+      so.picker.valley_fraction = options_.search_valley_fraction;
       so.picker.boundary_half_widths = cal.boundary_half_widths;
       so.min_transitions = options_.min_transitions;
       so.im_bins = cal.has_im ? options_.search_im_bins : 0;

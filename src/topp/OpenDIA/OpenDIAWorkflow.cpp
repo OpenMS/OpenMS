@@ -73,6 +73,12 @@ protected:
     setMinInt_("im_extra_peaks", 1);
     registerIntOption_("im_min_support", "<n>", 1, "Experimental, with -im_peaks: mobility-band candidates need at least this many supporting fragments", false, true);
     setMinInt_("im_min_support", 1);
+    registerIntOption_("max_peaks", "<n>", 5, "Advanced: candidate peaks kept per precursor by the search, best fragment co-elution first", false, true);
+    setMinInt_("max_peaks", 1);
+    registerDoubleOption_("valley_fraction", "<fraction>", 0.5, "Advanced: in the search, two maxima stay separate candidate peaks only if the valley "
+                          "between them is at most this fraction of the lower one (1 keeps every smoothed maximum)", false, true);
+    setMinFloat_("valley_fraction", 0.0);
+    setMaxFloat_("valley_fraction", 1.0);
     registerIntOption_("trace_tensor_gb", "<GiB>", 64, "Advanced: hard cap on the 6-fragment trace tensor in GiB (about 6.1 KiB per candidate window with ion mobility); "
                        "raise it for very large libraries, memory permitting", false, true);
     setMinInt_("trace_tensor_gb", 1);
@@ -252,6 +258,13 @@ protected:
     options.search_im_bins = static_cast<std::size_t>(getIntOption_("im_peaks"));
     options.search_im_extra_peaks = static_cast<std::size_t>(getIntOption_("im_extra_peaks"));
     options.search_im_min_support = static_cast<std::size_t>(getIntOption_("im_min_support"));
+    options.max_peaks = static_cast<std::size_t>(getIntOption_("max_peaks"));
+    options.search_valley_fraction = getDoubleOption_("valley_fraction");
+    if (!(options.search_valley_fraction > 0.0))
+    {
+      writeLogError_("-valley_fraction must be in (0, 1].");
+      return ILLEGAL_PARAMETERS;
+    }
     if (options.search_im_bins > 0 && options.search_im_bins < 3)
     {
       writeLogError_("-im_peaks must be 0 or 3..16.");
