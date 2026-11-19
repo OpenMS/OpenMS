@@ -51,6 +51,10 @@ The branch's [`src/topp/OpenDIA/README.md`](https://github.com/OpenMS/OpenMS/blo
   library left 32 % of targets without a decoy (decoys were reversed from FASTA entries, not digested peptides). Fixed,
   the tool's own q <= 0.01 gives true FDP 0.69-1.13 % (CUR) and 0.74-1.21 % (NEW), D seed 0, r = 1.56. IDs at 1 %
   combined FDP barely move (-3 %). The r ~7 frozen plan is the tight test.
+- **PLAN_PDEC D verdict (19 Nov, 1f393c2184): FAIL on criteria 1/2.** At r ~7 (5 seeds), DIALibGen-predicted decoys give
+  q <= 0.01 a true FDP of 1.09-1.24 % (CUR) and 1.11-1.27 % (NEW). With pseudo-reverse decoys it was 1.58-1.80 %. About
+  85 % of the excess is gone, but the 90 % intervals exclude 1 %. IDs at true 1 % FDP went from 6,563 to 8,318 (+27 %).
+  Pair fairness is 0.54 at r ~7 (0.50 at r 1.56), so a small asymmetry remains. H runs were submitted after the verdict.
 - **PLAN_PDEC (frozen 18 Nov, 9feed18a6d):** predicted decoys from DIALibGen for now (user's choice), with OpenDIA
   generating its own decoys as the downstream goal. The test is the r ~7 foreign entrapment. Library: 99.93 % of 1.39 M
   targets paired. D seeds 0-4 are running on codon. Side fix: the PQP reader no longer drops peptides without a gene

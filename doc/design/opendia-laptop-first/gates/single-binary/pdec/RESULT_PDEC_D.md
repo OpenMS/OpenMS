@@ -38,3 +38,4 @@
    predictor behaves differently.
 
 **H** (held out) is submitted now, after this verdict commit, as the plan says. It is reported either way.
+H submitted 2026-11-19T00:45:54Z (jobs 34992382..34992392), after verdict commit 1f393c2184 (00:45:45Z).
