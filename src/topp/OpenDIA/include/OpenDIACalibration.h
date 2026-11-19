@@ -14,6 +14,7 @@
 #include <OpenMS/INTERFACES/IMSDataConsumer.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenDIALibrary.h>
+#include <OpenDIAMzIndex.h>
 
 #include <array>
 #include <cstddef>
@@ -305,6 +306,7 @@ namespace OpenMS::OpenDIA
     bool ion_mobility_array_as_vssc_ = false;
     bool saw_im_ = false;
     int threads_ = 1;
+    SpectrumMzIndex mz_index_;
     double first_rt_ = 0.0, last_rt_ = 0.0;
     bool saw_spectrum_ = false;
   };

@@ -299,12 +299,13 @@ namespace OpenMS::OpenDIA
     {
       spectrum.sortByPosition();
     }
+    mz_index_.build(spectrum);
     // MS1 points are summed over ion mobility; the precursor m/z window is narrow enough for that on DIA data.
     const auto sum_window = [&](double target, double& ppm_sum, double& weight)
     {
       const double half = target * ms1_ppm_ * 1e-6;
       double total = 0.0;
-      for (auto point = spectrum.MZBegin(target - half); point != spectrum.end() && point->getMZ() <= target + half; ++point)
+      for (auto point = mz_index_.lowerBound(target - half); point != spectrum.end() && point->getMZ() <= target + half; ++point)
       {
         const double intensity = point->getIntensity();
         if (!std::isfinite(intensity) || intensity <= 0.0) continue;
@@ -367,6 +368,7 @@ namespace OpenMS::OpenDIA
     {
       spectrum.sortByPosition();
     }
+    mz_index_.build(spectrum);
 
     const DataArrays::FloatDataArray* mobilities = nullptr;
     if (spectrum.containsIMData())
@@ -470,7 +472,7 @@ namespace OpenMS::OpenDIA
         {
           continue;
         }
-        for (auto point = spectrum.MZBegin(mz - mz_tolerance_);
+        for (auto point = mz_index_.lowerBound(mz - mz_tolerance_);
              point != spectrum.end() && point->getMZ() <= mz + mz_tolerance_; ++point)
         {
           const double intensity = point->getIntensity();
@@ -509,7 +511,7 @@ namespace OpenMS::OpenDIA
           {
             const double tol = target * pg_ppm_ * 1e-6;
             double total = 0.0;
-            for (auto point = spectrum.MZBegin(target - tol); point != spectrum.end() && point->getMZ() <= target + tol; ++point)
+            for (auto point = mz_index_.lowerBound(target - tol); point != spectrum.end() && point->getMZ() <= target + tol; ++point)
             {
               const double intensity = point->getIntensity();
               if (!std::isfinite(intensity) || intensity <= 0.0) continue;

@@ -283,6 +283,7 @@ namespace OpenMS::OpenDIA
     last_rt_ = rt;
     closeUntil_(rt);
     if (!spectrum.isSorted()) spectrum.sortByPosition();
+    mz_index_.build(spectrum);
     // Per-point (or scalar) 1/K0 of this spectrum, when mobility filtering is on and the data carry VSSC mobility.
     const DataArrays::FloatDataArray* mobilities = nullptr;
     double scalar_im = 0.0;
@@ -356,7 +357,7 @@ namespace OpenMS::OpenDIA
         if (!(target > 0.0)) continue;
         const double width = target * ppm_ * 1e-6;
         double total = 0.0;
-        for (auto point = spectrum.MZBegin(target - width); point != spectrum.end() && point->getMZ() <= target + width; ++point)
+        for (auto point = mz_index_.lowerBound(target - width); point != spectrum.end() && point->getMZ() <= target + width; ++point)
         {
           if (!(std::abs((point->getMZ() - target) / target * 1e6) < ppm_)) continue;
           if (filter_im && mobilities != nullptr && !(std::abs((*mobilities)[point - spectrum.begin()] - precursor_im) <= im_half_)) continue;

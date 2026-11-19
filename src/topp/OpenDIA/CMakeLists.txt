@@ -28,6 +28,7 @@ add_library(OpenDIA_impl STATIC
   source/OpenDIAWorkflow.cpp
   source/OpenDIALibrary.cpp
   include/OpenDIALibrary.h
+  include/OpenDIAMzIndex.h
   include/OpenDIASearch.h
   include/OpenDIATraces.h
   include/OpenDIARTMap.h

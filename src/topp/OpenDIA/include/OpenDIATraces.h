@@ -6,6 +6,7 @@
 // --------------------------------------------------------------------------
 #pragma once
 
+#include <OpenDIAMzIndex.h>
 #include <OpenMS/INTERFACES/IMSDataConsumer.h>
 #include <OpenDIALibrary.h>
 
@@ -250,6 +251,7 @@ namespace OpenMS::OpenDIA
     int threads_ = 1;
     std::vector<std::uint32_t> hits_;   ///< Samples isolated by the current MS2 spectrum.
     std::vector<float*> hit_tensor_;    ///< Their tensors.
+    SpectrumMzIndex mz_index_;          ///< m/z buckets of the current spectrum.
 
     float* tensor_(std::size_t index);
     const float* storedTensor_(std::size_t index) const;

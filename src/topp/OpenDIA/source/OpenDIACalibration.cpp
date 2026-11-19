@@ -422,6 +422,7 @@ namespace OpenMS::OpenDIA
     {
       spectrum.sortByPosition();
     }
+    mz_index_.build(spectrum);
     const DataArrays::FloatDataArray* mobilities = nullptr;
     if (spectrum.containsIMData())
     {
@@ -491,7 +492,7 @@ namespace OpenMS::OpenDIA
           // mass error is that of the strongest point, the centroid the search later matches, so the fitted
           // tolerance describes single centroids.
           double total = 0.0, strongest = 0.0, strongest_ppm = 0.0, weighted_im = 0.0;
-          for (auto point = spectrum.MZBegin(target - tolerance); point != spectrum.end() && point->getMZ() <= target + tolerance; ++point)
+          for (auto point = mz_index_.lowerBound(target - tolerance); point != spectrum.end() && point->getMZ() <= target + tolerance; ++point)
           {
             const double value = point->getIntensity();
             if (!std::isfinite(value) || value <= 0.0)

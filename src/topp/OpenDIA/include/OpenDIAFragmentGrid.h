@@ -9,6 +9,7 @@
 #pragma once
 
 #include <OpenDIAInterference.h>
+#include <OpenDIAMzIndex.h>
 
 #include <OpenMS/INTERFACES/IMSDataConsumer.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
@@ -172,5 +173,6 @@ namespace OpenMS::OpenDIA
     std::vector<std::uint32_t> reached_;                         ///< Precursors reached by the current spectrum.
     std::vector<std::array<double, FragmentGrid::FRAGMENTS>> sums_; ///< Their fragment sums.
     std::vector<std::uint8_t> any_;
+    SpectrumMzIndex mz_index_;
   };
 }

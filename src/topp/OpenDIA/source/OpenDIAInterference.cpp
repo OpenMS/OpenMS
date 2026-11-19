@@ -199,6 +199,9 @@ namespace OpenMS::OpenDIA
       std::int64_t bin;
       double rt_start;
       std::uint32_t pos;
+      std::uint32_t precursor;
+      double rt_end;
+      double im;
     };
     std::vector<Entry> index;
     for (std::size_t g = 0; g < m;)
@@ -212,7 +215,8 @@ namespace OpenMS::OpenDIA
         widest = std::max(widest, b.rt_end - b.rt_start);
         const SortedFragments& sb = sorted[b.precursor];
         for (std::size_t k = 0; k < sb.count; ++k)
-          index.push_back({static_cast<std::int64_t>(std::floor(std::log(sb.mz[k]) / bin_width)), b.rt_start, static_cast<std::uint32_t>(q)});
+          index.push_back({static_cast<std::int64_t>(std::floor(std::log(sb.mz[k]) / bin_width)), b.rt_start, static_cast<std::uint32_t>(q),
+                           b.precursor, b.rt_end, precursors[b.precursor].im});
       }
       std::sort(index.begin(), index.end(), [](const Entry& x, const Entry& y)
       {
@@ -251,6 +255,9 @@ namespace OpenMS::OpenDIA
         partners.clear();
         const double rt_from = a.rt_start - widest;
         const auto before = [](const Entry& x, const Entry& y) { return x.bin != y.bin ? x.bin < y.bin : x.rt_start < y.rt_start; };
+        // The entry carries the fields of the cheap rejection tests of consider() (same precursor, no RT overlap,
+        // 1/K0 too far), so most index hits are rejected without touching the windows; consider() repeats every test.
+        const bool test_im = im_link_width > 0.0 && pa.im > 0.0;
         for (std::size_t f = 0; f < K; ++f)
         {
           const double mz = pa.fragment_mz[f];
@@ -263,7 +270,9 @@ namespace OpenMS::OpenDIA
             for (auto it = std::lower_bound(index.begin(), index.end(), Entry{bin, rt_from, 0}, before);
                  it != index.end() && it->bin == bin && it->rt_start <= a.rt_end; ++it)
             {
-              if (it->pos != static_cast<std::uint32_t>(pos)) partners.push_back(it->pos);
+              if (it->pos == static_cast<std::uint32_t>(pos) || it->precursor == a.precursor || it->rt_end < a.rt_start) continue;
+              if (test_im && it->im > 0.0 && std::abs(pa.im - it->im) > im_link_width) continue;
+              partners.push_back(it->pos);
             }
           }
         }
