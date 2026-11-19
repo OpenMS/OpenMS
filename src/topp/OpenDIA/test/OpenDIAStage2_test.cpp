@@ -427,6 +427,29 @@ int main()
     require(on.fragmentCharges(0)[0] == 1 && on.fragmentCharges(0)[1] == 2, "fragment charges kept");
   }
 
+  // 12. Experimental evidence block (-extra_scores): copies of the extraction features, core areas and mobility.
+  {
+    std::vector<std::vector<double>> p;
+    for (std::size_t c = 0; c < 6; ++c) p.push_back(gaussian(library[c], 16.0, 1.5));
+    auto t = tensor(p);
+    auto e = fullEvidence();
+    const auto base = OpenDIA::stage2Features(t.data(), library, mz, e, options);
+    const auto x = OpenDIA::stage2ExtraFeatures(t.data(), library, mz, e, options);
+    require(OpenDIA::stage2ExtraFeatureNames().size() == OpenDIA::STAGE2_EXTRA_FEATURES, "extra names");
+    for (std::size_t k = 0; k < 7; ++k) require(x[k] == base[k + 1], "extra block copies extraction features 1..7");
+    require(x[8] > 0.0, "core MS2 area");
+    // All signal in the central mobility bin (IM / 2): centroid offset 0.5 bin, central share 1, profiles identical.
+    require(std::abs(x[9] - 0.5) < 1e-9 && std::abs(x[11] - 1.0) < 1e-9, "central mobility signal");
+    // Move every fragment to mobility bin 0: offset 3.5 bins, central share 0.
+    for (std::size_t c = 0; c < 6; ++c)
+      for (std::size_t b = 0; b < RT; ++b) std::swap(t[(c * RT + b) * IM + IM / 2], t[(c * RT + b) * IM]);
+    const auto y = OpenDIA::stage2ExtraFeatures(t.data(), library, mz, e, options);
+    require(std::abs(y[9] - 3.5) < 1e-9 && y[11] == 0.0, "off-centre mobility signal");
+    const std::vector<float> empty(TraceCollector::SAMPLE_SIZE, 0.0f);
+    const auto z = OpenDIA::stage2ExtraFeatures(empty.data(), library, mz, e, options);
+    require(z[8] == 0.0 && z[9] == IM / 2.0 && z[10] == 0.0 && z[11] == 0.0, "empty window");
+  }
+
   std::cout << "OpenDIAStage2_test passed\n";
   return 0;
 }

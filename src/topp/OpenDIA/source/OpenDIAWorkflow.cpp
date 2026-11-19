@@ -173,7 +173,7 @@ namespace OpenMS::OpenDIA
     }
   }
 
-  std::vector<std::string> runFeatureNames(bool pg_scores)
+  std::vector<std::string> runFeatureNames(bool pg_scores, bool extra_scores)
   {
     std::vector<std::string> n;
     for (const auto& s : stage2SearchFeatureNames()) n.push_back(s);
@@ -184,6 +184,8 @@ namespace OpenMS::OpenDIA
     for (const char* s : InterferenceResolver::featureNames()) n.emplace_back(s);
     if (pg_scores)
       for (const auto& s : stage2PeakGroupFeatureNames()) n.push_back(s);
+    if (extra_scores)
+      for (const auto& s : stage2ExtraFeatureNames()) n.push_back(s);
     return n;
   }
 
@@ -517,13 +519,15 @@ namespace OpenMS::OpenDIA
     extraction.rt_half_width = options_.grid_half_width_s;
     extraction.core_half_width = options_.core_half_width_s;
     const bool pg = options_.pg_scores;
+    const bool extra = options_.extra_scores;
     std::vector<float> boundary(n * STAGE2_BOUNDARY_FEATURES, 0.0f), peak_group(pg ? n * STAGE2_PEAKGROUP_FEATURES : 0, 0.0f);
+    std::vector<float> extra_block(extra ? n * STAGE2_EXTRA_FEATURES : 0, 0.0f);
     std::vector<PeakGroupSNParts> sn_parts(pg ? n : 0);
     std::vector<float> floor_values;
     const std::size_t floor_step = peakGroupFloorStep(n);
     const double pg_ppm = cal.ms2_tolerance_ppm;
     const int threads = options_.threads;
-    TraceCollector::CloseCallback on_close = [&, pg, pg_ppm, threads](const std::vector<std::uint32_t>& closed, const TraceCollector& tc)
+    TraceCollector::CloseCallback on_close = [&, pg, extra, pg_ppm, threads](const std::vector<std::uint32_t>& closed, const TraceCollector& tc)
     {
 #pragma omp parallel num_threads(threads)
       {
@@ -540,6 +544,11 @@ namespace OpenMS::OpenDIA
             const auto p = stage2PeakGroupFeatures(tensor, tc.libraryIntensities(i), tc.fragmentMZ(i), tc.fragmentCharges(i), tc.evidence(i),
                                                    tc.peakGroupEvidence(i), pg_ppm, 0.0, &sn_parts[i]);
             for (std::size_t k = 0; k < STAGE2_PEAKGROUP_FEATURES; ++k) peak_group[i * STAGE2_PEAKGROUP_FEATURES + k] = static_cast<float>(p[k]);
+          }
+          if (extra)
+          {
+            const auto x = stage2ExtraFeatures(tensor, tc.libraryIntensities(i), tc.fragmentMZ(i), tc.evidence(i), extraction);
+            for (std::size_t k = 0; k < STAGE2_EXTRA_FEATURES; ++k) extra_block[i * STAGE2_EXTRA_FEATURES + k] = static_cast<float>(x[k]);
           }
         }
       }
@@ -573,7 +582,7 @@ namespace OpenMS::OpenDIA
 
     // 5. Features.
     const auto t_features = std::chrono::steady_clock::now();
-    const auto names = runFeatureNames(options_.pg_scores);
+    const auto names = runFeatureNames(options_.pg_scores, options_.extra_scores);
     const std::size_t d = names.size();
     result.feature_names = names;
     result.features.assign(n * d, 0.0f);
@@ -614,6 +623,8 @@ namespace OpenMS::OpenDIA
             f[o++] = k == feature ? static_cast<float>(peakGroupLogSN(sn_parts[i], pg_floor)) : peak_group[i * STAGE2_PEAKGROUP_FEATURES + k];
           }
         }
+        if (extra)
+          for (std::size_t k = 0; k < STAGE2_EXTRA_FEATURES; ++k) f[o++] = extra_block[i * STAGE2_EXTRA_FEATURES + k];
       }
     }
     say("Features: " + std::to_string(d) + " per window, noise=" + std::to_string(noise) +

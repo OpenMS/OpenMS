@@ -128,6 +128,34 @@ namespace OpenMS::OpenDIA
   constexpr std::size_t STAGE2_PEAKGROUP_FEATURES = static_cast<std::size_t>(Stage2PeakGroupFeature::COUNT);
   /// Peak-group column names, in Stage2PeakGroupFeature order.
   const std::array<std::string, STAGE2_PEAKGROUP_FEATURES>& stage2PeakGroupFeatureNames();
+
+  /// Experimental evidence block (-extra_scores, PRECHECK_EVIDENCE): core-window mass error, MS1 and ion mobility.
+  enum class Stage2ExtraFeature : std::size_t
+  {
+    FRAGMENT_FRACTION = 0, ///< Stage2Feature::FRAGMENT_FRACTION.
+    FRAGMENT_COELUTION,    ///< Stage2Feature::FRAGMENT_COELUTION.
+    LIBRARY_CORRELATION,   ///< Stage2Feature::LIBRARY_CORRELATION.
+    MS2_ABS_PPM,           ///< Stage2Feature::MS2_ABS_PPM.
+    MS1_ABS_PPM,           ///< Stage2Feature::MS1_ABS_PPM.
+    MS1_COELUTION,         ///< Stage2Feature::MS1_COELUTION.
+    MS1_ISOTOPE,           ///< Stage2Feature::MS1_ISOTOPE.
+    MS1_LOG_AREA,          ///< log1p of the MS1 monoisotope intensity summed over the core bins.
+    MS2_LOG_AREA,          ///< log1p of the fragment intensity summed over the core scan bins.
+    IM_CENTROID_OFFSET,    ///< |intensity-weighted mobility bin centroid - centre| in bins (core window; 4 without signal).
+    IM_COELUTION,          ///< Mean pairwise Pearson of the fragments' mobility profiles (core window).
+    IM_CENTRAL_SHARE,      ///< Share of core fragment intensity in the central 4 of the 8 mobility bins.
+    COUNT
+  };
+  constexpr std::size_t STAGE2_EXTRA_FEATURES = static_cast<std::size_t>(Stage2ExtraFeature::COUNT);
+  const std::array<std::string, STAGE2_EXTRA_FEATURES>& stage2ExtraFeatureNames();
+  /**
+    @brief Experimental evidence block of one window; identical for targets and decoys and free of training.
+    @param[in] tensor One window of TraceCollector::SAMPLE_SIZE floats ([6,32,8]).
+    @param[in] options Window geometry and run mass offsets (as stage2Features()).
+  */
+  std::array<double, STAGE2_EXTRA_FEATURES> stage2ExtraFeatures(const float* tensor, const std::array<double, 6>& library_intensities,
+                                                                const std::array<double, 6>& fragment_mz, const TraceEvidence& evidence,
+                                                                const Stage2ExtractionOptions& options);
   /**
     @brief Inputs of LOG_SN that do not depend on the run floor, so the feature can be finished once the floor is known
     (streaming tensors). peakGroupLogSN() with the floor reproduces the LOG_SN of stage2PeakGroupFeatures() exactly.

@@ -405,6 +405,83 @@ namespace OpenMS::OpenDIA
     return names;
   }
 
+  const std::array<std::string, STAGE2_EXTRA_FEATURES>& stage2ExtraFeatureNames()
+  {
+    static const std::array<std::string, STAGE2_EXTRA_FEATURES> names = {
+      "x_fragment_fraction", "x_fragment_coelution", "x_library_correlation", "x_ms2_abs_ppm", "x_ms1_abs_ppm", "x_ms1_coelution",
+      "x_ms1_isotope", "x_ms1_log_area", "x_ms2_log_area", "x_im_centroid_offset", "x_im_coelution", "x_im_central_share"};
+    return names;
+  }
+
+  std::array<double, STAGE2_EXTRA_FEATURES> stage2ExtraFeatures(const float* tensor, const std::array<double, 6>& library_intensities,
+                                                                const std::array<double, 6>& fragment_mz, const TraceEvidence& evidence,
+                                                                const Stage2ExtractionOptions& options)
+  {
+    std::array<double, STAGE2_EXTRA_FEATURES> f{};
+    const auto base = stage2Features(tensor, library_intensities, fragment_mz, evidence, options);
+    for (std::size_t k = 0; k < 7; ++k) f[k] = base[k + 1];
+    const double width = 2.0 * options.rt_half_width / RT_BINS;
+    double ms1 = 0.0, ms2 = 0.0;
+    // Mobility profile per fragment over the core scan bins.
+    std::vector<std::vector<double>> profiles;
+    std::array<double, IM_BINS> total{};
+    for (std::size_t c = 0; c < FRAGMENTS; ++c)
+    {
+      if (fragment_mz[c] == 0.0) continue;
+      std::vector<double> profile(IM_BINS, 0.0);
+      double sum = 0.0;
+      for (std::size_t b = 0; b < RT_BINS; ++b)
+      {
+        const double centre = -options.rt_half_width + (b + 0.5) * width;
+        if (std::abs(centre) > options.core_half_width || !(evidence.ms2_mask >> b & 1u)) continue;
+        for (std::size_t m = 0; m < IM_BINS; ++m)
+        {
+          const double v = tensor[(c * RT_BINS + b) * IM_BINS + m];
+          profile[m] += v;
+          total[m] += v;
+          sum += v;
+        }
+      }
+      ms2 += sum;
+      if (sum > 0.0) profiles.push_back(std::move(profile));
+    }
+    for (std::size_t b = 0; b < RT_BINS; ++b)
+    {
+      const double centre = -options.rt_half_width + (b + 0.5) * width;
+      if (std::abs(centre) <= options.core_half_width && (evidence.ms1_mask >> b & 1u)) ms1 += evidence.ms1[b];
+    }
+    f[7] = std::log1p(ms1);
+    f[8] = std::log1p(ms2);
+    if (ms2 > 0.0)
+    {
+      double centroid = 0.0, central = 0.0;
+      for (std::size_t m = 0; m < IM_BINS; ++m)
+      {
+        centroid += total[m] * (m + 0.5);
+        if (m >= IM_BINS / 2 - 2 && m < IM_BINS / 2 + 2) central += total[m];
+      }
+      f[9] = std::abs(centroid / ms2 - IM_BINS / 2.0);
+      f[11] = central / ms2;
+    }
+    else
+    {
+      f[9] = IM_BINS / 2.0;
+    }
+    if (profiles.size() >= 2)
+    {
+      double sum = 0.0;
+      std::size_t pairs = 0;
+      for (std::size_t i = 0; i < profiles.size(); ++i)
+        for (std::size_t j = i + 1; j < profiles.size(); ++j)
+        {
+          sum += pearson(profiles[i], profiles[j]);
+          ++pairs;
+        }
+      f[10] = sum / pairs;
+    }
+    return f;
+  }
+
   std::array<double, STAGE2_PEAKGROUP_FEATURES> stage2PeakGroupFeatures(const float* tensor, const std::array<double, 6>& library_intensities,
                                                                         const std::array<double, 6>& fragment_mz,
                                                                         const std::array<std::int8_t, 6>& fragment_charge,
