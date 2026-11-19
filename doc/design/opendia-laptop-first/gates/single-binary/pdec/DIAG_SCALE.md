@@ -169,3 +169,35 @@ serial per-spectrum work.
 - The interference resolver takes 266 s.
 - The extraction consumer takes 205 s, about 3.5x from 8 threads.
 - Search takes 25 s.
+
+## Interference and m/z lookup (19 Nov, OpenMS 571940fcb5 / 36011de90a)
+
+A profile on the r ≈ 1.56 library (local, plain HeLa D, 8 threads) put the interference resolver at 16 % and
+`MSSpectrum::MZBegin` at 16 % of samples. Changes:
+
+- **Resolver prefilter.** Index entries carry precursor, RT end and 1/K0, so the cheap rejects of the pair test run
+  on the index entry without loading the window or the precursor. `consider()` still repeats every test.
+- **Bucketed m/z lower bound.** `SpectrumMzIndex` (0.25 Th buckets) replaces `MZBegin` in traces, the fragment grid
+  and calibration. `OpenDIAMzIndex_test` checks that it equals `MZBegin`, including at bucket edges.
+- **Bin table (36011de90a).** The resolver index keeps a table of the distinct bins, so each lookup binary-searches
+  only inside one bin.
+- **Tried and reverted.** Testing the shared fragment during the index scan was output-identical but no faster
+  (38.9 s against 36.0 s).
+
+Local r ≈ 1.56 D, interference seconds: 53.0 → 42.4 (prefilter) → 36.0 (bin table). Outputs are byte-identical
+after each step, on plain HeLa D (default and `-pg_scores`) and on r ≈ 1.56 D. There are 25/25 ctests.
+
+On codon (r ≈ 7, 8 threads, PLAN_ODP CUR seed 0, container pd7-571940fcb5 without the bin table), outputs are
+byte-identical to PLAN_ODP on D and H:
+
+| | D pd6 | D pd7 | H pd6 | H pd7 |
+|---|---|---|---|---|
+| extraction consume (s) | 205.2 | 181.9 | 294.1 | 270.2 |
+| interference resolver (s) | 266.2 | **159.2** | 151.8 | **108.0** |
+| run total (s) | 622 | **482** | 677 | **601** |
+| wall incl. `-decoys predict` | 18:34 | **16:16** | 19:40 | **18:16** |
+| peak RSS (GB) | 38.3 | 37.6 | 34.0 | 33.2 |
+
+On D, roughly 8 of the 16 minutes of wall time are still `-decoys predict`. Without that step the run itself is
+8 min, against DIA-NN's 2.6-4.1 min on 16 threads. Memory (33-38 GB against DIA-NN's under 7 GB) is now the larger
+gap.

@@ -3,7 +3,7 @@
 **Status, 18 November 2026.** This plan replaced the laptop-first WP-00 to WP-10 plan on 7 November 2026. The old plan is closed and kept unchanged under [archive/legacy-wp-plan-20261107](archive/legacy-wp-plan-20261107/README.md).
 
 The rewrite lives on [`OpenMS/OpenMS:feature/opendia-clean-rewrite`](https://github.com/OpenMS/OpenMS/tree/feature/opendia-clean-rewrite).
-All of its code is under `src/topp/OpenDIA/`, apart from the Thermo read-ahead change, which is split out as OpenMS#10925 (approved). The branch tip is `963543c7f0`.
+All of its code is under `src/topp/OpenDIA/`, apart from the Thermo read-ahead change, which is split out as OpenMS#10925 (approved). The branch tip is `36011de90a`.
 It is an experimental branch, not a pull request. It must not merge into `develop` until the acceptance gates of R-WP6 pass.
 The branch's [`src/topp/OpenDIA/README.md`](https://github.com/OpenMS/OpenMS/blob/feature/opendia-clean-rewrite/src/topp/OpenDIA/README.md) describes the tools. The evidence is in [`gates/`](gates/).
 
@@ -19,7 +19,10 @@ The branch's [`src/topp/OpenDIA/README.md`](https://github.com/OpenMS/OpenMS/blo
     - DIA-NN finds 26,006 (D) and 41,272 (H).
     - OpenDIA finds 8,233 / 10,100 on D (32 % / 39 %) and 20,745 / 24,549 on H (50 % / 59 %).
   - 95-97 % of OpenDIA's IDs are in DIA-NN's list.
-  - **Cost:** DIA-NN takes 2.6-4.1 min and under 7 GB. OpenDIA takes 1-2.5 h and 89-115 GB.
+  - **Cost:** DIA-NN takes 2.6-4.1 min and under 7 GB (16 threads). OpenDIA took 1-2.5 h and 89-115 GB in the plan runs.
+    After output-identical speed and memory work it takes 16:16 (D) and 18:16 (H) wall and 33-38 GB on 8 threads, with
+    byte-identical outputs (`DIAG_SCALE.md`). About 8 min of D is `-decoys predict`, so the run itself is about 8 min.
+    Memory is now the larger gap.
 - **HeLa diaPASEF (own q ≤ 0.01, no entrapment):** three fixes on 17 Nov raised the design run from 11,653 to 16,116 and
   the held-out run from 19,725 to 24,000. That is 56 % / 63 % of DIA-NN and 84 % of OpenSWATH SVM on the design run.
   Each fix passed a frozen plan with a held-out run and is byte-identical on Astral. See "Current HeLa result" below,
