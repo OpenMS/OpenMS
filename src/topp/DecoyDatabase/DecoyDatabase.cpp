@@ -848,9 +848,9 @@ protected:
                       << " residues shuffled into decoy oligos." << endl;
       if (product_shuffler->failedCombinations() > 0)
       {
-        OPENMS_LOG_WARN << "Warning: " << product_shuffler->failedCombinations() << " missed-cleavage decoy oligos (up to "
-                        << missed_cleavages << " missed cleavages) still equal a target or blacklist oligo; their component "
-                        << "products cannot change enough (e.g. G, AG)." << endl;
+        OPENMS_LOG_WARN << "Warning: " << product_shuffler->failedCombinations() << " searchable decoy oligos (up to " << missed_cleavages
+                        << " missed cleavages) still equal a target/blacklist oligo or another distinct "
+                        << "decoy product; their components or the repair budget prevent resolution." << endl;
       }
       const std::vector<std::string> failed = product_shuffler->failedProducts();
       if (!failed.empty())

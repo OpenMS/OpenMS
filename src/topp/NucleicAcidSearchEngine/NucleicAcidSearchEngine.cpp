@@ -1979,8 +1979,8 @@ protected:
       for (Size i = 0; i < decoy_entries.size(); ++i) fasta_db[decoy_entries[i]].sequence = decoy_sequences[i];
       OPENMS_LOG_INFO << "Background: reshuffled " << decoy_fix.rewritten() << " decoy oligos that equal a target or background oligo"
                       << (decoy_fix.failed() ? " (" + std::to_string(decoy_fix.failed()) + " could not be reshuffled)" : std::string())
-                      << (decoy_fix.failedCombinations() ? "; " + std::to_string(decoy_fix.failedCombinations()) +
-                                                             " missed-cleavage decoy oligos still equal one"
+                      << (decoy_fix.failedCombinations() ? "; " + std::to_string(decoy_fix.failedCombinations())
+                                                             + " searchable decoy oligos still collide with a real or distinct decoy product"
                                                          : std::string())
                       << endl;
     }
@@ -2012,8 +2012,8 @@ protected:
                       << (background_decoys.failed() ? " (" + std::to_string(background_decoys.failed()) +
                                                          " background oligos could not be shuffled into a new decoy)"
                                                      : std::string())
-                      << (background_decoys.failedCombinations() ? "; " + std::to_string(background_decoys.failedCombinations()) +
-                                                                     " missed-cleavage decoy oligos equal a real or decoy oligo"
+                      << (background_decoys.failedCombinations() ? "; " + std::to_string(background_decoys.failedCombinations())
+                                                                     + " searchable decoy oligos equal a real or distinct decoy product"
                                                                  : std::string())
                       << endl;
     }

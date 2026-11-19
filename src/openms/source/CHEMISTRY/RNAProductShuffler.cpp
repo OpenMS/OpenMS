@@ -217,104 +217,109 @@ std::vector<std::string> RNAProductShuffler::rewrite(const std::vector<std::stri
     }
   }
 
-  // forbidden missed-cleavage combinations: local search over the replacements of their component products
-  std::map<std::string, std::vector<std::pair<Size, Size>>> occurrences; // product -> (sequence, position)
-  for (Size s = 0; s < parsed.size(); ++s)
+  // Index all searchable windows, including shared originals. Different originals
+  // must not acquire the same rewritten key; repeated originals may share one.
+  struct Window
   {
-    for (Size i = 0; i < parsed[s].keys.size(); ++i) occurrences[parsed[s].keys[i]].emplace_back(s, i);
-  }
+    Size sequence, first, last;
+    std::string original, rewritten;
+  };
+  std::vector<Window> windows;
+  std::map<std::string, std::vector<Size>> affected_windows;
+  std::map<std::string, std::map<std::string, Size>> owners; // rewritten -> original -> occurrence count
   auto text = [&](const std::string& product_key) -> std::string {
-    const Choice_& choice = choices_[product_key];
+    const Choice_& choice = choices_.at(product_key);
     return choice.replacement ? key(*choice.replacement) : product_key;
   };
-  // forbidden combinations (of at least two products) that start at i..j in sequence s
-  auto forbidden_from = [&](Size s, Size i, Size j, std::set<std::pair<Size, Size>>* found) {
-    const auto& keys = parsed[s].keys;
-    Size count = 0;
-    std::string joined = text(keys[i]);
-    Size length = choices_[keys[i]].product.size();
-    for (Size k = i + 1; (k < keys.size()) && (k <= j); ++k)
+  for (Size sequence = 0; sequence < parsed.size(); ++sequence)
+  {
+    const auto& keys = parsed[sequence].keys;
+    for (Size first = 0; first < keys.size(); ++first)
     {
-      joined += text(keys[k]);
-      length += choices_[keys[k]].product.size();
-      if ((length >= min_length_) && forbidden(joined))
+      std::string original, rewritten;
+      Size length = 0;
+      std::set<std::string> components;
+      for (Size last = first; last < keys.size() && last - first <= missed_cleavages; ++last)
       {
-        if (!found || found->emplace(i, k).second) ++count;
-      }
-    }
-    return count;
-  };
-  // forbidden combinations (sequence, first product, last product) that contain any occurrence of a product
-  using Combination = std::tuple<Size, Size, Size>;
-  auto local_forbidden = [&](const std::string& product_key) {
-    std::set<Combination> found;
-    for (const auto& [s, position] : occurrences[product_key])
-    {
-      const Size first = (position >= missed_cleavages) ? position - missed_cleavages : 0;
-      for (Size i = first; i <= position; ++i)
-      {
-        // combinations i..k with k >= position (those that contain the product)
-        const auto& keys = parsed[s].keys;
-        std::string joined;
-        Size length = 0;
-        for (Size k = i; (k < keys.size()) && (k <= i + missed_cleavages); ++k)
+        original += keys[last];
+        rewritten += text(keys[last]);
+        length += choices_.at(keys[last]).product.size();
+        components.insert(keys[last]);
+        if (length < min_length_) { continue; }
+        for (const auto& component : components)
         {
-          joined += text(keys[k]);
-          length += choices_[keys[k]].product.size();
-          if ((k > i) && (k >= position) && (length >= min_length_) && forbidden(joined)) found.emplace(s, i, k);
+          affected_windows[component].push_back(windows.size());
         }
+        windows.push_back({sequence, first, last, original, rewritten});
+        ++owners[rewritten][original];
       }
     }
-    return found;
-  };
-  auto total_forbidden = [&]() {
-    Size count = 0;
-    for (Size s = 0; s < parsed.size(); ++s)
+  }
+  // Update only windows which contain the changed product. The occurrence counts
+  // preserve ownership when a shared original occurs in several parent sequences.
+  auto update_windows = [&](const std::string& product_key) {
+    for (Size index : affected_windows.at(product_key))
     {
-      for (Size i = 0; i < parsed[s].keys.size(); ++i) count += forbidden_from(s, i, i + missed_cleavages, nullptr);
+      auto& window = windows[index];
+      std::string rewritten;
+      for (Size position = window.first; position <= window.last; ++position)
+      {
+        rewritten += text(parsed[window.sequence].keys[position]);
+      }
+      if (rewritten == window.rewritten) { continue; }
+      auto previous = owners.find(window.rewritten);
+      auto owner = previous->second.find(window.original);
+      if (--owner->second == 0) { previous->second.erase(owner); }
+      if (previous->second.empty()) { owners.erase(previous); }
+      window.rewritten = std::move(rewritten);
+      ++owners[window.rewritten][window.original];
     }
-    return count;
+  };
+  auto forbidden_window = [&](const Window& window) { return window.first != window.last && forbidden(window.rewritten); };
+  auto duplicate_window = [&](const Window& window) { return owners.at(window.rewritten).size() > 1; };
+  // Include the rewritten key and conflict kind, so a candidate cannot exchange
+  // a forbidden match for a duplicate, or move a collision onto another molecule.
+  using Conflict = std::tuple<Size, bool, std::string>;
+  auto local_conflicts = [&](const std::string& product_key) {
+    std::set<Conflict> conflicts;
+    for (Size index : affected_windows.at(product_key))
+    {
+      const auto& window = windows[index];
+      if (forbidden_window(window)) { conflicts.emplace(index, false, window.rewritten); }
+      if (duplicate_window(window)) { conflicts.emplace(index, true, window.rewritten); }
+    }
+    return conflicts;
   };
   const Size candidates_per_product = 20;
-  std::set<std::string> settled; // products whose replacement no candidate improves (until something around them changes)
+  std::set<std::string> settled;
   for (Size round = 0; round < 50; ++round)
   {
-    // the components of forbidden combinations
     std::set<std::string> components;
-    for (Size s = 0; s < parsed.size(); ++s)
+    for (const auto& window : windows)
     {
-      const auto& keys = parsed[s].keys;
-      for (Size i = 0; i < keys.size(); ++i)
+      if (! forbidden_window(window) && ! duplicate_window(window)) { continue; }
+      for (Size position = window.first; position <= window.last; ++position)
       {
-        std::set<std::pair<Size, Size>> found;
-        if (forbidden_from(s, i, i + missed_cleavages, &found) == 0) continue;
-        for (const auto& [start, end] : found)
-        {
-          for (Size k = start; k <= end; ++k)
-          {
-            if (choices_[keys[k]].movable && !settled.count(keys[k])) components.insert(keys[k]);
-          }
-        }
+        const auto& product_key = parsed[window.sequence].keys[position];
+        if (choices_.at(product_key).movable && ! settled.count(product_key)) { components.insert(product_key); }
       }
     }
     bool improved = false;
-    for (const std::string& product_key : components)
+    for (const auto& product_key : components)
     {
-      Choice_& choice = choices_[product_key];
+      auto& choice = choices_.at(product_key);
       const bool searched_alone = choice.product.size() >= min_length_;
-      const std::set<Combination> before = local_forbidden(product_key);
-      if (before.empty()) continue;
-      // candidates: further shuffles; a product not searched on its own may also stay as it is. A candidate is only taken
-      // if it removes forbidden combinations without making any new one (trading collisions could move one onto an
-      // abundant real molecule)
-      std::optional<NASequence> current = choice.replacement;
-      if (searched_alone && current) used_.erase(key(*current));
-      std::optional<NASequence> best = current;
+      const auto before = local_conflicts(product_key);
+      if (before.empty()) { continue; }
+      const auto current = choice.replacement;
+      if (searched_alone && current) { used_.erase(key(*current)); }
+      auto best = current;
       Size best_count = before.size();
       auto try_candidate = [&](const std::optional<NASequence>& candidate) {
         choice.replacement = candidate;
-        const std::set<Combination> after = local_forbidden(product_key);
-        if ((after.size() < best_count) && std::includes(before.begin(), before.end(), after.begin(), after.end()))
+        update_windows(product_key);
+        const auto after = local_conflicts(product_key);
+        if (after.size() < best_count && std::includes(before.begin(), before.end(), after.begin(), after.end()))
         {
           best_count = after.size();
           best = candidate;
@@ -323,14 +328,15 @@ std::vector<std::string> RNAProductShuffler::rewrite(const std::vector<std::stri
       auto none = [](const std::string&) { return false; };
       for (Size skip = 0; skip < candidates_per_product; ++skip)
       {
-        std::optional<NASequence> candidate = shuffleProduct(choice.product, searched_alone ? forbidden : none, max_tries_, skip);
-        if (!candidate) break;
-        if (current && (key(*candidate) == key(*current))) continue;
+        auto candidate = shuffleProduct(choice.product, searched_alone ? forbidden : none, max_tries_, skip);
+        if (! candidate) { break; }
+        if (current && key(*candidate) == key(*current)) { continue; }
         try_candidate(candidate);
       }
-      if (!searched_alone && current) try_candidate(std::nullopt);
+      if (! searched_alone && current) { try_candidate(std::nullopt); }
       choice.replacement = best;
-      if (searched_alone && choice.replacement) used_.insert(key(*choice.replacement));
+      update_windows(product_key);
+      if (searched_alone && choice.replacement) { used_.insert(key(*choice.replacement)); }
       if (best_count < before.size())
       {
         improved = true;
@@ -341,9 +347,12 @@ std::vector<std::string> RNAProductShuffler::rewrite(const std::vector<std::stri
         settled.insert(product_key);
       }
     }
-    if (!improved) break;
+    if (! improved) { break; }
+    // Changes to shared products can make a previously blocked repair possible.
+    settled.clear();
   }
-  failed_combinations_ = total_forbidden();
+  failed_combinations_
+    = std::count_if(windows.begin(), windows.end(), [&](const Window& window) { return forbidden_window(window) || duplicate_window(window); });
 
   rewritten_ = 0;
   failed_ = 0;
