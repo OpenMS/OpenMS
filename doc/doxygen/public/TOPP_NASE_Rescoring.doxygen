@@ -89,6 +89,8 @@ Percolator's gain is in spectra of oligos that the native score already identifi
 in 18 entrapment searches it accepted about 20% more target spectra than the native score at q <= 5%, but per oligo
 it accepted about as many oligos with a higher estimated FDP. The rescored q-values therefore remain experimental.
 For claims about molecules (which oligos are present), use @p fdr:oligo_level, preferably on the native score.
+For this oligo-level competition, an exact target/decoy tie within one spectrum is assigned to the decoy before
+choosing each sequence's best spectrum. The general best-match API and native search order are unchanged.
 
 Results are reproducible for the same @p rescoring:seed and input order; with 1 and 4 threads, the scores and q-values
 were identical in our checks and only the PEPs differed slightly (core Percolator's PEP estimation). The tests use

@@ -149,7 +149,8 @@ FDR calculation. See @ref TOPP_NASE_Background.
 The q-values of @p fdr:cutoff are per spectrum. When a molecule produces many spectra (several charge states, long
 elution), they understate the FDR of the reported oligos: a wrong match to an abundant molecule brings all its spectra.
 With @p fdr:oligo_level, NASE also calculates q-values per unmodified oligo sequence (each sequence represented by its
-best-scoring spectrum; target and decoy sequences compete) and reports them for every hit as "oligo-level q-value";
+best-scoring spectrum; exact per-spectrum target/decoy ties favor the decoy before sequence aggregation) and reports
+an "oligo-level q-value" for every hit;
 @p fdr:oligo_cutoff removes hits of sequences above it. Use them for claims about which oligos are present. They count
 one decoy more, (decoys + 1) / targets, as needed for FDR control with the few sequences of RNA samples
 (@p fdr:oligo_plus_one): with n target sequences no q-value is below 1/n, so q <= 0.01 needs at least 100 sequences.
@@ -2182,7 +2183,8 @@ protected:
   /**
     @brief Oligo-level q-values ('fdr:oligo_level'), from target-decoy competition of unmodified oligo sequences
 
-    Each spectrum contributes its best hit (by @p score_ref). A sequence (with its target/decoy status) is represented by
+    Each spectrum contributes its best hit (by @p score_ref), preferring decoys on exact target/decoy score ties.
+    Remaining ties use the existing molecule-value order. A sequence (with its target/decoy status) is represented by
     the best score of its spectra; q-value of a target sequence = (decoy sequences + 1) / target sequences with at least
     its score ('fdr:oligo_plus_one'; without the +1 as FalseDiscoveryRate does for spectra; ties count for the decoys),
     made monotone. Every observation match
@@ -2199,15 +2201,26 @@ protected:
       return std::make_pair(unmodifiedSequence_(oligo->sequence), oligo->allParentsAreDecoys());
     };
     std::map<std::pair<std::string, bool>, double> best; // (sequence, decoy) -> best score
-    for (const auto& match_ref : id_data.getBestMatchPerObservation(score_ref, true))
+    for (auto match_ref : id_data.getBestMatchPerObservation(score_ref, true))
     {
       if (match_ref->identified_molecule_var.getMoleculeType() != IdentificationData::MoleculeType::RNA) continue;
       const auto score = match_ref->getScore(score_ref);
-      if (!score.second) continue;
+      if (! score.second) continue;
+      // Resolve exact spectrum-level ties before reducing to one sequence. The
+      // general best-match API orders molecule values without preferring decoys.
+      const auto [first, last] = id_data.getMatchesForObservation(match_ref->observation_ref);
+      for (auto tied_ref = first; tied_ref != last; ++tied_ref)
+      {
+        if (tied_ref->identified_molecule_var.getMoleculeType() != IdentificationData::MoleculeType::RNA) { continue; }
+        const auto tied_score = tied_ref->getScore(score_ref);
+        if (! tied_score.second || tied_score.first != score.first || ! key_of(*tied_ref).second) { continue; }
+        if (! key_of(*match_ref).second || IdentificationData::observationMatchLess(*tied_ref, *match_ref)) { match_ref = tied_ref; }
+      }
       const auto key = key_of(*match_ref);
       auto pos = best.find(key);
       if (pos == best.end()) best.emplace(key, score.first);
-      else if (higher_better ? (score.first > pos->second) : (score.first < pos->second)) pos->second = score.first;
+      else if (higher_better ? (score.first > pos->second) : (score.first < pos->second))
+        pos->second = score.first;
     }
     // sort best first; at equal scores decoys first (ties count for the decoys)
     std::vector<std::pair<double, bool>> ranked; // (score, decoy)
