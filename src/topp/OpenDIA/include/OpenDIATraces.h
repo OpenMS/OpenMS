@@ -7,7 +7,7 @@
 #pragma once
 
 #include <OpenMS/INTERFACES/IMSDataConsumer.h>
-#include <OpenMS/OPENSWATHALGO/DATAACCESS/TransitionExperiment.h>
+#include <OpenDIALibrary.h>
 
 #include <array>
 #include <cstdint>
@@ -106,7 +106,7 @@ namespace OpenMS::OpenDIA
                  at one time instead of all windows. Spectra must arrive in RT order (an out-of-order spectrum that would
                  reach a closed window throws). Call finish() after the last spectrum. intensities() is empty.
     */
-    TraceCollector(std::vector<TraceWindow> windows, const OpenSwath::LightTargetedExperiment& library,
+    TraceCollector(std::vector<TraceWindow> windows, const OpenDIA::Library& library,
                    double mz_tolerance = 0.02, double rt_half_width = 15.0,
                    double im_half_width = 0.03, std::size_t max_samples = 16384,
                    std::size_t max_tensor_bytes = DEFAULT_MAX_TENSOR_BYTES, CloseCallback on_close = {});
@@ -179,7 +179,7 @@ namespace OpenMS::OpenDIA
       @param[in] intensity_min Minimum intensity of the matched peak.
       @throws Exception::InvalidParameter If evidence is not enabled, a tolerance is not positive or a sequence cannot be parsed.
     */
-    void enableByIonCounts(const OpenSwath::LightTargetedExperiment& library, double ppm, double intensity_min);
+    void enableByIonCounts(const OpenDIA::Library& library, double ppm, double intensity_min);
     /// Evidence of sample i; requires evidenceEnabled().
     const TraceEvidence& evidence(std::size_t i) const { return evidence_.at(i); }
     /**

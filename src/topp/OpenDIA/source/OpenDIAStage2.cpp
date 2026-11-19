@@ -9,7 +9,8 @@
 #include "OpenDIAStage2.h"
 #include "OpenDIAPeakPicker.h"
 
-#include <OpenMS/ANALYSIS/OPENSWATH/DIAHelper.h>
+#include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
+#include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopePatternGenerator.h>
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/IsotopeDistribution.h>
 
 #include <algorithm>
@@ -529,7 +530,10 @@ namespace OpenMS::OpenDIA
       if (it == averagine.end())
       {
         std::array<double, PeakGroupEvidence::ISOTOPES + 1> theory{};
-        const auto& dist = DIAHelpers::averagineIsotopeDistribution(static_cast<double>(mass), static_cast<int>(theory.size()));
+        // Senko's averagine composition for this mass, coarse isotope pattern (as OpenSWATH dia_isotope_scores).
+        EmpiricalFormula composition;
+        composition.estimateFromWeightAndComp(static_cast<double>(mass), 4.9384, 7.7583, 1.3577, 1.4773, 0.0417, 0);
+        const auto dist = composition.getIsotopeDistribution(CoarseIsotopePatternGenerator(static_cast<int>(theory.size())));
         for (std::size_t i = 0; i < theory.size() && i < dist.size(); ++i) theory[i] = dist[i].getIntensity();
         it = averagine.emplace(mass, theory).first;
       }

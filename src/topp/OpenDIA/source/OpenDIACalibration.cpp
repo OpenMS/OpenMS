@@ -266,7 +266,7 @@ namespace OpenMS::OpenDIA
     }
   }
 
-  CalibrationCollector::CalibrationCollector(const OpenSwath::LightTargetedExperiment& library,
+  CalibrationCollector::CalibrationCollector(const OpenDIA::Library& library,
                                              const std::vector<std::pair<std::string, std::string>>& traml_ids,
                                              CalibrationOptions options, std::optional<CalibrationWindow> window) :
     options_(options), window_(std::move(window))
@@ -284,12 +284,12 @@ namespace OpenMS::OpenDIA
     {
       id_of_name.emplace(name, id);
     }
-    std::unordered_map<std::string, std::vector<const OpenSwath::LightTransition*>> transitions;
+    std::unordered_map<std::string, std::vector<const OpenDIA::LibraryTransition*>> transitions;
     for (const auto& transition : library.getTransitions())
     {
       transitions[transition.peptide_ref].push_back(&transition);
     }
-    std::unordered_map<std::string, const OpenSwath::LightCompound*> compounds;
+    std::unordered_map<std::string, const OpenDIA::LibraryCompound*> compounds;
     for (const auto& compound : library.getCompounds())
     {
       compounds.emplace(compound.id, &compound);

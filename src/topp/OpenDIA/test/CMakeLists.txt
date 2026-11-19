@@ -43,6 +43,9 @@ add_test(NAME OpenDIAFragmentGrid_test COMMAND OpenDIAFragmentGrid_test)
 # Validation driver on the PLAN_GAP scoring arrays (not a ctest).
 add_executable(OpenDIAScorer_arrays OpenDIAScorer_arrays.cpp)
 target_link_libraries(OpenDIAScorer_arrays PRIVATE OpenDIA_impl)
+# Design rule: no OpenSWATH code in the OpenDIA core library.
+add_test(NAME OpenDIA_no_openswath
+  COMMAND ${CMAKE_COMMAND} -DSOURCE_DIR=${CMAKE_CURRENT_SOURCE_DIR}/.. -P ${CMAKE_CURRENT_SOURCE_DIR}/OpenDIA_no_openswath.cmake)
 
 if(TARGET OpenDIA_cnn)
   add_executable(OpenDIACNN_test OpenDIACNN_test.cpp)

@@ -85,7 +85,7 @@ int main()
   options.ms1_isotopes = 1;
 
   std::vector<Captured> captured;
-  OpenDIA::PeakMapCollector collector({a, late}, options, [&](const PeakMapExtractor::ExtractedPeakMap& map, int level)
+  OpenDIA::PeakMapCollector collector({a, late}, options, [&](const OpenDIA::PeakMap& map, int level)
   {
     captured.push_back({map.native_id, level, map.mz, map.rt, map.ion_mobility, map.intensity, map.rt_start, map.rt_end});
   });
@@ -131,7 +131,7 @@ int main()
     OpenDIA::PeakMapOptions im_options = options;
     im_options.im_half_window = 0.05;
     std::vector<Captured> out;
-    OpenDIA::PeakMapCollector im_collector({t}, im_options, [&](const PeakMapExtractor::ExtractedPeakMap& map, int level)
+    OpenDIA::PeakMapCollector im_collector({t}, im_options, [&](const OpenDIA::PeakMap& map, int level)
     { out.push_back({map.native_id, level, map.mz, map.rt, map.ion_mobility, map.intensity, 0, 0}); });
     MSSpectrum s = ms2(100.0, 500.0, {{300.0, 1.0}, {300.001, 2.0}});
     DataArrays::FloatDataArray im;
@@ -155,7 +155,7 @@ int main()
   {
     OpenDIA::PeakMapOptions bad;
     bad.mz_tolerance_ppm = 0.0;
-    OpenDIA::PeakMapCollector({a}, bad, [](const PeakMapExtractor::ExtractedPeakMap&, int) {});
+    OpenDIA::PeakMapCollector({a}, bad, [](const OpenDIA::PeakMap&, int) {});
   }
   catch (const std::invalid_argument&)
   {
@@ -165,6 +165,7 @@ int main()
 
   // Round trip through the OpenSWATH .xipm writer and reader.
   {
+    // The .xipm writer is OpenMS format I/O and takes OpenSWATH types (as the OpenDIA tool's export edge).
     OpenSwath::LightTargetedExperiment exp;
     OpenSwath::LightCompound compound;
     compound.id = "10";
@@ -186,8 +187,21 @@ int main()
     const std::string path = "OpenDIAPeakMaps_test_roundtrip.xipm";
     {
       XIPMParquetConsumer writer(path, exp);
-      OpenDIA::PeakMapCollector to_file({a}, options, [&](const PeakMapExtractor::ExtractedPeakMap& map, int level)
-      { writer.consumePeakMap(map, 0, "test.mzML", level); });
+      OpenDIA::PeakMapCollector to_file({a}, options, [&](const OpenDIA::PeakMap& map, int level)
+      {
+        PeakMapExtractor::ExtractedPeakMap x;
+        x.native_id = map.native_id;
+        x.target_mz = map.target_mz;
+        x.target_rt = map.target_rt;
+        x.target_ion_mobility = map.target_ion_mobility;
+        x.rt_start = map.rt_start;
+        x.rt_end = map.rt_end;
+        x.mz = map.mz;
+        x.rt = map.rt;
+        x.ion_mobility = map.ion_mobility;
+        x.intensity = map.intensity;
+        writer.consumePeakMap(x, 0, "test.mzML", level);
+      });
       for (auto& spectrum : run) to_file.consumeSpectrum(spectrum);
       to_file.finish();
       writer.finalize();

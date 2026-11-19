@@ -14,7 +14,6 @@
 #include <OpenDIAStage2.h>
 #include <OpenDIATraces.h>
 
-#include <OpenMS/ANALYSIS/OPENSWATH/TransitionPQPFile.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/DATASTRUCTURES/StringUtils.h>
@@ -37,7 +36,7 @@ namespace OpenMS::OpenDIA
   {
     constexpr std::size_t K12 = FragmentGrid::FRAGMENTS;
 
-    std::string annotation(const OpenSwath::LightTransition& t) { return t.getAnnotation(); }
+    std::string annotation(const OpenDIA::LibraryTransition& t) { return t.getAnnotation(); }
 
     /// " rss_mb=<current> peak_mb=<peak>" for stage log lines (diagnostic only).
     std::string memoryNote()
@@ -74,7 +73,7 @@ namespace OpenMS::OpenDIA
     }
 
     /// Query list for StreamSearch from a (calibrated) library, in the heavy reader's transition order.
-    std::vector<TransitionQuery> makeQueries(OpenSwath::LightTargetedExperiment& targeted)
+    std::vector<TransitionQuery> makeQueries(OpenDIA::Library& targeted)
     {
       struct Coordinates
       {
@@ -112,7 +111,7 @@ namespace OpenMS::OpenDIA
         if (a.transition_name != b.transition_name) return a.transition_name < b.transition_name;
         return a.peptide_ref < b.peptide_ref;
       });
-      std::vector<OpenSwath::LightTransition> sorted;
+      std::vector<OpenDIA::LibraryTransition> sorted;
       sorted.reserve(transitions.size());
       for (const Key& k : keys) sorted.push_back(std::move(transitions[k.index]));
       transitions = std::move(sorted);
@@ -167,8 +166,8 @@ namespace OpenMS::OpenDIA
   AnalysisLibrary AnalysisLibrary::read(const std::string& search_pqp, const std::string& scoring_pqp)
   {
     AnalysisLibrary lib;
-    TransitionPQPFile().convertPQPToTargetedExperiment(search_pqp.c_str(), lib.search);
-    const auto traml = TransitionPQPFile().getPQPCurrentIDToTraMLIDMap(search_pqp.c_str(), "PRECURSOR");
+    lib.search = readLibrary(search_pqp);
+    const auto traml = readPrecursorTraMLIDs(search_pqp);
     lib.traml_ids.assign(traml.begin(), traml.end());
     std::unordered_map<std::string, std::string> traml_to_id;
     for (const auto& [id, name] : traml) traml_to_id.emplace(name, id);
@@ -190,7 +189,7 @@ namespace OpenMS::OpenDIA
     }
     // Search fragments: m/z, decoy flag, annotations.
     std::vector<std::unordered_set<std::string>> search_annotations(lib.precursors.size());
-    std::vector<std::vector<const OpenSwath::LightTransition*>> fragments(lib.precursors.size());
+    std::vector<std::vector<const OpenDIA::LibraryTransition*>> fragments(lib.precursors.size());
     for (const auto& t : lib.search.getTransitions())
     {
       const auto it = lib.index.find(t.peptide_ref);
@@ -235,7 +234,7 @@ namespace OpenMS::OpenDIA
         if (pair_fold[p.pair] >= 0) p.fold = static_cast<std::uint8_t>(pair_fold[p.pair]);
     }
     // Scoring fragments.
-    const auto assign = [&](std::uint32_t pi, std::vector<std::pair<long, const OpenSwath::LightTransition*>>& list)
+    const auto assign = [&](std::uint32_t pi, std::vector<std::pair<long, const OpenDIA::LibraryTransition*>>& list)
     {
       std::sort(list.begin(), list.end(), [](const auto& a, const auto& b) { return a.first < b.first; });
       auto& p = lib.precursors[pi];
@@ -253,16 +252,15 @@ namespace OpenMS::OpenDIA
     {
       for (std::uint32_t pi = 0; pi < lib.precursors.size(); ++pi)
       {
-        std::vector<std::pair<long, const OpenSwath::LightTransition*>> list;
+        std::vector<std::pair<long, const OpenDIA::LibraryTransition*>> list;
         for (const auto* t : fragments[pi]) list.emplace_back(std::stol(t->transition_name), t);
         assign(pi, list);
       }
     }
     else
     {
-      OpenSwath::LightTargetedExperiment scoring;
-      TransitionPQPFile().convertPQPToTargetedExperiment(scoring_pqp.c_str(), scoring);
-      std::vector<std::vector<std::pair<long, const OpenSwath::LightTransition*>>> lists(lib.precursors.size());
+      const OpenDIA::Library scoring = readLibrary(scoring_pqp);
+      std::vector<std::vector<std::pair<long, const OpenDIA::LibraryTransition*>>> lists(lib.precursors.size());
       for (const auto& t : scoring.getTransitions())
       {
         const auto it = lib.index.find(t.peptide_ref);
@@ -293,7 +291,7 @@ namespace OpenMS::OpenDIA
     const auto t_run = std::chrono::steady_clock::now();
 
     // 1. Calibration (uncalibrated library), or a given calibration and its anchors.
-    OpenSwath::LightTargetedExperiment targeted = lib.search;
+    OpenDIA::Library targeted = lib.search;
     std::vector<std::pair<std::string, double>> anchors;  // used anchors: precursor id, run RT
     if (!options_.calibration_json.empty())
     {
@@ -478,7 +476,7 @@ namespace OpenMS::OpenDIA
     // fragment m/z shifted by the ppm offset and precursor 1/K0 mapped by the calibrated line. That is exactly
     // `targeted` after step 2 (it differs from it only in the mapped RT, which TraceCollector does not read), so it is
     // reused instead of a further copy of the library.
-    OpenSwath::LightTargetedExperiment& trace_library = targeted;
+    OpenDIA::Library& trace_library = targeted;
     // Streaming tensors: a window's 6-fragment tensor is held only while its RT range is being read. The tensor-derived
     // features (boundary, and with -pg_scores the peak-group scores) are computed when the window closes and the tensor
     // is released, so tensor memory follows the windows co-eluting at one time. The peak-group LOG_SN needs the run floor

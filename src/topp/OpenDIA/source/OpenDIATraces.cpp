@@ -78,7 +78,7 @@ namespace OpenMS::OpenDIA
     return windows;
   }
 
-  TraceCollector::TraceCollector(std::vector<TraceWindow> windows, const OpenSwath::LightTargetedExperiment& library,
+  TraceCollector::TraceCollector(std::vector<TraceWindow> windows, const OpenDIA::Library& library,
                                  double mz_tolerance, double rt_half_width, double im_half_width,
                                  std::size_t max_samples, std::size_t max_tensor_bytes, CloseCallback on_close) :
     mz_tolerance_(mz_tolerance), rt_half_width_(rt_half_width), im_half_width_(im_half_width), on_close_(std::move(on_close))
@@ -89,7 +89,7 @@ namespace OpenMS::OpenDIA
     // ponytail: sampled tensors are retained under an explicit byte budget.
     // Disk-backed tiled accumulation is only needed if a run cannot fit in RAM.
     require(!windows.empty() && windows.size() <= max_samples, "Trace sample count is empty or exceeds max_samples.");
-    std::map<std::string, std::vector<const OpenSwath::LightTransition*>> transitions;
+    std::map<std::string, std::vector<const OpenDIA::LibraryTransition*>> transitions;
     std::map<std::string, double> mobilities;
     std::map<std::string, int> charges;
     for (const auto& compound : library.getCompounds())
@@ -204,7 +204,7 @@ namespace OpenMS::OpenDIA
       std::max(0.0, (rt - apex_rt + rt_half_width_) / (2.0 * rt_half_width_)) * RT_BINS));
   }
 
-  void TraceCollector::enableByIonCounts(const OpenSwath::LightTargetedExperiment& library, double ppm, double intensity_min)
+  void TraceCollector::enableByIonCounts(const OpenDIA::Library& library, double ppm, double intensity_min)
   {
     require(!evidence_.empty(), "b/y ion counts require enableEvidence() first.");
     require(std::isfinite(ppm) && ppm > 0.0 && std::isfinite(intensity_min) && intensity_min >= 0.0,

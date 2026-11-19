@@ -12,7 +12,6 @@
 #include "OpenDIAStage2.h"
 #include "OpenDIATraces.h"
 
-#include <OpenMS/ANALYSIS/OPENSWATH/TransitionPQPFile.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/OPTIONS/PeakFileOptions.h>
@@ -266,8 +265,7 @@ namespace OpenMS
           if (!seeds.empty()) { throw std::invalid_argument("Every seed must occur in the scoring manifest."); }
         }
         const OpenDIA::CNNGeometry geometry{getDoubleOption_("mz_tolerance"), getDoubleOption_("rt_half_width"), getDoubleOption_("im_half_width")};
-        OpenSwath::LightTargetedExperiment library;
-        TransitionPQPFile().convertPQPToTargetedExperiment(getStringOption_("lib").c_str(), library);
+        OpenDIA::Library library = OpenDIA::readLibrary(getStringOption_("lib"));
         if (apply_coordinates)
         {
           // Library to run coordinates, before extraction; RT stays library RT (the window uses the map).
@@ -343,7 +341,7 @@ namespace OpenMS
         std::vector<std::string> pair_keys(count);
         if (crossfit && paired_tdc)
         {
-          const auto traml_ids = TransitionPQPFile().getPQPCurrentIDToTraMLIDMap(getStringOption_("lib").c_str(), "PRECURSOR");
+          const auto traml_ids = OpenDIA::readPrecursorTraMLIDs(getStringOption_("lib"));
           const std::string prefix = "DECOY_";
           for (std::size_t i = 0; i < count; ++i)
           {

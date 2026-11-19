@@ -97,6 +97,7 @@ protected:
   /// -decoys predict: drop the library's decoys and give every target a pseudo-reversed decoy predicted like a target
   /// (OpenSwathLibraryPreparation::generateDecoys with predict_decoys and predict_keep_short, settings estimated from the
   /// library). Returns the path of the target/decoy PQP it writes.
+  /// ponytail: the only remaining OpenSWATH dependency of OpenDIA; to be removed or replaced (decision pending).
   std::string predictDecoys_(const std::string& lib, const std::string& out_dir)
   {
     OpenSwath::LightTargetedExperiment all;

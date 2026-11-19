@@ -26,6 +26,8 @@ add_library(OpenDIA_impl STATIC
   source/OpenDIAScorer.cpp
   source/OpenDIAFragmentGrid.cpp
   source/OpenDIAWorkflow.cpp
+  source/OpenDIALibrary.cpp
+  include/OpenDIALibrary.h
   include/OpenDIASearch.h
   include/OpenDIATraces.h
   include/OpenDIARTMap.h
@@ -39,6 +41,15 @@ add_library(OpenDIA_impl STATIC
   include/OpenDIAWorkflow.h)
 target_include_directories(OpenDIA_impl PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
 target_link_libraries(OpenDIA_impl PUBLIC OpenMS::OpenMS_CLI)
+# OpenDIALibrary reads PQP files with the SQLite C API (the sqlite3 OpenMS itself is built with).
+if(OPENMS_USE_VCPKG AND TARGET unofficial::sqlite3::sqlite3)
+  target_link_libraries(OpenDIA_impl PRIVATE unofficial::sqlite3::sqlite3)
+elseif(TARGET SQLite::SQLite3)
+  target_link_libraries(OpenDIA_impl PRIVATE SQLite::SQLite3)
+else()
+  find_package(SQLite3 REQUIRED)
+  target_link_libraries(OpenDIA_impl PRIVATE SQLite::SQLite3)
+endif()
 # OpenDIACalibration reads its JSON with nlohmann::json, a PRIVATE dependency of libOpenMS.
 if(NOT TARGET nlohmann_json::nlohmann_json)
   find_package(nlohmann_json CONFIG REQUIRED)

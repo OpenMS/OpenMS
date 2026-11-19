@@ -93,7 +93,7 @@ namespace OpenMS::OpenDIA
       const std::size_t isotopes = target.charge > 0 ? options_.ms1_isotopes : 0;
       for (std::size_t k = 0; k <= isotopes; ++k)
       {
-        PeakMapExtractor::ExtractedPeakMap map;
+        PeakMap map;
         map.native_id = target.precursor_id + "_Precursor_i" + std::to_string(k);
         map.target_mz = target.precursor_mz + (target.charge > 0 ? k * C13_C12_MASS_DIFFERENCE / target.charge : 0.0);
         map.target_rt = target.has_rt ? target.center_rt : std::numeric_limits<double>::quiet_NaN();
@@ -104,7 +104,7 @@ namespace OpenMS::OpenDIA
       }
       for (const auto& [native_id, fragment_mz] : target.fragments)
       {
-        PeakMapExtractor::ExtractedPeakMap map;
+        PeakMap map;
         map.native_id = native_id;
         map.target_mz = fragment_mz;
         map.target_rt = target.has_rt ? target.center_rt : std::numeric_limits<double>::quiet_NaN();
@@ -171,7 +171,7 @@ namespace OpenMS::OpenDIA
     const SpectrumMobility mobility = spectrumMobility(spectrum, options_.ion_mobility_array_as_vssc);
     const bool sorted = std::is_sorted(spectrum.begin(), spectrum.end(),
                                        [](const Peak1D& lhs, const Peak1D& rhs) { return lhs.getMZ() < rhs.getMZ(); });
-    const auto collect = [&](PeakMapExtractor::ExtractedPeakMap& map, const PeakMapTarget& target)
+    const auto collect = [&](PeakMap& map, const PeakMapTarget& target)
     {
       const double half = map.target_mz * options_.mz_tolerance_ppm * 1e-6;
       const double low = map.target_mz - half;

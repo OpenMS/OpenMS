@@ -13,7 +13,7 @@
 
 #include <OpenMS/INTERFACES/IMSDataConsumer.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
-#include <OpenMS/OPENSWATHALGO/DATAACCESS/TransitionExperiment.h>
+#include <OpenDIALibrary.h>
 
 #include <array>
 #include <cstddef>
@@ -233,7 +233,7 @@ namespace OpenMS::OpenDIA
                         (plus a 30 s margin), and let calibrate() skip stages 1 and 2. Experimental.
       @throws std::invalid_argument If no eligible target-decoy pairs exist or options are invalid.
     */
-    CalibrationCollector(const OpenSwath::LightTargetedExperiment& library,
+    CalibrationCollector(const OpenDIA::Library& library,
                          const std::vector<std::pair<std::string, std::string>>& traml_ids,
                          CalibrationOptions options = {}, std::optional<CalibrationWindow> window = std::nullopt);
 

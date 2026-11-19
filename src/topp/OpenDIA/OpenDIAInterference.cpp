@@ -9,7 +9,8 @@
 #include "OpenDIACalibration.h"
 #include "OpenDIAInterference.h"
 
-#include <OpenMS/ANALYSIS/OPENSWATH/TransitionPQPFile.h>
+#include "OpenDIALibrary.h"
+
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <OpenMS/FORMAT/FileHandler.h>
@@ -113,8 +114,7 @@ protected:
     const int threads = getIntOption_("threads");
 
     // Library: precursor m/z and the up to 12 fragments per precursor in transition ID order (the slot order of build12.py).
-    OpenSwath::LightTargetedExperiment library;
-    TransitionPQPFile().convertPQPToTargetedExperiment(getStringOption_("lib").c_str(), library);
+    const OpenDIA::Library library = OpenDIA::readLibrary(getStringOption_("lib"));
     struct LibraryFragment
     {
       long id;

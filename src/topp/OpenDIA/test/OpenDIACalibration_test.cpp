@@ -42,7 +42,7 @@ int main()
   std::uniform_real_distribution<double> uniform(0.0, 1.0);
   std::normal_distribution<double> noise(0.0, 1.0);
 
-  OpenSwath::LightTargetedExperiment library;
+  OpenDIA::Library library;
   std::vector<std::pair<std::string, std::string>> traml_ids;
   struct Truth
   {
@@ -67,7 +67,7 @@ int main()
     for (int decoy = 0; decoy < 2; ++decoy)
     {
       const std::string id = std::to_string(2 * p + decoy);
-      OpenSwath::LightCompound compound;
+      OpenDIA::LibraryCompound compound;
       compound.id = id;
       compound.rt = t.library_rt;
       compound.drift_time = t.im;
@@ -75,7 +75,7 @@ int main()
       traml_ids.emplace_back(id, (decoy ? "DECOY_pep" : "pep") + std::to_string(p));
       for (std::size_t f = 0; f < 6; ++f)
       {
-        OpenSwath::LightTransition transition;
+        OpenDIA::LibraryTransition transition;
         transition.peptide_ref = id;
         transition.precursor_mz = t.precursor_mz;
         // Decoy fragments are shifted and do not co-elute.

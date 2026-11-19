@@ -8,7 +8,6 @@
 
 #pragma once
 
-#include <OpenMS/ANALYSIS/OPENSWATH/PeakMapExtractor.h>
 #include <OpenMS/INTERFACES/IMSDataConsumer.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
 
@@ -21,6 +20,20 @@
 
 namespace OpenMS::OpenDIA
 {
+  /// Raw points of one extracted peak map (the fields of the OpenSWATH .xipm schema).
+  struct PeakMap
+  {
+    std::string native_id;
+    double target_mz = 0.0;
+    double target_rt = std::numeric_limits<double>::quiet_NaN();
+    double target_ion_mobility = -1.0;
+    double rt_start = 0.0;
+    double rt_end = -1.0;
+    std::vector<double> mz;
+    std::vector<double> rt;
+    std::vector<double> ion_mobility;
+    std::vector<double> intensity;
+  };
   /// One precursor whose raw MS1 and MS2 points are kept for inspection.
   struct PeakMapTarget
   {
@@ -67,7 +80,7 @@ namespace OpenMS::OpenDIA
   {
   public:
     /// Receives one peak map and its MS level (1 precursor, 2 fragment).
-    using Sink = std::function<void(const PeakMapExtractor::ExtractedPeakMap&, int)>;
+    using Sink = std::function<void(const PeakMap&, int)>;
 
     PeakMapCollector(std::vector<PeakMapTarget> targets, PeakMapOptions options, Sink sink);
 
@@ -91,8 +104,8 @@ namespace OpenMS::OpenDIA
     {
       double rt_start = -std::numeric_limits<double>::infinity();
       double rt_end = std::numeric_limits<double>::infinity();
-      std::vector<PeakMapExtractor::ExtractedPeakMap> ms1;
-      std::vector<PeakMapExtractor::ExtractedPeakMap> ms2;
+      std::vector<PeakMap> ms1;
+      std::vector<PeakMap> ms2;
       bool emitted = false;
     };
 

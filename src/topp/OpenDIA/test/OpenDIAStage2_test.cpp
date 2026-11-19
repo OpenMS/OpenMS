@@ -8,7 +8,6 @@
 
 #include "OpenDIAStage2.h"
 
-#include <OpenMS/ANALYSIS/OPENSWATH/DIAHelper.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/METADATA/Precursor.h>
 
@@ -242,14 +241,14 @@ int main()
 
   // 6. TraceCollector evidence: MS1 trace, mass errors and isotope; tensor unchanged by enabling evidence.
   {
-    OpenSwath::LightTargetedExperiment lib;
-    OpenSwath::LightCompound compound;
+    OpenDIA::Library lib;
+    OpenDIA::LibraryCompound compound;
     compound.id = "1";
     compound.charge = 2;
     lib.compounds.push_back(compound);
     for (int k = 0; k < 3; ++k)
     {
-      OpenSwath::LightTransition t;
+      OpenDIA::LibraryTransition t;
       t.transition_name = "t" + std::to_string(k);
       t.peptide_ref = "1";
       t.precursor_mz = 500.0;
@@ -377,14 +376,14 @@ int main()
     require(z[0] == 10.0 && z[2] == 0.0 && std::abs(z[6] - 1.0) < 1e-12 && z[8] == 0.0, "empty window defaults");
 
     // Collection: core-window monoisotope, ppm and isotope sums per channel; the tensor is unchanged.
-    OpenSwath::LightTargetedExperiment lib;
-    OpenSwath::LightCompound compound;
+    OpenDIA::Library lib;
+    OpenDIA::LibraryCompound compound;
     compound.id = "1";
     compound.charge = 2;
     lib.compounds.push_back(compound);
     for (int k = 0; k < 2; ++k)
     {
-      OpenSwath::LightTransition t;
+      OpenDIA::LibraryTransition t;
       t.transition_name = "t" + std::to_string(k);
       t.peptide_ref = "1";
       t.precursor_mz = 500.0;

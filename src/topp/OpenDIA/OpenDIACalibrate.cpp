@@ -6,7 +6,6 @@
 // --------------------------------------------------------------------------
 #include "OpenDIACalibration.h"
 
-#include <OpenMS/ANALYSIS/OPENSWATH/TransitionPQPFile.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/OPTIONS/PeakFileOptions.h>
@@ -84,9 +83,8 @@ namespace OpenMS
       }
 
       const std::string library_path = getStringOption_("lib");
-      OpenSwath::LightTargetedExperiment library;
-      TransitionPQPFile().convertPQPToTargetedExperiment(library_path.c_str(), library);
-      const auto traml_map = TransitionPQPFile().getPQPCurrentIDToTraMLIDMap(library_path.c_str(), "PRECURSOR");
+      const OpenDIA::Library library = OpenDIA::readLibrary(library_path);
+      const auto traml_map = OpenDIA::readPrecursorTraMLIDs(library_path);
       const std::vector<std::pair<std::string, std::string>> traml_ids(traml_map.begin(), traml_map.end());
 
       const auto start = std::chrono::steady_clock::now();

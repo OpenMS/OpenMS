@@ -10,7 +10,8 @@
 #include "OpenDIAPeakMaps.h"
 #include "OpenDIASearch.h"
 
-#include <OpenMS/ANALYSIS/OPENSWATH/TransitionPQPFile.h>
+#include "OpenDIALibrary.h"
+
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/FORMAT/DATAACCESS/XIPMParquetConsumer.h>
 #include <OpenMS/FORMAT/FileHandler.h>
@@ -164,8 +165,7 @@ protected:
       }
     }
 
-    OpenSwath::LightTargetedExperiment targeted;
-    TransitionPQPFile().convertPQPToTargetedExperiment(library.c_str(), targeted);
+    OpenDIA::Library targeted = OpenDIA::readLibrary(library);
     if (calibration)
     {
       // Library to run coordinates. The RT field then holds the predicted run RT, so the RT window and the
@@ -281,7 +281,7 @@ protected:
       }
 
       // Library subset for the writer's row metadata; ids and (calibrated) coordinates are copied unchanged.
-      OpenSwath::LightTargetedExperiment subset;
+      OpenDIA::Library subset;
       std::unordered_map<std::string, std::size_t> target_index;
       std::vector<OpenDIA::PeakMapTarget> targets;
       for (const auto& compound : targeted.getCompounds())
@@ -316,13 +316,53 @@ protected:
         writeLogError_("-out_xipm: no library precursor selected.");
         return ILLEGAL_PARAMETERS;
       }
-      xipm_writer = std::make_unique<XIPMParquetConsumer>(xipm_path, subset);
+      // The .xipm writer (OpenMS format I/O) takes OpenSWATH types; they are built here, at the export edge only.
+      OpenSwath::LightTargetedExperiment xipm_library;
+      for (const auto& c : subset.compounds)
+      {
+        OpenSwath::LightCompound x;
+        x.id = c.id;
+        x.sequence = c.sequence;
+        x.charge = c.charge;
+        x.rt = c.rt;
+        x.drift_time = c.drift_time;
+        xipm_library.compounds.push_back(std::move(x));
+      }
+      for (const auto& t : subset.transitions)
+      {
+        OpenSwath::LightTransition x;
+        x.transition_name = t.transition_name;
+        x.peptide_ref = t.peptide_ref;
+        x.library_intensity = t.library_intensity;
+        x.product_mz = t.product_mz;
+        x.precursor_mz = t.precursor_mz;
+        x.precursor_im = t.precursor_im;
+        x.fragment_charge = t.fragment_charge;
+        x.fragment_nr = t.fragment_nr;
+        x.setFragmentType(t.fragment_type);
+        x.setDecoy(t.decoy);
+        xipm_library.transitions.push_back(std::move(x));
+      }
+      xipm_writer = std::make_unique<XIPMParquetConsumer>(xipm_path, xipm_library);
       const std::string source_file = File::basename(input);
       XIPMParquetConsumer* writer = xipm_writer.get();
       peak_maps = std::make_unique<OpenDIA::PeakMapCollector>(
         std::move(targets), map_options,
-        [writer, source_file](const PeakMapExtractor::ExtractedPeakMap& map, int ms_level)
-        { writer->consumePeakMap(map, 0, source_file, ms_level); });
+        [writer, source_file](const OpenDIA::PeakMap& map, int ms_level)
+        {
+          PeakMapExtractor::ExtractedPeakMap x;
+          x.native_id = map.native_id;
+          x.target_mz = map.target_mz;
+          x.target_rt = map.target_rt;
+          x.target_ion_mobility = map.target_ion_mobility;
+          x.rt_start = map.rt_start;
+          x.rt_end = map.rt_end;
+          x.mz = map.mz;
+          x.rt = map.rt;
+          x.ion_mobility = map.ion_mobility;
+          x.intensity = map.intensity;
+          writer->consumePeakMap(x, 0, source_file, ms_level);
+        });
       writeLogInfo_("Peak-map export: " + std::to_string(subset.compounds.size()) + " precursors, rt_half_window_s=" +
                     std::to_string(rt_half_window) + " mz_tolerance_ppm=" + std::to_string(map_options.mz_tolerance_ppm));
     }
@@ -395,7 +435,7 @@ protected:
   }
 
 private:
-  static std::vector<OpenDIA::TransitionQuery> makeQueries_(OpenSwath::LightTargetedExperiment& targeted)
+  static std::vector<OpenDIA::TransitionQuery> makeQueries_(OpenDIA::Library& targeted)
   {
     struct LibraryCoordinates
     {
@@ -446,7 +486,7 @@ private:
       if (left.transition_name != right.transition_name) return left.transition_name < right.transition_name;
       return left.peptide_ref < right.peptide_ref;
     });
-    std::vector<OpenSwath::LightTransition> sorted;
+    std::vector<OpenDIA::LibraryTransition> sorted;
     sorted.reserve(transitions.size());
     for (const SortKey& key : keys)
     {

@@ -74,12 +74,12 @@ int main(int argc, char** argv)
 {
   require(argc == 2, "Expected unique test output prefix.");
   const std::string prefix(argv[1]);
-  OpenSwath::LightTargetedExperiment library;
-  OpenSwath::LightCompound compound;
+  OpenDIA::Library library;
+  OpenDIA::LibraryCompound compound;
   compound.id = "target";
   compound.drift_time = 1.0;
   library.compounds.push_back(compound);
-  OpenSwath::LightTransition first;
+  OpenDIA::LibraryTransition first;
   first.peptide_ref = "target";
   first.precursor_mz = 500;
   first.product_mz = 100;
@@ -226,12 +226,12 @@ int main(int argc, char** argv)
 
   // b/y ion counts: PEPTIDEK singly charged b2..b7 / y1..y7 inside 150.06-2000 Th, nearest isolating spectrum in the core only.
   {
-    OpenSwath::LightTargetedExperiment by_library;
-    OpenSwath::LightCompound peptide;
+    OpenDIA::Library by_library;
+    OpenDIA::LibraryCompound peptide;
     peptide.id = "pep";
     peptide.sequence = "PEPTIDEK";
     by_library.compounds.push_back(peptide);
-    OpenSwath::LightTransition t;
+    OpenDIA::LibraryTransition t;
     t.peptide_ref = "pep";
     t.precursor_mz = 500;
     t.product_mz = 300;
@@ -277,7 +277,7 @@ int main(int argc, char** argv)
     auto again = ms2(100, {{227.1026, 1000}});
     plain.consumeSpectrum(again);
     require(plain.evidence(0).byion_b == 0 && std::isinf(plain.evidence(0).byion_apex_dt), "counts collected without opt-in");
-    OpenSwath::LightTargetedExperiment no_sequence = by_library;
+    OpenDIA::Library no_sequence = by_library;
     no_sequence.compounds[0].sequence.clear();
     OpenDIA::TraceCollector missing(by_windows, no_sequence);
     missing.enableEvidence(20, 4);

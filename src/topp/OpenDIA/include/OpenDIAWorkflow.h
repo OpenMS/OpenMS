@@ -12,7 +12,7 @@
 #include <OpenDIAScorer.h>
 #include <OpenDIASearch.h>
 
-#include <OpenMS/OPENSWATHALGO/DATAACCESS/TransitionExperiment.h>
+#include <OpenDIALibrary.h>
 
 #include <array>
 #include <cstddef>
@@ -54,7 +54,7 @@ namespace OpenMS::OpenDIA
       std::uint8_t scoring_count = 0;
     };
 
-    OpenSwath::LightTargetedExperiment search;  ///< Search library (calibrated in place by calibrate()).
+    OpenDIA::Library search;  ///< Search library (calibrated in place by calibrate()).
     std::vector<Precursor> precursors;
     std::unordered_map<std::string, std::uint32_t> index;  ///< PQP precursor ID -> index.
     std::vector<std::pair<std::string, std::string>> traml_ids;
