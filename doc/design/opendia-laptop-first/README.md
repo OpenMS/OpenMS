@@ -319,6 +319,14 @@ Dependency order: R-WP5 uses R-WP1 to R-WP4. R-WP6 needs R-WP4 and R-WP5.
 - Write the pass rule in a PLAN file (with sha256 and time) before each run or training. Do not change a rule after a result.
 - Design on raws 01 and 02 only. Do not tune on an evaluation run. Raw 03 needs approval.
 - Entrapment labels never go into training. DIA-NN and OSW are references only. Do not reuse OSW scoring code.
+- **No OpenSWATH code in OpenDIA.** Use only the OpenMS readers and low-level classes (spectra, chemistry, SQLite).
+  - The ctest `OpenDIA_no_openswath` fails on any OpenSWATH reference in the core (`include/`, `source/`).
+  - Since 1f29ce2da8 the core is clean: its own PQP reader and library types (`OpenDIALibrary`), its own peak-map
+    struct, and the isotope pattern taken directly from `CoarseIsotopePatternGenerator`.
+  - Two marked edges remain in tool files. One is `OpenDIAWorkflow -decoys predict` (`OpenSwathLibraryPreparation`),
+    which is pending a decision. The other is the `-out_xipm` writer of the `OpenDIA` dev tool, an OpenMS format
+    writer that takes OpenSWATH types.
+  - OpenDIAWorkflow still links the full libOpenMS (105 MB), so the binary is not yet small.
 - Never report a calibrated FDR from decoy counts alone. Call q-derived counts decoy-count estimates. Agreement with OpenSWATH is not truth.
 - Native Bruker and Thermo input, with no mandatory conversion.
 - Inputs and baseline OSW files are read-only.
