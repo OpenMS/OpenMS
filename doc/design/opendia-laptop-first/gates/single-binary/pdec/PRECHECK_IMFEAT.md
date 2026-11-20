@@ -85,5 +85,23 @@ Same sample, labels, GBM and proceed rule. Two variants that the workflow can co
 
 ## Decision
 
-- **Step 2:** core5, implemented in C++ as `-mobility_apex` (opt-in): a 6 × 30 core-window 1/K0 histogram per window, collected in the extraction pass and held in the window's streaming slot, and 5 features from it. It goes into one frozen plan after an r≈1.56 s0 check.
+- **Step 2:** core5, implemented in C++ as `-mobility_apex` (opt-in, OpenMS 8f113de11a): a 6 × 30 core-window 1/K0 histogram per window, collected in the extraction pass and held in the window's streaming slot, and 5 features from it. The default stays byte-identical to `gap7/ev/newdef` (r≈1.56 D s0), with 25/25 ctests.
 - **Net:** not yet. CNN2d alone is below the bar, and its stacked gain partly overlaps band6. A C++ 2-D net would be a later, separate plan if band6 lands and the remaining gap justifies it.
+
+## Workflow check, r≈1.56 D, 2 seeds (no plan)
+
+This is the label-free tool against the current default, with the same library and raw file. Results are from `eval_pdec.py`. Default seed 0 is a fresh run of 8f113de11a (byte-identical to `newdef`). Default seed 1 is the earlier `gap7/ev/ims06_s1` run, which uses the same settings before the output-identical memory commits.
+
+| Arm | Seed | N @ q ≤ 1 % | E | Lower | Combined | N @ FDP_c 1 % |
+|---|---|---|---|---|---|---|
+| default | 0 | 13,629 | 78 | 0.57 % | 1.08 % | 13,388 |
+| default | 1 | 13,962 | 90 | 0.64 % | 1.22 % | 13,545 |
+| `-mobility_apex` | 0 | 14,036 | 110 | 0.78 % | 1.48 % | 13,392 |
+| `-mobility_apex` | 1 | 13,962 | 98 | 0.70 % | 1.33 % | 13,494 |
+
+- **No ID gain at true FDP 1 %:** +4 and −51, which is inside the seed spread (157).
+- **Calibration is worse:** the pooled combined bound goes from 1.15 % to 1.40 %. On seed 0 the tool accepts +407 at q ≤ 1 % with +32 entrapments, which is about 60 estimated false with k = 1.89, so the extra IDs carry a much higher false share than the base set. On seed 1 N is the same and E is +8.
+- **No decoy leak:** the decoy-vs-entrapment AUC of every `m_*` feature is 0.49-0.50, over all windows and over the top 20 % by score.
+- Cost is 6:11 against 5:44 wall time, and peak RSS is 10.70 against 10.53 GB.
+- **Reading:** the +2.2-point ceiling gain at decoy FPR 3e-3 is not realised by the label-free scorer at this scale. A gain of that size on right windows is at most about 1-2 % in IDs, which is below the seed noise here, and it costs calibration. PRECHECK_SCORER36 already showed that the scorer is not the limit, so a stronger scorer is not expected to change this.
+- **Decision:** no frozen plan. `-mobility_apex` stays as an opt-in, off by default, for later work such as a mobility-resolved net. The mobility route beyond the narrower window is closed for now.
