@@ -504,9 +504,13 @@ namespace OpenMS::OpenDIA
       if (fragment_mz[c] != 0.0) channels.push_back(c);
     if (bins.empty() || channels.empty()) return f;
 
+    std::size_t hint = 0;
+    const auto distance = [](std::size_t b) { return b > RT_BINS / 2 ? b - RT_BINS / 2 : RT_BINS / 2 - b; };
+    for (std::size_t s = 1; s < bins.size(); ++s)
+      if (distance(bins[s]) < distance(bins[hint])) hint = s;
+
     std::vector<double> consensus(RT_BINS, 0.0);
     std::vector<double> apex_vector(channels.size(), 0.0);
-    const std::size_t centre = RT_BINS / 2;
     for (std::size_t c = 0; c < channels.size(); ++c)
     {
       for (const std::size_t b : bins)
@@ -514,7 +518,12 @@ namespace OpenMS::OpenDIA
         double value = 0.0;
         for (std::size_t m = 0; m < IM_BINS; ++m) value += tensor[(channels[c] * RT_BINS + b) * IM_BINS + m];
         consensus[b] += value;
-        if (b + 1 >= centre && b <= centre + 1) apex_vector[c] += value;
+      }
+      for (std::size_t s = hint > 0 ? hint - 1 : 0; s <= std::min(hint + 1, bins.size() - 1); ++s)
+      {
+        double value = 0.0;
+        for (std::size_t m = 0; m < IM_BINS; ++m) value += tensor[(channels[c] * RT_BINS + bins[s]) * IM_BINS + m];
+        apex_vector[c] += value;
       }
     }
     double dot = 0.0, norm_x = 0.0, norm_library = 0.0;
@@ -532,10 +541,6 @@ namespace OpenMS::OpenDIA
       for (std::size_t s = 0; s < bins.size(); ++s)
         for (std::size_t m = 0; m < IM_BINS; ++m) traces[c * bins.size() + s] += tensor[(channels[c] * RT_BINS + bins[s]) * IM_BINS + m];
     std::vector<double> scratch;
-    std::size_t hint = 0;
-    const auto distance = [](std::size_t b) { return b > RT_BINS / 2 ? b - RT_BINS / 2 : RT_BINS / 2 - b; };
-    for (std::size_t s = 1; s < bins.size(); ++s)
-      if (distance(bins[s]) < distance(bins[hint])) hint = s;
     const PickedPeak peak = pickPeakGroup(traces.data(), channels.size(), bins.size(), bins.size(), 1, hint, PeakPickerOptions{}, scratch);
     if (peak.found)
     {
@@ -552,7 +557,7 @@ namespace OpenMS::OpenDIA
           const auto lower = std::max_element(outside.begin(), middle);
           median = (*lower + *middle) / 2.0;
         }
-        f[static_cast<std::size_t>(Stage2FaintFeature::LOCAL_SN)] = std::log1p(consensus[bins[peak.apex]]) - std::log1p(median);
+        f[static_cast<std::size_t>(Stage2FaintFeature::LOCAL_SN)] = std::log1p(consensus[bins[hint]]) - std::log1p(median);
       }
     }
     return f;
