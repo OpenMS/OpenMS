@@ -22,11 +22,20 @@ Round 4 r≈7 check: codon jobs 38475115 (base) and 38496478 (new) in `entlib-me
 | TraceEvidence, 10.1 M × 184 B (removed by round 4) | 1.9 GB |
 | RunWindow | 1.1 GB |
 
-## Wall time
+## Wall time (same-node A/B, codon 38539596)
 
-- Round 4 timings are noisy. On codon the new run took 12:55 against 9:31 for the base. Every stage was slower in proportion, including calibration, which round 4 does not touch (20 → 30 s), so that points to the node.
-- The local r≈1.56 run took 6:49 against 5:45. Calibration was the same (27.3 against 28.0 s), but search, extraction and features were 20-25 % slower. That run is a single one on a laptop with a load average of about 7 from other processes.
-- Extraction does more per-hit work now (serial slot allocation), so some cost is possible. A same-node A/B on codon is needed before the cost is stated. It is not claimed as zero.
+This is one sbatch job on one node, running base, new, base, new in turn on r≈7 D s0 (default, `-threads 8`, no `-features_out`). All four outputs are byte-identical.
+
+| Run | Wall | Extraction consume | Features | Peak RSS |
+|---|---|---|---|---|
+| base 1 | 9:12.6 | 192.2 s | 157.4 s | 35.28 GB |
+| new 2 | 9:22.4 | 198.4 s | 160.6 s | 34.03 GB |
+| base 3 | 9:15.1 | 191.2 s | 162.1 s | 35.60 GB |
+| new 4 | 9:20.1 | 198.7 s | 161.7 s | 33.77 GB |
+
+- **Cost:** wall time is +1.3 % (9:21.2 against 9:13.8 on the means). Extraction consume is +3.6 % (198.6 against 191.7 s), which is the serial slot allocation. Other stages are within noise.
+- **Saving:** peak RSS is −1.5 GB (35.44 → 33.90 GB on the means).
+- The earlier gaps (codon 12:55 against 9:31, local 6:49 against 5:45) were node and laptop load, not the change.
 
 ## What is left
 
