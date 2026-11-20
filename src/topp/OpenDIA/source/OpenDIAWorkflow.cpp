@@ -586,6 +586,8 @@ namespace OpenMS::OpenDIA
     // The collector has copied what it needs (fragments, sequences' ions), so the calibrated library copy is dead:
     // release it before the extraction pass, where the run's memory peaks.
     targeted = OpenDIA::Library();
+    // Candidate identity strings are not read by the workflow after setup.
+    traces.releaseWindowIds();
     std::string extract_io;
     {
       TeeConsumer both(grids, traces);

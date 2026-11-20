@@ -128,16 +128,16 @@ namespace OpenMS::OpenDIA
         return a->product_mz < b->product_mz;
       });
       Sample sample;
-      sample.window = std::move(window);
+      sample.apex_rt = window.apex_rt;
       sample.precursor_mz = fragments.front()->precursor_mz;
       sample.is_decoy = fragments.front()->getDecoy();
-      require(!sample.is_decoy || sample.window.label != 1, "A decoy cannot be a positive seed.");
-      const auto mobility = mobilities.find(sample.window.precursor_id);
+      require(!sample.is_decoy || window.label != 1, "A decoy cannot be a positive seed.");
+      const auto mobility = mobilities.find(window.precursor_id);
       if (mobility != mobilities.end() && std::isfinite(mobility->second) && mobility->second > 0.0)
       {
         sample.precursor_im = mobility->second;
       }
-      const auto charge = charges.find(sample.window.precursor_id);
+      const auto charge = charges.find(window.precursor_id);
       sample.precursor_charge = charge != charges.end() ? charge->second : 0;
       for (std::size_t i = 0; i < std::min(FRAGMENTS, fragments.size()); ++i)
       {
@@ -147,6 +147,7 @@ namespace OpenMS::OpenDIA
       }
       samples_.push_back(std::move(sample));
     }
+    windows_ = std::move(windows);
     // Without any library mobility every point lands in the central mobility bin (compatible_im is never true in
     // consumeSpectrum), so storing only that bin gives the same tensor at 1/8 of the memory.
     im_bins_ = std::any_of(samples_.begin(), samples_.end(), [](const Sample& s) { return s.precursor_im > 0.0; }) ? IM_BINS : 1;
@@ -169,7 +170,7 @@ namespace OpenMS::OpenDIA
     by_rt_.resize(samples_.size());
     std::iota(by_rt_.begin(), by_rt_.end(), 0);
     std::stable_sort(by_rt_.begin(), by_rt_.end(), [this](std::size_t a, std::size_t b)
-    { return samples_[a].window.apex_rt < samples_[b].window.apex_rt; });
+    { return samples_[a].apex_rt < samples_[b].apex_rt; });
     // MS2 isolation lookup: a spectrum only visits the buckets its isolation windows overlap (see consumeSpectrum).
     double low = std::numeric_limits<double>::infinity(), high = -low;
     for (const auto& s : samples_) { low = std::min(low, s.precursor_mz); high = std::max(high, s.precursor_mz); }
@@ -245,7 +246,7 @@ namespace OpenMS::OpenDIA
     byion_range_.assign(samples_.size(), {0, 0, 0});
     for (std::size_t i = 0; i < samples_.size(); ++i)
     {
-      const std::string& id = samples_[i].window.precursor_id;
+      const std::string& id = windows_[i].precursor_id;
       auto found = ranges.find(id);
       if (found == ranges.end())
       {
@@ -312,8 +313,8 @@ namespace OpenMS::OpenDIA
   {
     const double rt = spectrum.getRT();
     auto first = std::lower_bound(by_rt_.begin(), by_rt_.end(), rt - rt_half_width_,
-                                  [this](std::size_t i, double value) { return samples_[i].window.apex_rt < value; });
-    if (first == by_rt_.end() || samples_[*first].window.apex_rt > rt + rt_half_width_)
+                                  [this](std::size_t i, double value) { return samples_[i].apex_rt < value; });
+    if (first == by_rt_.end() || samples_[*first].apex_rt > rt + rt_half_width_)
     {
       return;
     }
@@ -338,7 +339,7 @@ namespace OpenMS::OpenDIA
       return total;
     };
     std::vector<std::size_t> ms1_hits;
-    for (auto active = first; active != by_rt_.end() && samples_[*active].window.apex_rt <= rt + rt_half_width_; ++active) ms1_hits.push_back(*active);
+    for (auto active = first; active != by_rt_.end() && samples_[*active].apex_rt <= rt + rt_half_width_; ++active) ms1_hits.push_back(*active);
     // Each sample writes only its own evidence, so the samples are independent (thread-count invariant).
 #pragma omp parallel for schedule(dynamic, 256) num_threads(threads_) if (threads_ > 1 && ms1_hits.size() >= 1024)
     for (std::ptrdiff_t h = 0; h < static_cast<std::ptrdiff_t>(ms1_hits.size()); ++h)
@@ -346,9 +347,9 @@ namespace OpenMS::OpenDIA
       const std::size_t index = ms1_hits[static_cast<std::size_t>(h)];
       const Sample& sample = samples_[index];
       TraceEvidence& evidence = evidence_[index];
-      const std::size_t bin = rtBin_(rt, sample.window.apex_rt);
+      const std::size_t bin = rtBin_(rt, sample.apex_rt);
       evidence.ms1_mask |= std::uint32_t{1} << bin;
-      const bool core = std::abs(rt - sample.window.apex_rt) <= core_half_width_;
+      const bool core = std::abs(rt - sample.apex_rt) <= core_half_width_;
       double ppm_sum = 0.0, weight = 0.0;
       const double mono = sum_window(sample.precursor_mz, ppm_sum, weight);
       evidence.ms1[bin] += static_cast<float>(mono);
@@ -381,8 +382,8 @@ namespace OpenMS::OpenDIA
     }
     const double rt = spectrum.getRT();
     auto first = std::lower_bound(by_rt_.begin(), by_rt_.end(), rt - rt_half_width_,
-                                  [this](std::size_t i, double value) { return samples_[i].window.apex_rt < value; });
-    if (first == by_rt_.end() || samples_[*first].window.apex_rt > rt + rt_half_width_)
+                                  [this](std::size_t i, double value) { return samples_[i].apex_rt < value; });
+    if (first == by_rt_.end() || samples_[*first].apex_rt > rt + rt_half_width_)
     {
       return;
     }
@@ -434,8 +435,8 @@ namespace OpenMS::OpenDIA
     {
       const auto& in_bucket = by_mz_rt_[bucket];
       auto from_rt = std::lower_bound(in_bucket.begin(), in_bucket.end(), rt - rt_half_width_,
-                                      [this](std::uint32_t i, double value) { return samples_[i].window.apex_rt < value; });
-      for (auto active = from_rt; active != in_bucket.end() && samples_[*active].window.apex_rt <= rt + rt_half_width_; ++active)
+                                      [this](std::uint32_t i, double value) { return samples_[i].apex_rt < value; });
+      for (auto active = from_rt; active != in_bucket.end() && samples_[*active].apex_rt <= rt + rt_half_width_; ++active)
       {
         const double precursor_mz = samples_[*active].precursor_mz;
         for (const auto& [from, to] : isolation)
@@ -479,13 +480,13 @@ namespace OpenMS::OpenDIA
         sample.has_im = true;
       }
       const auto rt_bin = std::min(RT_BINS - 1, static_cast<std::size_t>(
-        std::max(0.0, (rt - sample.window.apex_rt + rt_half_width_) / (2.0 * rt_half_width_)) * RT_BINS));
+        std::max(0.0, (rt - sample.apex_rt + rt_half_width_) / (2.0 * rt_half_width_)) * RT_BINS));
       TraceEvidence* evidence = evidence_.empty() ? nullptr : &evidence_[index];
-      const bool core = evidence != nullptr && std::abs(rt - sample.window.apex_rt) <= core_half_width_;
+      const bool core = evidence != nullptr && std::abs(rt - sample.apex_rt) <= core_half_width_;
       if (evidence != nullptr)
       {
         evidence->ms2_mask |= std::uint32_t{1} << rt_bin;
-        if (core && !byion_range_.empty()) { countByIons_(spectrum, index, std::abs(rt - sample.window.apex_rt)); }
+        if (core && !byion_range_.empty()) { countByIons_(spectrum, index, std::abs(rt - sample.apex_rt)); }
       }
       for (std::size_t fragment = 0; fragment < FRAGMENTS; ++fragment)
       {
@@ -611,7 +612,7 @@ namespace OpenMS::OpenDIA
   void TraceCollector::close_(double rt)
   {
     // A window receives spectra with RT in [apex - half, apex + half]; once rt passes apex + half it is complete.
-    while (close_cursor_ < by_rt_.size() && samples_[by_rt_[close_cursor_]].window.apex_rt < rt - rt_half_width_)
+    while (close_cursor_ < by_rt_.size() && samples_[by_rt_[close_cursor_]].apex_rt < rt - rt_half_width_)
     {
       const auto index = static_cast<std::uint32_t>(by_rt_[close_cursor_++]);
       closed_[index] = 1;

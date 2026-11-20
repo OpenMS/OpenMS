@@ -144,8 +144,10 @@ namespace OpenMS::OpenDIA
     const float* windowTensor(std::size_t i, std::array<float, SAMPLE_SIZE>& buffer) const;
     /// Whether sample i contains compatible, library-centred mobility measurements.
     bool hasIM(std::size_t i) const { return samples_.at(i).has_im; }
-    /// Candidate identity and explicit seed label, never network inputs.
-    const TraceWindow& window(std::size_t i) const { return samples_.at(i).window; }
+    /// Candidate identity and explicit seed label, never network inputs. Unavailable after releaseWindowIds().
+    const TraceWindow& window(std::size_t i) const { return windows_.at(i); }
+    /// Free the candidate identities (window() then throws); enableByIonCounts() must already have been called if used.
+    void releaseWindowIds() { std::vector<TraceWindow>().swap(windows_); }
     /// Library decoy status, used only for validating seed labels.
     bool isDecoy(std::size_t i) const { return samples_.at(i).is_decoy; }
     /// Unnormalized library fragment intensities in tensor channel order.
@@ -218,7 +220,7 @@ namespace OpenMS::OpenDIA
   private:
     struct Sample
     {
-      TraceWindow window;
+      double apex_rt = 0.0;
       double precursor_mz = 0.0;
       double precursor_im = 0.0;
       int precursor_charge = 0;
@@ -230,6 +232,7 @@ namespace OpenMS::OpenDIA
       std::array<std::int8_t, FRAGMENTS> fragment_charge{};
     };
     std::vector<Sample> samples_;
+    std::vector<TraceWindow> windows_;  ///< Candidate identities by sample, until releaseWindowIds().
     std::vector<std::size_t> by_rt_;
     /// Samples by precursor m/z bucket (MZ_BUCKET_TH wide, from mz_bucket_origin_), each bucket in by_rt_ order.
     static constexpr double MZ_BUCKET_TH = 1.0;
