@@ -81,6 +81,13 @@ class NuXLAnnotateAndLocate
            residues the fragment ions support (see @ref NuXLSiteLocalization::localizeNHS),
            and stores how the site was chosen and that range in @c localization_method and
            @c localization_range_begin / @c localization_range_end.
+         - With @p loss_aware_localization, localizes by @ref NuXLSiteLocalization::localizeLossAware:
+           lowercases the tied residues in @c best_localization, stores the N-terminal-most in
+           @c best_localization_position, their range in @c localization_range_begin /
+           @c localization_range_end, the score distance to the next residue in @c localization_delta, and
+           a second, distinguishable cross-link site (if any) in @c secondary_localization_position,
+           @c secondary_localization_range_begin / @c secondary_localization_range_end and
+           @c secondary_localization_gain.
 
     All output goes into @p annotated_hits — no exceptions are thrown by this function;
     malformed alignments emit @c OPENMS_LOG_WARN. Hits whose precursor adduct or

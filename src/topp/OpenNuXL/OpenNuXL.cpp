@@ -1263,7 +1263,7 @@ protected:
     registerStringOption_("NuXL:localization",
                         "<method>",
                         "fragments",
-                        "How cross-links are localized. 'fragments': at the residue the shifted fragment ions point to. 'loss_aware': at the residue most consistent with all fragment ions: shifted ions count for the residues they contain and against all others, unshifted ions count against the residues they contain unless a shifted ion of the same length shows that the cross-link was merely lost, and the C-terminal residue the enzyme cleaved after is excluded unless the peptide ends the protein. Reports the residues the ions can't tell apart in NuXL:localization_range and the score distance to the next-best residue in NuXL:localization_delta. 'NHS': for cross-linkers attached through an NHS ester (e.g. SDA), by its chemistry among the residues the fragment ions can't tell apart: the free protein N-terminus, then lysine, then S/T/Y with a histidine within four residues, skipping residues with a modification other than a pure isotope substitution (e.g. Acetyl (K) or TMT6plex (K), but not Label:13C(6) (K)) and, if the enzyme cleaves after lysine, a C-terminal lysine unless the peptide ends the protein; otherwise unlocalized. Reports how the site was chosen in NuXL:localization_method and the supported residues in NuXL:localization_range.",
+                        "How cross-links are localized. 'fragments': at the residue the shifted fragment ions point to. 'loss_aware': at the residue most consistent with all fragment ions: shifted ions count for the residues they contain and against all others, unshifted ions count against the residues they contain unless a shifted ion of the same length shows that the cross-link was merely lost, and the C-terminal residue the enzyme cleaved after is excluded unless the peptide ends the protein. Reports the tied residues (equally likely, as no fragment ion tells them apart) in NuXL:localization_range and the score distance to the best residue not tied with them in NuXL:localization_delta. If the fragment ions also show a second cross-linked form, distinguishable from the first by shifted ions only it explains, reports its site in NuXL:secondary_localization_position, the residues tied with it in NuXL:secondary_localization_range, and how much it improves the explanation of the fragment ions in NuXL:secondary_localization_gain (at least 0.2, in the units of NuXL:localization_delta; -1, NA and 0 if there is none). 'NHS': for cross-linkers attached through an NHS ester (e.g. SDA), by its chemistry among the residues the fragment ions can't tell apart: the free protein N-terminus, then lysine, then S/T/Y with a histidine within four residues, skipping residues with a modification other than a pure isotope substitution (e.g. Acetyl (K) or TMT6plex (K), but not Label:13C(6) (K)) and, if the enzyme cleaves after lysine, a C-terminal lysine unless the peptide ends the protein; otherwise unlocalized. Reports how the site was chosen in NuXL:localization_method and the supported residues in NuXL:localization_range.",
                         false,
                         true);
     setValidStrings_("NuXL:localization", {"fragments", "loss_aware", "NHS"});
@@ -3814,7 +3814,14 @@ protected:
         ph.setMetaValue("NuXL:localization_method", ah.localization_method);
         ph.setMetaValue("NuXL:localization_range", ah.localization_range_begin < 0 ? std::string("NA")
           : StringUtils::toStr(ah.localization_range_begin) + "-" + StringUtils::toStr(ah.localization_range_end));
-        if (loss_aware_localization_) { ph.setMetaValue("NuXL:localization_delta", ah.localization_delta); }
+        if (loss_aware_localization_)
+        {
+          ph.setMetaValue("NuXL:localization_delta", ah.localization_delta);
+          ph.setMetaValue("NuXL:secondary_localization_position", ah.secondary_localization_position);
+          ph.setMetaValue("NuXL:secondary_localization_range", ah.secondary_localization_range_begin < 0 ? std::string("NA")
+            : StringUtils::toStr(ah.secondary_localization_range_begin) + "-" + StringUtils::toStr(ah.secondary_localization_range_end));
+          ph.setMetaValue("NuXL:secondary_localization_gain", ah.secondary_localization_gain);
+        }
       }
 
       // one-hot encoding of cross-linked nucleotide
