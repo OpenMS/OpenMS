@@ -61,9 +61,29 @@ seeds.
 - **Everything together** gives the largest gain (+2.9-4.0 points, Q1 +0.07-0.09), but only part of it is beyond band6.
 - **Caveats.**
   - These are DIA-NN-labelled ceilings on one run. A label-free scorer realises less.
-  - The band6 features here are computed from raw points (xipm), which the workflow does not keep. A check of the C++-feasible version, a per-fragment 1/K0 histogram over the core window built from the binned points, is running (codon 38358442) before any code.
+  - The band6 features here are computed from raw points (xipm), which the workflow does not keep. The C++-feasible check follows below.
+
+## C++-feasible variants (codon 38380330)
+
+Same sample, labels, GBM and proceed rule. Two variants that the workflow can compute without raw points:
+
+- **core5:** a per-fragment 1/K0 histogram (30 bins of 0.004 over ±0.06 around the calibrated mobility) of the points in the core window (|rt − apex| ≤ 4 s). From it: apex offset, fragment SD near the apex, apex cosine with the library, apex support and apex/side contrast.
+- **tensor5:** the same five features from the 8 mobility bins (±0.03) that the trace tensor already holds.
+
+| Arm | Seed 0 (1e-3 / 3e-3 / 1e-2) | Seed 1 | Q1 @ 3e-3 | Δ @ 3e-3 | Result |
+|---|---|---|---|---|---|
+| 36 | 0.623 / 0.688 / 0.755 | 0.607 / 0.685 / 0.751 | 0.378 / 0.371 | | |
+| 36 + band6 | 0.656 / 0.711 / 0.779 | 0.652 / 0.709 / 0.776 | 0.417 / 0.415 | +0.023 / +0.024 | proceed |
+| **36 + core5** | **0.647 / 0.710 / 0.774** | **0.639 / 0.707 / 0.775** | **0.418 / 0.408** | **+0.022 / +0.022** | **proceed** |
+| 36 + core5 + band6 | 0.674 / 0.723 / 0.793 | 0.664 / 0.721 / 0.789 | 0.446 / 0.445 | +0.035 / +0.036 | proceed |
+| 36 + tensor5 | 0.635 / 0.706 / 0.771 | 0.628 / 0.705 / 0.770 | 0.414 / 0.412 | +0.018 / +0.020 | no (seed 0 below) |
+| 36 + tensor5 + core5 | 0.651 / 0.713 / 0.779 | 0.644 / 0.707 / 0.777 | 0.422 / 0.414 | +0.025 / +0.022 | proceed, ≈ core5 |
+
+- **core5 carries the band6 gain** (+2.2 against +2.3-2.4 points, with the same Q1). It needs only binned points from the extraction pass.
+- **tensor5 is borderline,** because the tensor's ±0.03 is too narrow to see an apex that sits off the library mobility. Added to core5 it gives nothing more, so it is not taken.
+- core5 + band6 is higher (+3.5), so the raw-point band features hold some more information. They would need a second pass over the raw points and are not taken now.
 
 ## Decision
 
-- **Step 2 candidate:** the band6 evidence, implemented as additional features in the extraction pass (per-fragment 1/K0 histogram in the core window), if the C++-feasible variant keeps the gain. It goes into one frozen plan.
+- **Step 2:** core5, implemented in C++ as `-mobility_apex` (opt-in): a 6 × 30 core-window 1/K0 histogram per window, collected in the extraction pass and held in the window's streaming slot, and 5 features from it. It goes into one frozen plan after an r≈1.56 s0 check.
 - **Net:** not yet. CNN2d alone is below the bar, and its stacked gain partly overlaps band6. A C++ 2-D net would be a later, separate plan if band6 lands and the remaining gap justifies it.
