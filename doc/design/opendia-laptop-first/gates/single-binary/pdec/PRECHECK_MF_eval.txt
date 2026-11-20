@@ -1,0 +1,44 @@
+ppm offset 0.577 sigma 4.955, im 0.01572+0.98964x
+joined 138144, X36 36, right windows 5707, missed DIA-NN ids 2537, tool positives 3463
+ceiling 36           s0 all 0.676/0.736/0.803 missed 0.135/0.268/0.446 | s1 all 0.687/0.731/0.797 missed 0.156/0.255/0.433
+ceiling 36+core5     s0 all 0.686/0.750/0.812 missed 0.167/0.306/0.471 | s1 all 0.690/0.747/0.809 missed 0.172/0.301/0.464
+ceiling 36+mf        s0 all 0.730/0.802/0.852 missed 0.304/0.463/0.587 | s1 all 0.723/0.802/0.847 missed 0.296/0.463/0.575
+ceiling 36+mt        s0 all 0.705/0.770/0.827 missed 0.225/0.370/0.516 | s1 all 0.707/0.768/0.824 missed 0.230/0.366/0.510
+ceiling 36+mf+core5  s0 all 0.730/0.807/0.853 missed 0.311/0.475/0.590 | s1 all 0.738/0.803/0.850 missed 0.324/0.466/0.582
+tool    36           s0 all 0.680/0.719/0.778 missed 0.142/0.225/0.376 | s1 all 0.660/0.716/0.771 missed 0.110/0.217/0.357
+tool    36+core5     s0 all 0.684/0.731/0.793 missed 0.151/0.250/0.416 | s1 all 0.669/0.721/0.778 missed 0.122/0.231/0.377
+tool    36+mf        s0 all 0.724/0.771/0.818 missed 0.258/0.368/0.491 | s1 all 0.704/0.753/0.808 missed 0.223/0.331/0.468
+tool    36+mt        s0 all 0.692/0.756/0.804 missed 0.182/0.328/0.453 | s1 all 0.692/0.749/0.799 missed 0.182/0.309/0.443
+tool    36+mf+core5  s0 all 0.720/0.767/0.815 missed 0.252/0.362/0.482 | s1 all 0.711/0.757/0.815 missed 0.237/0.340/0.486
+deltas at decoy FPR 3e-3 against 36 (seed 0 / seed 1):
+  ceiling 36+core5     all +0.013 / +0.016   missed +0.038 / +0.046
+  ceiling 36+mf        all +0.066 / +0.071   missed +0.195 / +0.208
+  ceiling 36+mt        all +0.034 / +0.037   missed +0.102 / +0.111
+  ceiling 36+mf+core5  all +0.070 / +0.072   missed +0.207 / +0.212
+  tool    36+core5     all +0.013 / +0.006   missed +0.025 / +0.013
+  tool    36+mf        all +0.053 / +0.038   missed +0.143 / +0.113
+  tool    36+mt        all +0.038 / +0.033   missed +0.103 / +0.091
+  tool    36+mf+core5  all +0.049 / +0.041   missed +0.137 / +0.123
+GATE 36+mf: ceiling>=+0.030: True; tool missed>=+0.020: True; PROCEED: True
+GATE 36+mt: ceiling>=+0.030: True; tool missed>=+0.020: True; PROCEED: True
+  AUC missed-right vs decoy mf_z_med    0.812
+  AUC missed-right vs decoy mf_z_trim   0.807
+  AUC missed-right vs decoy mf_n_z2     0.812
+  AUC missed-right vs decoy mf_n_z3     0.804
+  AUC missed-right vs decoy mf_loo_med  0.760
+  AUC missed-right vs decoy mf_loo_n    0.749
+  AUC missed-right vs decoy mf_cos      0.736
+  AUC missed-right vs decoy mf_dom      0.300
+  AUC missed-right vs decoy mf_ppm      0.411
+  AUC missed-right vs decoy mf_llr      0.830
+  AUC missed-right vs decoy mf_gain     0.540
+  AUC missed-right vs decoy mt_z_med    0.817
+  AUC missed-right vs decoy mt_z_trim   0.792
+  AUC missed-right vs decoy mt_n_z2     0.816
+  AUC missed-right vs decoy mt_n_z3     0.790
+  AUC missed-right vs decoy mt_loo_med  0.766
+  AUC missed-right vs decoy mt_loo_n    0.758
+  AUC missed-right vs decoy mt_cos      0.723
+  AUC missed-right vs decoy mt_dom      0.344
+  AUC missed-right vs decoy mt_llr      0.819
+done
