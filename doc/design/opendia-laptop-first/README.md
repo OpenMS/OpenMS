@@ -7,10 +7,18 @@ All of its code is under `src/topp/OpenDIA/`, apart from the Thermo read-ahead c
 It is an experimental branch, not a pull request. It must not merge into `develop` until the acceptance gates of R-WP6 pass.
 The branch's [`src/topp/OpenDIA/README.md`](https://github.com/OpenMS/OpenMS/blob/feature/opendia-clean-rewrite/src/topp/OpenDIA/README.md) describes the tools. The evidence is in [`gates/`](gates/).
 
-## Current state, 18 November 2026
+## Current state, 20 November 2026
 
 **Summary.**
-- **The evidence block is now the default (PLAN_EXTRA, 19 Nov, `pdec/RESULT_EXTRA_D.md`, `RESULT_EXTRA_H.md`; OpenMS 969b474a51).**
+- **Narrower 1/K0 window is now the default (PLAN_IMNARROW, 20 Nov, `pdec/RESULT_IMNARROW_D.md`, `RESULT_IMNARROW_H.md`; OpenMS 9ce3370ee3).**
+  - Search, grid and interference use 0.6 × the calibrated 1/K0 half width (`-im_tolerance_scale`). This cuts the
+    background that faint peaks collect.
+  - IDs at 1 % true FDP on the r ≈ 7 library: D 11,332 → 11,815 (+4.3 %), H 25,643 → 26,647 (+3.9 %). Every NEW
+    seed is above every CUR seed. That is 45 % / 65 % of DIA-NN.
+  - Own q ≤ 0.01 true FDP unchanged: D 1.19-1.36 %, H 1.06-1.21 %. No extra wall time or memory.
+  - PRECHECK_NNCEIL: a label-free 1-D trace CNN as an extra scorer input adds about as much as hand-made faint-peak
+    features (+3-4 TPR points at the 1 % tail) and overlaps them. No C++ net yet. The next test is a mobility-resolved input.
+- **The evidence block is the default (PLAN_EXTRA, 19 Nov, `pdec/RESULT_EXTRA_D.md`, `RESULT_EXTRA_H.md`; OpenMS 969b474a51).**
   - PRECHECK_IDGAP: on the 24 base features even a GBM trained on DIA-NN labels gains nothing, so the gap was
     evidence, not the learner.
   - The block adds 12 features: core mass error, MS1 area, co-elution and isotope, and ion-mobility centroid,
