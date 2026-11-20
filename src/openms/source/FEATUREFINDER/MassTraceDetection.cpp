@@ -10,6 +10,9 @@
 
 #include <OpenMS/MATH/StatisticFunctions.h>
 
+#include <algorithm>
+#include <cmath>
+#include <utility>
 #include <vector>
 
 #include <OpenMS/KERNEL/SpectrumHelper.h>
@@ -26,12 +29,12 @@ namespace OpenMS
     MassTraceDetection::MassTraceDetection() :
             DefaultParamHandler("MassTraceDetection"), ProgressLogger()
     {
-      defaults_.setValue("mass_error_ppm", 20.0, "Allowed mass deviation (in ppm).");
+      defaults_.setValue("mass_error_ppm", 20.0, "Allowed mass deviation (in ppm): the expected standard deviation of the m/z of the peaks of a mass trace. Peaks within three times this value of the centroid m/z of a mass trace can extend it.");
       defaults_.setValue("noise_threshold_int", 10.0, "Intensity threshold below which peaks are removed as noise.");
       defaults_.setValue("chrom_peak_snr", 3.0, "Minimum intensity above noise_threshold_int (signal-to-noise) a peak should have to be considered an apex.");
       defaults_.setValue("ion_mobility_tolerance", 0.01, "Allowed ion mobility deviation (in 1/K0 units, e.g., 0.01-0.05). For CCS data, use larger values (e.g., 2-10 square angstroms).");
 
-      defaults_.setValue("reestimate_mt_sd", "true", "Enables dynamic re-estimation of m/z variance during mass trace collection stage.");
+      defaults_.setValue("reestimate_mt_sd", "true", "Enables dynamic re-estimation of m/z variance during mass trace collection stage. The re-estimated variance narrows the m/z window in which peaks extend a mass trace, if the trace is more precise than mass_error_ppm. It never widens the window.");
       defaults_.setValidStrings("reestimate_mt_sd", {"true","false"});
 
       defaults_.setValue("quant_method",std::string(MassTrace::names_of_quantmethod[0]), "Method of quantification for mass traces. For LC data 'area' is recommended, 'median' for direct injection data. 'max_height' simply uses the most intense peak in the trace.");
@@ -175,7 +178,7 @@ namespace OpenMS
       run(map, found_masstraces);
     }
 
-    void updateWeightedSDEstimateRobust(const PeakType& p, const double& mean_t1, double& sd_t, double& last_weights_sum)
+    void updateWeightedSDEstimateRobust(const MassTrace::PeakType& p, const double& mean_t1, double& sd_t, double& last_weights_sum)
     {
       double denom1 = std::log(last_weights_sum) + 2 * std::log(sd_t);
       double denom2 = std::log(p.getIntensity()) + 2 * std::log(std::abs(p.getMZ() - mean_t1));
@@ -386,7 +389,7 @@ namespace OpenMS
     void MassTraceDetection::processPeak_(
         const PeakCandidate& candidate,
         const MSSpectrum& spectrum,
-        std::list<PeakType>& current_trace,
+        std::vector<MassTrace::PeakType>& trace_peaks,
         std::vector<std::pair<Size, Size>>& gathered_idx,
         std::vector<double>& fwhms_mz,
         std::vector<double>& fwhms_im,
@@ -398,8 +401,7 @@ namespace OpenMS
         double& prev_denom_im,
         double& ftl_sd,
         double& intensity_so_far,
-        Size spectrum_idx,
-        bool is_upward_extension)
+        Size spectrum_idx)
     {
       Peak2D next_peak;
       next_peak.setRT(spectrum.getRT());
@@ -407,14 +409,7 @@ namespace OpenMS
       next_peak.setIntensity(candidate.intensity);
 
       // Add peak to the growing mass trace
-      if (is_upward_extension)
-      {
-        current_trace.push_back(next_peak);
-      }
-      else
-      {
-        current_trace.push_front(next_peak);
-      }
+      trace_peaks.push_back(next_peak);
 
       // Update trace centroid m/z with intensity-weighted average
       updateIterativeWeightedMean_(candidate.mz, candidate.intensity, centroid_mz, prev_counter, prev_denom);
@@ -445,13 +440,12 @@ namespace OpenMS
 
 
     bool MassTraceDetection::isTraceValid_(
-        const std::list<PeakType>& trace,
+        double rt_range,
+        Size peak_count,
         Size total_scans_visited,
         Size consecutive_missed_down,
         Size consecutive_missed_up) const
     {
-      double rt_range = std::fabs(trace.rbegin()->getRT() - trace.begin()->getRT());
-      
       // Check length criteria
       if (rt_range < min_trace_length_)
       {
@@ -465,7 +459,7 @@ namespace OpenMS
 
       // Check quality (sample rate)
       Size adjusted_scans = total_scans_visited - consecutive_missed_down - consecutive_missed_up;
-      double mt_quality = static_cast<double>(trace.size()) / static_cast<double>(adjusted_scans);
+      double mt_quality = static_cast<double>(peak_count) / static_cast<double>(adjusted_scans);
       
       return mt_quality >= min_sample_rate_;
     }
@@ -489,6 +483,19 @@ namespace OpenMS
       this->startProgress(0, total_peak_count, "mass trace detection");
       Size peaks_detected(0);
 
+      // Buffers for the trace under construction. They are reused for all apex candidates (most of which
+      // do not yield a valid trace), so that collecting peaks does not allocate memory per candidate or peak.
+      std::vector<MassTrace::PeakType> up_peaks;   // the apex, followed by the peaks found at later RTs (in RT order)
+      std::vector<MassTrace::PeakType> down_peaks; // the peaks found at earlier RTs (in reverse RT order)
+      std::vector<std::pair<Size, Size>> gathered_idx; // (scan index, peak index) of the collected peaks
+      std::vector<double> fwhms_mz; // peak-FWHM meta values of collected peaks
+      std::vector<double> fwhms_im; // peak-FWHM ion mobility peak FWHM of collected peaks
+
+      // summed intensity of all mass traces, and of those whose re-estimated m/z standard deviation
+      // exceeds the one allowed by 'mass_error_ppm' (see below)
+      double traced_intensity(0.0);
+      double limited_intensity(0.0);
+
       for (auto m_it = chrom_apices.crbegin(); m_it != chrom_apices.crend(); ++m_it)
       {
         Size apex_scan_idx(m_it->scan_idx);
@@ -501,10 +508,11 @@ namespace OpenMS
         apex_peak.setMZ(work_exp[apex_scan_idx][apex_peak_idx].getMZ());
         apex_peak.setIntensity(work_exp[apex_scan_idx][apex_peak_idx].getIntensity());
 
-        std::list<PeakType> current_trace;
-        current_trace.push_back(apex_peak);
-        std::vector<double> fwhms_mz; // peak-FWHM meta values of collected peaks
-        std::vector<double> fwhms_im; // peak-FWHM ion mobility peak FWHM of collected peaks
+        up_peaks.clear();
+        down_peaks.clear();
+        up_peaks.push_back(apex_peak);
+        fwhms_mz.clear();
+        fwhms_im.clear();
 
         // Initialization for the iterative version of weighted m/z mean calculation
         double centroid_mz(apex_peak.getMZ());
@@ -526,7 +534,7 @@ namespace OpenMS
                                         apex_peak.getIntensity(), centroid_im, prev_counter_im, prev_denom_im);
         }
 
-        std::vector<std::pair<Size, Size>> gathered_idx;
+        gathered_idx.clear();
         gathered_idx.emplace_back(apex_scan_idx, apex_peak_idx);
         
         if (has_fwhm_mz_) { fwhms_mz.push_back(work_exp[apex_scan_idx].getFloatDataArrays()[fwhm_meta_idx_][apex_peak_idx]); }
@@ -537,6 +545,11 @@ namespace OpenMS
         Size trace_up_idx(apex_scan_idx);
 
         double ftl_sd((centroid_mz / 1e6) * mass_error_ppm_);
+        // The standard deviation that is re-estimated from the peaks of the trace ('reestimate_mt_sd') narrows
+        // the m/z window, but never widens it beyond the one of 'mass_error_ppm'. The estimate comes from the
+        // peaks that the window let in: peaks of noise or of other ions near its edge inflate it, a window that
+        // grows with it lets in more distant peaks, and the trace runs away over neighboring signals (#10905).
+        const double max_ftl_sd(ftl_sd);
         double intensity_so_far(apex_peak.getIntensity());
 
         while ((trace_down_idx > 0 && down_state.active) || (trace_up_idx < work_exp.size() - 1 && up_state.active))
@@ -551,14 +564,15 @@ namespace OpenMS
             // Only process spectra that contain peaks
             if (!spec_trace_down.empty())
             {
-              PeakCandidate candidate = findBestPeak_(spec_trace_down, centroid_mz, ftl_sd, centroid_im);
+              const double window_sd = std::min(ftl_sd, max_ftl_sd);
+              PeakCandidate candidate = findBestPeak_(spec_trace_down, centroid_mz, window_sd, centroid_im);
               
-              if (isPeakAcceptable_(candidate, centroid_mz, ftl_sd, centroid_im, trace_down_idx - 1, spec_offsets, peak_visited))
+              if (isPeakAcceptable_(candidate, centroid_mz, window_sd, centroid_im, trace_down_idx - 1, spec_offsets, peak_visited))
               {
-                processPeak_(candidate, spec_trace_down, current_trace, gathered_idx,
+                processPeak_(candidate, spec_trace_down, down_peaks, gathered_idx,
                             fwhms_mz, fwhms_im, centroid_mz, centroid_im,
                             prev_counter, prev_denom, prev_counter_im, prev_denom_im,
-                            ftl_sd, intensity_so_far, trace_down_idx - 1, false);
+                            ftl_sd, intensity_so_far, trace_down_idx - 1);
                 ++down_state.hitting_peak_count;
                 down_state.consecutive_missed = 0;
               }
@@ -604,14 +618,15 @@ namespace OpenMS
             // Only process spectra that contain peaks
             if (!spec_trace_up.empty())
             {
-              PeakCandidate candidate = findBestPeak_(spec_trace_up, centroid_mz, ftl_sd, centroid_im);
+              const double window_sd = std::min(ftl_sd, max_ftl_sd);
+              PeakCandidate candidate = findBestPeak_(spec_trace_up, centroid_mz, window_sd, centroid_im);
               
-              if (isPeakAcceptable_(candidate, centroid_mz, ftl_sd, centroid_im, trace_up_idx + 1, spec_offsets, peak_visited))
+              if (isPeakAcceptable_(candidate, centroid_mz, window_sd, centroid_im, trace_up_idx + 1, spec_offsets, peak_visited))
               {
-                processPeak_(candidate, spec_trace_up, current_trace, gathered_idx,
+                processPeak_(candidate, spec_trace_up, up_peaks, gathered_idx,
                             fwhms_mz, fwhms_im, centroid_mz, centroid_im,
                             prev_counter, prev_denom, prev_counter_im, prev_denom_im,
-                            ftl_sd, intensity_so_far, trace_up_idx + 1, true);
+                            ftl_sd, intensity_so_far, trace_up_idx + 1);
                 ++up_state.hitting_peak_count;
                 up_state.consecutive_missed = 0;
               }
@@ -653,7 +668,9 @@ namespace OpenMS
         // Step 2.3 check if minimum length and quality of mass trace criteria are met
         // *********************************************************** //
         Size total_scans = down_state.scan_counter + up_state.scan_counter + 1;
-        if (isTraceValid_(current_trace, total_scans, down_state.consecutive_missed, up_state.consecutive_missed))
+        const double first_rt = down_peaks.empty() ? up_peaks.front().getRT() : down_peaks.back().getRT();
+        const double rt_range = std::fabs(up_peaks.back().getRT() - first_rt);
+        if (isTraceValid_(rt_range, down_peaks.size() + up_peaks.size(), total_scans, down_state.consecutive_missed, up_state.consecutive_missed))
         {
           // mark all peaks as visited
           for (Size i = 0; i < gathered_idx.size(); ++i)
@@ -661,12 +678,16 @@ namespace OpenMS
             peak_visited[spec_offsets[gathered_idx[i].first] + gathered_idx[i].second] = true;
           }
 
-          // create new MassTrace object and store collected peaks from list current_trace
-          MassTrace new_trace(current_trace);
+          // create new MassTrace object and store collected peaks (in RT order)
+          std::vector<MassTrace::PeakType> trace_peaks;
+          trace_peaks.reserve(down_peaks.size() + up_peaks.size());
+          trace_peaks.assign(down_peaks.rbegin(), down_peaks.rend());
+          trace_peaks.insert(trace_peaks.end(), up_peaks.begin(), up_peaks.end());
+          MassTrace new_trace(std::move(trace_peaks));
           new_trace.updateWeightedMeanRT();
           new_trace.updateWeightedMeanMZ();
-          if (!fwhms_mz.empty()) { new_trace.fwhm_mz_avg = Math::median(fwhms_mz.begin(), fwhms_mz.end()); }
-          if (!fwhms_im.empty()) { new_trace.fwhm_im_avg = Math::median(fwhms_im.begin(), fwhms_im.end()); }
+          if (!fwhms_mz.empty()) { new_trace.setFWHMMZAvg(Math::median(fwhms_mz.begin(), fwhms_mz.end())); }
+          if (!fwhms_im.empty()) { new_trace.setFWHMIMAvg(Math::median(fwhms_im.begin(), fwhms_im.end())); }
           if (has_centroid_im_) { new_trace.setCentroidIM(centroid_im); }
 
           new_trace.setQuantMethod(quant_method_);
@@ -674,9 +695,14 @@ namespace OpenMS
           new_trace.setLabel("T" + StringUtils::toStr(trace_number));
           ++trace_number;
 
-          found_masstraces.push_back(new_trace);
+          if (reestimate_mt_sd_)
+          {
+            traced_intensity += intensity_so_far;
+            if (ftl_sd > max_ftl_sd) { limited_intensity += intensity_so_far; }
+          }
 
           peaks_detected += new_trace.getSize();
+          found_masstraces.push_back(std::move(new_trace));
           this->setProgress(peaks_detected);
 
           // check if we already reached the (optional) maximum number of traces
@@ -684,6 +710,17 @@ namespace OpenMS
         }
       }
       this->endProgress();
+
+      // The m/z window of a trace never exceeds the one of 'mass_error_ppm'. If most of the signal is in
+      // traces whose m/z values scatter more than that, the data is less precise than 'mass_error_ppm'
+      // (e.g., low-resolution data) and the traces are incomplete.
+      if (limited_intensity > 0.5 * traced_intensity)
+      {
+        OPENMS_LOG_WARN << "Warning: " << static_cast<Size>(100.0 * limited_intensity / traced_intensity + 0.5)
+                        << "% of the signal in mass traces is in traces whose m/z values scatter more than 'mass_error_ppm' ("
+                        << mass_error_ppm_ << " ppm) allows. If the data is less precise than that (e.g., low-resolution data), "
+                        << "mass traces are incomplete: increase 'mass_error_ppm'." << std::endl;
+      }
     }
 
 

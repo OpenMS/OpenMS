@@ -202,7 +202,8 @@ class OPENMS_DLLAPI ProSEAlgorithm :
       double curve_min_gain = 0.002;           ///< learning_curve: relative gain below which a fold stops
       int iterations = 10;       ///< iterations of the cross-validation training
       double tron_epsilon = 1e-7;  ///< stopping tolerance of the SVM solver (TRON)
-      bool warm_start = false;     ///< SVM trainings start from the previous iteration's weights
+      bool warm_start = false;     ///< SVM trainings start from the previous iteration's weights (classic training)
+      bool classic_training = false; ///< Percolator's training up to 3.09 (parameter 'rescoring:classic_training')
       bool single_cneg = false;    ///< one Cneg candidate instead of three
       std::string solver = "newton"; ///< Percolator's SVM solver (parameter 'rescore_solver', default 'newton')
       std::string use_pi0 = "true"; ///< pi0 estimate in the q-values and PEPs ('rescoring:use_pi0': true, false (the executable with TDC), auto)
@@ -569,7 +570,7 @@ class OPENMS_DLLAPI ProSEAlgorithm :
      * hit per spectrum is kept (with the q-value of its peptide among the run's peptides, 'peptide q-value', see
      * annotatePeptideQValues(); not with rescore_method 'reset'), and the runs are marked as post-processed by
      * Percolator (search
-     * engine "Percolator", version "3.08-vendored", meta value 'percolator' and the
+     * engine "Percolator", version "3.09-vendored", meta value 'percolator' and the
      * "Percolator:*" search parameter meta values PercolatorAdapter writes).
      *
      * The searches of this class call it for every run when the parameter 'rescore' is on (the
@@ -1078,7 +1079,7 @@ class OPENMS_DLLAPI ProSEAlgorithm :
      * before add(). The per-chunk candidate cap still determines which distinct
      * hypotheses enter the pool; chunked and unchunked pools can therefore differ.
      */
-    struct CandidatePoolStats_
+    struct OPENMS_DLLAPI CandidatePoolStats_ // exported: the class test calls zScore() (MSVC links nothing of a nested struct without it)
     {
       double sum = 0.0;         ///< sum of all candidate scores
       double sumsq = 0.0;       ///< sum of squared candidate scores
@@ -1101,7 +1102,8 @@ class OPENMS_DLLAPI ProSEAlgorithm :
         ++count;
       }
 
-      /// Best minus runner-up over the full pool.
+      /// Best minus runner-up over the full pool: the delta score of the best hit (a hit below it gets its own
+      /// score minus `best`, see postProcessHits_()).
       double deltaScore() const { return best - second_best; }
 
       /**
@@ -1125,7 +1127,16 @@ class OPENMS_DLLAPI ProSEAlgorithm :
        * candidate scored the same -- in both cases the best candidate does not
        * stand out from the pool.
        */
-      double zScore() const;
+      double zScore() const { return zScore(best); }
+
+      /**
+       * @brief The standard score of @p score (a candidate of this pool) against the same pool statistics as zScore().
+       *
+       * zScore(best) is zScore(). A hit below the best one gets the z-score of its own score (postProcessHits_()),
+       * which is bounded in the same way (Samuelson's inequality holds for every pool member). 0 in the same cases
+       * as zScore().
+       */
+      double zScore(double score) const;
     };
 
     /**

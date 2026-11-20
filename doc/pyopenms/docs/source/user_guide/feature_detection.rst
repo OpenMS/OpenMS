@@ -227,7 +227,7 @@ Now we can use the following code to detect features with :py:class:`~.FeatureFi
 
   # create FeatureFinderAlgorithmMetaboIdent and assign ms data
   ff = oms.FeatureFinderAlgorithmMetaboIdent()
-  ff.setMSData(spectra)
+  ff.setFromMS1Data(spectra)
 
   # read library generate a metabo table with compounds
   metabo_table = metaboTableFromFile("library.tsv")

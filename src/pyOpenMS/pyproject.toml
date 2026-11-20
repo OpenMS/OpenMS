@@ -82,7 +82,6 @@ classifiers = [
 ]
 dependencies = [
     "numpy>=2.0",
-    "matplotlib>=3.5",
     # The compiled extensions are built in nanobind split mode, so nanobind's
     # Python-version-specific runtime lives here rather than inside them.
     "nanobind-backend>=1.0",
@@ -103,7 +102,10 @@ dataframes = ["pandas>=3"]
 # 24.0.0 has since gained wheels for every supported interpreter plus an sdist, and the
 # 25.0.0 macOS arm64 parquet-read crash only affected cp310 (25.0.1 supersedes it anyway).
 arrow = ["pyarrow"]
-all = ["pandas>=3", "pyarrow"]
+# Only pyopenms.plotting needs matplotlib, and it imports it when a plot function
+# is called, so "import pyopenms" works without it.
+plotting = ["matplotlib>=3.5"]
+all = ["pandas>=3", "pyarrow", "matplotlib>=3.5"]
 
 # Dependency groups (PEP 735) - installable with: uv sync --only-group <name>
 [dependency-groups]
@@ -123,11 +125,11 @@ test = [
     "pytest-cov",
     "pandas>=3",  # tests need pandas for DataFrame functionality
     "pyarrow",
+    "matplotlib>=3.5",  # test_plotting.py is skipped without it
 ]
 dev = [
     {include-group = "build"},
     {include-group = "test"},
-    "matplotlib>=3.5",
 ]
 
 #------------------------------------------------------------------------------
@@ -220,7 +222,7 @@ build = "cp311-*"
 skip = "*-win32 *-musllinux_*"
 
 # Test the wheel after building
-test-requires = ["pytest", "numpy", "pandas>=3", "pyarrow"]
+test-requires = ["pytest", "numpy", "pandas>=3", "pyarrow", "matplotlib>=3.5"]
 test-command = "pytest \"{package}/tests\" --import-mode=importlib"
 build-verbosity = 1
 

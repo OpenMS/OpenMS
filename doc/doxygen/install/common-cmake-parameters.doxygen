@@ -216,7 +216,8 @@ The most important CMake variables are:
     <th valign="top">OPENMS_PEPTDEEP_MODEL_URL</td>
     <td>[with <code>WITH_ONNX</code>] Base URL from which the PeptDeep ONNX model files are downloaded
     during configuration, e.g. a mirror for a build without access to archive.openms.de.
-    (Default: <code>http://archive.openms.de/openms/models</code>)</td>
+    HTTPS downloads verify the server certificate.
+    (Default: <code>https://archive.openms.de/openms/models</code>)</td>
   </tr>
   <tr>
     <th valign="top">WITH_MIMALLOC=Off/On</td>

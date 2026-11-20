@@ -240,6 +240,21 @@ protected:
     registerTOPPSubsection_("preprocessing", "Spectrum preprocessing options");
     registerStringOption_("preprocessing:deisotoping", "<method>", "legacy", "Isotope removal: legacy spacing detector, none, or FLASHDeconv RNA averagine (profile or centroided input; requires ppm fragment tolerance)", false, true);
     setValidStrings_("preprocessing:deisotoping", {"legacy", "none", "flash"});
+    registerTOPPSubsection_("preprocessing:legacy", "Legacy isotope-spacing detector options");
+    registerIntOption_("preprocessing:legacy:min_isopeaks", "<num>", 3, "Minimum isotope peaks required for a legacy fragment charge assignment",
+                       false, true);
+    setMinInt_("preprocessing:legacy:min_isopeaks", 2);
+    setMaxInt_("preprocessing:legacy:min_isopeaks", 20);
+    registerDoubleOption_("preprocessing:legacy:mass_tolerance", "<ppm>", 0.0,
+                          "Legacy isotope-spacing tolerance in ppm; zero uses the fragment matching tolerance and unit", false, true);
+    setMinFloat_("preprocessing:legacy:mass_tolerance", 0.0);
+    registerFlag_("preprocessing:legacy:sum_intensities", "Sum assigned isotope-envelope intensities into each retained monoisotopic peak", true);
+    registerIntOption_("preprocessing:legacy:unknown_max_charge", "<num>", 0,
+                       "Optional maximum fragment charge for legacy isotope detection when precursor charge is unknown; zero preserves skipping "
+                       "this detection. Does not assign a precursor charge.",
+                       false, true);
+    setMinInt_("preprocessing:legacy:unknown_max_charge", 0);
+    setMaxInt_("preprocessing:legacy:unknown_max_charge", 20);
     registerTOPPSubsection_("preprocessing:flash", "FLASHDeconv RNA isotope detection options");
     registerDoubleOption_("preprocessing:flash:min_cos", "<value>", 0.85, "Minimum charge-specific RNA averagine isotope cosine", false, true);
     setMinFloat_("preprocessing:flash:min_cos", 0.5);
@@ -524,7 +539,9 @@ protected:
     bool keep_only_deisotoped = false,
     Size min_isopeaks = 3,
     Size max_isopeaks = 10,
-    bool make_single_charged = true)
+    bool make_single_charged = true,
+                                           bool annotate_charge = false,
+                                           bool sum_intensities = false)
   {
     if (in.empty()) return;
 
@@ -557,12 +574,13 @@ protected:
             double expected_mz = current_mz + i * Constants::C13C12_MASSDIFF_U / abs(q);
             Size p = old_spectrum.findNearest(expected_mz);
             double tolerance_dalton = fragment_unit_ppm ? fragment_tolerance * old_spectrum[p].getPosition()[0] * 1e-6 : fragment_tolerance;
-            if (fabs(old_spectrum[p].getPosition()[0] - expected_mz) > tolerance_dalton) // test for missing peak
+            // Duplicate m/z values can make findNearest select an earlier seed.
+            // An envelope must start at the current seed and then advance to
+            // distinct observed peaks for later isotope positions.
+            if (p < current_peak || fabs(old_spectrum[p].getPosition()[0] - expected_mz) > tolerance_dalton
+                || (! extensions.empty() && p <= extensions.back()))
             {
-              if (i < min_isopeaks)
-              {
-                has_min_isopeaks = false;
-              }
+              if (extensions.size() < min_isopeaks) { has_min_isopeaks = false; }
               break;
             }
             else
@@ -588,7 +606,7 @@ protected:
             }
           }
 
-          if (has_min_isopeaks)
+          if (has_min_isopeaks && extensions.size() >= min_isopeaks)
           {
             //cout << "min peaks at " << current_mz << " " << " extensions: " << extensions.size() << endl;
             mono_isotopic_peak[current_peak] = q;
@@ -602,7 +620,22 @@ protected:
       }
     }
 
+    std::vector<double> feature_intensities(feature_number, 0.0);
+    if (sum_intensities)
+    {
+      for (Size i = 0; i < old_spectrum.size(); ++i)
+      {
+        if (features[i] >= 0) { feature_intensities[features[i]] += old_spectrum[i].getIntensity(); }
+      }
+    }
     in.clear(false);
+    MSSpectrum::IntegerDataArray charge_labels;
+    charge_labels.setName("NASE:legacy_fragment_charge");
+    const auto append = [&](const Peak1D& peak, Int charge, Size index) {
+      in.push_back(peak);
+      if (sum_intensities && charge != 0) { in.back().setIntensity(feature_intensities[features[index]]); }
+      if (annotate_charge) { charge_labels.push_back(make_single_charged && charge != 0 ? 1 : std::abs(charge)); }
+    };
     for (Size i = 0; i != old_spectrum.size(); ++i)
     {
       Int z = mono_isotopic_peak[i];
@@ -615,8 +648,7 @@ protected:
 
         // if already single charged or no decharging selected keep peak as it is
         if (!make_single_charged)
-        {
-          in.push_back(old_spectrum[i]);
+        { append(old_spectrum[i], z, i);
         }
         else // make singly charged
         {
@@ -630,7 +662,7 @@ protected:
           {
             p.setMZ(p.getMZ() * z - (z - 1) * Constants::PROTON_MASS_U);
           }
-          in.push_back(p);
+          append(p, z, i);
         }
       }
       else
@@ -638,7 +670,7 @@ protected:
         // keep all unassigned peaks
         if (features[i] < 0)
         {
-          in.push_back(old_spectrum[i]);
+          append(old_spectrum[i], 0, i);
           continue;
         }
 
@@ -646,8 +678,7 @@ protected:
         if (z != 0)
         {
           if (!make_single_charged)
-          {
-            in.push_back(old_spectrum[i]);
+          { append(old_spectrum[i], z, i);
           }
           else // make singly charged
           {
@@ -661,11 +692,13 @@ protected:
             {
               p.setMZ(p.getMZ() * z - (z - 1) * Constants::PROTON_MASS_U);
             }
-            in.push_back(p);
+            append(p, z, i);
           }
         }
       }
     }
+
+    if (annotate_charge) { in.getIntegerDataArrays().push_back(std::move(charge_labels)); }
 
     in.sortByPosition();
   }
@@ -716,7 +749,12 @@ protected:
     }
   }
 
-  void preprocessSpectra_(PeakMap& exp, double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm, bool single_charge_spectra, bool negative_mode, Int min_charge, Int max_charge, bool include_unknown_charge, bool use_window_mower, double window_size, int window_peakcount, const std::string& window_movetype, bool use_nlargest, int nlargest_n, bool remove_precursor, double precursor_mass_tolerance, bool precursor_tolerance_ppm, int precursor_peak_isotopes, const std::string& deisotoping, double flash_min_cos, double flash_min_snr)
+  void preprocessSpectra_(PeakMap& exp, double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm, bool single_charge_spectra, bool negative_mode, Int min_charge, Int max_charge, bool include_unknown_charge, bool use_window_mower, double window_size, int window_peakcount, const std::string& window_movetype, bool use_nlargest, int nlargest_n, bool remove_precursor, double precursor_mass_tolerance, bool precursor_tolerance_ppm, int precursor_peak_isotopes, const std::string& deisotoping, double flash_min_cos, double flash_min_snr,
+                          bool annotate_legacy_charge = false,
+                          Size legacy_min_isopeaks = 3,
+                          double legacy_mass_tolerance = 0.0,
+                          bool legacy_sum_intensities = false,
+                          Size legacy_unknown_max_charge = 0)
   {
     // filter MS2 map
     // remove 0 intensities
@@ -770,6 +808,7 @@ protected:
          ++exp_index)
     {
       MSSpectrum& spec = exp[exp_index];
+      spec.removeMetaValue("legacy_unknown_fragment_charge_bound");
       // Keep the post-ThresholdMower base peak as the normalization divisor.
       // FLASH must see raw intensities; native IDs need not be unique or present.
       double normalization_scale = 0.0;
@@ -878,7 +917,14 @@ protected:
       // @TODO: what happens here if "precursor_charge" is zero?
       if (deisotoping == "legacy")
       {
-        deisotopeAndSingleChargeMSSpectrum_(spec, coef, coef * precursor_charge, fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, false, 3, 20, single_charge_spectra);
+        // Fragment isotope spacings can establish their own charges while the
+        // precursor charge remains unknown. The opt-in bound limits these tests.
+        const Int fragment_charge_bound = precursor_charge ? precursor_charge : Int(legacy_unknown_max_charge);
+        if (! precursor_charge && fragment_charge_bound) { spec.setMetaValue("legacy_unknown_fragment_charge_bound", fragment_charge_bound); }
+        deisotopeAndSingleChargeMSSpectrum_(spec, coef, coef * fragment_charge_bound,
+                                            legacy_mass_tolerance > 0 ? legacy_mass_tolerance : fragment_mass_tolerance,
+                                            legacy_mass_tolerance > 0 || fragment_mass_tolerance_unit_ppm, false, legacy_min_isopeaks, 20,
+                                            single_charge_spectra, annotate_legacy_charge, legacy_sum_intensities);
       }
       else if (flash && (spec.getPrecursors()[0].getCharge() != 0 || include_unknown_charge))
       {
@@ -1076,11 +1122,11 @@ protected:
   void postProcessHits_(const PeakMap& exp,
                         vector<HitsByScore>& annotated_hits,
                         IdentificationData& id_data,
-                        bool negative_mode)
+                        bool negative_mode,
+                        IdentificationData::InputFileRef file_ref,
+                        IdentificationData::ScoreTypeRef score_ref)
   {
-    IdentificationData::InputFileRef file_ref = id_data.getInputFiles().begin();
-    IdentificationData::ScoreTypeRef score_ref =
-      id_data.getScoreTypes().begin();
+    // Use the current run references; cached entries may sort before them.
 
 // @TODO: change OpenMP schedule from default ("static") to "dynamic"/"guided"?
 #pragma omp parallel for
@@ -1636,7 +1682,7 @@ protected:
     // processing software meta data:
     const std::string scoring_method = getStringOption_("scoring:method");
     IdentificationData::ScoreType score(scoring_method == "mvh" ? "MVH score" : "hyperscore", true);
-    IdentificationData::ScoreTypeRef hyperscore_ref =
+    IdentificationData::ScoreTypeRef search_score_ref =
       id_data.registerScoreType(score);
     CVTerm qvalue("MS:1002354", "PSM-level q-value", "MS");
     score = IdentificationData::ScoreType(qvalue, false);
@@ -1646,7 +1692,7 @@ protected:
     // in test mode just overwrite with a generic version:
     if (test_mode_) software.setVersion("test");
     // @TODO: which should be the "primary" (first) score?
-    software.assigned_scores.push_back(hyperscore_ref);
+    software.assigned_scores.push_back(search_score_ref);
     software.assigned_scores.push_back(qvalue_ref);
     IdentificationData::ProcessingSoftwareRef software_ref =
       id_data.registerProcessingSoftware(software);
@@ -1815,7 +1861,9 @@ protected:
                        use_nlargest, nlargest_n,
                        remove_precursor, precursor_mass_tolerance,
                        precursor_tolerance_ppm, precursor_peak_isotopes,
-                       deisotoping, flash_min_cos, flash_min_snr);
+                       deisotoping, flash_min_cos, flash_min_snr, false,
+                       getIntOption_("preprocessing:legacy:min_isopeaks"), getDoubleOption_("preprocessing:legacy:mass_tolerance"),
+                       getFlag_("preprocessing:legacy:sum_intensities"), getIntOption_("preprocessing:legacy:unknown_max_charge"));
     const std::string out_preprocessed = getStringOption_("out_preprocessed");
     if (!out_preprocessed.empty())
     {
@@ -2138,7 +2186,7 @@ protected:
     }
 
     progresslogger.startProgress(0, 1, "post-processing search hits...");
-    postProcessHits_(spectra, annotated_hits, id_data, negative_mode);
+    postProcessHits_(spectra, annotated_hits, id_data, negative_mode, file_ref, search_score_ref);
     progresslogger.endProgress();
     OPENMS_LOG_INFO << "Identified spectra: " << id_data.getObservations().size()
                     << endl;

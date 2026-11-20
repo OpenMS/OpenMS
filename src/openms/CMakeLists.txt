@@ -84,7 +84,6 @@ set(OPENMS_DEP_PRIVATE_LIBRARIES
   Boost::boost
   CURL::libcurl
   LibXml2::LibXml2
-  $<$<BOOL:${WITH_HDF5}>:HDF5::HDF5>
   ${LPTARGET}
   BZip2::BZip2
   Eigen3::Eigen
@@ -180,7 +179,7 @@ if(WITH_ONNX)
 
   # Download PeptDeep models once to the OpenMS model directory.
   # These ONNX files are embedded-weight models and do not require .onnx.data sidecars.
-  set(OPENMS_PEPTDEEP_MODEL_URL "http://archive.openms.de/openms/models" CACHE STRING
+  set(OPENMS_PEPTDEEP_MODEL_URL "https://archive.openms.de/openms/models" CACHE STRING
       "Base URL for PeptDeep ONNX model downloads")
   set(OPENMS_PEPTDEEP_MODEL_DIR "${PROJECT_BINARY_DIR}/share/OpenMS/models" CACHE INTERNAL
       "Build-tree directory containing downloaded PeptDeep ONNX models")
@@ -240,6 +239,7 @@ if(WITH_ONNX)
         DOWNLOAD "${OPENMS_PEPTDEEP_MODEL_URL}/${MODEL}" "${MODEL_PATH}"
         STATUS DOWNLOAD_STATUS
         SHOW_PROGRESS
+        TLS_VERIFY ON
         EXPECTED_HASH "SHA256=${EXPECTED_SHA256}"
       )
 
@@ -315,10 +315,6 @@ endif()
 
 if (OPENMP_FOUND)
   list(APPEND OPENMS_DEP_LIBRARIES OpenMP::OpenMP_CXX)
-endif()
-
-if (WITH_CRAWDAD) ## TODO check if still necessary
-  list(APPEND OPENMS_DEP_LIBRARIES ${Crawdad_LIBRARY})
 endif()
 
 # Files that cannot share a unity-build translation unit (ENABLE_UNITYBUILD) with their

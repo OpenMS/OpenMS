@@ -8,7 +8,9 @@
 #include "Numerical.h"
 #include "PackedVector.h"
 #include "assert.h"
+
 namespace OpenMS { namespace Internal { namespace Percolator {
+
 
 PackedVector PackedVector::packedProd(double val) {
   for (int k = 0; k<size(); k++)
