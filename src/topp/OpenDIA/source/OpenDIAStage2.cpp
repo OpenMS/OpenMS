@@ -482,6 +482,82 @@ namespace OpenMS::OpenDIA
     return f;
   }
 
+  const std::array<std::string, STAGE2_FAINT_FEATURES>& stage2FaintFeatureNames()
+  {
+    static const std::array<std::string, STAGE2_FAINT_FEATURES> names = {"p_cos_apex", "p_local_sn"};
+    return names;
+  }
+
+  std::array<double, STAGE2_FAINT_FEATURES> stage2FaintFeatures(const float* tensor,
+                                                                const std::array<double, 6>& library_intensities,
+                                                                const std::array<double, 6>& fragment_mz,
+                                                                const TraceEvidence& evidence,
+                                                                const Stage2ExtractionOptions& options)
+  {
+    std::array<double, STAGE2_FAINT_FEATURES> f{};
+    (void)options;
+    std::vector<std::size_t> bins;
+    std::vector<std::size_t> channels;
+    for (std::size_t b = 0; b < RT_BINS; ++b)
+      if (evidence.ms2_mask >> b & 1u) bins.push_back(b);
+    for (std::size_t c = 0; c < FRAGMENTS; ++c)
+      if (fragment_mz[c] != 0.0) channels.push_back(c);
+    if (bins.empty() || channels.empty()) return f;
+
+    std::vector<double> consensus(RT_BINS, 0.0);
+    std::vector<double> apex_vector(channels.size(), 0.0);
+    const std::size_t centre = RT_BINS / 2;
+    for (std::size_t c = 0; c < channels.size(); ++c)
+    {
+      for (const std::size_t b : bins)
+      {
+        double value = 0.0;
+        for (std::size_t m = 0; m < IM_BINS; ++m) value += tensor[(channels[c] * RT_BINS + b) * IM_BINS + m];
+        consensus[b] += value;
+        if (b + 1 >= centre && b <= centre + 1) apex_vector[c] += value;
+      }
+    }
+    double dot = 0.0, norm_x = 0.0, norm_library = 0.0;
+    for (std::size_t c = 0; c < channels.size(); ++c)
+    {
+      const double weight = std::sqrt(std::max(0.0, library_intensities[channels[c]]));
+      dot += apex_vector[c] * weight;
+      norm_x += apex_vector[c] * apex_vector[c];
+      norm_library += weight * weight;
+    }
+    if (norm_x > 0.0 && norm_library > 0.0) f[static_cast<std::size_t>(Stage2FaintFeature::COS_APEX)] = dot / std::sqrt(norm_x * norm_library);
+
+    std::vector<float> traces(channels.size() * bins.size(), 0.0f);
+    for (std::size_t c = 0; c < channels.size(); ++c)
+      for (std::size_t s = 0; s < bins.size(); ++s)
+        for (std::size_t m = 0; m < IM_BINS; ++m) traces[c * bins.size() + s] += tensor[(channels[c] * RT_BINS + bins[s]) * IM_BINS + m];
+    std::vector<double> scratch;
+    std::size_t hint = 0;
+    const auto distance = [](std::size_t b) { return b > RT_BINS / 2 ? b - RT_BINS / 2 : RT_BINS / 2 - b; };
+    for (std::size_t s = 1; s < bins.size(); ++s)
+      if (distance(bins[s]) < distance(bins[hint])) hint = s;
+    const PickedPeak peak = pickPeakGroup(traces.data(), channels.size(), bins.size(), bins.size(), 1, hint, PeakPickerOptions{}, scratch);
+    if (peak.found)
+    {
+      std::vector<double> outside;
+      for (std::size_t s = 0; s < bins.size(); ++s)
+        if (s < peak.left || s > peak.right) outside.push_back(consensus[bins[s]]);
+      if (!outside.empty())
+      {
+        const auto middle = outside.begin() + outside.size() / 2;
+        std::nth_element(outside.begin(), middle, outside.end());
+        double median = *middle;
+        if (outside.size() % 2 == 0)
+        {
+          const auto lower = std::max_element(outside.begin(), middle);
+          median = (*lower + *middle) / 2.0;
+        }
+        f[static_cast<std::size_t>(Stage2FaintFeature::LOCAL_SN)] = std::log1p(consensus[bins[peak.apex]]) - std::log1p(median);
+      }
+    }
+    return f;
+  }
+
   const std::array<std::string, STAGE2_MOBILITY_APEX_FEATURES>& stage2MobilityApexFeatureNames()
   {
     static const std::array<std::string, STAGE2_MOBILITY_APEX_FEATURES> names = {

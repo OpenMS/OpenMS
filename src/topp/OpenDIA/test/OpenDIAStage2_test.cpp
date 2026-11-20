@@ -478,6 +478,25 @@ int main()
     require(c[1] < 1e-12 && c[3] == 5.0 && std::abs(c[2] - 1.0) < 1e-9, "padding ignored");
   }
 
+  // 14. PRECHECK_FAINT pooled tensor features: known apex cosine/local signal and no-signal behavior.
+  {
+    std::vector<std::vector<double>> p(6, std::vector<double>(RT, 0.0));
+    for (std::size_t c = 0; c < 6; ++c)
+      for (std::size_t b = 14; b <= 16; ++b) p[c][b] = std::sqrt(library[c]);
+    const auto t = tensor(p);
+    const auto e = fullEvidence();
+    const auto f = OpenDIA::stage2FaintFeatures(t.data(), library, mz, e, options);
+    require(std::abs(f[0] - 1.0) < 1e-12, "apex cosine is one for library-shaped signal");
+    double expected_consensus = 0.0;
+    for (double value : library) expected_consensus += 3.0 * std::sqrt(value);
+    require(std::abs(f[1] - std::log1p(expected_consensus)) < 1e-12, "local signal uses centre peak and zero outside baseline");
+    const std::vector<float> empty(TraceCollector::SAMPLE_SIZE, 0.0f);
+    const auto z = OpenDIA::stage2FaintFeatures(empty.data(), library, mz, e, options);
+    require(z[0] == 0.0 && z[1] == 0.0, "no signal gives zero faint features");
+    require(OpenDIA::stage2FaintFeatureNames()[0] == "p_cos_apex" && OpenDIA::stage2FaintFeatureNames()[1] == "p_local_sn",
+            "faint feature names are stable");
+  }
+
   std::cout << "OpenDIAStage2_test passed\n";
   return 0;
 }

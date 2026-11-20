@@ -157,6 +157,29 @@ namespace OpenMS::OpenDIA
                                                                 const std::array<double, 6>& fragment_mz, const TraceEvidence& evidence,
                                                                 const Stage2ExtractionOptions& options);
 
+  /// Opt-in pooled faint-signal features (PRECHECK_FAINT) from the existing 6 x 32 x 8 trace tensor.
+  enum class Stage2FaintFeature : std::size_t
+  {
+    COS_APEX = 0, ///< Cosine of the pooled apex +/- 1 RT-bin fragment vector against sqrt library intensities.
+    LOCAL_SN,     ///< log1p consensus at the picked centre peak apex minus log1p median consensus outside that peak.
+    COUNT
+  };
+  constexpr std::size_t STAGE2_FAINT_FEATURES = static_cast<std::size_t>(Stage2FaintFeature::COUNT);
+  const std::array<std::string, STAGE2_FAINT_FEATURES>& stage2FaintFeatureNames();
+  /**
+    @brief Compute the opt-in PRECHECK_FAINT features from the pooled trace tensor.
+
+    Non-padding fragments are summed over ion mobility and only RT bins with an isolating MS2 scan are used. The cosine
+    uses the tensor centre bin and its neighbouring RT bins. The local S/N uses the peak picked around that centre bin;
+    its outside baseline is the median consensus over all scanned bins outside the inclusive picked boundaries, or zero
+    when no outside bins exist.
+  */
+  std::array<double, STAGE2_FAINT_FEATURES> stage2FaintFeatures(const float* tensor,
+                                                                const std::array<double, 6>& library_intensities,
+                                                                const std::array<double, 6>& fragment_mz,
+                                                                const TraceEvidence& evidence,
+                                                                const Stage2ExtractionOptions& options);
+
   /// Own-mobility-apex block (-mobility_apex, PRECHECK_IMFEAT): from the core-window 1/K0 histogram of the window.
   enum class Stage2MobilityApexFeature : std::size_t
   {
