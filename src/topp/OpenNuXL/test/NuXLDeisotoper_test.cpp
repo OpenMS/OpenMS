@@ -72,4 +72,46 @@ START_SECTION([EXTRA] precursor mass constraint of deisotopeAndSingleCharge)
 }
 END_SECTION
 
+START_SECTION([EXTRA] first_isotope_check_max_mass of deisotopeAndSingleCharge)
+{
+  // a weak unrelated peak 1 u below a fragment ion (S30 spectrum 29492: m/z 445.2006 at 2.1 % and b3+U' at 446.2039, 3.8 %)
+  MSSpectrum base;
+  Peak1D pk;
+  pk.setMZ(445.2006); pk.setIntensity(2.07); base.push_back(pk);
+  pk.setMZ(446.2039); pk.setIntensity(3.78); base.push_back(pk);
+
+  // OpenNuXL's settings (0.01 Da, charges 1..3, keep unassigned peaks, 2..10 isotopic peaks, decreasing model from the
+  // second isotope on, add up intensities)
+  auto deisotope = [](MSSpectrum s, double max_mass)
+  {
+    NuXLDeisotoper::deisotopeAndSingleCharge(s, 0.01, false, 1, 3, false, 2, 10, false, false, false, true, 2, true, false, false, -1e10, max_mass);
+    return s;
+  };
+
+  // without the check, the stronger peak is taken as the first isotope of the weaker one and removed
+  MSSpectrum s = deisotope(base, 0.0);
+  TEST_EQUAL(s.size(), 1)
+  TEST_REAL_SIMILAR(s[0].getMZ(), 445.2006)
+
+  // with it, both peaks are kept with their own intensities
+  s = deisotope(base, 1500.0);
+  TEST_EQUAL(s.size(), 2)
+  TEST_REAL_SIMILAR(s[1].getMZ(), 446.2039)
+  TEST_REAL_SIMILAR(s[1].getIntensity(), 3.78)
+
+  // a real isotope pattern (first isotope weaker) is still deisotoped
+  base[1].setIntensity(0.5);
+  s = deisotope(base, 1500.0);
+  TEST_EQUAL(s.size(), 1)
+  TEST_REAL_SIMILAR(s[0].getIntensity(), 2.57)
+
+  // above the mass limit the old behaviour applies (here: a 2+ cluster of neutral mass 2 * (1000 - proton) = 1997.985)
+  MSSpectrum heavy;
+  pk.setMZ(1000.0); pk.setIntensity(1.0); heavy.push_back(pk);
+  pk.setMZ(1000.0 + 0.5 * Constants::C13C12_MASSDIFF_U); pk.setIntensity(1.2); heavy.push_back(pk);
+  s = deisotope(heavy, 1500.0);
+  TEST_EQUAL(s.size(), 1)
+}
+END_SECTION
+
 END_TEST

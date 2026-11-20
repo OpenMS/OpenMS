@@ -3227,7 +3227,11 @@ protected:
                                          false, // no iso peak count annotation
                                          true, // decreasing isotope model
                                          2, // enforce only starting from second peak
-                                         true); // add up intensities
+                                         true, // add up intensities
+                                         false, // no feature annotation
+                                         false, // don't preserve high-intensity peaks
+                                         -1e10,
+                                         1500.0); // below 1500 Da an isotope can't be more intense than the monoisotopic peak
     }
 
     filterPeakInterference_(exp, purities);
