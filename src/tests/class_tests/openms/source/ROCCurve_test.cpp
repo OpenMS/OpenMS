@@ -62,6 +62,59 @@ START_SECTION((double AUC()))
   TEST_EQUAL(rc.AUC(),0.5)
 END_SECTION
 
+START_SECTION([EXTRA] double AUC() actually measures class separation)
+{
+  // score_clas_pairs_ is sorted highest-score-first; the step-detection condition
+  // in AUC() only ever fired on the very first element (comparing to -infinity) and
+  // never again for any later, lower score, since scores only decrease going forward.
+  // That collapsed the whole trapezoidal sum to one segment spanning the full ROC
+  // rectangle, which always evaluates to exactly 0.5 after the final scaling --
+  // regardless of how separable the two classes actually are.
+  ROCCurve rc_separated;
+  for (Size i = 0; i < 50; ++i)
+  {
+    rc_separated.insertPair(1.0 - i * 0.01, true);   // positives: high, distinct scores
+  }
+  for (Size i = 0; i < 50; ++i)
+  {
+    rc_separated.insertPair(0.4 - i * 0.005, false); // negatives: low, distinct scores
+  }
+  TEST_REAL_SIMILAR(rc_separated.AUC(), 1.0)
+
+  ROCCurve rc_inverted;
+  for (Size i = 0; i < 50; ++i)
+  {
+    rc_inverted.insertPair(0.4 - i * 0.005, true);   // positives score lowest now
+  }
+  for (Size i = 0; i < 50; ++i)
+  {
+    rc_inverted.insertPair(1.0 - i * 0.01, false);   // negatives score highest
+  }
+  TEST_REAL_SIMILAR(rc_inverted.AUC(), 0.0)
+}
+END_SECTION
+
+START_SECTION([EXTRA] double AUC() with truePos * falsePos overflowing a 32-bit UInt)
+{
+  // AUC() also scales the accumulated area by "truePos * falsePos"; with both
+  // counts as UInt (32-bit), their product overflows once it exceeds ~4.29e9,
+  // silently wrapping to a small/wrong value before the division ever sees it.
+  // A perfectly separable, imbalanced dataset this size still has a well-defined
+  // AUC of 1.0, so any deviation from that exposes the overflow.
+  ROCCurve rc_big;
+  const Size n_pos = 66000, n_neg = 66000; // 66000*66000 > 2^32-1
+  for (Size i = 0; i < n_pos; ++i)
+  {
+    rc_big.insertPair(2.0, true);
+  }
+  for (Size i = 0; i < n_neg; ++i)
+  {
+    rc_big.insertPair(1.0, false);
+  }
+  TEST_REAL_SIMILAR(rc_big.AUC(), 1.0)
+}
+END_SECTION
+
 START_SECTION((std::vector<std::pair<double, double> > curve(UInt resolution = 10)))
   vector<pair<double,double> > curvePoints = rcp->curve(100);
   TEST_EQUAL(curvePoints.size(),100)
