@@ -74,6 +74,9 @@ namespace OpenMS
     defaults_.setValue("debug", 0, "Debug level for feature detection.", {"advanced"});
     defaults_.setMinInt("debug", 0);
 
+    defaults_.setValue("keep_chromatograms", "false", "Keep the extracted chromatograms of all batches, so that getChromatograms() returns them after the run (needs more memory).", {"advanced"});
+    defaults_.setValidStrings("keep_chromatograms", {"true", "false"});
+
     defaults_.setValue("extract:batch_size", 5000, "Nr of peptides used in each batch of chromatogram extraction."
                          " Smaller values decrease memory usage but increase runtime.");
     defaults_.setMinInt("extract:batch_size", 1);
@@ -530,6 +533,9 @@ namespace OpenMS
     const std::string& spectra_file
     )
   {
+    chrom_data_.clear(true);
+    output_library_.clear(true);
+
     // Without spectra there is nothing to extract chromatograms from, and the
     // extraction below indexes the experiment unconditionally. Fail with a usable
     // message instead of reading out of bounds.
@@ -595,11 +601,21 @@ namespace OpenMS
       FeatureMap features_cv, candidates_cv;
       if (!candidates_out_.empty()) ffid_group.candidates_sink_ = &candidates_cv;
       ffid_group.runSingleGroup_(peptides_cv, proteins, features_cv, seeds_cv, spectra_file);
+      const std::string cv_suffix = "_CV" + StringUtils::toStr(group_cv);
+      auto add_cv_suffix = [&cv_suffix](Feature& feat)
+      {
+        for (Feature& sub : feat.getSubordinates())
+        {
+          if (sub.metaValueExists("native_id")) sub.setMetaValue("native_id", StringUtils::toStr(sub.getMetaValue("native_id")) + cv_suffix);
+        }
+      };
+
       if (!candidates_out_.empty())
       {
         for (auto& feat : candidates_cv)
         {
           feat.setMetaValue(Constants::UserParam::FAIMS_CV, group_cv);
+          add_cv_suffix(feat);
           candidates.push_back(std::move(feat));
         }
         for (auto& pep_id : candidates_cv.getUnassignedPeptideIdentifications())
@@ -614,6 +630,7 @@ namespace OpenMS
       for (auto& feat : features_cv)
       {
         feat.setMetaValue(Constants::UserParam::FAIMS_CV, group_cv);
+        add_cv_suffix(feat);
         features.push_back(feat);
       }
 
@@ -631,11 +648,11 @@ namespace OpenMS
       }
 
       // Combine chromatograms
-      for (const auto& chrom : ffid_group.getChromatograms().getChromatograms())
+      for (auto& chrom : ffid_group.getChromatograms().getChromatograms())
       {
-        MSChromatogram chrom_copy = chrom;
-        chrom_copy.setMetaValue(Constants::UserParam::FAIMS_CV, group_cv);
-        chrom_data_.addChromatogram(std::move(chrom_copy));
+        chrom.setMetaValue(Constants::UserParam::FAIMS_CV, group_cv);
+        chrom.setNativeID(chrom.getNativeID() + cv_suffix);
+        chrom_data_.addChromatogram(std::move(chrom));
       }
 
       first_group = false;
@@ -818,6 +835,7 @@ namespace OpenMS
 
       ChromatogramExtractor extractor;
       // extractor.setLogType(ProgressLogger::NONE);
+      PeakMap chrom_batch;
       {
         vector<OpenSwath::ChromatogramPtr> chrom_temp;
         vector<ChromatogramExtractor::ExtractionCoordinates> coords;
@@ -843,10 +861,10 @@ namespace OpenMS
         }
 
         extractor.return_chromatogram(chrom_temp, coords, light_library, (*shared)[0],
-                                      chrom_data_.getChromatograms(), false);
+                                      chrom_batch.getChromatograms(), false);
       }
 
-      OPENMS_LOG_DEBUG << "Extracted " << chrom_data_.getNrChromatograms()
+      OPENMS_LOG_DEBUG << "Extracted " << chrom_batch.getNrChromatograms()
                        << " chromatogram(s)." << endl;
 
       OPENMS_LOG_DEBUG << "Detecting chromatographic peaks..." << endl;
@@ -856,9 +874,14 @@ namespace OpenMS
       {
         log_guard.emplace(getThreadLocalLogInfo(), cout);
       }
-      feat_finder_.pickExperiment(chrom_data_, features, library_,
+      feat_finder_.pickExperiment(chrom_batch, features, library_,
                                   TransformationDescription(), ms_data_);
-      chrom_data_.clear(true);
+      if (keep_chromatograms_)
+      {
+        auto& kept = chrom_data_.getChromatograms();
+        auto& batch = chrom_batch.getChromatograms();
+        kept.insert(kept.end(), std::make_move_iterator(batch.begin()), std::make_move_iterator(batch.end()));
+      }
       // Accumulate library entries for output before clearing
       for (const auto& pep : library_.getPeptides())
       {
@@ -873,7 +896,7 @@ namespace OpenMS
         output_library_.addTransition(trans);
       }
       library_.clear(true);
-      // since chrom_data_ here is just a container for the chromatograms and identifications will be empty,
+      // since chrom_batch is just a container for the chromatograms and identifications will be empty,
       // pickExperiment above will only add empty ProteinIdentification runs with colliding identifiers.
       // Usually we could sanitize the identifiers or merge the runs, but since they are empty and we add the
       // "real" proteins later -> just clear them
@@ -1804,6 +1827,7 @@ namespace OpenMS
     // debug
     debug_level_ = param_.getValue("debug");
     candidates_out_ = param_.getValue("candidates_out").toString();
+    keep_chromatograms_ = param_.getValue("keep_chromatograms").toBool();
 
     // quantification of decoys
     quantify_decoys_ = param_.getValue("quantify_decoys").toBool();
