@@ -164,7 +164,13 @@ START_SECTION((void run(std::vector< MassTrace > &, FeatureMap &, chromatograms 
   p.setValue("mz_scoring_13C", "true");
   test_ffm.setParameters(p);
   test_ffm.run(splitted_mt, test_fm, chromatograms);
-  TEST_EQUAL(test_fm.size(), 79);
+  // ElutionPeakDetection no longer extrapolates its smoothing to the ends of a mass trace (#2777), which
+  // changes two traces, in this and the next two runs alike (see also the historic section below):
+  // - the trace at m/z 213.1534 is kept and becomes a feature of its own (+1);
+  // - the trace at m/z 219.0997 is removed, so the feature at m/z 217.0985 has two traces instead of three:
+  //   its intensity rises to its last point (the flank of a larger peak at m/z 219.103), and only the
+  //   extrapolated end had given it an apex inside the trace.
+  TEST_EQUAL(test_fm.size(), 80);
 
   // run with default settings (from paper using charge+isotope# dependent distances)
   p.setValue("report_convex_hulls", "true");
@@ -173,7 +179,8 @@ START_SECTION((void run(std::vector< MassTrace > &, FeatureMap &, chromatograms 
   test_ffm.run(splitted_mt, test_fm, chromatograms);
   // one feature more than with 'mz_scoring_trace_uncertainty' = "spread": the pair at m/z 177.0575
   // and 178.0538 (spacing 0.9963, 5.6 mDa off the expected one) is no longer assembled
-  TEST_EQUAL(test_fm.size(), 77);
+  // (and one more for the trace at m/z 213.1534, see above)
+  TEST_EQUAL(test_fm.size(), 78);
   // --> this gives less features, i.e. more isotope clusters (but the input data is simulated and highly weird -- should be replaced at some point)
 
   //todo the new isotope m/z scoring should produce similar results, but still has to be tested.
@@ -183,7 +190,8 @@ START_SECTION((void run(std::vector< MassTrace > &, FeatureMap &, chromatograms 
   // one feature less than with "spread": the simulated traces have an m/z spread of only 0.1 ppm, so
   // 'mz_scoring_min_ppm' widens the tolerance, and two pairs at m/z 171.07 and 173.08 join (the
   // element window for the second isotope reaches 2.0126, two 2H; their spacing is 2.0129)
-  TEST_EQUAL(test_fm.size(), 74);
+  // (and one more for the trace at m/z 213.1534, see above)
+  TEST_EQUAL(test_fm.size(), 75);
   // --> this gives less features, i.e. more isotope clusters (but the input data is simulated and highly weird -- should be replaced at some point)
 }
 END_SECTION
@@ -490,8 +498,11 @@ START_SECTION(([EXTRA] isotope traces of low intensity (issue #1942)))
   TEST_NOT_EQUAL(f, nullptr)
   ABORT_IF(f == nullptr)
   TEST_EQUAL(f->getCharge(), 2)
-  // the trace at m/z 524.288 also holds a co-eluting ion that starts there
-  TEST_EQUAL(f->getMetaValue(Constants::UserParam::NUM_OF_MASSTRACES), 2)
+  // The trace at m/z 524.288 also holds a co-eluting ion that starts there (with a second trace at m/z
+  // 524.792). Before #2777, the smoothing set an undershoot at the first point of the traces at m/z
+  // 523.786 and 524.288 to zero; with the FWHMs of the unclamped traces, 524.288 is assembled as the third
+  // isotope trace of this ion, as in the run of low intensity, instead of with 524.792.
+  TEST_EQUAL(f->getMetaValue(Constants::UserParam::NUM_OF_MASSTRACES), 3)
 
   // the historic settings leave the monoisotopic trace on its own in both runs
   fm = runPipeline(low, historic);
@@ -513,12 +524,14 @@ START_SECTION(([EXTRA] isotope traces of low intensity (issue #1942)))
   ABORT_IF(f == nullptr)
   TEST_EQUAL(f->getCharge(), 2)
 
-  // run of high intensity: needs both settings
+  // run of high intensity: needs both settings. With missing traces counted as zero, the ion is not
+  // assembled with charge 2. Since the trace at m/z 524.288 no longer goes with 524.792 (see above), the
+  // monoisotopic trace pairs with it (spacing 1.003) as an ion of charge 1.
   fm = runPipeline(high, zero);
   f = findFeature(fm, 523.286);
   TEST_NOT_EQUAL(f, nullptr)
   ABORT_IF(f == nullptr)
-  TEST_EQUAL(f->getCharge(), 0)
+  TEST_EQUAL(f->getCharge(), 1)
 
   fm = runPipeline(high, longer);
   f = findFeature(fm, 523.286);
