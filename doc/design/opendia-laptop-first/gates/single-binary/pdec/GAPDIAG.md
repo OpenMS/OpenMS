@@ -57,7 +57,23 @@ So on faint peptides our traces carry more foreign signal than DIA-NN's. DIA-NN 
 - The 6-fragment trace tensor and its co-elution and evidence features sum all points within a **fixed ±0.02 Da** of each fragment (`TraceCollector(..., 0.02, ...)` in OpenDIAWorkflow.cpp).
 - At this library's fragment m/z (10th/50th/90th percentile 344/602/894) that is **±58/33/22 ppm**. The run's calibrated MS2 half width is **8.3 ppm**, and our own 12-fragment grid already uses 17.5 ppm.
 - So the trace window is about 4× wider than the data needs. On faint peaks the extra width collects interfering ions and dilutes co-elution. That matches the B1 picture: lower co-elution, a worse area match and a larger mean ppm error.
-- **Test:** an opt-in `-trace_tolerance_ppm` (0 = the old 0.02 Da, so the default is byte-identical, 25/25 ctests). It is run at 10 and 20 ppm on r≈1.56 D s0 against the default. The result follows below.
+- **Test:** an opt-in `-trace_tolerance_ppm` (OpenMS e19261618f). At 0 it keeps the old 0.02 Da window, so the default is byte-identical to `newdef` (25/25 ctests).
+
+r≈1.56 D results:
+
+| Arm | Seed | N @ FDP_c 0.5 / 1 / 2 % | Lower / combined bound at own q ≤ 1 % |
+|---|---|---|---|
+| default | 0 | 11,576 / **13,388** / 14,536 | 0.57 / 1.08 % |
+| default | 1 | 13,545 at 1 % | 0.64 / 1.22 % |
+| 8 ppm | 0 | 14,087 at 1 % | 0.87 / 1.65 % |
+| **10 ppm** | 0 | 13,126 / **14,948** / 16,603 | 0.82 / 1.55 % |
+| **10 ppm** | 1 | **14,867** at 1 % | 0.83 / 1.57 % |
+| 20 ppm | 0 | 12,695 / 14,253 / 15,812 | 0.81 / 1.53 % |
+
+- **This is the first lever in this session that moves IDs at true FDR:** +11.7 % (s0) and +9.8 % (s1) at FDP_c 1 %, with gains at every FDP level.
+- **The tool's own q is looser,** though: the combined bound rises 1.15 → 1.56 %.
+- No change in cost: wall time 5:12-5:43 against 5:44, peak about 10 GB.
+- Frozen as **PLAN_TRPPM** (r≈7 D, 5 seeds), submitted after the freeze.
 
 ## 5. Other findings
 
