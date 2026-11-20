@@ -445,6 +445,10 @@ namespace OpenMS
           a.localization_method = "unlocalized";
           a.localization_range_begin = -1;
           a.localization_range_end = -1;
+          a.secondary_localization_position = -1;
+          a.secondary_localization_range_begin = -1;
+          a.secondary_localization_range_end = -1;
+          a.secondary_localization_gain = 0;
         }
 
         // ion centric (e.g. b and y-ion) spectrum annotation that records all shifts of specific ions (e.g. y5, y5 + U, y5 + C3O)
@@ -941,6 +945,10 @@ namespace OpenMS
           a.localization_range_begin = site.range_begin;
           a.localization_range_end = site.range_end;
           a.localization_delta = static_cast<float>(site.delta);
+          a.secondary_localization_position = site.secondary;
+          a.secondary_localization_range_begin = site.secondary_range_begin;
+          a.secondary_localization_range_end = site.secondary_range_end;
+          a.secondary_localization_gain = static_cast<float>(site.secondary_gain);
         }
 
         // create annotation strings for shifted fragment ions
