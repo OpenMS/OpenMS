@@ -95,7 +95,7 @@ namespace OpenMS::OpenDIA
     bool extra_scores = true;  ///< PLAN_EXTRA (D pass, H reported): append the evidence block (Stage2ExtraFeature).
     bool mobility_apex = false;  ///< Experimental (PRECHECK_IMFEAT): append the own-mobility-apex block (Stage2MobilityApexFeature).
     bool faint_features = false;  ///< Experimental (PRECHECK_FAINT): append pooled p_cos_apex and p_local_sn.
-    bool matched_filter = false;  ///< Experimental (PRECHECK_MF): append the 9 mt_ matched-filter features.
+    bool matched_filter = true;  ///< The 9 mt_ matched-filter features (PLAN_MT D pass); -no_matched_filter turns them off.
     std::size_t search_im_bins = 0;  ///< Experimental RT x ion-mobility candidate picking (SearchOptions::im_bins); 0 off.
     std::size_t search_im_extra_peaks = 2;   ///< SearchOptions::im_extra_peaks.
     std::size_t search_im_min_support = 1;   ///< SearchOptions::im_min_support.

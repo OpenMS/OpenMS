@@ -181,7 +181,7 @@ namespace OpenMS::OpenDIA
                                                                 const TraceEvidence& evidence,
                                                                 const Stage2ExtractionOptions& options);
 
-  /// Opt-in matched-filter block (-matched_filter, PRECHECK_MF) from the existing 6 x 32 x 8 trace tensor.
+  /// Matched-filter block (default since PLAN_MT; -no_matched_filter turns it off) from the existing 6 x 32 x 8 trace tensor.
   enum class Stage2MatchedFilterFeature : std::size_t
   {
     Z_MED = 0, ///< slog of the median per-fragment robust z at the centre bin.
