@@ -1,0 +1,10 @@
+H_cur_s0 exit 0 	Elapsed (wall clock) time (h:mm:ss or m:ss): 11:40.56 	Maximum resident set size (kbytes): 26470300  136161053
+H_cur_s1 exit 0 	Elapsed (wall clock) time (h:mm:ss or m:ss): 11:45.76 	Maximum resident set size (kbytes): 27252316  135530863
+H_cur_s2 exit 0 	Elapsed (wall clock) time (h:mm:ss or m:ss): 11:10.03 	Maximum resident set size (kbytes): 28637044  136287406
+H_cur_s3 exit 0 	Elapsed (wall clock) time (h:mm:ss or m:ss): 11:20.17 	Maximum resident set size (kbytes): 25887724  136008408
+H_cur_s4 exit 0 	Elapsed (wall clock) time (h:mm:ss or m:ss): 11:23.37 	Maximum resident set size (kbytes): 26725488  135877314
+H_new_s0 exit 0 	Elapsed (wall clock) time (h:mm:ss or m:ss): 11:10.91 	Maximum resident set size (kbytes): 27788120  136134393
+H_new_s1 exit 0 	Elapsed (wall clock) time (h:mm:ss or m:ss): 11:55.37 	Maximum resident set size (kbytes): 27020984  136412584
+H_new_s2 exit 0 	Elapsed (wall clock) time (h:mm:ss or m:ss): 13:18.99 	Maximum resident set size (kbytes): 25451400  135999542
+H_new_s3 exit 0 	Elapsed (wall clock) time (h:mm:ss or m:ss): 11:01.75 	Maximum resident set size (kbytes): 26788120  136253010
+H_new_s4 exit 0 	Elapsed (wall clock) time (h:mm:ss or m:ss): 10:41.46 	Maximum resident set size (kbytes): 25246076  135990492

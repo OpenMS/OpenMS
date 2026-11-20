@@ -10,7 +10,23 @@ The branch's [`src/topp/OpenDIA/README.md`](https://github.com/OpenMS/OpenMS/blo
 ## Current state, 20 November 2026
 
 **Summary.**
-- **Narrower 1/K0 window is now the default (PLAN_IMNARROW, 20 Nov, `pdec/RESULT_IMNARROW_D.md`, `RESULT_IMNARROW_H.md`; OpenMS 9ce3370ee3).**
+- **A ppm trace window is now the default (PLAN_TRPPM, 20 Nov, `pdec/RESULT_TRPPM_D.md`, `RESULT_TRPPM_H.md`; OpenMS ffc7daaa99).**
+  - **Origin:** GAPDIAG compared every DIA-NN ID with what we did with it.
+    - 34 % of DIA-NN's IDs had our best window on the right peak but scored low.
+    - On those windows our co-elution was near decoy level.
+  - **Cause:** the 6-fragment trace tensor summed all points within a fixed ±0.02 Da (22-58 ppm), about 4× the run's calibrated 8.3 ppm. `-trace_tolerance_ppm 10` matches within ±10 ppm instead.
+  - **IDs at 1 % true FDP on the r ≈ 7 library:**
+    - D: 11,815 → 13,985 (+18.4 %).
+    - H: 26,647 → 29,286 (+9.9 %).
+    - Every NEW seed is above every CUR seed on both runs.
+    - That is **54 % / 71 % of DIA-NN**, up from 45 % / 65 %.
+  - **Own q ≤ 0.01 true FDP (pooled lower / combined bound):**
+    - D improves, 1.19 / 1.36 → 1.10 / 1.26 %.
+    - H is a little higher, 1.06 / 1.21 → 1.15 / 1.31 %.
+    - Both stay inside the residual of about 1.1-1.3× (b9).
+  - No extra wall time or memory. The default equals the tested arm byte for byte.
+  - `-trace_tolerance_ppm 0` gives the earlier output.
+- **The narrower 1/K0 window is the default (PLAN_IMNARROW, 20 Nov, `pdec/RESULT_IMNARROW_D.md`, `RESULT_IMNARROW_H.md`; OpenMS 9ce3370ee3).**
   - Search, grid and interference use 0.6 × the calibrated 1/K0 half width (`-im_tolerance_scale`). This cuts the
     background that faint peaks collect.
   - IDs at 1 % true FDP on the r ≈ 7 library: D 11,332 → 11,815 (+4.3 %), H 25,643 → 26,647 (+3.9 %). Every NEW
