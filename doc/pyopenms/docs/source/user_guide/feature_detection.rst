@@ -139,6 +139,20 @@ For the untargeted detection of small molecule features we can use the :py:class
   fm.setUniqueIds()
   fm.setPrimaryMSRunPath(["ms_data.mzML"])
 
+.. note::
+
+   ``mass_error_ppm`` is the expected standard deviation of the m/z of the peaks
+   of a mass trace: a peak extends a trace if it lies within three times this
+   value of the centroid m/z of the trace. Since version 3.7 this window is never
+   widened during the detection. If the value is smaller than the scatter of your
+   data, mass traces are incomplete (a warning is printed in that case), so
+   choose it according to your instrument.
+
+   Since version 3.7 a mass trace also needs a minimum number of peaks
+   (``min_trace_scans``, default 4) in addition to the minimum length in seconds
+   (``min_trace_length``). Set ``min_trace_scans`` to 1 to keep shorter traces,
+   e.g. for data with only few scans per elution peak.
+
 Metabolomics - Targeted
 ***********************
 
@@ -237,7 +251,7 @@ Now we can use the following code to detect features with :py:class:`~.FeatureFi
 
   # edit some parameters
   params = ff.getParameters()
-  params["extract:mz_window"] = 5.0  # 5 ppm
+  params["extract:mz_window"] = 5.0  # full window width of 5 ppm (+/- 2.5 ppm)
   params["extract:rt_window"] = 20.0  # 20 seconds
   params["detect:peak_width"] = 3.0  # 3 seconds
   ff.setParameters(params)

@@ -201,7 +201,7 @@ class OPENMS_DLLAPI ProSEAlgorithm :
       int curve_start = 100000;                ///< learning_curve: rows of the first sample
       double curve_min_gain = 0.002;           ///< learning_curve: relative gain below which a fold stops
       int iterations = 10;       ///< iterations of the cross-validation training
-      double tron_epsilon = 1e-7;  ///< stopping tolerance of the SVM solver (TRON)
+      double tron_epsilon = 1e-7;  ///< stopping tolerance of the SVM solves (solvers 'tron' and 'newton', parameter 'rescoring:tron_epsilon')
       bool warm_start = false;     ///< SVM trainings start from the previous iteration's weights (classic training)
       bool classic_training = false; ///< Percolator's training up to 3.09 (parameter 'rescoring:classic_training')
       bool single_cneg = false;    ///< one Cneg candidate instead of three

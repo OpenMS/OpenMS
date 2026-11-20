@@ -402,7 +402,7 @@ namespace Math
     return (ppm / T(1e6)) * mz_ref;
   }
 
-  /*
+  /**
     @brief Compute the absolute mass diff in [Th], given a ppm value and a reference point.
 
     The returned mass diff is always positive!

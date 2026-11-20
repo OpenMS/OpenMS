@@ -44,7 +44,7 @@ public:
   */
   void load(const std::string& filename, MRMFeatureQC& mrmfqc, const bool is_component_group) const;
 
-  /*
+  /**
     @brief Stores an MRMFeatureQC file.
 
     @exception Exception::UnableToCreateFile is thrown if the file could not be created
