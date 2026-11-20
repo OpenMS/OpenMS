@@ -29,7 +29,7 @@
 			<UserParam type="stringList" name="spectra_data" value="[/data/lamgroup/iPRG2014/study/oms/JD_06232014_sample1-A.mzML]"/>
 		</ProteinIdentification>
 		<PeptideIdentification score_type="InterProphet probability" higher_score_better="true" significance_threshold="0.0" MZ="436.210339680337484" RT="0.0" spectrum_reference="scan=6" >
-			<PeptideHit score="0.806668" sequence="HEEIDTK" charge="2" aa_before="K X" aa_after="N X" protein_refs="PH_0 PH_1" >
+			<PeptideHit score="0.806668" sequence="HEEIDTK" charge="2" aa_before="K K" aa_after="N N" protein_refs="PH_0 PH_1" >
 				<UserParam type="int" name="isotope_error" value="0"/>
 				<UserParam type="string" name="_ar_0_score_type" value="peptideprophet"/>
 				<UserParam type="float" name="_ar_0_score" value="0.9208"/>

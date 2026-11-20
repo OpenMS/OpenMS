@@ -46,10 +46,9 @@ conventions. For automatic file type recognition, you need to
 - register the file extension in the getTypeByFileName method of `/source/FORMAT/FileHandler.C`
 
 If the new file is a peak or feature file format you should also add it to loadExperiment or loadFeatures, respectively,
-of the FileHandler class. To add the file format to the TOPPView open dialog, you have to modify the file
-`/source/APPLICATIONS/TOPPViewBase.C`.
-
-- Add the file extensions to the filter_all and filter_single variables of the getFileList_ method.
+of the FileHandler class. To add the file format to the TOPPView open dialog, add its type to `supported_types` in
+`src/openms_gui/source/VISUAL/APPLICATIONS/TOPPViewBase.cpp` of the
+[OpenMS-TOPP-GUI](https://github.com/OpenMS/OpenMS-TOPP-GUI) repository.
 
 To add your format to TOPP applications:
 

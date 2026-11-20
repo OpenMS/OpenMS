@@ -32,9 +32,9 @@ MetaboliteSpectralMatching.cpp
 MorpheusScore.cpp
 OpenSearchModificationAnalysis.cpp
 PeptideProteinResolution.cpp
-ProSEAlgorithm.cpp
 PeptideIndexing.cpp
 Percolator.cpp
+PercolatorReset.cpp
 PercolatorFeatureSetHelper.cpp
 PrecursorPurity.cpp
 PScore.cpp

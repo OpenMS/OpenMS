@@ -211,7 +211,7 @@ std::map<MS1LabeledFAIMS::CV, std::vector<ConsensusMap>> MS1LabeledFAIMS::split_
   return result;
 }
 
-void MS1LabeledFAIMS::append_(ConsensusMap& result, ConsensusMap&& part)
+void MS1LabeledFAIMS::append(ConsensusMap& result, ConsensusMap&& part)
 {
   if (result.getColumnHeaders().empty())
   {
@@ -332,7 +332,7 @@ void MS1LabeledFAIMS::group(FeatureGroupingAlgorithmQT& linker, const std::vecto
         feature.setMetaValue(Constants::UserParam::FAIMS_CV, *cv);
       }
     }
-    append_(result, std::move(linked));
+    append(result, std::move(linked));
   }
   result.updateRanges();
 }

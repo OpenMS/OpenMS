@@ -10,6 +10,8 @@
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include "ParquetReaderHelpers.h"
+#include <OpenMS/FORMAT/MSNumpressCoder.h>
+#include <OpenMS/FORMAT/ZlibCompression.h>
 
 #include <arrow/io/api.h>
 #ifdef WITH_ARROW_DATASET
@@ -19,6 +21,7 @@
 #include <parquet/arrow/reader.h>
 
 #include <cctype>
+#include <cstring>
 #include <exception>
 #include <limits>
 #include <sstream>
@@ -124,16 +127,6 @@ namespace OpenMS
                                           filename + ": " + status.ToString());
           }
           return table;
-        }
-
-        std::string upper_(const std::string& input)
-        {
-          std::string out = input;
-          for (Size i = 0; i < out.size(); ++i)
-          {
-            out[i] = static_cast<char>(std::toupper(static_cast<unsigned char>(out[i])));
-          }
-          return out;
         }
 
         std::vector<std::string> tokenize_(const std::string& expr)
@@ -267,7 +260,7 @@ namespace OpenMS
           name_map.reserve(schema->num_fields());
           for (const auto& field : schema->fields())
           {
-            name_map[upper_(std::string(field->name()))] = std::string(field->name());
+            name_map[StringUtils::toUppered(std::string(field->name()))] = std::string(field->name());
           }
 
           return name_map;
@@ -302,7 +295,7 @@ namespace OpenMS
           {
             Condition cond = expr.conditions[i];
             const std::string original = cond.column;
-            const std::string upper_column = upper_(cond.column);
+            const std::string upper_column = StringUtils::toUppered(cond.column);
 
             auto it = name_map.find(upper_column);
             if (it == name_map.end())
@@ -909,14 +902,14 @@ namespace OpenMS
         Size i = 0;
         while (i < tokens.size())
         {
-          std::string column = upper_(tokens[i++]);
+          std::string column = StringUtils::toUppered(tokens[i++]);
           if (i >= tokens.size())
           {
             throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                           "Missing filter operator for column", column);
           }
 
-          std::string op = upper_(tokens[i++]);
+          std::string op = StringUtils::toUppered(tokens[i++]);
           if (op == "==")
           {
             op = "=";
@@ -980,7 +973,7 @@ namespace OpenMS
           expr.conditions.push_back(std::move(cond));
           if (i < tokens.size())
           {
-            std::string connector = upper_(tokens[i]);
+            std::string connector = StringUtils::toUppered(tokens[i]);
             bool consumed_connector = false;
             if (connector == "AND" || connector == "&&" || connector == "&")
             {
@@ -1256,6 +1249,102 @@ namespace OpenMS
                                         "Failed to combine filtered chunks", combined.status().ToString());
         }
         return *combined;
+      }
+      void decodeBinary(const std::string& data, Int64 compression, std::vector<double>& output, const char* what)
+      {
+        output.clear();
+        if (data.empty())
+        {
+          return;
+        }
+
+        auto decodeNumpress = [&](MSNumpressCoder::NumpressCompression type, const std::string& input)
+        {
+          MSNumpressCoder::NumpressConfig config;
+          config.np_compression = type;
+          MSNumpressCoder().decodeNPRaw(input, output, config);
+        };
+
+        switch (compression)
+        {
+          case 0: // no compression
+          {
+            if (data.size() % sizeof(double) != 0)
+            {
+              throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                            std::string("Invalid ") + what + " data size (not divisible by 8)", StringUtils::toStr(data.size()));
+            }
+            const size_t count = data.size() / sizeof(double);
+            output.resize(count);
+            std::memcpy(output.data(), data.data(), count * sizeof(double));
+            break;
+          }
+          case 1: // zlib only
+          {
+            std::string decoded;
+            ZlibCompression::uncompressString(data, decoded);
+            if (decoded.size() % sizeof(double) != 0)
+            {
+              throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                            std::string("Invalid decompressed ") + what + " data size", StringUtils::toStr(decoded.size()));
+            }
+            const size_t count = decoded.size() / sizeof(double);
+            output.resize(count);
+            std::memcpy(output.data(), decoded.data(), count * sizeof(double));
+            break;
+          }
+          case 2: // np-linear
+            decodeNumpress(MSNumpressCoder::LINEAR, data);
+            break;
+          case 3: // np-slof
+            decodeNumpress(MSNumpressCoder::SLOF, data);
+            break;
+          case 4: // np-pic
+            decodeNumpress(MSNumpressCoder::PIC, data);
+            break;
+          case 5: // np-linear + zlib
+          {
+            std::string decoded;
+            ZlibCompression::uncompressString(data, decoded);
+            decodeNumpress(MSNumpressCoder::LINEAR, decoded);
+            break;
+          }
+          case 6: // np-slof + zlib
+          {
+            std::string decoded;
+            ZlibCompression::uncompressString(data, decoded);
+            decodeNumpress(MSNumpressCoder::SLOF, decoded);
+            break;
+          }
+          case 7: // np-pic + zlib
+          {
+            std::string decoded;
+            ZlibCompression::uncompressString(data, decoded);
+            decodeNumpress(MSNumpressCoder::PIC, decoded);
+            break;
+          }
+          default:
+            throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                          "Unsupported compression type", StringUtils::toStr(compression));
+        }
+      }
+
+      void appendKeyPart(std::ostringstream& oss, bool has_value, Int64 value)
+      {
+        if (has_value)
+        {
+          oss << value;
+        }
+        else
+        {
+          oss << "NULL";
+        }
+        oss << '|';
+      }
+
+      void appendKeyPart(std::ostringstream& oss, const std::string& value)
+      {
+        oss << value << '|';
       }
     } // namespace ParquetReaderHelpers
   } // namespace Internal

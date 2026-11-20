@@ -20,6 +20,21 @@ To Install the binary package of OpenMS & {term}`TOPP`:
 The windows installer works with Windows 10 and 11 (older versions might still work but are untested).
 ```
 
+## Install the graphical tools (TOPPView, TOPPAS, INIFileEditor)
+
+The graphical tools are not part of the OpenMS installer. They come with a separate installer from
+[OpenMS-TOPP-GUI](https://github.com/OpenMS/OpenMS-TOPP-GUI), which is installed on top of OpenMS:
+
+1. Install OpenMS first, as described above.
+2. Download the GUI installer `OpenMS-GUI-<version>-Win64.exe` of the **same version** from the
+   [archive](https://archive.openms.de/openms/OpenMSInstaller/release/latest/) or the [OpenMS-TOPP-GUI releases](https://github.com/OpenMS/OpenMS-TOPP-GUI/releases).
+3. Execute it. It finds the OpenMS installation, installs the graphical tools into the same folder and adds the start menu
+   entries and the file associations (e.g. `.mzML` opens in TOPPView, `.toppas` in TOPPAS). It refuses to install
+   if OpenMS is missing or has a different version.
+
+Uninstalling OpenMS also removes the graphical tools. To remove only the graphical tools, use the "OpenMS-GUI" entry of
+the installed apps.
+
 ## Known issues
 
 1. During installation, an error message pops up, saying:
@@ -60,3 +75,9 @@ If you installed the runtime to a non-standard location (for example an xcopy in
 .NET runtime), set the `DOTNET_ROOT` environment variable to the install directory — the folder
 that contains `dotnet.exe` and the `shared\` sub-directory — so the bridge can locate the
 runtime, e.g. `DOTNET_ROOT=C:\Program Files\dotnet`.
+
+## Build OpenMS from source
+
+To build OpenMS from source, follow the build instructions for [Windows](https://archive.openms.de/openms/Documentation/release/latest/html/install_win.html).
+The graphical tools are built from [OpenMS-TOPP-GUI](https://github.com/OpenMS/OpenMS-TOPP-GUI) against the installed
+OpenMS (see its README).

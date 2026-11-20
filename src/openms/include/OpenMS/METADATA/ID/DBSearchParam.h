@@ -25,7 +25,7 @@ namespace OpenMS
   {
     /** @brief Parameters specific to a database search step.
     */
-    struct DBSearchParam: public MetaInfoInterface
+    struct OPENMS_DLLAPI DBSearchParam: public MetaInfoInterface
     {
       enum MoleculeType molecule_type;
       enum MassType mass_type;
@@ -63,43 +63,11 @@ namespace OpenMS
 
       DBSearchParam(const DBSearchParam& other) = default;
 
-      bool operator<(const DBSearchParam& other) const
-      {
-        return (std::tie(molecule_type, mass_type,
-                         database, database_version, taxonomy,
-                         charges, fixed_mods, variable_mods,
-                         precursor_mass_tolerance, fragment_mass_tolerance,
-                         precursor_tolerance_ppm, fragment_tolerance_ppm,
-                         digestion_enzyme, enzyme_term_specificity, missed_cleavages,
-                         min_length, max_length) <
-                std::tie(other.molecule_type, other.mass_type,
-                         other.database, other.database_version, other.taxonomy,
-                         other.charges, other.fixed_mods, other.variable_mods,
-                         other.precursor_mass_tolerance, other.fragment_mass_tolerance,
-                         other.precursor_tolerance_ppm, other.fragment_tolerance_ppm,
-                         other.digestion_enzyme, other.enzyme_term_specificity, other.missed_cleavages,
-                         other.min_length, other.max_length));
-      }
+      /// Lexicographic order over all parameters (defined out of line: comparing the
+      /// 17-member tuple is expensive to instantiate in every including translation unit)
+      bool operator<(const DBSearchParam& other) const;
 
-      bool operator==(const DBSearchParam& other) const
-      {
-        return (std::tie(molecule_type, mass_type, database,
-                         database_version, taxonomy, charges, fixed_mods,
-                         variable_mods, fragment_mass_tolerance,
-                         precursor_mass_tolerance, fragment_tolerance_ppm,
-                         precursor_tolerance_ppm, digestion_enzyme, enzyme_term_specificity,
-                         missed_cleavages, min_length, max_length) ==
-                std::tie(other.molecule_type, other.mass_type,
-                         other.database, other.database_version, other.taxonomy,
-                         other.charges, other.fixed_mods, other.variable_mods,
-                         other.fragment_mass_tolerance,
-                         other.precursor_mass_tolerance,
-                         other.fragment_tolerance_ppm,
-                         other.precursor_tolerance_ppm,
-                         other.digestion_enzyme, other.enzyme_term_specificity,
-                         other.missed_cleavages,
-                         other.min_length, other.max_length));
-      }
+      bool operator==(const DBSearchParam& other) const;
     };
 
     typedef std::set<DBSearchParam> DBSearchParams;

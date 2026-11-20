@@ -54,7 +54,6 @@ if (MSVC)
 										COMMAND ${CMAKE_COMMAND} -E echo "    [no target]     [NMake only]         builds the OpenMS library, TOPP tools"
 										COMMAND ${CMAKE_COMMAND} -E echo "    OpenMS          builds the OpenMS library"
 										COMMAND ${CMAKE_COMMAND} -E echo "    TOPP            builds the TOPP tools"
-										COMMAND ${CMAKE_COMMAND} -E echo "    GUI             builds the GUI tools (TOPPView,...)"
 										COMMAND ${CMAKE_COMMAND} -E echo "    RUN_TESTS       [Visual Studio only] executes OpenMS and TOPP tests (*)"
 										COMMAND ${CMAKE_COMMAND} -E echo "    test            [NMake only]         executes OpenMS and TOPP tests (*)"
 										COMMAND ${CMAKE_COMMAND} -E echo "                    *) make sure they are built using the ALL_BUILD/all target."
@@ -67,7 +66,7 @@ if (MSVC)
 										${pyopenms_targets}
 										${coverage_target}
 										COMMAND ${CMAKE_COMMAND} -E echo ""
-										COMMAND ${CMAKE_COMMAND} -E echo "Single TOPP tools have their own target, e.g. TOPPView"
+										COMMAND ${CMAKE_COMMAND} -E echo "Single TOPP tools have their own target, e.g. FileInfo"
 										COMMAND ${CMAKE_COMMAND} -E echo ""
 										COMMAND ${CMAKE_COMMAND} -E echo "=========================================================================="
 										COMMAND ${CMAKE_COMMAND} -E echo ""
@@ -82,7 +81,6 @@ else()
 										COMMAND ${CMAKE_COMMAND} -E echo "    [no target]     builds the OpenMS library, TOPP tools"
 										COMMAND ${CMAKE_COMMAND} -E echo "    OpenMS          builds the OpenMS library"
 										COMMAND ${CMAKE_COMMAND} -E echo "    TOPP            builds the TOPP tools"
-										COMMAND ${CMAKE_COMMAND} -E echo "    GUI             builds the GUI tools (TOPPView,...)"
 										COMMAND ${CMAKE_COMMAND} -E echo "    test            executes OpenMS and TOPP tests"
 										COMMAND ${CMAKE_COMMAND} -E echo "                    make sure they are built using the 'all' target"
 										COMMAND ${CMAKE_COMMAND} -E echo "    Tutorials_build builds the code snippets of the tutorials in source/EXAMPLES"
@@ -95,7 +93,7 @@ else()
 										${pyopenms_targets}
 										${coverage_target}
 										COMMAND ${CMAKE_COMMAND} -E echo ""
-										COMMAND ${CMAKE_COMMAND} -E echo "Single TOPP tools have their own target, e.g. TOPPView"
+										COMMAND ${CMAKE_COMMAND} -E echo "Single TOPP tools have their own target, e.g. FileInfo"
 										COMMAND ${CMAKE_COMMAND} -E echo ""
 										COMMAND ${CMAKE_COMMAND} -E echo "=========================================================================="
 										COMMAND ${CMAKE_COMMAND} -E echo ""

@@ -7,6 +7,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/HANDLERS/ImzMLWriter.h>
+#include "../Sha1Helpers.h"
 
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/LogStream.h>
@@ -620,11 +621,6 @@ namespace
     }
   }
 
-  uint32_t sha1LeftRotate_(uint32_t value, uint32_t bits)
-  {
-    return (value << bits) | (value >> (32 - bits));
-  }
-
   bool uuidStringToBytes_(const std::string& uuid, unsigned char out[16])
   {
     std::string hex = uuid;
@@ -973,113 +969,6 @@ namespace
     md5ProcessBlock_(a0, b0, c0, d0, block);
 
     return md5DigestToHex_(a0, b0, c0, d0);
-  }
-
-  std::string sha1DigestToHex_(const uint32_t digest[5])
-  {
-    std::ostringstream oss;
-    oss << std::hex << std::setfill('0');
-    for (int i = 0; i < 5; ++i)
-    {
-      oss << std::setw(8) << digest[i];
-    }
-    return oss.str();
-  }
-
-  std::string sha1Hex_(const std::string& file_path)
-  {
-    std::ifstream in(file_path.c_str(), std::ios::binary);
-    if (!in)
-    {
-      return "";
-    }
-
-    uint32_t h[5] = {0x67452301, 0xEFCDAB89, 0x98BADCFE, 0x10325476, 0xC3D2E1F0};
-    uint64_t total_bytes = 0;
-    uint8_t block[64] {};
-    size_t block_len = 0;
-    char read_buf[64 * 1024];
-
-    auto processBlock = [&](const uint8_t chunk[64]) {
-      uint32_t w[80];
-      for (int i = 0; i < 16; ++i)
-      {
-        w[i] = (uint32_t(chunk[i * 4]) << 24) | (uint32_t(chunk[i * 4 + 1]) << 16)
-               | (uint32_t(chunk[i * 4 + 2]) << 8) | uint32_t(chunk[i * 4 + 3]);
-      }
-      for (int i = 16; i < 80; ++i)
-      {
-        w[i] = sha1LeftRotate_(w[i - 3] ^ w[i - 8] ^ w[i - 14] ^ w[i - 16], 1);
-      }
-
-      uint32_t a = h[0], b = h[1], c = h[2], d = h[3], e = h[4];
-      for (int i = 0; i < 80; ++i)
-      {
-        uint32_t f = 0;
-        uint32_t k = 0;
-        if (i < 20)      { f = (b & c) | (~b & d);           k = 0x5A827999; }
-        else if (i < 40) { f = b ^ c ^ d;                    k = 0x6ED9EBA1; }
-        else if (i < 60) { f = (b & c) | (b & d) | (c & d); k = 0x8F1BBCDC; }
-        else              { f = b ^ c ^ d;                    k = 0xCA62C1D6; }
-        const uint32_t temp = sha1LeftRotate_(a, 5) + f + e + k + w[i];
-        e = d;
-        d = c;
-        c = sha1LeftRotate_(b, 30);
-        b = a;
-        a = temp;
-      }
-      h[0] += a;
-      h[1] += b;
-      h[2] += c;
-      h[3] += d;
-      h[4] += e;
-    };
-
-    auto consumeBytes = [&](const uint8_t* data, size_t len) {
-      size_t idx = 0;
-      while (idx < len)
-      {
-        const size_t take = std::min(len - idx, 64 - block_len);
-        std::memcpy(block + block_len, data + idx, take);
-        block_len += take;
-        idx += take;
-        if (block_len == 64)
-        {
-          processBlock(block);
-          block_len = 0;
-        }
-      }
-    };
-
-    while (in.read(read_buf, sizeof(read_buf)) || in.gcount() > 0)
-    {
-      const size_t chunk = static_cast<size_t>(in.gcount());
-      total_bytes += chunk;
-      consumeBytes(reinterpret_cast<const uint8_t*>(read_buf), chunk);
-    }
-
-    const uint64_t orig_bits = total_bytes * 8;
-    block[block_len++] = 0x80;
-    if (block_len > 56)
-    {
-      while (block_len < 64)
-      {
-        block[block_len++] = 0;
-      }
-      processBlock(block);
-      block_len = 0;
-    }
-    while (block_len < 56)
-    {
-      block[block_len++] = 0;
-    }
-    for (int i = 7; i >= 0; --i)
-    {
-      block[block_len++] = static_cast<uint8_t>((orig_bits >> (8 * i)) & 0xff);
-    }
-    processBlock(block);
-
-    return sha1DigestToHex_(h);
   }
 
   void writeCvParam_(std::ostream& os,
@@ -1564,7 +1453,7 @@ void ImzMLWriter::store(const std::string& imzml_path,
   logger.setProgress(work.size() + 1);
 
   const std::string ibd_md5 = md5Hex_(ibd_path);
-  const std::string ibd_sha1 = sha1Hex_(ibd_path);
+  const std::string ibd_sha1 = sha1FileHex(ibd_path);
   writeImzMLXml_(imzml_path, work, meta, plans, ibd_md5, ibd_sha1, instrument_model, continuous,
                  mz_32_bit, int_32_bit);
   logger.endProgress();

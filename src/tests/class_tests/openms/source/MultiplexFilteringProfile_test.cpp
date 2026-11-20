@@ -10,9 +10,13 @@
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/test_config.h>
 
+#include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopePatternGenerator.h>
+#include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/FEATUREFINDER/MultiplexFilteringProfile.h>
 #include <OpenMS/FEATUREFINDER/MultiplexFilteredMSExperiment.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
+
+#include <cmath>
 
 using namespace OpenMS;
 
@@ -89,6 +93,70 @@ START_SECTION(std::vector<MultiplexFilterResult> filter())
     TEST_EQUAL(results[5].size(), 5);
     TEST_EQUAL(results[6].size(), 4);
     TEST_EQUAL(results[7].size(), 0);
+END_SECTION
+
+START_SECTION([EXTRA] zeroth peak check: a satellite at the M-1 of a heavier peptide is found after an earlier pattern blacklisted peaks)
+{
+  // The data of the same section in MultiplexFilteringCentroided_test as profile spectra (a Gaussian of FWHM m/z / 60000 for
+  // every peak): in profile mode, the zeroth peak check runs on the white centroided spectra too. Peptide A (3+, m/z 400, six
+  // peaks) is found by pattern 0 (3+ singlet), which blacklists its six peaks, so in the white spectra of pattern 1 (2+ doublet
+  // B, light m/z 1500) every peak of B has an index six lower than in the experiment.
+  const double c13 = Constants::C13C12_MASSDIFF_U;
+  auto averagine = [](double mass)
+  {
+    std::vector<double> intensities;
+    IsotopeDistribution distribution = CoarseIsotopePatternGenerator(6).estimateFromPeptideWeight(mass);
+    for (Size i = 0; i < 6; ++i) { intensities.push_back(distribution[i].getIntensity()); }
+    return intensities;
+  };
+  const std::vector<double> isotopes_a = averagine(3 * 400.0), isotopes_b = averagine(2 * 1500.0);
+  // heavy / light, the mass shift of the heavy peptide, and whether a peak that is no satellite lies at the heavy M-1
+  auto filter = [&](double ratio, double shift, bool interferer)
+  {
+    std::vector<Peak1D> peaks;
+    for (int i = 0; i < 6; ++i) { peaks.emplace_back(400.0 + i * c13 / 3, 1e6 * isotopes_a[i]); }
+    for (int i = 0; i < 6; ++i) { peaks.emplace_back(1500.0 + i * c13 / 2, 1e6 * isotopes_b[i]); }
+    for (int i = 0; i < 6; ++i) { peaks.emplace_back(1500.0 + (shift + i * c13) / 2, 1e6 * ratio * isotopes_b[i]); }
+    if (interferer) { peaks.emplace_back(1500.0 + (shift - c13) / 2, 0.8e6 * ratio * isotopes_b[0]); }
+    MSExperiment experiment;
+    for (int s = 0; s < 3; ++s)
+    {
+      MSSpectrum spectrum;
+      spectrum.setRT(10.0 + s);
+      spectrum.setMSLevel(1);
+      spectrum.setType(SpectrumSettings::SpectrumType::PROFILE);
+      for (const Peak1D& peak : peaks)
+      {
+        // 21 data points from -5 to +5 sigma
+        const double sigma = peak.getMZ() / 60000 / 2.3548;
+        for (int k = -10; k <= 10; ++k) { spectrum.push_back(Peak1D(peak.getMZ() + k * sigma / 2, float(peak.getIntensity() * std::exp(-k * k / 8.0)))); }
+      }
+      spectrum.sortByPosition();
+      experiment.addSpectrum(spectrum);
+    }
+    experiment.updateRanges();
+    MSExperiment experiment_picked;
+    std::vector<std::vector<PeakPickerHiRes::PeakBoundary>> boundaries_spectra, boundaries_chromatograms;
+    picker.pickExperiment(experiment, experiment_picked, boundaries_spectra, boundaries_chromatograms);
+    MultiplexDeltaMasses singlet;
+    singlet.getDeltaMasses().push_back(MultiplexDeltaMasses::DeltaMass(0, "no_label"));
+    MultiplexDeltaMasses doublet;
+    doublet.getDeltaMasses().push_back(MultiplexDeltaMasses::DeltaMass(0, "no_label"));
+    doublet.getDeltaMasses().push_back(MultiplexDeltaMasses::DeltaMass(shift, "heavy"));
+    std::vector<MultiplexIsotopicPeakPattern> two_patterns{MultiplexIsotopicPeakPattern(3, 6, singlet, 0), MultiplexIsotopicPeakPattern(2, 6, doublet, 1)};
+    MultiplexFilteringProfile f(experiment, experiment_picked, boundaries_spectra, two_patterns, 3, 6, 1.0, 0.0, 10, true, 0.8, 0.75, 0.75, "peptide");
+    f.setLogType(ProgressLogger::NONE);
+    std::vector<MultiplexFilteredMSExperiment> results = f.filter();
+    TEST_EQUAL(results[0].size(), 3) // A in every spectrum
+    return results[1].size();
+  };
+  // heavy shifted by six 13C: its M-1 is the light M+5, a satellite. At heavy / light = 1 / 4 it is above the 0.3 threshold.
+  TEST_EQUAL(filter(0.25, 6 * c13, false), 3)
+  // At heavy / light = 1 the light M+5 is below the threshold either way.
+  TEST_EQUAL(filter(1.0, 6 * c13, false), 3)
+  // Lys8: a peak of 0.8 x the heavy M0 at the heavy M-1, no light isotope position, rejects B.
+  TEST_EQUAL(filter(1.0, 8.0141988132, true), 0)
+}
 END_SECTION
 
 END_TEST

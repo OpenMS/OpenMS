@@ -47,7 +47,8 @@ endif()
     target_link_libraries(${i} OpenMS_CLI)
     openms_add_executable_compiler_flags(${i})
   endif()  
-  
+  openms_link_mimalloc(${i}) # WITH_MIMALLOC on Windows, otherwise a no-op
+
   # we also want to install each topp tool
   install_tool(${i})
   if (OPENMP_FOUND AND NOT MSVC)

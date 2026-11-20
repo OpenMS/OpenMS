@@ -30,6 +30,16 @@ namespace OpenMS
 
   void FragmentIonLikelihoodModel::PeakLists::clear()
   {
+    // The lists of the spectra are freed by the OpenMP threads, in equal static parts as a static loop over the spectra
+    // assigns them (ProSE's preprocessing, which fills them: each thread then frees into the arena it allocated from);
+    // one after the other, the 2 x 619,000 lists of a timsTOF HeLa run took 0.26 s.
+    const SignedSize n = static_cast<SignedSize>(std::min(mz_.size(), rank_bins_.size())); // (equal, see reset())
+#pragma omp parallel for schedule(static) if (n >= 4096)
+    for (SignedSize i = 0; i < n; ++i)
+    {
+      std::vector<float>().swap(mz_[i]);
+      std::vector<std::uint8_t>().swap(rank_bins_[i]);
+    }
     std::vector<std::vector<float>>().swap(mz_);
     std::vector<std::vector<std::uint8_t>>().swap(rank_bins_);
   }
@@ -138,6 +148,14 @@ namespace OpenMS
 
   bool FragmentIonLikelihoodModel::parseIonName(const std::string& name, bool& prefix, Size& ordinal)
   {
+    Size series = 0;
+    if (!parseIonSeries(name, series, ordinal)) return false;
+    prefix = series % 2 == 0;
+    return true;
+  }
+
+  bool FragmentIonLikelihoodModel::parseIonSeries(const std::string& name, Size& series, Size& ordinal)
+  {
     if (name.empty()) return false;
     // Cross-link annotations put the ion type after a '$'; plain annotations start with it.
     Size pos = 0;
@@ -145,10 +163,14 @@ namespace OpenMS
     {
       pos = dollar + 1;
     }
-    const char series = name[pos];
-    if (series == 'a' || series == 'b' || series == 'c') { prefix = true; }
-    else if (series == 'x' || series == 'y' || series == 'z') { prefix = false; }
-    else { return false; }
+    switch (name[pos])
+    {
+      case 'a': case 'b': series = 0; break;
+      case 'x': case 'y': series = 1; break;
+      case 'c': series = 2; break;
+      case 'z': series = 3; break;
+      default: return false;
+    }
     ++pos;
     // z. (z+1) and z' (z+2) radical ions carry a marker between letter and ordinal.
     while (pos < name.size() && (name[pos] == '.' || name[pos] == '\'')) ++pos;
@@ -162,6 +184,77 @@ namespace OpenMS
     if (pos == begin || value == 0) return false;
     ordinal = value;
     return true;
+  }
+
+  Size FragmentIonLikelihoodModel::seriesOf(Residue::ResidueType type)
+  {
+    switch (type)
+    {
+      case Residue::AIon: case Residue::BIon: return 0;
+      case Residue::XIon: case Residue::YIon: return 1;
+      case Residue::CIon: return 2;
+      case Residue::ZIon: case Residue::Zp1Ion: case Residue::Zp2Ion: return 3;
+      default: return SERIES;
+    }
+  }
+
+  template <typename IonOf, typename ChargeOf>
+  void FragmentIonLikelihoodModel::matchIons_(const PeakLists& peaks, Size index, const MSSpectrum& theoretical, IonOf&& ion_of,
+                                              ChargeOf&& charge_of, const AASequence& peptide, int precursor_charge,
+                                              double tolerance, bool ppm, std::vector<Ion>& ions) const
+  {
+    const Size n = peptide.size();
+    const Size bucket = precursor_charge <= 2 ? 0 : (precursor_charge == 3 ? 1 : 2);
+    const bool rich = context_set_ == ContextSet::RICH;
+
+    // Pass 1: match every ion; its context waits for the complementary ions (RICH), so it holds the
+    // provisional key (ordinal, series, charge bin) for now.
+    ions.clear();
+    ions.reserve(theoretical.size());
+    std::vector<std::uint8_t> matched_singly(rich ? SERIES * (n + 1) : 0, 0); // per (series, ordinal): a charge-1 ion matched
+    for (Size i = 0; i < theoretical.size(); ++i)
+    {
+      Size series = 0;
+      Size ordinal = 0;
+      if (! ion_of(i, series, ordinal) || ordinal >= n) continue;
+      const int fragment_charge = charge_of(i);
+      const Size charge_bin = fragment_charge <= 1 ? 0 : 1;
+      const double mz = theoretical[i].getMZ();
+      const double width = ppm ? mz * tolerance * 1e-6 : tolerance;
+      Size outcome = absentOutcome();
+      const Int nearest = peaks.findNearest(index, mz, width);
+      if (nearest >= 0)
+      {
+        const Size peak = static_cast<Size>(nearest);
+        const Size error = rich ? errorBin(std::fabs(peaks.mz(index, peak) - mz) / width) : 0;
+        outcome = peaks.rankBin(index, peak) * errors_ + error;
+        if (rich && charge_bin == 0) matched_singly[series * (n + 1) + ordinal] = 1;
+      }
+      ions.push_back({static_cast<UInt32>((ordinal << 3) | (series << 1) | charge_bin), static_cast<UInt32>(outcome)});
+    }
+
+    // Pass 2: full contexts
+    for (Ion& ion : ions)
+    {
+      const Size ordinal = ion.context >> 3;
+      const Size series = (ion.context >> 1) & 3u;
+      const bool prefix = series % 2 == 0;
+      const Size charge_bin = ion.context & 1u;
+      const Size position = std::min(POSITION_BINS - 1, (POSITION_BINS * ordinal) / n);
+      Size site = 0, complement = 0;
+      if (rich)
+      {
+        // the bond between residues nside and nside + 1
+        const Size nside = prefix ? ordinal - 1 : n - ordinal - 1;
+        const char c_residue = peptide[nside + 1].getOneLetterCode()[0];
+        const char n_residue = peptide[nside].getOneLetterCode()[0];
+        site = c_residue == 'P' ? 1 : ((n_residue == 'D' || n_residue == 'E') ? 2 : 0);
+        complement = matched_singly[(series ^ 1) * (n + 1) + (n - ordinal)];
+      }
+      const Size context = ((((series * PRECURSOR_BUCKETS + bucket) * FRAGMENT_CHARGES + charge_bin) * POSITION_BINS + position) * sites_ + site)
+                           * complement_ + complement;
+      ion.context = static_cast<UInt32>(context);
+    }
   }
 
   void FragmentIonLikelihoodModel::matchIons(const PeakLists& peaks,
@@ -186,58 +279,37 @@ namespace OpenMS
     const auto* charges = (! theoretical.getIntegerDataArrays().empty() && theoretical.getIntegerDataArrays()[0].size() == theoretical.size())
                             ? &theoretical.getIntegerDataArrays()[0]
                             : nullptr;
-    const Size n = peptide.size();
-    const Size bucket = precursor_charge <= 2 ? 0 : (precursor_charge == 3 ? 1 : 2);
-    const bool rich = context_set_ == ContextSet::RICH;
+    matchIons_(peaks, index, theoretical,
+      [&](Size i, Size& series, Size& ordinal) { return parseIonSeries(names[i], series, ordinal); },
+      [&](Size i) { return charges != nullptr ? (*charges)[i] : 1; },
+      peptide, precursor_charge, tolerance, ppm, ions);
+  }
 
-    // Pass 1: match every ion; its context waits for the complementary ions (RICH), so it holds the
-    // provisional key (ordinal, series, charge bin) for now.
-    ions.clear();
-    ions.reserve(theoretical.size());
-    std::vector<std::uint8_t> matched_singly(rich ? 2 * (n + 1) : 0, 0); // per (series, ordinal): a charge-1 ion matched
-    for (Size i = 0; i < theoretical.size(); ++i)
+  void FragmentIonLikelihoodModel::matchIons(const PeakLists& peaks,
+                                             Size index,
+                                             const MSSpectrum& theoretical,
+                                             const std::vector<Residue::ResidueType>& ion_types,
+                                             const std::vector<UInt>& ion_ordinals,
+                                             const std::vector<Int>& ion_charges,
+                                             const AASequence& peptide,
+                                             int precursor_charge,
+                                             double tolerance,
+                                             bool ppm,
+                                             std::vector<Ion>& ions) const
+  {
+    if (! std::isfinite(tolerance) || tolerance <= 0.0)
     {
-      bool prefix = false;
-      Size ordinal = 0;
-      if (! parseIonName(names[i], prefix, ordinal) || ordinal >= n) continue;
-      const int fragment_charge = charges != nullptr ? (*charges)[i] : 1;
-      const Size charge_bin = fragment_charge <= 1 ? 0 : 1;
-      const double mz = theoretical[i].getMZ();
-      const double width = ppm ? mz * tolerance * 1e-6 : tolerance;
-      Size outcome = absentOutcome();
-      const Int nearest = peaks.findNearest(index, mz, width);
-      if (nearest >= 0)
-      {
-        const Size peak = static_cast<Size>(nearest);
-        const Size error = rich ? errorBin(std::fabs(peaks.mz(index, peak) - mz) / width) : 0;
-        outcome = peaks.rankBin(index, peak) * errors_ + error;
-        if (rich && charge_bin == 0) matched_singly[(prefix ? 0 : 1) * (n + 1) + ordinal] = 1;
-      }
-      ions.push_back({static_cast<UInt32>((ordinal << 2) | (prefix ? 0u : 2u) | charge_bin), static_cast<UInt32>(outcome)});
+      throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Matching tolerance must be finite and positive.");
     }
-
-    // Pass 2: full contexts
-    for (Ion& ion : ions)
+    if (ion_types.size() != theoretical.size() || ion_ordinals.size() != theoretical.size() || ion_charges.size() != theoretical.size())
     {
-      const Size ordinal = ion.context >> 2;
-      const bool prefix = (ion.context & 2u) == 0;
-      const Size charge_bin = ion.context & 1u;
-      const Size series = prefix ? 0 : 1;
-      const Size position = std::min(POSITION_BINS - 1, (POSITION_BINS * ordinal) / n);
-      Size site = 0, complement = 0;
-      if (rich)
-      {
-        // the bond between residues nside and nside + 1
-        const Size nside = prefix ? ordinal - 1 : n - ordinal - 1;
-        const char c_residue = peptide[nside + 1].getOneLetterCode()[0];
-        const char n_residue = peptide[nside].getOneLetterCode()[0];
-        site = c_residue == 'P' ? 1 : ((n_residue == 'D' || n_residue == 'E') ? 2 : 0);
-        complement = matched_singly[(prefix ? 1 : 0) * (n + 1) + (n - ordinal)];
-      }
-      const Size context = ((((series * PRECURSOR_BUCKETS + bucket) * FRAGMENT_CHARGES + charge_bin) * POSITION_BINS + position) * sites_ + site)
-                           * complement_ + complement;
-      ion.context = static_cast<UInt32>(context);
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Theoretical spectrum needs one ion code per peak", "IonCodes");
     }
+    // (an ordinal of 0, or a type of no series, is not an ion: as parseIonSeries())
+    matchIons_(peaks, index, theoretical,
+      [&](Size i, Size& series, Size& ordinal) { series = seriesOf(ion_types[i]); ordinal = ion_ordinals[i]; return series < SERIES && ordinal != 0; },
+      [&](Size i) { return ion_charges[i]; },
+      peptide, precursor_charge, tolerance, ppm, ions);
   }
 
   void FragmentIonLikelihoodModel::addObservations(const std::vector<Ion>& ions, bool noise)

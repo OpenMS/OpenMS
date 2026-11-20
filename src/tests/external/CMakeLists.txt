@@ -21,8 +21,8 @@ set(my_sources
 ## Find the OpenMS package. It provides the imported targets OpenMS::OpenMS and
 ## OpenMS::OpenSwathAlgo, OpenMS::OpenMS_CLI when the installation includes the TOPP
 ## tool framework (OpenMS_CLI_FOUND; a TOPP-style tool requests COMPONENTS CLI) and,
-## for an installation built with WITH_GUI that includes the GUI library,
-## OpenMS::OpenMS_GUI, whose Qt6 modules are found when the GUI component is requested.
+## with COMPONENTS GUI, OpenMS::OpenMS_GUI of the GUI layer (OpenMS-TOPP-GUI) when that
+## is installed into the same prefix; its OpenMSGUI package also finds the Qt6 modules.
 ## Select an installation with -DOpenMS_DIR=<prefix>/lib/cmake/OpenMS
 ## (<prefix>/CMake on Windows) or by adding <prefix> to CMAKE_PREFIX_PATH.
 find_package(OpenMS CONFIG REQUIRED COMPONENTS CLI OPTIONAL_COMPONENTS GUI)
@@ -61,7 +61,8 @@ foreach(_leaked IN ITEMS IsoSpec Evergreen eol-bspline opentims_cpp openms_therm
   endif()
 endforeach()
 
-## Qt6 is not part of the core library's link interface (see TestExternalCodeQt below)
+## Qt6 is not part of the core library's link interface: a consumer that wants Qt finds
+## and links it itself
 get_target_property(_core_interface OpenMS::OpenMS INTERFACE_LINK_LIBRARIES)
 if(_core_interface MATCHES "Qt6::")
   message(FATAL_ERROR "OpenMS::OpenMS leaks Qt6 into its link interface: ${_core_interface}")
@@ -119,24 +120,17 @@ foreach(_configuration IN LISTS _configurations)
   endif()
 endforeach()
 
-## GUI component: requested as optional above, so a runner whose Qt6 is not findable
-## from this project (unlike from the OpenMS build) skips the check instead of failing.
-if(OpenMS_WITH_GUI)
-  if(OpenMS_GUI_FOUND)
-    foreach(_target IN ITEMS OpenMS::OpenMS_GUI OpenMS_GUI Qt6::Core Qt6::Widgets)
-      if(NOT TARGET ${_target})
-        message(FATAL_ERROR "the OpenMS GUI component did not provide the target ${_target}")
-      endif()
-    endforeach()
-    ## linking the GUI library resolves its Qt6 link interface, which is what the component supplies
-    add_executable(TestExternalCodeGUI TestExternalCodeGUI.cpp)
-    target_link_libraries(TestExternalCodeGUI OpenMS::OpenMS_GUI)
-    add_test(TestExternalCodeGUI TestExternalCodeGUI)
-  else()
-    message(STATUS "Qt6 not found from this project - skipping the GUI component check.")
+## GUI component: OpenMSConfig.cmake delegates it to the OpenMSGUI package of the GUI
+## layer, which OpenMS-TOPP-GUI installs next to it. Without that package (as in the
+## installation of the installed-consumer test) it must not be found; the GUI layer has
+## its own consumer test in OpenMS-TOPP-GUI.
+if(NOT EXISTS "${OpenMS_DIR}/../OpenMSGUI/OpenMSGUIConfig.cmake"
+   AND NOT EXISTS "${OpenMS_DIR}/OpenMSGUIConfig.cmake")
+  if(OpenMS_GUI_FOUND OR OpenMS_WITH_GUI OR TARGET OpenMS::OpenMS_GUI)
+    message(FATAL_ERROR "OpenMSConfig.cmake reports the GUI component for an installation without the GUI layer")
   endif()
-elseif(OpenMS_GUI_FOUND)
-  message(FATAL_ERROR "OpenMSConfig.cmake reports the GUI component for an installation without the GUI library")
+elseif(OpenMS_GUI_FOUND AND NOT TARGET OpenMS::OpenMS_GUI)
+  message(FATAL_ERROR "OpenMSConfig.cmake reports the GUI component without providing OpenMS::OpenMS_GUI")
 endif()
 
 #------------------------------------------------------------------------------
@@ -155,20 +149,6 @@ foreach(i ${my_executables})
   ## link executables against OpenMS
   target_link_libraries(${i} OpenMS::OpenMS my_custom_lib)
 endforeach(i)
-
-## Downstream link contract: since the Qt removal, OpenMSConfig.cmake no longer
-## declares Qt6 as a (transitive) dependency of the core library. An external consumer that wants Qt must
-## find and link it itself. This target uses a Qt type and links Qt6::Core *explicitly* after finding Qt6
-## here -- it builds only because this project supplies Qt, not because OpenMS::OpenMS leaks it
-## transitively. Guarded so the external-code test still configures cleanly on runners without Qt6.
-find_package(Qt6 COMPONENTS Core QUIET)
-if (Qt6_FOUND)
-  add_executable(TestExternalCodeQt TestExternalCodeQt.cpp)
-  target_link_libraries(TestExternalCodeQt OpenMS::OpenMS my_custom_lib Qt6::Core)
-  add_test(TestExternalCodeQt TestExternalCodeQt)
-else()
-  message(STATUS "Qt6 not found - skipping TestExternalCodeQt (transitive-Qt link-contract check).")
-endif()
 
 ## A TOPP-style tool of an external project: derives from TOPPBase, so it links the
 ## tool framework OpenMS::OpenMS_CLI (which carries OpenMS::OpenMS transitively).
@@ -210,7 +190,7 @@ endif()
 ## dependencies OpenMS was built against) through PATH. OpenMSConfig.cmake
 ## tells us where the OpenMS libraries were installed.
 if(WIN32)
-  foreach(_test IN ITEMS TestExternalCode TestExternalCodeCLI TestExternalCodeQt TestExternalCodeGUI TestExternalCodePeptDeep TestExternalCodeOSWParquet TestExternalOpenDIA)
+  foreach(_test IN ITEMS TestExternalCode TestExternalCodeCLI TestExternalCodePeptDeep TestExternalCodeOSWParquet TestExternalOpenDIA)
     if(TEST ${_test})
       set_property(TEST ${_test} APPEND PROPERTY
         ENVIRONMENT_MODIFICATION "PATH=path_list_prepend:${OPENMS_LIB_DIR}")

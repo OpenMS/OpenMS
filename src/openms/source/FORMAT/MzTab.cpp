@@ -1057,13 +1057,16 @@ namespace OpenMS
     }
 
     const PeptideIdentificationList& curr_pep_ids = c.getPeptideIdentifications();
-    if (!curr_pep_ids.empty())
+    // peptide identifications without hits (unidentified spectra) carry no sequence: ignore them
+    const auto first_with_hits = std::find_if(curr_pep_ids.begin(), curr_pep_ids.end(),
+                                              [](const PeptideIdentification& pep) { return !pep.getHits().empty(); });
+    if (first_with_hits != curr_pep_ids.end())
     {
       checkSequenceUniqueness_(curr_pep_ids);
 
       // Overall information for this feature in PEP section
       // Features need to be resolved for this. First is not necessarily the best since ids were resorted by map_index.
-      const PeptideIdentification& best_id = curr_pep_ids[0];
+      const PeptideIdentification& best_id = *first_with_hits;
       const PeptideHit& best_ph = best_id.getHits()[0];
       const AASequence& aas = best_ph.getSequence();
       row.sequence = MzTabString(aas.toUnmodifiedString());
@@ -1136,6 +1139,7 @@ namespace OpenMS
       double best_score = best_ph.getScore();
       for (const auto& pep : curr_pep_ids)
       {
+        if (pep.getHits().empty()) continue; // unidentified: no score to report
         size_t spec_run_index = idrun_2_run_index.at(pep.getIdentifier());
         StringList filenames;
         prot_id[spec_run_index].getPrimaryMSRunPath(filenames);
@@ -1330,8 +1334,14 @@ namespace OpenMS
     MzTabParameterList search_engines;
 
     //TODO support columns for multiple search engines/scores    
-    pair<std::string, std::string> name_version = *run_to_search_engines[run_index].begin();
-    search_engines.fromCellString("[,," + name_version.first + "," + name_version.second + "]");
+    // A run can have no search engine entry: with first_run_inference_only, the first protein ID
+    // run (the inference result) is skipped when the runs are mapped, but PSMs may refer to it.
+    const auto se_it = run_to_search_engines.find(run_index);
+    if (se_it != run_to_search_engines.end() && !se_it->second.empty())
+    {
+      const pair<std::string, std::string>& name_version = se_it->second.front();
+      search_engines.fromCellString("[,," + name_version.first + "," + name_version.second + "]");
+    }
     row.search_engine = search_engines;
 
     row.search_engine_score[1] = MzTabDouble(current_ph.getScore());
@@ -2237,14 +2247,23 @@ Not sure how to handle these:
       OPENMS_LOG_INFO << "MzTab: Inference data provided. Considering first run only for inference data." << std::endl;
     }
 
+    // The first run is left out of the MS run and search engine mappings only if no exported PSM refers to it.
+    // Otherwise it is a search run as well (e.g. a single run with search and inference results),
+    // and its PSMs need its MS files and search engine.
+    const bool skip_first_run = first_run_inference_ && std::none_of(peptide_ids_.begin(), peptide_ids_.end(),
+      [this](const PeptideIdentification* pep)
+      {
+        return (export_empty_pep_ids_ || !pep->getHits().empty()) && pep->getIdentifier() == prot_ids_[0]->getIdentifier();
+      });
+
     map<std::string, size_t> msfilename_2_msrunindex;
     map<size_t, std::string> msrunindex_2_msfilename;
-    MzTab::mapBetweenMSFileNameAndMSRunIndex_(prot_ids_, first_run_inference_, msfilename_2_msrunindex, msrunindex_2_msfilename);
+    MzTab::mapBetweenMSFileNameAndMSRunIndex_(prot_ids_, skip_first_run, msfilename_2_msrunindex, msrunindex_2_msfilename);
 
     // MS runs of a peptide identification object is stored in
     // the protein identification object with the same "identifier".
     // Thus, we build a map from psm_idx->run_index (aka index of PeptideHit -> run index)
-    MzTab::mapIDRunFileIndex2MSFileIndex_(prot_ids_, msfilename_2_msrunindex, first_run_inference_, map_id_run_fileidx_2_msfileidx_);
+    MzTab::mapIDRunFileIndex2MSFileIndex_(prot_ids_, msfilename_2_msrunindex, skip_first_run, map_id_run_fileidx_2_msfileidx_);
 
     // collect variable and fixed modifications from different runs
     StringList var_mods;
@@ -2258,7 +2277,7 @@ Not sure how to handle these:
     MzTab::mapBetweenRunAndSearchEngines_(
       prot_ids_,
       peptide_ids_,
-      first_run_inference_,
+      skip_first_run,
       search_engine_to_runs,
       run_to_search_engines_,
       run_to_search_engines_settings_,
@@ -2383,97 +2402,115 @@ Not sure how to handle these:
     return psm_optional_column_names_;
   }
 
+  /// Implementation details shared by MzTab::IDMzTabStream and MzTab::CMMzTabStream (friend of both).
+  struct Internal::MzTabStreamHelper
+  {
+    /**
+      @brief The PRT row state machine of the streams: writes 1. all proteins, 2. all general groups and
+      3. all indistinguishable groups of each protein identification run.
+
+      @p on_indist_group_row(row, group) is called on each indistinguishable group row before it is returned.
+    */
+    template <class Stream, class OnIndistGroupRow>
+    static bool nextPRTRow(Stream& s, MzTabProteinSectionRow& row, OnIndistGroupRow on_indist_group_row)
+    {
+      if (s.prot_ids_.empty()) return false;
+
+      // simple state machine to write out 1. all proteins, 2. all general groups and 3. all indistinguishable groups
+state0:
+      // done if all protein information is contained in run zero and we enter run 1
+      if (s.first_run_inference_ && s.prt_run_id_ > 0) return false; // done
+      if (s.prt_run_id_ >= s.prot_ids_.size()) return false; // done for the first_run_inference_ == false case
+
+      const ProteinIdentification& pid = *s.prot_ids_[s.prt_run_id_];
+      const std::vector<ProteinHit>& protein_hits = pid.getHits();
+
+      // We only report quantitative data for indistinguishable groups (which may be composed of single proteins).
+      // We skip the more extensive reporting of general groups with complex shared peptide relations.
+      const std::vector<ProteinIdentification::ProteinGroup>& protein_groups2 = s.quant_study_variables_ == 0 ? pid.getProteinGroups() : std::vector<ProteinIdentification::ProteinGroup>();
+      const std::vector<ProteinIdentification::ProteinGroup>& indist_groups2 = pid.getIndistinguishableProteins();
+
+      if (s.prt_hit_id_ == 0 && s.PRT_STATE_ == 0) 
+      { // Processing new protein identification run?
+        // Map (indist.)protein groups to their protein hits (by index) in this run.
+        s.ind2prot_ = MzTab::mapGroupsToProteins_(pid.getIndistinguishableProteins(), protein_hits);
+        s.pg2prot_ = MzTab::mapGroupsToProteins_(pid.getProteinGroups(), protein_hits);
+      }
+
+      if (s.PRT_STATE_ == 0) // write protein hits
+      {
+        if (s.prt_hit_id_ >= protein_hits.size())
+        {
+          s.prt_hit_id_ = 0;
+          s.PRT_STATE_ = 1; // continue with next state (!)
+        }
+        else
+        {
+          const ProteinHit& protein = protein_hits[s.prt_hit_id_];
+          auto prt_row = MzTab::proteinSectionRowFromProteinHit_(
+            protein,
+            s.db_,
+            s.db_version_,
+            s.protein_hit_user_value_keys_);
+          ++s.prt_hit_id_;
+          std::swap(row, prt_row);
+          return true;
+        }
+      } 
+
+      if (s.PRT_STATE_ == 1) // write general groups
+      {
+        if (s.prt_group_id_ >= protein_groups2.size())
+        {
+           s.prt_group_id_ = 0;
+           s.PRT_STATE_ = 2;
+        }
+        else
+        {
+          const ProteinIdentification::ProteinGroup& group = protein_groups2[s.prt_group_id_];
+          auto prt_row = MzTab::nextProteinSectionRowFromProteinGroup_(
+            group,
+            s.db_,
+            s.db_version_);
+          ++s.prt_group_id_;
+          std::swap(row, prt_row);
+          return true;
+        }      
+      }
+
+      // PRT_STATE_ == 2
+      if (s.prt_indistgroup_id_ >= indist_groups2.size()) 
+      {
+        s.prt_indistgroup_id_ = 0;
+        s.prt_hit_id_ = 0;
+        s.PRT_STATE_ = 0;
+        ++s.prt_run_id_; // next protein run
+        goto state0;
+      }
+      else
+      {
+        const ProteinIdentification::ProteinGroup& group = indist_groups2[s.prt_indistgroup_id_];
+        auto prt_row = MzTab::nextProteinSectionRowFromIndistinguishableGroup_(
+          protein_hits,
+          group,
+          s.prt_indistgroup_id_,
+          s.ind2prot_,
+          s.db_,
+          s.db_version_);
+        on_indist_group_row(prt_row, group);
+        ++s.prt_indistgroup_id_;
+
+        std::swap(row, prt_row);
+        return true;
+      }
+      return false; // should not be reached
+    }
+  };
+
   bool MzTab::IDMzTabStream::nextPRTRow(MzTabProteinSectionRow& row)
   {
-    if (prot_ids_.empty()) return false;
-
-    // simple state machine to write out 1. all proteins, 2. all general groups and 3. all indistinguishable groups
-state0:
-    // done if all protein information is contained in run zero and we enter run 1
-    if (first_run_inference_ && prt_run_id_ > 0) return false; // done
-    if (prt_run_id_ >= prot_ids_.size()) return false; // done for the first_run_inference_ == false case
-
-    const ProteinIdentification& pid = *prot_ids_[prt_run_id_];
-    const std::vector<ProteinHit>& protein_hits = pid.getHits();
-
-    // We only report quantitative data for indistinguishable groups (which may be composed of single proteins).
-    // We skip the more extensive reporting of general groups with complex shared peptide relations.
-    const std::vector<ProteinIdentification::ProteinGroup>& protein_groups2 = quant_study_variables_ == 0 ? pid.getProteinGroups() : std::vector<ProteinIdentification::ProteinGroup>();
-    const std::vector<ProteinIdentification::ProteinGroup>& indist_groups2 = pid.getIndistinguishableProteins();
-
-    if (prt_hit_id_ == 0 && PRT_STATE_ == 0) 
-    { // Processing new protein identification run?
-      // Map (indist.)protein groups to their protein hits (by index) in this run.
-      ind2prot_ = MzTab::mapGroupsToProteins_(pid.getIndistinguishableProteins(), protein_hits);
-      pg2prot_ = MzTab::mapGroupsToProteins_(pid.getProteinGroups(), protein_hits);
-    }
-
-    if (PRT_STATE_ == 0) // write protein hits
-    {
-      if (prt_hit_id_ >= protein_hits.size())
-      {
-        prt_hit_id_ = 0;
-        PRT_STATE_ = 1; // continue with next state (!)
-      }
-      else
-      {
-        const ProteinHit& protein = protein_hits[prt_hit_id_];
-        auto prt_row = MzTab::proteinSectionRowFromProteinHit_(
-          protein,
-          db_,
-          db_version_,
-          protein_hit_user_value_keys_);
-        ++prt_hit_id_;
-        std::swap(row, prt_row);
-        return true;
-      }
-    } 
-
-    if (PRT_STATE_ == 1) // write general groups
-    {
-      if (prt_group_id_ >= protein_groups2.size())
-      {
-         prt_group_id_ = 0;
-         PRT_STATE_ = 2;
-      }
-      else
-      {
-        const ProteinIdentification::ProteinGroup& group = protein_groups2[prt_group_id_];
-        auto prt_row = MzTab::nextProteinSectionRowFromProteinGroup_(
-          group,
-          db_,
-          db_version_);
-        ++prt_group_id_;
-        std::swap(row, prt_row);
-        return true;
-      }      
-    }
-
-    // PRT_STATE_ == 2
-    if (prt_indistgroup_id_ >= indist_groups2.size()) 
-    {
-      prt_indistgroup_id_ = 0;
-      prt_hit_id_ = 0;
-      PRT_STATE_ = 0;
-      ++prt_run_id_; // next protein run
-      goto state0;
-    }
-    else
-    {
-      const ProteinIdentification::ProteinGroup& group = indist_groups2[prt_indistgroup_id_];
-      auto prt_row = MzTab::nextProteinSectionRowFromIndistinguishableGroup_(
-        protein_hits,
-        group,
-        prt_indistgroup_id_,
-        ind2prot_,
-        db_,
-        db_version_);
-      ++prt_indistgroup_id_;
-
-      std::swap(row, prt_row);
-      return true;
-    }
-    return false; // should not be reached
+    return Internal::MzTabStreamHelper::nextPRTRow(*this, row,
+      [](MzTabProteinSectionRow&, const ProteinIdentification::ProteinGroup&) {});
   }
 
   bool MzTab::IDMzTabStream::nextPEPRow(MzTabPeptideSectionRow&)
@@ -2878,14 +2915,23 @@ state0:
       OPENMS_LOG_INFO << "MzTab: Inference data provided. Considering first run only for inference data." << std::endl;
     }
 
+    // The first run is left out of the MS run and search engine mappings only if no exported PSM refers to it.
+    // Otherwise it is a search run as well (e.g. a single run with search and inference results),
+    // and its PSMs need its MS files and search engine.
+    const bool skip_first_run = first_run_inference_ && std::none_of(peptide_ids_.begin(), peptide_ids_.end(),
+      [this](const PeptideIdentification* pep)
+      {
+        return (export_empty_pep_ids_ || !pep->getHits().empty()) && pep->getIdentifier() == prot_ids_[0]->getIdentifier();
+      });
+
     map<std::string, size_t> msfilename_2_msrunindex;
     map<size_t, std::string> msrunindex_2_msfilename;
-    MzTab::mapBetweenMSFileNameAndMSRunIndex_(prot_ids_, first_run_inference_, msfilename_2_msrunindex, msrunindex_2_msfilename);
+    MzTab::mapBetweenMSFileNameAndMSRunIndex_(prot_ids_, skip_first_run, msfilename_2_msrunindex, msrunindex_2_msfilename);
 
     // MS runs of a peptide identification object is stored in
     // the protein identification object with the same "identifier".
     // Thus, we build a map from psm_idx->run_index (aka index of PeptideHit -> run index)
-    MzTab::mapIDRunFileIndex2MSFileIndex_(prot_ids_, msfilename_2_msrunindex, first_run_inference_, map_id_run_fileidx_2_msfileidx_);
+    MzTab::mapIDRunFileIndex2MSFileIndex_(prot_ids_, msfilename_2_msrunindex, skip_first_run, map_id_run_fileidx_2_msfileidx_);
 
     // collect variable and fixed modifications from different runs
     StringList var_mods;
@@ -2902,7 +2948,7 @@ state0:
     MzTab::mapBetweenRunAndSearchEngines_(
       prot_ids_,
       peptide_ids_,
-      first_run_inference_,
+      skip_first_run,
       search_engine_to_runs,
       run_to_search_engines_,
       run_to_search_engines_settings_,
@@ -3217,100 +3263,15 @@ state0:
 
   bool MzTab::CMMzTabStream::nextPRTRow(MzTabProteinSectionRow& row)
   {
-    if (prot_ids_.empty()) return false;
-
-    // simple state machine to write out 1. all proteins, 2. all general groups and 3. all indistinguishable groups
-state0:
-    // done if all protein information is contained in run zero and we enter run 1
-    if (first_run_inference_ && prt_run_id_ > 0) return false; // done
-    if (prt_run_id_ >= prot_ids_.size()) return false; // done for the first_run_inference_ == false case
-
-    const ProteinIdentification& pid = *prot_ids_[prt_run_id_];
-    const std::vector<ProteinHit>& protein_hits = pid.getHits();
-
-    // We only report quantitative data for indistinguishable groups (which may be composed of single proteins).
-    // We skip the more extensive reporting of general groups with complex shared peptide relations.
-    const std::vector<ProteinIdentification::ProteinGroup>& protein_groups2 = quant_study_variables_ == 0 ? pid.getProteinGroups() : std::vector<ProteinIdentification::ProteinGroup>();
-    const std::vector<ProteinIdentification::ProteinGroup>& indist_groups2 = pid.getIndistinguishableProteins();
-
-    if (prt_hit_id_ == 0 && PRT_STATE_ == 0) 
-    { // Processing new protein identification run?
-      // Map (indist.)protein groups to their protein hits (by index) in this run.
-      ind2prot_ = MzTab::mapGroupsToProteins_(pid.getIndistinguishableProteins(), protein_hits);
-      pg2prot_ = MzTab::mapGroupsToProteins_(pid.getProteinGroups(), protein_hits);
-    }
-
-    if (PRT_STATE_ == 0) // write protein hits
-    {
-      if (prt_hit_id_ >= protein_hits.size())
+    return Internal::MzTabStreamHelper::nextPRTRow(*this, row,
+      [this](MzTabProteinSectionRow& prt_row, const ProteinIdentification::ProteinGroup& group)
       {
-        prt_hit_id_ = 0;
-        PRT_STATE_ = 1; // continue with next state (!)
-      }
-      else
-      {
-        const ProteinHit& protein = protein_hits[prt_hit_id_];
-        auto prt_row = MzTab::proteinSectionRowFromProteinHit_(
-          protein,
-          db_,
-          db_version_,
-          protein_hit_user_value_keys_);
-        ++prt_hit_id_;
-        std::swap(row, prt_row);
-        return true;
-      }
-    } 
-
-    if (PRT_STATE_ == 1) // write general groups
-    {
-      if (prt_group_id_ >= protein_groups2.size())
-      {
-         prt_group_id_ = 0;
-         PRT_STATE_ = 2;
-      }
-      else
-      {
-        const ProteinIdentification::ProteinGroup& group = protein_groups2[prt_group_id_];
-        auto prt_row = MzTab::nextProteinSectionRowFromProteinGroup_(
+        applyAssayProteinQuantification(
+          prt_row,
           group,
-          db_,
-          db_version_);
-        ++prt_group_id_;
-        std::swap(row, prt_row);
-        return true;
-      }      
-    }
-
-    // PRT_STATE_ == 2
-    if (prt_indistgroup_id_ >= indist_groups2.size()) 
-    {
-      prt_indistgroup_id_ = 0;
-      prt_hit_id_ = 0;
-      PRT_STATE_ = 0;
-      ++prt_run_id_; // next protein run
-      goto state0;
-    }
-    else
-    {
-      const ProteinIdentification::ProteinGroup& group = indist_groups2[prt_indistgroup_id_];
-      auto prt_row = MzTab::nextProteinSectionRowFromIndistinguishableGroup_(
-        protein_hits,
-        group,
-        prt_indistgroup_id_,
-        ind2prot_,
-        db_,
-        db_version_);
-      applyAssayProteinQuantification(
-        prt_row,
-        group,
-        assay_keys_,
-        study_variable_to_assays_);
-      ++prt_indistgroup_id_;
-
-      std::swap(row, prt_row);
-      return true;
-    }
-    return false; // should not be reached
+          assay_keys_,
+          study_variable_to_assays_);
+      });
   }
 
   bool MzTab::CMMzTabStream::nextPEPRow(MzTabPeptideSectionRow& row)
@@ -3452,10 +3413,17 @@ state0:
 
   void MzTab::checkSequenceUniqueness_(const PeptideIdentificationList& curr_pep_ids)
   {
-    const auto& refseq = curr_pep_ids[0].getHits()[0].getSequence();
+    // peptide identifications without hits are ignored; the caller guarantees at least one with hits
+    const AASequence* refseq = nullptr;
     for (const auto& pep : curr_pep_ids)
     {
-      if (pep.getHits()[0].getSequence() != refseq)
+      if (pep.getHits().empty()) continue;
+      if (refseq == nullptr)
+      {
+        refseq = &pep.getHits()[0].getSequence();
+        continue;
+      }
+      if (pep.getHits()[0].getSequence() != *refseq)
       {
         throw OpenMS::Exception::IllegalArgument(
             __FILE__

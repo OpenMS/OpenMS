@@ -15,8 +15,9 @@
 ## share/OpenMS/THIRDPARTY.
 ##
 ## The code that installs these files records them with openms_add_third_party_notice():
-## cmake/third_party_licenses.cmake, the Thermo bridge in cmake_findExternalLibs.cmake and
-## the THIRDPARTY tools in package_general.cmake. openms_install_third_party_notices(), which
+## cmake/third_party_licenses.cmake, the Thermo bridge in cmake_findExternalLibs.cmake, the
+## PeptDeep models in src/openms/CMakeLists.txt and the THIRDPARTY tools in
+## package_general.cmake. openms_install_third_party_notices(), which
 ## the top-level CMakeLists.txt calls last, writes the list of recorded files when
 ## configuring, and the notices from that list when installing, in the component 'share'.
 ## The notices cannot be written when configuring, since some of the files (the Thermo
@@ -122,15 +123,12 @@ endfunction()
 function(_openms_third_party_notice_component group_var component_var path)
   get_filename_component(_name "${path}" NAME)
   get_filename_component(_stem "${path}" NAME_WLE)
-  if(path MATCHES "^LICENSES/Qt/")
-    set(_group 1)
-    set(_component "Qt")
-  elseif(path MATCHES "^LICENSES/(vcpkg|homebrew|system|vendored)/(.+)$")
+  if(path MATCHES "^LICENSES/(vcpkg|homebrew|system|vendored)/(.+)$")
     set(_folder "${CMAKE_MATCH_1}")
     set(_rest "${CMAKE_MATCH_2}")
     set(_folders vcpkg homebrew system vendored)
     list(FIND _folders "${_folder}" _index)
-    math(EXPR _group "${_index} + 2")
+    math(EXPR _group "${_index} + 1")
     get_filename_component(_component "${_rest}" DIRECTORY)
     if(_name STREQUAL "INDEX.txt" AND NOT _component)
       set(_component "(the libraries each package provides)")
@@ -139,7 +137,7 @@ function(_openms_third_party_notice_component group_var component_var path)
       set(_component "${_stem}")
     endif()
   elseif(path MATCHES "^LICENSES/ThermoRawFileReader|^openms_thermo_bridge/")
-    set(_group 6)
+    set(_group 5)
     if(path MATCHES "^LICENSES/")
       set(_component "Thermo RawFileReader")
     else()
@@ -147,7 +145,10 @@ function(_openms_third_party_notice_component group_var component_var path)
     endif()
   elseif(path MATCHES "^THIRDPARTY/([^/]+)/")
     set(_component "${CMAKE_MATCH_1}")
+    set(_group 6)
+  elseif(path MATCHES "^LICENSES/PeptDeep/")
     set(_group 7)
+    set(_component "PeptDeep (AlphaPeptDeep)")
   else()
     set(_group 8)
     set(_component "${path}")
@@ -242,13 +243,13 @@ function(openms_write_third_party_notices output)
   endforeach()
 
   set(_titles
-    "Qt"
     "Libraries from vcpkg"
     "Libraries from Homebrew"
     "Libraries of the build system"
     "Third-party code compiled into OpenMS"
     "Thermo RawFileReader"
     "Tools in share/OpenMS/THIRDPARTY"
+    "Models in share/OpenMS/models"
     "Other")
   set(_rule "==========================================================================================")
   string(CONCAT _header

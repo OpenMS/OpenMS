@@ -7,6 +7,9 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathOSWParquetReader.h>
+
+#include "OSWParquetArchiveHelpers.h"
+
 #include <OpenMS/FORMAT/ParquetFile.h>
 #include <OpenMS/FORMAT/ZipArchiveFile.h>
 #include <OpenMS/FORMAT/ZipRandomAccessFile.h>
@@ -39,21 +42,7 @@ void OpenSwathOSWParquetReader::load(const std::string& oswpq_dir)
 
   auto open_table_from_entry = [&](const std::string& entry) -> std::shared_ptr<arrow::Table>
   {
-    // Try to open an Arrow RandomAccessFile backed by the archive entry.
-    auto ra_res = ZipRandomAccessFile::Open(oswpq_dir, entry, temp_dir);
-    if (ra_res.ok())
-    {
-      const auto& raf = ra_res.ValueOrDie();
-      return ParquetFile::readTable(std::static_pointer_cast<arrow::io::RandomAccessFile>(raf));
-    }
-    // Fallback: extract to temp file and read
-    const std::string path = ZipArchiveFile::extractEntryToTempFile(oswpq_dir, entry, temp_dir);
-    if (!File::exists(path))
-    {
-      throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                          "Missing required parquet file '" + entry + "' in '" + oswpq_dir + "'");
-    }
-    return ParquetFile::readTable(path);
+    return Internal::OSWParquetArchiveHelpers::openTableFromEntry(oswpq_dir, entry, temp_dir, "Missing required parquet file", OPENMS_PRETTY_FUNCTION);
   };
 
   // Read precursors -> charge / decoy
@@ -150,19 +139,7 @@ OpenSwathOSWParquetReader::PeakGroupFeatureScoresResult OpenSwathOSWParquetReade
   // entries to temp files when not available.
   auto open_table_from_entry = [&](const std::string& entry) -> std::shared_ptr<arrow::Table>
   {
-    auto ra_res = ZipRandomAccessFile::Open(oswpq_dir, entry, temp_dir);
-    if (ra_res.ok())
-    {
-      const auto& raf = ra_res.ValueOrDie();
-      return ParquetFile::readTable(std::static_pointer_cast<arrow::io::RandomAccessFile>(raf));
-    }
-    const std::string path = ZipArchiveFile::extractEntryToTempFile(oswpq_dir, entry, temp_dir);
-    if (!File::exists(path))
-    {
-      throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                          "Missing library parquet file '" + entry + "' in '" + oswpq_dir + "'");
-    }
-    return ParquetFile::readTable(path);
+    return Internal::OSWParquetArchiveHelpers::openTableFromEntry(oswpq_dir, entry, temp_dir, "Missing library parquet file", OPENMS_PRETTY_FUNCTION);
   };
 
   auto precursors_table = open_table_from_entry("library/precursors.parquet");
@@ -415,19 +392,7 @@ OpenSwathOSWParquetReader::TransitionFeaturesResult OpenSwathOSWParquetReader::f
   // Use RandomAccessFile-backed reads when possible; fall back to extraction when not.
   auto open_table_from_entry = [&](const std::string& entry) -> std::shared_ptr<arrow::Table>
   {
-    auto ra_res = ZipRandomAccessFile::Open(oswpq_dir, entry, temp_dir);
-    if (ra_res.ok())
-    {
-      const auto& raf = ra_res.ValueOrDie();
-      return ParquetFile::readTable(std::static_pointer_cast<arrow::io::RandomAccessFile>(raf));
-    }
-    const std::string path = ZipArchiveFile::extractEntryToTempFile(oswpq_dir, entry, temp_dir);
-    if (!File::exists(path))
-    {
-      throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                          "Missing parquet file '" + entry + "' in '" + oswpq_dir + "'");
-    }
-    return ParquetFile::readTable(path);
+    return Internal::OSWParquetArchiveHelpers::openTableFromEntry(oswpq_dir, entry, temp_dir, "Missing parquet file", OPENMS_PRETTY_FUNCTION);
   };
 
   auto precursors_table = open_table_from_entry("library/precursors.parquet");
@@ -680,19 +645,7 @@ OpenSwathOSWParquetReader::UnscoredResult OpenSwathOSWParquetReader::fetchUnscor
   // Use RandomAccessFile-backed reads when possible; fall back to extraction when not.
   auto open_table_from_entry = [&](const std::string& entry) -> std::shared_ptr<arrow::Table>
   {
-    auto ra_res = ZipRandomAccessFile::Open(oswpq_dir, entry, temp_dir);
-    if (ra_res.ok())
-    {
-      const auto& raf = ra_res.ValueOrDie();
-      return ParquetFile::readTable(std::static_pointer_cast<arrow::io::RandomAccessFile>(raf));
-    }
-    const std::string path = ZipArchiveFile::extractEntryToTempFile(oswpq_dir, entry, temp_dir);
-    if (!File::exists(path))
-    {
-      throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                          "Missing parquet file '" + entry + "' in '" + oswpq_dir + "'");
-    }
-    return ParquetFile::readTable(path);
+    return Internal::OSWParquetArchiveHelpers::openTableFromEntry(oswpq_dir, entry, temp_dir, "Missing parquet file", OPENMS_PRETTY_FUNCTION);
   };
 
   auto precursors_table = open_table_from_entry("library/precursors.parquet");

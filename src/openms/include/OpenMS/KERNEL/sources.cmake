@@ -19,6 +19,7 @@ FeatureMap.h
 FeatureUniqueIds.h
 IMSExperimentRandomAccess.h
 MassTrace.h
+MassTraceStatistics.h
 MobilityPeak1D.h
 MobilityPeak2D.h
 Mobilogram.h
@@ -31,6 +32,7 @@ OnDiscMSExperiment.h
 OnDiscImzMLExperiment.h
 Peak1D.h
 Peak2D.h
+PeakContainerSort.h
 PeakIndex.h
 PeakTypeEstimator.h
 RangeManager.h

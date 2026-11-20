@@ -37,6 +37,7 @@
 #include <fstream>
 #include <algorithm>
 #include <random>
+#include <map>
 #include <optional>
 
 #ifdef _OPENMP
@@ -181,7 +182,7 @@ namespace OpenMS
     return ms_data_;
   }
 
-  void FeatureFinderIdentificationAlgorithm::setMSData(const PeakMap& ms_data)
+  void FeatureFinderIdentificationAlgorithm::setFromMS1Data(const PeakMap& ms_data)
   {
     ms_data_ = ms_data; 
     
@@ -194,7 +195,7 @@ namespace OpenMS
       specs.end());    
   }
 
-  void FeatureFinderIdentificationAlgorithm::setMSData(PeakMap&& ms_data)
+  void FeatureFinderIdentificationAlgorithm::setFromMS1Data(PeakMap&& ms_data)
   {
     ms_data_ = std::move(ms_data); 
     
@@ -545,7 +546,7 @@ namespace OpenMS
         __LINE__,
         OPENMS_PRETTY_FUNCTION,
         "No spectra in the MS data passed to FeatureFinderIdentification. Set the MS data via "
-        "setMSData() before calling run(); note that an experiment consumed by another algorithm "
+        "setFromMS1Data() before calling run(); note that an experiment consumed by another algorithm "
         "may have been left empty.");
     }
 
@@ -590,7 +591,7 @@ namespace OpenMS
       FeatureFinderIdentificationAlgorithm ffid_group;
       ffid_group.getProgressLogger().setLogType(prog_log_.getLogType());
       ffid_group.setParameters(this->getParameters());
-      ffid_group.setMSData(std::move(faims_group));
+      ffid_group.setFromMS1Data(std::move(faims_group));
 
       // Seeds found at this CV (DDAWorkflowCommons::calculateSeeds and Biosaur2 label them with FAIMS_CV); seeds
       // without a CV are tried at every CV, like identifications without one
@@ -938,7 +939,7 @@ namespace OpenMS
     features.ensureUniqueId();
   }
 
-  void FeatureFinderIdentificationAlgorithm::postProcess_(FeatureMap & features)
+  void FeatureFinderIdentificationAlgorithm::postProcess_(FeatureMap & features, bool store_candidates)
   {
     // make sure proper unique ids get assigned to all features
     features.ensureUniqueId();
@@ -948,7 +949,7 @@ namespace OpenMS
     {
       *candidates_sink_ = features; // FAIMS CV group: run() writes the candidates of all groups
     }
-    else if (!candidates_out_.empty())
+    else if (store_candidates && !candidates_out_.empty())
     {
       storeCandidates_(features);
     }
@@ -1017,7 +1018,33 @@ namespace OpenMS
          peptide_compare_);
     sort(features.begin(), features.end(), feature_compare_);
 
-    postProcess_(features);
+    const bool faims = std::any_of(features.begin(), features.end(),
+      [](const Feature& feat) { return feat.metaValueExists(Constants::UserParam::FAIMS_CV); });
+    if (!faims)
+    {
+      postProcess_(features);
+    }
+    else
+    {
+      // candidates of FAIMS data (annotated with their CV by run()): post-process the features of each CV separately,
+      // as run() does - ElutionModelFitter takes its outlier limits and the imputation of failed fits from all
+      // features it gets
+      features.ensureUniqueId();
+      if (!candidates_out_.empty()) storeCandidates_(features); // all CVs at once
+      std::map<std::optional<double>, FeatureMap> cv_groups;
+      for (Feature& feat : features)
+      {
+        std::optional<double> cv;
+        if (feat.metaValueExists(Constants::UserParam::FAIMS_CV)) cv = double(feat.getMetaValue(Constants::UserParam::FAIMS_CV));
+        cv_groups[cv].push_back(std::move(feat));
+      }
+      features.clear(false);
+      for (auto& [cv, group] : cv_groups)
+      {
+        postProcess_(group, false);
+        for (Feature& feat : group) features.push_back(std::move(feat));
+      }
+    }
 
     statistics_(features);
 

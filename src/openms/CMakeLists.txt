@@ -63,6 +63,13 @@ include (${PROJECT_SOURCE_DIR}/includes.cmake)
 add_subdirectory(thirdparty/percolator)
 
 #------------------------------------------------------------------------------
+# Vendored mzPeak library (thirdparty/mzpeak/README.OpenMS.md): the same pattern, a static library with its own
+# flags, linked PRIVATE below; only MzPeakFile.cpp includes its headers.
+if (OPENMS_ENABLE_MZPEAK)
+  add_subdirectory(thirdparty/mzpeak)
+endif()
+
+#------------------------------------------------------------------------------
 # all the dependency libraries are linked into libOpenMS.so
 ## libxml2 is private: installed headers expose no libxml2 declarations requiring its headers.
 ## Boost is an implementation dependency: no installed header includes it.
@@ -77,7 +84,6 @@ set(OPENMS_DEP_PRIVATE_LIBRARIES
   Boost::boost
   CURL::libcurl
   LibXml2::LibXml2
-  $<$<BOOL:${WITH_HDF5}>:HDF5::HDF5>
   ${LPTARGET}
   BZip2::BZip2
   Eigen3::Eigen
@@ -173,7 +179,7 @@ if(WITH_ONNX)
 
   # Download PeptDeep models once to the OpenMS model directory.
   # These ONNX files are embedded-weight models and do not require .onnx.data sidecars.
-  set(OPENMS_PEPTDEEP_MODEL_URL "http://archive.openms.de/openms/models" CACHE STRING
+  set(OPENMS_PEPTDEEP_MODEL_URL "https://archive.openms.de/openms/models" CACHE STRING
       "Base URL for PeptDeep ONNX model downloads")
   set(OPENMS_PEPTDEEP_MODEL_DIR "${PROJECT_BINARY_DIR}/share/OpenMS/models" CACHE INTERNAL
       "Build-tree directory containing downloaded PeptDeep ONNX models")
@@ -233,6 +239,7 @@ if(WITH_ONNX)
         DOWNLOAD "${OPENMS_PEPTDEEP_MODEL_URL}/${MODEL}" "${MODEL_PATH}"
         STATUS DOWNLOAD_STATUS
         SHOW_PROGRESS
+        TLS_VERIFY ON
         EXPECTED_HASH "SHA256=${EXPECTED_SHA256}"
       )
 
@@ -255,6 +262,19 @@ if(WITH_ONNX)
           DESTINATION "${INSTALL_SHARE_DIR}/models"
           COMPONENT share)
 
+  # The models are AlphaPeptDeep's pretrained models, under the Apache License 2.0, which
+  # requires its text (and the copyright notice) to accompany them; they go to
+  # share/OpenMS/LICENSES/PeptDeep and into THIRD-PARTY-NOTICES.txt.
+  set(_peptdeep_licenses "${OPENMS_HOST_DIRECTORY}/cmake/third_party_licenses/PeptDeep/README.txt"
+                         "${OPENMS_HOST_DIRECTORY}/cmake/third_party_licenses/PeptDeep/LICENSE.txt")
+  install(FILES ${_peptdeep_licenses}
+          DESTINATION "${INSTALL_SHARE_DIR}/LICENSES/PeptDeep"
+          COMPONENT share)
+  foreach(_file IN LISTS _peptdeep_licenses)
+    get_filename_component(_name "${_file}" NAME)
+    openms_add_third_party_notice("LICENSES/PeptDeep/${_name}" "${_file}")
+  endforeach()
+
 endif()
 
 # Parquet support requires Arrow core + compute (filter expressions) + Parquet.
@@ -271,6 +291,10 @@ endif()
 
 if (WITH_OPENTIMS)
   list(APPEND OPENMS_DEP_PRIVATE_LIBRARIES opentims::opentims_cpp)
+endif()
+
+if (OPENMS_ENABLE_MZPEAK)
+  list(APPEND OPENMS_DEP_PRIVATE_LIBRARIES OpenMS_mzpeak)
 endif()
 
 if (WITH_ARROW_S3 AND OPENMS_ARROW_S3_TARGET)
@@ -293,9 +317,15 @@ if (OPENMP_FOUND)
   list(APPEND OPENMS_DEP_LIBRARIES OpenMP::OpenMP_CXX)
 endif()
 
-if (WITH_CRAWDAD) ## TODO check if still necessary
-  list(APPEND OPENMS_DEP_LIBRARIES ${Crawdad_LIBRARY})
-endif()
+# Files that cannot share a unity-build translation unit (ENABLE_UNITYBUILD) with their
+# neighbours: boost/sort/spreadsort cannot be combined with boost/range/algorithm/sort.hpp, and
+# the vendored mzPeak headers clash with a file-scope "using namespace std". They are compiled on
+# their own.
+set_source_files_properties(
+  source/ANALYSIS/ID/FragmentIndex.cpp
+  source/CHEMISTRY/SimpleTSGXLMS.cpp
+  source/FORMAT/MzPeakFile.cpp
+  PROPERTIES SKIP_UNITY_BUILD_INCLUSION ON)
 
 openms_add_library(TARGET_NAME  OpenMS
                    SOURCE_FILES  ${OpenMS_sources}
@@ -313,9 +343,6 @@ openms_add_library(TARGET_NAME  OpenMS
 target_sources(OpenMS PRIVATE FILE_SET private_headers TYPE HEADERS
   BASE_DIRS source include
   FILES ${OpenMS_private_headers})
-
-# The core library has no QObject classes, including in builds that also find Qt.
-set_target_properties(OpenMS PROPERTIES AUTOMOC OFF)
 
 ## When an in-tree executable links libOpenMS.so, the linker has to locate the
 ## private shared dependencies of libOpenMS by soname. CMake passes -rpath-link
@@ -475,6 +502,10 @@ target_compile_definitions(OpenMS PRIVATE BOOST_PROCESS_USE_STD_FS)
 
 if (WITH_OPENTIMS)
     target_compile_definitions(OpenMS PUBLIC WITH_OPENTIMS=1)
+endif()
+
+if (OPENMS_ENABLE_MZPEAK)
+    target_compile_definitions(OpenMS PUBLIC WITH_MZPEAK=1)
 endif()
 
 if (WITH_ARROW_S3)

@@ -236,7 +236,7 @@ protected:
       Param algo_params = getParam_().copySubset(algo_defaults);
       algo_params.setValue("keep_chromatograms", chrom_out.empty() ? "false" : "true");
       ffid_algo_run.setParameters(algo_params);
-      ffid_algo_run.setMSData(std::move(ms_data_full));
+      ffid_algo_run.setFromMS1Data(std::move(ms_data_full));
 
       ffid_algo_run.run(peptides, proteins, features, FeatureMap(), in);
 

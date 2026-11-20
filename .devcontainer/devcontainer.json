@@ -12,8 +12,7 @@
         }
     ],
     "containerEnv": {
-        "VCPKG_ROOT": "${containerWorkspaceFolder}/vcpkg",
-        "QT_QPA_PLATFORM": "offscreen"
+        "VCPKG_ROOT": "${containerWorkspaceFolder}/vcpkg"
     },
     "hostRequirements": {
         "cpus": 4,

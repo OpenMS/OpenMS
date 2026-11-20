@@ -50,6 +50,17 @@ namespace OpenMS
         re-aggregating gives the same protein ratios as dividing the protein ratios directly. With
         @p normalize off, no normalized values are written at all.
 
+    Evidences of targeted quantification (MS1LabeledWorkflow's '-targeted_quantification': the runs a feature lists in its
+    meta value @c MS1Label:targeted_runs) only stand in where nothing else was measured. Their values are less accurate
+    at extreme ratios, so they must not change a ratio that is reported without them:
+      - a peptide ratio (per fraction group and channel) is the median of the peptide's other evidences of that channel
+        in that fraction group; only where it has none does it get the median of its targeted ones (e.g. the heavy channel
+        of a triplex peptide whose detected multiplets lack it).
+      - a protein group ratio is the median of the group's other peptide ratios if these reach @p min_ratio_count;
+        otherwise the peptide ratios of targeted quantification are added, which can lift the group over the threshold.
+      - a normalization factor is the median of the peptide ratios measured without targeted quantification, if
+        the (fraction group, channel) has any.
+
     A ratio is therefore <em>not</em> the ratio of the abundances that PeptideAndProteinQuant reports:
     that one is a ratio of per-channel aggregates, which is a different statistic (it weights peptides
     by their intensity, and a single intense peptide can dominate it). Both are useful and both are
@@ -65,6 +76,15 @@ namespace OpenMS
         @c fraction_group_level_ratio_count (integer) plus @c fraction_group_level_ratio and
         @c fraction_group_level_ratio_normalized (float), next to the abundance arrays that
         PeptideAndProteinQuant writes. A second run() replaces them.
+      - if any evidence comes from targeted quantification: how many of the contributing ratios do, as
+        @c MS1Label:peptide_ratio_targeted_count on the features and the integer array
+        @c fraction_group_level_ratio_targeted_count on the protein groups (parallel to the counts above).
+      - if any channel was re-quantified (the (run, channel) pairs a feature lists in its meta values @c MS1Label:requantified_runs
+        and @c MS1Label:requantified_labels): how
+        many of the contributing ratios rest on re-quantified channels, as @c MS1Label:peptide_ratio_requantified_count
+        (evidences whose channel or reference channel was re-quantified) and @c fraction_group_level_ratio_requantified_count
+        (peptide ratios all of whose evidences were). Re-quantified values are less accurate at extreme ratios than detected
+        ones (they are measured where the detection found no pattern), so these counts allow filtering them.
 
     A peptide counts for the group that covers every protein it references; peptides shared between
     groups count for none (a razor assignment, if wanted, rewrites the references during inference).
@@ -88,7 +108,20 @@ namespace OpenMS
       double normalized_ratio = 0.0;
       /// Number of contributing ratios (evidences for a peptide, peptides for a protein group)
       Size count = 0;
+      /// Of @p count, the ratios that come from targeted quantification (a peptide ratio has either all or none)
+      Size targeted_count = 0;
+      /// Of @p count, the ratios that rest on re-quantified channels: for a peptide, the evidences whose channel or reference
+      /// channel was re-quantified; for a protein group, the peptide ratios all of whose evidences were
+      Size requantified_count = 0;
     };
+
+    /// Meta value (StringList) of a consensus feature: the runs (file basenames) in which it was measured by targeted quantification
+    inline static const std::string TARGETED_RUNS = "MS1Label:targeted_runs";
+
+    /// Parallel meta values (StringList, IntList) of a consensus feature: the runs (file basenames) and channels (labels) whose channel
+    /// was not detected but re-quantified at its expected position (MS1LabeledWorkflow's '-requantify')
+    inline static const std::string REQUANTIFIED_RUNS = "MS1Label:requantified_runs";
+    inline static const std::string REQUANTIFIED_LABELS = "MS1Label:requantified_labels";
 
     MS1LabeledRatioQuantifier();
 

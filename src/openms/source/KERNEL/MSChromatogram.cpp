@@ -14,6 +14,8 @@
 
 #include <algorithm>
 
+#include "PeakContainerHelpers.h"
+
 using namespace OpenMS;
 
 std::ostream& OpenMS::operator<<(std::ostream& os, const MSChromatogram& chrom)
@@ -201,28 +203,8 @@ Size MSChromatogram::findNearest(MSChromatogram::CoordinateType rt) const
   {
     throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "There must be at least one peak to determine the nearest peak!");
   }
-  //search for position for inserting
-  ConstIterator it = RTBegin(rt);
-  //border cases
-  if (it == ContainerType::begin())
-  {
-    return 0;
-  }
-  if (it == ContainerType::end())
-  {
-    return ContainerType::size() - 1;
-  }
-  //the peak before or the current peak are closest
-  ConstIterator it2 = it;
-  --it2;
-  if (std::fabs(it->getRT() - rt) < std::fabs(it2->getRT() - rt))
-  {
-    return Size(it - ContainerType::begin());
-  }
-  else
-  {
-    return Size(it2 - ContainerType::begin());
-  }
+  //search for position for inserting, then pick the closer of its two neighbours
+  return Internal::PeakContainerHelpers::nearestIndex(cbegin(), cend(), RTBegin(rt), rt, [](const PeakType& p) { return p.getRT(); });
 }
 
 MSChromatogram::Iterator MSChromatogram::RTBegin(MSChromatogram::CoordinateType rt)
@@ -354,22 +336,8 @@ void MSChromatogram::clear(bool clear_meta_data)
 
 void MSChromatogram::checkDataArraySizes_() const
 {
-  const Size peaks = size();
-  auto check = [peaks](const auto& arrays, const char* what)
-  {
-    for (Size i = 0; i < arrays.size(); ++i)
-    {
-      if (!arrays[i].empty() && arrays[i].size() != peaks)
-      {
-        throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                      std::string(what) + "[" + StringUtils::toStr(i) + "] size (" + StringUtils::toStr(arrays[i].size()) +
-                                        ") does not match chromatogram size (" + StringUtils::toStr(peaks) + ")");
-      }
-    }
-  };
-  check(float_data_arrays_, "FloatDataArray");
-  check(string_data_arrays_, "StringDataArray");
-  check(integer_data_arrays_, "IntegerDataArray");
+  Internal::PeakContainerHelpers::checkDataArraySizes(size(), float_data_arrays_, string_data_arrays_, integer_data_arrays_,
+                                                      "chromatogram", OPENMS_PRETTY_FUNCTION);
 }
 
 MSChromatogram& MSChromatogram::select(const std::vector<Size>& indices)
@@ -377,97 +345,19 @@ MSChromatogram& MSChromatogram::select(const std::vector<Size>& indices)
   // The range check is the guarantee of this entry point: an out-of-range index is rejected before
   // any storage is touched, so the chromatogram is left unchanged. selectUnchecked() then performs
   // the actual reordering.
-  const Size peaks_old = size();
-  for (Size i = 0; i < indices.size(); ++i)
-  {
-    if (indices[i] >= peaks_old)
-    {
-      throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                    "Index " + StringUtils::toStr(indices[i]) + " is out of range for a chromatogram of size " +
-                                      StringUtils::toStr(peaks_old));
-    }
-  }
+  Internal::PeakContainerHelpers::checkSelectIndices(indices, size(), "chromatogram", OPENMS_PRETTY_FUNCTION);
   return selectUnchecked(indices);
 }
 
 MSChromatogram& MSChromatogram::selectUnchecked(const std::vector<Size>& indices)
 {
-  const Size snew = indices.size();
-
   // Cheap and independent of the indices: guards a mis-sized data array from being indexed out of
   // bounds during the reorder below.
   checkDataArraySizes_();
 
-  // Duplicate indices are undefined behaviour: every element is moved, so a repeated index would
-  // read a moved-from value. Assert uniqueness (and in-range) in debug builds only.
-#ifdef OPENMS_ASSERTIONS
-  {
-    std::vector<bool> seen(size(), false);
-    for (Size i = 0; i < snew; ++i)
-    {
-      OPENMS_PRECONDITION(indices[i] < seen.size() && !seen[indices[i]],
-                          "selectUnchecked(): indices must be in range and duplicate-free");
-      seen[indices[i]] = true;
-    }
-  }
-#endif
-
-  ContainerType tmp;
-  tmp.reserve(snew);
-  for (Size i = 0; i < snew; ++i)
-  {
-    tmp.push_back(std::move(ContainerType::operator[](indices[i])));
-  }
-  ContainerType::swap(tmp);
-
-  std::vector<float> mda_tmp_float;
-  for (Size i = 0; i < float_data_arrays_.size(); ++i)
-  {
-    if (float_data_arrays_[i].empty())
-    {
-      continue;
-    }
-    mda_tmp_float.clear();
-    mda_tmp_float.reserve(snew);
-    for (Size j = 0; j < snew; ++j)
-    {
-      mda_tmp_float.push_back(std::move(float_data_arrays_[i][indices[j]]));
-    }
-    std::swap(float_data_arrays_[i], mda_tmp_float);
-  }
-
-  std::vector<std::string> mda_tmp_str;
-  for (Size i = 0; i < string_data_arrays_.size(); ++i)
-  {
-    if (string_data_arrays_[i].empty())
-    {
-      continue;
-    }
-    mda_tmp_str.clear();
-    mda_tmp_str.reserve(snew);
-    for (Size j = 0; j < snew; ++j)
-    {
-      mda_tmp_str.push_back(std::move(string_data_arrays_[i][indices[j]]));
-    }
-    std::swap(string_data_arrays_[i], mda_tmp_str);
-  }
-
-  std::vector<Int> mda_tmp_int;
-  for (Size i = 0; i < integer_data_arrays_.size(); ++i)
-  {
-    if (integer_data_arrays_[i].empty())
-    {
-      continue;
-    }
-    mda_tmp_int.clear();
-    mda_tmp_int.reserve(snew);
-    for (Size j = 0; j < snew; ++j)
-    {
-      mda_tmp_int.push_back(std::move(integer_data_arrays_[i][indices[j]]));
-    }
-    std::swap(integer_data_arrays_[i], mda_tmp_int);
-  }
-
+  // Duplicate indices are undefined behaviour (asserted in debug builds only).
+  Internal::PeakContainerHelpers::selectByIndices(static_cast<ContainerType&>(*this), float_data_arrays_, string_data_arrays_,
+                                                  integer_data_arrays_, indices);
   return *this;
 }
 

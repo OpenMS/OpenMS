@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<IdXML version="1.5" xsi:noNamespaceSchemaLocation="https://www.openms.de/xml-schema/IdXML_1_5.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<SearchParameters id="SP_0" db="MS1LabeledWorkflow_18.fasta" db_version="" taxonomy="" mass_type="monoisotopic" charges="" enzyme="trypsin" missed_cleavages="0" precursor_peak_tolerance="0" precursor_peak_tolerance_ppm="false" peak_mass_tolerance="0" peak_mass_tolerance_ppm="false" >
+		<VariableModification name="Label:13C(6)15N(2) (K)" />
+		<VariableModification name="Label:13C(6)15N(4) (R)" />
+	</SearchParameters>
+	<IdentificationRun date="0000-00-00T00:00:00" search_engine="synthetic" search_engine_version="" search_parameters_ref="SP_0" >
+		<ProteinIdentification score_type="" higher_score_better="true" significance_threshold="0.0" >
+			<ProteinHit id="PH_0" accession="PROT_TH" score="0.0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_1" accession="PROT_YH" score="0.0" sequence="" >
+			</ProteinHit>
+			<UserParam type="stringList" name="spectra_data" value="[MS1LabeledWorkflow_18_input.mzML]"/>
+		</ProteinIdentification>
+		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0.0" MZ="741.367181" RT="110.5" spectrum_reference="scan=21" >
+			<PeptideHit score="1.0e-03" sequence="LTDFQGAVNPEYK" charge="2" protein_refs="PH_0" >
+				<UserParam type="string" name="target_decoy" value="target"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0.0" MZ="746.377549" RT="111.5" spectrum_reference="scan=22" >
+			<PeptideHit score="1.0e-03" sequence="AGVDFADPTQVPFK" charge="2" protein_refs="PH_1" >
+				<UserParam type="string" name="target_decoy" value="target"/>
+			</PeptideHit>
+		</PeptideIdentification>
+	</IdentificationRun>
+</IdXML>

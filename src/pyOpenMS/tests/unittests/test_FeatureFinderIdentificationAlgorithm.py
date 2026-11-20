@@ -22,7 +22,7 @@ def _run(mzml, idxml, keep, values=None):
         params.setValue(key, value)
     params.setValue("keep_chromatograms", "true" if keep else "false")
     algo.setParameters(params)
-    algo.setMSData(exp)
+    algo.setFromMS1Data(exp)
     features = oms.FeatureMap()
     algo.run(peptides, proteins, features, oms.FeatureMap(), "")
     return algo, features

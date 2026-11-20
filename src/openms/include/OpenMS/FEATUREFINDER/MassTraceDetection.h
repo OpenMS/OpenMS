@@ -19,7 +19,7 @@
 namespace OpenMS
 {
 
-    /**
+    /*
       @brief A mass trace extraction method that gathers peaks similar in m/z and moving along retention time.
 
       Peaks of a @ref MSExperiment are sorted by their intensity and stored in a
@@ -31,6 +31,15 @@ namespace OpenMS
       Starting with these, mass traces are extended in- and decreasingly in
       retention time. During this extension phase, the centroid m/z is computed
       on-line as an intensity-weighted mean of peaks.
+
+      A peak extends a mass trace if its m/z lies within three standard
+      deviations of the centroid m/z of the trace. The standard deviation is the
+      parameter mass_error_ppm. With reestimate_mt_sd, it is also estimated
+      on-line from the peaks of the trace, which narrows the m/z window of traces
+      that are more precise than mass_error_ppm. The estimate never widens the
+      window beyond three times mass_error_ppm: it is computed from the peaks
+      that the window let in, so a window that grows with it would let in ever
+      more distant peaks (of noise or of other ions) and run away.
 
       The extension phase ends when either the frequency of gathered peaks drops
       below a threshold (min_sample_rate, see @ref MassTraceDetection parameters)
@@ -70,6 +79,8 @@ namespace OpenMS
         */
 
         /// Main method of MassTraceDetection. Extracts mass traces of a @ref MSExperiment and gathers them into a vector container.
+        /// @note The input MSExperiment's spectra must already be sorted by retention time (see MSExperiment::sortSpectra()).
+        ///       Unsorted input is not checked for tie-order within equal-RT spectra (e.g. ion-mobility data); see run_() precondition.
         void run(const PeakMap &, std::vector<MassTrace> &, const Size max_traces = 0);
 
         /// Invokes the run method (see above) on merely a subregion of a @ref MSExperiment map.
@@ -153,10 +164,11 @@ namespace OpenMS
                                const std::vector<Size>& spec_offsets,
                                const std::vector<bool>& peak_visited) const;
 
-        /// Process a single peak during trace extension
+        /// Process a single peak during trace extension; the peak is appended to @p trace_peaks
+        /// (the peaks collected so far in the direction of the extension)
         void processPeak_(const PeakCandidate& candidate,
                          const MSSpectrum& spectrum,
-                         std::list<PeakType>& current_trace,
+                         std::vector<MassTrace::PeakType>& trace_peaks,
                          std::vector<std::pair<Size, Size>>& gathered_idx,
                          std::vector<double>& fwhms_mz,
                          std::vector<double>& fwhms_im,
@@ -168,12 +180,12 @@ namespace OpenMS
                          double& prev_denom_im,
                          double& ftl_sd,
                          double& intensity_so_far,
-                         Size spectrum_idx,
-                         bool is_upward_extension);
+                         Size spectrum_idx);
 
 
-        /// Check if a mass trace meets quality criteria
-        bool isTraceValid_(const std::list<PeakType>& trace,
+        /// Check if a mass trace of @p peak_count peaks spanning @p rt_range meets quality criteria
+        bool isTraceValid_(double rt_range,
+                          Size peak_count,
                           Size total_scans_visited,
                           Size consecutive_missed_down,
                           Size consecutive_missed_up) const;

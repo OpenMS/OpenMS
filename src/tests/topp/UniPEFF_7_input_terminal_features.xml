@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- UniPEFF fixture: canonical annotations at the mature protein's N-terminus mapped onto isoforms.
+     Canonical P88888 is 30 aa; as in many Swiss-Prot entries, the initiator methionine is removed
+     and the chain 2-30 is N-acetylated at A2 (ptmlist: "PP   N-terminal."):
+        1-10  MAEQCKTLDA
+       11-20  PGRSTWEVQL
+       21-30  KDNACYLRGE
+     P88888-2 (VSP_EXT: N-terminal extension, M1 -> MPRLLSG) is 36 aa, canonical 2-30 move by +6.
+     P88888-3 (VSP_EXON: alternative first exon, 1-5 MAEQC -> MKL) is 28 aa, canonical 6-30 move by -2.
+     P88888-4 (VSP_DEL: 25-27 CYL deleted) is 27 aa, canonical 28-30 move by -3.
+     The cleavage removing the initiator methionine depends on residues 1 and 2, so the isoforms -2
+     and -3 do not keep it: their chain starts at their own N-terminus, and A2 (-> 8 in -2) is not
+     at the N-terminus of a chain there, so it is not N-acetylated. -4 keeps both.
+     Features (canonical -> -2 / -3 / -4):
+       initiator methionine 1   -> not mapped / not mapped / 1
+       chain 2-30               -> 1-36 / 1-28 / 2-27
+       N-acetylalanine 2        -> not mapped / not mapped (replaced) / 2
+       Phosphoserine 14         -> 20 / 12 / 14
+     Summary: 8 canonical annotations mapped, 4 not mapped. -->
+<uniprot>
+  <entry dataset="Swiss-Prot" version="1">
+    <accession>P88888</accession>
+    <name>NTRM_HUMAN</name>
+    <protein>
+      <recommendedName>
+        <fullName>N-terminal mapping test protein</fullName>
+      </recommendedName>
+    </protein>
+    <gene>
+      <name type="primary">NTRM</name>
+    </gene>
+    <organism>
+      <name type="scientific">Homo sapiens</name>
+      <dbReference type="NCBI Taxonomy" id="9606"/>
+    </organism>
+    <comment type="alternative products">
+      <event type="alternative splicing"/>
+      <isoform>
+        <id>P88888-1</id>
+        <name>1</name>
+        <sequence type="displayed"/>
+      </isoform>
+      <isoform>
+        <id>P88888-2</id>
+        <name>2</name>
+        <sequence type="described" ref="VSP_EXT"/>
+      </isoform>
+      <isoform>
+        <id>P88888-3</id>
+        <name>3</name>
+        <sequence type="described" ref="VSP_EXON"/>
+      </isoform>
+      <isoform>
+        <id>P88888-4</id>
+        <name>4</name>
+        <sequence type="described" ref="VSP_DEL"/>
+      </isoform>
+    </comment>
+    <proteinExistence type="evidence at protein level"/>
+    <feature type="initiator methionine" description="Removed">
+      <location>
+        <position position="1"/>
+      </location>
+    </feature>
+    <feature type="chain" description="N-terminal mapping test protein">
+      <location>
+        <begin position="2"/>
+        <end position="30"/>
+      </location>
+    </feature>
+    <feature type="modified residue" description="N-acetylalanine">
+      <location>
+        <position position="2"/>
+      </location>
+    </feature>
+    <feature type="modified residue" description="Phosphoserine">
+      <location>
+        <position position="14"/>
+      </location>
+    </feature>
+    <feature type="splice variant" id="VSP_EXT" description="In isoform 2.">
+      <original>M</original>
+      <variation>MPRLLSG</variation>
+      <location>
+        <position position="1"/>
+      </location>
+    </feature>
+    <feature type="splice variant" id="VSP_EXON" description="In isoform 3.">
+      <original>MAEQC</original>
+      <variation>MKL</variation>
+      <location>
+        <begin position="1"/>
+        <end position="5"/>
+      </location>
+    </feature>
+    <feature type="splice variant" id="VSP_DEL" description="In isoform 4.">
+      <location>
+        <begin position="25"/>
+        <end position="27"/>
+      </location>
+    </feature>
+    <sequence length="30" mass="3400" version="1">MAEQCKTLDAPGRSTWEVQLKDNACYLRGE</sequence>
+  </entry>
+</uniprot>

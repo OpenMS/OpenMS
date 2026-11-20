@@ -38,6 +38,11 @@ class OPENMS_DLLAPI GridBasedCluster
     GridBasedCluster(const Point &centre, const Rectangle &bounding_box, const std::vector<int> &point_indices, const int &property_A, const std::vector<int> &properties_B);
 
     /**
+     * @brief initialises all data structures (moving the point indices and properties B)
+     */
+    GridBasedCluster(const Point &centre, const Rectangle &bounding_box, std::vector<int> &&point_indices, const int &property_A, std::vector<int> &&properties_B);
+
+    /**
      * @brief initialises all data structures
      */
     GridBasedCluster(const Point &centre, const Rectangle &bounding_box, const std::vector<int> &point_indices);

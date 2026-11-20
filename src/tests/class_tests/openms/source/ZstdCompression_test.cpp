@@ -136,7 +136,7 @@ START_SECTION((static void compressData(const void* raw_data, size_t in_length, 
 }
 END_SECTION
 
-START_SECTION((static void uncompressData(const void* compressed_data, size_t nr_bytes, std::string& out, size_t expected_size = 0)))
+START_SECTION((static void uncompressData(const void* compressed_data, size_t nr_bytes, std::string& out, size_t expected_size = 0, size_t max_size = 0)))
 {
   std::string out;
   ZstdCompression::uncompressData(d_plain.data(), d_plain.size(), out);
@@ -174,6 +174,30 @@ START_SECTION((static void uncompressData(const void* compressed_data, size_t nr
   TEST_EXCEPTION(Exception::ConversionError, ZstdCompression::uncompressData(invalid.data(), invalid.size(), uncompressed))
   TEST_EXCEPTION(Exception::ConversionError, ZstdCompression::uncompressData(compressed.data(), compressed.size() / 2, uncompressed))
   TEST_EXCEPTION(Exception::ConversionError, ZstdCompression::uncompressData(compressed.data(), compressed.size() / 2, uncompressed, large.size()))
+
+  // the maximum size: data of at most that size is decompressed, larger data throws
+  for (size_t expected_size : {size_t(0), size_t(1), large.size()})
+  {
+    ZstdCompression::uncompressData(compressed.data(), compressed.size(), uncompressed, expected_size, large.size());
+    TEST_TRUE(uncompressed == large)
+    ZstdCompression::uncompressData(compressed.data(), compressed.size(), uncompressed, expected_size, large.size() + 1);
+    TEST_TRUE(uncompressed == large)
+    TEST_EXCEPTION(Exception::ConversionError,
+                   ZstdCompression::uncompressData(compressed.data(), compressed.size(), uncompressed, expected_size, large.size() - 1))
+  }
+  // a few bytes that expand to 64 MB stop at the maximum size
+  const std::string zeros(64 << 20, '\0');
+  std::string bomb;
+  ZstdCompression::compressData(zeros.data(), zeros.size(), bomb);
+  TEST_EXCEPTION(Exception::ConversionError, ZstdCompression::uncompressData(bomb.data(), bomb.size(), uncompressed, 0, 1000))
+  TEST_EXCEPTION(Exception::ConversionError, ZstdCompression::uncompressData(bomb.data(), bomb.size(), uncompressed, 1000, 1000))
+  // multiple frames count together
+  std::string two_frames, frame;
+  ZstdCompression::compressData("abc", 3, frame);
+  two_frames = frame + frame;
+  ZstdCompression::uncompressData(two_frames.data(), two_frames.size(), uncompressed, 0, 6);
+  TEST_STRING_EQUAL(uncompressed, "abcabc")
+  TEST_EXCEPTION(Exception::ConversionError, ZstdCompression::uncompressData(two_frames.data(), two_frames.size(), uncompressed, 0, 5))
 }
 END_SECTION
 

@@ -219,11 +219,6 @@ namespace OpenMS
       return runs;
     }
 
-    std::string jsonEscape_(const std::string& input)
-    {
-      return OpenMS::ParquetFile::jsonEscape(input);
-    }
-
     void writeMetadata_(const std::string& base_dir,
                         const std::vector<RunEntry>& runs,
                         const std::vector<RunCounts>& run_counts,
@@ -240,9 +235,9 @@ namespace OpenMS
           << "  \"openms\": {\n"
           << "    \"schema_version\": 1,\n"
           << "    \"generator\": \"OpenSwathOSWParquetWriter\",\n"
-          << "    \"openms_version\": \"" << jsonEscape_(VersionInfo::getVersion()) << "\",\n"
-          << "    \"build_time\": \"" << jsonEscape_(VersionInfo::getTime()) << "\",\n"
-          << "    \"tool\": {\"name\": \"OpenSwathWorkflow\", \"version\": \"" << jsonEscape_(VersionInfo::getVersion()) << "\"},\n"
+          << "    \"openms_version\": \"" << OpenMS::ParquetFile::jsonEscape(VersionInfo::getVersion()) << "\",\n"
+          << "    \"build_time\": \"" << OpenMS::ParquetFile::jsonEscape(VersionInfo::getTime()) << "\",\n"
+          << "    \"tool\": {\"name\": \"OpenSwathWorkflow\", \"version\": \"" << OpenMS::ParquetFile::jsonEscape(VersionInfo::getVersion()) << "\"},\n"
           << "    \"counts\": {\n"
           << "      \"runs\": " << runs.size() << ",\n"
           << "      \"features\": " << total_counts.features << ",\n"
@@ -263,7 +258,7 @@ namespace OpenMS
         const RunEntry& run = runs[i];
         const RunCounts& counts = run_counts[i];
         out << "    {\"id\": " << run.run_id
-            << ", \"filename\": \"" << jsonEscape_(run.filename) << "\""
+            << ", \"filename\": \"" << OpenMS::ParquetFile::jsonEscape(run.filename) << "\""
             << ", \"counts\": {\"features\": " << counts.features
             << ", \"feature_precursor\": " << counts.feature_precursor
             << ", \"feature_transition\": " << counts.feature_transition << "}}";

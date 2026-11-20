@@ -18,7 +18,7 @@ namespace OpenMS
   {
     /** @brief Data processing step that is applied to the data (e.g. database search, PEP calculation, filtering, rescoring).
     */
-    struct ProcessingStep: public MetaInfoInterface
+    struct OPENMS_DLLAPI ProcessingStep: public MetaInfoInterface
     {
       ProcessingSoftwareRef software_ref;
 
@@ -42,21 +42,11 @@ namespace OpenMS
 
       ProcessingStep(const ProcessingStep& other) = default;
 
-      // order by date/time first, don't compare meta data (?):
-      bool operator<(const ProcessingStep& other) const
-      {
-        return (std::tie(date_time, software_ref, input_file_refs, actions) <
-                std::tie(other.date_time, other.software_ref,
-                         other.input_file_refs, other.actions));
-      }
+      /// order by date/time first, don't compare meta data (?)
+      bool operator<(const ProcessingStep& other) const;
 
-      // don't compare meta data (?):
-      bool operator==(const ProcessingStep& other) const
-      {
-        return (std::tie(software_ref, input_file_refs, date_time, actions) ==
-                std::tie(other.software_ref, other.input_file_refs,
-                         other.date_time, other.actions));
-      }
+      /// don't compare meta data (?)
+      bool operator==(const ProcessingStep& other) const;
     };
 
     typedef std::set<ProcessingStep> ProcessingSteps;

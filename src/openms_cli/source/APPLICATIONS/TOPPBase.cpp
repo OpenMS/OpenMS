@@ -1662,15 +1662,19 @@ namespace OpenMS
     // check if all input files are readable
     if (p.type == ParameterInformation::INPUT_FILE_LIST)
     {
-      for (const std::string& t : param_value)
+      for (const std::string& value : param_value)
       {
-        if (!ListUtils::contains(p.tags, "skipexists")) inputFileReadable_(t, param_name);
+        // A remote location (tag 'remote') is no file to look for; the tool's reader reports if it cannot be read.
+        const bool remote = ListUtils::contains(p.tags, "remote") && FileHandler::isRemote(value);
+        if (!remote && !ListUtils::contains(p.tags, "skipexists")) inputFileReadable_(value, param_name);
 
         // check restrictions
         if (p.valid_strings.empty()) continue;
 
-        // determine file type as string
-        FileTypes::Type f_type = FileHandler::getType(t);
+        // determine file type as string (of a remote location: from its name)
+        FileTypes::Type f_type = FileHandler::getType(value);
+        // the name for the messages and the compression suffix: a URL without credentials and query
+        const std::string t = FileHandler::displayName(value);
         // unknown ending is 'ok'
         if (f_type == FileTypes::UNKNOWN)
         {
@@ -1724,7 +1728,9 @@ namespace OpenMS
           throw ExternalExecutableNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, param_value);
         }
       }
-      if (!ListUtils::contains(p.tags, "skipexists")) inputFileReadable_(param_value, param_name);
+      // A remote location (tag 'remote') is no file to look for; the tool's reader reports if it cannot be read.
+      const bool remote = ListUtils::contains(p.tags, "remote") && FileHandler::isRemote(param_value);
+      if (!remote && !ListUtils::contains(p.tags, "skipexists")) inputFileReadable_(param_value, param_name);
     }
     else if (p.type == ParameterInformation::OUTPUT_FILE)
     {
@@ -1755,23 +1761,25 @@ namespace OpenMS
 
       case ParameterInformation::INPUT_FILE:
       {
-        // determine file type as string
+        // determine file type as string (of a remote location: from its name)
         FileTypes::Type f_type = FileHandler::getType(param_value);
+        // the name for the messages and the compression suffix: a URL without credentials and query
+        const std::string name = FileHandler::displayName(param_value);
         // unknown ending is 'ok'
         if (f_type == FileTypes::UNKNOWN)
         {
-          writeLogWarn_("Warning: Could not determine format of input file '" + param_value + "'!");
+          writeLogWarn_("Warning: Could not determine format of input file '" + name + "'!");
         }
-        else if (!compressionSupported(param_value, f_type))
+        else if (!compressionSupported(name, f_type))
         {
           throw InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                 "Input file '" + param_value + "' is compressed, but the reader for format '" +
+                                 "Input file '" + name + "' is compressed, but the reader for format '" +
                                  FileTypes::typeToName(f_type) + "' cannot decompress it. Please decompress it first.");
         }
         else if (!formatAccepted(p.valid_strings, f_type))
         {
             throw InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                   "Input file '" + param_value + "' has invalid format '" +
+                                   "Input file '" + name + "' has invalid format '" +
                                    FileTypes::typeToName(f_type) +
                                    "'. Valid formats are: '" + ListUtils::concatenate(p.valid_strings, "','") +
                                    "'.");
@@ -2637,7 +2645,11 @@ namespace OpenMS
             if (!queue.empty())
               queue.pop_front(); // argument was already used
           }
-          OPENMS_LOG_DEBUG << "Command line: setting parameter value: '" << pos->second->name << "' to '" << value << "'" << std::endl;
+          {
+            std::ostringstream shown; // (a remote location without credentials, as in writeDebug_())
+            shown << value;
+            OPENMS_LOG_DEBUG << "Command line: setting parameter value: '" << pos->second->name << "' to '" << FileHandler::displayText(shown.str()) << "'" << std::endl;
+          }
 
           // Check for duplicate parameters
           // Note: This is intentionally allowed to support nextflow workflows where ${ext.args}
@@ -2740,9 +2752,11 @@ namespace OpenMS
   {
     if (debug_level_ >= (Int)min_level)
     {
-      OPENMS_LOG_DEBUG << text << endl;
+      // the command line and option values can hold remote locations with credentials (tag 'remote')
+      const std::string redacted = FileHandler::displayText(text);
+      OPENMS_LOG_DEBUG << redacted << endl;
       enableLogging_();
-      *log_ << DateTime::now().get() << ' ' << getIniLocation_() << ": " << text << endl;
+      *log_ << DateTime::now().get() << ' ' << getIniLocation_() << ": " << redacted << endl;
     }
   }
 
@@ -2750,14 +2764,17 @@ namespace OpenMS
   {
     if (debug_level_ >= (Int)min_level)
     {
+      std::ostringstream values;
+      values << param;
+      const std::string redacted = FileHandler::displayText(values.str()); // see above
       OPENMS_LOG_DEBUG << LOG_SEPARATOR << '\n'
                 << DateTime::now().get() << ' ' << getIniLocation_() << " " << text << '\n'
-                << param
+                << redacted
                 << LOG_SEPARATOR << endl;
       enableLogging_();
       *log_ << LOG_SEPARATOR << '\n'
             << DateTime::now().get() << ' ' << getIniLocation_() << " " << text << '\n'
-            << param
+            << redacted
             << LOG_SEPARATOR << endl;
     }
   }

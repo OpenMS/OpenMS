@@ -7,6 +7,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/METADATA/IonSource.h>
+#include <OpenMS/CONCEPT/EnumHelpers.h>
 #include <OpenMS/CONCEPT/Exception.h>
 
 #include <algorithm>
@@ -89,98 +90,47 @@ namespace OpenMS
 
   StringList IonSource::getAllNamesOfInletType()
   {
-    StringList names;
-    names.reserve(static_cast<size_t>(InletType::SIZE_OF_INLETTYPE));
-    for (size_t i = 0; i < static_cast<size_t>(InletType::SIZE_OF_INLETTYPE); ++i)
-    {
-      names.push_back(NamesOfInletType[i]);
-    }
-    return names;
+    return Helpers::enumNames(NamesOfInletType, InletType::SIZE_OF_INLETTYPE);
   }
 
   StringList IonSource::getAllNamesOfIonizationMethod()
   {
-    StringList names;
-    names.reserve(static_cast<size_t>(IonizationMethod::SIZE_OF_IONIZATIONMETHOD));
-    for (size_t i = 0; i < static_cast<size_t>(IonizationMethod::SIZE_OF_IONIZATIONMETHOD); ++i)
-    {
-      names.push_back(NamesOfIonizationMethod[i]);
-    }
-    return names;
+    return Helpers::enumNames(NamesOfIonizationMethod, IonizationMethod::SIZE_OF_IONIZATIONMETHOD);
   }
 
   StringList IonSource::getAllNamesOfPolarity()
   {
-    StringList names;
-    names.reserve(static_cast<size_t>(Polarity::SIZE_OF_POLARITY));
-    for (size_t i = 0; i < static_cast<size_t>(Polarity::SIZE_OF_POLARITY); ++i)
-    {
-      names.push_back(NamesOfPolarity[i]);
-    }
-    return names;
+    return Helpers::enumNames(NamesOfPolarity, Polarity::SIZE_OF_POLARITY);
   }
 
   const std::string& IonSource::inletTypeToString(InletType type)
   {
-    if (type == InletType::SIZE_OF_INLETTYPE)
-    {
-      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Value not allowed", "SIZE_OF_INLETTYPE");
-    }
-    return NamesOfInletType[static_cast<size_t>(type)];
+    return Helpers::enumToName(NamesOfInletType, type, InletType::SIZE_OF_INLETTYPE, "SIZE_OF_INLETTYPE", OPENMS_PRETTY_FUNCTION);
   }
 
   IonSource::InletType IonSource::toInletType(const std::string& name)
   {
-    auto first = &NamesOfInletType[0];
-    auto last = &NamesOfInletType[static_cast<size_t>(InletType::SIZE_OF_INLETTYPE)];
-    const auto it = std::find(first, last, name);
-    if (it == last)
-    {
-      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Value unknown", name);
-    }
-    return static_cast<InletType>(it - first);
+    return Helpers::enumFromName(NamesOfInletType, InletType::SIZE_OF_INLETTYPE, name, "Value unknown", OPENMS_PRETTY_FUNCTION);
   }
 
   const std::string& IonSource::ionizationMethodToString(IonizationMethod method)
   {
-    if (method == IonizationMethod::SIZE_OF_IONIZATIONMETHOD)
-    {
-      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Value not allowed", "SIZE_OF_IONIZATIONMETHOD");
-    }
-    return NamesOfIonizationMethod[static_cast<size_t>(method)];
+    return Helpers::enumToName(NamesOfIonizationMethod, method, IonizationMethod::SIZE_OF_IONIZATIONMETHOD, "SIZE_OF_IONIZATIONMETHOD", OPENMS_PRETTY_FUNCTION);
   }
 
   IonSource::IonizationMethod IonSource::toIonizationMethod(const std::string& name)
   {
-    auto first = &NamesOfIonizationMethod[0];
-    auto last = &NamesOfIonizationMethod[static_cast<size_t>(IonizationMethod::SIZE_OF_IONIZATIONMETHOD)];
-    const auto it = std::find(first, last, name);
-    if (it == last)
-    {
-      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Value unknown", name);
-    }
-    return static_cast<IonizationMethod>(it - first);
+    return Helpers::enumFromName(NamesOfIonizationMethod, IonizationMethod::SIZE_OF_IONIZATIONMETHOD, name, "Value unknown", OPENMS_PRETTY_FUNCTION);
   }
 
   const std::string& IonSource::polarityToString(Polarity polarity)
   {
-    if (polarity == Polarity::SIZE_OF_POLARITY)
-    {
-      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Value not allowed", "SIZE_OF_POLARITY");
-    }
-    return NamesOfPolarity[static_cast<size_t>(polarity)];
+    return Helpers::enumToName(NamesOfPolarity, polarity, Polarity::SIZE_OF_POLARITY, "SIZE_OF_POLARITY", OPENMS_PRETTY_FUNCTION);
   }
 
   IonSource::Polarity IonSource::toPolarity(const std::string& name)
   {
-    auto first = &NamesOfPolarity[0];
-    auto last = &NamesOfPolarity[static_cast<size_t>(Polarity::SIZE_OF_POLARITY)];
-    const auto it = std::find(first, last, name);
-    if (it == last)
-    {
-      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Value unknown", name);
-    }
-    return static_cast<Polarity>(it - first);
+    return Helpers::enumFromName(NamesOfPolarity, Polarity::SIZE_OF_POLARITY, name, "Value unknown", OPENMS_PRETTY_FUNCTION);
   }
 
 }

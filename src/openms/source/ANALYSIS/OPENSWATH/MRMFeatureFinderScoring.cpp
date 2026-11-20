@@ -40,11 +40,6 @@
 namespace
 {
 
-  bool SortDoubleDoublePairFirst(const std::pair<double, double>& left, const std::pair<double, double>& right)
-  {
-    return left.first < right.first;
-  }
-
   /// Fill normalized library intensities directly into cached transition-group storage.
   void fillNormalizedLibraryIntensities_(const std::vector<OpenSwath::LightTransition>& transitions,
                                          std::vector<double>& normalized_library_intensity)

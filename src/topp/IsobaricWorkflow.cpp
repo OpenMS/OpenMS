@@ -652,7 +652,9 @@ protected:
   void loadSpectra_(const std::string& mz_file, PeakMap& exp) const
   {
 #ifdef WITH_OPENTIMS
-    if (FileHandler::getType(mz_file) == FileTypes::BRUKER_TDF)
+    // TSF data (timsTOF without ion mobility) is loaded below, as its spectra have no ion mobility to centroid along
+    if (FileHandler::getType(mz_file) == FileTypes::BRUKER_TDF
+        && BrukerTimsFile::detectFormat(mz_file) != BrukerTimsFile::DataFormat::TSF)
     {
       BrukerTimsFile tdf;
       tdf.setLogType(log_type_);

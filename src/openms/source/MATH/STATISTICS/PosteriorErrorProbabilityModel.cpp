@@ -8,6 +8,7 @@
 //
 #include <OpenMS/MATH/STATISTICS/PosteriorErrorProbabilityModel.h>
 
+#include <OpenMS/ANALYSIS/ID/Scores.h>
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
@@ -17,6 +18,7 @@
 #include <OpenMS/MATH/STATISTICS/GumbelMaxLikelihoodFitter.h>
 #include <OpenMS/MATH/StatisticFunctions.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
+#include <OpenMS/METADATA/IdentifierMSRunMapper.h>
 #include <OpenMS/METADATA/PeptideIdentificationList.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/METADATA/PeptideHit.h>
@@ -25,7 +27,12 @@
 #include <OpenMS/SYSTEM/PathUtils.h>
 #include <filesystem>
 
+#include <boost/math/distributions/binomial.hpp>
+
 #include <algorithm>
+#include <cmath>
+#include <limits>
+#include <numeric>
 
 
 
@@ -33,26 +40,400 @@ using namespace std;
 
 namespace OpenMS::Math
 {
+    namespace
+    {
+      /// Euler-Mascheroni constant (mean of the standard Gumbel distribution)
+      constexpr double EULER_GAMMA = 0.57721566490153286;
+
+      double logGaussDensity(double x, double mu, double sigma)
+      {
+        const double z = (x - mu) / sigma;
+        return -std::log(sigma) - 0.5 * std::log(2.0 * Constants::PI) - 0.5 * z * z;
+      }
+
+      /// weighted mean and (biased) standard deviation
+      std::pair<double, double> weightedMeanSD(const std::vector<double>& x, const std::vector<double>& w)
+      {
+        double sum_w = 0.0, sum_wx = 0.0;
+        for (size_t i = 0; i < x.size(); ++i)
+        {
+          sum_w += w[i];
+          sum_wx += w[i] * x[i];
+        }
+        if (!(sum_w > 0.0))
+        {
+          return {std::numeric_limits<double>::quiet_NaN(), std::numeric_limits<double>::quiet_NaN()};
+        }
+        const double mean = sum_wx / sum_w;
+        double sum_wvar = 0.0;
+        for (size_t i = 0; i < x.size(); ++i)
+        {
+          sum_wvar += w[i] * (x[i] - mean) * (x[i] - mean);
+        }
+        return {mean, std::sqrt(sum_wvar / sum_w)};
+      }
+
+      /// mean and (biased) standard deviation of a range
+      std::pair<double, double> meanSD(std::vector<double>::const_iterator begin, std::vector<double>::const_iterator end)
+      {
+        const std::vector<double> x(begin, end);
+        return weightedMeanSD(x, std::vector<double>(x.size(), 1.0));
+      }
+
+      enum class TDLabel
+      {
+        TARGET,
+        DECOY,
+        UNKNOWN
+      };
+
+      /// target/decoy status of a hit, parsed defensively (missing, empty or unexpected annotations yield UNKNOWN)
+      TDLabel getTDLabel(const PeptideHit& hit)
+      {
+        try
+        {
+          switch (hit.getTargetDecoyType())
+          {
+            case PeptideHit::TargetDecoyType::TARGET:
+            case PeptideHit::TargetDecoyType::TARGET_DECOY:
+              return TDLabel::TARGET;
+            case PeptideHit::TargetDecoyType::DECOY:
+              return TDLabel::DECOY;
+            default:
+              return TDLabel::UNKNOWN;
+          }
+        }
+        catch (Exception::InvalidValue&)
+        {
+          return TDLabel::UNKNOWN; // e.g. an empty annotation
+        }
+      }
+
+      /// upper-case and remove all non-alphanumeric characters, e.g. "X! Tandem" -> "XTANDEM"
+      std::string compactEngineName(const std::string& name)
+      {
+        std::string result;
+        for (char c : name)
+        {
+          if (std::isalnum(static_cast<unsigned char>(c)))
+          {
+            result += static_cast<char>(std::toupper(static_cast<unsigned char>(c)));
+          }
+        }
+        return result;
+      }
+
+      /// resolve aliases of search engine names
+      std::string normalizeEngineKey(const std::string& name)
+      {
+        std::string key = compactEngineName(name);
+        if (key == "MSGF") // "MS-GF+"
+        {
+          key = "MSGFPLUS";
+        }
+        if (key.empty())
+        {
+          key = "UNKNOWN";
+        }
+        return key;
+      }
+
+      enum class ScoreScale
+      {
+        RAW,         ///< raw score (orientation given by the identification)
+        EVALUE,      ///< e-value or p-value: transformed with -log10
+        PROBABILITY  ///< probability-like (PEP, posterior probability, q-value, FDR): not usable as input
+      };
+
+      /// classify the main score of an identification of an engine without dedicated support
+      ScoreScale classifyScore(const std::string& score_type)
+      {
+        Scores::IDType type;
+        if (Scores::findIDTypeByName(score_type, type))
+        {
+          switch (type)
+          {
+            case Scores::IDType::RAW_EVAL:
+              return ScoreScale::EVALUE;
+            case Scores::IDType::PP:
+            case Scores::IDType::PEP:
+            case Scores::IDType::FDR:
+            case Scores::IDType::QVAL:
+              return ScoreScale::PROBABILITY;
+            default:
+              break;
+          }
+        }
+        std::string name = Scores::normalizeScoreName(score_type);
+        StringUtils::toLower(name);
+        for (const char* probability_name : {"posterior", "q-value", "qvalue", "q_value", "fdr", "probability"})
+        {
+          if (StringUtils::hasSubstring(name, probability_name))
+          {
+            return ScoreScale::PROBABILITY;
+          }
+        }
+        // short abbreviations only as separate words (e.g. "Andromeda:PEP", but not "PeptideScore")
+        std::string token;
+        for (char c : name + " ")
+        {
+          if (std::isalnum(static_cast<unsigned char>(c)))
+          {
+            token += c;
+            continue;
+          }
+          if (token == "pep" || token == "pp")
+          {
+            return ScoreScale::PROBABILITY;
+          }
+          token.clear();
+        }
+        for (const char* evalue_name : {"evalue", "e-value", "e_value", "expect", "p-value", "pvalue", "p_value"})
+        {
+          if (StringUtils::hasSubstring(name, evalue_name))
+          {
+            return ScoreScale::EVALUE;
+          }
+        }
+        return ScoreScale::RAW;
+      }
+
+      /// strict weak ordering that sorts NaN values to the end
+      bool nanLastLess(double a, double b)
+      {
+        return std::isnan(b) ? !std::isnan(a) : a < b;
+      }
+
+      /// -log10 of an e-value or p-value; 0 is mapped to the smallest positive double, negative or NaN values yield NaN
+      double negLog10(double value)
+      {
+        if (!(value >= 0.0) || std::isinf(value))
+        {
+          return std::numeric_limits<double>::quiet_NaN();
+        }
+        return -std::log10(std::max(value, std::numeric_limits<double>::min()));
+      }
+
+      /// block of consecutive PSMs (sorted by score) for the pool-adjacent-violators algorithm
+      struct PAVABlock
+      {
+        double n;          ///< number of PSMs
+        double decoys;     ///< number of decoys
+        double min_score;  ///< smallest score in the block
+        double max_score;  ///< largest score in the block
+        double score_sum;  ///< sum of the scores of the PSMs in the block
+        double pseudo_decoys = 0.5; ///< pseudo-count of decoys for the shrunk decoy fraction (Jeffreys prior: 1/2 decoy, 1/2 target)
+        Size n_groups = 1; ///< number of groups of tied scores in the block
+
+        /// fraction of decoys, optionally shrunk by the pseudo-counts ((decoys + pseudo_decoys) / (n + 1))
+        double decoyFraction(bool shrunk) const
+        {
+          return shrunk ? (decoys + pseudo_decoys) / (n + 1.0) : decoys / n;
+        }
+
+        void merge(const PAVABlock& other)
+        {
+          n += other.n;
+          decoys += other.decoys;
+          pseudo_decoys = std::max(pseudo_decoys, other.pseudo_decoys);
+          min_score = std::min(min_score, other.min_score);
+          max_score = std::max(max_score, other.max_score);
+          score_sum += other.score_sum;
+          n_groups += other.n_groups;
+        }
+      };
+
+      /**
+        @brief adds @p block to @p blocks (sorted from best to worst score) and merges blocks until their decoy fractions are non-decreasing
+
+        @param merge_equal also merge neighbours with equal decoy fractions (yields maximal blocks; does not change the fitted values)
+        @param jeffreys use the decoy fractions with a Jeffreys prior (one pseudo-count per block)
+      */
+      void addNonDecreasing(std::vector<PAVABlock>& blocks, PAVABlock block, bool merge_equal, bool jeffreys)
+      {
+        blocks.push_back(block);
+        while (blocks.size() > 1)
+        {
+          const double previous = blocks[blocks.size() - 2].decoyFraction(jeffreys);
+          const double last = blocks.back().decoyFraction(jeffreys);
+          if (previous < last || (previous == last && !merge_equal))
+          {
+            break;
+          }
+          PAVABlock last_block = blocks.back();
+          blocks.pop_back();
+          blocks.back().merge(last_block);
+        }
+      }
+
+      /// non-parametric target-decoy estimate: PEP curve (knots with ascending scores) and its blocks
+      struct IsotonicFit
+      {
+        std::vector<double> scores;         ///< knots: scores (ascending)
+        std::vector<double> peps;           ///< knots: PEPs (non-increasing)
+        std::vector<PAVABlock> blocks;      ///< final blocks, best scores first
+        std::vector<double> block_peps;     ///< PEP of each final block
+      };
+
+      /// linear interpolation of a PEP curve given by knots (ascending scores), constant outside
+      double interpolateCurve(const std::vector<double>& scores, const std::vector<double>& peps, double score)
+      {
+        if (std::isnan(score) || scores.empty()) { return std::numeric_limits<double>::quiet_NaN(); }
+        if (score <= scores.front()) { return peps.front(); }
+        if (score >= scores.back()) { return peps.back(); }
+        const Size upper = std::upper_bound(scores.begin(), scores.end(), score) - scores.begin();
+        const double x0 = scores[upper - 1], x1 = scores[upper];
+        const double t = (score - x0) / (x1 - x0);
+        return peps[upper - 1] + t * (peps[upper] - peps[upper - 1]);
+      }
+
+      /**
+        @brief non-parametric target-decoy estimate from groups of tied scores (best scores first, each a PAVABlock of one group)
+
+        @param swap_group if valid, one decoy of this group is counted as a target (label swap)
+      */
+      void fitIsotonicCurve(const std::vector<PAVABlock>& groups, Size swap_group, double decoy_ratio, IsotonicFit& fit)
+      {
+        // 1) maximum likelihood estimate of a decoy probability that does not decrease with decreasing score:
+        //    pool-adjacent-violators on groups of tied scores (tied scores always get the same estimate).
+        //    Neighbours with equal decoy fractions are merged as well, which yields maximal blocks.
+        std::vector<PAVABlock> blocks;
+        blocks.reserve(groups.size());
+        for (Size g = 0; g < groups.size(); ++g)
+        {
+          PAVABlock group = groups[g];
+          if (g == swap_group)
+          {
+            group.decoys -= 1.0;
+          }
+          addNonDecreasing(blocks, group, true, false);
+        }
+
+        // 2) Shrink the decoy fraction of each block with a Jeffreys prior (avoids PEPs of exactly 0 for blocks without decoys),
+        //    followed by pool-adjacent-violators to restore monotonicity (one pseudo-count per final block).
+        //    The targets above the best decoy contain on average 1 / decoy_ratio incorrect targets (the number of incorrect targets
+        //    before the first decoy is geometrically distributed), which a pseudo-count of one decoy for this block yields
+        //    (cf. the "+1" correction of target-decoy FDR estimates, (#decoys + 1) / #targets).
+        if (blocks.front().decoys == 0.0)
+        {
+          blocks.front().pseudo_decoys = 1.0;
+        }
+        fit.blocks.clear();
+        for (const PAVABlock& b : blocks)
+        {
+          addNonDecreasing(fit.blocks, b, true, true);
+        }
+
+        // 3) PEP of a target under target-decoy competition: PEP = (#decoys / decoy_ratio) / #targets = p / (1 - p) / decoy_ratio
+        fit.block_peps.clear();
+        for (const PAVABlock& b : fit.blocks)
+        {
+          const double p = std::min(b.decoyFraction(true), 1.0 - 1e-12);
+          fit.block_peps.push_back(std::min(1.0, p / (1.0 - p) / decoy_ratio));
+        }
+
+        // Curve: within a block, the PEP decreases linearly with the score around the block's PEP at the mean score of the block,
+        // which keeps the mean PEP of the block (calibration) and orders the PSMs of a block by score (no ties of different scores,
+        // e.g. for FDR estimates based on the PEPs). The slope is limited such that the PEP stays strictly between the PEPs
+        // of the neighbouring blocks. Between blocks, the PEP is interpolated linearly.
+        fit.scores.clear();
+        fit.peps.clear();
+        const std::vector<PAVABlock>& final_blocks = fit.blocks;
+        for (Size b = final_blocks.size(); b-- > 0; ) // ascending scores
+        {
+          const PAVABlock& block = final_blocks[b];
+          const double pep = fit.block_peps[b];
+          if (block.max_score > block.min_score) // (a block of tied scores has no ramp, even if the mean score is off by rounding)
+          {
+            const double gap_better = (b == 0) ? pep : pep - fit.block_peps[b - 1]; // towards the better scores (PEP must stay >= 0)
+            const double gap_worse = (b + 1 == final_blocks.size()) ? 1.0 - pep : fit.block_peps[b + 1] - pep; // towards the worse scores (PEP <= 1)
+            const double half_range = 0.45 * std::max(0.0, std::min(gap_better, gap_worse));
+            const double center = std::clamp(block.score_sum / block.n, block.min_score, block.max_score);
+            const double half_width = std::max(block.max_score - center, center - block.min_score);
+            fit.scores.push_back(block.min_score);
+            fit.peps.push_back(pep + half_range * (center - block.min_score) / half_width);
+            fit.scores.push_back(block.max_score);
+            fit.peps.push_back(pep - half_range * (block.max_score - center) / half_width);
+          }
+          else
+          {
+            fit.scores.push_back(block.min_score);
+            fit.peps.push_back(pep);
+          }
+        }
+      }
+
+      /// area under the ROC curve for separating targets (positives) from decoys by score (ties count half)
+      double targetDecoyAUC(const std::vector<double>& targets, const std::vector<double>& decoys)
+      {
+        std::vector<std::pair<double, bool>> all; // (score, is_target)
+        all.reserve(targets.size() + decoys.size());
+        for (double t : targets) { all.emplace_back(t, true); }
+        for (double d : decoys) { all.emplace_back(d, false); }
+        std::sort(all.begin(), all.end(), [](const std::pair<double, bool>& a, const std::pair<double, bool>& b) { return a.first < b.first; });
+        // Mann-Whitney U statistic with average ranks for ties
+        double rank_sum_targets = 0.0;
+        for (Size i = 0; i < all.size(); )
+        {
+          Size j = i;
+          Size n_targets_tied = 0;
+          for (; j < all.size() && all[j].first == all[i].first; ++j)
+          {
+            n_targets_tied += all[j].second ? 1 : 0;
+          }
+          const double average_rank = 0.5 * double(i + 1 + j); // ranks i+1 .. j
+          rank_sum_targets += average_rank * double(n_targets_tied);
+          i = j;
+        }
+        const double n_t = double(targets.size()), n_d = double(decoys.size());
+        return (rank_sum_targets - n_t * (n_t + 1.0) / 2.0) / (n_t * n_d);
+      }
+    }
+
+    std::string PosteriorErrorProbabilityModel::modelTypeToString(ModelType type)
+    {
+      switch (type)
+      {
+        case ModelType::NONE: return "none";
+        case ModelType::MIXTURE: return "unsupervised mixture model";
+        case ModelType::TARGET_DECOY_ISOTONIC: return "non-parametric target-decoy estimate (isotonic regression)";
+      }
+      return "unknown";
+    }
 
     PosteriorErrorProbabilityModel::PosteriorErrorProbabilityModel() :
       DefaultParamHandler("PosteriorErrorProbabilityModel"),
       incorrectly_assigned_fit_param_(GaussFitter::GaussFitResult(-1, -1, -1)),
       incorrectly_assigned_fit_gumbel_param_(GumbelMaxLikelihoodFitter::GumbelDistributionFitResult(-1,-1)),
       correctly_assigned_fit_param_(GaussFitter::GaussFitResult(-1, -1, -1)),
-      negative_prior_(0.5), max_incorrectly_(0), max_correctly_(0), smallest_score_(0)
+      negative_prior_(0.5), smallest_score_(0),
+      model_type_(ModelType::NONE), incorrect_is_gumbel_(true), td_incorrect_fraction_(-1), td_auc_(-1), calibration_warning_(false)
     {
       defaults_.setValue("out_plot", "", "If given, the some output files will be saved in the following manner: <out_plot>_scores.txt for the scores and <out_plot> which contains the fitted values for each step of the EM-algorithm, e.g., out_plot = /usr/home/OMSSA123 leads to /usr/home/OMSSA123_scores.txt, /usr/home/OMSSA123 will be written. If no directory is specified, e.g. instead of '/usr/home/OMSSA123' just OMSSA123, the files will be written into the working directory.", {"advanced","output file"});
       defaults_.setValue("number_of_bins", 100, "Number of bins used for visualization. Only needed if each iteration step of the EM-Algorithm will be visualized", {"advanced"});
-      defaults_.setValue("incorrectly_assigned", "Gumbel", "for 'Gumbel', the Gumbel distribution is used to plot incorrectly assigned sequences. For 'Gauss', the Gauss distribution is used.", {"advanced"});
+      defaults_.setValue("incorrectly_assigned", "Gumbel", "Distribution of the scores of incorrectly assigned sequences in the mixture model. For 'Gumbel', the Gumbel distribution is used (fitted by maximum likelihood). For 'Gauss', the Gauss distribution is used.", {"advanced"});
       defaults_.setValue("max_nr_iterations", 1000, "Bounds the number of iterations for the EM algorithm when convergence is slow.", {"advanced"});
       defaults_.setValidStrings("incorrectly_assigned", {"Gumbel","Gauss"});
       defaults_.setValue("neg_log_delta",6, "The negative logarithm of the convergence threshold for the likelihood increase.");
-      defaults_.setValue("outlier_handling","ignore_iqr_outliers", "What to do with outliers:\n"
+      defaults_.setValue("outlier_handling","ignore_iqr_outliers", "What to do with outliers (mixture model only):\n"
                                                                    "- ignore_iqr_outliers: ignore outliers outside of 3*IQR from Q1/Q3 for fitting\n"
                                                                    "- set_iqr_to_closest_valid: set IQR-based outliers to the last valid value for fitting\n"
-                                                                   "- ignore_extreme_percentiles: ignore everything outside 99th and 1st percentile (also removes equal values like potential censored max values in XTandem)\n"
+                                                                   "- ignore_extreme_percentiles: ignore everything outside 99.9th and 1st percentile (also removes equal values like potential censored max values in XTandem)\n"
                                                                    "- none: do nothing");
       defaults_.setValidStrings("outlier_handling", {"ignore_iqr_outliers","set_iqr_to_closest_valid","ignore_extreme_percentiles","none"});
+      defaults_.setValue("decoy_handling", "auto", "How target/decoy annotations are used:\n"
+                                                   "- auto: if decoy PSMs are present (even a single one), non-parametric target-decoy estimate from the local ratio of decoys and targets (isotonic regression); its blocks depend only on the order of the scores, i.e. it is suitable for any score type. Without decoys, mixture model of the target scores.\n"
+                                                   "- ignore: ignore the annotations, i.e. targets and decoys are pooled and modeled without supervision (behavior of OpenMS 3.5 and earlier)\n"
+                                                   "The target-decoy estimate assumes a search against a concatenated target+decoy database (target-decoy competition). Only top hits are used for fitting.");
+      defaults_.setValidStrings("decoy_handling", {"auto", "ignore"});
+      defaults_.setValue("decoy_ratio", 1.0, "Number of decoy sequences per target sequence in the searched database (cf. DecoyDatabase's 'shuffle_decoy_ratio'). Under target-decoy competition, the number of incorrect targets is estimated as the number of decoys divided by this ratio.", {"advanced"});
+      defaults_.setMinFloat("decoy_ratio", 1e-6);
+      defaults_.setValue("min_decoys", 10, "Only used by IDPosteriorErrorProbability with 'split_charge': charge states with fewer decoy PSMs use the target-decoy data of all charge states (1: separate models for all charge states with decoys).", {"advanced"});
+      defaults_.setMinInt("min_decoys", 1);
+      defaults_.setValue("min_mixture_scores", 35, "Minimum number of (finite) scores to fit the mixture model (used without decoys, or with decoy_handling 'ignore'), before and after outlier handling. "
+                                                "With fewer scores, no model is fitted: the scores of so few PSMs without decoys do not determine the two components "
+                                                "(PeptideProphet also requires 35 PSMs per model). IDPosteriorErrorProbability with 'split_charge' then uses the mixture model of all charge states.", {"advanced"});
+      defaults_.setMinInt("min_mixture_scores", 2);
       defaultsToParam_();
       getNegativeGnuplotFormula_ = &PosteriorErrorProbabilityModel::getGumbelGnuplotFormula;
       getPositiveGnuplotFormula_ = &PosteriorErrorProbabilityModel::getGaussGnuplotFormula;
@@ -60,229 +441,153 @@ namespace OpenMS::Math
 
     PosteriorErrorProbabilityModel::~PosteriorErrorProbabilityModel() = default;
 
+    double PosteriorErrorProbabilityModel::logIncorrectDensity_(double x) const
+    {
+      if (incorrect_is_gumbel_)
+      {
+        return incorrectly_assigned_fit_gumbel_param_.log_eval_no_normalize(x);
+      }
+      return logGaussDensity(x, incorrectly_assigned_fit_param_.x0, incorrectly_assigned_fit_param_.sigma);
+    }
+
+    double PosteriorErrorProbabilityModel::logCorrectDensity_(double x) const
+    {
+      return logGaussDensity(x, correctly_assigned_fit_param_.x0, correctly_assigned_fit_param_.sigma);
+    }
+
+    double PosteriorErrorProbabilityModel::incorrectMode_() const
+    {
+      return incorrect_is_gumbel_ ? incorrectly_assigned_fit_gumbel_param_.mode() : incorrectly_assigned_fit_param_.x0;
+    }
+
+    void PosteriorErrorProbabilityModel::resetFit_()
+    {
+      model_type_ = ModelType::NONE;
+      td_incorrect_fraction_ = -1;
+      td_auc_ = -1;
+      calibration_warning_ = false;
+      isotonic_scores_.clear();
+      isotonic_peps_.clear();
+      decoy_scores_.clear();
+      decoy_peps_.clear();
+    }
+
     bool PosteriorErrorProbabilityModel::fitGumbelGauss(std::vector<double>& search_engine_scores, const std::string& outlier_handling)
     {
-      // nothing to fit?
-      if (search_engine_scores.empty()) { return false; }
+      resetFit_();
+      std::sort(search_engine_scores.begin(), search_engine_scores.end(), nanLastLess);
+      std::vector<double> finite_scores;
+      std::copy_if(search_engine_scores.begin(), search_engine_scores.end(), std::back_inserter(finite_scores), [](double x) { return std::isfinite(x); });
+      if (finite_scores.size() < 2) { return false; }
 
-      //-------------------------------------------------------------
-      // Initializing Parameters
-      //-------------------------------------------------------------
-      sort(search_engine_scores.begin(), search_engine_scores.end());
-
-      smallest_score_ = search_engine_scores[0];
-
-      vector<double> x_scores{search_engine_scores};
-
-      //transform to a positive range
-      for (double & d : x_scores) { d += fabs(smallest_score_) + 0.001; }
-
-      processOutliers_(x_scores, outlier_handling);
-
-      incorrectly_assigned_fit_gumbel_param_.a = Math::mean(x_scores.begin(), x_scores.begin() + ceil(0.5 * x_scores.size())) + x_scores[0];
-      incorrectly_assigned_fit_gumbel_param_.b = Math::sd(x_scores.begin(), x_scores.end(), incorrectly_assigned_fit_gumbel_param_.a);
-      negative_prior_ = 0.7;
-
-      getNegativeGnuplotFormula_ = &PosteriorErrorProbabilityModel::getGumbelGnuplotFormula;
-      getPositiveGnuplotFormula_ = &PosteriorErrorProbabilityModel::getGaussGnuplotFormula;
-
-      Size x_score_start = std::min(x_scores.size() - 1, (Size) ceil(x_scores.size() * 0.7)); // if only one score is present, ceil(...) will yield 1, which is an invalid index
-      correctly_assigned_fit_param_.x0 = Math::mean(x_scores.begin() + x_score_start, x_scores.end()) + x_scores[x_score_start]; //(gauss_scores.begin()->getX() + (gauss_scores.end()-1)->getX())/2;
-      correctly_assigned_fit_param_.sigma = incorrectly_assigned_fit_gumbel_param_.b;
-      correctly_assigned_fit_param_.A = 1.0 / sqrt(2.0 * Constants::PI * pow(correctly_assigned_fit_param_.sigma, 2.0));
-
-      //-------------------------------------------------------------
-      // create files for output
-      //-------------------------------------------------------------
-      bool output_plots  = (!StringUtils::trimmed(param_.getValue("out_plot").toString()).empty());
-      TextFile file;
-      if (output_plots)
-      {
-        // create output directory (if not already present)
-        namespace fs = std::filesystem;
-        auto plot_path = to_path(std::string(param_.getValue("out_plot").toString()));
-        auto parent_dir = plot_path.parent_path();
-        if (parent_dir.empty())
-        {
-          OPENMS_LOG_ERROR << "Could not navigate to output directory for plots from '" << plot_path.filename().string() << "'." << std::endl;
-          return false;
-        }
-        if (!fs::exists(parent_dir) && !File::makeDir(parent_dir.generic_string()))
-        {
-          OPENMS_LOG_ERROR << "Could not create output directory for plots '" << parent_dir.generic_string() << "'." << std::endl;
-          return false;
-        }
-        //
-        file = initPlots(x_scores);
-      }
-
-      //-------------------------------------------------------------
-      // Estimate Parameters - EM algorithm
-      //-------------------------------------------------------------
-      bool good_fit = true;
-      bool stop_em_init = false;
-      Int max_itns = param_.getValue("max_nr_iterations");
-      int delta = param_.getValue("neg_log_delta");
-      int itns = 0;
-
-      vector<double> incorrect_log_density, correct_log_density;
-      fillLogDensitiesGumbel(x_scores, incorrect_log_density, correct_log_density);
-      vector<double> bins;
-      vector<double> incorrect_posteriors;
-      double maxlike = computeLLAndIncorrectPosteriorsFromLogDensities(incorrect_log_density, correct_log_density, incorrect_posteriors);
-      double sumIncorrectPosteriors = Math::sum(incorrect_posteriors.begin(),incorrect_posteriors.end());
-      double sumCorrectPosteriors = x_scores.size() - sumIncorrectPosteriors;
-
-      OpenMS::Math::GumbelMaxLikelihoodFitter gmlf{incorrectly_assigned_fit_gumbel_param_};
-
-      do
-      {
-        //-------------------------------------------------------------
-        // E-STEP (gauss)
-        double newGaussMean = 0.0;
-        auto the_x = x_scores.cbegin();
-
-        for (auto incorrect = incorrect_posteriors.cbegin(); incorrect != incorrect_posteriors.cend(); ++incorrect, ++the_x)
-        {
-          newGaussMean += (1.-*incorrect) * *the_x;
-        }
-        newGaussMean /= sumCorrectPosteriors;
-
-        double newGaussSigma = 0.0;
-        the_x = x_scores.cbegin();
-
-        for (auto incorrect = incorrect_posteriors.cbegin(); incorrect != incorrect_posteriors.cend(); ++incorrect, ++the_x)
-        {
-          newGaussSigma += (1. - *incorrect) * pow((*the_x) - newGaussMean, 2);
-        }
-        newGaussSigma = sqrt(newGaussSigma/sumCorrectPosteriors);
-
-        GumbelMaxLikelihoodFitter::GumbelDistributionFitResult newGumbelParams = gmlf.fitWeighted(x_scores, incorrect_posteriors);
-
-        if (newGumbelParams.b <= 0 || std::isnan(newGumbelParams.b))
-        {
-          OPENMS_LOG_WARN << "Warning: encountered impossible standard deviations. Aborting fit." << std::endl;
-          break;
-        }
-
-        // update parameters
-        correctly_assigned_fit_param_.x0 = newGaussMean;
-        correctly_assigned_fit_param_.sigma = newGaussSigma;
-        correctly_assigned_fit_param_.A = 1 / sqrt(2 * Constants::PI * pow(newGaussSigma, 2));
-
-        incorrectly_assigned_fit_gumbel_param_ = newGumbelParams;
-
-
-        // compute new prior probabilities negative peptides
-        fillLogDensitiesGumbel(x_scores, incorrect_log_density, correct_log_density);
-        double new_maxlike = computeLLAndIncorrectPosteriorsFromLogDensities(incorrect_log_density, correct_log_density, incorrect_posteriors);
-        sumIncorrectPosteriors = Math::sum(incorrect_posteriors.begin(),incorrect_posteriors.end());
-        sumCorrectPosteriors = x_scores.size() - sumIncorrectPosteriors;
-        negative_prior_ = sumIncorrectPosteriors / x_scores.size();
-
-        if (std::isnan(new_maxlike - maxlike))
-        {
-          OPENMS_LOG_WARN << "Numerical instabilities. Aborting." << endl;
-          return false;
-        }
-
-        // check termination criterion
-        if ((new_maxlike - maxlike) < pow(10.0, -delta) || itns >= max_itns)
-        {
-          if (itns >= max_itns)
-          {
-            OPENMS_LOG_WARN << "Number of iterations exceeded. Convergence criterion not met. Last log likelihood increase: " << (new_maxlike - maxlike) << endl;
-            OPENMS_LOG_WARN << "Algorithm returns probabilities for suboptimal fit. You might want to try raising the max. number of iterations and have a look at the distribution." << endl;
-          }
-          stop_em_init = true;
-          good_fit = true;
-        }
-        else if (new_maxlike < maxlike)
-          {
-            OPENMS_LOG_WARN << "Log Likelihood of fit decreased: " << (new_maxlike - maxlike) << ". Abort fitting. Please check"
-                                                                                                 " the gnuplot scripts and adapt search engine settings or outlier settings of IDPEP."<< endl;
-            stop_em_init = true;
-            good_fit = false;
-          }
-
-        if (output_plots)
-        {
-          std::string formula1, formula2, formula3;
-          formula1 = ((this)->*(getNegativeGnuplotFormula_))(incorrectly_assigned_fit_param_) + "* " + StringUtils::toStr(negative_prior_); //StringUtils::toStr(incorrectly_assigned_fit_param_.A) +" * exp(-(x - " + StringUtils::toStr(incorrectly_assigned_fit_param_.x0) + ") ** 2 / 2 / (" + StringUtils::toStr(incorrectly_assigned_fit_param_.sigma) + ") ** 2)"+ "*" + StringUtils::toStr(negative_prior_);
-          formula2 = ((this)->*(getPositiveGnuplotFormula_))(correctly_assigned_fit_param_) + "* (1 - " + StringUtils::toStr(negative_prior_) + ")"; //StringUtils::toStr(correctly_assigned_fit_param_.A) +" * exp(-(x - " + StringUtils::toStr(correctly_assigned_fit_param_.x0) + ") ** 2 / 2 / (" + StringUtils::toStr(correctly_assigned_fit_param_.sigma) + ") ** 2)"+ "* (1 - " + StringUtils::toStr(negative_prior_) + ")";
-          formula3 = getBothGnuplotFormula(incorrectly_assigned_fit_param_, correctly_assigned_fit_param_);
-          // important: use single quotes for paths, since otherwise backslashes will not be accepted on Windows!
-          file.addLine("plot '" + StringUtils::toStr(param_.getValue("out_plot")) + "_scores.txt' with boxes, " + formula1 + " , " + formula2 + " , " + formula3);
-        }
-        //update maximum likelihood
-        maxlike = new_maxlike;
-        ++itns;
-      } while (!stop_em_init);
-
-      //-------------------------------------------------------------
-      // Finished fitting
-      //-------------------------------------------------------------
-      max_incorrectly_ = getGumbel_(incorrectly_assigned_fit_param_.x0, incorrectly_assigned_fit_param_);
-      max_correctly_ = correctly_assigned_fit_param_.eval(correctly_assigned_fit_param_.x0);
-
-      if (output_plots)
-      {
-        std::string formula1 = ((this)->*(getNegativeGnuplotFormula_))(incorrectly_assigned_fit_param_) + "*" + StringUtils::toStr(negative_prior_); //StringUtils::toStr(incorrectly_assigned_fit_param_.A) +" * exp(-(x - " + StringUtils::toStr(incorrectly_assigned_fit_param_.x0) + ") ** 2 / 2 / (" + StringUtils::toStr(incorrectly_assigned_fit_param_.sigma) + ") ** 2)"+ "*" + StringUtils::toStr(negative_prior_);
-        std::string formula2 = ((this)->*(getPositiveGnuplotFormula_))(correctly_assigned_fit_param_) + "* (1 - " + StringUtils::toStr(negative_prior_) + ")"; // StringUtils::toStr(correctly_assigned_fit_param_.A) +" * exp(-(x - " + StringUtils::toStr(correctly_assigned_fit_param_.x0) + ") ** 2 / 2 / (" + StringUtils::toStr(correctly_assigned_fit_param_.sigma) + ") ** 2)"+ "* (1 - " + StringUtils::toStr(negative_prior_) + ")";
-        std::string formula3 = getBothGnuplotFormula(incorrectly_assigned_fit_param_, correctly_assigned_fit_param_);
-        // important: use single quotes for paths, since otherwise backslashes will not be accepted on Windows!
-        file.addLine("plot '" + StringUtils::toStr(param_.getValue("out_plot")) + "_scores.txt' with boxes, " + formula1 + " , " + formula2 + " , " + formula3);
-        file.store(StringUtils::toStr(param_.getValue("out_plot")));
-        tryGnuplot(StringUtils::toStr(param_.getValue("out_plot")));
-      }
-      return good_fit;
+      if (!fitMixture_(finite_scores, true, outlier_handling)) { return false; }
+      model_type_ = ModelType::MIXTURE;
+      return true;
     }
 
     bool PosteriorErrorProbabilityModel::fit(std::vector<double>& search_engine_scores, const std::string& outlier_handling)
     {
+      resetFit_();
       // nothing to fit?
       if (search_engine_scores.empty()) { return false; }
+
+      std::sort(search_engine_scores.begin(), search_engine_scores.end(), nanLastLess);
+      std::vector<double> finite_scores;
+      std::copy_if(search_engine_scores.begin(), search_engine_scores.end(), std::back_inserter(finite_scores), [](double x) { return std::isfinite(x); });
+      if (finite_scores.size() < 2) { return false; }
+
+      const bool use_gumbel = (param_.getValue("incorrectly_assigned") == "Gumbel");
+      if (!fitMixture_(finite_scores, use_gumbel, outlier_handling)) { return false; }
+      model_type_ = ModelType::MIXTURE;
+      return true;
+    }
+
+    bool PosteriorErrorProbabilityModel::fitMixture_(std::vector<double> scores, bool use_gumbel, const std::string& outlier_handling)
+    {
+      const Size min_scores = static_cast<Size>(int(param_.getValue("min_mixture_scores")));
+      if (scores.size() < std::max<Size>(2, min_scores))
+      {
+        OPENMS_LOG_WARN << "Warning: only " << scores.size() << " scores, too few to fit the mixture model (min_mixture_scores: " << min_scores
+                        << "). The target-decoy estimate (fitTargetDecoy() with decoy PSMs and decoy_handling 'auto') also works with few PSMs." << std::endl;
+        return false;
+      }
 
       //-------------------------------------------------------------
       // Initializing Parameters
       //-------------------------------------------------------------
-      sort(search_engine_scores.begin(), search_engine_scores.end());
+      // transform to a positive range (the shift is irrelevant for the location-scale families, but kept for compatibility)
+      smallest_score_ = *std::min_element(scores.begin(), scores.end());
+      const double shift = fabs(smallest_score_) + 0.001;
+      for (double& d : scores) { d += shift; }
+      sort(scores.begin(), scores.end());
 
-      smallest_score_ = search_engine_scores[0];
+      processOutliers_(scores, outlier_handling);
 
-      vector<double> x_scores{search_engine_scores};
-
-      //transform to a positive range
-      for (double & d : x_scores)
-      { 
-        d += fabs(smallest_score_) + 0.001;
+      std::vector<double>& x = scores;
+      const Size n = x.size();
+      if (n < std::max<Size>(2, min_scores))
+      {
+        OPENMS_LOG_WARN << "Warning: only " << n << " scores remain after outlier handling ('" << outlier_handling
+                        << "'), too few to fit the mixture model (min_mixture_scores: " << min_scores << ")." << std::endl;
+        return false;
       }
 
-      processOutliers_(x_scores, outlier_handling);
+      incorrect_is_gumbel_ = use_gumbel;
+      getNegativeGnuplotFormula_ = use_gumbel ? &PosteriorErrorProbabilityModel::getGumbelGnuplotFormula : &PosteriorErrorProbabilityModel::getGaussGnuplotFormula;
+      getPositiveGnuplotFormula_ = &PosteriorErrorProbabilityModel::getGaussGnuplotFormula;
 
-      negative_prior_ = 0.7;
-      if (param_.getValue("incorrectly_assigned") == "Gumbel")
+      const double overall_sd = meanSD(x.cbegin(), x.cend()).second;
+      const double min_sd = 1e-6 * std::max(x.back() - x.front(), 1e-6);
+      if (!(overall_sd > min_sd))
       {
-        incorrectly_assigned_fit_param_.x0 = Math::mean(x_scores.begin(), x_scores.begin() + ceil(0.5 * x_scores.size())) + x_scores[0];
-        incorrectly_assigned_fit_param_.sigma = Math::sd(x_scores.begin(), x_scores.end(), incorrectly_assigned_fit_param_.x0);
-        incorrectly_assigned_fit_param_.A = 1.0 / sqrt(2.0 * Constants::PI * pow(incorrectly_assigned_fit_param_.sigma, 2.0));
-        //TODO: Currently, the fit is calculated using the Gauss. 
-        getNegativeGnuplotFormula_ = &PosteriorErrorProbabilityModel::getGumbelGnuplotFormula;
+        OPENMS_LOG_WARN << "Warning: scores have (almost) no spread. Unable to fit the mixture model." << std::endl;
+        return false;
+      }
+
+      // incorrect component: from the lower half of the scores
+      std::pair<double, double> incorrect_ms = meanSD(x.cbegin(), x.cbegin() + std::max<Size>(2, n / 2));
+      if (!(incorrect_ms.second > min_sd)) { incorrect_ms.second = overall_sd; }
+      // correct component: from the upper 30% of the scores
+      const Size correct_start = std::min(n - 2, static_cast<Size>(std::ceil(0.7 * n)));
+      std::pair<double, double> correct_ms = meanSD(x.cbegin() + correct_start, x.cend());
+      if (!(correct_ms.second > min_sd)) { correct_ms.second = overall_sd; }
+
+      GumbelMaxLikelihoodFitter gumbel_fitter;
+      if (use_gumbel)
+      {
+        // method of moments (Gumbel: sd = pi / sqrt(6) * b, mean = a + gamma * b)
+        const double b = incorrect_ms.second * std::sqrt(6.0) / Constants::PI;
+        incorrectly_assigned_fit_gumbel_param_ = GumbelMaxLikelihoodFitter::GumbelDistributionFitResult(incorrect_ms.first - EULER_GAMMA * b, b);
+        gumbel_fitter.setInitialParameters(incorrectly_assigned_fit_gumbel_param_);
       }
       else
       {
-        incorrectly_assigned_fit_param_.x0 = Math::mean(x_scores.begin(), x_scores.begin() + ceil(0.5 * x_scores.size())) + x_scores[0];
-        incorrectly_assigned_fit_param_.sigma = Math::sd(x_scores.begin(), x_scores.end(), incorrectly_assigned_fit_param_.x0);
-        incorrectly_assigned_fit_param_.A = 1.0 / sqrt(2.0 * Constants::PI * pow(incorrectly_assigned_fit_param_.sigma, 2.0));
-        getNegativeGnuplotFormula_ = &PosteriorErrorProbabilityModel::getGaussGnuplotFormula;
+        incorrectly_assigned_fit_param_.x0 = incorrect_ms.first;
+        incorrectly_assigned_fit_param_.sigma = incorrect_ms.second;
       }
-      getPositiveGnuplotFormula_ = &PosteriorErrorProbabilityModel::getGaussGnuplotFormula;
-
-      Size x_score_start = std::min(x_scores.size() - 1, (Size) ceil(x_scores.size() * 0.7)); // if only one score is present, ceil(...) will yield 1, which is an invalid index
-      correctly_assigned_fit_param_.x0 = Math::mean(x_scores.begin() + x_score_start, x_scores.end()) + x_scores[x_score_start]; //(gauss_scores.begin()->getX() + (gauss_scores.end()-1)->getX())/2;
-      correctly_assigned_fit_param_.sigma = incorrectly_assigned_fit_param_.sigma;
+      correctly_assigned_fit_param_.x0 = correct_ms.first;
+      correctly_assigned_fit_param_.sigma = correct_ms.second;
       correctly_assigned_fit_param_.A = 1.0 / sqrt(2.0 * Constants::PI * pow(correctly_assigned_fit_param_.sigma, 2.0));
- 
+
+      // prior probability of an incorrect assignment
+      negative_prior_ = 0.7;
+
+      // keep the GaussFitResult representation in sync (used for plotting and by the getters)
+      auto sync_incorrect_params = [&]()
+      {
+        if (use_gumbel)
+        {
+          incorrectly_assigned_fit_param_.x0 = incorrectly_assigned_fit_gumbel_param_.a;
+          incorrectly_assigned_fit_param_.sigma = incorrectly_assigned_fit_gumbel_param_.b;
+          incorrectly_assigned_fit_param_.A = std::exp(-1.0) / incorrectly_assigned_fit_gumbel_param_.b; // density at the mode
+        }
+        else
+        {
+          incorrectly_assigned_fit_param_.A = 1.0 / sqrt(2.0 * Constants::PI * pow(incorrectly_assigned_fit_param_.sigma, 2.0));
+        }
+      };
+      sync_incorrect_params();
+
       //-------------------------------------------------------------
       // create files for output
       //-------------------------------------------------------------
@@ -305,125 +610,162 @@ namespace OpenMS::Math
           return false;
         }
         //
-        file = initPlots(x_scores);
+        file = initPlots(x);
       }
 
       //-------------------------------------------------------------
       // Estimate Parameters - EM algorithm
       //-------------------------------------------------------------
-      bool stop_em_init = false;
-      bool good_fit = true;
-      Int max_itns = param_.getValue("max_nr_iterations");
-      int delta = param_.getValue("neg_log_delta");
+      const Int max_itns = param_.getValue("max_nr_iterations");
+      const int delta = param_.getValue("neg_log_delta");
+
+      // E-step: responsibilities of the incorrect component and the log-likelihood
+      std::vector<double> incorrect_posteriors(n);
+      auto e_step = [&]() -> double
+      {
+        double loglikelihood = 0.0;
+        const double log_prior_neg = std::log(negative_prior_);
+        const double log_prior_pos = std::log(1.0 - negative_prior_);
+        for (Size i = 0; i < n; ++i)
+        {
+          const double log_resp_incorrect = log_prior_neg + logIncorrectDensity_(x[i]);
+          const double log_resp_correct = log_prior_pos + logCorrectDensity_(x[i]);
+          const double max_log_resp = std::max(log_resp_correct, log_resp_incorrect);
+          const double resp_incorrect = std::exp(log_resp_incorrect - max_log_resp);
+          const double resp_correct = std::exp(log_resp_correct - max_log_resp);
+          incorrect_posteriors[i] = resp_incorrect / (resp_incorrect + resp_correct);
+          loglikelihood += max_log_resp + std::log(resp_incorrect + resp_correct);
+        }
+        return loglikelihood;
+      };
+
+      double maxlike = e_step();
+      if (std::isnan(maxlike))
+      {
+        OPENMS_LOG_WARN << "Numerical instabilities. Aborting." << endl;
+        return false;
+      }
       int itns = 0;
-
-      vector<double> incorrect_log_density, correct_log_density;
-      fillLogDensities(x_scores, incorrect_log_density, correct_log_density);
-      vector<double> incorrect_posteriors;
-      double maxlike = computeLLAndIncorrectPosteriorsFromLogDensities(incorrect_log_density, correct_log_density, incorrect_posteriors);
-      double sumIncorrectPosteriors = Math::sum(incorrect_posteriors.begin(),incorrect_posteriors.end());
-      double sumCorrectPosteriors = x_scores.size() - sumIncorrectPosteriors;
-
-      do
+      while (true)
       {
         //-------------------------------------------------------------
-        // E-STEP
-        std::pair<double,double> newMeans = pos_neg_mean_weighted_posteriors(x_scores, incorrect_posteriors);
-        newMeans.first /= sumCorrectPosteriors;
-        newMeans.second /= sumIncorrectPosteriors;
+        // M-STEP
+        double sum_incorrect_posteriors = std::accumulate(incorrect_posteriors.begin(), incorrect_posteriors.end(), 0.0);
+        const double sum_correct_posteriors = double(n) - sum_incorrect_posteriors;
+        if (!(sum_correct_posteriors > 1e-6) || !(sum_incorrect_posteriors > 1e-6))
+        {
+          OPENMS_LOG_WARN << "Warning: all scores were assigned to a single component. Unable to fit the mixture model." << std::endl;
+          return false;
+        }
+        negative_prior_ = std::clamp(sum_incorrect_posteriors / double(n), 1e-6, 1.0 - 1e-6);
 
-        //new standard deviation
-        std::pair<double,double> newSigmas = pos_neg_sigma_weighted_posteriors(x_scores, incorrect_posteriors, newMeans);
-        newSigmas.first = sqrt(newSigmas.first/sumCorrectPosteriors);
-        newSigmas.second = sqrt(newSigmas.second/sumIncorrectPosteriors);
+        // correct component (Gauss)
+        std::vector<double> correct_weights(n);
+        for (Size i = 0; i < n; ++i) { correct_weights[i] = 1.0 - incorrect_posteriors[i]; }
+        const std::pair<double, double> correct_new = weightedMeanSD(x, correct_weights);
 
-        if (newSigmas.first <= 0 || newSigmas.second <= 0 || std::isnan(newSigmas.first) || std::isnan(newSigmas.second) )
+        // incorrect component (Gumbel or Gauss)
+        GumbelMaxLikelihoodFitter::GumbelDistributionFitResult gumbel_new = incorrectly_assigned_fit_gumbel_param_;
+        std::pair<double, double> incorrect_new(incorrectly_assigned_fit_param_.x0, incorrectly_assigned_fit_param_.sigma);
+        if (use_gumbel)
+        {
+          try
+          {
+            gumbel_new = gumbel_fitter.fitWeighted(x, incorrect_posteriors);
+          }
+          catch (Exception::UnableToFit&)
+          {
+            OPENMS_LOG_WARN << "Warning: unable to fit the Gumbel distribution. Aborting fit." << std::endl;
+            return false;
+          }
+        }
+        else
+        {
+          incorrect_new = weightedMeanSD(x, incorrect_posteriors);
+        }
+
+        const double incorrect_scale = use_gumbel ? gumbel_new.b : incorrect_new.second;
+        if (!(correct_new.second > min_sd) || !(incorrect_scale > min_sd) || std::isnan(correct_new.first) || std::isnan(incorrect_new.first))
         {
           OPENMS_LOG_WARN << "Warning: encountered impossible standard deviations. Aborting fit." << std::endl;
-          break;
+          return false;
         }
 
         // update parameters
-        correctly_assigned_fit_param_.x0 = newMeans.first;
-        incorrectly_assigned_fit_param_.x0 = newMeans.second;
+        correctly_assigned_fit_param_.x0 = correct_new.first;
+        correctly_assigned_fit_param_.sigma = correct_new.second;
+        correctly_assigned_fit_param_.A = 1.0 / sqrt(2.0 * Constants::PI * pow(correct_new.second, 2.0));
+        if (use_gumbel)
+        {
+          incorrectly_assigned_fit_gumbel_param_ = gumbel_new;
+        }
+        else
+        {
+          incorrectly_assigned_fit_param_.x0 = incorrect_new.first;
+          incorrectly_assigned_fit_param_.sigma = incorrect_new.second;
+        }
+        sync_incorrect_params();
 
-        correctly_assigned_fit_param_.sigma = newSigmas.first;
-        correctly_assigned_fit_param_.A = 1 / sqrt(2 * Constants::PI * pow(correctly_assigned_fit_param_.sigma, 2));
-
-        incorrectly_assigned_fit_param_.sigma = newSigmas.second;
-        incorrectly_assigned_fit_param_.A = 1 / sqrt(2 * Constants::PI * pow(incorrectly_assigned_fit_param_.sigma, 2));
-
-
-        // compute new prior probabilities negative peptides
-        fillLogDensities(x_scores, incorrect_log_density, correct_log_density);
-        double new_maxlike = computeLLAndIncorrectPosteriorsFromLogDensities(incorrect_log_density, correct_log_density, incorrect_posteriors);
-        sumIncorrectPosteriors = Math::sum(incorrect_posteriors.begin(),incorrect_posteriors.end());
-        sumCorrectPosteriors = x_scores.size() - sumIncorrectPosteriors;
-        negative_prior_ = sumIncorrectPosteriors / x_scores.size();
-
-        if (std::isnan(new_maxlike - maxlike))
+        //-------------------------------------------------------------
+        // E-STEP
+        const double new_maxlike = e_step();
+        if (std::isnan(new_maxlike))
         {
           OPENMS_LOG_WARN << "Numerical instabilities. Aborting." << endl;
           return false;
         }
-
-        // check termination criterion
-        if ((new_maxlike - maxlike) < pow(10.0, -delta) || itns >= max_itns)
-        {
-          if (itns >= max_itns)
-          {
-            OPENMS_LOG_WARN << "Number of iterations exceeded. Convergence criterion not met. Last log likelihood increase: " << (new_maxlike - maxlike) << endl;
-            OPENMS_LOG_WARN << "Algorithm returns probabilities for suboptimal fit. You might want to try raising the max. number of iterations and have a look at the distribution." << endl;
-          }
-          stop_em_init = true;
-          good_fit = true;
-        }
-        else if (new_maxlike < maxlike)
-        {
-          OPENMS_LOG_WARN << "Log Likelihood of fit decreased: " << (new_maxlike - maxlike) << ". Abort fitting. Please check"
-                             " the gnuplot scripts and adapt search engine settings or outlier settings of IDPEP."<< endl;
-          stop_em_init = true;
-          good_fit = false;
-        }
+        ++itns;
 
         if (output_plots)
         {
           std::string formula1, formula2, formula3;
-          formula1 = ((this)->*(getNegativeGnuplotFormula_))(incorrectly_assigned_fit_param_) + "* " + StringUtils::toStr(negative_prior_); //StringUtils::toStr(incorrectly_assigned_fit_param_.A) +" * exp(-(x - " + StringUtils::toStr(incorrectly_assigned_fit_param_.x0) + ") ** 2 / 2 / (" + StringUtils::toStr(incorrectly_assigned_fit_param_.sigma) + ") ** 2)"+ "*" + StringUtils::toStr(negative_prior_);
-          formula2 = ((this)->*(getPositiveGnuplotFormula_))(correctly_assigned_fit_param_) + "* (1 - " + StringUtils::toStr(negative_prior_) + ")"; //StringUtils::toStr(correctly_assigned_fit_param_.A) +" * exp(-(x - " + StringUtils::toStr(correctly_assigned_fit_param_.x0) + ") ** 2 / 2 / (" + StringUtils::toStr(correctly_assigned_fit_param_.sigma) + ") ** 2)"+ "* (1 - " + StringUtils::toStr(negative_prior_) + ")";
+          formula1 = ((this)->*(getNegativeGnuplotFormula_))(incorrectly_assigned_fit_param_) + "* " + StringUtils::toStr(negative_prior_);
+          formula2 = ((this)->*(getPositiveGnuplotFormula_))(correctly_assigned_fit_param_) + "* (1 - " + StringUtils::toStr(negative_prior_) + ")";
           formula3 = getBothGnuplotFormula(incorrectly_assigned_fit_param_, correctly_assigned_fit_param_);
           // important: use single quotes for paths, since otherwise backslashes will not be accepted on Windows!
           file.addLine("plot '" + StringUtils::toStr(param_.getValue("out_plot")) + "_scores.txt' with boxes, " + formula1 + " , " + formula2 + " , " + formula3);
         }
-        //update maximum likelihood
+
+        // check termination criterion
+        const double increase = new_maxlike - maxlike;
         maxlike = new_maxlike;
-        ++itns;
-      } while (!stop_em_init);
+        if (increase < pow(10.0, -delta))
+        {
+          if (increase < -1e-8 * std::fabs(new_maxlike))
+          {
+            OPENMS_LOG_DEBUG << "Log likelihood of the fit decreased by " << -increase << " (numerical inaccuracy). Stopping." << endl;
+          }
+          break;
+        }
+        if (itns >= max_itns)
+        {
+          OPENMS_LOG_WARN << "Number of iterations exceeded. Convergence criterion not met. Last log likelihood increase: " << increase << endl;
+          OPENMS_LOG_WARN << "Algorithm returns probabilities for suboptimal fit. You might want to try raising the max. number of iterations and have a look at the distribution." << endl;
+          break;
+        }
+      }
 
       //-------------------------------------------------------------
       // Finished fitting
       //-------------------------------------------------------------
-      if (param_.getValue("incorrectly_assigned") == "Gumbel")
+      if (!(incorrectMode_() < correctly_assigned_fit_param_.x0))
       {
-        max_incorrectly_ = getGumbel_(incorrectly_assigned_fit_param_.x0, incorrectly_assigned_fit_param_);
+        OPENMS_LOG_WARN << "Warning: the fitted distribution of incorrect assignments is not located below the one of correct assignments. "
+                           "The data might not contain enough correct assignments. Unable to fit the data." << std::endl;
+        return false;
       }
-      else
-      {
-        max_incorrectly_ = incorrectly_assigned_fit_param_.eval(incorrectly_assigned_fit_param_.x0);
-      }
-      max_correctly_ = correctly_assigned_fit_param_.eval(correctly_assigned_fit_param_.x0);
 
       if (output_plots)
       {
-        std::string formula1 = ((this)->*(getNegativeGnuplotFormula_))(incorrectly_assigned_fit_param_) + "*" + StringUtils::toStr(negative_prior_); //StringUtils::toStr(incorrectly_assigned_fit_param_.A) +" * exp(-(x - " + StringUtils::toStr(incorrectly_assigned_fit_param_.x0) + ") ** 2 / 2 / (" + StringUtils::toStr(incorrectly_assigned_fit_param_.sigma) + ") ** 2)"+ "*" + StringUtils::toStr(negative_prior_);
-        std::string formula2 = ((this)->*(getPositiveGnuplotFormula_))(correctly_assigned_fit_param_) + "* (1 - " + StringUtils::toStr(negative_prior_) + ")"; // StringUtils::toStr(correctly_assigned_fit_param_.A) +" * exp(-(x - " + StringUtils::toStr(correctly_assigned_fit_param_.x0) + ") ** 2 / 2 / (" + StringUtils::toStr(correctly_assigned_fit_param_.sigma) + ") ** 2)"+ "* (1 - " + StringUtils::toStr(negative_prior_) + ")";
+        std::string formula1 = ((this)->*(getNegativeGnuplotFormula_))(incorrectly_assigned_fit_param_) + "*" + StringUtils::toStr(negative_prior_);
+        std::string formula2 = ((this)->*(getPositiveGnuplotFormula_))(correctly_assigned_fit_param_) + "* (1 - " + StringUtils::toStr(negative_prior_) + ")";
         std::string formula3 = getBothGnuplotFormula(incorrectly_assigned_fit_param_, correctly_assigned_fit_param_);
         // important: use single quotes for paths, since otherwise backslashes will not be accepted on Windows!
         file.addLine("plot '" + StringUtils::toStr(param_.getValue("out_plot")) + "_scores.txt' with boxes, " + formula1 + " , " + formula2 + " , " + formula3);
         file.store(StringUtils::toStr(param_.getValue("out_plot")));
         tryGnuplot(StringUtils::toStr(param_.getValue("out_plot")));
       }
-      return good_fit;
+      return true;
     }
 
     bool PosteriorErrorProbabilityModel::fit(std::vector<double>& search_engine_scores, vector<double>& probabilities, const std::string& outlier_handling)
@@ -436,29 +778,266 @@ namespace OpenMS::Math
       }
       probabilities = std::vector<double>(search_engine_scores);
       for (double & p : probabilities)
-      { 
+      {
         p = computeProbability(p);
       }
 
       return true;
     }
 
+    bool PosteriorErrorProbabilityModel::fitTargetDecoy(const std::vector<double>& target_scores, const std::vector<double>& decoy_scores, const std::string& outlier_handling)
+    {
+      resetFit_();
+
+      std::vector<double> targets, decoys;
+      std::copy_if(target_scores.begin(), target_scores.end(), std::back_inserter(targets), [](double x) { return std::isfinite(x); });
+      std::copy_if(decoy_scores.begin(), decoy_scores.end(), std::back_inserter(decoys), [](double x) { return std::isfinite(x); });
+      if (targets.empty()) { return false; }
+
+      const double decoy_ratio = param_.getValue("decoy_ratio");
+      td_incorrect_fraction_ = std::min(1.0, double(decoys.size()) / (decoy_ratio * double(targets.size())));
+
+      const std::string decoy_handling = param_.getValue("decoy_handling").toString();
+      if (decoy_handling != "ignore" && !decoys.empty())
+      {
+        if (double(decoys.size()) >= 0.95 * decoy_ratio * double(targets.size()))
+        {
+          OPENMS_LOG_WARN << "Warning: there are about as many (or more) decoy as target PSMs (" << decoys.size() << " decoys, " << targets.size()
+                          << " targets, decoy_ratio " << decoy_ratio << "), i.e. (almost) all target PSMs are estimated to be incorrect. Most PEPs will be"
+                          << " close to 1; only targets that score clearly better than the decoys get lower PEPs. If more correct identifications"
+                          << " are expected, check whether targets and decoys competed (e.g. separate target and decoy searches that cannot be"
+                          << " matched by spectrum)." << std::endl;
+        }
+        td_auc_ = targetDecoyAUC(targets, decoys);
+        if (td_auc_ <= 0.5)
+        {
+          OPENMS_LOG_WARN << "Warning: target PSMs do not score better than decoy PSMs (AUC = " << td_auc_
+                          << "). Please check the score type and its orientation (higher_score_better)." << std::endl;
+        }
+      }
+
+      if (!fitTargetDecoyModel_(targets, decoys, outlier_handling))
+      {
+        resetFit_(); // no diagnostics of a failed fit
+        return false;
+      }
+      if (td_auc_ >= 0.0 && td_auc_ <= 0.5)
+      {
+        calibration_warning_ = true;
+      }
+
+      // Low-score check: the lowest-scoring PSMs should be (almost) all incorrect, i.e. decoys with probability
+      // decoy_ratio / (1 + decoy_ratio). Among the sets of lowest-scoring PSMs with at least a quarter of the estimated number of
+      // incorrect PSMs, take the one with the highest decoy fraction. If even this one has significantly (one-sided binomial test)
+      // and clearly (PEP below 0.8) too few decoys, the PEPs stay well below 1 down to the lowest scores: either correct PSMs
+      // extend to the lowest scores, or decoys are underrepresented among the incorrect PSMs (then all PEPs are too low).
+      // The minimum set size keeps false alarms rare (< 0.5% in simulations of correct target-decoy competition).
+      const Size min_tail_size = Size(0.25 * double(decoys.size()) * (1.0 + 1.0 / decoy_ratio));
+      if (decoy_handling != "ignore" && min_tail_size >= 100 && min_tail_size <= targets.size() + decoys.size())
+      {
+        std::vector<std::pair<double, bool>> psms; // (score, is_decoy), worst first
+        psms.reserve(targets.size() + decoys.size());
+        for (double t : targets) { psms.emplace_back(t, false); }
+        for (double d : decoys) { psms.emplace_back(d, true); }
+        std::sort(psms.begin(), psms.end(), [](const std::pair<double, bool>& a, const std::pair<double, bool>& b) { return a.first < b.first; });
+        double n = 0.0, d = 0.0, tail_n = 0.0, tail_d = 0.0, tail_score = 0.0;
+        for (Size i = 0; i < psms.size(); )
+        {
+          const double score = psms[i].first;
+          for (; i < psms.size() && psms[i].first == score; ++i) // tied scores together
+          {
+            n += 1.0;
+            d += psms[i].second ? 1.0 : 0.0;
+          }
+          if (n >= double(min_tail_size) && (tail_n == 0.0 || d / n > tail_d / tail_n || (d / n == tail_d / tail_n && n > tail_n)))
+          {
+            tail_n = n;
+            tail_d = d;
+            tail_score = score;
+          }
+        }
+        const double q0 = decoy_ratio / (1.0 + decoy_ratio);
+        const double tail_t = tail_n - tail_d;
+        const double tail_pep = (tail_d + 0.5) / (tail_t + 0.5) / decoy_ratio;
+        if (tail_n > 0.0 && tail_pep < 0.8)
+        {
+          const double p_value = boost::math::cdf(boost::math::binomial_distribution<double>(tail_n, q0), tail_d); // P(X <= tail_d)
+          if (p_value < 1e-3)
+          {
+            calibration_warning_ = true;
+            OPENMS_LOG_WARN << "Warning: even among the " << tail_n << " lowest-scoring PSMs (score <= " << tail_score << "), only " << tail_d
+                            << " are decoys, while incorrect PSMs would give about " << tail_n * q0 << " (binomial p = " << p_value
+                            << "). The PEPs therefore stay at about " << tail_pep << " or below down to the lowest scores. Either correct"
+                            << " identifications extend to the lowest scores (weakly separating score, or only PSMs above a score threshold"
+                            << " were reported), or decoys are underrepresented among the incorrect PSMs (wrong 'decoy_ratio', mismatched decoy"
+                            << " database, peptides shared by targets and decoys counted as targets). In the latter case, all target-decoy PEPs"
+                            << " and FDRs are too low by about a factor of " << 1.0 / tail_pep << " (effective decoy ratio "
+                            << tail_d / std::max(tail_t, 1.0) << ", cf. parameter 'decoy_ratio')." << std::endl;
+          }
+        }
+      }
+      return true;
+    }
+
+    bool PosteriorErrorProbabilityModel::fitTargetDecoyModel_(const std::vector<double>& targets, const std::vector<double>& decoys, const std::string& outlier_handling)
+    {
+      const std::string decoy_handling = param_.getValue("decoy_handling").toString();
+      const bool use_gumbel = (param_.getValue("incorrectly_assigned") == "Gumbel");
+
+      if (decoy_handling == "ignore")
+      {
+        std::vector<double> pooled(targets);
+        pooled.insert(pooled.end(), decoys.begin(), decoys.end());
+        if (!fitMixture_(pooled, use_gumbel, outlier_handling)) { return false; }
+        model_type_ = ModelType::MIXTURE;
+        return true;
+      }
+
+      if (decoys.empty())
+      {
+        // no decoy information: unsupervised model of the targets
+        OPENMS_LOG_INFO << "No decoy PSMs: fitting the mixture model to the " << targets.size() << " target scores." << std::endl;
+        if (!fitMixture_(targets, use_gumbel, outlier_handling)) { return false; }
+        model_type_ = ModelType::MIXTURE;
+        return true;
+      }
+
+      // Non-parametric target-decoy estimate: no assumptions on the shape of the score distributions, and even very few decoys
+      // are informative (e.g. 1 decoy: about 1 incorrect target, 1/2 of which above the decoy).
+      if (fitIsotonic_(targets, decoys))
+      {
+        model_type_ = ModelType::TARGET_DECOY_ISOTONIC;
+        return true;
+      }
+      return false;
+    }
+
+    bool PosteriorErrorProbabilityModel::fitIsotonic_(const std::vector<double>& target_scores, const std::vector<double>& decoy_scores)
+    {
+      if (target_scores.empty() || decoy_scores.empty()) { return false; }
+
+      // all PSMs, best scores first
+      std::vector<std::pair<double, bool>> psms; // (score, is_decoy)
+      psms.reserve(target_scores.size() + decoy_scores.size());
+      for (double s : target_scores) { psms.emplace_back(s, false); }
+      for (double s : decoy_scores) { psms.emplace_back(s, true); }
+      std::sort(psms.begin(), psms.end(), [](const std::pair<double, bool>& a, const std::pair<double, bool>& b) { return a.first > b.first; });
+
+      // groups of tied scores
+      std::vector<PAVABlock> groups;
+      for (Size i = 0; i < psms.size(); )
+      {
+        const double score = psms[i].first;
+        PAVABlock group{0.0, 0.0, score, score, 0.0, 0.5};
+        for (; i < psms.size() && psms[i].first == score; ++i)
+        {
+          group.n += 1.0;
+          group.decoys += psms[i].second ? 1.0 : 0.0;
+          group.score_sum += score;
+        }
+        groups.push_back(group);
+      }
+
+      const double decoy_ratio = param_.getValue("decoy_ratio");
+      IsotonicFit fit;
+      fitIsotonicCurve(groups, groups.size(), decoy_ratio, fit);
+      isotonic_scores_ = fit.scores;
+      isotonic_peps_ = fit.peps;
+
+      // PEPs of the decoys: the curve is fitted with the decoy labels, which makes it more favorable for targets than for decoys
+      // at the same score (e.g. an incorrect target can score above the best decoy and get a low PEP, a decoy never can).
+      // Decoys therefore get the PEP that they would get as targets: the estimate in which this decoy is labeled as a target (label
+      // swap). Then decoy and incorrect target PSMs are exchangeable, as target-decoy FDR estimates on the PEPs require.
+      // The estimate is recomputed for the groups of tied scores with decoys, best scores first, as long as the cost is small
+      // (this covers all decoys of smaller datasets, where the effect matters). For the remaining decoys (in large blocks of
+      // large datasets), the PEP of their block is recomputed with one decoy less and one target more.
+      const Size max_steps = 50000000; // number of processed groups for the exact estimates
+      const Size max_exact = std::max(Size(100), max_steps / std::max(Size(1), groups.size()));
+      std::vector<Size> group_block(groups.size()); // final block of each group
+      for (Size b = 0, g = 0; b < fit.blocks.size(); ++b)
+      {
+        for (Size k = 0; k < fit.blocks[b].n_groups; ++k) { group_block[g++] = b; }
+      }
+      std::vector<std::pair<double, double>> decoy_peps; // (score, PEP) of the groups with decoys, best scores first
+      std::vector<double> decoy_weights;
+      IsotonicFit swapped;
+      Size n_exact = 0;
+      for (Size g = 0; g < groups.size(); ++g)
+      {
+        if (groups[g].decoys == 0.0) { continue; }
+        const double score = groups[g].min_score;
+        const double target_pep = interpolateCurve(isotonic_scores_, isotonic_peps_, score);
+        double pep;
+        if (n_exact < max_exact)
+        {
+          fitIsotonicCurve(groups, g, decoy_ratio, swapped);
+          pep = interpolateCurve(swapped.scores, swapped.peps, score);
+          ++n_exact;
+        }
+        else
+        {
+          const Size b = group_block[g];
+          const PAVABlock& block = fit.blocks[b];
+          const double p = std::min((block.decoys - 1.0 + block.pseudo_decoys) / (block.n + 1.0), 1.0 - 1e-12);
+          const double block_pep = std::min(1.0, p / (1.0 - p) / decoy_ratio);
+          const double lower = (b == 0) ? 0.0 : fit.block_peps[b - 1];
+          pep = std::max(lower, target_pep - (fit.block_peps[b] - block_pep));
+        }
+        decoy_peps.emplace_back(score, std::min(pep, target_pep));
+        decoy_weights.push_back(groups[g].decoys);
+      }
+      // the PEP must not decrease with decreasing score: weighted pool-adjacent-violators (keeps the mean PEP of the decoys)
+      struct Pool { double w, sum; Size first, last; };
+      std::vector<Pool> pools;
+      for (Size i = 0; i < decoy_peps.size(); ++i)
+      {
+        pools.push_back({decoy_weights[i], decoy_weights[i] * decoy_peps[i].second, i, i});
+        while (pools.size() > 1 && pools[pools.size() - 2].sum / pools[pools.size() - 2].w > pools.back().sum / pools.back().w)
+        {
+          Pool last = pools.back();
+          pools.pop_back();
+          pools.back().w += last.w;
+          pools.back().sum += last.sum;
+          pools.back().last = last.last;
+        }
+      }
+      for (const Pool& pool : pools)
+      {
+        for (Size i = pool.first; i <= pool.last; ++i) { decoy_peps[i].second = pool.sum / pool.w; }
+      }
+      decoy_scores_.clear();
+      decoy_peps_.clear();
+      for (Size i = decoy_peps.size(); i-- > 0; ) // ascending scores
+      {
+        decoy_scores_.push_back(decoy_peps[i].first);
+        decoy_peps_.push_back(decoy_peps[i].second);
+      }
+
+      smallest_score_ = psms.back().first;
+      negative_prior_ = td_incorrect_fraction_ >= 0 ? td_incorrect_fraction_ : std::min(1.0, double(decoy_scores.size()) / (decoy_ratio * double(target_scores.size())));
+      OPENMS_LOG_INFO << "Non-parametric target-decoy estimate: " << target_scores.size() << " targets, " << decoy_scores.size() << " decoys, "
+                      << fit.blocks.size() << " blocks, PEP range [" << isotonic_peps_.back() << ", " << isotonic_peps_.front() << "]." << std::endl;
+      return !isotonic_scores_.empty();
+    }
+
+    std::vector<std::pair<double, double>> PosteriorErrorProbabilityModel::getIsotonicPEPCurve() const
+    {
+      std::vector<std::pair<double, double>> curve;
+      for (Size i = 0; i < isotonic_scores_.size(); ++i)
+      {
+        curve.emplace_back(isotonic_scores_[i], isotonic_peps_[i]);
+      }
+      return curve;
+    }
+
     void PosteriorErrorProbabilityModel::fillDensities(const vector<double>& x_scores, vector<double>& incorrect_density, vector<double>& correct_density)
     {
-      if (incorrect_density.size() != x_scores.size())
+      incorrect_density.resize(x_scores.size());
+      correct_density.resize(x_scores.size());
+      for (Size i = 0; i < x_scores.size(); ++i)
       {
-        incorrect_density.resize(x_scores.size());
-        correct_density.resize(x_scores.size());
-      }
-      auto incorrect(incorrect_density.begin());
-      auto correct(correct_density.begin());
-      for (double const & score : x_scores)
-      {
-        // TODO: incorrect is currently filled with gauss as fitting gumble is not supported
-        *incorrect = incorrectly_assigned_fit_param_.eval(score);
-        *correct = correctly_assigned_fit_param_.eval(score);
-        ++incorrect;
-        ++correct;
+        incorrect_density[i] = std::exp(logIncorrectDensity_(x_scores[i]));
+        correct_density[i] = std::exp(logCorrectDensity_(x_scores[i]));
       }
     }
 
@@ -482,20 +1061,12 @@ namespace OpenMS::Math
 
     void PosteriorErrorProbabilityModel::fillLogDensities(const vector<double>& x_scores, vector<double>& incorrect_density, vector<double>& correct_density)
     {
-      if (incorrect_density.size() != x_scores.size())
+      incorrect_density.resize(x_scores.size());
+      correct_density.resize(x_scores.size());
+      for (Size i = 0; i < x_scores.size(); ++i)
       {
-        incorrect_density.resize(x_scores.size());
-        correct_density.resize(x_scores.size());
-      }
-      auto incorrect(incorrect_density.begin());
-      auto correct(correct_density.begin());
-      for (double const & score : x_scores)
-      {
-        // TODO: incorrect is currently filled with gauss as fitting gumble is not supported
-        *incorrect = incorrectly_assigned_fit_param_.log_eval_no_normalize(score);
-        *correct = correctly_assigned_fit_param_.log_eval_no_normalize(score);
-        ++incorrect;
-        ++correct;
+        incorrect_density[i] = logIncorrectDensity_(x_scores[i]);
+        correct_density[i] = logCorrectDensity_(x_scores[i]);
       }
     }
 
@@ -535,7 +1106,7 @@ namespace OpenMS::Math
         double resp_incorrect = exp(log_resp_incorrect);
         double sum = resp_correct + resp_incorrect;
         // normalize
-        *incorrect_posterior_it = resp_incorrect / sum; //TODO can we somehow stay in log space (i.e. fill as log posteriors?)
+        *incorrect_posterior_it = resp_incorrect / sum;
         loglikelihood += max_log_resp + log(sum);
       }
       return loglikelihood;
@@ -576,31 +1147,34 @@ namespace OpenMS::Math
 
     double PosteriorErrorProbabilityModel::computeProbability(double score) const
     {
-      // apply the same transformation that was applied before fitting
-      score = score + fabs(smallest_score_) + 0.001;
-      double x_neg, x_pos;
+      if (model_type_ == ModelType::TARGET_DECOY_ISOTONIC)
+      {
+        return interpolateCurve(isotonic_scores_, isotonic_peps_, score);
+      }
 
-      // the score is smaller than the peak of incorrectly assigned sequences.
-      // To ensure that the probabilities wont rise again use the incorrectly assigned peak for computation
-      if (score < incorrectly_assigned_fit_param_.x0)
+      // apply the same transformation that was applied before fitting
+      const double x = score + fabs(smallest_score_) + 0.001;
+
+      // Below the mode of the incorrect component, its density is kept at its maximum,
+      // and above the mean of the correct component, its density is kept at its maximum.
+      // Together with the mode of the incorrect component being below the mean of the correct one,
+      // this ensures that the probability does not increase with the score.
+      // (The tails of the Gumbel/Gauss densities would otherwise lead to pathological probabilities.)
+      const double log_incorrect = (x < incorrectMode_()) ? logIncorrectDensity_(incorrectMode_()) : logIncorrectDensity_(x);
+      const double log_correct = (x > correctly_assigned_fit_param_.x0) ? logCorrectDensity_(correctly_assigned_fit_param_.x0) : logCorrectDensity_(x);
+      const double log_odds_correct = std::log(1.0 - negative_prior_) + log_correct - std::log(negative_prior_) - log_incorrect;
+      if (std::isnan(log_odds_correct)) { return log_odds_correct; }
+      return 1.0 / (1.0 + std::exp(log_odds_correct));
+    }
+
+    double PosteriorErrorProbabilityModel::computeDecoyProbability(double score) const
+    {
+      if (model_type_ != ModelType::TARGET_DECOY_ISOTONIC || decoy_scores_.empty())
       {
-        x_neg = max_incorrectly_;
-        x_pos = correctly_assigned_fit_param_.eval(score);
+        return computeProbability(score);
       }
-      // same as above. However, this time to ensure that probabilities wont drop again.
-      //TODO this does not consider the possibility of using Gauss as negative function anymore! Confusing at best!
-      else if (score > correctly_assigned_fit_param_.x0)
-      {
-        x_neg = getGumbel_(score, incorrectly_assigned_fit_param_);
-        x_pos = max_correctly_;
-      }
-      // if it's in-between use the normal formula
-      else
-      {
-        x_neg = getGumbel_(score, incorrectly_assigned_fit_param_);
-        x_pos = correctly_assigned_fit_param_.eval(score);
-      }
-      return (negative_prior_ * x_neg) / ((negative_prior_ * x_neg) + (1 - negative_prior_) * x_pos);
+      // the target PEP bounds the label-swapped decoy PEP (e.g. for decoys scoring above all fitted decoys)
+      return std::min(computeProbability(score), interpolateCurve(decoy_scores_, decoy_peps_, score));
     }
 
     TextFile PosteriorErrorProbabilityModel::initPlots(vector<double>& x_scores)
@@ -694,102 +1268,70 @@ namespace OpenMS::Math
         {
           empty.push_back("target");
         }
-        if (decoy.empty()) 
+        if (decoy.empty())
         {
           empty.push_back("decoy");
         }
         OPENMS_LOG_WARN << "Target-Decoy plot was called, but '" << ListUtils::concatenate(empty, "' and '") << "' has no data! Unable to create a target-decoy plot." << std::endl;
         return;
       }
-      Int number_of_bins = param_.getValue("number_of_bins");
-      std::vector<DPosition<3> > points(number_of_bins);
-      DPosition<3> temp;
-
       sort(target.begin(), target.end());
       sort(decoy.begin(), decoy.end());
 
-      double dividing_score = (max(target.back(), decoy.back()) /*scores.back()*/ - min(target[0], decoy[0]) /*scores[0]*/) / number_of_bins;
-
-      temp[0] = (dividing_score / 2);
-      temp[1] = 0;
-      temp[2] = 0;
-      Int bin = 0;
-      points[bin] = temp;
-      double temp_divider = dividing_score;
-      for (std::vector<double>::iterator it = target.begin(); it < target.end(); ++it)
+      // plot in the same (shifted) score space as the mixture model
+      const bool mixture = (model_type_ == ModelType::MIXTURE);
+      const double shift = mixture ? fabs(smallest_score_) + 0.001 : 0.0;
+      const double lo = std::min(target.front(), decoy.front()) + shift;
+      const double hi = std::max(target.back(), decoy.back()) + shift;
+      const Int number_of_bins = std::max<Int>(1, param_.getValue("number_of_bins"));
+      const double bin_width = (hi > lo) ? (hi - lo) / number_of_bins : 1.0;
+      std::vector<double> target_counts(number_of_bins, 0.0), decoy_counts(number_of_bins, 0.0);
+      auto bin_of = [&](double x) -> Size
       {
-        *it = *it + fabs(smallest_score_) + 0.001;
-        if (temp_divider - *it >= 0 && bin < number_of_bins - 1)
-        {
-          points[bin][1] += 1;
-        }
-        else if (bin  == number_of_bins - 1)
-        {
-          points[bin][1] += 1;
-        }
-        else
-        {
-          temp[0] = ((temp_divider + temp_divider + dividing_score) / 2);
-          temp[1] = 1;
-          ++bin;
-          points[bin] = temp;
-          temp_divider += dividing_score;
-        }
-      }
+        return std::min<Size>(number_of_bins - 1, static_cast<Size>(std::max(0.0, (x + shift - lo) / bin_width)));
+      };
+      for (double t : target) { target_counts[bin_of(t)] += 1.0; }
+      for (double d : decoy) { decoy_counts[bin_of(d)] += 1.0; }
 
-      bin = 0;
-      temp_divider = dividing_score;
-      for (std::vector<double>::iterator it = decoy.begin(); it < decoy.end(); ++it)
-      {
-        *it = *it + fabs(smallest_score_) + 0.001;
-        if (temp_divider - *it >= 0 && bin < number_of_bins - 1)
-        {
-          points[bin][2] += 1;
-        }
-        else if (bin  == number_of_bins - 1)
-        {
-          points[bin][2] += 1;
-        }
-        else
-        {
-          // temp[0] = ((temp_divider + temp_divider + dividing_score)/2);
-          // temp[2] = 1;
-          ++bin;
-          points[bin][2] = 1;
-          temp_divider += dividing_score;
-        }
-      }
-
+      // targets: density of the target scores; decoys: scaled to estimate the density of the incorrect target scores
+      // (under target-decoy competition, #incorrect targets = #decoys / decoy_ratio)
+      const double decoy_ratio = param_.getValue("decoy_ratio");
+      const double normalization = double(target.size()) * bin_width;
       TextFile data_points;
-      for (DPosition<3>& dpx : points)
+      for (Int b = 0; b < number_of_bins; ++b)
       {
-        (dpx)[1] = ((dpx)[1] / ((decoy.size() + target.size())  * dividing_score));
-        (dpx)[2] = ((dpx)[2] / ((decoy.size() + target.size())  * dividing_score));
-        std::string temp_ = StringUtils::toStr((dpx)[0]);
-        temp_ += "\t";
-        temp_ += (dpx)[1];
-        temp_ += "\t";
-        temp_ += (dpx)[2];
-        data_points << temp_;
+        const double center = lo + (b + 0.5) * bin_width;
+        data_points << (StringUtils::toStr(center) + "\t" + StringUtils::toStr(target_counts[b] / normalization) + "\t"
+                        + StringUtils::toStr(decoy_counts[b] / decoy_ratio / normalization) + "\t"
+                        + StringUtils::toStr(computeProbability(center - shift)));
       }
-      data_points.store(StringUtils::toStr(param_.getValue("out_plot")) + "_target_decoy_scores.txt");
+      const std::string out_plot = StringUtils::toStr(param_.getValue("out_plot"));
+      data_points.store(out_plot + "_target_decoy_scores.txt");
       TextFile file;
       file << "set terminal pdf color solid linewidth 2.0 rounded";
-      //file<<"set style empty solid 0.5 border -1";
-      //file<<"set style function lines";
       file << "set xlabel \"discriminant score\"";
       file << "set ylabel \"density\"";
-      //TODO: file<<"set title ";
+      file << "set y2label \"posterior error probability\"";
+      file << "set y2range [0:1]";
+      file << "set y2tics";
       file << "set key off";
       // important: use single quotes for paths, since otherwise backslashes will not be accepted on Windows!
-      file << "set output '" + StringUtils::toStr(param_.getValue("out_plot")) + "_target_decoy.pdf'";
-      std::string formula1, formula2;
-      formula1 = getGumbelGnuplotFormula(getIncorrectlyAssignedFitResult()) + "* " + StringUtils::toStr(getNegativePrior()); //StringUtils::toStr(incorrectly_assigned_fit_param_.A) +" * exp(-(x - " + StringUtils::toStr(incorrectly_assigned_fit_param_.x0) + ") ** 2 / 2 / (" + StringUtils::toStr(incorrectly_assigned_fit_param_.sigma) + ") ** 2)"+ "*" + StringUtils::toStr(negative_prior_);
-      formula2 = getGaussGnuplotFormula(getCorrectlyAssignedFitResult()) + "* (1 - " + StringUtils::toStr(getNegativePrior()) + ")"; //StringUtils::toStr(correctly_assigned_fit_param_.A) +" * exp(-(x - " + StringUtils::toStr(correctly_assigned_fit_param_.x0) + ") ** 2 / 2 / (" + StringUtils::toStr(correctly_assigned_fit_param_.sigma) + ") ** 2)"+ "* (1 - " + StringUtils::toStr(negative_prior_) + ")";
-      // important: use single quotes for paths, since otherwise backslashes will not be accepted on Windows!
-      file << ("plot '" + StringUtils::toStr(param_.getValue("out_plot")) + "_target_decoy_scores.txt'   using 1:3  with boxes fill solid 0.8 noborder, \"" + StringUtils::toStr(param_.getValue("out_plot")) + "_target_decoy_scores.txt\"  using 1:2  with boxes, " + formula1 + " , " + formula2);
-      file.store(StringUtils::toStr(param_.getValue("out_plot")) + "_target_decoy");
-      tryGnuplot(StringUtils::toStr(param_.getValue("out_plot")) + "_target_decoy");
+      file << "set output '" + out_plot + "_target_decoy.pdf'";
+      std::string plot = "plot '" + out_plot + "_target_decoy_scores.txt' using 1:2 with boxes, '"
+                         + out_plot + "_target_decoy_scores.txt' using 1:3 with boxes fill solid 0.8 noborder, '"
+                         + out_plot + "_target_decoy_scores.txt' using 1:4 with lines axes x1y2";
+      if (mixture)
+      {
+        plot += ", " + ((this)->*(getNegativeGnuplotFormula_))(getIncorrectlyAssignedFitResult()) + "* " + StringUtils::toStr(getNegativePrior());
+        plot += ", " + getGaussGnuplotFormula(getCorrectlyAssignedFitResult()) + "* (1 - " + StringUtils::toStr(getNegativePrior()) + ")";
+      }
+      file << plot;
+      file.store(out_plot + "_target_decoy");
+      if (!mixture && !out_plot.empty())
+      {
+        file.store(out_plot); // the non-parametric estimate has no other plot
+      }
+      tryGnuplot(out_plot + "_target_decoy");
     }
 
     void PosteriorErrorProbabilityModel::tryGnuplot(const std::string& gp_file)
@@ -806,12 +1348,13 @@ namespace OpenMS::Math
 
     void PosteriorErrorProbabilityModel::processOutliers_(vector<double>& x_scores, const std::string& outlier_handling) const
     {
-      if (x_scores.empty())
+      if (x_scores.size() < 3)
       {
-        return; //shouldn't happen, but be safe.
+        return; // too few values to determine outliers
       }
       if (outlier_handling != "none")
       {
+        const std::vector<double> original(x_scores);
         Size nr_outliers = 0;
         Size before = x_scores.size();
         auto q1 = Math::quantile1st(x_scores.begin(),x_scores.end(), true);
@@ -846,9 +1389,9 @@ namespace OpenMS::Math
         }
         else //"ignore_extreme_percentiles"
         {
-          Size ninetyninth_idx = x_scores.size() * 99.9 / 100.;
+          Size ninetyninth_idx = std::min<Size>(x_scores.size() - 1, x_scores.size() * 99.9 / 100.);
           double ninetyninth_value = x_scores[ninetyninth_idx];
-          Size first_idx = (x_scores.size() * 1. / 100.) + 1;
+          Size first_idx = std::min<Size>(x_scores.size() - 1, (x_scores.size() * 1. / 100.) + 1);
           double first_value = x_scores[first_idx];
           x_scores.erase(
               std::remove_if(x_scores.begin(),x_scores.end(),
@@ -856,6 +1399,13 @@ namespace OpenMS::Math
               x_scores.end()
           );
           nr_outliers = before - x_scores.size();
+        }
+
+        if (x_scores.size() < 3)
+        {
+          OPENMS_LOG_WARN << "Warning: outlier handling '" << outlier_handling << "' would leave fewer than 3 scores (many tied or censored values?). Outliers are kept." << std::endl;
+          x_scores = original;
+          return;
         }
 
         double outlier_percent = nr_outliers * 100. / before;
@@ -866,96 +1416,163 @@ namespace OpenMS::Math
         }
         else
         {
-          std::cout << nr_outliers << " outliers detected.\n";
+          OPENMS_LOG_INFO << nr_outliers << " outliers detected.\n";
         }
       }
     }
 
-    double PosteriorErrorProbabilityModel::getScore_(const std::vector<std::string>& requested_score_types, const PeptideHit & hit, const std::string& actual_score_type)
+    bool PosteriorErrorProbabilityModel::getScore_(const std::vector<std::string>& requested_score_types, const PeptideHit & hit, const std::string& actual_score_type, double& value)
     {
-        for (const auto& requested_score_type : requested_score_types)
+      for (const auto& requested_score_type : requested_score_types)
+      {
+        if (actual_score_type == requested_score_type)
         {
-            if (actual_score_type == requested_score_type)
-            {
-              return hit.getScore();
-            }
-            else
-            {
-                if (hit.metaValueExists(requested_score_type))
-                {
-                  return static_cast<double>(hit.getMetaValue(requested_score_type));
-                }
-                if (hit.metaValueExists(requested_score_type+"_score"))
-                {
-                  return static_cast<double>(hit.getMetaValue(requested_score_type+"_score"));
-                }
-            }
+          value = hit.getScore();
+          return true;
         }
-        std::cout << actual_score_type << std::endl;
-        throw Exception::UnableToFit(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Expected score type for search engine not found", "None of the expected score types " + ListUtils::concatenate(requested_score_types, ",") + " for search engine found");
-        return 0.;
+        for (const std::string& key : {requested_score_type, requested_score_type + "_score"})
+        {
+          if (hit.metaValueExists(key))
+          {
+            const DataValue& dv = hit.getMetaValue(key);
+            if (dv.valueType() == DataValue::DOUBLE_VALUE || dv.valueType() == DataValue::INT_VALUE)
+            {
+              value = static_cast<double>(dv);
+              return true;
+            }
+            if (dv.valueType() == DataValue::STRING_VALUE)
+            {
+              try
+              {
+                value = StringUtils::toDouble(dv.toString());
+                return true;
+              }
+              catch (Exception::ConversionError&)
+              {
+                // not a number: try the next score type
+              }
+            }
+          }
+        }
+      }
+      return false;
     }
 
+    namespace
+    {
+      /// dedicated score selection of supported search engines
+      struct DedicatedScores
+      {
+        std::vector<std::string> names; ///< requested score types in order of preference (empty: engine without dedicated support)
+        bool neg_log = true;            ///< transform with -log10 (e-values)
+        double factor = 1.0;            ///< otherwise: multiply with this factor
+      };
 
-    double PosteriorErrorProbabilityModel::transformScore_(const std::string & engine, const PeptideHit & hit, const std::string& current_score_type)
+      DedicatedScores dedicatedScores(const std::string& engine)
+      {
+        DedicatedScores d;
+        if (engine == "OMSSA") { d.names = {"OMSSA", "expect", "MS:1001328"}; }
+        else if (engine == "MYRIMATCH") { d.names = {"mvh", "MS:1001589"}; d.neg_log = false; }
+        else if (engine == "XTANDEM") { d.names = {"E-Value", "expect", "MS:1001330"}; }
+        else if (engine == "MASCOT") { d.names = {"EValue", "expect", "MS:1001172"}; }
+        else if (engine == "SPECTRAST") { d.names = {"f-val", "fval", "MS:1001419"}; d.neg_log = false; d.factor = 100.0; }
+        else if (engine == "SIMTANDEM") { d.names = {"E-Value"}; }
+        else if (engine == "MSGFPLUS") { d.names = {"MS:1002053", "expect", "SpecEValue", "MS:1002052"}; }
+        else if (engine == "COMET") { d.names = {"MS:1002257", "expect"}; }
+        else if (engine == "SIMPLESEARCHENGINE" || engine == "PROSE" || engine == "SAGE")
+        {
+          // HyperScore already returns the log-space value (HyperScore.cpp: log1p(dot_product) + log-factorials)
+          // and is labeled "ln(hyperscore)"; "hyperscore" is the older name for the same quantity.
+          d.names = {"hyperscore", "ln(hyperscore)"};
+          d.neg_log = false;
+        }
+        else if (engine == "MSFRAGGER") { d.names = {"expect", "MS:1001330"}; }
+        return d;
+      }
+    }
+
+    std::map<std::string, std::string> PosteriorErrorProbabilityModel::chooseScoreSources_(const std::map<std::string, std::string>& run_to_engine, const PeptideIdentificationList& peptide_ids)
+    {
+      // For each engine with dedicated support: the most preferred of its score types that any hit (of any run of the engine) has.
+      // A single score type per engine keeps all scores of a model on the same scale.
+      std::map<std::string, std::string> sources;
+      std::map<std::string, Size> best_rank; // engine -> index of the best score type found so far
+      for (const auto& [identifier, engine] : run_to_engine)
+      {
+        if (!dedicatedScores(engine).names.empty())
+        {
+          best_rank.emplace(engine, std::numeric_limits<Size>::max());
+        }
+        sources.emplace(engine, std::string());
+      }
+      for (const PeptideIdentification& pep : peptide_ids)
+      {
+        auto engine_it = run_to_engine.find(pep.getIdentifier());
+        if (engine_it == run_to_engine.end())
+        {
+          continue;
+        }
+        auto rank_it = best_rank.find(engine_it->second);
+        if (rank_it == best_rank.end() || rank_it->second == 0)
+        {
+          continue; // generic engine, or the most preferred score type was already found
+        }
+        const std::vector<std::string> names = dedicatedScores(engine_it->second).names;
+        for (const PeptideHit& hit : pep.getHits())
+        {
+          double value;
+          for (Size rank = 0; rank < std::min(rank_it->second, names.size()); ++rank)
+          {
+            if (getScore_({names[rank]}, hit, pep.getScoreType(), value))
+            {
+              rank_it->second = rank;
+              sources[engine_it->second] = names[rank];
+              break;
+            }
+          }
+        }
+      }
+      return sources;
+    }
+
+    double PosteriorErrorProbabilityModel::transformScore_(const std::string & engine, const PeptideHit & hit, const std::string& current_score_type, bool higher_score_better, const std::string& score_source)
     {
       //TODO implement censoring. 1) if value is below censoring take cumulative density below it, instead of point estimate
+      const double nan = std::numeric_limits<double>::quiet_NaN();
 
-      if (engine == "OMSSA")
+      if (!score_source.empty())
       {
-        return (-1) * log10(getScore_({"OMSSA"}, hit, current_score_type)); //OMSSA??? TODO make sure to fix in new ID datastructure
-      }
-      else if (engine == "MYRIMATCH") 
-      {
-        return getScore_({"mvh"}, hit, current_score_type);
-      }
-      else if (engine == "XTANDEM")
-      {
-        return (-1) * log10(getScore_({"E-Value"}, hit, current_score_type));
-      }
-      else if (engine == "MASCOT")
-      {
-        // issue #740: unable to fit data with score 0
-        if (hit.getScore() == 0.0) 
+        // issue #740: unable to fit data with (ion) score 0
+        if (engine == "MASCOT" && higher_score_better && hit.getScore() == 0.0)
         {
-          return numeric_limits<double>::quiet_NaN();
+          return nan;
         }
-        // end issue #740
-        return (-1) * log10(getScore_({"EValue","expect"}, hit, current_score_type));
-      }
-      else if (engine == "SPECTRAST")
-      {
-        return 100 * getScore_({"f-val"}, hit, current_score_type); // f-val
-      }
-      else if (engine == "SIMTANDEM")
-      {
-        return (-1) * log10(getScore_({"E-Value"}, hit, current_score_type));
-      }
-      else if ((engine == "MSGFPLUS") || (engine == "MS-GF+"))
-      {
-        return (-1) * log10(getScore_({"MS:1002053","expect"}, hit, current_score_type));
-      }
-      else if (engine == "COMET")
-      {
-        return (-1) * log10(getScore_({"MS:1002257","expect"}, hit, current_score_type));
-      }
-      else if ((engine == "SIMPLESEARCHENGINE") || (engine == "PROSE"))
-      {
-        // Both score with HyperScore, which already returns the log-space value
-        // (HyperScore.cpp: log1p(dot_product) + log-factorials) and label it
-        // "ln(hyperscore)"; "hyperscore" is the older name for the same quantity.
-        return getScore_({"hyperscore", "ln(hyperscore)"}, hit, current_score_type); //TODO evaluate transformations
-      }
-      else if (engine == "SAGE")
-      {
-        return getScore_({"hyperscore", "ln(hyperscore)"}, hit, current_score_type); // support hyperscore for backwards compatibility (same as ln(hyperscore))
-      }
-      else if (engine == "MSFRAGGER")
-      {
-        return (-1) * log10(getScore_({"expect"}, hit, current_score_type));
+        const DedicatedScores d = dedicatedScores(engine);
+        double value = 0;
+        if (getScore_({score_source}, hit, current_score_type, value))
+        {
+          return d.neg_log ? negLog10(value) : d.factor * value;
+        }
+        return nan; // the score of this search engine is missing for this hit
       }
 
-      throw Exception::UnableToFit(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No parameters for chosen search engine", "The chosen search engine is currently not supported");
+      // generic fallback: main score of the identification
+      const double value = hit.getScore();
+      switch (classifyScore(current_score_type))
+      {
+        case ScoreScale::PROBABILITY:
+          return nan; // already a probability (e.g. q-value or PEP): not a meaningful input for the model
+        case ScoreScale::EVALUE:
+          return higher_score_better ? value : negLog10(value);
+        case ScoreScale::RAW:
+        default:
+          return higher_score_better ? value : -value;
+      }
+    }
+
+    std::string PosteriorErrorProbabilityModel::getSearchEngineKey(const ProteinIdentification & protein_id)
+    {
+      return normalizeEngineKey(protein_id.getSearchEngine());
     }
 
     map<std::string, vector<vector<double>>> PosteriorErrorProbabilityModel::extractAndTransformScores(
@@ -964,131 +1581,240 @@ namespace OpenMS::Math
       const bool split_charge,
       const bool top_hits_only,
       const bool target_decoy_available,
-      const double fdr_for_targets_smaller)
+      const double /* fdr_for_targets_smaller */)
     {
-      std::set<Int> charges;
-      const StringList search_engines = {"XTandem","OMSSA","MASCOT","SpectraST","MyriMatch",
-                                         "SimTandem","MSGFPlus","MS-GF+","Comet","MSFragger",
-                                         "tide-search","Sage","SimpleSearchEngine","ProSE",
-                                         "OpenMS/ConsensusID_best","OpenMS/ConsensusID_worst","OpenMS/ConsensusID_average"};
+      map<std::string, vector<vector<double>>> all_scores = extractAndTransformScores(protein_ids, peptide_ids, split_charge, top_hits_only);
+      for (auto it = all_scores.begin(); it != all_scores.end(); )
+      {
+        if (it->second[0].size() <= 2) // previous behavior: groups with too few scores for fitting are not reported
+        {
+          it = all_scores.erase(it);
+          continue;
+        }
+        if (!target_decoy_available)
+        {
+          it->second[1].clear();
+          it->second[2].clear();
+        }
+        ++it;
+      }
+      return all_scores;
+    }
 
+    map<std::string, vector<vector<double>>> PosteriorErrorProbabilityModel::extractAndTransformScores(
+      const vector<ProteinIdentification> & protein_ids,
+      const PeptideIdentificationList & peptide_ids,
+      const bool split_charge,
+      const bool top_hits_only,
+      const bool peptide_level)
+    {
       if (split_charge)
       {  // determine different charges in data
-        for (PeptideIdentification const & pep_id : peptide_ids)
-        {
-          const vector<PeptideHit>& hits = pep_id.getHits();
-          for (PeptideHit const & hit : hits)
-          { 
-            charges.insert(hit.getCharge());
-          }
-        }
-        if (charges.empty())
+        bool has_hits = std::any_of(peptide_ids.begin(), peptide_ids.end(), [](const PeptideIdentification& pep) { return !pep.getHits().empty(); });
+        if (!has_hits)
         {
           throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "'split_charge' is set, but the list of charge states is empty");
         }
       }
 
-      set<Int>::iterator charge_it = charges.begin(); // charges can be empty, no problem if split_charge is not set
-      map<std::string, vector<vector<double> > > all_scores;
-      char splitter = ','; // to split the engine from the charge state later on
-      do
+      // search engine of each run
+      std::map<std::string, std::string> run_to_engine;
+      for (const ProteinIdentification& prot : protein_ids)
       {
-        vector<double> scores, decoy, target;
-        for (std::string supported_engine : search_engines)
+        run_to_engine[prot.getIdentifier()] = getSearchEngineKey(prot);
+      }
+      // one score type per engine (the dedicated score of a supported engine, or the main score)
+      const std::map<std::string, std::string> score_sources = chooseScoreSources_(run_to_engine, peptide_ids);
+      // spectra files of the runs (to identify spectra across runs, e.g. separate target and decoy searches of the same file)
+      IdentifierMSRunMapper ms_runs;
+      try
+      {
+        ms_runs.create(protein_ids);
+      }
+      catch (Exception::InvalidValue&)
+      {
+        // several runs of the same spectra files: expected here; the mapping from runs to files is complete nevertheless
+      }
+
+      struct ScoreGroup
+      {
+        std::vector<double> scores, targets, decoys;
+      };
+      std::map<std::string, ScoreGroup> groups;
+      auto group_key = [split_charge](const std::string& engine, Int charge)
+      {
+        return split_charge ? engine + "," + StringUtils::toStr(charge) : engine;
+      };
+      // peptide of a hit (modified sequence) for peptide-level scores; hits without a sequence are counted individually
+      auto peptide_key = [](const PeptideHit& hit, Size pep_index, Size hit_index)
+      {
+        return hit.getSequence().empty() ? "#" + StringUtils::toStr(pep_index) + "," + StringUtils::toStr(hit_index) : hit.getSequence().toString();
+      };
+      // peptide level: best score of the considered hits per group and peptide
+      std::map<std::string, std::map<std::string, double>> best_peptide_scores;
+
+      // Top hits (one per spectrum) are used for target-decoy based estimates. If a spectrum has several identifications
+      // (e.g. separate target and decoy searches), the best scoring top hit wins (ties: decoy), which reconstructs the
+      // target-decoy competition. The competition is per search engine (independent of the charge of the hits).
+      struct TopHit
+      {
+        double score;
+        bool is_decoy;
+        Int charge;
+        std::string peptide; ///< only set for peptide-level scores
+      };
+      std::map<std::string, std::map<std::string, TopHit>> top_hits; // engine -> spectrum key -> top hit
+      Size n_competitions = 0;
+
+      for (Size pep_index = 0; pep_index < peptide_ids.size(); ++pep_index)
+      {
+        const PeptideIdentification& pep = peptide_ids[pep_index];
+        auto engine_it = run_to_engine.find(pep.getIdentifier());
+        if (engine_it == run_to_engine.end() || pep.getHits().empty())
         {
-          StringUtils::toUpper(supported_engine);
-          for (ProteinIdentification const & prot : protein_ids)
+          continue;
+        }
+        const std::string& engine = engine_it->second;
+        const std::string& score_source = score_sources.at(engine);
+        const vector<PeptideHit>& hits = pep.getHits();
+        const std::string& score_type = pep.getScoreType();
+        const bool higher_score_better = pep.isHigherScoreBetter();
+
+        // top hit (first of the best scoring hits)
+        Size top_index = 0;
+        for (Size i = 1; i < hits.size(); ++i)
+        {
+          if (higher_score_better ? hits[i].getScore() > hits[top_index].getScore() : hits[i].getScore() < hits[top_index].getScore())
           {
-            std::string search_engine = prot.getSearchEngine();
-            if (StringUtils::hasPrefix(search_engine, "OpenMS/ConsensusID"))
-            {
-              search_engine = StringUtils::toStr(prot.getMetaValue("ConsensusIDBaseSearch"));
-              search_engine = StringUtils::prefix(search_engine, ':');
-            }
-            StringUtils::toUpper(search_engine);
+            top_index = i;
+          }
+        }
 
-            if (supported_engine == search_engine)
+        {
+          const PeptideHit& top = hits[top_index];
+          const TDLabel label = getTDLabel(top);
+          const double score = transformScore_(engine, top, score_type, higher_score_better, score_source);
+          if (!std::isnan(score) && label != TDLabel::UNKNOWN)
+          {
+            std::string spectrum_key = "#" + StringUtils::toStr(pep_index); // unknown spectrum: no competition
+            const std::string spectrum_reference = pep.getSpectrumReference();
+            if (!spectrum_reference.empty())
             {
-              for (PeptideIdentification pep : peptide_ids)
+              try
               {
-                // make sure we are comparing peptide and proteins of the same search run
-                if (prot.getIdentifier() == pep.getIdentifier())
+                ms_runs.validateMergeIndex(pep, pep_index); // throws if the run has several spectra files, but the one of this identification is unknown
+                const std::string ms_file = ms_runs.getPrimaryMSRunPath(pep);
+                if (!ms_file.empty())
                 {
-                  pep.sort();
-                  vector<PeptideHit>& hits = pep.getHits();
-                  if (top_hits_only)
-                  {
-                    if (!hits.empty() && (!split_charge || hits[0].getCharge() == *charge_it))
-                    {
-                      double score = PosteriorErrorProbabilityModel::transformScore_(supported_engine, hits[0], pep.getScoreType());
-                      if (!std::isnan(score)) // issue #740: ignore scores with 0 values, otherwise you will get the error "unable to fit data"
-                      {
-                        scores.push_back(score);
-
-                        if (target_decoy_available)
-                        {
-                          if (hits[0].getScore() < fdr_for_targets_smaller)
-                          {
-                            target.push_back(score);
-                          }
-                          else
-                          {
-                            decoy.push_back(score);
-                          }
-                        }
-                      }
-                    }
-                  }
-                  else
-                  {
-                    for (PeptideHit const & hit : hits)
-                    {
-                      if (!split_charge || (hit.getCharge() == *charge_it))
-                      {
-                        double score = PosteriorErrorProbabilityModel::transformScore_(supported_engine, hit, pep.getScoreType());
-                        if (!std::isnan(score)) // issue #740: ignore scores with 0 values, otherwise you will get the error "unable to fit data"
-                        {
-                          scores.push_back(score);
-                        }
-                      }
-                    }
-                  }
+                  spectrum_key = "file:" + ms_file + "\t" + spectrum_reference;
                 }
+                else
+                {
+                  // no spectra file annotated: identify the spectrum within its identification run
+                  spectrum_key = "run:" + pep.getIdentifier() + "\t" + pep.getMetaValue("file_origin", std::string()).toString() + "\t" + spectrum_reference;
+                }
+              }
+              catch (Exception::BaseException&)
+              {
+                // spectra file unknown: no competition
+              }
+            }
+            const TopHit hit{score, label == TDLabel::DECOY, top.getCharge(), peptide_level ? peptide_key(top, pep_index, top_index) : std::string()};
+            auto [it, inserted] = top_hits[engine].emplace(spectrum_key, hit);
+            if (!inserted)
+            {
+              ++n_competitions;
+              if (hit.score > it->second.score || (hit.score == it->second.score && hit.is_decoy))
+              {
+                it->second = hit;
               }
             }
           }
+        }
 
-          if (scores.size() > 2)
+        // all considered hits: used for the unsupervised model
+        for (Size i = 0; i < hits.size(); ++i)
+        {
+          if (top_hits_only && i != top_index)
           {
-            vector<vector<double> > tmp;
-            tmp.push_back(scores);
-            tmp.push_back(target);
-            tmp.push_back(decoy);
-
-            if (split_charge)
+            continue;
+          }
+          const double score = transformScore_(engine, hits[i], score_type, higher_score_better, score_source);
+          if (std::isnan(score)) // issue #740: ignore scores with 0 values, otherwise you will get the error "unable to fit data"
+          {
+            continue;
+          }
+          if (peptide_level)
+          {
+            auto [it, inserted] = best_peptide_scores[group_key(engine, hits[i].getCharge())].emplace(peptide_key(hits[i], pep_index, i), score);
+            if (!inserted && score > it->second)
             {
-              std::string engine_with_charge_state = supported_engine + StringUtils::toStr(splitter) + StringUtils::toStr(*charge_it);
-              all_scores.insert(make_pair(engine_with_charge_state, tmp));
-            }
-            else
-            {
-              all_scores.insert(make_pair(supported_engine, tmp));
+              it->second = score;
             }
           }
-
-          scores.clear();
-          target.clear();
-          decoy.clear();
+          else
+          {
+            groups[group_key(engine, hits[i].getCharge())].scores.push_back(score);
+          }
         }
+      }
 
-        if (split_charge)
-        { 
-          ++charge_it;
+      if (n_competitions > 0)
+      {
+        OPENMS_LOG_INFO << "Found " << n_competitions << " additional identification(s) of already identified spectra (e.g. from separate target and decoy searches). "
+                           "Only the best scoring top hit per spectrum is used for target-decoy based estimates." << std::endl;
+      }
+
+      for (const auto& [key, peptides] : best_peptide_scores)
+      {
+        std::vector<double>& scores = groups[key].scores;
+        for (const auto& [peptide, score] : peptides)
+        {
+          scores.push_back(score);
         }
-      } while (charge_it != charges.end());
+      }
+
+      // peptide level: the best top hit of each peptide (ties: decoy), after the competition per spectrum (as in Percolator and mokapot)
+      std::map<std::string, std::map<std::string, TopHit>> best_top_hits; // group -> peptide -> top hit
+      bool any_decoy = false;
+      for (const auto& [engine, spectra] : top_hits)
+      {
+        for (const auto& [spectrum_key, hit] : spectra)
+        {
+          any_decoy = any_decoy || hit.is_decoy;
+          if (peptide_level)
+          {
+            auto [it, inserted] = best_top_hits[group_key(engine, hit.charge)].emplace(hit.peptide, hit);
+            if (!inserted && (hit.score > it->second.score || (hit.score == it->second.score && hit.is_decoy)))
+            {
+              it->second = hit;
+            }
+            continue;
+          }
+          ScoreGroup& group = groups[group_key(engine, hit.charge)];
+          (hit.is_decoy ? group.decoys : group.targets).push_back(hit.score);
+        }
+      }
+      for (const auto& [key, peptides] : best_top_hits)
+      {
+        ScoreGroup& group = groups[key];
+        for (const auto& [peptide, hit] : peptides)
+        {
+          (hit.is_decoy ? group.decoys : group.targets).push_back(hit.score);
+        }
+      }
+
+      map<std::string, vector<vector<double>>> all_scores;
+      for (auto& [key, group] : groups)
+      {
+        if (!any_decoy)
+        {
+          group.targets.clear();
+        }
+        all_scores[key] = {std::move(group.scores), std::move(group.targets), std::move(group.decoys)};
+      }
       return all_scores;
     }
-
 
     void PosteriorErrorProbabilityModel::updateScores(
       const PosteriorErrorProbabilityModel & PEP_model,
@@ -1101,64 +1827,99 @@ namespace OpenMS::Math
       bool & unable_to_fit_data,
       bool & data_might_not_be_well_fit)
     {
-      std::string engine(search_engine);
+      std::set<std::pair<Size, Size>> updated_hits;
+      updateScores_(PEP_model, search_engine, charge, prob_correct, split_charge, protein_ids, peptide_ids, unable_to_fit_data, data_might_not_be_well_fit, true, updated_hits);
+    }
+
+    void PosteriorErrorProbabilityModel::updateScores(
+      const PosteriorErrorProbabilityModel & PEP_model,
+      const std::string & search_engine,
+      const Int charge,
+      const bool prob_correct,
+      const bool split_charge,
+      vector<ProteinIdentification> & protein_ids,
+      PeptideIdentificationList & peptide_ids,
+      bool & unable_to_fit_data,
+      bool & data_might_not_be_well_fit,
+      std::set<std::pair<Size, Size>> & updated_hits)
+    {
+      updateScores_(PEP_model, search_engine, charge, prob_correct, split_charge, protein_ids, peptide_ids, unable_to_fit_data, data_might_not_be_well_fit, false, updated_hits);
+    }
+
+    void PosteriorErrorProbabilityModel::updateScores_(
+      const PosteriorErrorProbabilityModel & PEP_model,
+      const std::string & search_engine,
+      const Int charge,
+      const bool prob_correct,
+      const bool split_charge,
+      vector<ProteinIdentification> & protein_ids,
+      PeptideIdentificationList & peptide_ids,
+      bool & unable_to_fit_data,
+      bool & data_might_not_be_well_fit,
+      bool unusable_to_one,
+      std::set<std::pair<Size, Size>> & updated_hits)
+    {
+      const std::string engine = normalizeEngineKey(search_engine);
       unable_to_fit_data = false;
       data_might_not_be_well_fit = false;
 
-      StringUtils::toUpper(engine);
-      for (ProteinIdentification& prot : protein_ids)
+      std::map<std::string, std::string> runs; // identifier -> engine key
+      for (const ProteinIdentification& prot : protein_ids)
       {
-        std::string se = prot.getSearchEngine();
-        StringUtils::toUpper(se);
-
-        if (engine == se)
+        if (getSearchEngineKey(prot) == engine)
         {
-          for (PeptideIdentification & pep : peptide_ids)
+          runs[prot.getIdentifier()] = engine;
+        }
+      }
+      // decided before any score is changed (consistent with extractAndTransformScores())
+      const std::string score_source = chooseScoreSources_(runs, peptide_ids)[engine];
+      Size n_unusable = 0;
+
+      for (Size index = 0; index < peptide_ids.size(); ++index)
+      {
+        PeptideIdentification& pep = peptide_ids[index];
+        if (runs.count(pep.getIdentifier()) == 0)
+        {
+          continue;
+        }
+        const std::string score_type = pep.getScoreType() + "_score";
+        vector<PeptideHit>& hits = pep.getHits();
+        for (Size hit_index = 0; hit_index < hits.size(); ++hit_index)
+        {
+          PeptideHit& hit = hits[hit_index];
+          if (!split_charge || (hit.getCharge() == charge))
           {
-            if (prot.getIdentifier() == pep.getIdentifier())
+            double score = PosteriorErrorProbabilityModel::transformScore_(engine, hit, pep.getScoreType(), pep.isHigherScoreBetter(), score_source);
+            if (std::isnan(score)) // no usable score (e.g. issue #740: Mascot score 0; or the score type of the model is missing)
             {
-              std::string score_type = pep.getScoreType() + "_score";
-              vector<PeptideHit> hits = pep.getHits();
-              for (PeptideHit & hit : hits)
+              ++n_unusable;
+              if (!unusable_to_one)
               {
-                if (!split_charge || (hit.getCharge() == charge))
-                {
-                  double score;
-                  hit.setMetaValue(score_type, hit.getScore());
-                  score = PosteriorErrorProbabilityModel::transformScore_(engine, hit, pep.getScoreType());
-
-                  //TODO they should be ignored during fitting already!
-                  // and in this issue the -log(10^99) should actually be an acceptable value.
-                  if (std::isnan(score)) // issue #740: ignore scores with 0 values, otherwise you will get the error "unable to fit data"
-                  {
-                    score = 1.0;
-                  }
-                  else 
-                  { 
-                    score = PEP_model.computeProbability(score);
-
-                    // invalid score? invalid fit!
-                    if ((score < 0.0) || (score > 1.0)) 
-                    {
-                      unable_to_fit_data = true;
-                    }
-                    //TODO implement something to check the quality of fit and set data_might_not_be_well_fit
-                  }
-                  hit.setScore(score);
-                  if (prob_correct)
-                  {
-                    hit.setScore(1.0 - score);
-                  }
-                  else
-                  {
-                    hit.setScore(score);
-                  }
-                }
+                continue; // left unchanged
               }
-              pep.setHits(hits);
+              score = 1.0;
             }
+            else
+            {
+              score = (getTDLabel(hit) == TDLabel::DECOY) ? PEP_model.computeDecoyProbability(score) : PEP_model.computeProbability(score);
+
+              // invalid score? invalid fit!
+              if (!(score >= 0.0 && score <= 1.0))
+              {
+                unable_to_fit_data = true;
+              }
+              //TODO implement something to check the quality of fit and set data_might_not_be_well_fit
+            }
+            hit.setMetaValue(score_type, hit.getScore());
+            hit.setScore(prob_correct ? 1.0 - score : score);
+            updated_hits.emplace(index, hit_index);
           }
         }
+      }
+      if (n_unusable > 0)
+      {
+        OPENMS_LOG_WARN << "Warning: " << n_unusable << " hit(s) of search engine " << engine << (split_charge ? " (charge " + StringUtils::toStr(charge) + ")" : std::string())
+                        << " have no usable score and " << (unusable_to_one ? "were assigned a PEP of 1." : "were not updated.") << std::endl;
       }
     }
 } // namespace OpenMS // namespace Math

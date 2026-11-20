@@ -17,6 +17,8 @@
 class TestNASE : public NucleicAcidSearchEngine
 {
 public:
+  using NucleicAcidSearchEngine::deisotopeAndSingleChargeMSSpectrum_;
+  using NucleicAcidSearchEngine::preprocessSpectra_;
   using NucleicAcidSearchEngine::getModifications_;
   using NucleicAcidSearchEngine::calculatePrecursorPercentage_;
   using NucleicAcidSearchEngine::flashMassUpperBound_;
@@ -170,6 +172,15 @@ namespace
   }
 }
 
+const MSSpectrum::IntegerDataArray* legacyCharges(const MSSpectrum& spectrum)
+{
+  for (const auto& array : spectrum.getIntegerDataArrays())
+  {
+    if (array.getName() == "NASE:legacy_fragment_charge" && array.size() == spectrum.size()) { return &array; }
+  }
+  return nullptr;
+}
+
 START_TEST(NASEDigestion, "$Id$")
 
 START_SECTION(([EXTRA] variable-only ambiguity setup preserves terminal hypotheses))
@@ -190,6 +201,182 @@ START_SECTION(([EXTRA] variable-only ambiguity setup preserves terminal hypothes
   hits.emplace(10.0, three);
   tool.resolveAmbiguousMods_(hits);
   TEST_EQUAL(hits.size(), 2)
+}
+END_SECTION
+
+START_SECTION(([EXTRA] legacy fragment isotope thresholds and envelope intensity aggregation))
+{
+  MSSpectrum raw;
+  raw.emplace_back(500, 10);
+  raw.emplace_back(500 + Constants::C13C12_MASSDIFF_U / 2, 4);
+  auto unchanged = raw;
+  TestNASE tool;
+  tool.deisotopeAndSingleChargeMSSpectrum_(unchanged, -1, -2, 10, true, false, 3, 20, false, true);
+  TEST_EQUAL(unchanged.size(), 2)
+  TEST_EQUAL((*legacyCharges(unchanged))[0], 0)
+  auto monoisotopic = raw;
+  tool.deisotopeAndSingleChargeMSSpectrum_(monoisotopic, -1, -2, 10, true, false, 2, 20, false, true);
+  TEST_EQUAL(monoisotopic.size(), 1)
+  TEST_REAL_SIMILAR(monoisotopic[0].getIntensity(), 10)
+  TEST_EQUAL((*legacyCharges(monoisotopic))[0], 2)
+  auto summed = raw;
+  tool.deisotopeAndSingleChargeMSSpectrum_(summed, -1, -2, 10, true, false, 2, 20, false, true, true);
+  TEST_EQUAL(summed.size(), 1)
+  TEST_REAL_SIMILAR(summed[0].getIntensity(), 14)
+  TEST_REAL_SIMILAR(summed[0].getMZ(), 500)
+  auto decharged = raw;
+  tool.deisotopeAndSingleChargeMSSpectrum_(decharged, -1, -2, 10, true, false, 2, 20, true, true, true);
+  TEST_EQUAL(decharged.size(), 1)
+  TEST_REAL_SIMILAR(decharged[0].getIntensity(), 14)
+  TEST_REAL_SIMILAR(decharged[0].getMZ(), 1000 + Constants::PROTON_MASS_U)
+  TEST_EQUAL((*legacyCharges(decharged))[0], 1)
+}
+END_SECTION
+
+START_SECTION(([EXTRA] legacy isotope envelopes require distinct observed peaks))
+{
+  TestNASE tool;
+  for (Int polarity : {-1, 1})
+  {
+    for (bool ppm : {false, true})
+    {
+      // The window is wider than the isotope spacing at charge 20. The
+      // nearest peak can therefore be returned for several isotope ordinals.
+      const double tolerance = ppm ? 320.0 : 0.16;
+      for (Size minimum : {Size(2), Size(3)})
+      {
+        for (bool decharge : {false, true})
+        {
+          MSSpectrum isolated;
+          isolated.emplace_back(500, 10);
+          tool.deisotopeAndSingleChargeMSSpectrum_(isolated, polarity, 20 * polarity, tolerance, ppm, false, minimum, 10, decharge, true, true);
+          TEST_EQUAL(isolated.size(), 1)
+          TEST_REAL_SIMILAR(isolated[0].getMZ(), 500)
+          TEST_REAL_SIMILAR(isolated[0].getIntensity(), 10)
+          TEST_EQUAL((*legacyCharges(isolated))[0], 0)
+        }
+      }
+      MSSpectrum isolated;
+      isolated.emplace_back(500, 10);
+      tool.deisotopeAndSingleChargeMSSpectrum_(isolated, polarity, 20 * polarity, tolerance, ppm, true, 2, 10, true, true, true);
+      TEST_TRUE(isolated.empty())
+      MSSpectrum doublet;
+      doublet.emplace_back(500, 10);
+      doublet.emplace_back(500 + Constants::C13C12_MASSDIFF_U / 20, 4);
+      auto insufficient = doublet;
+      // Revisiting the second peak must not turn a doublet into a triplet.
+      tool.deisotopeAndSingleChargeMSSpectrum_(insufficient, 20 * polarity, 20 * polarity, ppm ? 120.0 : 0.06, ppm, false, 3, 10, true, true, true);
+      TEST_EQUAL(insufficient.size(), 2)
+      for (Size i = 0; i < std::min(insufficient.size(), doublet.size()); ++i)
+      {
+        TEST_REAL_SIMILAR(insufficient[i].getMZ(), doublet[i].getMZ())
+        TEST_REAL_SIMILAR(insufficient[i].getIntensity(), doublet[i].getIntensity())
+        TEST_EQUAL((*legacyCharges(insufficient))[i], 0)
+      }
+      // A genuine doublet still passes a two-peak minimum, even when the
+      // next expected isotope would select the second peak again.
+      for (bool decharge : {false, true})
+      {
+        auto sufficient = doublet;
+        tool.deisotopeAndSingleChargeMSSpectrum_(sufficient, 20 * polarity, 20 * polarity, ppm ? 120.0 : 0.06, ppm, false, 2, 10, decharge, true,
+                                                 true);
+        TEST_EQUAL(sufficient.size(), 1)
+        TEST_REAL_SIMILAR(sufficient[0].getIntensity(), 14)
+        TEST_REAL_SIMILAR(sufficient[0].getMZ(), decharge ? 10000 - polarity * 19 * Constants::PROTON_MASS_U : 500)
+        TEST_EQUAL((*legacyCharges(sufficient))[0], decharge ? 1 : 20)
+      }
+    }
+  }
+}
+END_SECTION
+
+START_SECTION(([EXTRA] duplicate m / z seeds keep isotope features and summed intensities aligned))
+{
+  TestNASE tool;
+  for (Int polarity : {-1, 1})
+  {
+    for (Int charge : {1, 2})
+    {
+      for (bool keep_only : {false, true})
+      {
+        for (bool sum : {false, true})
+        {
+          for (bool decharge : {false, true})
+          {
+            MSSpectrum spectrum;
+            spectrum.emplace_back(500, 10);
+            spectrum.emplace_back(500, 20); // a distinct observation at the same m/z
+            spectrum.emplace_back(500 + Constants::C13C12_MASSDIFF_U / charge, 4);
+            spectrum.emplace_back(500 + 2 * Constants::C13C12_MASSDIFF_U / charge, 3);
+            tool.deisotopeAndSingleChargeMSSpectrum_(spectrum, polarity * charge, polarity * charge, 10, true, keep_only, 3, 10, decharge, true, sum);
+            TEST_EQUAL(spectrum.size(), keep_only ? 1 : 2)
+            const auto* charges = legacyCharges(spectrum);
+            TEST_NOT_EQUAL(charges, nullptr)
+            ABORT_IF(charges == nullptr)
+            TEST_EQUAL(charges->size(), spectrum.size())
+            Size assigned = 0, unassigned = 0;
+            double total = 0;
+            for (Size i = 0; i < spectrum.size(); ++i)
+            {
+              total += spectrum[i].getIntensity();
+              if ((*charges)[i] != 0)
+              {
+                ++assigned;
+                TEST_EQUAL((*charges)[i], decharge ? 1 : charge)
+                TEST_REAL_SIMILAR(spectrum[i].getIntensity(), sum ? 17 : 10)
+                TEST_REAL_SIMILAR(spectrum[i].getMZ(), decharge ? 500 * charge - polarity * (charge - 1) * Constants::PROTON_MASS_U : 500)
+              }
+              else
+              {
+                ++unassigned;
+                TEST_REAL_SIMILAR(spectrum[i].getMZ(), 500)
+                TEST_REAL_SIMILAR(spectrum[i].getIntensity(), 20)
+              }
+            }
+            TEST_EQUAL(assigned, 1)
+            TEST_EQUAL(unassigned, keep_only ? 0 : 1)
+            TEST_REAL_SIMILAR(total, (sum ? 17 : 10) + (keep_only ? 0 : 20))
+          }
+        }
+      }
+    }
+  }
+}
+END_SECTION
+
+START_SECTION(([EXTRA] optional legacy isotope detection retains unknown precursor charge))
+{
+  TestNASE tool;
+  const auto process = [&](Int precursor_charge, Size fragment_bound) {
+    MSExperiment experiment;
+    MSSpectrum raw;
+    raw.setMSLevel(2);
+    raw.emplace_back(500, 10);
+    raw.emplace_back(500 + Constants::C13C12_MASSDIFF_U / 2, 4);
+    Precursor precursor;
+    precursor.setMZ(600);
+    precursor.setCharge(precursor_charge);
+    raw.getPrecursors().push_back(precursor);
+    raw.setMetaValue("legacy_unknown_fragment_charge_bound", 99);
+    experiment.addSpectrum(raw);
+    tool.preprocessSpectra_(experiment, 20, true, false, true, -1, -6, true, false, 100, 50, "slide", false, 1000, false, 0.01, false, 2, "legacy",
+                            0.85, 0.25, true, 2, 10, false, fragment_bound);
+    return experiment[0];
+  };
+  const auto unchanged = process(0, 0);
+  TEST_EQUAL(unchanged.size(), 2)
+  TEST_EQUAL(unchanged.getPrecursors()[0].getCharge(), 0)
+  TEST_FALSE(unchanged.metaValueExists("legacy_unknown_fragment_charge_bound"))
+  const auto assigned = process(0, 2);
+  TEST_EQUAL(assigned.size(), 1)
+  TEST_EQUAL((*legacyCharges(assigned))[0], 2)
+  TEST_EQUAL(assigned.getPrecursors()[0].getCharge(), 0)
+  TEST_EQUAL(Int(assigned.getMetaValue("legacy_unknown_fragment_charge_bound")), 2)
+  // A known precursor bounds fragment charge even with a larger unknown bound.
+  const auto known = process(1, 6);
+  TEST_EQUAL(known.size(), 2)
+  TEST_EQUAL(known.getPrecursors()[0].getCharge(), 1)
+  TEST_FALSE(known.metaValueExists("legacy_unknown_fragment_charge_bound"))
 }
 END_SECTION
 
@@ -235,12 +422,18 @@ START_SECTION(([EXTRA] searchable RNA candidates and cached digest provenance))
   };
   fixture("ACGUAC", "ACGUAC", 2);
   auto args = arguments();
-  args.insert(args.end(), {"-digest_out", digest});
+  args.insert(args.end(), {"-digest_out", digest, "-scoring:method", "mvh"});
   TEST_EQUAL(runSearch(args), 0)
   TEST_EQUAL(hitCount(output), 1)
 
+  // A later-sorting filename distinguishes current input from cached provenance.
+  const std::string replay_mzml = mzml + ".z.mzML";
+  {
+    std::ifstream original(mzml, std::ios::binary);
+    std::ofstream(replay_mzml, std::ios::binary) << original.rdbuf();
+  }
   // Reuse the digest with different search tolerances while preserving its database.
-  args = {"-in", mzml, "-digest", digest, "-id_out", output, "-out", output + ".mzTab",
+  args = {"-in", replay_mzml, "-digest", digest, "-id_out", output, "-out", output + ".mzTab",
     "-precursor:mass_tolerance", "20", "-fragment:mass_tolerance", "25", "-threads", "1",
     "-db_out", output + ".oms"};
   TEST_EQUAL(runSearch(args), 0)
@@ -257,6 +450,7 @@ START_SECTION(([EXTRA] searchable RNA candidates and cached digest provenance))
   bool current_identification = false;
   for (const auto& match : result.getObservationMatches())
   {
+    TEST_STRING_EQUAL(match.observation_ref->input_file->name, replay_mzml)
     for (const auto& applied : match.steps_and_scores)
     {
       if (!applied.processing_step_opt ||
@@ -270,6 +464,28 @@ START_SECTION(([EXTRA] searchable RNA candidates and cached digest provenance))
     }
   }
   TEST_TRUE(current_identification)
+
+  // A digest produced by a different scorer must not replace this run's primary score.
+  for (const std::string method : {"hyperscore", "mvh"})
+  {
+    auto fresh_arguments = arguments();
+    fresh_arguments.insert(fresh_arguments.end(), {"-scoring:method", method});
+    TEST_EQUAL(runSearch(fresh_arguments), 0)
+    IdXMLFile().load(output, proteins, peptides);
+    TEST_EQUAL(peptides.size(), 1)
+    ABORT_IF(peptides.empty())
+    const auto expected_type = peptides[0].getScoreType();
+    const double expected_score = peptides[0].getHits()[0].getScore();
+    std::vector<std::string> cached_arguments {
+      "-in", replay_mzml,          "-digest", digest, "-id_out", output, "-out", output + ".mzTab", "-scoring:method", method, "-threads",
+      "1"};
+    TEST_EQUAL(runSearch(cached_arguments), 0)
+    IdXMLFile().load(output, proteins, peptides);
+    TEST_EQUAL(peptides.size(), 1)
+    ABORT_IF(peptides.empty())
+    TEST_STRING_EQUAL(peptides[0].getScoreType(), expected_type)
+    TEST_REAL_SIMILAR(peptides[0].getHits()[0].getScore(), expected_score)
+  }
 
   for (const std::string credit : {"true", "false"})
   {
@@ -1667,5 +1883,6 @@ START_SECTION((NASE directed deconvolution preserves ordinary FLASH and clears q
   TEST_EQUAL(fd_algo.getDeconvolvedSpectrum().size(), original.size())
 }
 END_SECTION
+
 
 END_TEST

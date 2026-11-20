@@ -92,7 +92,7 @@ TOPP tool
   see {term}`TOPP Tools`
 
 TOPPView
-  TOPPView is a viewer for MS and HPLC-MS data which ships with OpenMS. More information is available in [TOPPView documentation](/getting-started/visualize-with-openms.md).
+  TOPPView is a viewer for MS and HPLC-MS data, one of the graphical tools of OpenMS (installed separately from [OpenMS-TOPP-GUI](https://github.com/OpenMS/OpenMS-TOPP-GUI)). More information is available in [TOPPView documentation](/getting-started/visualize-with-openms.md).
 
 [Nightly Snapshot](https://openms.de/current_doxygen/html/index.html)
   Untested installers and containers are known as the nightly snapshot.
@@ -145,7 +145,7 @@ de novo peptide sequencing
   A peptide’s amino acid sequence is inferred directly from the precursor peptide mass and tandem mass spectrum ({term}`MS/MS` or {term}`MS^3`) fragment ions, without comparison to a reference proteome.
 
 TOPPAS
-  An graphical user interface (GUI), which is shipped with OpenMS, to create and execute worflows using {term}`TOPP tools`; see [Workflow Editor](/getting-started/workflows.rst).
+  A graphical user interface (GUI), one of the graphical tools of OpenMS (installed separately from [OpenMS-TOPP-GUI](https://github.com/OpenMS/OpenMS-TOPP-GUI)), to create and execute workflows using {term}`TOPP tools`; see [Workflow Editor](/getting-started/workflows.rst).
 
 chromatogram
   A two-dimensional plot that describes the amount of analyte eluted from a chromatography versus the analyte's retention time. OpenMS represents a chromatogram using the class [MSChromatogram](https://openms.de/current_doxygen/html/structOpenMS_1_1Interfaces_1_1Chromatogram.html)

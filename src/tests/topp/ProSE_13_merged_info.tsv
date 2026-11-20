@@ -3,7 +3,7 @@ general: file type	idXML
 general: database	DatabaseSuitability_database.fasta
 general: database version	
 general: taxonomy	
-general: search engine	Percolator	(version: 3.08-vendored)
+general: search engine	Percolator	(version: 3.09-vendored)
 general: num. of runs	1
 general: num. of protein hits	47
 general: num. of non-redundant protein hits (only hits that differ in the accession)	47

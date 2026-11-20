@@ -5,8 +5,8 @@ general: database version
 general: taxonomy	
 general: search engine	ProSE	(version: )
 general: num. of runs	1
-general: num. of protein hits	49
-general: num. of non-redundant protein hits (only hits that differ in the accession)	49
+general: num. of protein hits	51
+general: num. of non-redundant protein hits (only hits that differ in the accession)	51
 general: num. of matched spectra	896
 general: num. of peptide hits	896
 general: num. of modified top-hits	0

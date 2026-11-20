@@ -13,7 +13,10 @@
 #include <OpenMS/MATH/STATISTICS/GumbelMaxLikelihoodFitter.h>
 ///////////////////////////
 
+#include <OpenMS/CONCEPT/Exception.h>
+
 #include <cmath>
+#include <limits>
 #include <vector>
 
 using namespace OpenMS;
@@ -88,6 +91,89 @@ START_SECTION((GumbelDistributionFitResult fitWeighted(const std::vector<double>
   TEST_REAL_SIMILAR(r.a, A)
   TEST_REAL_SIMILAR(r.b, B)
   TEST_EQUAL(r.b > 0.0, true)
+
+  // Narrow distributions (b < ~0.2) have a positive log-likelihood at the optimum.
+  // A least-squares minimization of the log-likelihood would converge to LL = 0 instead of the MLE.
+  {
+    const double A2 = -1.5, B2 = 0.05;
+    std::vector<double> x2, w2;
+    for (double xi = -2.0; xi <= 0.0; xi += 0.002)
+    {
+      const double z = (xi - A2) / B2;
+      x2.push_back(xi);
+      w2.push_back((1.0 / B2) * std::exp(-(z + std::exp(-z))));
+    }
+    GumbelMaxLikelihoodFitter f2(FitResult(0.0, 1.0)); // deliberately poor start
+    FitResult r2 = f2.fitWeighted(x2, w2);
+    TOLERANCE_ABSOLUTE(0.002)
+    TEST_REAL_SIMILAR(r2.a, A2)
+    TEST_REAL_SIMILAR(r2.b, B2)
+  }
+
+  // the MLE must satisfy the closed-form location equation: sum w * exp(-(x - a)/b) = sum w
+  {
+    std::vector<double> x3 = {0.1, 0.5, 0.7, 1.3, 2.9, 0.4, 0.8, 1.1};
+    std::vector<double> w3 = {1.0, 2.0, 1.0, 0.5, 0.25, 1.0, 1.0, 3.0};
+    GumbelMaxLikelihoodFitter f3;
+    FitResult r3 = f3.fitWeighted(x3, w3);
+    double lhs = 0.0, sum_w = 0.0;
+    for (size_t i = 0; i < x3.size(); ++i)
+    {
+      lhs += w3[i] * std::exp(-(x3[i] - r3.a) / r3.b);
+      sum_w += w3[i];
+    }
+    TOLERANCE_ABSOLUTE(1e-8)
+    TEST_REAL_SIMILAR(lhs, sum_w)
+    // the fitted parameters are the new initial parameters
+    FitResult r3b = f3.fitWeighted({}, {});
+    TEST_REAL_SIMILAR(r3b.a, r3.a)
+    TEST_REAL_SIMILAR(r3b.b, r3.b)
+  }
+
+  // non-finite values and non-positive weights are ignored
+  {
+    std::vector<double> x4 = {0.1, 0.5, 0.7, 1.3, 2.9, std::numeric_limits<double>::infinity(), 100.0};
+    std::vector<double> w4 = {1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 0.0};
+    GumbelMaxLikelihoodFitter f4;
+    FitResult r4 = f4.fitWeighted(x4, w4);
+    GumbelMaxLikelihoodFitter f5;
+    FitResult r5 = f5.fitWeighted({0.1, 0.5, 0.7, 1.3, 2.9}, {1.0, 1.0, 1.0, 1.0, 1.0});
+    TOLERANCE_ABSOLUTE(1e-10)
+    TEST_REAL_SIMILAR(r4.a, r5.a)
+    TEST_REAL_SIMILAR(r4.b, r5.b)
+  }
+
+  // a warm start far away from the solution (no bracket within 200 doublings/halvings) falls back to the moment estimate
+  {
+    const std::vector<double> x7 = {0.1, 0.5, 0.7, 1.3, 2.9};
+    const std::vector<double> w7(x7.size(), 1.0);
+    GumbelMaxLikelihoodFitter reference;
+    const FitResult expected = reference.fitWeighted(x7, w7);
+    for (double b_start : {1e62, 1e-62})
+    {
+      GumbelMaxLikelihoodFitter f7(FitResult(0.0, b_start));
+      const FitResult r7 = f7.fitWeighted(x7, w7);
+      TOLERANCE_ABSOLUTE(1e-8)
+      TEST_REAL_SIMILAR(r7.a, expected.a)
+      TEST_REAL_SIMILAR(r7.b, expected.b)
+    }
+  }
+
+  // data without spread cannot be fitted; mismatching sizes are rejected
+  {
+    GumbelMaxLikelihoodFitter f6;
+    TEST_EXCEPTION(Exception::UnableToFit, f6.fitWeighted({1.0, 1.0, 1.0}, {1.0, 1.0, 1.0}))
+    TEST_EXCEPTION(Exception::InvalidParameter, f6.fitWeighted({1.0, 2.0}, {1.0}))
+  }
+}
+END_SECTION
+
+START_SECTION(([EXTRA] GumbelDistributionFitResult::eval and mode))
+{
+  FitResult r(2.0, 0.5);
+  TEST_REAL_SIMILAR(r.mode(), 2.0)
+  TEST_REAL_SIMILAR(r.eval(2.0), std::exp(-1.0) / 0.5)
+  TEST_REAL_SIMILAR(std::log(r.eval(3.1)), r.log_eval_no_normalize(3.1))
 }
 END_SECTION
 

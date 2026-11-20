@@ -207,6 +207,45 @@ START_SECTION([EXTRA] computeWithDetail: mean fragment error in Da)
 }
 END_SECTION
 
+START_SECTION((static double computeWithDetail(double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm, const PeakSpectrum &exp_spectrum, const PeakSpectrum &theo_spectrum, const std::vector<uint8_t> &theo_ion_series, PSMDetail &d)))
+{
+  // the ion series of TheoreticalSpectrumGenerator::getIonSeriesSpectrum() give the scores of the ion names, bit for bit
+  PeakSpectrum named;
+  tsg.getSpectrum(named, AASequence::fromString("PEPTM(Oxidation)IDEKR"), 1, 2);
+  PeakSpectrum plain;
+  std::vector<uint8_t> series;
+  TEST_EQUAL(tsg.getIonSeriesSpectrum(plain, series, AASequence::fromString("PEPTM(Oxidation)IDEKR"), 1, 2), true)
+  PeakSpectrum exp_spectrum;
+  for (Size i = 0; i < named.size(); i += 2)
+  {
+    exp_spectrum.emplace_back(named[i].getMZ() * (1.0 + 3e-6 * (i % 5)) - 0.001 * (i % 3), 10.0f + i);
+  }
+  exp_spectrum.emplace_back(2000.0, 5.0f);
+  for (const bool ppm : {true, false})
+  {
+    const double tol = ppm ? 10.0 : 0.02;
+    HyperScore::PSMDetail d_named, d_plain;
+    const double s_named = HyperScore::computeWithDetail(tol, ppm, exp_spectrum, named, d_named);
+    const double s_plain = HyperScore::computeWithDetail(tol, ppm, exp_spectrum, plain, series, d_plain);
+    TEST_EQUAL(s_named == s_plain && s_named > 0.0, true)
+    TEST_EQUAL(d_named.matched_prefix_ions, d_plain.matched_prefix_ions)
+    TEST_EQUAL(d_named.matched_suffix_ions, d_plain.matched_suffix_ions)
+    TEST_EQUAL(d_named.mean_error == d_plain.mean_error, true)
+    const double m_named = HyperScore::computeMassAccuracy(tol, ppm, exp_spectrum, named, 5.0, d_named);
+    const double m_plain = HyperScore::computeMassAccuracy(tol, ppm, exp_spectrum, plain, series, 5.0, d_plain);
+    TEST_EQUAL(m_named == m_plain && m_named > 0.0, true)
+    TEST_EQUAL(d_named.matched_prefix_ions, d_plain.matched_prefix_ions)
+    TEST_EQUAL(d_named.matched_suffix_ions, d_plain.matched_suffix_ions)
+    TEST_EQUAL(d_named.mean_error == d_plain.mean_error, true)
+  }
+  HyperScore::PSMDetail d;
+  TEST_REAL_SIMILAR(HyperScore::computeWithDetail(10.0, true, PeakSpectrum(), plain, series, d), 0.0)
+  series.pop_back();
+  TEST_EXCEPTION(Exception::InvalidSize, HyperScore::computeWithDetail(10.0, true, exp_spectrum, plain, series, d))
+  TEST_EXCEPTION(Exception::InvalidSize, HyperScore::computeMassAccuracy(10.0, true, exp_spectrum, plain, series, 5.0, d))
+}
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST

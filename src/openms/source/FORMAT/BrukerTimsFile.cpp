@@ -10,6 +10,7 @@
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/FORMAT/HANDLERS/PASEFHillCentroider.h>
 #include <OpenMS/FORMAT/ZipArchiveFile.h>
+#include <OpenMS/FORMAT/ZstdCompression.h>
 #include <OpenMS/IONMOBILITY/IMDataConverter.h>
 #include <OpenMS/IONMOBILITY/IMTypes.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
@@ -46,6 +47,8 @@
 #include <vector>
 #include <cmath>
 #include <cstdlib>
+#include <cstring>
+#include <fstream>
 #include <limits>
 #include <map>
 #include <set>
@@ -1729,20 +1732,41 @@ namespace OpenMS
         note(entry_path.filename().string());
       }
     }
+    // TDF takes precedence over TSF, as in tryCreateMzCalibrationConverter() (keep the two in sync)
     return tdf ? DataFormat::TDF : tsf ? DataFormat::TSF : baf ? DataFormat::BAF : DataFormat::NONE;
   }
 
   // Throws for the formats that are recognized but cannot be read
   static void checkDataFormat(BrukerTimsFile::DataFormat format, const std::string& path)
   {
-    using DataFormat = BrukerTimsFile::DataFormat;
-    if (format != DataFormat::TSF && format != DataFormat::BAF) return;
-    const std::string name = format == DataFormat::TSF ? "TSF" : "BAF";
-    const std::string file = format == DataFormat::TSF ? "analysis.tsf" : "analysis.baf";
+    if (format != BrukerTimsFile::DataFormat::BAF) return;
     throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, path,
-      "Bruker " + name + " data (" + file + ") is not supported. Only Bruker TDF data can be read: a .d directory "
-      "with analysis.tdf and analysis.tdf_bin, as timsTOF instruments write with ion mobility separation. "
-      "Convert the run to mzML with another tool first");
+      "Bruker BAF data (analysis.baf) is not supported. Only Bruker timsTOF data can be read: a .d directory with "
+      "analysis.tdf and analysis.tdf_bin (TDF, with ion mobility) or with analysis.tsf and analysis.tsf_bin (TSF, "
+      "without ion mobility). Convert the run to mzML with another tool first");
+  }
+
+  // The name of the SQLite file of data in @p format: analysis.tsf for TSF data, analysis.tdf otherwise
+  static std::string analysisDatabaseName(BrukerTimsFile::DataFormat format)
+  {
+    using DataFormat = BrukerTimsFile::DataFormat;
+    switch (format) // every format listed (no default): -Wswitch flags a new one here
+    {
+      case DataFormat::TSF:
+        return "analysis.tsf";
+      case DataFormat::TDF:
+      case DataFormat::BAF:                // not read yet (checkDataFormat() rejects it): its file goes here then
+      case DataFormat::NONE:               // the callers report the missing analysis.tdf
+      case DataFormat::UNREADABLE_ARCHIVE:
+        return "analysis.tdf";
+    }
+    throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION); // a format not listed above
+  }
+
+  // The SQLite file of the .d directory @p d_path (see analysisDatabaseName())
+  static std::string analysisDatabase(const std::string& d_path)
+  {
+    return d_path + "/" + analysisDatabaseName(BrukerTimsFile::detectFormat(d_path));
   }
 
   void BrukerTimsFile::checkDataFormat(const std::string& path)
@@ -1775,10 +1799,13 @@ namespace OpenMS
   // the file, so a frame that lies (partly) beyond the end of the file crashes the program. That happens with a file that
   // was not completely copied or uploaded, or that the acquisition is still writing. The frames are stored one after the
   // other, so the file is complete if the frame with the largest offset ends in it; the first number of the header of a
-  // frame is its size in bytes (header included). Checked before opentims gets the directory.
+  // frame is its size in bytes (header included). Checked before opentims gets the directory. The same holds for the
+  // frames of TSF data in analysis.tsf_bin, which are checked before the first is read.
   static void checkFrameOffsets(const std::string& d_path)
   {
-    const std::string bin_path = d_path + "/analysis.tdf_bin";
+    const std::string db_path = analysisDatabase(d_path);
+    const std::string bin_path = db_path + "_bin";
+    const std::string db_name = File::basename(db_path), bin_name = db_name + "_bin";
     std::error_code ec;
     const std::uintmax_t bin_size = std::filesystem::file_size(to_path(bin_path), ec);
     if (ec) return; // no analysis.tdf_bin: opentims reports that
@@ -1786,7 +1813,7 @@ namespace OpenMS
     int64_t first_frame = 0, first_offset = 0, last_frame = 0, last_offset = 0;
     try
     {
-      SQLite::Database db(d_path + "/analysis.tdf", SQLite::OPEN_READONLY);
+      SQLite::Database db(db_path, SQLite::OPEN_READONLY);
       SQLite::Statement first(db, "SELECT Id, TimsId FROM Frames WHERE TimsId IS NOT NULL ORDER BY TimsId LIMIT 1");
       if (!first.executeStep()) return; // no frames
       first_frame = first.getColumn(0).getInt64();
@@ -1804,11 +1831,11 @@ namespace OpenMS
     if (first_offset < 0)
     {
       throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, d_path,
-        "analysis.tdf is corrupt: frame " + std::to_string(first_frame) + " has a negative offset ("
-        + std::to_string(first_offset) + ") into analysis.tdf_bin");
+        db_name + " is corrupt: frame " + std::to_string(first_frame) + " has a negative offset ("
+        + std::to_string(first_offset) + ") into " + bin_name);
     }
 
-    const uint64_t header_size = 8; // frame size and number of scans, two little-endian uint32
+    const uint64_t header_size = 8; // frame size and number of scans (TSF: line spectrum size), two little-endian uint32
     uint64_t last_end = static_cast<uint64_t>(last_offset) + header_size;
     if (last_end <= bin_size)
     {
@@ -1822,14 +1849,14 @@ namespace OpenMS
       if (frame_size < header_size)
       {
         throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, d_path,
-          "analysis.tdf_bin is corrupt: frame " + std::to_string(last_frame) + " at byte " + std::to_string(last_offset)
+          bin_name + " is corrupt: frame " + std::to_string(last_frame) + " at byte " + std::to_string(last_offset)
           + " has a size of " + std::to_string(frame_size) + " bytes, less than its header");
       }
       last_end = static_cast<uint64_t>(last_offset) + frame_size;
     }
     if (last_end <= bin_size) return;
     throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, d_path,
-      "analysis.tdf_bin is incomplete: it has " + std::to_string(bin_size) + " bytes, but frame " + std::to_string(last_frame)
+      bin_name + " is incomplete: it has " + std::to_string(bin_size) + " bytes, but frame " + std::to_string(last_frame)
       + " takes bytes " + std::to_string(last_offset) + " to " + std::to_string(last_end) + ". The file was not completely "
       "copied or uploaded, or the acquisition was still writing it");
   }
@@ -1843,7 +1870,7 @@ namespace OpenMS
     std::string application_type;
     try
     {
-      SQLite::Database db(d_path + "/analysis.tdf", SQLite::OPEN_READONLY);
+      SQLite::Database db(analysisDatabase(d_path), SQLite::OPEN_READONLY);
       if (!db.tableExists("GlobalMetadata")) return;
       SQLite::Statement query(db, "SELECT Value FROM GlobalMetadata WHERE Key = 'MaldiApplicationType'");
       if (query.executeStep()) application_type = query.getColumn(0).getString();
@@ -1908,12 +1935,13 @@ namespace OpenMS
     catch (const SQLite::Exception& e)
     {
       throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, path,
-        std::string("Cannot read analysis.tdf (SQLite: ") + e.what() + ")");
+        std::string("Cannot read analysis.tdf or analysis.tsf (SQLite: ") + e.what() + ")");
     }
     catch (const std::exception& e)
     {
+      const bool tsf = BrukerTimsFile::detectFormat(path) == BrukerTimsFile::DataFormat::TSF;
       throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, path,
-        std::string("Cannot read the Bruker TDF data: ") + e.what());
+        std::string(tsf ? "Cannot read the Bruker TSF data: " : "Cannot read the Bruker TDF data: ") + e.what());
     }
   }
 
@@ -1937,7 +1965,7 @@ namespace OpenMS
     if (format == DataFormat::NONE && File::exists(path))
     {
       throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-        path, "ZIP archive does not contain a .d directory with analysis.tdf");
+        path, "ZIP archive does not contain a .d directory with analysis.tdf or analysis.tsf");
     }
     auto unpacked = std::make_shared<UnpackedArchive>();
     unpacked->archive = path;
@@ -1946,6 +1974,8 @@ namespace OpenMS
     // is unspecified, and archives made on macOS also hold a __MACOSX/<name>.d with AppleDouble
     // files only, so take the shallowest .d that holds analysis.tdf or analysis.tdf_bin (as
     // FileHandler::getType() requires of a directory), and the first by name among equals.
+    // For TSF data (no TDF data in the archive, see detectFormat()) the same with analysis.tsf or analysis.tsf_bin.
+    const std::string db_name = analysisDatabaseName(format);
     std::filesystem::path found;
     int found_depth = std::numeric_limits<int>::max();
     for (auto it = std::filesystem::recursive_directory_iterator(to_path(root));
@@ -1963,7 +1993,7 @@ namespace OpenMS
       }
       std::error_code ec;
       if (dir.extension() == ".d"
-          && (std::filesystem::exists(dir / "analysis.tdf", ec) || std::filesystem::exists(dir / "analysis.tdf_bin", ec)))
+          && (std::filesystem::exists(dir / db_name, ec) || std::filesystem::exists(dir / (db_name + "_bin"), ec)))
       {
         it.disable_recursion_pending();
         if (it.depth() < found_depth || (it.depth() == found_depth && dir < found))
@@ -1976,7 +2006,7 @@ namespace OpenMS
     if (found.empty())
     {
       throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-        path, "ZIP archive does not contain a .d directory with analysis.tdf");
+        path, "ZIP archive does not contain a .d directory with analysis.tdf or analysis.tsf");
     }
     unpacked->d_path = found.string();
     return unpacked;
@@ -2007,6 +2037,12 @@ namespace OpenMS
     const std::string& path, const Config& config = Config())
   {
     BrukerTimsFile::checkDataFormat(path);
+    // load() and transform() read TSF data without opentims; the functions that get here for it read DIA-PASEF data
+    if (BrukerTimsFile::detectFormat(path) == BrukerTimsFile::DataFormat::TSF)
+    {
+      throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, path,
+        "Bruker TSF data (timsTOF without ion mobility) holds no DIA-PASEF data: read it with load() or transform()");
+    }
     checkCompression(path);
     checkFrameOffsets(path);
 
@@ -2621,12 +2657,14 @@ namespace OpenMS
   // =====================================================================
   void BrukerTimsFile::loadExperimentalSettings_(const std::string& path, const std::string& d_path, ExperimentalSettings& settings)
   {
+    const bool tsf = detectFormat(d_path) == DataFormat::TSF;
     SourceFile sf;
     sf.setNameOfFile(File::basename(path));
     sf.setPathToFile(File::path(path));
-    sf.setFileType(FileTypes::typeToMZML(FileTypes::BRUKER_TDF)); // the CV term name, "Bruker TDF format"
-    sf.setNativeIDType("Bruker TDF nativeID format");
-    sf.setNativeIDTypeAccession("MS:1002818");
+    // the CV term names: "Bruker TDF format" (FileTypes::BRUKER_TDF), "Bruker TSF format" (the same file type in OpenMS)
+    sf.setFileType(tsf ? std::string("Bruker TSF format") : FileTypes::typeToMZML(FileTypes::BRUKER_TDF));
+    sf.setNativeIDType(tsf ? "Bruker TSF nativeID format" : "Bruker TDF nativeID format");
+    sf.setNativeIDTypeAccession(tsf ? "MS:1003283" : "MS:1002818");
     settings.getSourceFiles().push_back(sf);
 
     // start of the acquisition and the instrument, from the GlobalMetadata table (as msconvert reads them). The settings
@@ -2634,7 +2672,7 @@ namespace OpenMS
     std::map<std::string, std::string> global;
     try
     {
-      SQLite::Database db(d_path + "/analysis.tdf", SQLite::OPEN_READONLY);
+      SQLite::Database db(analysisDatabase(d_path), SQLite::OPEN_READONLY);
       SQLite::Statement query(db, "SELECT Key, Value FROM GlobalMetadata");
       while (query.executeStep())
       {
@@ -3144,6 +3182,428 @@ namespace OpenMS
   }
 
   // =====================================================================
+  // TSF data: timsTOF without ion mobility (analysis.tsf, analysis.tsf_bin)
+  // =====================================================================
+  // analysis.tsf has the tables of analysis.tdf that do not concern ion mobility (Frames, MzCalibration, GlobalMetadata,
+  // FrameMsMsInfo, MaldiFrameInfo). analysis.tsf_bin holds a block per frame, at the byte offset Frames.TimsId: the size
+  // of the block (uint32), the size of the line spectrum (uint32), the line spectrum as one zstd frame (NumPeaks
+  // fractional TOF indices as double, then their NumPeaks intensities as float, little-endian), then the profile
+  // spectrum, which is not read. Checked against the Bruker SDK (TIMSCONVERT 2.0.0) on a MALDI spot, a MALDI imaging and
+  // an LC-MS run (MassIVE MSV000088438, MSV000095813): the same peaks, and m/z within 1e-9 ppm.
+
+  // Throws for the options of Config that concern ion mobility or DDA-PASEF precursors, which TSF data does not have.
+  // Every such option of Config is listed here (a new one has to be added).
+  static void rejectIonMobilityOptions(const std::string& path, const Config& config)
+  {
+    using Strategy = Config::TimsCalibrationStrategy;
+    const Config defaults;
+    std::string names;
+    const auto check = [&names](bool set, const char* name) { if (set) names += (names.empty() ? "" : ", ") + std::string(name); };
+    check(imRangeSet(config), "im_min/im_max");
+    check(config.ms1_centroid_algo != defaults.ms1_centroid_algo, "ms1_centroid_algo");
+    check(config.ms2_centroid_algo != defaults.ms2_centroid_algo, "ms2_centroid_algo");
+    check(config.ms1_centroid_mz_ppm != defaults.ms1_centroid_mz_ppm, "ms1_centroid_mz_ppm");
+    check(config.ms1_centroid_im_pct != defaults.ms1_centroid_im_pct, "ms1_centroid_im_pct");
+    check(config.ms1_centroid_max_peaks != defaults.ms1_centroid_max_peaks, "ms1_centroid_max_peaks");
+    check(config.ms2_centroid_mz_ppm != defaults.ms2_centroid_mz_ppm, "ms2_centroid_mz_ppm");
+    check(config.centroid_valley_factor != defaults.centroid_valley_factor, "centroid_valley_factor");
+    check(config.ms1_centroid_min_hill_length != defaults.ms1_centroid_min_hill_length, "ms1_centroid_min_hill_length");
+    check(config.ms2_centroid_min_hill_length != defaults.ms2_centroid_min_hill_length, "ms2_centroid_min_hill_length");
+    check(config.centroid_max_scan_gap != defaults.centroid_max_scan_gap, "centroid_max_scan_gap");
+    check(config.expose_hill_bounds != defaults.expose_hill_bounds, "expose_hill_bounds");
+    check(config.isotopic_prefilter != defaults.isotopic_prefilter, "isotopic_prefilter");
+    check(config.isotopic_prefilter_tol_ppm != defaults.isotopic_prefilter_tol_ppm, "isotopic_prefilter_tol_ppm");
+    check(config.dia_ms2_n_neighbors != defaults.dia_ms2_n_neighbors, "dia_ms2_n_neighbors");
+    check(config.dia_ms2_min_support != defaults.dia_ms2_min_support, "dia_ms2_min_support");
+    check(config.dia_ms2_centroid != defaults.dia_ms2_centroid, "dia_ms2_centroid");
+    check(config.ms1_n_neighbors != defaults.ms1_n_neighbors, "ms1_n_neighbors");
+    check(config.ms1_min_support != defaults.ms1_min_support, "ms1_min_support");
+    check(config.ms1_max_rt_distance_sec != defaults.ms1_max_rt_distance_sec, "ms1_max_rt_distance_sec");
+    check(config.pressure_compensation != defaults.pressure_compensation, "pressure_compensation");
+    check(config.tims_calibration_strategy == Strategy::RATIONAL, "tims_calibration_strategy RATIONAL");
+    check(config.calibrate != defaults.calibrate, "calibrate");
+    check(config.calibration_tolerance != defaults.calibration_tolerance, "calibration_tolerance");
+    if (names.empty()) return;
+    throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+      "'" + path + "' holds Bruker TSF data (timsTOF without ion mobility), to which these BrukerTimsFile options do not "
+      "apply (they concern ion mobility or DDA-PASEF precursors): " + names + ". Leave them at their defaults");
+  }
+
+  // m/z of TSF data from the Bruker SDK (timsdata.dll / libtimsdata.so), whose TSF functions open the .d directory
+  class TsfSdkTof2MzConverter final : public Tof2MzConverter
+  {
+  public:
+    /// @throws std::runtime_error if the library or one of its TSF functions cannot be loaded, or tsf_open() fails
+    TsfSdkTof2MzConverter(const std::string& lib_path, const std::string& d_path) :
+      lib_(lib_path), d_path_(d_path)
+    {
+      tsf_open_ = lib_.symbol_lookup<OpenFunction>("tsf_open");
+      tsf_close_ = lib_.symbol_lookup<CloseFunction>("tsf_close");
+      tsf_get_last_error_string_ = lib_.symbol_lookup<ErrorFunction>("tsf_get_last_error_string");
+      tsf_index_to_mz_ = lib_.symbol_lookup<ConvertFunction>("tsf_index_to_mz");
+      tsf_mz_to_index_ = lib_.symbol_lookup<ConvertFunction>("tsf_mz_to_index");
+      handle_ = tsf_open_(d_path.c_str(), 1); // the recalibrated state, as BrukerTof2MzConverter opens TDF data
+      if (handle_ == 0) throw std::runtime_error("tsf_open(" + d_path + ") failed: " + lastError_());
+    }
+
+    ~TsfSdkTof2MzConverter() override
+    {
+      if (handle_ != 0) tsf_close_(handle_);
+    }
+
+    void convert(uint32_t frame_id, double* mzs, const double* tofs, uint32_t size) override
+    {
+      if (size > 0 && tsf_index_to_mz_(handle_, frame_id, tofs, mzs, size) == 0)
+      {
+        throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, d_path_,
+          "frame " + std::to_string(frame_id) + ": Bruker SDK tsf_index_to_mz(): " + lastError_());
+      }
+    }
+
+    void convert(uint32_t frame_id, double* mzs, const uint32_t* tofs, uint32_t size) override
+    {
+      const std::vector<double> indices(tofs, tofs + size);
+      convert(frame_id, mzs, indices.data(), size);
+    }
+
+    void inverse_convert(uint32_t frame_id, uint32_t* tofs, const double* mzs, uint32_t size) override
+    {
+      std::vector<double> indices(size);
+      if (size > 0 && tsf_mz_to_index_(handle_, frame_id, mzs, indices.data(), size) == 0)
+      {
+        throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, d_path_,
+          "frame " + std::to_string(frame_id) + ": Bruker SDK tsf_mz_to_index(): " + lastError_());
+      }
+      for (uint32_t i = 0; i < size; ++i) tofs[i] = indices[i] > 0.0 ? static_cast<uint32_t>(indices[i] + 0.5) : 0;
+    }
+
+    std::string description() override
+    {
+      return "Bruker SDK (TSF)";
+    }
+
+  private:
+    using OpenFunction = uint64_t(const char*, uint32_t);
+    using CloseFunction = void(uint64_t);
+    using ErrorFunction = uint32_t(char*, uint32_t);
+    using ConvertFunction = uint32_t(uint64_t, int64_t, const double*, double*, uint32_t);
+
+    std::string lastError_() const
+    {
+      std::array<char, 1024> buffer{};
+      tsf_get_last_error_string_(buffer.data(), static_cast<uint32_t>(buffer.size()));
+      buffer.back() = '\0';
+      return buffer.data();
+    }
+
+    LoadedLibraryHandle lib_;
+    std::string d_path_; ///< the .d directory, for the errors of convert() and inverse_convert()
+    OpenFunction* tsf_open_ = nullptr;
+    CloseFunction* tsf_close_ = nullptr;
+    ErrorFunction* tsf_get_last_error_string_ = nullptr;
+    ConvertFunction* tsf_index_to_mz_ = nullptr;
+    ConvertFunction* tsf_mz_to_index_ = nullptr;
+    uint64_t handle_ = 0;
+  };
+
+  // The m/z converter for the TSF data in @p d_path, by the rules of openTimsDataHandle() for TDF data: the MzCalibration
+  // table (unless LINEAR), else the linear model of GlobalMetadata; replaced by the Bruker SDK if one is given (AUTO,
+  // BRUKER_SDK). @p global: the GlobalMetadata table. With an MzCalibration table that OpenMS cannot use (e.g. another
+  // ModelType) and no linear model, only the SDK gives m/z (the SDK needs the MzCalibration table as well).
+  static std::unique_ptr<Tof2MzConverter> openTSFMzConverter(const std::string& d_path, const Config& config,
+                                                             const std::map<std::string, std::string>& global)
+  {
+    using Strategy = Config::TimsCalibrationStrategy;
+    const Strategy strategy = config.tims_calibration_strategy;
+    std::unique_ptr<Tof2MzConverter> converter;
+    if (strategy != Strategy::LINEAR) converter = tryCreateMzCalibrationConverter(d_path);
+    if (!converter)
+    {
+      // linear in sqrt(m/z) over the acquisition range, as opentims' OpenSourceTof2MzConverterFactory for TDF data
+      const auto value = [&global](const std::string& key)
+      {
+        const auto it = global.find(key);
+        return it == global.end() ? 0.0 : std::atof(it->second.c_str());
+      };
+      const double mz_min = value("MzAcqRangeLower"), mz_max = value("MzAcqRangeUpper");
+      const double num_samples = value("DigitizerNumSamples");
+      if (mz_min > 0.0 && mz_max > mz_min && num_samples >= 1.0)
+      {
+        if (strategy != Strategy::LINEAR)
+        {
+          OPENMS_LOG_WARN << "TSF m/z calibration: MzCalibration table not usable, using the linear "
+                             "approximation from GlobalMetadata (errors of tens of ppm are possible)" << std::endl;
+        }
+        const auto software = global.find("AcquisitionSoftware");
+        const bool otof_control = software != global.end() && software->second == "Bruker otofControl";
+        converter = std::make_unique<OpenSourceTof2MzConverter>(mz_min, mz_max, static_cast<uint32_t>(num_samples), otof_control);
+      }
+    }
+
+    if (strategy == Strategy::AUTO || strategy == Strategy::BRUKER_SDK)
+    {
+      std::string sdk_path = config.bruker_sdk_path;
+      if (sdk_path.empty())
+      {
+        const char* env = std::getenv("OPENMS_BRUKER_SDK_PATH");
+        if (env) sdk_path = env;
+      }
+      if (!sdk_path.empty())
+      {
+        try
+        {
+          converter = std::make_unique<TsfSdkTof2MzConverter>(sdk_path, d_path);
+          OPENMS_LOG_INFO << "TSF calibration: Bruker SDK (m/z) [" << sdk_path << "]" << std::endl;
+          OPENMS_LOG_INFO << BRUKER_SDK_ATTRIBUTION << std::endl;
+        }
+        catch (const std::exception& e)
+        {
+          if (strategy == Strategy::BRUKER_SDK)
+          {
+            throw Exception::FileNotReadable(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+              std::string("Bruker SDK failed: ") + e.what());
+          }
+          // the SDK is optional: say so visibly, then continue without it
+          OPENMS_LOG_WARN << "Bruker SDK '" << sdk_path << "' could not be used (" << e.what()
+                          << "); continuing without it (m/z from the analysis.tsf calibration tables)" << std::endl;
+        }
+      }
+      else if (strategy == Strategy::BRUKER_SDK)
+      {
+        throw Exception::FileNotReadable(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+          "Bruker SDK path not set (use OPENMS_BRUKER_SDK_PATH or Config::bruker_sdk_path)");
+      }
+    }
+    if (!converter)
+    {
+      throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, d_path,
+        "analysis.tsf has no usable m/z calibration: neither an MzCalibration table nor MzAcqRangeLower, MzAcqRangeUpper "
+        "and DigitizerNumSamples in GlobalMetadata, and no usable Bruker SDK");
+    }
+    return converter;
+  }
+
+  struct BrukerTimsFile::TSFRun
+  {
+    struct Frame
+    {
+      uint32_t id = 0;
+      double time = 0.0;      ///< Frames.Time (s)
+      int ms_level = 1;       ///< 1 for MsMsType 0, else 2
+      uint32_t num_peaks = 0; ///< of the line spectrum
+      uint64_t offset = 0;    ///< of the frame's block in analysis.tsf_bin (Frames.TimsId)
+    };
+
+    std::string d_path;
+    std::vector<Frame> frames; ///< the frames to read, by retention time (MS1 first among equal times)
+    std::unordered_map<uint32_t, Precursor> precursors;   ///< of MS/MS frames (FrameMsMsInfo)
+    std::unordered_map<uint32_t, std::string> spot_names; ///< MaldiFrameInfo.SpotName of MALDI frames
+    std::unique_ptr<Tof2MzConverter> mz_converter;
+
+    /// Reads the metadata of the TSF data in the .d directory @p d_path (given by the caller as @p path)
+    TSFRun(const std::string& path, const std::string& d_path, const Config& config);
+  };
+
+  BrukerTimsFile::TSFRun::TSFRun(const std::string& path, const std::string& d_path, const Config& config) :
+    d_path(d_path)
+  {
+    rejectIonMobilityOptions(path, config);
+    SQLite::Database db(d_path + "/analysis.tsf", SQLite::OPEN_READONLY);
+
+    std::map<std::string, std::string> global;
+    {
+      SQLite::Statement query(db, "SELECT Key, Value FROM GlobalMetadata");
+      while (query.executeStep()) global[query.getColumn(0).getString()] = query.getColumn(1).getString();
+    }
+    // The line spectra of all TSF data checked are zstd-compressed with TimsCompressionType 3
+    const auto compression = global.find("TimsCompressionType");
+    if (compression != global.end() && std::atoi(compression->second.c_str()) != 3)
+    {
+      throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, path,
+        "Bruker TSF data with TimsCompressionType " + compression->second + " is not supported. Only TimsCompressionType 3 "
+        "(zstd-compressed line spectra) can be read");
+    }
+    checkFrameOffsets(d_path); // before the first spectrum goes to a consumer
+    // before the consumer gets anything, as for TDF data (opentims in openTimsDataHandle())
+    if (!File::readable(d_path + "/analysis.tsf_bin"))
+    {
+      throw Exception::FileNotReadable(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, d_path + "/analysis.tsf_bin");
+    }
+    mz_converter = openTSFMzConverter(d_path, config, global);
+
+    std::vector<Frame> all;
+    {
+      SQLite::Statement query(db, "SELECT Id, Time, MsMsType, NumPeaks, TimsId FROM Frames ORDER BY Id");
+      while (query.executeStep())
+      {
+        Frame frame;
+        frame.id = static_cast<uint32_t>(query.getColumn(0).getInt64());
+        frame.time = query.getColumn(1).getDouble();
+        frame.ms_level = query.getColumn(2).getInt() == 0 ? 1 : 2;
+        frame.num_peaks = static_cast<uint32_t>(query.getColumn(3).getInt64());
+        // a frame without a block (TimsId NULL) can have no peaks: 0 would be the offset of the first frame's block
+        if (query.getColumn(4).isNull() && frame.num_peaks > 0)
+        {
+          throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, path,
+            "analysis.tsf is corrupt: frame " + std::to_string(frame.id) + " has " + std::to_string(frame.num_peaks)
+            + " peaks, but no offset into analysis.tsf_bin (TimsId NULL)");
+        }
+        frame.offset = static_cast<uint64_t>(query.getColumn(4).getInt64());
+        all.push_back(frame);
+      }
+    }
+    if (all.empty()) return;
+
+    // The frame_id and retention time ranges (one spectrum per frame: selecting frames selects spectra)
+    const Config eff = resolveEffectiveConfig(db, config, all.front().id, all.back().id);
+    const bool rt_set = config.rt_min_sec > 0.0 || std::isfinite(config.rt_max_sec);
+    for (int level = 1; level <= 2; ++level)
+    {
+      if ((level == 1 && !config.load_ms1) || (level == 2 && !config.load_ms2)) continue;
+      for (const Frame& frame : all)
+      {
+        if (frame.ms_level != level || !frameInRange(frame.id, eff) || (rt_set && !rtInRange(frame.time, config))) continue;
+        frames.push_back(frame);
+      }
+    }
+    std::stable_sort(frames.begin(), frames.end(), [](const Frame& a, const Frame& b) { return a.time < b.time; });
+
+    if (config.load_ms2 && db.tableExists("FrameMsMsInfo"))
+    {
+      SQLite::Statement query(db, "SELECT Frame, TriggerMass, IsolationWidth, PrecursorCharge, CollisionEnergy FROM FrameMsMsInfo");
+      while (query.executeStep())
+      {
+        Precursor precursor;
+        precursor.setMZ(query.getColumn(1).getDouble());
+        const double width = query.getColumn(2).isNull() ? 0.0 : query.getColumn(2).getDouble();
+        precursor.setIsolationWindowLowerOffset(width / 2.0);
+        precursor.setIsolationWindowUpperOffset(width / 2.0);
+        if (!query.getColumn(3).isNull()) precursor.setCharge(query.getColumn(3).getInt());
+        precursor.setActivationMethods({Precursor::ActivationMethod::CID});
+        if (!query.getColumn(4).isNull())
+        {
+          // the meta value "collision energy" in eV (MS:1000045 in mzML), as for DDA-PASEF precursors of TDF data
+          DataValue collision_energy(query.getColumn(4).getDouble());
+          collision_energy.setUnitType(DataValue::UnitType::UNIT_ONTOLOGY);
+          collision_energy.setUnit(266); // UO:0000266 electronvolt
+          precursor.setMetaValue("collision energy", collision_energy);
+        }
+        precursors[static_cast<uint32_t>(query.getColumn(0).getInt64())] = std::move(precursor);
+      }
+    }
+
+    if (db.tableExists("MaldiFrameInfo"))
+    {
+      try
+      {
+        SQLite::Statement query(db, "SELECT Frame, SpotName FROM MaldiFrameInfo");
+        while (query.executeStep())
+        {
+          if (!query.getColumn(1).isNull()) spot_names[static_cast<uint32_t>(query.getColumn(0).getInt64())] = query.getColumn(1).getString();
+        }
+      }
+      catch (const SQLite::Exception&)
+      {
+        // no SpotName column: the spectra get no spot name
+      }
+    }
+  }
+
+  void BrukerTimsFile::loadTSF_(TSFRun& run, const SpectrumSink& sink)
+  {
+    const std::string bin_path = run.d_path + "/analysis.tsf_bin";
+    std::ifstream bin(to_path(bin_path), std::ios::binary);
+    if (!bin)
+    {
+      throw Exception::FileNotReadable(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, bin_path);
+    }
+    std::error_code ec;
+    const std::uintmax_t bin_size = std::filesystem::file_size(to_path(bin_path), ec);
+    if (ec)
+    {
+      throw Exception::FileNotReadable(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, bin_path);
+    }
+    const auto corrupt = [&bin_path](uint32_t frame_id, const std::string& what)
+    {
+      return Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, bin_path,
+                                   "frame " + std::to_string(frame_id) + ": " + what + " (does not match analysis.tsf)");
+    };
+    std::string compressed, line;
+    std::vector<double> indices, mzs;
+    std::vector<float> intensities;
+    const FramePolarity polarity(run.d_path + "/analysis.tsf"); // the same table as in analysis.tdf
+
+    startProgress(0, run.frames.size(), "Loading frames");
+    for (size_t i = 0; i < run.frames.size(); ++i)
+    {
+      const TSFRun::Frame& frame = run.frames[i];
+      MSSpectrum spec;
+      spec.setRT(frame.time);
+      spec.setMSLevel(frame.ms_level);
+      spec.setType(SpectrumSettings::SpectrumType::CENTROID); // line spectra: centroided by the acquisition
+      spec.setNativeID("frame=" + StringUtils::toStr(frame.id));
+      polarity.apply(spec);
+      if (frame.ms_level == 2)
+      {
+        const auto precursor = run.precursors.find(frame.id);
+        if (precursor != run.precursors.end()) spec.setPrecursors({precursor->second});
+      }
+      const auto spot = run.spot_names.find(frame.id);
+      if (spot != run.spot_names.end() && !spot->second.empty()) spec.setMetaValue("maldi_spot_id", spot->second);
+
+      const uint32_t n = frame.num_peaks;
+      if (n > 0)
+      {
+        uint32_t header[2] = {0, 0}; // block size, line spectrum size
+        bin.seekg(static_cast<std::streamoff>(frame.offset));
+        bin.read(reinterpret_cast<char*>(header), sizeof(header));
+        if (!bin || header[1] == 0 || header[0] < sizeof(header) || header[1] > header[0] - sizeof(header))
+        {
+          throw corrupt(frame.id, "no line spectrum block at offset " + std::to_string(frame.offset));
+        }
+        // the block lies in the file: a corrupt size cannot take more memory than the file has
+        if (header[0] > bin_size - frame.offset)
+        {
+          throw corrupt(frame.id, "a block of " + std::to_string(header[0]) + " bytes at offset " + std::to_string(frame.offset)
+                                  + " ends behind the end of the file (" + std::to_string(bin_size) + " bytes)");
+        }
+        compressed.resize(header[1]);
+        bin.read(compressed.data(), header[1]);
+        if (!bin) throw corrupt(frame.id, "truncated line spectrum block");
+        const size_t expected = static_cast<size_t>(n) * (sizeof(double) + sizeof(float));
+        try
+        {
+          // at most the size of NumPeaks peaks: a corrupt block cannot take more memory
+          ZstdCompression::uncompressData(compressed.data(), compressed.size(), line, expected, expected);
+        }
+        catch (const Exception::ConversionError& e)
+        {
+          throw corrupt(frame.id, std::string("line spectrum for ") + std::to_string(n) + " peaks: " + e.what());
+        }
+        if (line.size() != expected)
+        {
+          throw corrupt(frame.id, "line spectrum of " + std::to_string(line.size()) + " bytes for " + std::to_string(n) + " peaks");
+        }
+        indices.resize(n);
+        intensities.resize(n);
+        mzs.resize(n);
+        std::memcpy(indices.data(), line.data(), n * sizeof(double));
+        std::memcpy(intensities.data(), line.data() + n * sizeof(double), n * sizeof(float));
+        run.mz_converter->convert(frame.id, mzs.data(), indices.data(), n);
+        spec.resize(n);
+        for (uint32_t k = 0; k < n; ++k)
+        {
+          spec[k].setMZ(mzs[k]);
+          spec[k].setIntensity(intensities[k]);
+        }
+      }
+      sink(spec);
+      setProgress(i);
+    }
+    endProgress();
+  }
+
+  // =====================================================================
   // load() overloads
   // =====================================================================
   void BrukerTimsFile::load(const std::string& path, MSExperiment& exp)
@@ -3162,6 +3622,16 @@ namespace OpenMS
     const auto unpacked = takeUnpacked_(path); // holds an unpacked .d.zip for this call
     const std::string d_path = unpacked ? unpacked->d_path : path;
     if (config.export_mode != Config::FRAME) rejectMaldiImaging(path, d_path);
+    if (detectFormat(d_path) == DataFormat::TSF)
+    {
+      TSFRun run(path, d_path, config);
+      exp.reserveSpaceSpectra(run.frames.size());
+      loadTSF_(run, [&exp](MSSpectrum& spec) { exp.addSpectrum(std::move(spec)); });
+      loadExperimentalSettings_(path, d_path, exp);
+      exp.sortSpectra(true); // by RT already; sorts the peaks by m/z
+      exp.updateRanges();
+      return;
+    }
     auto handle = openTimsDataHandle(d_path, config);
 
     std::string tdf_path = d_path + "/analysis.tdf";
@@ -3227,6 +3697,21 @@ namespace OpenMS
     const auto unpacked = takeUnpacked_(path); // holds an unpacked .d.zip for this call
     const std::string d_path = unpacked ? unpacked->d_path : path;
     if (config.export_mode != Config::FRAME) rejectMaldiImaging(path, d_path);
+    if (detectFormat(d_path) == DataFormat::TSF)
+    {
+      // One spectrum per frame, read in order of retention time
+      TSFRun run(path, d_path, config);
+      callConsumer([&] { consumer->setExpectedSize(run.frames.size(), 0); });
+      ExperimentalSettings settings;
+      loadExperimentalSettings_(path, d_path, settings);
+      callConsumer([&] { consumer->setExperimentalSettings(settings); });
+      loadTSF_(run, [consumer](MSSpectrum& spec)
+      {
+        spec.sortByPosition(); // by m/z, as load() returns them
+        callConsumer([&] { consumer->consumeSpectrum(spec); });
+      });
+      return;
+    }
     auto handle = openTimsDataHandle(d_path, config);
 
     std::string tdf_path = d_path + "/analysis.tdf";

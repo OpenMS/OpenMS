@@ -8,6 +8,7 @@
 
 #include "DIAQCMetrics.h"
 
+#include <OpenMS/config.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/DATASTRUCTURES/DataValue.h>
@@ -21,6 +22,10 @@
 #include <OpenMS/METADATA/Precursor.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/SYSTEM/PathUtils.h>
+
+#ifdef WITH_OPENTIMS
+  #include <OpenMS/FORMAT/BrukerTimsFile.h>
+#endif
 
 #include <nlohmann/json.hpp>
 
@@ -168,9 +173,16 @@ namespace OpenMS
       return "";
     }
 
-    /// PSI-MS term (accession, name) of an input file format, for the mzQC inputFile
-    std::pair<std::string, std::string> fileFormatTerm(FileTypes::Type type)
+    /// PSI-MS term (accession, name) of the format of the input file @p path of type @p type, for the mzQC inputFile
+    std::pair<std::string, std::string> fileFormatTerm(FileTypes::Type type, [[maybe_unused]] const std::string& path)
     {
+#ifdef WITH_OPENTIMS
+      // FileTypes::BRUKER_TDF stands for TDF and TSF data (timsTOF with and without ion mobility)
+      if (type == FileTypes::BRUKER_TDF && BrukerTimsFile::detectFormat(path) == BrukerTimsFile::DataFormat::TSF)
+      {
+        return {"MS:1003282", "Bruker TSF format"};
+      }
+#endif
       switch (type)
       {
         case FileTypes::RAW: return {"MS:1000563", "Thermo RAW format"};
@@ -735,7 +747,7 @@ namespace OpenMS
       json input_file;
       input_file["location"] = fileURI(run.input_path);
       input_file["name"] = File::basename(run.input_path);
-      const auto [format_accession, format_name] = fileFormatTerm(run.input_type);
+      const auto [format_accession, format_name] = fileFormatTerm(run.input_type, run.input_path);
       input_file["fileFormat"] = json{{"accession", format_accession}, {"name", format_name}};
       json properties = json::array();
       auto addProperty = [&](const std::string& accession, const std::string& value)

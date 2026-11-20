@@ -12,6 +12,7 @@
 #include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
 #include <OpenMS/SYSTEM/File.h>
 
+#include <cstdio>
 #include <iostream>
 #include <fstream>
 #include <map>
@@ -137,7 +138,13 @@ namespace OpenMS
     }
     if (value.hasUnit())
     {
-      std::string un = *(this->units.begin());
+      // Format the DataValue's OWN unit (the same way MzMLHandler::writeCV_
+      // does), not this->units.begin() -- `units` is the set of units this
+      // CV TERM allows in general, which has nothing to do with which one of
+      // those (possibly several) units the actual value being written uses.
+      char buf[8];
+      snprintf(buf, sizeof(buf), "%07d", value.getUnit()); // all CV use 7 digit identifiers padded with zeros
+      std::string un = (value.getUnitType() == OpenMS::DataValue::UnitType::UNIT_ONTOLOGY ? "UO:" : "MS:") + std::string(buf);
       s += "\" unitAccession=\"" + un + "\" unitCvRef=\"" + StringUtils::prefix(un, 2);
       // TODO: Currently we do not store the unit name in the CVTerm, only the
       // accession number (we would need the ControlledVocabulary to look up

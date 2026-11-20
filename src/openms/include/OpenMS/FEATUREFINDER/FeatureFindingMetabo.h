@@ -206,6 +206,14 @@ private:
      * the first tree isotopic traces of each feature and uses the scaled
      * ratios between the traces as input.
      *
+     * A hypothesis with fewer than four traces lacks some of these ratios. If
+     * 'isotope_filtering_missing_traces' is "unknown" (default), the intensity
+     * of a missing trace is regarded as unknown but not higher than the weakest
+     * detected trace of the hypothesis, and the hypothesis is legal if the model
+     * accepts any such intensity. If it is "zero", missing traces get a ratio of
+     * zero (historic behavior), which the model rejects for larger molecules
+     * whose higher isotopic traces fall below the detection limit.
+     *
      * Reference: Kenar et al., doi: 10.1074/mcp.M113.031278
      *
      * @param[in] feat_hypo A feature hypotheses containing mass traces
@@ -237,13 +245,31 @@ private:
      * An alternative scoring was added which test if isotope m/z distances lie in an expected m/z window.
      * This window is computed from a given set of elements.
      *
+     * The m/z uncertainty of the two traces (see traceMZVariance_) widens the
+     * tolerance of either scoring.
+     *
      * @param[in] mt1 First mass trace
      * @param[in] mt2 Second mass trace
+     * @param[in] mt_variances Sum of the m/z variances of the two traces (see traceMZVariance_)
      * @param[in] isotopic_position Isotopic position
      * @param[in] charge Charge
      * @param[in] isotope_window Isotope window
     */
-    double scoreMZ_(const MassTrace& mt1, const MassTrace& mt2, Size isotopic_position, Size charge, Range isotope_window) const;
+    double scoreMZ_(const MassTrace& mt1, const MassTrace& mt2, double mt_variances, Size isotopic_position, Size charge, Range isotope_window) const;
+
+    /** @brief m/z variance of a mass trace used by the m/z score
+     *
+     * With 'mz_scoring_trace_uncertainty' = "standard_error" (default) this is
+     * the variance of the intensity-weighted mean m/z of the trace, i.e. the
+     * squared spread of its peaks (MassTrace::getCentroidSD()) divided by the
+     * effective number of peaks (sum w)^2 / sum w^2, plus the square of
+     * 'mz_scoring_min_ppm' at the m/z of the trace. With "spread" it is the
+     * squared spread of the peaks (historic behavior).
+     *
+     * @param[in] mt Mass trace
+     * @return m/z variance (Th^2)
+    */
+    double traceMZVariance_(const MassTrace& mt) const;
 
     /**
      * @brief score isotope m/z distance based on the expected m/z distances using C13-C12 or Kenar method
@@ -270,14 +296,14 @@ private:
      * Computes the similarity of the two peak shapes using cosine similarity
      * (see computeCosineSim_) if some conditions are fulfilled. The RT overlap
      * of the two peaks at FWHM must exceed the fraction given by the
-     * 'min_isotope_rt_overlap' parameter. By default ('isotope_rt_overlap_reference'
-     * = "longer") the overlap is measured against the longer trace with a
-     * threshold of 0.7 (i.e. 70 % overlap), as described in Kenar et al. When
-     * 'isotope_rt_overlap_reference' is set to "shorter", the overlap is measured
-     * against the shorter trace instead (better for low-intensity isotope traces
-     * that are much shorter than the monoisotopic trace) and, additionally, the
+     * 'min_isotope_rt_overlap' parameter (default 0.7, i.e. 70 % overlap). By
+     * default ('isotope_rt_overlap_reference' = "shorter") the overlap is
+     * measured against the shorter trace (low-intensity isotope traces are
+     * usually much shorter than the monoisotopic trace) and, additionally, the
      * apex (most intense peak) of the longer trace must fall within the RT range
-     * of the shorter trace.
+     * of the shorter trace. When 'isotope_rt_overlap_reference' is set to
+     * "longer", the overlap is measured against the longer trace instead, as
+     * described in Kenar et al. (historic behavior).
      *
      * @note this only works for equally sampled mass traces, e.g. they need to
      * come from the same map (not for SRM measurements for example).
@@ -307,10 +333,11 @@ private:
      * The resulting possible groupings are appended to output_hypotheses.
      *
      * @param[in] candidates Candidate mass traces
+     * @param[in] mz_variances m/z variance of each candidate (see traceMZVariance_)
      * @param[in] total_intensity Total intensity
      * @param[out] output_hypotheses Output feature hypotheses
     */
-    void findLocalFeatures_(const std::vector<const MassTrace*>& candidates, double total_intensity, std::vector<FeatureHypothesis>& output_hypotheses) const;
+    void findLocalFeatures_(const std::vector<const MassTrace*>& candidates, const std::vector<double>& mz_variances, double total_intensity, std::vector<FeatureHypothesis>& output_hypotheses) const;
 
     /// SVM model (wraps LIBSVM) used to filter isotope patterns; loaded via loadIsotopeModel_()
     std::unique_ptr<SimpleSVM> isotope_filt_svm_;
@@ -332,6 +359,9 @@ private:
     bool enable_RT_filtering_;
     double min_isotope_rt_overlap_;
     bool isotope_rt_overlap_use_shorter_;
+    bool isotope_filter_missing_unknown_;
+    bool mz_scoring_trace_se_;
+    double mz_scoring_min_ppm_;
     std::string isotope_filtering_model_;
     bool use_smoothed_intensities_;
     bool report_smoothed_intensities_;

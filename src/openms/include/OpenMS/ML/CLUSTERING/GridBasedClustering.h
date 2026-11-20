@@ -54,7 +54,10 @@ public:
      * @brief operators for comparisons
      * (for multiset)
      */
-    bool operator<(const MinimumDistance& other) const;
+    bool operator<(const MinimumDistance& other) const
+    {
+      return distance_ < other.distance_;
+    }
     bool operator>(const MinimumDistance& other) const;
     bool operator==(const MinimumDistance& other) const;
 
@@ -222,11 +225,12 @@ public:
         new_B.insert(new_B.end(), B1.begin(), B1.end());
         new_B.insert(new_B.end(), B2.begin(), B2.end());
 
-        GridBasedCluster new_cluster(DPosition<2>(new_x, new_y), new_box, new_points, new_A, new_B);
+        GridBasedCluster new_cluster(DPosition<2>(new_x, new_y), new_box, std::move(new_points), new_A, std::move(new_B));
 
-        clusters_.erase(cluster1_it);
+        // the merged cluster takes the place (index) of cluster 1
+        cluster1_it->second = std::move(new_cluster);
+        centres_[cluster_index1] = cluster1_it->second.getCentre();
         clusters_.erase(cluster2_it);
-        clusters_.insert(std::make_pair(cluster_index1, new_cluster));
 
         std::set<int> clusters_to_be_updated;
         clusters_to_be_updated.insert(cluster_index1);
@@ -447,6 +451,12 @@ private:
     std::map<int, GridBasedCluster> clusters_final_;
 
     /**
+    * @brief centres of the clusters in clusters_, indexed by cluster index
+    * (the same as their getCentre(), for the nearest neighbour search without looking up each cluster)
+    */
+    std::vector<Point> centres_;
+
+    /**
     * @brief list of minimum distances
     * stores the smallest of the distances in the head
     */
@@ -476,9 +486,11 @@ private:
                const std::vector<int>& properties_A, const std::vector<int>& properties_B)
     {
       // fill the grid with points to be clustered (initially each cluster contains a single point)
+      centres_.resize(data_x.size());
       for (unsigned i = 0; i < data_x.size(); ++i)
       {
         Point position(data_x[i], data_y[i]);
+        centres_[i] = position;
         Rectangle box(position, position);
 
         std::vector<int> pi;        // point indices
@@ -589,25 +601,24 @@ private:
           CellIndex cell_index2(cell_index);
           cell_index2.first += i;
           cell_index2.second += j;
-          if (grid_.isNonEmptyCell(cell_index2))
+          // (empty for a cell without clusters)
+          const std::list<int>& cluster_indices = grid_.getClusters(cell_index2);
+          for (std::list<int>::const_iterator cluster_index2 = cluster_indices.begin(); cluster_index2 != cluster_indices.end(); ++cluster_index2)
           {
-            const std::list<int>& cluster_indices = grid_.getClusters(cell_index2);
-            for (std::list<int>::const_iterator cluster_index2 = cluster_indices.begin(); cluster_index2 != cluster_indices.end(); ++cluster_index2)
+            if (*cluster_index2 != cluster_index)
             {
-              if (*cluster_index2 != cluster_index)
-              {
-                const GridBasedCluster& cluster2 = clusters_.find(*cluster_index2)->second;
-                const Point& centre2 = cluster2.getCentre();
-                double distance = metric_(centre, centre2);
+              const Point& centre2 = centres_[*cluster_index2];
+              double distance = metric_(centre, centre2);
 
-                if (distance < min_dist || nearest_neighbour == -1)
+              if (distance < min_dist || nearest_neighbour == -1)
+              {
+                // If clusters cannot be merged anyhow, they are no nearest neighbours.
+                // (Without property A, cluster can be merged with any other, see mergeVeto_().)
+                bool veto = cluster.getPropertyA() != -1 && mergeVeto_(cluster, clusters_.find(*cluster_index2)->second);
+                if (!veto)
                 {
-                  bool veto = mergeVeto_(cluster, cluster2); // If clusters cannot be merged anyhow, they are no nearest neighbours.
-                  if (!veto)
-                  {
-                      min_dist = distance;
-                      nearest_neighbour = *cluster_index2;
-                  }
+                    min_dist = distance;
+                    nearest_neighbour = *cluster_index2;
                 }
               }
             }

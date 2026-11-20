@@ -17,31 +17,81 @@
 
 #include "FeatureMemoryPool.h"
 
+#include <cstdlib>
+#include <new>
+
+#if defined(__linux__)
+#include <sys/mman.h>
+#endif
+
 namespace OpenMS { namespace Internal { namespace Percolator {
+
+
+namespace {
+#if defined(__linux__)
+const std::size_t kHugePageSize = std::size_t(1) << 21;
+#endif
+}  // namespace
+
+void FeatureMemoryPool::BlockDeleter::operator()(double* block) const {
+#if defined(__linux__)
+  free(block);
+#else
+  delete[] block;
+#endif
+}
 
 void FeatureMemoryPool::createPool(size_t numFeatures) {
   numFeatures_ = static_cast<unsigned int>(numFeatures);
-  numRowsPerBlock_ = kBlockSize / numFeatures_;
+  rowStride_ = numFeatures_ + (svmRowsInPlace_ ? 1u : 0u);
+  numRowsPerBlock_ = kBlockSize / rowStride_;
   isInitialized_ = true;
 }
 
 void FeatureMemoryPool::createNewBlock() {
-  double* memStart = new double[numFeatures_ * numRowsPerBlock_]();
-  memStarts_.push_back(memStart);
+  // every row is completely written by its user, so no zero-initialization
+  const std::size_t numDoubles =
+      static_cast<std::size_t>(rowStride_) * numRowsPerBlock_;
+#if defined(__linux__)
+  void* block = NULL;
+  if (hasInterceptColumn()) {
+    // With in-place training the SVM reads the rows in score order, i.e.
+    // scattered over the pool, and 4 KiB pages would cost a TLB miss for
+    // most rows. Blocks aligned to 2 MiB can be backed by transparent huge
+    // pages, also when the system enables them only on request (madvise).
+    const std::size_t bytes =
+        (numDoubles * sizeof(double) + kHugePageSize - 1) / kHugePageSize *
+        kHugePageSize;
+    if (posix_memalign(&block, kHugePageSize, bytes) != 0) {
+      block = NULL;
+    }
+#ifdef MADV_HUGEPAGE
+    if (block != NULL) {
+      madvise(block, bytes, MADV_HUGEPAGE);  // a hint, failure is harmless
+    }
+#endif
+  } else {
+    block = malloc(numDoubles * sizeof(double));
+  }
+  if (block == NULL) {
+    throw std::bad_alloc();
+  }
+  memStarts_.emplace_back(static_cast<double*>(block));
+#else
+  memStarts_.emplace_back(new double[numDoubles]);
+#endif
 }
 
 void FeatureMemoryPool::destroyPool() {
-  for (size_t i = 0; i < memStarts_.size(); ++i) {
-    if (memStarts_.at(i) != NULL) {
-      delete[] memStarts_.at(i);
-      memStarts_.at(i) = NULL;
-    }
-  }
+  memStarts_.clear();
+  freeRows_.clear();
+  initializedRows_ = 0;
   isInitialized_ = false;
 }
 
 double* FeatureMemoryPool::addressFromIdx(unsigned int i) const {
-  return memStarts_.at(i / numRowsPerBlock_) + (i % numRowsPerBlock_) * numFeatures_;
+  return memStarts_.at(i / numRowsPerBlock_).get() +
+         static_cast<std::size_t>(i % numRowsPerBlock_) * rowStride_;
 }
 
 double* FeatureMemoryPool::allocate() {
@@ -54,6 +104,9 @@ double* FeatureMemoryPool::allocate() {
   }
   double* ret = freeRows_.back();
   freeRows_.pop_back();
+  if (hasInterceptColumn()) {
+    ret[numFeatures_] = 1.0;  // the intercept column of the SVM
+  }
   return ret;
 }
 

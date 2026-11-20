@@ -55,12 +55,6 @@ add_subdirectory(openswathalgo)
 add_subdirectory(openms)
 add_subdirectory(openms_cli)
 
-if(WITH_GUI)
-  #------------------------------------------------------------------------------
-  # add OpenMS_GUI specific tests
-  add_subdirectory(openms_gui)
-endif()
-
 #------------------------------------------------------------------------------
 # restore old CMAKE_RUNTIME_OUTPUT_DIRECTORY
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${_TMP_CMAKE_RUNTIME_OUTPUT_DIRECTORY})

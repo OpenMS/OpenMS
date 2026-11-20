@@ -494,8 +494,16 @@ namespace ArrowIOHelpers
     @brief Fetch a named column from a table, combining chunks if needed
 
     Returns nullptr if the column is missing or contains no chunks. When
-    @p required is true, missing columns are logged as errors.
+    @p required is true, missing columns are logged as errors. @p context (e.g. the calling
+    class) prefixes the log messages.
   */
+  OPENMS_DLLAPI std::shared_ptr<arrow::Array> getColumn(
+    const std::shared_ptr<arrow::Table>& table,
+    const std::string& name,
+    bool required,
+    const char* context);
+
+  /// getColumn() with "ArrowIOHelpers" as the log context
   OPENMS_DLLAPI std::shared_ptr<arrow::Array> getColumn(
     const std::shared_ptr<arrow::Table>& table,
     const std::string& name,

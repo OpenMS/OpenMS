@@ -19,6 +19,7 @@
 #include <OpenMS/DATASTRUCTURES/ParamValue.h>
 #include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <OpenMS/FORMAT/ArrowSchemaRegistry.h>
+#include <OpenMS/FORMAT/ParquetFile.h>
 #include <OpenMS/IONMOBILITY/IMTypes.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
@@ -94,19 +95,7 @@ namespace OpenMS
     /// @p value as a JSON string literal
     std::string jsonString(const std::string& value)
     {
-      static const char* const hex = "0123456789abcdef";
-      std::string out = "\"";
-      for (char ch : value)
-      {
-        const unsigned char c = static_cast<unsigned char>(ch);
-        if (c == '"' || c == '\\') { out += '\\'; out += ch; }
-        else if (c == '\n') { out += "\\n"; }
-        else if (c == '\t') { out += "\\t"; }
-        else if (c == '\r') { out += "\\r"; }
-        else if (c < 0x20) { out += "\\u00"; out += hex[c >> 4]; out += hex[c & 0x0F]; }
-        else { out += ch; }
-      }
-      return out + "\"";
+      return "\"" + ParquetFile::jsonEscape(value) + "\"";
     }
 
     /// @p value (a Param value) as JSON

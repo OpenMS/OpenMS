@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="https://www.openms.de/xml-stylesheet/IdXML.xsl" ?>
+<IdXML version="1.5" xsi:noNamespaceSchemaLocation="https://www.openms.de/xml-schema/IdXML_1_5.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<SearchParameters id="SP_0" db="MS1LabeledWorkflow_8.fasta" db_version="" taxonomy="" mass_type="monoisotopic" charges="" enzyme="unknown_enzyme" missed_cleavages="0" precursor_peak_tolerance="0" precursor_peak_tolerance_ppm="false" peak_mass_tolerance="0" peak_mass_tolerance_ppm="false" >
+		<VariableModification name="Label:13C(6)15N(2) (K)" />
+		<VariableModification name="Label:13C(6)15N(4) (R)" />
+	</SearchParameters>
+	<IdentificationRun date="0000-00-00T00:00:00" search_engine="synthetic" search_engine_version="" search_parameters_ref="SP_0" >
+		<ProteinIdentification score_type="" higher_score_better="true" significance_threshold="0.0" >
+			<ProteinHit id="PH_0" accession="PROT_A" score="0.0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_1" accession="PROT_B" score="0.0" sequence="" >
+			</ProteinHit>
+			<UserParam type="stringList" name="spectra_data" value="[MS1LabeledWorkflow_8_input.mzML]"/>
+		</ProteinIdentification>
+		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0.0" MZ="582.318974338471094" RT="130.5" spectrum_reference="scan=31" >
+			<PeptideHit score="1.0e-03" sequence="LVNELTEFAK" charge="2" protein_refs="PH_0" >
+				<UserParam type="string" name="target_decoy" value="target"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0.0" MZ="577.290023178970955" RT="131.5" spectrum_reference="scan=32" >
+			<PeptideHit score="2.0e-03" sequence="YVNDLAGHEK(Label:13C(6)15N(2))" charge="2" protein_refs="PH_1" >
+				<UserParam type="string" name="target_decoy" value="target"/>
+			</PeptideHit>
+		</PeptideIdentification>
+	</IdentificationRun>
+</IdXML>

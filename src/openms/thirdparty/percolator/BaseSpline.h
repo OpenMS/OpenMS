@@ -18,13 +18,12 @@
 #ifndef BASESPLINE_H_
 #define BASESPLINE_H_
 
-
 #include <assert.h>
 #include "Transform.h"
 #include "PackedVector.h"
-#include "PackedMatrix.h"
 
 namespace OpenMS { namespace Internal { namespace Percolator {
+
 
 class BaseSpline {
   public:
@@ -36,14 +35,15 @@ class BaseSpline {
     static double weightSlope;
     static double scaleAlpha;
     void roughnessPenaltyIRLS();
-    void roughnessPenaltyIRLS_Old();
-    void iterativeReweightedLeastSquares(double alpha);
+    // Penalized IRLS fit for a given alpha, from the current gnew. Returns
+    // false if the step size was still above stepEpsilon after 20 steps, or
+    // if a step failed (see reinschStep); g is then the last iterate.
+    bool iterativeReweightedLeastSquares(double alpha);
     void predict(const vector<double>& x, vector<double>& predict);
     void setData(const vector<double>& x);
     double predict(double xx) {
       return splineEval(xx);
     }
-    static void solveInPlace(PackedMatrix& mat, PackedVector& res);
   protected:
     virtual void calcPZW() {}
     virtual void initg() {
@@ -55,21 +55,18 @@ class BaseSpline {
       gamma = PackedVector(n-2);
     }
     virtual void limitg() {}
-    virtual void limitgamma() {}
-    void initiateQR();
-    double crossValidation(double alpha);
+    // One step of the Reinsch algorithm: solves
+    // (R + Q' alpha W^-1 Q) gamma = Q' z and sets gnew = z - alpha W^-1 Q gamma.
+    // Returns false, and changes nothing, if two knots are equal or a result
+    // is not finite.
+    bool reinschStep(double alpha);
     double evaluateSlope(double alpha);
-    pair<double, double> alphaLinearSearch(double min_p, double max_p,
-                                           double p1, double p2,
-                                           double cv1, double cv2);
     double alphaLinearSearchBA(double min_p, double max_p,
                                double p1, double p2,
                                double cv1, double cv2);
-    void testPerformance();
     Transform transf;
 
-    PackedMatrix Q, Qt, R;
-    PackedVector gnew, w, z, dx;
+    PackedVector gnew, w, z;
     PackedVector g, gamma;
     vector<double> x;
 };

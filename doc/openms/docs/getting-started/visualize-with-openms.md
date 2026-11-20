@@ -11,6 +11,10 @@ datasets as well as displaying input data and output data of an algorithm togeth
 {term}`TOPPView` is intended for visual inspection of the data by experimentalists as well as for analysis software by
 developers.
 
+TOPPView is one of the graphical tools of OpenMS. They are developed in
+[OpenMS-TOPP-GUI](https://github.com/OpenMS/OpenMS-TOPP-GUI) and installed with its installer on top of OpenMS
+(see [Installation](/about/installation.rst)).
+
 ## User interface
 
 The following image illustrates different components of TOPPView's user interface.
