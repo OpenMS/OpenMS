@@ -386,6 +386,8 @@ namespace OpenMS::OpenDIA
         if (a.used) anchors.emplace_back(a.precursor_id, a.run_rt);
       say("Calibration: passes=" + std::to_string(passes) + " used anchors=" + std::to_string(anchors.size()));
     }
+    if (options_.im_tolerance_scale != 1.0 && result.calibration.has_im)
+      result.calibration.im_tolerance *= options_.im_tolerance_scale;
     const CalibrationRT& cal = result.calibration;
     if (!cal.has_ms2) throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Calibration has no fragment mass model", path);
     say("Calibration: rt_tolerance_s=" + std::to_string(cal.tolerance_s) + " ms2_offset_ppm=" + std::to_string(cal.ms2_offset_ppm) +

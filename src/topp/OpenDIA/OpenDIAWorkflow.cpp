@@ -79,6 +79,10 @@ protected:
                           "between them is at most this fraction of the lower one (1 keeps every smoothed maximum)", false, true);
     setMinFloat_("valley_fraction", 0.0);
     setMaxFloat_("valley_fraction", 1.0);
+    registerDoubleOption_("im_tolerance_scale", "<factor>", 1.0, "Advanced: multiply the calibrated 1/K0 half width used for search and extraction "
+                          "(1 = as calibrated)", false, true);
+    setMinFloat_("im_tolerance_scale", 0.05);
+    setMaxFloat_("im_tolerance_scale", 4.0);
     registerIntOption_("trace_tensor_gb", "<GiB>", 64, "Advanced: hard cap on the 6-fragment trace tensor in GiB (about 6.1 KiB per candidate window with ion mobility); "
                        "raise it for very large libraries, memory permitting", false, true);
     setMinInt_("trace_tensor_gb", 1);
@@ -260,6 +264,7 @@ protected:
     options.search_im_min_support = static_cast<std::size_t>(getIntOption_("im_min_support"));
     options.max_peaks = static_cast<std::size_t>(getIntOption_("max_peaks"));
     options.search_valley_fraction = getDoubleOption_("valley_fraction");
+    options.im_tolerance_scale = getDoubleOption_("im_tolerance_scale");
     if (!(options.search_valley_fraction > 0.0))
     {
       writeLogError_("-valley_fraction must be in (0, 1].");
