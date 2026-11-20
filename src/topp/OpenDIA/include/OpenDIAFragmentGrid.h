@@ -18,6 +18,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <map>
+#include <memory>
 #include <utility>
 #include <vector>
 
@@ -159,7 +160,10 @@ namespace OpenMS::OpenDIA
     std::vector<std::uint32_t> by_apex_;  ///< Windows by apex (close order).
     std::size_t close_cursor_ = 0;
     std::vector<std::int32_t> slot_;      ///< Grid slot per window (-1 none).
-    std::vector<double> pool_;
+    /// Grid storage in fixed chunks of POOL_CHUNK grids: growing never copies or transiently doubles the open grids.
+    static constexpr std::size_t POOL_CHUNK = 4096;
+    std::vector<std::unique_ptr<double[]>> pool_;
+    double* slotGrid_(std::int32_t slot) const;
     std::vector<std::int32_t> free_;
     std::vector<std::array<float, FragmentGrid::EVIDENCE>> evidence_;
     std::map<std::pair<double, double>, Lane> lanes_;

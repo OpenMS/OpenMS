@@ -229,14 +229,21 @@ namespace OpenMS::OpenDIA
     {
       if (free_.empty())
       {
-        free_.push_back(static_cast<std::int32_t>(pool_.size() / CELLS));
-        pool_.resize(pool_.size() + CELLS, 0.0);
+        const std::size_t base = pool_.size() * POOL_CHUNK;
+        pool_.emplace_back(new double[POOL_CHUNK * CELLS]());
+        for (std::size_t s = POOL_CHUNK; s-- > 0;) free_.push_back(static_cast<std::int32_t>(base + s));
       }
       slot_[w] = free_.back();
       free_.pop_back();
       peak_open_ = std::max(peak_open_, ++open_);
     }
-    return pool_.data() + static_cast<std::size_t>(slot_[w]) * CELLS;
+    return slotGrid_(slot_[w]);
+  }
+
+  double* FragmentGridCollector::slotGrid_(std::int32_t slot) const
+  {
+    const auto s = static_cast<std::size_t>(slot);
+    return pool_[s / POOL_CHUNK].get() + (s % POOL_CHUNK) * CELLS;
   }
 
   void FragmentGridCollector::close_(std::uint32_t w)
@@ -249,7 +256,7 @@ namespace OpenMS::OpenDIA
       evidence_[w] = FragmentGrid::evidence(zero.data(), p.library, p.search);
       return;
     }
-    double* g = pool_.data() + static_cast<std::size_t>(slot_[w]) * CELLS;
+    double* g = slotGrid_(slot_[w]);
     // Bins are stored as float32, as the 12-fragment arrays the features were validated on.
     for (std::size_t c = 0; c < CELLS; ++c) g[c] = static_cast<double>(static_cast<float>(g[c]));
     for (std::size_t f = 0; f < K; ++f)
@@ -396,7 +403,8 @@ namespace OpenMS::OpenDIA
     if (finished_) return;
     closeUntil_(std::numeric_limits<double>::infinity());
     finished_ = true;
-    std::vector<double>().swap(pool_);
+    std::vector<std::unique_ptr<double[]>>().swap(pool_);
+    std::vector<std::int32_t>().swap(free_);
   }
 
   std::vector<std::int32_t> FragmentGridCollector::isolationIndices() const
