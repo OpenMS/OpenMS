@@ -166,6 +166,7 @@ START_SECTION((void store(const std::string& filename, const PeakMap& exp) const
   with_im[0].setDriftTimeUnit(DriftTimeUnit::VSSC);
   with_im[1].setDriftTime(-35.0);
   with_im[1].setDriftTimeUnit(DriftTimeUnit::FAIMS_COMPENSATION_VOLTAGE);
+  with_im[1].setMetaValue("filter string", "ITMS + c NSI d Full ms2 445.12@cid35.00 [110.00-2000.00]");
   file.store(tmp, with_im);
   TEST_EQUAL(File::exists(tmp), true)
   TEST_EQUAL(MzPeakFile::isMzPeak(tmp), true)
@@ -177,6 +178,9 @@ START_SECTION((void store(const std::string& filename, const PeakMap& exp) const
   TEST_EQUAL(exp[1].getDriftTime(), -35.0)
   TEST_EQUAL(static_cast<int>(exp[1].getDriftTimeUnit()), static_cast<int>(DriftTimeUnit::FAIMS_COMPENSATION_VOLTAGE))
   TEST_EQUAL(exp[2].getDriftTime(), IMTypes::DRIFTTIME_NOT_SET)
+  // the filter string (MS:1000512), which names the analyzer, goes through the scans facet's filter_string
+  TEST_STRING_EQUAL(exp[1].getMetaValue("filter string").toString(), "ITMS + c NSI d Full ms2 445.12@cid35.00 [110.00-2000.00]")
+  TEST_STRING_EQUAL(exp[2].getMetaValue("filter string").toString(), with_im[2].getMetaValue("filter string").toString())
   // retention times come back exactly wherever a stored minutes value exists whose * 60 is the seconds (for about 4 % of
   // values none does, the format storing minutes: those differ by one ulp, far below the 15 digits OpenMS writes)
   PeakMap rts;
@@ -403,6 +407,9 @@ START_SECTION([EXTRA] a file of the reference implementation)
   TEST_EQUAL(exp[2].getMSLevel(), 2)
   TEST_STRING_EQUAL(exp[2].getNativeID(), "controllerType=0 controllerNumber=1 scan=3")
   TEST_REAL_SIMILAR(exp[2].getRT(), 0.011218333333 * 60.0)
+  // the scans facet's filter_string, as MzMLHandler keeps MS:1000512
+  TEST_STRING_EQUAL(exp[0].getMetaValue("filter string").toString(), "FTMS + p ESI Full ms [200.00-2000.00]")
+  TEST_STRING_EQUAL(exp[2].getMetaValue("filter string").toString(), "ITMS + c ESI d Full ms2 810.79@cid35.00 [210.00-1635.00]")
   TEST_EQUAL(exp[2].getPrecursors().size(), 1)
   ABORT_IF(exp[2].getPrecursors().empty())
   TEST_REAL_SIMILAR(exp[2].getPrecursors()[0].getMZ(), 810.79)
