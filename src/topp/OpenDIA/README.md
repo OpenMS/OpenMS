@@ -18,7 +18,9 @@ Per run:
 2. **Candidate search** with the calibrated library: native-scan XIC peak picking, up to 5 peaks per precursor.
 3. **Population**: every candidate of each target-decoy pair whose best candidate has at least 3 supporting fragments.
 4. **One more pass over the spectra** collects the scoring evidence: 6-fragment traces and apex b/y ions, and the
-   12-fragment grid of every window. A grid is held only while its window is open.
+   12-fragment grid of every window. A grid is held only while its window is open. The 6-fragment traces match each
+   fragment within ±10 ppm (`-trace_tolerance_ppm`; PLAN_TRPPM, +18 % IDs at 1 % true FDP on the r ≈ 7 HeLa entrapment,
+   calibration not worse). `-trace_tolerance_ppm 0` restores the earlier fixed ±0.02 Da window.
 5. **36 features**:
    - search 4;
    - boundary 5;

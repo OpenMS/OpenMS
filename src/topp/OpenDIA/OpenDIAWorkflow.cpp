@@ -84,8 +84,8 @@ protected:
                           "(PLAN_IMNARROW: 0.6; 1 = as calibrated, the earlier default)", false, true);
     setMinFloat_("im_tolerance_scale", 0.05);
     setMaxFloat_("im_tolerance_scale", 4.0);
-    registerDoubleOption_("trace_tolerance_ppm", "<ppm>", 0.0, "Experimental: fragment m/z half width of the 6-fragment trace tensor in ppm "
-                          "(0 = the fixed 0.02 Da window, the default)", false, true);
+    registerDoubleOption_("trace_tolerance_ppm", "<ppm>", 10.0, "Advanced: fragment m/z half width of the 6-fragment trace tensor in ppm "
+                          "(PLAN_TRPPM: 10, +18 % IDs at 1 % true FDP on the r ~ 7 HeLa entrapment; 0 = the fixed 0.02 Da window, the earlier default)", false, true);
     setMinFloat_("trace_tolerance_ppm", 0.0);
     registerIntOption_("trace_tensor_gb", "<GiB>", 64, "Advanced: hard cap on the 6-fragment trace tensor in GiB (about 6.1 KiB per candidate window with ion mobility); "
                        "raise it for very large libraries, memory permitting", false, true);
