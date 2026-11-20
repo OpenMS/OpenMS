@@ -84,6 +84,9 @@ protected:
                           "(PLAN_IMNARROW: 0.6; 1 = as calibrated, the earlier default)", false, true);
     setMinFloat_("im_tolerance_scale", 0.05);
     setMaxFloat_("im_tolerance_scale", 4.0);
+    registerDoubleOption_("trace_tolerance_ppm", "<ppm>", 0.0, "Experimental: fragment m/z half width of the 6-fragment trace tensor in ppm "
+                          "(0 = the fixed 0.02 Da window, the default)", false, true);
+    setMinFloat_("trace_tolerance_ppm", 0.0);
     registerIntOption_("trace_tensor_gb", "<GiB>", 64, "Advanced: hard cap on the 6-fragment trace tensor in GiB (about 6.1 KiB per candidate window with ion mobility); "
                        "raise it for very large libraries, memory permitting", false, true);
     setMinInt_("trace_tensor_gb", 1);
@@ -267,6 +270,7 @@ protected:
     options.max_peaks = static_cast<std::size_t>(getIntOption_("max_peaks"));
     options.search_valley_fraction = getDoubleOption_("valley_fraction");
     options.im_tolerance_scale = getDoubleOption_("im_tolerance_scale");
+    options.trace_tolerance_ppm = getDoubleOption_("trace_tolerance_ppm");
     if (!(options.search_valley_fraction > 0.0))
     {
       writeLogError_("-valley_fraction must be in (0, 1].");

@@ -160,6 +160,11 @@ namespace OpenMS::OpenDIA
     int precursorCharge(std::size_t i) const { return samples_.at(i).precursor_charge; }
     /// Treat a spectrum ion-mobility array with a non-CCS unit as 1/K0 (VSSC).
     void setIonMobilityArrayAsVSSC(bool value) { ion_mobility_array_as_vssc_ = value; }
+    /**
+      @brief Match fragments within +-ppm of their m/z instead of the fixed mz_tolerance in Da (0 keeps the Da window).
+      Must be called before the first spectrum.
+    */
+    void setFragmentTolerancePpm(double ppm);
 
     /**
       @brief Also collect TraceEvidence (MS1 traces and m/z errors). Off by default; the tensor is unchanged.
@@ -248,6 +253,7 @@ namespace OpenMS::OpenDIA
     std::vector<float> intensities_;
     std::size_t im_bins_ = IM_BINS;
     double mz_tolerance_;
+    double fragment_ppm_ = 0.0;  ///< setFragmentTolerancePpm(); 0 = fixed mz_tolerance_.
     double rt_half_width_;
     double im_half_width_;
     bool ion_mobility_array_as_vssc_ = false;

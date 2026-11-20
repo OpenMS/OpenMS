@@ -578,6 +578,7 @@ namespace OpenMS::OpenDIA
     TraceCollector traces(std::move(trace_windows), trace_library, 0.02, options_.grid_half_width_s, 0.03, n, options_.trace_tensor_gb << 30,
                           on_close);
     traces.setIonMobilityArrayAsVSSC(options_.im_array_as_vssc);
+    if (options_.trace_tolerance_ppm > 0.0) traces.setFragmentTolerancePpm(options_.trace_tolerance_ppm);
     traces.setThreads(options_.threads);
     traces.enableEvidence(20.0, options_.core_half_width_s);
     traces.enableByIonCounts(trace_library, options_.byion_ppm, options_.byion_intensity_min);

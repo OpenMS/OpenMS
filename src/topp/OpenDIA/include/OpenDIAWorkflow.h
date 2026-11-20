@@ -78,6 +78,7 @@ namespace OpenMS::OpenDIA
     /// Multiplies the calibrated 1/K0 half width used by the search, the grid, the trace tensor and the interference
     /// resolver (PLAN_IMNARROW D pass: 0.6; 1 = as calibrated). The written calibration JSON keeps the calibrated value.
     double im_tolerance_scale = 0.6;
+    double trace_tolerance_ppm = 0.0;  ///< Experimental (GAPDIAG): trace-tensor fragment half width in ppm; 0 = fixed 0.02 Da.
     std::size_t min_transitions = 1;
     std::size_t population_min_support = 3;     ///< Pairs whose best candidate has fewer supporting fragments are dropped.
     double grid_half_width_s = 15.0;

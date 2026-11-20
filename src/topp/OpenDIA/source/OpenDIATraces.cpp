@@ -217,6 +217,13 @@ namespace OpenMS::OpenDIA
       std::max(0.0, (rt - apex_rt + rt_half_width_) / (2.0 * rt_half_width_)) * RT_BINS));
   }
 
+  void TraceCollector::setFragmentTolerancePpm(double ppm)
+  {
+    require(std::isfinite(ppm) && ppm >= 0.0, "Fragment ppm tolerance must be finite and non-negative.");
+    require(chunks_.empty() && held_ == 0, "setFragmentTolerancePpm() after the first spectrum.");
+    fragment_ppm_ = ppm;
+  }
+
   void TraceCollector::enableMobilityHistogram()
   {
     require(evidence_on_, "The mobility histogram requires enableEvidence() first.");
@@ -511,8 +518,9 @@ namespace OpenMS::OpenDIA
         {
           continue;
         }
-        for (auto point = mz_index_.lowerBound(mz - mz_tolerance_);
-             point != spectrum.end() && point->getMZ() <= mz + mz_tolerance_; ++point)
+        const double tolerance = fragment_ppm_ > 0.0 ? mz * fragment_ppm_ * 1e-6 : mz_tolerance_;
+        for (auto point = mz_index_.lowerBound(mz - tolerance);
+             point != spectrum.end() && point->getMZ() <= mz + tolerance; ++point)
         {
           const double intensity = point->getIntensity();
           if (!std::isfinite(intensity) || intensity <= 0.0)
