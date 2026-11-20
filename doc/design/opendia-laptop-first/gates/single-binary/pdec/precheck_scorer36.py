@@ -12,7 +12,7 @@ from sklearn.ensemble import HistGradientBoostingClassifier
 from sklearn.metrics import roc_auc_score
 SRC, TAG = sys.argv[1:3]
 G = '/home/singjc/.jcode/scratch/dia2/gap7'
-L = '/home/singjc/.jcode/scratch/dia2/entlib10/cut/hela_r5.predicted_decoys.pqp'
+L = os.environ.get('PQP', '/home/singjc/.jcode/scratch/dia2/entlib10/cut/hela_r5.predicted_decoys.pqp')
 DN = '/home/singjc/.jcode/scratch/dia2/entlib12/D/report.parquet'
 PQ = f'{G}/{TAG}_feat.parquet'
 if not os.path.exists(PQ):

@@ -4,7 +4,8 @@
   B_tail: label-free positives (tool q<=0.01 winners), 3 rounds
 Diagnostic only. Usage: precheck_scorer36_tailfit.py"""
 import numpy as np, pandas as pd, runpy, sys
-sys.argv = ['x', '/home/singjc/.jcode/scratch/dia2/gap7/D36f.tsv.gz', 'D36']
+if len(sys.argv) < 3: sys.argv = ['x', '/home/singjc/.jcode/scratch/dia2/gap7/D36f.tsv.gz', 'D36']
+NEG_Q = float(sys.argv[3]) if len(sys.argv) > 3 else 0.98
 # Reuse loaders/evaluator from precheck_scorer36 without its main body: exec the top half.
 src = open('/home/singjc/.jcode/scratch/dia2/gap7/precheck_scorer36.py').read().split('kept = F.score.values')[0]
 g = {}; exec(compile(src, 'precheck_scorer36_head', 'exec'), g)
@@ -13,7 +14,7 @@ kept = F.score.values > -1e29
 s_tool = np.where(kept, F.score.values, -1e30).astype(np.float64)
 best = pd.Series(s_tool).groupby(pid).max()
 dbest = best[best.index.isin(np.unique(pid[dec]))]
-hard = dbest[dbest >= dbest.quantile(0.98)].index
+hard = dbest[dbest >= dbest.quantile(NEG_Q)].index
 neg = dec & np.isin(pid, hard)
 print(f'hard decoy precursors {len(hard)}, windows {neg.sum()}', flush=True)
 evaluate(s_tool, 'A tool score')
