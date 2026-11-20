@@ -45,6 +45,8 @@ namespace OpenMS
 
       defaults_.setValue("min_sample_rate", 0.5, "Minimum fraction of scans along the mass trace that must contain a peak.", {"advanced"});
       defaults_.setValue("min_trace_length", 5.0, "Minimum expected length of a mass trace (in seconds).", {"advanced"});
+      defaults_.setValue("min_trace_scans", 4, "Minimum number of peaks of a mass trace, i.e. of scans in which its ion was detected. Applies in addition to 'min_trace_length': at an MS1 cycle time of more than a second, a trace of only two or three peaks can be longer than 'min_trace_length'. Set to 1 to disable.", {"advanced"});
+      defaults_.setMinInt("min_trace_scans", 1);
       defaults_.setValue("max_trace_length", -1.0, "Maximum expected length of a mass trace (in seconds). Set to a negative value to disable maximal length check during mass trace detection.", {"advanced"});
 
       defaultsToParam_();
@@ -453,8 +455,9 @@ namespace OpenMS
     {
       double rt_range = std::fabs(trace.rbegin()->getRT() - trace.begin()->getRT());
       
-      // Check length criteria
-      if (rt_range < min_trace_length_)
+      // Check length criteria: in seconds, and in peaks. The latter is independent of the MS1 cycle time: with
+      // few scans per second, a trace of two or three peaks can span more than min_trace_length_.
+      if (rt_range < min_trace_length_ || trace.size() < min_trace_scans_)
       {
         return false;
       }
@@ -742,6 +745,7 @@ namespace OpenMS
       trace_termination_outliers_ = (Size)param_.getValue("trace_termination_outliers");
       min_sample_rate_ = (double)param_.getValue("min_sample_rate");
       min_trace_length_ = (double)param_.getValue("min_trace_length");
+      min_trace_scans_ = (Size)param_.getValue("min_trace_scans");
       max_trace_length_ = (double)param_.getValue("max_trace_length");
       reestimate_mt_sd_ = param_.getValue("reestimate_mt_sd").toBool();
     }

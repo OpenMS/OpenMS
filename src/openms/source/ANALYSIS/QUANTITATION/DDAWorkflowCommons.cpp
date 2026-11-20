@@ -136,6 +136,9 @@ namespace OpenMS
     {
         MassTraceDetection mt_ext;
         Param mtd_param = mt_ext.getParameters();
+        // as before the introduction of 'min_trace_scans': traces of any number of peaks contribute to the estimate
+        mtd_param.setValue("min_trace_scans", 1);
+        mt_ext.setParameters(mtd_param);
 
         OPENMS_LOG_DEBUG << "Parameters passed to MassTraceDetection" << mtd_param << std::endl;
 

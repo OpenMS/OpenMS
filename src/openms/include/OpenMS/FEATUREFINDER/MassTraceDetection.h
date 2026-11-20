@@ -48,7 +48,10 @@ namespace OpenMS
 
       Finally, only mass traces that pass a filter (a certain minimal and maximal
       length as well as having the minimal sample rate criterion fulfilled) get
-      added to the result.
+      added to the result. The minimal length is given both in seconds
+      (min_trace_length) and in peaks (min_trace_scans). The latter does not depend
+      on the MS1 cycle time, so that slowly scanning instruments do not yield
+      traces of two or three peaks.
 
       @htmlinclude OpenMS_MassTraceDetection.parameters
 
@@ -206,6 +209,7 @@ namespace OpenMS
         Size trace_termination_outliers_;
         double min_sample_rate_;
         double min_trace_length_;
+        Size min_trace_scans_;
         double max_trace_length_;
 
         bool reestimate_mt_sd_;
