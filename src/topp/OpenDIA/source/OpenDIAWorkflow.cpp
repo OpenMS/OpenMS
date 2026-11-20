@@ -573,6 +573,9 @@ namespace OpenMS::OpenDIA
     traces.enableEvidence(20.0, options_.core_half_width_s);
     traces.enableByIonCounts(trace_library, options_.byion_ppm, options_.byion_intensity_min);
     if (options_.pg_scores) traces.enablePeakGroupEvidence(cal.ms2_tolerance_ppm);
+    // The collector has copied what it needs (fragments, sequences' ions), so the calibrated library copy is dead:
+    // release it before the extraction pass, where the run's memory peaks.
+    targeted = OpenDIA::Library();
     std::string extract_io;
     {
       TeeConsumer both(grids, traces);
