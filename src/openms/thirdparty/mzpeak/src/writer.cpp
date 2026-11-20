@@ -212,7 +212,8 @@ Util::SpectrumMetaRow metadata_row(std::size_t i, const SpectrumData& s)
           /*representation=*/s.centroid ? "MS:1000127" : "MS:1000128",
           /*precursors=*/s.precursors,
           /*ion_mobility=*/s.ion_mobility,
-          /*ion_mobility_type=*/s.ion_mobility_type};
+          /*ion_mobility_type=*/s.ion_mobility_type,
+          /*filter_string=*/s.filter_string};
 }
 
 std::vector<Util::SpectrumMetaRow>

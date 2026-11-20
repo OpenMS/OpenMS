@@ -372,6 +372,11 @@ struct SpectrumMetadata final {
   /// bundled fixture (see `ion_mobility`).
   std::optional<std::string> ion_mobility_type;
 
+  /// The representative scan's `scan.filter_string` (MS:1000512, e.g. a Thermo
+  /// "ITMS + c NSI d Full ms2 ..."), which names the analyzer a scan was read
+  /// out in.  Kept at MetadataDetail::Full only.  (OpenMS change)
+  std::optional<std::string> filter_string;
+
   /// `mz_delta_model` — the WLS beta coefficients used to reconstruct
   /// null-marked m/z values.  Carried here so peak decode needs no second,
   /// per-spectrum metadata query (that query relied on a `spectrum` struct
