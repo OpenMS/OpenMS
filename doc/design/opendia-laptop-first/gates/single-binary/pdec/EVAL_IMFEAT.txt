@@ -1,0 +1,27 @@
+workflow windows for sample 139070, joined 139068
+features 36, DIA-NN right windows 5707 (5350 precursors), label-free positives 3018
+  Net1 fold 0: val loss 0.1066
+  Net1 fold 1: val loss 0.1277
+  Net1 fold 2: val loss 0.0796
+  Net2 fold 0: val loss 0.0360
+  Net2 fold 1: val loss 0.0280
+  Net2 fold 2: val loss 0.0274
+tool score             TPR 1e-3/3e-3/1e-2 0.586/0.646/0.682  Q1@3e-3 0.352
+CNN1d alone (lf)       TPR 1e-3/3e-3/1e-2 0.161/0.261/0.384  Q1@3e-3 0.096
+CNN2d alone (lf)       TPR 1e-3/3e-3/1e-2 0.439/0.538/0.646  Q1@3e-3 0.251
+36                     seed0 0.623/0.688/0.755 Q1 0.378 | seed1 0.607/0.685/0.751 Q1 0.371
+36+faint2              seed0 0.625/0.684/0.759 Q1 0.368 | seed1 0.613/0.687/0.758 Q1 0.379
+36+band6               seed0 0.656/0.711/0.779 Q1 0.417 | seed1 0.652/0.709/0.776 Q1 0.415
+36+faint2+band6        seed0 0.646/0.710/0.778 Q1 0.414 | seed1 0.659/0.710/0.773 Q1 0.413
+36+CNN1d               seed0 0.617/0.683/0.758 Q1 0.385 | seed1 0.619/0.688/0.761 Q1 0.395
+36+CNN2d               seed0 0.622/0.706/0.794 Q1 0.429 | seed1 0.598/0.700/0.792 Q1 0.424
+36+all                 seed0 0.619/0.717/0.804 Q1 0.448 | seed1 0.622/0.725/0.804 Q1 0.461
+
+Proceed rule (>= +0.020 TPR at 3e-3 over 36 in both seeds):
+  36+faint2            delta -0.004 / +0.003 -> no
+  36+band6             delta +0.023 / +0.024 -> PROCEED
+  36+faint2+band6      delta +0.022 / +0.025 -> PROCEED
+  36+CNN1d             delta -0.005 / +0.003 -> no
+  36+CNN2d             delta +0.018 / +0.015 -> no
+  36+all               delta +0.029 / +0.040 -> PROCEED
+done
