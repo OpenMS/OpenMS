@@ -709,7 +709,7 @@ Run feature detection
         .def("getMSData", [](OpenMS::FeatureFinderIdentificationAlgorithm& self) -> OpenMS::MSExperiment { return self.getMSData(); }, "Returns ms data as MSExperiment")
         .def("setFromMS1Data", [](OpenMS::FeatureFinderIdentificationAlgorithm& self, const OpenMS::MSExperiment& ms_data) { return self.setFromMS1Data(ms_data); }, "ms_data"_a, "Sets the MS data, keeping only its MS1 spectra")
         .def("setFromMS1Data", [](OpenMS::FeatureFinderIdentificationAlgorithm& self, OpenMS::MSExperiment& ms_data) { return self.setFromMS1Data(ms_data); }, "ms_data"_a, "Sets the MS data, keeping only its MS1 spectra")
-        .def("getChromatograms", [](OpenMS::FeatureFinderIdentificationAlgorithm& self) -> OpenMS::MSExperiment { return self.getChromatograms(); }, "Returns chromatogram data as MSExperiment")
+        .def("getChromatograms", [](OpenMS::FeatureFinderIdentificationAlgorithm& self) -> OpenMS::MSExperiment { return self.getChromatograms(); }, "Returns chromatogram data as MSExperiment (empty unless the parameter keep_chromatograms is 'true')")
         .def("getLibrary", [](OpenMS::FeatureFinderIdentificationAlgorithm& self) -> OpenMS::TargetedExperiment { return self.getLibrary(); }, "Returns constructed assay library")
         ;
 
