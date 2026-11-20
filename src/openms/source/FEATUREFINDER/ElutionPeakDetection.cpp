@@ -573,7 +573,12 @@ namespace OpenMS
     //    assumes nothing about the signal beyond the trace. A centred frame of three points is fitted exactly by a
     //    second order polynomial, so the second and the last but one point are smoothed with a first order fit
     //    (the mean of the three) instead; left unsmoothed, a noise spike there would compete with the smoothed
-    //    (lowered) apex. The first and the last point keep their intensity.
+    //    (lowered) apex. The first and the last point keep their intensity, unless they are lower than their
+    //    neighbour: then the smoothing, which lowers an apex on the neighbour, could make the end point the
+    //    maximum (e.g. 92, 100, 80, 70, 10 gives 92, 90.7, 88.4, ...). If it is not lower than the smoothed
+    //    neighbour, such an end point gets the smoothed intensity of the neighbour, scaled by the ratio of their
+    //    raw intensities, so that it stays below it. An end point that is not lower than its neighbour, i.e. a
+    //    trace that is cut off at its maximum, is left as it is.
     //
     // 2. Ringing. Next to a flank that spans orders of magnitude the polynomial under- and overshoots.
     //    SavitzkyGolayFilter clamps negative values to zero, which leaves a 'valley' of zero intensity at the foot
@@ -623,6 +628,19 @@ namespace OpenMS
 
         smoothed[i] = std::clamp(value, frame_min, frame_max);
       }
+
+      // keep an end point that is lower than its neighbour below the neighbour after smoothing (see 1. above)
+      const auto keepEndBelowNeighbour = [&](Size end, Size neighbour)
+      {
+        const double raw_end = mt[end].getIntensity();
+        const double raw_neighbour = mt[neighbour].getIntensity();
+        if (raw_end < raw_neighbour && raw_neighbour > 0.0 && smoothed[neighbour] > 0.0 && smoothed[end] >= smoothed[neighbour])
+        {
+          smoothed[end] = smoothed[neighbour] * (raw_end / raw_neighbour);
+        }
+      };
+      keepEndBelowNeighbour(0, 1);
+      keepEndBelowNeighbour(size - 1, size - 2);
     }
 
     // As with SavitzkyGolayFilter, every point of a trace that the frame fits into is >= 0 -- also the first and

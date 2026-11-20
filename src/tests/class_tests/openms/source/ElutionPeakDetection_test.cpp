@@ -249,6 +249,24 @@ START_SECTION((void detectPeaks(MassTrace &, std::vector< MassTrace > &)))
   {
     TEST_REAL_SIMILAR(steep_out[0].getCentroidRT(), 102.0);
   }
+
+  // A trace whose apex is its second point, with a first point nearly as high, keeps its apex there: the mean
+  // of three points on the apex does not make the (unsmoothed) first point the maximum, which would leave the
+  // trace without a width and have the default width filter remove it.
+  ElutionPeakDetection fixed_epd;
+  Param fixed_param = ElutionPeakDetection().getDefaults();
+  fixed_param.setValue("chrom_fwhm", 5.0); // a frame of 5 points, as long as the trace
+  fixed_param.setValue("width_filtering", "fixed");
+  fixed_epd.setParameters(fixed_param);
+  MassTrace end_below_mt(make_trace({92.0, 100.0, 80.0, 70.0, 10.0}, 1.0));
+  std::vector<MassTrace> end_below_out;
+  fixed_epd.detectPeaks(end_below_mt, end_below_out);
+  TEST_EQUAL(end_below_out.size(), 1);
+  if (!end_below_out.empty())
+  {
+    TEST_REAL_SIMILAR(end_below_out[0].getCentroidRT(), 101.0);
+    TEST_TRUE(end_below_out[0].getFWHM() > 0.0);
+  }
 }
 END_SECTION
 
@@ -373,6 +391,30 @@ START_SECTION((void smoothData(MassTrace& mt, int win_size) const))
   test_epd.smoothData(spike_mt, 5);
   TEST_REAL_SIMILAR(spike_mt.getSmoothedIntensities()[1], (100.0 + 1000.0 + 300.0) / 3.0);
   TEST_EQUAL(spike_mt.findMaxByIntPeak(true), 5);
+
+  // An end point that is lower than its neighbour stays below it. Here the mean of three points on the apex
+  // (90.67) is lower than the first point (92), which would otherwise become the smoothed maximum; it gets the
+  // smoothed intensity of the apex, scaled by the raw ratio 92 / 100, instead.
+  std::vector<double> end_below = {92.0, 100.0, 80.0, 70.0, 10.0};
+  MassTrace end_below_mt(make_trace(end_below, 1.0));
+  test_epd.smoothData(end_below_mt, 5);
+  smoothed = end_below_mt.getSmoothedIntensities();
+  TEST_REAL_SIMILAR(smoothed[1], (92.0 + 100.0 + 80.0) / 3.0);
+  TEST_REAL_SIMILAR(smoothed[0], smoothed[1] * 92.0 / 100.0);
+  TEST_EQUAL(end_below_mt.findMaxByIntPeak(true), 1);
+  // the same at the last point
+  std::vector<double> end_below_reversed(end_below.rbegin(), end_below.rend());
+  MassTrace end_below_reversed_mt(make_trace(end_below_reversed, 1.0));
+  test_epd.smoothData(end_below_reversed_mt, 5);
+  smoothed = end_below_reversed_mt.getSmoothedIntensities();
+  TEST_REAL_SIMILAR(smoothed[4], smoothed[3] * 92.0 / 100.0);
+  TEST_EQUAL(end_below_reversed_mt.findMaxByIntPeak(true), 3);
+  // An end point that is not lower than its neighbour (a trace cut off at its maximum) keeps its intensity.
+  std::vector<double> end_max = {100.0, 92.0, 80.0, 70.0, 10.0};
+  MassTrace end_max_mt(make_trace(end_max, 1.0));
+  test_epd.smoothData(end_max_mt, 5);
+  TEST_REAL_SIMILAR(end_max_mt.getSmoothedIntensities()[0], 100.0);
+  TEST_EQUAL(end_max_mt.findMaxByIntPeak(true), 0);
 
   // As before, smoothed intensities are never negative (here: a baseline-subtracted trace), the first and the
   // last point included, and also with a frame of three points ...

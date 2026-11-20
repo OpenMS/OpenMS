@@ -130,7 +130,11 @@ public:
      * trace. The second and the last but one point are smoothed with the
      * mean of three points (a three point frame is fitted exactly by a
      * second order polynomial), the first and the last point keep their
-     * intensity. Each smoothed intensity is limited to the range of the raw
+     * intensity. An end point that is lower than its neighbour, but not
+     * lower than the neighbour's smoothed intensity, gets that smoothed
+     * intensity scaled by the ratio of their raw intensities instead, so that
+     * smoothing (which lowers an apex) cannot put the maximum on the end
+     * point. Each smoothed intensity is limited to the range of the raw
      * intensities within its frame, so that the fit cannot ring below the
      * lowest (in particular: to zero) or above the highest of them. As with
      * SavitzkyGolayFilter, all smoothed intensities of a trace that the frame
