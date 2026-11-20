@@ -21,7 +21,7 @@ for arm in ('D_new_s0', 'v08m8'):
     T['right'] = np.abs(T.rt_apex - d.RT.reindex(T.precursor_id).values * 60) <= 6
     T['kept'] = T.score > -1e29
     g = T.groupby('precursor_id')
-    s = pd.DataFrame({'any_right': g.right.any(), 'acc_right': g.apply(lambda x: bool((x.kept & x.right & (x.q_value <= 0.01)).any()))}).reindex(d.index).fillna(False)
+    s = pd.DataFrame({'any_right': g.right.any(), 'acc_right': g.apply(lambda x: bool((x.kept & x.right & (x.q_value <= 0.01)).any()))}).reindex(d.index).fillna(False).astype(bool)
     out[arm] = s
     print(f'{arm}: windows {len(F)}; DIA-NN IDs {len(d)}: right candidate {s.any_right.mean():.3f}, accepted with right window {s.acc_right.mean():.3f}')
     print('   right candidate by quartile', s.any_right.groupby(d.qq).mean().round(3).to_dict())
