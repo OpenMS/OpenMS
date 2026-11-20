@@ -67,6 +67,7 @@ protected:
     registerFlag_("no_extra_scores", "Advanced: leave out the evidence block (core-window mass error, MS1 and ion-mobility evidence, 12 features; PLAN_EXTRA) and score with the 24 base features only", true);
     registerFlag_("mobility_apex", "Experimental (PRECHECK_IMFEAT): add 5 own-mobility-apex features from a per-fragment core-window 1/K0 histogram (ion mobility data only)", true);
     registerFlag_("faint_features", "Experimental (PRECHECK_FAINT): add pooled p_cos_apex and p_local_sn features from the existing trace tensor", true);
+    registerFlag_("matched_filter", "Experimental (PRECHECK_MF): add 9 mt_ matched-filter features (robust z, leave-one-out correlation, cosine, dominance, LLR) from the existing trace tensor", true);
     registerIntOption_("im_peaks", "<bins>", 0, "Experimental: RT x ion-mobility candidate picking with this many 1/K0 bins over the search mobility window (0 off, 3-16): "
                        "peaks masked in the pooled trace by a precursor at another mobility get their own candidate", false, true);
     setMinInt_("im_peaks", 0);
@@ -266,6 +267,7 @@ protected:
     options.extra_scores = !getFlag_("no_extra_scores");
     options.mobility_apex = getFlag_("mobility_apex");
     options.faint_features = getFlag_("faint_features");
+    options.matched_filter = getFlag_("matched_filter");
     options.search_im_bins = static_cast<std::size_t>(getIntOption_("im_peaks"));
     options.search_im_extra_peaks = static_cast<std::size_t>(getIntOption_("im_extra_peaks"));
     options.search_im_min_support = static_cast<std::size_t>(getIntOption_("im_min_support"));

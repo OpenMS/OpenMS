@@ -563,6 +563,202 @@ namespace OpenMS::OpenDIA
     return f;
   }
 
+  namespace
+  {
+    // Median of a copy (average of the two middle values for even length); 0 for empty input.
+    double mfMedian(std::vector<double> v)
+    {
+      if (v.empty()) return 0.0;
+      std::sort(v.begin(), v.end());
+      const std::size_t n = v.size();
+      return n % 2 ? v[n / 2] : (v[n / 2 - 1] + v[n / 2]) / 2.0;
+    }
+
+    double mfPearson(const std::vector<double>& x, const std::vector<double>& y)
+    {
+      const double n = static_cast<double>(x.size());
+      double mx = 0.0, my = 0.0;
+      for (std::size_t i = 0; i < x.size(); ++i) { mx += x[i]; my += y[i]; }
+      mx /= n;
+      my /= n;
+      double sxy = 0.0, sxx = 0.0, syy = 0.0;
+      for (std::size_t i = 0; i < x.size(); ++i)
+      {
+        sxy += (x[i] - mx) * (y[i] - my);
+        sxx += (x[i] - mx) * (x[i] - mx);
+        syy += (y[i] - my) * (y[i] - my);
+      }
+      if (sxx <= 0.0 || syy <= 0.0) return 0.0;
+      return sxy / std::sqrt(sxx * syy);
+    }
+
+    double mfSlog(double x) { return (x < 0.0 ? -1.0 : 1.0) * std::log1p(std::abs(x)); }
+  }
+
+  double stage2RobustZ(const std::vector<double>& x, std::size_t centre, std::size_t a, std::size_t b)
+  {
+    const std::size_t n = x.size();
+    std::vector<double> s(n, 0.0);
+    for (std::size_t i = 0; i < n; ++i) s[i] = x[i] + (i > 0 ? x[i - 1] : 0.0) + (i + 1 < n ? x[i + 1] : 0.0);
+    const auto collect = [&](std::size_t end_left, std::size_t start_right)
+    {
+      std::vector<double> bg(s.begin(), s.begin() + std::min(end_left, n));
+      if (start_right < n) bg.insert(bg.end(), s.begin() + start_right, s.end());
+      return bg;
+    };
+    std::vector<double> bg = collect(a > 1 ? a - 1 : 0, b + 1);
+    if (bg.size() < 3) bg = collect(centre > 3 ? centre - 3 : 0, centre + 4);
+    if (bg.empty()) return 0.0;
+    const double med = mfMedian(bg);
+    for (double& v : bg) v = std::abs(v - med);
+    const double mad = mfMedian(bg);
+    return (s[centre] - med) / (1.4826 * mad + std::sqrt(std::max(med, 0.0)) + 1.0);
+  }
+
+  const std::array<std::string, STAGE2_MATCHED_FILTER_FEATURES>& stage2MatchedFilterFeatureNames()
+  {
+    static const std::array<std::string, STAGE2_MATCHED_FILTER_FEATURES> names = {
+      "mt_z_med", "mt_z_trim", "mt_n_z2", "mt_n_z3", "mt_loo_med", "mt_loo_n", "mt_cos", "mt_dom", "mt_llr"};
+    return names;
+  }
+
+  std::array<double, STAGE2_MATCHED_FILTER_FEATURES> stage2MatchedFilterFeatures(const float* tensor,
+                                                                                  const std::array<double, 6>& library_intensities,
+                                                                                  const std::array<double, 6>& fragment_mz,
+                                                                                  const TraceEvidence& evidence,
+                                                                                  const Stage2ExtractionOptions& options)
+  {
+    using F = Stage2MatchedFilterFeature;
+    std::array<double, STAGE2_MATCHED_FILTER_FEATURES> f{};
+    std::vector<std::size_t> channels;
+    for (std::size_t c = 0; c < FRAGMENTS; ++c)
+      if (fragment_mz[c] != 0.0) channels.push_back(c);
+    const std::size_t nf = channels.size();
+    if (nf < 2) return f;
+    const std::size_t ca = RT_BINS / 2;
+    const auto at = [&](std::size_t c, std::size_t b, std::size_t m) { return static_cast<double>(tensor[(c * RT_BINS + b) * IM_BINS + m]); };
+
+    // Library weights: sqrt intensities with unit L2 norm, and their squared shares.
+    std::vector<double> lw(nf), lshare(nf, 0.0);
+    double l2 = 0.0;
+    for (std::size_t k = 0; k < nf; ++k)
+    {
+      lw[k] = std::sqrt(std::max(0.0, library_intensities[channels[k]]));
+      l2 += lw[k] * lw[k];
+    }
+    if (l2 > 0.0)
+      for (std::size_t k = 0; k < nf; ++k)
+      {
+        lw[k] /= std::sqrt(l2);
+        lshare[k] = lw[k] * lw[k];
+      }
+
+    // Mobility apex of the smoothed core profile and the Gaussian mobility weight.
+    std::array<double, IM_BINS> core{};
+    double core_sum = 0.0;
+    for (const std::size_t c : channels)
+      for (std::size_t b = ca - 2; b <= ca + 2; ++b)
+        for (std::size_t m = 0; m < IM_BINS; ++m) core[m] += at(c, b, m);
+    for (double v : core) core_sum += v;
+    std::size_t jb = IM_BINS / 2;
+    if (core_sum != 0.0)
+    {
+      std::array<double, IM_BINS> sm{};
+      for (std::size_t m = 0; m < IM_BINS; ++m)
+        sm[m] = 0.5 * core[m] + (m > 0 ? 0.25 * core[m - 1] : 0.0) + (m + 1 < IM_BINS ? 0.25 * core[m + 1] : 0.0);
+      jb = static_cast<std::size_t>(std::max_element(sm.begin(), sm.end()) - sm.begin());
+    }
+    const double sd = 0.008 / (2.0 * options.im_half_width / static_cast<double>(IM_BINS));
+    std::array<double, IM_BINS> w{};
+    for (std::size_t m = 0; m < IM_BINS; ++m)
+    {
+      const double d = (static_cast<double>(m) - static_cast<double>(jb)) / sd;
+      w[m] = std::exp(-0.5 * d * d);
+    }
+    std::vector<std::vector<double>> X(nf, std::vector<double>(RT_BINS, 0.0));
+    for (std::size_t k = 0; k < nf; ++k)
+      for (std::size_t b = 0; b < RT_BINS; ++b)
+        for (std::size_t m = 0; m < IM_BINS; ++m) X[k][b] += at(channels[k], b, m) * w[m];
+
+    // Peak boundaries as in stage2FaintFeatures (picked around the centre over scanned bins).
+    std::size_t a = ca - 1, bnd = ca + 2;
+    std::vector<std::size_t> bins;
+    for (std::size_t b = 0; b < RT_BINS; ++b)
+      if (evidence.ms2_mask >> b & 1u) bins.push_back(b);
+    if (!bins.empty())
+    {
+      std::size_t hint = 0;
+      const auto distance = [](std::size_t b) { return b > RT_BINS / 2 ? b - RT_BINS / 2 : RT_BINS / 2 - b; };
+      for (std::size_t s = 1; s < bins.size(); ++s)
+        if (distance(bins[s]) < distance(bins[hint])) hint = s;
+      std::vector<float> traces(nf * bins.size(), 0.0f);
+      for (std::size_t c = 0; c < nf; ++c)
+        for (std::size_t s = 0; s < bins.size(); ++s)
+          for (std::size_t m = 0; m < IM_BINS; ++m) traces[c * bins.size() + s] += tensor[(channels[c] * RT_BINS + bins[s]) * IM_BINS + m];
+      std::vector<double> scratch;
+      const PickedPeak peak = pickPeakGroup(traces.data(), nf, bins.size(), bins.size(), 1, hint, PeakPickerOptions{}, scratch);
+      if (peak.found)
+      {
+        a = bins[peak.left];
+        bnd = bins[peak.right] + 1;
+      }
+    }
+
+    std::vector<double> z(nf);
+    for (std::size_t k = 0; k < nf; ++k) z[k] = stage2RobustZ(X[k], ca, a, bnd);
+    f[static_cast<std::size_t>(F::Z_MED)] = mfSlog(mfMedian(z));
+    {
+      std::vector<double> sorted = z;
+      std::sort(sorted.begin(), sorted.end());
+      f[static_cast<std::size_t>(F::Z_TRIM)] = mfSlog(std::accumulate(sorted.begin(), sorted.end() - 1, 0.0) / static_cast<double>(nf - 1));
+    }
+    double llr = 0.0;
+    for (std::size_t k = 0; k < nf; ++k)
+    {
+      if (z[k] >= 2.0) f[static_cast<std::size_t>(F::N_Z2)] += 1.0;
+      if (z[k] >= 3.0) f[static_cast<std::size_t>(F::N_Z3)] += 1.0;
+      llr += lw[k] * std::log1p(std::max(z[k], 0.0));
+    }
+    f[static_cast<std::size_t>(F::LLR)] = mfSlog(llr);
+
+    // Leave-one-out correlation over the core RT bins.
+    std::vector<double> corrs(nf);
+    for (std::size_t k = 0; k < nf; ++k)
+    {
+      std::vector<double> own, rest;
+      for (std::size_t b = ca - 2; b <= ca + 2; ++b)
+      {
+        own.push_back(X[k][b]);
+        double r = 0.0;
+        for (std::size_t j = 0; j < nf; ++j)
+          if (j != k) r += X[j][b];
+        rest.push_back(r);
+      }
+      corrs[k] = mfPearson(own, rest);
+      if (corrs[k] > 0.5) f[static_cast<std::size_t>(F::LOO_N)] += 1.0;
+    }
+    f[static_cast<std::size_t>(F::LOO_MED)] = mfMedian(corrs);
+
+    // Centre-bin cosine and dominance.
+    double dot = 0.0, vv = 0.0, vs = 0.0;
+    std::size_t vmax = 0;
+    for (std::size_t k = 0; k < nf; ++k)
+    {
+      const double v = X[k][ca];
+      dot += v * lw[k];
+      vv += v * v;
+      vs += v;
+      if (v > X[vmax][ca]) vmax = k;
+    }
+    if (vv > 0.0 && l2 > 0.0) f[static_cast<std::size_t>(F::COS)] = dot / std::sqrt(vv);
+    if (vs != 0.0 && lshare[vmax] > 0.0)
+    {
+      const double ratio = (X[vmax][ca] / vs) / lshare[vmax];
+      if (ratio > 0.0) f[static_cast<std::size_t>(F::DOM)] = std::log(ratio);
+    }
+    return f;
+  }
+
   const std::array<std::string, STAGE2_MOBILITY_APEX_FEATURES>& stage2MobilityApexFeatureNames()
   {
     static const std::array<std::string, STAGE2_MOBILITY_APEX_FEATURES> names = {

@@ -173,7 +173,10 @@ namespace OpenMS::OpenDIA
     }
   }
 
-  std::vector<std::string> runFeatureNames(bool pg_scores, bool extra_scores, bool mobility_apex, bool faint_features)
+  /// Mobility half width (1/K0) of the trace tensor; also tells the matched filter the tensor's mobility bin width.
+  constexpr double TRACE_IM_HALF_WIDTH = 0.03;
+
+  std::vector<std::string> runFeatureNames(bool pg_scores, bool extra_scores, bool mobility_apex, bool faint_features, bool matched_filter)
   {
     std::vector<std::string> n;
     for (const auto& s : stage2SearchFeatureNames()) n.push_back(s);
@@ -190,6 +193,8 @@ namespace OpenMS::OpenDIA
       for (const auto& s : stage2MobilityApexFeatureNames()) n.push_back(s);
     if (faint_features)
       for (const auto& s : stage2FaintFeatureNames()) n.push_back(s);
+    if (matched_filter)
+      for (const auto& s : stage2MatchedFilterFeatureNames()) n.push_back(s);
     return n;
   }
 
@@ -529,20 +534,23 @@ namespace OpenMS::OpenDIA
     Stage2ExtractionOptions extraction;
     extraction.rt_half_width = options_.grid_half_width_s;
     extraction.core_half_width = options_.core_half_width_s;
+    extraction.im_half_width = TRACE_IM_HALF_WIDTH;
     const bool pg = options_.pg_scores;
     const bool extra = options_.extra_scores;
     const bool mapex = options_.mobility_apex && cal.has_im;
     const bool faint = options_.faint_features;
+    const bool mfilter = options_.matched_filter;
     std::vector<float> boundary(n * STAGE2_BOUNDARY_FEATURES, 0.0f), peak_group(pg ? n * STAGE2_PEAKGROUP_FEATURES : 0, 0.0f);
     std::vector<float> extra_block(extra ? n * STAGE2_EXTRA_FEATURES : 0, 0.0f);
     std::vector<float> mapex_block(mapex ? n * STAGE2_MOBILITY_APEX_FEATURES : 0, 0.0f);
     std::vector<float> faint_block(faint ? n * STAGE2_FAINT_FEATURES : 0, 0.0f);
+    std::vector<float> mf_block(mfilter ? n * STAGE2_MATCHED_FILTER_FEATURES : 0, 0.0f);
     std::vector<PeakGroupSNParts> sn_parts(pg ? n : 0);
     std::vector<float> floor_values;
     const std::size_t floor_step = peakGroupFloorStep(n);
     const double pg_ppm = cal.ms2_tolerance_ppm;
     const int threads = options_.threads;
-    TraceCollector::CloseCallback on_close = [&, pg, extra, mapex, faint, pg_ppm, threads](const std::vector<std::uint32_t>& closed, const TraceCollector& tc)
+    TraceCollector::CloseCallback on_close = [&, pg, extra, mapex, faint, mfilter, pg_ppm, threads](const std::vector<std::uint32_t>& closed, const TraceCollector& tc)
     {
 #pragma omp parallel num_threads(threads)
       {
@@ -575,6 +583,11 @@ namespace OpenMS::OpenDIA
             const auto x = stage2FaintFeatures(tensor, tc.libraryIntensities(i), tc.fragmentMZ(i), tc.evidence(i), extraction);
             for (std::size_t k = 0; k < STAGE2_FAINT_FEATURES; ++k) faint_block[i * STAGE2_FAINT_FEATURES + k] = static_cast<float>(x[k]);
           }
+          if (mfilter)
+          {
+            const auto x = stage2MatchedFilterFeatures(tensor, tc.libraryIntensities(i), tc.fragmentMZ(i), tc.evidence(i), extraction);
+            for (std::size_t k = 0; k < STAGE2_MATCHED_FILTER_FEATURES; ++k) mf_block[i * STAGE2_MATCHED_FILTER_FEATURES + k] = static_cast<float>(x[k]);
+          }
         }
       }
       if (pg)
@@ -584,7 +597,7 @@ namespace OpenMS::OpenDIA
           if (i % floor_step == 0) appendPeakGroupFloorValues(tc.windowTensor(i, view), floor_values);
       }
     };
-    TraceCollector traces(std::move(trace_windows), trace_library, 0.02, options_.grid_half_width_s, 0.03, n, options_.trace_tensor_gb << 30,
+    TraceCollector traces(std::move(trace_windows), trace_library, 0.02, options_.grid_half_width_s, TRACE_IM_HALF_WIDTH, n, options_.trace_tensor_gb << 30,
                           on_close);
     traces.setIonMobilityArrayAsVSSC(options_.im_array_as_vssc);
     if (options_.trace_tolerance_ppm > 0.0) traces.setFragmentTolerancePpm(options_.trace_tolerance_ppm);
@@ -614,7 +627,7 @@ namespace OpenMS::OpenDIA
 
     // 5. Features.
     const auto t_features = std::chrono::steady_clock::now();
-    const auto names = runFeatureNames(options_.pg_scores, options_.extra_scores, mapex, faint);
+    const auto names = runFeatureNames(options_.pg_scores, options_.extra_scores, mapex, faint, mfilter);
     const std::size_t d = names.size();
     result.feature_names = names;
     result.features.assign(n * d, 0.0f);
@@ -661,6 +674,8 @@ namespace OpenMS::OpenDIA
           for (std::size_t k = 0; k < STAGE2_MOBILITY_APEX_FEATURES; ++k) f[o++] = mapex_block[i * STAGE2_MOBILITY_APEX_FEATURES + k];
         if (faint)
           for (std::size_t k = 0; k < STAGE2_FAINT_FEATURES; ++k) f[o++] = faint_block[i * STAGE2_FAINT_FEATURES + k];
+        if (mfilter)
+          for (std::size_t k = 0; k < STAGE2_MATCHED_FILTER_FEATURES; ++k) f[o++] = mf_block[i * STAGE2_MATCHED_FILTER_FEATURES + k];
       }
     }
     say("Features: " + std::to_string(d) + " per window, noise=" + std::to_string(noise) +

@@ -495,6 +495,41 @@ int main()
             "faint feature names are stable");
   }
 
+  // 15. PRECHECK_MF matched-filter features: names, no signal, coherent peak, single interferer, robust z by hand.
+  {
+    const auto& names = OpenDIA::stage2MatchedFilterFeatureNames();
+    require(names.size() == 9 && names[0] == "mt_z_med" && names[3] == "mt_n_z3" && names[8] == "mt_llr", "matched-filter names are stable");
+    const auto e = fullEvidence();
+    const std::vector<float> empty(TraceCollector::SAMPLE_SIZE, 0.0f);
+    for (double v : OpenDIA::stage2MatchedFilterFeatures(empty.data(), library, mz, e, options))
+      require(v == 0.0, "no signal gives zero matched-filter features");
+
+    // Coherent library-shaped peak at the centre bin on a flat background.
+    std::vector<std::vector<double>> p;
+    for (double l : library)
+    {
+      auto g = gaussian(50.0 * std::sqrt(l), 16.0, 1.5);
+      for (double& v : g) v += 1.0;
+      p.push_back(g);
+    }
+    const auto t = tensor(p);
+    const auto f = OpenDIA::stage2MatchedFilterFeatures(t.data(), library, mz, e, options);
+    require(f[3] == 6.0, "coherent peak: all six fragments z >= 3");
+    require(f[4] > 0.9 && f[6] > 0.9, "coherent peak: high leave-one-out correlation and cosine");
+
+    // Only one (weak library) fragment carries signal: dominance > 0 and fewer z >= 3 fragments.
+    std::vector<std::vector<double>> q(6, std::vector<double>(RT, 1.0));
+    q[5] = gaussian(500.0, 16.0, 1.5);
+    for (double& v : q[5]) v += 1.0;
+    const auto ti = tensor(q);
+    const auto g = OpenDIA::stage2MatchedFilterFeatures(ti.data(), library, mz, e, options);
+    require(g[7] > 0.0 && g[3] < f[3], "single interferer: dominance positive and fewer z >= 3");
+
+    // By hand: box sums bg {1,3,3,3,4,4,3}, median 3, MAD 0, apex 20, so z = 17 / (sqrt(3) + 1).
+    const std::vector<double> x{1, 0, 2, 1, 0, 6, 9, 5, 0, 1, 3, 0};
+    require(std::abs(OpenDIA::stage2RobustZ(x, 6, 5, 8) - 17.0 / (std::sqrt(3.0) + 1.0)) < 1e-9, "robust z by hand");
+  }
+
   std::cout << "OpenDIAStage2_test passed\n";
   return 0;
 }

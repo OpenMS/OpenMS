@@ -42,6 +42,7 @@ namespace OpenMS::OpenDIA
     double ms1_offset_ppm = 0.0;     ///< Run MS1 offset subtracted before taking the absolute error.
     double ms2_offset_ppm = 0.0;     ///< Run fragment offset subtracted before taking the absolute error.
     double ppm_cap = 20.0;           ///< Absolute errors are capped here; missing signal also gets the cap.
+    double im_half_width = 0.03;     ///< Tensor mobility half width in 1/K0 (TraceCollector im_half_width; matched filter only).
   };
 
   /**
@@ -179,6 +180,45 @@ namespace OpenMS::OpenDIA
                                                                 const std::array<double, 6>& fragment_mz,
                                                                 const TraceEvidence& evidence,
                                                                 const Stage2ExtractionOptions& options);
+
+  /// Opt-in matched-filter block (-matched_filter, PRECHECK_MF) from the existing 6 x 32 x 8 trace tensor.
+  enum class Stage2MatchedFilterFeature : std::size_t
+  {
+    Z_MED = 0, ///< slog of the median per-fragment robust z at the centre bin.
+    Z_TRIM,    ///< slog of the mean robust z without its largest value.
+    N_Z2,      ///< Number of fragments with robust z >= 2.
+    N_Z3,      ///< Number of fragments with robust z >= 3.
+    LOO_MED,   ///< Median leave-one-out Pearson correlation over centre +/- 2 RT bins.
+    LOO_N,     ///< Number of leave-one-out correlations > 0.5.
+    COS,       ///< Cosine of the centre-bin fragment vector with sqrt library intensities.
+    DOM,       ///< log of the largest observed share over its library share.
+    LLR,       ///< slog of sum_k lw_k * log1p(max(z_k, 0)).
+    COUNT
+  };
+  constexpr std::size_t STAGE2_MATCHED_FILTER_FEATURES = static_cast<std::size_t>(Stage2MatchedFilterFeature::COUNT);
+  const std::array<std::string, STAGE2_MATCHED_FILTER_FEATURES>& stage2MatchedFilterFeatureNames();
+  /**
+    @brief Robust z of the 3-tap box sum of @p x at @p centre against the background outside [@p a, @p b).
+
+    s = 3-tap box sum (zero padded). Background is s[0, max(a-1,0)) plus s[b+1, end); with fewer than 3 values it is
+    s[0, max(centre-3,0)) plus s[centre+4, end). z = (s[centre] - med) / (1.4826 * MAD + sqrt(max(med,0)) + 1), 0 when
+    the background is empty.
+  */
+  double stage2RobustZ(const std::vector<double>& x, std::size_t centre, std::size_t a, std::size_t b);
+  /**
+    @brief Compute the opt-in matched-filter (PRECHECK_MF) features from the trace tensor.
+
+    Channels are non-padding fragments (fewer than 2 gives zeros). Each RT bin is weighted over mobility with a Gaussian
+    (sd 0.008 1/K0, i.e. 0.008 / (2 * options.im_half_width / 8) bins) centred on the smoothed core (centre +/- 2 RT bins)
+    mobility apex. Robust z per fragment uses the peak picked around the centre over MS2-scanned bins (fallback centre-1
+    .. centre+2). Because the scorer standardises by mean and SD and the z values are heavy tailed, Z_MED, Z_TRIM and
+    LLR are compressed with sign(x) * log1p(|x|).
+  */
+  std::array<double, STAGE2_MATCHED_FILTER_FEATURES> stage2MatchedFilterFeatures(const float* tensor,
+                                                                                  const std::array<double, 6>& library_intensities,
+                                                                                  const std::array<double, 6>& fragment_mz,
+                                                                                  const TraceEvidence& evidence,
+                                                                                  const Stage2ExtractionOptions& options);
 
   /// Own-mobility-apex block (-mobility_apex, PRECHECK_IMFEAT): from the core-window 1/K0 histogram of the window.
   enum class Stage2MobilityApexFeature : std::size_t
