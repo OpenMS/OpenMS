@@ -170,7 +170,7 @@ namespace OpenMS::OpenDIA
     */
     void enableEvidence(double ms1_ppm, double core_half_width_s);
     /// Whether enableEvidence() was called.
-    bool evidenceEnabled() const { return !evidence_.empty(); }
+    bool evidenceEnabled() const { return evidence_on_; }
     /**
       @brief Also count matched b and y ions (fragment charge 1) in the isolating MS2 spectrum nearest each window apex.
 
@@ -185,8 +185,15 @@ namespace OpenMS::OpenDIA
       @throws Exception::InvalidParameter If evidence is not enabled, a tolerance is not positive or a sequence cannot be parsed.
     */
     void enableByIonCounts(const OpenDIA::Library& library, double ppm, double intensity_min);
-    /// Evidence of sample i; requires evidenceEnabled().
-    const TraceEvidence& evidence(std::size_t i) const { return evidence_.at(i); }
+    /**
+      @brief Evidence of sample i; requires evidenceEnabled().
+
+      In streaming mode evidence is held only while the window is open (as its tensor), so this is valid inside the
+      close callback; afterwards use byIonCounts().
+    */
+    const TraceEvidence& evidence(std::size_t i) const;
+    /// Matched b and y ion counts of sample i (TraceEvidence::byion_b/_y), also after the window closed.
+    std::array<std::uint16_t, 2> byIonCounts(std::size_t i) const;
     /**
       @brief Also collect PeakGroupEvidence. Requires enableEvidence() first (its core half width is used).
       @param[in] ppm Matching half width in ppm around each target m/z.
@@ -244,7 +251,13 @@ namespace OpenMS::OpenDIA
     double rt_half_width_;
     double im_half_width_;
     bool ion_mobility_array_as_vssc_ = false;
-    std::vector<TraceEvidence> evidence_;
+    bool evidence_on_ = false;
+    std::vector<TraceEvidence> evidence_;            ///< Per sample (non-streaming mode).
+    static constexpr std::size_t EVIDENCE_CHUNK = 16384;
+    std::vector<std::unique_ptr<TraceEvidence[]>> evidence_chunks_; ///< Streaming: evidence slots of open windows.
+    std::vector<std::uint32_t> evidence_slot_of_;
+    std::vector<std::uint32_t> evidence_free_;
+    std::vector<std::array<std::uint16_t, 2>> byion_closed_; ///< Streaming: b/y counts kept when a window closes.
     double ms1_ppm_ = 0.0;
     double core_half_width_ = 0.0;
     std::vector<float> byion_mz_;                           ///< Pooled ion m/z: per sample, b ions then y ions.
@@ -276,6 +289,8 @@ namespace OpenMS::OpenDIA
     SpectrumMzIndex mz_index_;          ///< m/z buckets of the current spectrum.
 
     float* tensor_(std::size_t index);
+    TraceEvidence* openEvidence_(std::size_t index);  ///< Serial: the evidence of a window, allocating its slot.
+    TraceEvidence& evidence_at_(std::size_t index);
     const float* storedTensor_(std::size_t index) const;
     void close_(double rt);
     void flush_();

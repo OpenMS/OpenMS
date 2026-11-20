@@ -632,7 +632,7 @@ namespace OpenMS::OpenDIA
         peak.abs_rt_error_seconds = lib.precursors[w.precursor].has_library_rt ? std::abs(w.peak.apex_rt_error_seconds) : 0.0;
         for (double v : stage2SearchFeatures(peak)) f[o++] = static_cast<float>(v);
         for (std::size_t k = 0; k < STAGE2_BOUNDARY_FEATURES; ++k) f[o++] = boundary[i * STAGE2_BOUNDARY_FEATURES + k];
-        for (double v : stage2ByIonFeatures(traces.evidence(i))) f[o++] = static_cast<float>(v);
+        for (const auto v : traces.byIonCounts(i)) f[o++] = static_cast<float>(static_cast<double>(v));
         for (float v : grids.evidence()[i]) f[o++] = v;
         const auto& gp = grid_precursors[grid_windows[i].precursor];
         for (float v : FragmentGrid::deficit(grid_windows[i].core_area, gp.library, gp.search, noise)) f[o++] = v;

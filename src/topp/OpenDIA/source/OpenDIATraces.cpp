@@ -190,12 +190,22 @@ namespace OpenMS::OpenDIA
             "Evidence tolerances must be finite and positive.");
     ms1_ppm_ = ms1_ppm;
     core_half_width_ = core_half_width_s;
-    evidence_.assign(samples_.size(), TraceEvidence{});
+    evidence_on_ = true;
+    if (on_close_)
+    {
+      // Streaming: evidence lives in slots while a window is open, like its tensor; only the b/y counts outlive it.
+      evidence_slot_of_.assign(samples_.size(), NO_SLOT);
+      byion_closed_.assign(samples_.size(), {0, 0});
+    }
+    else
+    {
+      evidence_.assign(samples_.size(), TraceEvidence{});
+    }
   }
 
   void TraceCollector::enablePeakGroupEvidence(double ppm)
   {
-    require(!evidence_.empty(), "Peak-group evidence requires enableEvidence() first.");
+    require(evidence_on_, "Peak-group evidence requires enableEvidence() first.");
     require(std::isfinite(ppm) && ppm > 0.0, "Peak-group evidence tolerance must be finite and positive.");
     pg_ppm_ = ppm;
     pg_evidence_.assign(samples_.size(), PeakGroupEvidence{});
@@ -209,7 +219,7 @@ namespace OpenMS::OpenDIA
 
   void TraceCollector::enableMobilityHistogram()
   {
-    require(!evidence_.empty(), "The mobility histogram requires enableEvidence() first.");
+    require(evidence_on_, "The mobility histogram requires enableEvidence() first.");
     require(static_cast<bool>(on_close_), "The mobility histogram requires streaming mode.");
     require(chunks_.empty() && held_ == 0, "enableMobilityHistogram() after the first spectrum.");
     if (mobility_histogram_ || im_bins_ != IM_BINS) return;  // no library mobility: nothing to histogram
@@ -230,7 +240,7 @@ namespace OpenMS::OpenDIA
 
   void TraceCollector::enableByIonCounts(const OpenDIA::Library& library, double ppm, double intensity_min)
   {
-    require(!evidence_.empty(), "b/y ion counts require enableEvidence() first.");
+    require(evidence_on_, "b/y ion counts require enableEvidence() first.");
     require(std::isfinite(ppm) && ppm > 0.0 && std::isfinite(intensity_min) && intensity_min >= 0.0,
             "b/y ion tolerance must be positive and the intensity floor non-negative.");
     byion_ppm_ = ppm;
@@ -282,7 +292,7 @@ namespace OpenMS::OpenDIA
 
   void TraceCollector::countByIons_(const MSSpectrum& spectrum, std::size_t index, double dt)
   {
-    TraceEvidence& evidence = evidence_[index];
+    TraceEvidence& evidence = evidence_at_(index);
     // Spectra arrive in RT order, so the nearest isolating spectrum to the apex replaces any earlier one.
     if (!(dt < evidence.byion_apex_dt)) { return; }
     const auto& range = byion_range_[index];
@@ -339,14 +349,19 @@ namespace OpenMS::OpenDIA
       return total;
     };
     std::vector<std::size_t> ms1_hits;
-    for (auto active = first; active != by_rt_.end() && samples_[*active].apex_rt <= rt + rt_half_width_; ++active) ms1_hits.push_back(*active);
+    std::vector<TraceEvidence*> ms1_evidence;
+    for (auto active = first; active != by_rt_.end() && samples_[*active].apex_rt <= rt + rt_half_width_; ++active)
+    {
+      ms1_hits.push_back(*active);
+      ms1_evidence.push_back(openEvidence_(*active));
+    }
     // Each sample writes only its own evidence, so the samples are independent (thread-count invariant).
 #pragma omp parallel for schedule(dynamic, 256) num_threads(threads_) if (threads_ > 1 && ms1_hits.size() >= 1024)
     for (std::ptrdiff_t h = 0; h < static_cast<std::ptrdiff_t>(ms1_hits.size()); ++h)
     {
       const std::size_t index = ms1_hits[static_cast<std::size_t>(h)];
       const Sample& sample = samples_[index];
-      TraceEvidence& evidence = evidence_[index];
+      TraceEvidence& evidence = *ms1_evidence[static_cast<std::size_t>(h)];
       const std::size_t bin = rtBin_(rt, sample.apex_rt);
       evidence.ms1_mask |= std::uint32_t{1} << bin;
       const bool core = std::abs(rt - sample.apex_rt) <= core_half_width_;
@@ -370,7 +385,7 @@ namespace OpenMS::OpenDIA
   void TraceCollector::consumeSpectrum(MSSpectrum& spectrum)
   {
     if (on_close_ && std::isfinite(spectrum.getRT()) && (spectrum.getMSLevel() == 1 || spectrum.getMSLevel() == 2)) close_(spectrum.getRT());
-    if (spectrum.getMSLevel() == 1 && !evidence_.empty() && !spectrum.empty() && std::isfinite(spectrum.getRT()))
+    if (spectrum.getMSLevel() == 1 && evidence_on_ && !spectrum.empty() && std::isfinite(spectrum.getRT()))
     {
       consumeMS1_(spectrum);
       return;
@@ -446,6 +461,7 @@ namespace OpenMS::OpenDIA
             hits_.push_back(*active);
             hit_tensor_.resize(hits_.size());
             hit_tensor_.back() = tensor_(*active);
+            if (evidence_on_) openEvidence_(*active);
             break;
           }
         }
@@ -481,7 +497,7 @@ namespace OpenMS::OpenDIA
       }
       const auto rt_bin = std::min(RT_BINS - 1, static_cast<std::size_t>(
         std::max(0.0, (rt - sample.apex_rt + rt_half_width_) / (2.0 * rt_half_width_)) * RT_BINS));
-      TraceEvidence* evidence = evidence_.empty() ? nullptr : &evidence_[index];
+      TraceEvidence* evidence = evidence_on_ ? &evidence_at_(index) : nullptr;
       const bool core = evidence != nullptr && std::abs(rt - sample.apex_rt) <= core_half_width_;
       if (evidence != nullptr)
       {
@@ -602,6 +618,54 @@ namespace OpenMS::OpenDIA
     return chunks_[slot / SLOT_CHUNK].get() + (slot % SLOT_CHUNK) * stride_;
   }
 
+  TraceEvidence* TraceCollector::openEvidence_(std::size_t index)
+  {
+    if (!on_close_) return &evidence_[index];
+    std::uint32_t& slot = evidence_slot_of_[index];
+    if (slot == NO_SLOT)
+    {
+      if (evidence_free_.empty())
+      {
+        const std::size_t base = evidence_chunks_.size() * EVIDENCE_CHUNK;
+        evidence_chunks_.emplace_back(new TraceEvidence[EVIDENCE_CHUNK]());
+        for (std::size_t s = EVIDENCE_CHUNK; s-- > 0;) evidence_free_.push_back(static_cast<std::uint32_t>(base + s));
+      }
+      slot = evidence_free_.back();
+      evidence_free_.pop_back();
+    }
+    return &evidence_chunks_[slot / EVIDENCE_CHUNK][slot % EVIDENCE_CHUNK];
+  }
+
+  TraceEvidence& TraceCollector::evidence_at_(std::size_t index)
+  {
+    if (!on_close_) return evidence_[index];
+    const std::uint32_t slot = evidence_slot_of_[index];
+    return evidence_chunks_[slot / EVIDENCE_CHUNK][slot % EVIDENCE_CHUNK];
+  }
+
+  const TraceEvidence& TraceCollector::evidence(std::size_t i) const
+  {
+    require(evidence_on_ && i < samples_.size(), "Evidence is not enabled or the window index is out of range.");
+    if (!on_close_) return evidence_[i];
+    static const TraceEvidence none{};
+    if (evidence_slot_of_.empty()) return none;
+    const std::uint32_t slot = evidence_slot_of_[i];
+    return slot == NO_SLOT ? none : evidence_chunks_[slot / EVIDENCE_CHUNK][slot % EVIDENCE_CHUNK];
+  }
+
+  std::array<std::uint16_t, 2> TraceCollector::byIonCounts(std::size_t i) const
+  {
+    require(evidence_on_ && i < samples_.size(), "Evidence is not enabled or the window index is out of range.");
+    if (!on_close_) return {evidence_[i].byion_b, evidence_[i].byion_y};
+    // finish() releases the slot table; every window is closed and flushed by then.
+    if (!evidence_slot_of_.empty() && evidence_slot_of_[i] != NO_SLOT)
+    {
+      const auto& e = evidence(i);
+      return {e.byion_b, e.byion_y};
+    }
+    return byion_closed_[i];
+  }
+
   const float* TraceCollector::storedTensor_(std::size_t index) const
   {
     if (!on_close_) return intensities_.data() + index * stride_;
@@ -627,6 +691,18 @@ namespace OpenMS::OpenDIA
     on_close_(pending_, *this);
     for (const std::uint32_t index : pending_)
     {
+      if (evidence_on_)
+      {
+        std::uint32_t& eslot = evidence_slot_of_[index];
+        if (eslot != NO_SLOT)
+        {
+          TraceEvidence& e = evidence_chunks_[eslot / EVIDENCE_CHUNK][eslot % EVIDENCE_CHUNK];
+          byion_closed_[index] = {e.byion_b, e.byion_y};
+          e = TraceEvidence{};
+          evidence_free_.push_back(eslot);
+          eslot = NO_SLOT;
+        }
+      }
       std::uint32_t& slot = slot_of_[index];
       if (slot == NO_SLOT) continue;
       std::fill_n(chunks_[slot / SLOT_CHUNK].get() + (slot % SLOT_CHUNK) * stride_, stride_, 0.0f);
@@ -644,6 +720,9 @@ namespace OpenMS::OpenDIA
     flush_();
     std::vector<std::unique_ptr<float[]>>().swap(chunks_);
     std::vector<std::uint32_t>().swap(free_slots_);
+    std::vector<std::unique_ptr<TraceEvidence[]>>().swap(evidence_chunks_);
+    std::vector<std::uint32_t>().swap(evidence_free_);
+    std::vector<std::uint32_t>().swap(evidence_slot_of_);
   }
 
   const float* TraceCollector::windowTensor(std::size_t i, std::array<float, SAMPLE_SIZE>& buffer) const
