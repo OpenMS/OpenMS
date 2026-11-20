@@ -986,6 +986,84 @@ START_SECTION([EXTRA] SwathFile::loadThermoRaw with readoptions onDisc equals no
 END_SECTION
 #endif
 
+#ifdef THERMO_ASCEND_TEST_DATA
+START_SECTION([EXTRA] scan trailers that leave out fields of the trailer layout (Orbitrap Ascend))
+{
+  // RawFileReader lists only the trailer fields that apply to a scan. In this run (instrument software 4.2)
+  // the MS1 scans list 28 and the MS2 scans 37 of the 42 fields of the trailer layout, e.g. no 'Charge State:'
+  // and 'Monoisotopic M/Z:' in MS1 scans. Paired by position with the layout labels, every value after the
+  // first missing field had the label of another field: no precursor charge, the isolation target as selected
+  // ion, an isolation width of 0, the elapsed scan time as ion injection time, no mass resolving power (#10897).
+  ThermoRawFile::Options options;
+  options.metadata_only = true;
+  options.skip_chromatograms = true;
+  options.checksum = false;
+  ThermoRawFile file;
+  file.setOptions(options);
+  MSExperiment exp;
+  file.load(THERMO_ASCEND_TEST_DATA, exp);
+
+  auto count = [](const std::string& text, const std::string& part) {
+    Size n = 0;
+    for (std::size_t pos = text.find(part); pos != std::string::npos; pos = text.find(part, pos + part.size())) { ++n; }
+    return n;
+  };
+  Size ms1_count = 0, ms2_count = 0, selected_is_not_target = 0, isolation_width_06 = 0, ms1_with_charge_label = 0;
+  std::map<int, Size> charges;                                   // precursor charge -> MS2 spectra
+  std::map<std::pair<UInt, std::string>, Size> resolving_powers; // (MS level, value) -> spectra
+  std::map<std::pair<UInt, std::string>, Size> injection_times;  // (MS level, ms) -> spectra
+  std::map<std::pair<UInt, Size>, Size> trailer_entries;         // (MS level, entries of the scan trailer) -> spectra
+  for (const MSSpectrum& spectrum : exp.getSpectra())
+  {
+    const UInt level = spectrum.getMSLevel();
+    ++(level == 1 ? ms1_count : ms2_count);
+    ++resolving_powers[{level, spectrum.getMetaValue("mass resolving power", "none").toString()}];
+    if (spectrum.getAcquisitionInfo().empty()) { continue; }
+    const Acquisition& acquisition = spectrum.getAcquisitionInfo()[0];
+    ++injection_times[{level, acquisition.getMetaValue("ion injection time", "none").toString()}];
+    const std::string trailer = acquisition.getMetaValue("Thermo trailer extra", "").toString();
+    ++trailer_entries[{level, count(trailer, "\"label\":")}];
+    if (level == 1 && count(trailer, "\"label\":\"Charge State:\"") != 0) { ++ms1_with_charge_label; }
+    if (level != 2 || spectrum.getPrecursors().empty()) { continue; }
+    const Precursor& precursor = spectrum.getPrecursors()[0];
+    ++charges[precursor.getCharge()];
+    if (precursor.getMZ() != static_cast<double>(precursor.getMetaValue("isolation window target m/z", 0.0))) { ++selected_is_not_target; }
+    if (std::abs(precursor.getIsolationWindowLowerOffset() - 0.3) < 1e-9 && std::abs(precursor.getIsolationWindowUpperOffset() - 0.3) < 1e-9)
+    {
+      ++isolation_width_06;
+    }
+  }
+
+  // Pin the trailer values of this public fixture.
+  TEST_EQUAL(exp.size(), 25569)
+  TEST_EQUAL(ms1_count, 15984)
+  TEST_EQUAL(ms2_count, 9585)
+  // every MS2 spectrum has the precursor charge of 'Charge State:'
+  TEST_EQUAL(charges.size(), 4)
+  TEST_EQUAL(charges[2], 2756)
+  TEST_EQUAL(charges[3], 4064)
+  TEST_EQUAL(charges[4], 1962)
+  TEST_EQUAL(charges[5], 803)
+  // 'Monoisotopic M/Z:' as the selected ion, 'MS2 Isolation Width:' of 0.6
+  TEST_EQUAL(selected_is_not_target, 4308)
+  TEST_EQUAL(isolation_width_06, ms2_count)
+  // 'Orbitrap Resolution:'
+  TEST_EQUAL(resolving_powers.size(), 2)
+  TEST_EQUAL((resolving_powers[{1, "60000"}]), 15984)
+  TEST_EQUAL((resolving_powers[{2, "45000"}]), 9585)
+  // 'Ion Injection Time (ms):' mostly is the maximum injection time of the method (50 ms for MS1, 120 ms for MS2)
+  TEST_EQUAL((injection_times[{1, "50.0"}]), 13137)
+  TEST_EQUAL((injection_times[{2, "120.0"}]), 9536)
+  TEST_EQUAL((injection_times.count({1, "none"})) + (injection_times.count({2, "none"})), 0)
+  // the preserved trailer holds the vendor's own label/value pairs of the scan
+  TEST_EQUAL(trailer_entries.size(), 2)
+  TEST_EQUAL((trailer_entries[{1, 28}]), 15984)
+  TEST_EQUAL((trailer_entries[{2, 37}]), 9585)
+  TEST_EQUAL(ms1_with_charge_label, 0)
+}
+END_SECTION
+#endif
+
 END_TEST
 
 #else  // !WITH_THERMO_RAW

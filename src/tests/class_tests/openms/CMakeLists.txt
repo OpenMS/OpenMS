@@ -356,7 +356,7 @@ if (TARGET BrukerTimsImagingFile_test AND OPENTIMS_TSF_IMAGING_TEST_DATA)
   target_compile_definitions(BrukerTimsImagingFile_test PRIVATE OPENTIMS_TSF_IMAGING_TEST_DATA="${OPENTIMS_TSF_IMAGING_TEST_DATA}")
 endif()
 
-# Tests reading real Thermo .raw files: ThermoRawFile_test reads both fixtures, the
+# Tests reading real Thermo .raw files: ThermoRawFile_test reads every fixture, the
 # random-access tests only the small one.
 set(_thermo_raw_tests ThermoRawFile_test OnDiscThermoRawExperiment_test SpectrumAccessOnDisc_test)
 foreach(_thermo_test ${_thermo_raw_tests})
@@ -376,9 +376,19 @@ if (TARGET ThermoRawFile_test AND WITH_THERMO_RAW AND THERMO_FAIMS_DIA_TEST_DATA
     THERMO_FAIMS_DIA_TEST_DATA="${_thermo_faims_dia_test_data}")
 endif()
 
+# Optional Thermo Orbitrap Ascend regression fixture (scan trailers that leave out fields).
+# It can be supplied explicitly via THERMO_ASCEND_TEST_DATA or downloaded by
+# ENABLE_THERMO_ASCEND_TESTS.
+if (TARGET ThermoRawFile_test AND WITH_THERMO_RAW AND THERMO_ASCEND_TEST_DATA)
+  file(TO_CMAKE_PATH "${THERMO_ASCEND_TEST_DATA}" _thermo_ascend_test_data)
+  target_compile_definitions(ThermoRawFile_test PRIVATE
+    THERMO_ASCEND_TEST_DATA="${_thermo_ascend_test_data}")
+endif()
+
 foreach(_thermo_test ${_thermo_raw_tests})
   if (TARGET ${_thermo_test} AND WITH_THERMO_RAW AND
-      (THERMO_RAW_TEST_DATA OR (_thermo_test STREQUAL "ThermoRawFile_test" AND THERMO_FAIMS_DIA_TEST_DATA)))
+      (THERMO_RAW_TEST_DATA OR (_thermo_test STREQUAL "ThermoRawFile_test" AND
+                                (THERMO_FAIMS_DIA_TEST_DATA OR THERMO_ASCEND_TEST_DATA))))
     set_tests_properties(${_thermo_test} PROPERTIES TIMEOUT 1200)
 
     # Copy the managed bridge runtime (.dll + .runtimeconfig.json) next to the
