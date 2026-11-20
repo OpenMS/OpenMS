@@ -12,6 +12,9 @@ OpenDIAWorkflow -in run1.raw run2.raw ... -lib library.pqp [-scoring_lib library
 Per run:
 1. **Calibration**, identification-free: library RT to run RT map and tolerance, fragment m/z offset and fitted ppm
    tolerance, 1/K0 line, peak-boundary cap. A windowed second pass runs when the whole-run pass finds too few anchors.
+   The search, grid and interference use 0.6 × the calibrated 1/K0 half width (`-im_tolerance_scale`; PLAN_IMNARROW,
+   +4.3 % IDs at 1 % true FDP on the r ≈ 7 HeLa entrapment, calibration unchanged). `-im_tolerance_scale 1` restores
+   the calibrated width.
 2. **Candidate search** with the calibrated library: native-scan XIC peak picking, up to 5 peaks per precursor.
 3. **Population**: every candidate of each target-decoy pair whose best candidate has at least 3 supporting fragments.
 4. **One more pass over the spectra** collects the scoring evidence: 6-fragment traces and apex b/y ions, and the

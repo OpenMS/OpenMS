@@ -79,8 +79,8 @@ protected:
                           "between them is at most this fraction of the lower one (1 keeps every smoothed maximum)", false, true);
     setMinFloat_("valley_fraction", 0.0);
     setMaxFloat_("valley_fraction", 1.0);
-    registerDoubleOption_("im_tolerance_scale", "<factor>", 1.0, "Advanced: multiply the calibrated 1/K0 half width used for search and extraction "
-                          "(1 = as calibrated)", false, true);
+    registerDoubleOption_("im_tolerance_scale", "<factor>", 0.6, "Advanced: multiply the calibrated 1/K0 half width used for search and extraction "
+                          "(PLAN_IMNARROW: 0.6; 1 = as calibrated, the earlier default)", false, true);
     setMinFloat_("im_tolerance_scale", 0.05);
     setMaxFloat_("im_tolerance_scale", 4.0);
     registerIntOption_("trace_tensor_gb", "<GiB>", 64, "Advanced: hard cap on the 6-fragment trace tensor in GiB (about 6.1 KiB per candidate window with ion mobility); "

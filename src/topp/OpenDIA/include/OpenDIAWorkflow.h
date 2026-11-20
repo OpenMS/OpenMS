@@ -76,8 +76,8 @@ namespace OpenMS::OpenDIA
     std::size_t max_peaks = 5;
     double search_valley_fraction = 0.5;        ///< XicPickerOptions::valley_fraction of the candidate search.
     /// Multiplies the calibrated 1/K0 half width used by the search, the grid, the trace tensor and the interference
-    /// resolver (1 = as calibrated). The written calibration JSON keeps the calibrated value.
-    double im_tolerance_scale = 1.0;
+    /// resolver (PLAN_IMNARROW D pass: 0.6; 1 = as calibrated). The written calibration JSON keeps the calibrated value.
+    double im_tolerance_scale = 0.6;
     std::size_t min_transitions = 1;
     std::size_t population_min_support = 3;     ///< Pairs whose best candidate has fewer supporting fragments are dropped.
     double grid_half_width_s = 15.0;
