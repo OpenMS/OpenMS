@@ -156,6 +156,27 @@ namespace OpenMS::OpenDIA
   std::array<double, STAGE2_EXTRA_FEATURES> stage2ExtraFeatures(const float* tensor, const std::array<double, 6>& library_intensities,
                                                                 const std::array<double, 6>& fragment_mz, const TraceEvidence& evidence,
                                                                 const Stage2ExtractionOptions& options);
+
+  /// Own-mobility-apex block (-mobility_apex, PRECHECK_IMFEAT): from the core-window 1/K0 histogram of the window.
+  enum class Stage2MobilityApexFeature : std::size_t
+  {
+    APEX_OFFSET = 0,  ///< |mobility apex - precursor 1/K0| (apex: argmax of the [1 2 1]-smoothed consensus histogram); 0.06 without signal.
+    FRAGMENT_SD,      ///< Intensity-weighted SD across fragments of their 1/K0 centroids within 5 bins of the apex; 0.03 if < 2 fragments.
+    APEX_COSINE,      ///< Cosine of the fragment sums within 2 bins of the apex with sqrt library intensities.
+    APEX_SUPPORT,     ///< Fragments with signal within 2 bins of the apex.
+    APEX_CONTRAST,    ///< log1p(consensus within 2 bins) - log1p(consensus 5..12 bins away).
+    COUNT
+  };
+  constexpr std::size_t STAGE2_MOBILITY_APEX_FEATURES = static_cast<std::size_t>(Stage2MobilityApexFeature::COUNT);
+  const std::array<std::string, STAGE2_MOBILITY_APEX_FEATURES>& stage2MobilityApexFeatureNames();
+  /**
+    @brief Own-mobility-apex features of one window; identical for targets and decoys and free of training.
+    @param[in] histogram TraceCollector::mobilityHistogram() of the window ([6][MOBILITY_HISTOGRAM_BINS]), or nullptr.
+    @param[in] library_intensities Library fragment intensities in tensor channel order.
+    @param[in] fragment_mz Fragment m/z in tensor channel order (0 = padding).
+  */
+  std::array<double, STAGE2_MOBILITY_APEX_FEATURES> stage2MobilityApexFeatures(const float* histogram, const std::array<double, 6>& library_intensities,
+                                                                              const std::array<double, 6>& fragment_mz);
   /**
     @brief Inputs of LOG_SN that do not depend on the run floor, so the feature can be finished once the floor is known
     (streaming tensors). peakGroupLogSN() with the floor reproduces the LOG_SN of stage2PeakGroupFeatures() exactly.

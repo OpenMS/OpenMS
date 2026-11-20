@@ -331,6 +331,49 @@ int main(int argc, char** argv)
     late.consumeSpectrum(first_scan);
     rejects([&] { late.consumeSpectrum(back); });
   }
+  // Core-window 1/K0 histogram (enableMobilityHistogram): per fragment, 0.004 bins over +-0.06 around the library
+  // mobility, only spectra within the core; the tensor is unchanged.
+  {
+    using TC = OpenDIA::TraceCollector;
+    const std::vector<OpenDIA::TraceWindow> hw = {{"h", "target", "g", -1, 10}};
+    std::vector<float> hist, with_tensor, without_tensor;
+    const auto make = [&](bool on, std::vector<float>& tensor_out)
+    {
+      auto tc = std::make_unique<TC>(hw, library, 0.02, 15.0, 0.03, 16384, TC::DEFAULT_MAX_TENSOR_BYTES,
+                                     [&, on](const std::vector<std::uint32_t>& closed, const TC& c)
+                                     {
+                                       std::array<float, TC::SAMPLE_SIZE> buffer;
+                                       const float* t = c.windowTensor(closed[0], buffer);
+                                       tensor_out.assign(t, t + TC::SAMPLE_SIZE);
+                                       const float* h = c.mobilityHistogram(closed[0]);
+                                       require((h != nullptr) == on, "histogram presence follows the opt-in");
+                                       if (h != nullptr) hist.assign(h, h + TC::MOBILITY_HISTOGRAM_SIZE);
+                                     });
+      rejects([&] { tc->enableMobilityHistogram(); });  // evidence first
+      tc->enableEvidence(20, 4);
+      if (on) tc->enableMobilityHistogram();
+      return tc;
+    };
+    auto on = make(true, with_tensor);
+    auto off = make(false, without_tensor);
+    for (const double rt : {10.0, 15.0})  // 15 s is outside the 4 s core
+    {
+      auto a = scan(rt), b = scan(rt);
+      on->consumeSpectrum(a);
+      off->consumeSpectrum(b);
+    }
+    on->finish();
+    off->finish();
+    require(with_tensor == without_tensor && !with_tensor.empty(), "histogram changed the tensor");
+    // Channel 0 = 200 Th (1/K0 1.01 -> bin 17), channel 1 = 100 Th (10 + 5 at 0.99 -> bin 12; 1.5 is outside +-0.06).
+    std::vector<float> expected(TC::MOBILITY_HISTOGRAM_SIZE, 0.0f);
+    expected[17] = 20.0f;
+    expected[TC::MOBILITY_HISTOGRAM_BINS + 12] = 15.0f;
+    require(hist == expected, "core 1/K0 histogram wrong");
+    OpenDIA::TraceCollector retained(hw, library);
+    retained.enableEvidence(20, 4);
+    rejects([&] { retained.enableMobilityHistogram(); });  // streaming only
+  }
   // Retain the tiny .npy/metadata fixture for a real NumPy interoperability check.
   return 0;
 }

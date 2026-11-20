@@ -152,6 +152,7 @@ namespace OpenMS::OpenDIA
     im_bins_ = std::any_of(samples_.begin(), samples_.end(), [](const Sample& s) { return s.precursor_im > 0.0; }) ? IM_BINS : 1;
     const std::size_t stored = SAMPLE_SIZE / IM_BINS * im_bins_;
     stride_ = stored;
+    tensor_floats_ = stored;
     if (on_close_)
     {
       // Streaming: tensors live in reusable slots between a window's first spectrum and its closing.
@@ -203,6 +204,27 @@ namespace OpenMS::OpenDIA
   {
     return std::min(RT_BINS - 1, static_cast<std::size_t>(
       std::max(0.0, (rt - apex_rt + rt_half_width_) / (2.0 * rt_half_width_)) * RT_BINS));
+  }
+
+  void TraceCollector::enableMobilityHistogram()
+  {
+    require(!evidence_.empty(), "The mobility histogram requires enableEvidence() first.");
+    require(static_cast<bool>(on_close_), "The mobility histogram requires streaming mode.");
+    require(chunks_.empty() && held_ == 0, "enableMobilityHistogram() after the first spectrum.");
+    if (mobility_histogram_ || im_bins_ != IM_BINS) return;  // no library mobility: nothing to histogram
+    mobility_histogram_ = true;
+    // The histogram shares the window's slot, so the held-window budget counts it.
+    max_held_ = max_held_ * stride_ / (stride_ + MOBILITY_HISTOGRAM_SIZE);
+    require(max_held_ > 0, "Trace tensor budget holds no window.");
+    stride_ += MOBILITY_HISTOGRAM_SIZE;
+  }
+
+  const float* TraceCollector::mobilityHistogram(std::size_t i) const
+  {
+    require(i < samples_.size(), "Window index out of range.");
+    if (!mobility_histogram_) return nullptr;
+    const float* stored = storedTensor_(i);
+    return stored == nullptr ? nullptr : stored + tensor_floats_;
   }
 
   void TraceCollector::enableByIonCounts(const OpenDIA::Library& library, double ppm, double intensity_min)
@@ -484,6 +506,15 @@ namespace OpenMS::OpenDIA
           if (compatible_im)
           {
             const double im = mobilities != nullptr ? (*mobilities)[point - spectrum.begin()] : scalar_im;
+            if (core && mobility_histogram_ && !sample.saw_missing_im && std::isfinite(im) && im > 0.0)
+            {
+              const double offset = im - sample.precursor_im + MOBILITY_HISTOGRAM_BINS * MOBILITY_HISTOGRAM_BIN / 2.0;
+              if (offset >= 0.0)
+              {
+                const auto bin = static_cast<std::size_t>(offset / MOBILITY_HISTOGRAM_BIN);
+                if (bin < MOBILITY_HISTOGRAM_BINS) tensor[tensor_floats_ + fragment * MOBILITY_HISTOGRAM_BINS + bin] += static_cast<float>(intensity);
+              }
+            }
             if (!std::isfinite(im) || im <= 0.0 || std::abs(im - sample.precursor_im) > im_half_width_)
             {
               continue;
@@ -623,6 +654,7 @@ namespace OpenMS::OpenDIA
       buffer.fill(0.0f);
       return buffer.data();
     }
+    // The tensor is the first SAMPLE_SIZE floats of the slot (an optional mobility histogram follows it).
     if (im_bins_ == IM_BINS) { return stored; }
     buffer.fill(0.0f);
     for (std::size_t k = 0; k < FRAGMENTS * RT_BINS; ++k) { buffer[k * IM_BINS + IM_BINS / 2] = stored[k]; }

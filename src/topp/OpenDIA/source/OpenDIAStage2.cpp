@@ -482,6 +482,93 @@ namespace OpenMS::OpenDIA
     return f;
   }
 
+  const std::array<std::string, STAGE2_MOBILITY_APEX_FEATURES>& stage2MobilityApexFeatureNames()
+  {
+    static const std::array<std::string, STAGE2_MOBILITY_APEX_FEATURES> names = {
+      "m_apex_offset", "m_fragment_sd", "m_apex_cosine", "m_apex_support", "m_apex_contrast"};
+    return names;
+  }
+
+  std::array<double, STAGE2_MOBILITY_APEX_FEATURES> stage2MobilityApexFeatures(const float* histogram, const std::array<double, 6>& library_intensities,
+                                                                              const std::array<double, 6>& fragment_mz)
+  {
+    constexpr std::size_t B = TraceCollector::MOBILITY_HISTOGRAM_BINS;
+    constexpr double W = TraceCollector::MOBILITY_HISTOGRAM_BIN;
+    std::array<double, STAGE2_MOBILITY_APEX_FEATURES> f{};
+    f[0] = B * W / 2.0;
+    f[1] = 0.03;
+    std::array<double, B> consensus{};
+    double total = 0.0;
+    if (histogram != nullptr)
+      for (std::size_t c = 0; c < FRAGMENTS; ++c)
+        if (fragment_mz[c] != 0.0)
+          for (std::size_t b = 0; b < B; ++b)
+          {
+            consensus[b] += histogram[c * B + b];
+            total += histogram[c * B + b];
+          }
+    if (!(total > 0.0)) return f;
+    // Apex: argmax of the [1 2 1]/4-smoothed consensus (zero beyond the ends), first maximum on ties.
+    std::size_t apex = 0;
+    double best = -1.0;
+    for (std::size_t b = 0; b < B; ++b)
+    {
+      const double s = 0.5 * consensus[b] + 0.25 * (b > 0 ? consensus[b - 1] : 0.0) + 0.25 * (b + 1 < B ? consensus[b + 1] : 0.0);
+      if (s > best) { best = s; apex = b; }
+    }
+    const auto distance = [apex](std::size_t b) { return b > apex ? b - apex : apex - b; };
+    // Bin centres relative to the precursor 1/K0: -B*W/2 + (b + 0.5) W.
+    const auto centre = [](std::size_t b) { return -static_cast<double>(B) * W / 2.0 + (static_cast<double>(b) + 0.5) * W; };
+    f[0] = std::abs(centre(apex));
+    std::vector<double> means, weights;
+    std::array<double, FRAGMENTS> near{};
+    double inside = 0.0, side = 0.0;
+    for (std::size_t c = 0; c < FRAGMENTS; ++c)
+    {
+      if (fragment_mz[c] == 0.0) continue;
+      double s = 0.0, m = 0.0;
+      for (std::size_t b = 0; b < B; ++b)
+      {
+        const double v = histogram[c * B + b];
+        const std::size_t d = distance(b);
+        if (d <= 5) { s += v; m += v * centre(b); }
+        if (d <= 2) near[c] += v;
+      }
+      if (s > 0.0) { means.push_back(m / s); weights.push_back(s); }
+    }
+    for (std::size_t b = 0; b < B; ++b)
+    {
+      const std::size_t d = distance(b);
+      if (d <= 2) inside += consensus[b];
+      else if (d >= 5 && d <= 12) side += consensus[b];
+    }
+    if (means.size() >= 2)
+    {
+      double sw = 0.0, mean = 0.0;
+      for (std::size_t k = 0; k < means.size(); ++k) { sw += weights[k]; mean += weights[k] * means[k]; }
+      mean /= sw;
+      double var = 0.0;
+      for (std::size_t k = 0; k < means.size(); ++k) var += weights[k] * (means[k] - mean) * (means[k] - mean);
+      f[1] = std::sqrt(var / sw);
+    }
+    // Cosine with sqrt library intensities over the non-padding channels.
+    double dot = 0.0, nv = 0.0, nl = 0.0;
+    std::size_t support = 0;
+    for (std::size_t c = 0; c < FRAGMENTS; ++c)
+    {
+      if (fragment_mz[c] == 0.0) continue;
+      const double l = std::sqrt(std::max(0.0, library_intensities[c]));
+      dot += near[c] * l;
+      nv += near[c] * near[c];
+      nl += l * l;
+      if (near[c] > 0.0) ++support;
+    }
+    f[2] = nv > 0.0 && nl > 0.0 ? dot / std::sqrt(nv * nl) : 0.0;
+    f[3] = static_cast<double>(support);
+    f[4] = std::log1p(inside) - std::log1p(side);
+    return f;
+  }
+
   std::array<double, STAGE2_PEAKGROUP_FEATURES> stage2PeakGroupFeatures(const float* tensor, const std::array<double, 6>& library_intensities,
                                                                         const std::array<double, 6>& fragment_mz,
                                                                         const std::array<std::int8_t, 6>& fragment_charge,

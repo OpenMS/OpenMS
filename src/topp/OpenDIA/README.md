@@ -29,6 +29,8 @@ Per run:
    - evidence block 12 (core fragment and MS1 mass error, MS1 co-elution, isotope and area, MS2 area, ion-mobility
      centroid, co-elution and share; PLAN_EXTRA, +38 % / +24 % IDs at 1 % true FDP on the r ≈ 7 HeLa entrapment).
      `-no_extra_scores` leaves it out (24 features, the earlier default).
+   - experimental, opt-in `-mobility_apex` (ion mobility data only): 5 own-mobility-apex features from a per-fragment
+     1/K0 histogram of the core window (30 bins of 0.004 over ±0.06; PRECHECK_IMFEAT). Not yet tested by a plan.
 6. **Scoring**: `OpenDIA::CrossFitScorer`, three folds by peptide family. Seeds are the calibration anchors' windows
    and decoy windows. The scorer is a small network with a decoy-whitened readout and two self-training rounds. Then
    comes one window per precursor, decoy-tail calibrated scores, and pooled paired target-decoy q-values.

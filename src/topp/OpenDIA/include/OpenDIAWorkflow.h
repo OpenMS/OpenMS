@@ -92,6 +92,7 @@ namespace OpenMS::OpenDIA
     bool im_array_as_vssc = false;
     bool pg_scores = false;  ///< PLAN_PGSCORES: append the 10 peak-group scores (Stage2PeakGroupFeature).
     bool extra_scores = true;  ///< PLAN_EXTRA (D pass, H reported): append the evidence block (Stage2ExtraFeature).
+    bool mobility_apex = false;  ///< Experimental (PRECHECK_IMFEAT): append the own-mobility-apex block (Stage2MobilityApexFeature).
     std::size_t search_im_bins = 0;  ///< Experimental RT x ion-mobility candidate picking (SearchOptions::im_bins); 0 off.
     std::size_t search_im_extra_peaks = 2;   ///< SearchOptions::im_extra_peaks.
     std::size_t search_im_min_support = 1;   ///< SearchOptions::im_min_support.
@@ -155,5 +156,5 @@ namespace OpenMS::OpenDIA
 
   /// Feature names of RunAnalysis, in column order (with the PLAN_PGSCORES block when @p pg_scores, then the
   /// experimental evidence block when @p extra_scores).
-  std::vector<std::string> runFeatureNames(bool pg_scores = false, bool extra_scores = false);
+  std::vector<std::string> runFeatureNames(bool pg_scores = false, bool extra_scores = false, bool mobility_apex = false);
 }

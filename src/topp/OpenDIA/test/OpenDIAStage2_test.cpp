@@ -450,6 +450,34 @@ int main()
     require(z[8] == 0.0 && z[9] == IM / 2.0 && z[10] == 0.0 && z[11] == 0.0, "empty window");
   }
 
+  // 13. Own-mobility-apex block (-mobility_apex): from the core-window 1/K0 histogram.
+  {
+    constexpr std::size_t B = TraceCollector::MOBILITY_HISTOGRAM_BINS;
+    constexpr double W = TraceCollector::MOBILITY_HISTOGRAM_BIN;
+    require(OpenDIA::stage2MobilityApexFeatureNames().size() == OpenDIA::STAGE2_MOBILITY_APEX_FEATURES, "mobility apex names");
+    const auto none = OpenDIA::stage2MobilityApexFeatures(nullptr, library, mz);
+    require(std::abs(none[0] - B * W / 2.0) < 1e-12 && none[1] == 0.03 && none[2] == 0.0 && none[3] == 0.0 && none[4] == 0.0, "no histogram");
+    // All fragments at bin 20 with the library pattern: apex offset = |centre(20)|, no spread, cosine 1, 6 supporting,
+    // nothing in the side band.
+    std::vector<float> h(TraceCollector::MOBILITY_HISTOGRAM_SIZE, 0.0f);
+    for (std::size_t c = 0; c < 6; ++c) h[c * B + 20] = static_cast<float>(std::sqrt(library[c]) * 100.0);
+    const auto a = OpenDIA::stage2MobilityApexFeatures(h.data(), library, mz);
+    require(std::abs(a[0] - std::abs(20.5 * W - B * W / 2.0)) < 1e-12, "apex offset");
+    require(a[1] < 1e-12 && std::abs(a[2] - 1.0) < 1e-9 && a[3] == 6.0, "coherent apex");
+    double inside = 0.0;
+    for (std::size_t c = 0; c < 6; ++c) inside += h[c * B + 20];
+    require(std::abs(a[4] - std::log1p(inside)) < 1e-6, "contrast without side band");
+    // One fragment moved 4 bins away: spread > 0, support 5, the side band still empty (4 < 5).
+    std::swap(h[5 * B + 20], h[5 * B + 24]);
+    const auto b = OpenDIA::stage2MobilityApexFeatures(h.data(), library, mz);
+    require(b[1] > 0.0 && b[3] == 5.0 && b[2] < 1.0, "one fragment off the apex");
+    // Padding channels are ignored.
+    auto mz_pad = mz;
+    mz_pad[5] = 0.0;
+    const auto c = OpenDIA::stage2MobilityApexFeatures(h.data(), library, mz_pad);
+    require(c[1] < 1e-12 && c[3] == 5.0 && std::abs(c[2] - 1.0) < 1e-9, "padding ignored");
+  }
+
   std::cout << "OpenDIAStage2_test passed\n";
   return 0;
 }

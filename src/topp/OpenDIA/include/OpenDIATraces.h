@@ -193,6 +193,23 @@ namespace OpenMS::OpenDIA
     void enablePeakGroupEvidence(double ppm);
     /// Peak-group evidence of sample i; requires enablePeakGroupEvidence().
     const PeakGroupEvidence& peakGroupEvidence(std::size_t i) const { return pg_evidence_.at(i); }
+    /// Bins and width of the optional per-fragment core-window 1/K0 histogram (enableMobilityHistogram()).
+    static constexpr std::size_t MOBILITY_HISTOGRAM_BINS = 30;
+    static constexpr double MOBILITY_HISTOGRAM_BIN = 0.004;
+    static constexpr std::size_t MOBILITY_HISTOGRAM_SIZE = FRAGMENTS * MOBILITY_HISTOGRAM_BINS;
+    /**
+      @brief Also collect, per window and fragment, a 1/K0 histogram of the points in the core window (enableEvidence()).
+
+      MOBILITY_HISTOGRAM_BINS bins of MOBILITY_HISTOGRAM_BIN 1/K0 centred on the window's precursor mobility (+-0.06),
+      points within the fragment m/z tolerance and within the core half width of the apex. The histogram is wider than
+      the tensor's mobility window, so it shows where the window's own mobility apex lies. It is held in the window's
+      streaming slot (memory follows the open windows) and read with mobilityHistogram() in the close callback. Windows
+      without compatible mobility data keep an empty histogram. Requires streaming mode and enableEvidence(), and must
+      be called before the first spectrum. The tensor and all other evidence are unchanged.
+    */
+    void enableMobilityHistogram();
+    /// Core-window 1/K0 histogram of window i, [fragment][bin]; nullptr unless enabled and the window received signal.
+    const float* mobilityHistogram(std::size_t i) const;
     /// Library fragment charge per tensor channel (0 if unknown or padding).
     const std::array<std::int8_t, FRAGMENTS>& fragmentCharges(std::size_t i) const { return samples_.at(i).fragment_charge; }
     /// RT half width of the tensor in seconds.
@@ -239,6 +256,8 @@ namespace OpenMS::OpenDIA
     static constexpr std::size_t CLOSE_BATCH = 4096;
     CloseCallback on_close_;
     std::size_t stride_ = 0;                         ///< Stored floats per window.
+    std::size_t tensor_floats_ = 0;                  ///< Tensor floats per window (stride_ minus the optional histogram).
+    bool mobility_histogram_ = false;
     std::size_t max_held_ = 0;                       ///< Tensor budget in windows (streaming mode).
     std::vector<std::unique_ptr<float[]>> chunks_;   ///< Slot storage, SLOT_CHUNK slots per chunk.
     std::vector<std::uint32_t> slot_of_;
