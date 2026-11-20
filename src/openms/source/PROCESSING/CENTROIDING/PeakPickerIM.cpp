@@ -1267,6 +1267,7 @@ namespace OpenMS
       Param param = mte.getParameters();
       // disable most filter criteria
       param.setValue("min_trace_length", -1.0);
+      param.setValue("min_trace_scans", 1);
       param.setValue("max_trace_length", -1.0);
       param.setValue("noise_threshold_int", 0.1); // only ignore 0 peaks
       param.setValue("chrom_peak_snr", 0.0);

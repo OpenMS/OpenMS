@@ -69,6 +69,11 @@ class NuXLDeisotoper
    * @param [annotate_features] Annotates the feature index in the IntegerDataArray: "feature_number".
    * @param [preserve_high_intensity_peaks] If true, the highest intensity peak of each isotopic pattern will never be filtered
    * @param [preserve_low_mz_peaks_threshold] If preserve_high_intensity_peaks is set, all peaks with smaller m/z will never be filtered
+   * @param [first_isotope_check_max_mass] With use_decreasing_model, the first isotopic peak of a cluster whose neutral monoisotopic
+   *                                       mass is below this value must not be more intense than the monoisotopic peak, whatever
+   *                                       start_intensity_check is (for peptide fragments the monoisotopic peak is the most intense
+   *                                       one up to about 1800 Da). Without it, a fragment ion one isotope spacing above a weaker,
+   *                                       unrelated peak is taken as that peak's isotope and removed. 0 (default) disables the check.
    *
    * Note: If @p make_single_charged is selected, the original charge (>=1) gets annotated.
    */
@@ -88,7 +93,8 @@ class NuXLDeisotoper
                                          bool add_up_intensity = false,
                                          bool annotate_features = false,
                                          bool preserve_high_intensity_peaks = false,
-                                         double preserve_low_mz_peaks_threshold = -1e10);
+                                         double preserve_low_mz_peaks_threshold = -1e10,
+                                         double first_isotope_check_max_mass = 0.0);
 };
 
 }

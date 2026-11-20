@@ -22,6 +22,10 @@ namespace OpenMS
       "min_trace_length", 10.0,
       "Minimum expected length of a mass trace (in seconds). Only for MS1 (or minimum MS level in the dataset) feature tracing. For MSn, all traces are kept regardless of this value.");
 
+    // top-down feature tracing keeps traces of any number of peaks (the default of MassTraceDetection is for LC peaks of small molecules)
+    mtd_defaults.setValue("min_trace_scans", 1, "Minimum number of peaks of a mass trace, i.e. of scans in which its mass was detected. Applies in addition to 'min_trace_length'.", {"advanced"});
+    mtd_defaults.setMinInt("min_trace_scans", 1);
+
     mtd_defaults.setValue("chrom_peak_snr", .0);
     mtd_defaults.addTag("chrom_peak_snr", "advanced");
     mtd_defaults.setValue("reestimate_mt_sd", "false");

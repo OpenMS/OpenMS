@@ -342,6 +342,65 @@ START_SECTION([EXTRA] the re-estimated m/z standard deviation only narrows the m
 }
 END_SECTION
 
+START_SECTION([EXTRA] min_trace_scans: a mass trace needs a minimum number of peaks (issue #10900))
+{
+  // An MS1 spectrum every 2 s, as on a slowly scanning instrument. Three ions elute:
+  //   m/z 300 in 3 consecutive scans (it spans 4 s), m/z 400 in 4 scans (6 s) and m/z 500 in all 10 scans (18 s).
+  // 'min_trace_length' counts seconds, so a limit of 3 s lets all three pass, the one of only 3 peaks included.
+  // 'min_trace_scans' counts peaks, whatever the cycle time.
+  PeakMap slow_scans;
+  for (Size i = 0; i < 10; ++i)
+  {
+    MSSpectrum s;
+    s.setRT(2.0 * static_cast<double>(i));
+    s.setMSLevel(1);
+    auto add_peak = [&s](double mz, double intensity)
+    {
+      Peak1D p;
+      p.setMZ(mz);
+      p.setIntensity(intensity);
+      s.push_back(p);
+    };
+    if (i >= 3 && i < 6) add_peak(300.0, i == 4 ? 2000.0 : 1000.0);
+    if (i >= 3 && i < 7) add_peak(400.0, i == 4 ? 2000.0 : 1000.0);
+    add_peak(500.0, i == 4 ? 2000.0 : 1000.0);
+    slow_scans.addSpectrum(s);
+  }
+
+  MassTraceDetection mtd;
+  mtd.setLogType(ProgressLogger::NONE);
+  TEST_EQUAL((int)mtd.getDefaults().getValue("min_trace_scans"), 4)
+
+  // number of peaks of each trace, in ascending order
+  auto trace_sizes = [&mtd, &slow_scans](int min_trace_scans)
+  {
+    Param p = mtd.getDefaults();
+    p.setValue("min_trace_length", 3.0);
+    p.setValue("min_trace_scans", min_trace_scans);
+    mtd.setParameters(p);
+    std::vector<MassTrace> traces;
+    mtd.run(slow_scans, traces);
+    std::vector<Size> sizes;
+    for (const MassTrace& mt : traces) sizes.push_back(mt.getSize());
+    std::sort(sizes.begin(), sizes.end());
+    return sizes;
+  };
+
+  // disabled: only the length in seconds counts
+  TEST_TRUE(trace_sizes(1) == std::vector<Size>({3, 4, 10}))
+  TEST_TRUE(trace_sizes(3) == std::vector<Size>({3, 4, 10}))
+  // the default drops the trace of 3 peaks
+  TEST_TRUE(trace_sizes(4) == std::vector<Size>({4, 10}))
+  TEST_TRUE(trace_sizes(5) == std::vector<Size>({10}))
+  TEST_TRUE(trace_sizes(11).empty())
+
+  // the lower bound is 1
+  Param p = mtd.getDefaults();
+  p.setValue("min_trace_scans", 0);
+  TEST_EXCEPTION(Exception::InvalidParameter, mtd.setParameters(p))
+}
+END_SECTION
+
 std::vector<MassTrace> filt;
 
 //START_SECTION((void filterByPeakWidth(std::vector< MassTrace > &, std::vector< MassTrace > &)))
