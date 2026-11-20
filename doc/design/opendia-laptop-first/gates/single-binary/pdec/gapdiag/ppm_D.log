@@ -1,0 +1,6 @@
+DIA-NN best-fragment and MS1-apex mass errors by class; ours: MS2 offset 0.65 ppm, half width 8.34 ppm
+A   n  11815 | MS2 |err-offset| median  1.80 p90  5.62 p99  10.14 outside +-8.34: 0.028 | MS1 |err| median  2.80 p90  5.72 outside 20 ppm: 0.000
+B1  n   8787 | MS2 |err-offset| median  2.79 p90  7.80 p99  11.27 outside +-8.34: 0.081 | MS1 |err| median  2.90 p90  6.70 outside 20 ppm: 0.000
+B2  n   2111 | MS2 |err-offset| median  3.02 p90  8.16 p99  11.24 outside +-8.34: 0.093 | MS1 |err| median  3.10 p90  7.04 outside 20 ppm: 0.000
+C   n   3168 | MS2 |err-offset| median  3.05 p90  8.02 p99  11.28 outside +-8.34: 0.086 | MS1 |err| median  3.12 p90  7.13 outside 20 ppm: 0.000
+signed MS2 error median by class: {'A': 0.69, 'B1': 0.7, 'B2': 0.89, 'C': 0.76}

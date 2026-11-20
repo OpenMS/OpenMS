@@ -1,0 +1,122 @@
+DIA-NN q<=0.01 targets 26118, matched to library 26118
+DIA-NN non-entrapment IDs used: 25881
+windows 10111513, features 36
+our q<=0.01 targets 12432; of them in DIA-NN set 11815
+
+== classes of DIA-NN IDs
+        n  share
+A   11815  0.457
+B1   8787  0.340
+B2   2111  0.082
+C    3168  0.122
+A on the same peak (|our rt - DIA-NN rt| <= 6.0 s): 0.995
+
+== (1) DIA-NN report fields by class: median [AUC of A vs B1, A vs C; 0.5 = no difference]
+                               A        B1        B2         C  AUC A>B1  AUC A>C
+field                                                                            
+log10_quantity            4.4787    4.0913    3.9845    4.0922    0.7793   0.7900
+log10_ms1_area            4.3774    4.0318    3.9522    4.0552    0.7398   0.7339
+Evidence                  4.6902    3.4152    3.1415    3.1922    0.8224   0.8630
+Ms1.Profile.Corr          0.9162    0.7734    0.7143    0.6811    0.7079   0.7751
+Quantity.Quality          0.8600    0.6906    0.6241    0.6185    0.7898   0.8531
+PEP                       0.0000    0.0022    0.0039    0.0093    0.2045   0.1322
+fwhm_s                    2.4458    2.3514    2.2981    2.5101    0.5305   0.4595
+dn_rt_err_own_s           3.8280    3.4634    3.1785    3.1711    0.5226   0.5521
+dn_rt_err_vs_our_map_s    5.5185    5.7573    5.5756    5.3045    0.4859   0.5081
+dn_im_err_own             0.0082    0.0091    0.0101    0.0084    0.4706   0.4922
+dn_im_err_vs_our_cal      0.0085    0.0093    0.0100    0.0088    0.4734   0.4889
+Precursor.Mz            674.8772  647.2801  668.3325  621.3169    0.5524   0.6200
+Precursor.Charge          2.0000    2.0000    2.0000    2.0000    0.4779   0.4894
+length                   13.0000   13.0000   13.0000   12.0000    0.5216   0.5941
+
+== share of each class by DIA-NN quantity decile (1 = faintest)
+cls       A     B1     B2      C
+qdec                            
+1     0.135  0.523  0.194  0.148
+2     0.196  0.473  0.143  0.188
+3     0.235  0.462  0.124  0.179
+4     0.287  0.440  0.097  0.176
+5     0.362  0.398  0.070  0.169
+6     0.440  0.355  0.072  0.133
+7     0.529  0.307  0.051  0.112
+8     0.667  0.233  0.036  0.063
+9     0.793  0.146  0.022  0.039
+10    0.922  0.058  0.005  0.015
+
+== (2) our features: right window per class vs decoy best windows (n decoys 1204501)
+   AUC(class vs decoys); low AUC for B1 where A is high = feature that fails on the missed IDs
+                               med A  AUC A  med B1  AUC B1        med B2  AUC B2  med dec  A-B1 gap
+feature                                                                                             
+score                         41.233  0.995   1.414   0.590 -1.000000e+30   0.000    0.693     0.405
+f12_support                    5.000  0.957   1.000   0.663  0.000000e+00   0.446    0.000     0.294
+x_fragment_coelution           0.693  0.955   0.237   0.703  6.400000e-02   0.457    0.089     0.252
+f12_coelution                  0.688  0.966   0.321   0.728  1.930000e-01   0.526    0.174     0.238
+x_im_coelution                 0.762  0.935   0.381   0.701  2.420000e-01   0.554    0.195     0.234
+x_ms1_coelution                0.785  0.843   0.388   0.609  4.300000e-02   0.440    0.163     0.234
+boundary_apex_agreement        1.000  0.851   0.833   0.618  6.670000e-01   0.465    0.667     0.233
+boundary_coelution             0.710  0.944   0.293   0.715  1.130000e-01   0.473    0.125     0.230
+x_ms2_abs_ppm                  1.162  0.218   2.627   0.393  3.107000e+00   0.442    3.895     0.175
+x_library_correlation          0.743  0.797   0.410   0.626  2.020000e-01   0.525    0.140     0.171
+boundary_library_correlation   0.724  0.786   0.410   0.621  2.160000e-01   0.523    0.137     0.166
+i_libcos_resid                 0.533  0.769   0.308   0.628  0.000000e+00   0.578    0.000     0.141
+f12_libcos                     0.980  0.906   0.953   0.766  9.250000e-01   0.645    0.867     0.140
+i_dlibcos                     -0.435  0.634  -0.633   0.504 -7.040000e-01   0.501   -0.787     0.130
+i_explained                    0.803  0.264   0.967   0.388  1.000000e+00   0.426    1.000     0.124
+f12_extra_share               -4.232  0.160  -3.956   0.279 -3.886000e+00   0.301   -3.523     0.119
+boundary_log_width             2.339  0.776   2.245   0.662  2.140000e+00   0.592    2.023     0.113
+x_ms2_log_area                 9.897  0.801   9.387   0.690  9.263000e+00   0.674    8.562     0.111
+x_im_central_share             0.705  0.697   0.598   0.600  5.560000e-01   0.542    0.529     0.097
+x_ms1_log_area                10.521  0.789  10.083   0.694  1.004600e+01   0.677    9.266     0.095
+d_max                          0.209  0.428   0.237   0.479  2.630000e-01   0.516    0.249     0.051
+d6_max                         0.209  0.428   0.237   0.479  2.630000e-01   0.516    0.249     0.051
+x_ms1_abs_ppm                  2.103  0.415   2.422   0.463  2.417000e+00   0.475    2.725     0.048
+transition_support             6.000  0.849   6.000   0.802  6.000000e+00   0.754    5.000     0.047
+i_nclaim                       4.111  0.329   4.290   0.370  4.277000e+00   0.358    4.970     0.042
+abs_library_rt_error           5.524  0.233   5.841   0.245  6.081000e+00   0.248   17.010     0.012
+byion_y                        0.000  0.512   0.000   0.499  0.000000e+00   0.500    0.000     0.011
+x_fragment_fraction            1.000  0.635   1.000   0.624  1.000000e+00   0.618    1.000     0.011
+byion_b                        0.000  0.503   0.000   0.500  0.000000e+00   0.501    0.000     0.003
+d_lib                          0.000  0.490   0.000   0.491  0.000000e+00   0.492    0.000     0.001
+f12_extra_support              0.000  0.500   0.000   0.500  0.000000e+00   0.500    0.000     0.000
+x_ms1_isotope                  1.000  0.501   1.000   0.501  1.000000e+00   0.501    1.000     0.000
+f12_extra_coelution            0.000  0.500   0.000   0.500  0.000000e+00   0.500    0.000     0.000
+boundary_log_fwhm              1.660  0.407   1.847   0.603  1.857000e+00   0.595    1.738    -0.010
+x_im_centroid_offset           0.796  0.450   0.727   0.420  7.990000e-01   0.444    0.951    -0.030
+log_matched_scans              1.946  0.626   2.197   0.700  2.079000e+00   0.687    1.792    -0.074
+log_peak_width                 1.809  0.611   2.051   0.691  1.951000e+00   0.675    1.758    -0.080
+
+== (3) agreement with DIA-NN on the right window (Spearman per class)
+  x_ms2_log_area         vs log10_quantity     A 0.776  B1 0.543  B2 0.421
+  x_ms1_log_area         vs log10_ms1_area     A 0.706  B1 0.531  B2 0.487
+  x_ms1_coelution        vs Ms1.Profile.Corr   A 0.444  B1 0.269  B2 0.122
+  x_fragment_coelution   vs Evidence           A 0.463  B1 0.218  B2 0.191
+  transition_support     vs Evidence           A 0.193  B1 0.241  B2 0.162
+  our right-window apex - DIA-NN RT (s), median / p90 |.|: A +0.00 / 1.00  B1 +0.00 / 2.02  B2 +0.00 / 4.97
+  our IM tolerance used: +-0.0334 (0.6 x calibrated)
+  A: DIA-NN IM vs our calibrated library IM, median 0.0085, p90 0.0228, share outside our window 0.017
+  B1: DIA-NN IM vs our calibrated library IM, median 0.0093, p90 0.0257, share outside our window 0.039
+  B2: DIA-NN IM vs our calibrated library IM, median 0.0100, p90 0.0333, share outside our window 0.099
+  C: DIA-NN IM vs our calibrated library IM, median 0.0088, p90 0.0272, share outside our window 0.064
+  A: DIA-NN RT vs our RT map, median 5.5 s, p90 17.3 s, share outside our 41 s window 0.001
+  B1: DIA-NN RT vs our RT map, median 5.8 s, p90 18.1 s, share outside our 41 s window 0.001
+  B2: DIA-NN RT vs our RT map, median 5.6 s, p90 17.3 s, share outside our 41 s window 0.001
+  C: DIA-NN RT vs our RT map, median 5.3 s, p90 16.7 s, share outside our 41 s window 0.007
+
+== (4) our q of B1 (best window = right peak)
+q_value
+(0.01, 0.02]     907
+(0.02, 0.05]     837
+(0.05, 0.1]      518
+(0.1, 0.2]       617
+(0.2, 0.5]       562
+(0.5, 1.0]      5346
+
+== (5) B2: our best window vs the right one
+  score best (wrong) median 0.548  right median -1000000015047466219876688855040.000; |rt best - DIA-NN| median 21.7 s
+  transition_support       wrong 5.000  right 6.000
+  x_fragment_coelution     wrong 0.127  right 0.064
+  x_library_correlation    wrong 0.240  right 0.202
+  abs_library_rt_error     wrong 20.449  right 6.081
+  x_ms2_log_area           wrong 8.952  right 9.263
+  x_im_centroid_offset     wrong 0.865  right 0.799
+done
