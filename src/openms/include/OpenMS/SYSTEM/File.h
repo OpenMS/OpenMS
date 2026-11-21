@@ -124,6 +124,32 @@ public:
     */
     static std::string toFileURI(const std::string& file);
 
+    /**
+      @brief Convert a @p file:// URI (as produced by toFileURI()) back to a local path.
+
+      Strips the `file://` scheme and, for the three-slash Windows drive form
+      (`file:///C:/data/run.mzML`), the extra slash before the drive letter, so the
+      result can be passed to filesystem functions such as exists(). Inputs that are
+      not `file://` URIs (plain local paths) are returned unchanged.
+
+      @param[in] file A path, optionally given as a file:// URI
+      @return The local filesystem path
+    */
+    static std::string localPath(const std::string& file);
+
+    /**
+      @brief True if @p path names a remote share's authority (a UNC path, or the
+      result of localPath() restoring one from a `file://` URI with a non-local
+      authority), rather than a path on the local filesystem.
+
+      A caller probing a path that came from untrusted file metadata (such as an
+      mzML sourceFile location) should check this before calling exists() on it:
+      on Windows, resolving such a path can make the OS authenticate to the named
+      host, and on POSIX a leading "//" still resolves to a root-relative path
+      that could coincidentally match an unrelated local file.
+    */
+    static bool isRemoteAuthorityPath(const std::string& path);
+
     /// Returns the basename of the file (without the path).
     /// No checking is done on the filesystem, i.e. '/path/some_entity' will return 'some_entity', irrespective of 'some_entity' is a file or a directory.
     /// However, '/path/some_entity/' will return ''.

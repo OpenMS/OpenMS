@@ -480,9 +480,12 @@ namespace OpenMS
     if (ms_path.size() == 1)
     {
       FileTypes::Type filetype = FileNameUtils::getTypeByFileName(ms_path[0]);
-      if ((filetype == FileTypes::MZML) && File::exists(ms_path[0]))
+      const std::string local_path = File::localPath(ms_path[0]);
+      // ms_path[0] comes from the mzML's own, unauthenticated source metadata;
+      // never probe a remote share's authority it may name.
+      if ((filetype == FileTypes::MZML) && !File::isRemoteAuthorityPath(local_path) && File::exists(local_path))
       {
-        setMetaValue("spectra_data", DataValue(StringList({ms_path[0]})));
+        setMetaValue("spectra_data", DataValue(StringList({local_path})));
         return; // don't do anything else in this case
       }
       if (filetype == FileTypes::RAW)

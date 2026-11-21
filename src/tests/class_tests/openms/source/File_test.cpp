@@ -311,6 +311,36 @@ START_SECTION((static std::string toFileURI(const std::string& file)))
 #endif
 END_SECTION
 
+START_SECTION((static std::string localPath(const std::string& file)))
+  // inverts toFileURI() for the forms that MSExperiment::getPrimaryMSRunPath()
+  // hands back (see CPP-117: these URIs were passed straight to File::exists(),
+  // which can never resolve them against the filesystem)
+  TEST_STRING_EQUAL(File::localPath("file:///C:/data/run/sample.mzML"), "C:/data/run/sample.mzML")
+  TEST_STRING_EQUAL(File::localPath("file:///data/run/sample.mzML"), "/data/run/sample.mzML")
+  // a UNC authority (toFileURI() encodes it with exactly two slashes, no
+  // extra leading slash before the server name) must come back as a UNC
+  // path, not as something that looks relative to the current directory
+  TEST_STRING_EQUAL(File::localPath("file://server/share/sample.mzML"), "//server/share/sample.mzML")
+  // a plain path (no file:// scheme) is returned unchanged
+  TEST_STRING_EQUAL(File::localPath("/data/run/sample.mzML"), "/data/run/sample.mzML")
+  TEST_STRING_EQUAL(File::localPath("C:\\data\\run\\sample.mzML"), "C:\\data\\run\\sample.mzML")
+END_SECTION
+
+START_SECTION((static bool isRemoteAuthorityPath(const std::string& path)))
+  TEST_EQUAL(File::isRemoteAuthorityPath("//server/share/sample.mzML"), true)
+  TEST_EQUAL(File::isRemoteAuthorityPath("/data/run/sample.mzML"), false)
+  TEST_EQUAL(File::isRemoteAuthorityPath("C:/data/run/sample.mzML"), false)
+  TEST_EQUAL(File::isRemoteAuthorityPath(""), false)
+  TEST_EQUAL(File::isRemoteAuthorityPath("/"), false)
+#ifdef OPENMS_WINDOWSPLATFORM
+  // mzML metadata can carry a UNC authority in its original backslash form
+  // (not just the forward-slash form localPath() produces), and this must be
+  // recognized too, or the remote-authority guard in setPrimaryMSRunPath()
+  // never engages for it
+  TEST_EQUAL(File::isRemoteAuthorityPath("\\\\server\\share\\sample.mzML"), true)
+#endif
+END_SECTION
+
 START_SECTION((static std::string path(const std::string &file)))
   TEST_EQUAL(File::path("/source/config/bla/bluff.h"), "/source/config/bla");
   TEST_EQUAL(File::path("c:\\config\\bla\\tuff.h"), "c:\\config\\bla");

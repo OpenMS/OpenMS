@@ -24,6 +24,7 @@
 #include <OpenMS/FORMAT/FileNameUtils.h>
 #include <algorithm>
 #include <atomic>
+#include <cctype>
 #include <cerrno>
 #include <filesystem>
 #include <fstream>
@@ -109,7 +110,8 @@ namespace OpenMS{
 
   bool File::exists(const std::string& file)
   {
-    return fs::exists(to_path(file));
+    std::error_code ec;
+    return fs::exists(to_path(file), ec); // false (not an exception) on any error, e.g. an unsearchable parent dir
   }
 
   bool File::empty(const std::string& file)
@@ -303,9 +305,11 @@ namespace OpenMS{
 
   bool File::remove(const std::string& file)
   {
-    if (!exists(file))
+    std::error_code ec;
+    if (!fs::exists(to_path(file), ec))
     {
-      return true;
+      return !ec; // absent file succeeds; a failed existence check (e.g. an
+                  // unsearchable parent dir) does not
     }
     if (std::remove(file.c_str()) != 0)
     {
@@ -370,6 +374,46 @@ namespace OpenMS{
     }
 #endif
     return StringUtils::hasPrefix(path, "/") ? "file://" + path : "file:///" + path;
+  }
+
+  std::string File::localPath(const std::string& file)
+  {
+    if (!StringUtils::hasPrefix(file, "file://")) return file; // not a file:// URI, leave untouched
+
+    std::string path = StringUtils::substr(file, 7); // strip the "file://" scheme
+    // Windows drive paths are encoded with one extra slash before the drive letter
+    // (toFileURI() builds them as "file:///" + "C:/..."), so undo that here.
+    if (path.size() >= 3 && path[0] == '/' && std::isalpha(static_cast<unsigned char>(path[1])) && path[2] == ':')
+    {
+      path = StringUtils::substr(path, 1);
+    }
+    else if (!path.empty() && path[0] != '/')
+    {
+      // No leading slash left: the authority stripped off with "file://" was a
+      // UNC server name (toFileURI() encodes "\\server\share\..." as exactly
+      // two slashes before it), not a scheme separator. Put the UNC form back
+      // so this isn't mistaken for a path relative to the current directory.
+      path = "//" + path;
+    }
+    return path;
+  }
+
+  bool File::isRemoteAuthorityPath(const std::string& path)
+  {
+    // Only a UNC form (as produced above) starts with exactly two slashes;
+    // a local absolute path has either one (POSIX) or none (a Windows drive
+    // path, which localPath() returns as "C:/...").
+    if (path.size() < 2)
+      return false;
+#ifdef OPENMS_WINDOWSPLATFORM
+    // A path taken unchanged from mzML metadata (rather than through
+    // localPath()) can still carry its original "\\server\share" form, so
+    // recognize either separator here; POSIX has no such form to worry about.
+    auto is_sep = [](char c) { return c == '/' || c == '\\'; };
+    return is_sep(path[0]) && is_sep(path[1]);
+#else
+    return path[0] == '/' && path[1] == '/';
+#endif
   }
 
   std::string File::basename(const std::string& file)
