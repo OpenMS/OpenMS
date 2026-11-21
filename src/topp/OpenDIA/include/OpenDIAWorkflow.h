@@ -104,8 +104,8 @@ namespace OpenMS::OpenDIA
     /// Optional: reuse an OpenDIACalibrate JSON and anchor TSV instead of calibrating (reproduction of earlier runs).
     std::string calibration_json;
     std::string anchors_tsv;
-    /// Experimental (PRECHECK_RTIM): per-run ridge RT correction and a second search/extract/score pass.
-    bool rt_refine = false;
+    /// Per-run ridge RT correction and a second search/extract/score pass (PLAN_RTR D pass; -no_rt_refine turns it off).
+    bool rt_refine = true;
     std::size_t rt_refine_min_ids = 500;  ///< Fewer training IDs skip the refinement.
     bool rt_refine_anchors = false;  ///< Experimental: fit the RT correction on the calibration anchors and use it in the only pass.
   };

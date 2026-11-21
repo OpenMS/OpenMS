@@ -92,10 +92,10 @@ protected:
     registerIntOption_("trace_tensor_gb", "<GiB>", 64, "Advanced: hard cap on the 6-fragment trace tensor in GiB (about 6.1 KiB per candidate window with ion mobility); "
                        "raise it for very large libraries, memory permitting", false, true);
     setMinInt_("trace_tensor_gb", 1);
-    registerFlag_("rt_refine", "Experimental (PRECHECK_RTIM): after the first pass fit a per-run ridge RT correction on sequence composition from the run's own q<=0.01 IDs, then search, extract and score again with corrected RTs and a narrower RT window", true);
-    registerIntOption_("rt_refine_min_ids", "<n>", 500, "Experimental, with -rt_refine or -rt_refine_anchors: skip the refinement with fewer training IDs", false, true);
+    registerFlag_("no_rt_refine", "Advanced: skip the per-run RT refinement (PLAN_RTR): by default a ridge RT correction on sequence composition is fitted from the run's own q<=0.01 IDs after a first pass, then search, extraction and scoring run again with corrected RTs and a narrower RT window (about 1.8-1.9x wall time)", true);
+    registerIntOption_("rt_refine_min_ids", "<n>", 500, "Advanced: skip the RT refinement (-rt_refine_anchors too) with fewer training IDs", false, true);
     setMinInt_("rt_refine_min_ids", 1);
-    registerFlag_("rt_refine_anchors", "Experimental (PRECHECK_RTIM): fit the per-run ridge RT correction on the calibration anchors only and use it in the single pass (no second pass); ignored with -rt_refine", true);
+    registerFlag_("rt_refine_anchors", "Experimental (PRECHECK_RTIM): fit the RT correction on the calibration anchors only and use it in the single pass; requires -no_rt_refine", true);
     registerStringOption_("calibration", "<files>", "", "Advanced: comma-separated OpenDIACalibrate JSON per run to reuse instead of calibrating", false, true);
     registerStringOption_("anchors", "<files>", "", "Advanced: comma-separated anchor TSV per run, with -calibration", false, true);
     registerStringOption_("decoys", "<mode>", "library",
@@ -290,7 +290,7 @@ protected:
       return ILLEGAL_PARAMETERS;
     }
     options.trace_tensor_gb = static_cast<std::size_t>(getIntOption_("trace_tensor_gb"));
-    options.rt_refine = getFlag_("rt_refine");
+    options.rt_refine = !getFlag_("no_rt_refine");
     options.rt_refine_min_ids = static_cast<std::size_t>(getIntOption_("rt_refine_min_ids"));
     options.rt_refine_anchors = getFlag_("rt_refine_anchors");
     options.calibration.panel_targets = 40000;
