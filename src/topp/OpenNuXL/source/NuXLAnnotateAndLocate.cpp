@@ -22,6 +22,7 @@
 #include <OpenMS/CONCEPT/LogStream.h>
 
 #include <algorithm>
+#include <cmath>
 #include <map>
 #include <regex>
 
@@ -334,7 +335,9 @@ namespace OpenMS
     const NuXLParameterParsing::PrecursorsToMS2Adducts & all_feasible_adducts,
     bool nhs_localization,
     const NuXLSiteLocalization::ProteinTermini* protein_termini,
-    bool enzyme_cleaves_after_lysine)
+    bool enzyme_cleaves_after_lysine,
+    bool loss_aware_localization,
+    const std::string& enzyme_cleavage_residues)
   {
     TheoreticalSpectrumGenerator partial_loss_spectrum_generator;
     auto param = partial_loss_spectrum_generator.getParameters();
@@ -437,11 +440,15 @@ namespace OpenMS
           continue; 
         }
 
-        if (nhs_localization) // stays so if no shifted fragment ion is annotated
+        if (nhs_localization || loss_aware_localization) // stays so if no shifted fragment ion is annotated
         {
           a.localization_method = "unlocalized";
           a.localization_range_begin = -1;
           a.localization_range_end = -1;
+          a.secondary_localization_position = -1;
+          a.secondary_localization_range_begin = -1;
+          a.secondary_localization_range_end = -1;
+          a.secondary_localization_gain = 0;
         }
 
         // ion centric (e.g. b and y-ion) spectrum annotation that records all shifts of specific ions (e.g. y5, y5 + U, y5 + C3O)
@@ -899,6 +906,49 @@ namespace OpenMS
           a.localization_method = site.method;
           a.localization_range_begin = site.range_begin;
           a.localization_range_end = site.range_end;
+        }
+
+        // loss-aware consistency of all fragment ions with each residue (see NuXLSiteLocalization::localizeLossAware)
+        else if (loss_aware_localization)
+        {
+          // shifted immonium ions support all residues of their amino acid
+          vector<double> residue_evidence(unmodified_sequence.size(), 0.0);
+          for (const auto& ion : shifted_immonium_ions)
+          {
+            if (ion.annotation.size() < 2 || ion.annotation[0] != 'i' || ion.intensity <= 0.0) { continue; }
+            for (Size i = 0; i != unmodified_sequence.size(); ++i)
+            {
+              if (unmodified_sequence[i] == ion.annotation[1]) { residue_evidence[i] += std::sqrt(ion.intensity); }
+            }
+          }
+          // the enzyme doesn't cleave after a cross-linked residue: the C-terminal one can't carry the cross-link,
+          // unless no cleavage was needed because the peptide ends the protein
+          vector<bool> blocked(unmodified_sequence.size(), false);
+          if (unmodified_sequence.size() > 1 && enzyme_cleavage_residues.find(unmodified_sequence.back()) != std::string::npos
+            && !(protein_termini != nullptr && NuXLSiteLocalization::isProteinCTerminal(*protein_termini, unmodified_sequence)))
+          {
+            blocked.back() = true;
+          }
+          const NuXLSiteLocalization::LossAwareSite site = NuXLSiteLocalization::localizeLossAware(
+            n_shifts, n_noshifts, c_shifts, c_noshifts, residue_evidence, blocked);
+          best_localization = unmodified_sequence;
+          best_localization_position = site.position;
+          best_localization_score = site.position >= 0 ? site.score : 0.0;
+          localization_scores.clear();
+          for (Size i = 0; i != unmodified_sequence.size(); ++i)
+          {
+            if (i != 0) { localization_scores += ','; }
+            localization_scores += site.scores.empty() ? std::string("0") : std::string(StringUtils::number(100.0 * site.scores[i], 2));
+          }
+          for (int p : site.best) { best_localization[p] = tolower(best_localization[p]); } // residues the ions can't tell apart
+          a.localization_method = site.position >= 0 ? "loss_aware" : "unlocalized";
+          a.localization_range_begin = site.range_begin;
+          a.localization_range_end = site.range_end;
+          a.localization_delta = static_cast<float>(site.delta);
+          a.secondary_localization_position = site.secondary;
+          a.secondary_localization_range_begin = site.secondary_range_begin;
+          a.secondary_localization_range_end = site.secondary_range_end;
+          a.secondary_localization_gain = static_cast<float>(site.secondary_gain);
         }
 
         // create annotation strings for shifted fragment ions

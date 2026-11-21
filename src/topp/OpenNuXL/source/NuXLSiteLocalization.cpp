@@ -121,6 +121,140 @@ namespace OpenMS
   }
 
   // static
+  NuXLSiteLocalization::LossAwareSite NuXLSiteLocalization::localizeLossAware(const vector<double>& n_shifts,
+                                                                             const vector<double>& n_noshifts,
+                                                                             const vector<double>& c_shifts,
+                                                                             const vector<double>& c_noshifts,
+                                                                             const vector<double>& residue_evidence,
+                                                                             const vector<bool>& blocked,
+                                                                             double unshifted_weight,
+                                                                             double secondary_min_gain)
+  {
+    LossAwareSite site;
+    const int length = static_cast<int>(n_shifts.size());
+    if (length == 0) { return site; }
+
+    // the rungs that vote: a prefix ending at i contains residues 0..i, a suffix starting at i contains i..length-1;
+    // an unshifted ion on a rung with a shifted one doesn't vote (loss of the cross-link)
+    struct Rung
+    {
+      int lo;       // first residue the ion contains
+      int hi;       // last residue the ion contains
+      double vote;  // > 0
+      bool shifted; // true: for the residues inside, against those outside; false: against those inside
+    };
+    vector<Rung> rungs;
+    for (int i = 0; i != length; ++i)
+    {
+      if (n_shifts[i] > 0.0) { rungs.push_back({0, i, sqrt(n_shifts[i]), true}); }
+      else if (n_noshifts[i] > 0.0 && unshifted_weight > 0.0) { rungs.push_back({0, i, unshifted_weight * sqrt(n_noshifts[i]), false}); }
+      if (c_shifts[i] > 0.0) { rungs.push_back({i, length - 1, sqrt(c_shifts[i]), true}); }
+      else if (c_noshifts[i] > 0.0 && unshifted_weight > 0.0) { rungs.push_back({i, length - 1, unshifted_weight * sqrt(c_noshifts[i]), false}); }
+    }
+    const auto contains = [](const Rung& r, int k) { return r.lo <= k && k <= r.hi; };
+
+    vector<double> scores(length, 0.0);
+    double shifted_total = 0.0;
+    for (const Rung& r : rungs)
+    {
+      if (r.shifted) { shifted_total += r.vote; }
+      for (int k = 0; k != length; ++k)
+      {
+        if (contains(r, k)) { scores[k] += r.shifted ? r.vote : -r.vote; }
+        else if (r.shifted) { scores[k] -= r.vote; }
+      }
+    }
+
+    const auto evidence = [&residue_evidence](int k) { return k < static_cast<int>(residue_evidence.size()) ? residue_evidence[k] : 0.0; };
+    const auto same = [](double a, double b) { return std::fabs(a - b) <= 1e-9 * max(1.0, max(std::fabs(a), std::fabs(b))); };
+    double evidence_max = 0.0;
+    for (int k = 0; k != length; ++k)
+    {
+      scores[k] += evidence(k);
+      evidence_max = max(evidence_max, evidence(k));
+    }
+    if (shifted_total <= 0.0 && evidence_max <= 0.0) { return site; } // nothing carries the cross-link
+
+    const double norm = shifted_total > 0.0 ? shifted_total : evidence_max;
+    for (double& s : scores) { s /= norm; }
+
+    const auto allowed = [&blocked](int k) { return k >= static_cast<int>(blocked.size()) || !blocked[k]; };
+    const double eps = 1e-9;
+    int top = -1;
+    for (int k = 0; k != length; ++k)
+    {
+      if (allowed(k) && (top < 0 || scores[k] > scores[top] + eps)) { top = k; } // N-terminal-most of the best
+    }
+    if (top < 0) { return site; }
+
+    // tied with the localized residue: no rung contains one but not the other, and the same residue evidence
+    const auto tied = [&](int k)
+    {
+      for (const Rung& r : rungs) { if (contains(r, k) != contains(r, top)) { return false; } }
+      return same(evidence(k), evidence(top));
+    };
+    double second = 0.0;
+    bool has_second = false;
+    for (int k = 0; k != length; ++k)
+    {
+      if (!allowed(k)) { continue; }
+      if (tied(k)) { site.best.push_back(k); }
+      else if (!has_second || scores[k] > second) { second = scores[k]; has_second = true; }
+    }
+    site.position = top;
+    site.range_begin = site.best.front();
+    site.range_end = site.best.back();
+    site.score = scores[top];
+    site.delta = has_second ? scores[top] - second : 0.0;
+    site.scores = std::move(scores);
+
+    if (secondary_min_gain <= 0.0) { return site; }
+
+    // a second cross-linked form at j, given the one at top: shifted rungs that contain j but not top count for
+    // instead of against, unshifted-only rungs that contain top but not j no longer count against, and the
+    // residue evidence counts at the higher of the two. j needs evidence of its own to be told apart from top.
+    int secondary = -1;
+    double secondary_gain = 0.0;
+    for (int j = 0; j != length; ++j)
+    {
+      if (!allowed(j) || tied(j)) { continue; }
+      double explained = 0.0;
+      double relieved = 0.0;
+      for (const Rung& r : rungs)
+      {
+        if (r.shifted && contains(r, j) && !contains(r, top)) { explained += r.vote; }
+        else if (!r.shifted && contains(r, top) && !contains(r, j)) { relieved += r.vote; }
+      }
+      const double extra_evidence = same(evidence(j), evidence(top)) ? 0.0 : max(0.0, evidence(j) - evidence(top));
+      if (explained <= 0.0 && extra_evidence <= 0.0) { continue; }
+      const double gain = (2.0 * explained + relieved + extra_evidence) / norm;
+      if (secondary < 0 || gain > secondary_gain + eps) { secondary = j; secondary_gain = gain; } // N-terminal-most of the best
+    }
+    if (secondary < 0 || secondary_gain < secondary_min_gain - eps) { return site; }
+
+    // tied with the secondary site, given top: the rungs that count for the pair (shifted ones without top,
+    // unshifted-only ones with top) contain both or neither, and the residue evidence of the pair is the same
+    const auto secondary_tied = [&](int k)
+    {
+      for (const Rung& r : rungs)
+      {
+        const bool counts_for_pair = r.shifted ? !contains(r, top) : contains(r, top);
+        if (counts_for_pair && contains(r, k) != contains(r, secondary)) { return false; }
+      }
+      return same(max(evidence(k), evidence(top)), max(evidence(secondary), evidence(top)));
+    };
+    for (int k = 0; k != length; ++k)
+    {
+      if (allowed(k) && !tied(k) && secondary_tied(k)) { site.secondary_best.push_back(k); }
+    }
+    site.secondary = secondary;
+    site.secondary_range_begin = site.secondary_best.front();
+    site.secondary_range_end = site.secondary_best.back();
+    site.secondary_gain = secondary_gain;
+    return site;
+  }
+
+  // static
   void NuXLSiteLocalization::digestProtein(const EnzymaticDigestion& digestion,
                                            string_view protein,
                                            size_t min_length,

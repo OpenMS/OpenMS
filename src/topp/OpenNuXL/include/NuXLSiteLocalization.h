@@ -107,6 +107,79 @@ public:
                           double tolerance = DEFAULT_TOLERANCE,
                           const std::vector<bool>& blocked = {});
 
+  /// Default weight of an unshifted ion without a shifted ion on the same rung, relative to a shifted ion (see @ref localizeLossAware)
+  static constexpr double DEFAULT_UNSHIFTED_WEIGHT = 0.5;
+
+  /// Default minimum gain of a secondary cross-link site, in units of the summed shifted-rung votes (see @ref localizeLossAware)
+  static constexpr double DEFAULT_SECONDARY_MIN_GAIN = 0.2;
+
+  /// Result of @ref localizeLossAware
+  struct LossAwareSite
+  {
+    int position = -1;                      ///< localized residue (the N-terminal-most of the tied ones), -1 if unlocalized
+    int range_begin = -1;                   ///< first of the tied residues, -1 if unlocalized
+    int range_end = -1;                     ///< last of the tied residues, -1 if unlocalized
+    double score = 0.0;                     ///< score of the localized residue
+    double delta = 0.0;                     ///< score distance to the best residue that is not tied (0 if there is none)
+    std::vector<double> scores;             ///< score of every residue; empty if unlocalized
+    std::vector<int> best;                  ///< the tied residues (ascending): equally likely, as no fragment ion tells them apart from @c position
+    int secondary = -1;                     ///< a second cross-link site the fragment ions distinguish from @c position (the N-terminal-most of its tied residues), -1 if none
+    int secondary_range_begin = -1;         ///< first of the residues tied with @c secondary, -1 if none
+    int secondary_range_end = -1;           ///< last of the residues tied with @c secondary, -1 if none
+    double secondary_gain = 0.0;            ///< how much a second cross-link at @c secondary improves the explanation of the fragment ions (units of @c scores); 0 if none
+    std::vector<int> secondary_best;        ///< the residues tied with @c secondary (ascending): no fragment ion tells them apart, given the cross-link at @c position
+  };
+
+  /**
+    @brief Localizes a cross-link by how consistent the fragment ions are with each residue, tolerating the loss of the cross-link.
+
+    Every rung of the prefix (a/b) and suffix (y) ladder votes with the square root of its summed intensity:
+    - a rung with a shifted ion counts for the residues the ion contains and against all others;
+    - an unshifted ion on a rung that also has a shifted ion is ignored: the cross-linked nucleotide (or
+      cross-linker) is frequently lost completely, so it doesn't contradict a cross-link in that ion;
+    - a rung with unshifted ions only counts against the residues the ion contains, with weight @p unshifted_weight.
+
+    @p residue_evidence (e.g. the square-root intensities of shifted immonium ions of that amino acid) is added
+    per residue. Scores are reported in units of the summed shifted-rung votes (1: all shifted ions contain the
+    residue and nothing speaks against it). Residues flagged in @p blocked are scored but never chosen.
+
+    Unlike the 'fragments' localization, a residue does not inherit a higher score from longer shifted ions
+    than the residues next to it, and missing neighbouring rungs do not disqualify a residue.
+
+    Tied residues are equally likely and indistinguishable: no counted rung contains one but not the other, and
+    their @p residue_evidence is the same (so their scores are identical). They are reported as such
+    (@c range_begin, @c range_end, @c best); @c position is the N-terminal-most of them.
+
+    A spectrum can also contain two forms of the peptide, cross-linked at different residues. A second site
+    is reported (@c secondary) if the fragment ions distinguish it from the localized one:
+    - some shifted ion contains it but not the localized residue, or its @p residue_evidence is higher; and
+    - assuming both forms improves the votes by at least @p secondary_min_gain (in units of @c scores): a
+      shifted rung that contains the second site but not the localized one counts for instead of against
+      (twice its vote), an unshifted-only rung that contains the localized residue but not the second site no
+      longer counts against (the other form explains it), and @p residue_evidence counts at the higher of the two.
+    Of the residues that qualify, the one with the largest gain is reported. Residues tied with it (the same
+    gain for the same reason: given the localized site, no counted rung tells them apart) are reported in
+    @c secondary_range_begin, @c secondary_range_end and @c secondary_best; @c secondary is the N-terminal-most.
+
+    @param[in] n_shifts intensity of the shifted prefix (a/b) ions ending at each residue
+    @param[in] n_noshifts intensity of the unshifted prefix (a/b) ions ending at each residue
+    @param[in] c_shifts intensity of the shifted suffix (y) ions starting at each residue
+    @param[in] c_noshifts intensity of the unshifted suffix (y) ions starting at each residue
+    @param[in] residue_evidence additional evidence for a cross-link at each residue (same scale as the votes); empty: none
+    @param[in] blocked per residue, whether it can't carry the cross-link (e.g. the C-terminal residue the enzyme cleaved after); empty: none
+    @param[in] unshifted_weight weight of rungs with unshifted ions only
+    @param[in] secondary_min_gain minimum gain of a secondary site (see above); 0: no secondary site
+    @return unlocalized (position -1) without any shifted evidence or if all residues are blocked
+  */
+  static LossAwareSite localizeLossAware(const std::vector<double>& n_shifts,
+                                         const std::vector<double>& n_noshifts,
+                                         const std::vector<double>& c_shifts,
+                                         const std::vector<double>& c_noshifts,
+                                         const std::vector<double>& residue_evidence = {},
+                                         const std::vector<bool>& blocked = {},
+                                         double unshifted_weight = DEFAULT_UNSHIFTED_WEIGHT,
+                                         double secondary_min_gain = DEFAULT_SECONDARY_MIN_GAIN);
+
   /**
     @brief The peptides of a protein as searched: its digest and, optionally, its N-terminal peptides after removal of the initial methionine.
 
