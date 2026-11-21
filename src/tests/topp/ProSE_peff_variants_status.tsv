@@ -1,0 +1,6 @@
+protein	position	variant	kind	status	reason	window	psms	psms_q	runs_q	best_q	reference_psms_q
+test2_rev	6	G6A	simple	searched		test2_rev_VAR_G6A	0	0	0		1
+test2_rev	15	E15*	stop_gain	searched		test2_rev_VAR_E15*	0	0	0		0
+BSA2	3	3-5|	complex	not_searched	complex_not_supported		0	0	0		1
+BSA2	5	R5X	simple	not_searched	unknown_residue		0	0	0		1
+BSA2	200	200A	simple	not_searched	out_of_range		0	0	0		0

@@ -1807,6 +1807,23 @@ namespace OpenMS
     return false;
   }
 
+  PEFFEntry PEFFFile::parseFASTAEntry(const FASTAFile::FASTAEntry& fasta)
+  {
+    // as readNext() initializes an entry, without a header (headers_ empty)
+    PEFFEntry entry;
+    entry.identifier = fasta.identifier;
+    entry.sequence = fasta.sequence;
+    entry.sequence_length = fasta.sequence.size();
+    const size_t colon_pos = fasta.identifier.find(':');
+    if (colon_pos != std::string::npos)
+    {
+      entry.prefix = StringUtils::substr(fasta.identifier, 0, colon_pos);
+    }
+    PEFFFile parser;
+    parser.parseAnnotations_(fasta.description, entry);
+    return entry;
+  }
+
   std::string PEFFFile::toProForma(const PEFFEntry& entry)
   {
     // If no modifications, return plain sequence

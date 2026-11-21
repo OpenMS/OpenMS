@@ -19,7 +19,10 @@
 
 
 #include <array>
+#include <memory>
 #include <mutex>
+#include <unordered_map>
+#include <utility>
 #include <vector>
 #include <functional>
 #include <algorithm>   // std::max (used by inline static isOpenSearchMode)
@@ -279,6 +282,30 @@ namespace OpenMS
      */
     void addSpecialPeptide(AASequence& peptide, Size source_idx);
 #endif
+
+    /// Per FASTA identifier: the region [first, second) (0-based residue positions) of the entry that its peptides
+    /// must overlap (see setPeptideRegions())
+    using PeptideRegions = std::unordered_map<std::string, std::pair<Size, Size>>;
+
+    /** @brief Restricts the peptides of some entries to those that overlap a region of the entry.
+     *
+     * For an entry whose identifier is a key of @p regions, build() indexes only the peptides of its digest that share
+     * at least one residue with the entry's region [first, second); the entries without a region are indexed as before.
+     * Meant for entries that are a fragment of a longer protein with a change in it (e.g. a sequence variant): the
+     * peptides around the change are new, the others are those of the protein, and the ones at the ends of the fragment
+     * would be taken for protein-terminal ones (protein-terminal modifications, the initial-Met clip). In peptide-mass
+     * mode (low_memory with a non-specific digestion), the mother peptides are restricted: a prefix of a mother that
+     * overlaps the region need not overlap it itself.
+     * The regions are kept by clear() and apply to every later build(); nullptr (the default) or an empty map restricts
+     * nothing. A region beyond the end of its entry restricts the peptides to those that reach into it, none if it starts
+     * past the end.
+     *
+     * @param[in] regions The regions by identifier (shared, not copied; must not change while the index is built)
+     */
+    void setPeptideRegions(std::shared_ptr<const PeptideRegions> regions);
+
+    /// The regions of setPeptideRegions() (nullptr if none were set)
+    const std::shared_ptr<const PeptideRegions>& getPeptideRegions() const noexcept { return peptide_regions_; }
 
     /** @brief Given a set of Fasta files, builds the Fragment Index datastructure (FID). First all fragments are sorted
      * by their own mass. Next they are placed in buckets. The min-fragment mass is stored for each bucket, whereupon
@@ -991,6 +1018,12 @@ protected:
 
     /// Protein lengths indexed by protein_idx, populated at build() time.
     std::vector<uint32_t> protein_lengths_;
+
+    /// setPeptideRegions(): the regions that restrict the peptides of some entries (nullptr: none)
+    std::shared_ptr<const PeptideRegions> peptide_regions_;
+
+    /// The region of @p entry (peptide_regions_), or nullptr if its peptides are not restricted
+    const std::pair<Size, Size>* peptideRegion_(const FASTAFile::FASTAEntry& entry) const;
 
     float fragment_min_mz_;  ///< smallest fragment mz
     float fragment_max_mz_;  ///< largest fragment mz

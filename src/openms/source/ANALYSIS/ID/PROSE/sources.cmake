@@ -6,6 +6,7 @@ set(sources_list
 ProSEAlgorithm.cpp
 ProSEHits.cpp
 ProSELoading.cpp
+ProSEPEFF.cpp
 ProSEPooling.cpp
 ProSEProteins.cpp
 ProSEReport.cpp
