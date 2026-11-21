@@ -1211,13 +1211,15 @@ protected:
       registerTOPPSubsection_(subsection_name, "Presets for " + p + " cross-link protocol (Note: changes will be ignored).");
       StringList target_nucleotides, mappings, modifications, fragment_adducts;
       std::string can_cross_link, standalone, localization;
-      NuXLPresets::getPresets(p, custom_presets_file, target_nucleotides, mappings, modifications, fragment_adducts, can_cross_link, standalone, localization);
+      std::string oligo_fragment_adducts;
+      NuXLPresets::getPresets(p, custom_presets_file, target_nucleotides, mappings, modifications, fragment_adducts, can_cross_link, standalone, localization, oligo_fragment_adducts);
 
       registerStringList_(subsection_name + ":target_nucleotides", "", target_nucleotides, "", false, true);
       registerStringList_(subsection_name + ":mapping", "", mappings, "", false, true);
       registerStringOption_(subsection_name + ":can_cross_link", "", can_cross_link, "", false, true);
       if (!standalone.empty()) { registerStringOption_(subsection_name + ":standalone", "", standalone, "", false, true); }
       if (!localization.empty()) { registerStringOption_(subsection_name + ":localization", "", localization, "", false, true); }
+      if (!oligo_fragment_adducts.empty()) { registerStringOption_(subsection_name + ":oligo_fragment_adducts", "", oligo_fragment_adducts, "", false, true); }
       registerStringList_(subsection_name + ":modifications", "", modifications, "", false, true);
       registerStringList_(subsection_name + ":fragment_adducts", "", fragment_adducts, "", false, true);
     }
@@ -1265,6 +1267,13 @@ protected:
                         false,
                         true);
     setValidStrings_("NuXL:localization", {"fragments", "NHS"});
+
+    registerStringOption_("NuXL:oligo_fragment_adducts",
+                        "<nucleotides>",
+                        "preset",
+                        "Larger fragment adducts for precursor adducts of two or more nucleotides. For every cross-linked nucleotide: the complete adduct, also after loss of H2O. For the cross-linked nucleotides N listed here (e.g. 'U'): N with the phosphate of its neighbour (N+HPO3, annotated 'pNp', and 'pNp-H2O') and N after loss of two waters ('N-H2O-H2O'). Only those that are a subformula of the precursor adduct are used, and none of them as marker ion. 'preset': as the preset says ('U' for the RNA-UV presets of the unmodified nucleotides, none without preset). 'none': no larger fragment adducts.",
+                        false,
+                        true);
 
     StringList modifications;
     modifications.emplace_back("U:");
@@ -5403,6 +5412,7 @@ protected:
     std::string can_cross_link;
     std::string standalone; // nucleotides that only form adducts on their own (e.g., a cross-linker without nucleotide)
     std::string localization; // how cross-links are localized ("fragments" or "NHS")
+    std::string oligo_fragment_adducts; // nucleotides whose larger fragment adducts precursor adducts of two or more nucleotides get (empty: none)
     // string format:  target,formula e.g. "A=C10H14N5O7P", ..., "U=C10H14N5O7P", "X=C9H13N2O8PS"  where X represents tU
     StringList target_nucleotides;
     // string format:  source->target e.g. "A->A", ..., "U->U", "U->X"
@@ -5437,7 +5447,7 @@ protected:
     { // set from presets
       std::string p = getStringOption_("NuXL:presets");
       std::string custom_presets_file = getStringOption_("NuXL:presets_file");
-      NuXLPresets::getPresets(p, custom_presets_file, target_nucleotides, mappings, modifications, fragment_adducts, can_cross_link, standalone, localization);
+      NuXLPresets::getPresets(p, custom_presets_file, target_nucleotides, mappings, modifications, fragment_adducts, can_cross_link, standalone, localization, oligo_fragment_adducts);
       if (localization.empty()) { localization = "fragments"; }
       
       // set if DNA or RNA preset
@@ -5513,8 +5523,26 @@ protected:
       }
     }
 
+    // the user's choice overrides the preset
+    if (const std::string choice = getStringOption_("NuXL:oligo_fragment_adducts"); choice != "preset") { oligo_fragment_adducts = (choice == "none") ? "" : choice; }
+    std::map<char, EmpiricalFormula> nucleotide_formulas; // from entries like "U=C9H13N2O9P"
+    for (const std::string& t : target_nucleotides)
+    {
+      if (t.size() > 2 && t[1] == '=') { nucleotide_formulas[t[0]] = EmpiricalFormula(t.substr(2)); }
+    }
+    std::set<char> oligo_nucleotides;
+    for (const char c : oligo_fragment_adducts)
+    {
+      if (!nucleotide_formulas.contains(c))
+      {
+        OPENMS_LOG_ERROR << "NuXL:oligo_fragment_adducts: '" << c << "' is not one of the target nucleotides." << std::endl;
+        return ILLEGAL_PARAMETERS;
+      }
+      oligo_nucleotides.insert(c);
+    }
+
     // calculate all feasible fragment adducts from all possible precursor adducts
-    NuXLParameterParsing::PrecursorsToMS2Adducts all_feasible_fragment_adducts = NuXLParameterParsing::getAllFeasibleFragmentAdducts(mm, nucleotide_to_fragment_adducts, can_xl_, true, isRNA);
+    NuXLParameterParsing::PrecursorsToMS2Adducts all_feasible_fragment_adducts = NuXLParameterParsing::getAllFeasibleFragmentAdducts(mm, nucleotide_to_fragment_adducts, can_xl_, true, isRNA, oligo_nucleotides, nucleotide_formulas);
     
     std::vector<NuXLFragmentAdductDefinition> all_possible_marker_ion_masses = NuXLParameterParsing::getMarkerIonsMassSet(all_feasible_fragment_adducts);
     PeakSpectrum all_possible_marker_ion_sub_score_spectrum_z1;   
