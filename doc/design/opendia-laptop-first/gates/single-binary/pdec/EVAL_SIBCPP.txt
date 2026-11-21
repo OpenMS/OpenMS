@@ -1,0 +1,27 @@
+library: target precursors 366357, r = 1.1225, targets with a paired decoy 366122 (0.9994)
+arm  seed  N_q01  E_q01  lower  combined  N_at_FDPc1
+cur     0  17839    154 0.0086    0.0163       16678
+cur     1  18083    158 0.0087    0.0165       17038
+sib     0  24110    179 0.0074    0.0140       23428
+sib     1  24413    182 0.0075    0.0141       23392
+cur: pooled q<=0.01 lower 0.0087 (90 % 0.0079-0.0095), combined 0.0164 (90 % 0.0149-0.0180); E 312, N 35922; median N@FDP_c 1 % 16858 (16678-17038); P(entrapment beats own decoy | best q<=0.05) 0.523 (n 2550, 90 % +-0.016)
+sib: pooled q<=0.01 lower 0.0074 (90 % 0.0068-0.0081), combined 0.0141 (90 % 0.0129-0.0153); E 361, N 48523; median N@FDP_c 1 % 23410 (23392-23428); P(entrapment beats own decoy | best q<=0.05) 0.499 (n 3340, 90 % +-0.014)
+library: target precursors 366357, r = 1.1225, targets with a paired decoy 366122 (0.9994)
+arm  seed  N_q01  E_q01  lower  combined  N_at_FDPc1
+cur     0  32719    216 0.0066    0.0125       32310
+cur     1  32844    222 0.0068    0.0128       32415
+sib     0  37320    245 0.0066    0.0124       36845
+sib     1  37055    243 0.0066    0.0124       36610
+cur: pooled q<=0.01 lower 0.0067 (90 % 0.0062-0.0072), combined 0.0126 (90 % 0.0117-0.0137); E 438, N 65563; median N@FDP_c 1 % 32362 (32310-32415); P(entrapment beats own decoy | best q<=0.05) 0.511 (n 4560, 90 % +-0.012)
+sib: pooled q<=0.01 lower 0.0066 (90 % 0.0061-0.0071), combined 0.0124 (90 % 0.0115-0.0134); E 488, N 74375; median N@FDP_c 1 % 36728 (36610-36845); P(entrapment beats own decoy | best q<=0.05) 0.507 (n 4994, 90 % +-0.012)
+n       0       1       2
+d                        
+0  0.1381  0.4970  0.3649
+1  0.1384  0.4966  0.3650
+['is_decoy', 's_n', 's_co', 's_best', 's_best_d']
+            s_n   s_co  s_best  s_best_d
+is_decoy                                
+0         1.297  0.470   0.364     2.338
+1         1.297  0.461   0.124     2.352
+
+--- Command finished with exit code: 0 ---
