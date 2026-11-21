@@ -1,0 +1,56 @@
+== joint_D_r0
+D_r0: windows 1037625, base features 45, with siblings 49; windows with a co-eluting sibling target 0.429 decoy 0.424  [3s]
+A tool score                       q<=0.01 N  19097 HeLa  19097 (DIA-NN covered 0.629)  [3s]
+B label-free GBM                   q<=0.01 N  20261 HeLa  20261 (DIA-NN covered 0.659)  [34s]
+Bs label-free GBM + siblings       q<=0.01 N  22761 HeLa  22761 (DIA-NN covered 0.679)  [89s]
+C DIA-NN ceiling                   q<=0.01 N  20644 HeLa  20644 (DIA-NN covered 0.671)  [105s]
+Cs DIA-NN ceiling + siblings       q<=0.01 N  25077 HeLa  25077 (DIA-NN covered 0.702)  [117s]
+
+profiles (tool score; cut 6.169):
+  A_low (right window best, not accepted)      n   4178  i_explained median 0.454  share>=0.5 0.452  i_nclaim median 2.30  co-eluting accepted sibling 0.094  has sibling in library 0.788
+  accepted HeLa target best windows            n  19097  i_explained median 0.298  share>=0.5 0.280  i_nclaim median 2.08  co-eluting accepted sibling 0.117  has sibling in library 0.803
+  decoy best windows within +-2 of the cut     n   1914  i_explained median 0.454  share>=0.5 0.465  i_nclaim median 2.20  co-eluting accepted sibling 0.000  has sibling in library 0.796
+
+SUMMARY D_r0: HeLa Bs/B +12.34%, Cs/C +21.47%; A_low i_explained>=0.5 0.452 vs accepted 0.280 (ratio 1.62)
+== joint_H_r0
+H_r0: windows 1601586, base features 45, with siblings 49; windows with a co-eluting sibling target 0.150 decoy 0.139  [3s]
+A tool score                       q<=0.01 N  34702 HeLa  34702 (DIA-NN covered 0.725)  [3s]
+B label-free GBM                   q<=0.01 N  37178 HeLa  37178 (DIA-NN covered 0.764)  [43s]
+Bs label-free GBM + siblings       q<=0.01 N  41941 HeLa  41941 (DIA-NN covered 0.779)  [88s]
+C DIA-NN ceiling                   q<=0.01 N  37444 HeLa  37444 (DIA-NN covered 0.771)  [105s]
+Cs DIA-NN ceiling + siblings       q<=0.01 N  41100 HeLa  41100 (DIA-NN covered 0.785)  [122s]
+
+profiles (tool score; cut 5.297):
+  A_low (right window best, not accepted)      n   2689  i_explained median 0.468  share>=0.5 0.477  i_nclaim median 2.20  co-eluting accepted sibling 0.131  has sibling in library 0.729
+  accepted HeLa target best windows            n  34702  i_explained median 0.262  share>=0.5 0.256  i_nclaim median 2.08  co-eluting accepted sibling 0.153  has sibling in library 0.756
+  decoy best windows within +-2 of the cut     n   4042  i_explained median 0.402  share>=0.5 0.432  i_nclaim median 1.95  co-eluting accepted sibling 0.000  has sibling in library 0.866
+
+SUMMARY H_r0: HeLa Bs/B +12.81%, Cs/C +9.76%; A_low i_explained>=0.5 0.477 vs accepted 0.256 (ratio 1.86)
+== joint_D_r7
+D_r7: windows 9114776, base features 45, with siblings 49; windows with a co-eluting sibling target 0.337 decoy 0.330  [24s]
+A tool score                       q<=0.01 N  16038 HeLa  15859 (DIA-NN covered 0.580) lower 0.0112 combined 0.0127 N@FDP_c1% 15465  [26s]
+B label-free GBM                   q<=0.01 N  16157 HeLa  15961 (DIA-NN covered 0.586) lower 0.0121 combined 0.0139 N@FDP_c1% 15387  [115s]
+Bs label-free GBM + siblings       q<=0.01 N  15771 HeLa  15571 (DIA-NN covered 0.572) lower 0.0127 combined 0.0145 N@FDP_c1% 14780  [195s]
+C DIA-NN ceiling                   q<=0.01 N  15742 HeLa  15583 (DIA-NN covered 0.574) lower 0.0101 combined 0.0115 N@FDP_c1% 15330  [232s]
+Cs DIA-NN ceiling + siblings       q<=0.01 N  16527 HeLa  16365 (DIA-NN covered 0.592) lower 0.0098 combined 0.0112 N@FDP_c1% 16031  [263s]
+
+profiles (tool score; cut 14.008):
+  A_low (right window best, not accepted)      n   4768  i_explained median 0.929  share>=0.5 0.878  i_nclaim median 4.11  co-eluting accepted sibling 0.078  has sibling in library 0.802
+  accepted HeLa target best windows            n  15859  i_explained median 0.807  share>=0.5 0.786  i_nclaim median 3.99  co-eluting accepted sibling 0.107  has sibling in library 0.811
+  decoy best windows within +-2 of the cut     n     84  i_explained median 0.890  share>=0.5 0.845  i_nclaim median 4.07  co-eluting accepted sibling 0.000  has sibling in library 0.738
+
+SUMMARY D_r7: HeLa Bs/B -2.44%, Cs/C +5.02%; N@FDP_c 1 % Bs/B -3.94%, lower 0.0121 -> 0.0127; A_low i_explained>=0.5 0.878 vs accepted 0.786 (ratio 1.12)
+== joint_H_r7
+H_r7: windows 11854348, base features 45, with siblings 49; windows with a co-eluting sibling target 0.145 decoy 0.140  [24s]
+A tool score                       q<=0.01 N  31263 HeLa  30888 (DIA-NN covered 0.710) lower 0.0120 combined 0.0137 N@FDP_c1% 30543  [26s]
+B label-free GBM                   q<=0.01 N  32341 HeLa  31935 (DIA-NN covered 0.731) lower 0.0126 combined 0.0143 N@FDP_c1% 31250  [117s]
+Bs label-free GBM + siblings       q<=0.01 N  37597 HeLa  37152 (DIA-NN covered 0.754) lower 0.0118 combined 0.0135 N@FDP_c1% 36588  [215s]
+C DIA-NN ceiling                   q<=0.01 N  32868 HeLa  32462 (DIA-NN covered 0.741) lower 0.0124 combined 0.0141 N@FDP_c1% 31666  [251s]
+Cs DIA-NN ceiling + siblings       q<=0.01 N  34362 HeLa  33964 (DIA-NN covered 0.756) lower 0.0116 combined 0.0132 N@FDP_c1% 33362  [288s]
+
+profiles (tool score; cut 9.655):
+  A_low (right window best, not accepted)      n   4036  i_explained median 0.907  share>=0.5 0.837  i_nclaim median 3.87  co-eluting accepted sibling 0.115  has sibling in library 0.740
+  accepted HeLa target best windows            n  30888  i_explained median 0.709  share>=0.5 0.681  i_nclaim median 3.71  co-eluting accepted sibling 0.149  has sibling in library 0.757
+  decoy best windows within +-2 of the cut     n    570  i_explained median 0.843  share>=0.5 0.775  i_nclaim median 3.81  co-eluting accepted sibling 0.000  has sibling in library 0.718
+
+SUMMARY H_r7: HeLa Bs/B +16.34%, Cs/C +4.63%; N@FDP_c 1 % Bs/B +17.08%, lower 0.0126 -> 0.0118; A_low i_explained>=0.5 0.837 vs accepted 0.681 (ratio 1.23)
