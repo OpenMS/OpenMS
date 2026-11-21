@@ -49,6 +49,6 @@ At r7, N at combined FDP 1 % and the lower / combined bounds were:
 
 1. **Candidate recovery (C) is the largest single class on H** (5,908 at r0) and the second largest on D (2,814). It does not depend on signal strength. This is step 3. The first precheck: for C IDs, find where the right RT falls relative to our search window and the candidates we did emit (outside the window, merged into a neighbour, or below the picking threshold). It needs no new runs, because the feature tables and libraries are already on codon.
 2. **New evidence for A_low** (6,362 on D, 4,981 on H). The scorer cannot fix these with current features. They need information we do not compute.
-3. **Bt (label-free, hard-decoy training)** qualifies under rule 4 for an r ≈ 1.56 precheck and then a frozen 5-seed plan. It is worth about +4-6 % at r7. Caveat: an earlier C++ hard-negative variant (PRECHECK_NOCAND) gave only +1.2 % with worse calibration at r ≈ 1.56. The C++ version must match the Python Bt design (hardest 2 % decoy precursors by the current score as negatives, 3 rounds) before that comparison means anything.
+3. **Bt (label-free, hard-decoy training)** qualifies under rule 4 for an r ≈ 1.56 precheck and then a frozen 5-seed plan. It is worth about +4-6 % at r7. Caveat: the same idea in Python (`precheck_scorer36_tailfit.py`, PRECHECK_NOCAND section 3, older default) gave only +1.2 % with a worse lower bound at r ≈ 1.56. So the r ≈ 1.56 check of Bt on the current default comes before any C++ work (PRECHECK_BT156).
 
 No code or default changes.
