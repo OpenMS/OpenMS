@@ -27,7 +27,7 @@ project("OpenMS_CLI")
 
 include(${PROJECT_SOURCE_DIR}/includes.cmake)
 
-openms_add_library(TARGET_NAME OpenMS_CLI
+openms_add_library(PACKAGE_VERSION TARGET_NAME OpenMS_CLI
                    SOURCE_FILES ${OpenMS_CLI_sources}
                    HEADER_FILES ${OpenMS_CLI_sources_h}
                    BASE_DIRS ${PROJECT_SOURCE_DIR}/include

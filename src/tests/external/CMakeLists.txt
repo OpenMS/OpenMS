@@ -120,6 +120,25 @@ foreach(_configuration IN LISTS _configurations)
   endif()
 endforeach()
 
+if(UNIX)
+  set(_versioned_targets OpenMS::OpenMS OpenMS::OpenSwathAlgo OpenMS::OpenMS_CLI)
+  foreach(_target IN LISTS _versioned_targets)
+    get_target_property(_target_configs ${_target} IMPORTED_CONFIGURATIONS)
+    foreach(_config IN LISTS _target_configs)
+      get_target_property(_soname ${_target} IMPORTED_SONAME_${_config})
+      string(REPLACE "OpenMS::" "" _name "${_target}")
+      if(APPLE)
+        set(_expected "@rpath/lib${_name}.${OpenMS_VERSION}.dylib")
+      else()
+        set(_expected "lib${_name}.so.${OpenMS_VERSION}")
+      endif()
+      if(NOT _soname STREQUAL _expected)
+        message(FATAL_ERROR "${_target} SONAME '${_soname}' differs from '${_expected}'")
+      endif()
+    endforeach()
+  endforeach()
+endif()
+
 ## GUI component: OpenMSConfig.cmake delegates it to the OpenMSGUI package of the GUI
 ## layer, which OpenMS-TOPP-GUI installs next to it. Without that package (as in the
 ## installation of the installed-consumer test) it must not be found; the GUI layer has
@@ -168,6 +187,28 @@ add_test(TestExternalOpenDIA TestExternalOpenDIA -test -write_ini "${CMAKE_CURRE
 
 ## Enable testing - for Nightly Build log
 add_test(TestExternalCode TestExternalCode)
+
+if(UNIX AND BUILD_TESTING)
+  # This unversioned, incompatible library simulates another OpenMS installation
+  # found first via LD_LIBRARY_PATH / DYLD_LIBRARY_PATH.
+  add_library(ConflictingOpenMS SHARED ConflictingOpenMS.cpp)
+  set_target_properties(ConflictingOpenMS PROPERTIES
+    OUTPUT_NAME OpenMS
+    LIBRARY_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/conflicting-libraries")
+  add_dependencies(TestExternalCode ConflictingOpenMS)
+  if(APPLE)
+    set(_library_path_variable DYLD_LIBRARY_PATH)
+  else()
+    set(_library_path_variable LD_LIBRARY_PATH)
+    target_link_options(TestExternalCode PRIVATE "LINKER:--enable-new-dtags")
+  endif()
+  file(MAKE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/soname-fallback")
+  add_test(NAME TestExternalCode_versioned_soname_fallback
+    COMMAND "$<TARGET_FILE:TestExternalCode>")
+  set_tests_properties(TestExternalCode_versioned_soname_fallback PROPERTIES
+    WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/soname-fallback"
+    ENVIRONMENT_MODIFICATION "${_library_path_variable}=path_list_prepend:$<TARGET_FILE_DIR:ConflictingOpenMS>")
+endif()
 
 ## A WITH_ONNX installation ships the PeptDeep inference classes and their ONNX
 ## models under OPENMS_DATA_DIR/models, and the ONNX Runtime library among its

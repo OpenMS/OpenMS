@@ -635,6 +635,15 @@ else()
   # was never actually built (#10141).
   _copy_assets("${PROJECT_SOURCE_DIR}/pyopenms/" "*.py" "${PYOPENMS_BUILD_DIR}/pyopenms/")
 
+  # Multi-config generators may use different library names for Debug and Release.
+  file(GENERATE OUTPUT "${PYOPENMS_BUILD_DIR}/$<CONFIG>/_library_names.py"
+    CONTENT "OPENMS_LIBRARY = '$<TARGET_FILE_NAME:${OPENMS_TARGET}>'\nOPENSWATH_LIBRARY = '$<TARGET_FILE_NAME:${OPENSWATHALGO_TARGET}>'\n")
+  add_custom_command(TARGET pyopenms_compile POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different
+      "${PYOPENMS_BUILD_DIR}/$<CONFIG>/_library_names.py"
+      "${PYOPENMS_BUILD_DIR}/pyopenms/_library_names.py"
+    VERBATIM)
+
   # Addon files
   _copy_assets("${PROJECT_SOURCE_DIR}/pyopenms/addons/" "*.py" "${PYOPENMS_BUILD_DIR}/pyopenms/addons/")
 
@@ -850,7 +859,12 @@ else()
     set(PYOPENMS_DEPENDENCIES ${OPENMS_TARGET} ${OPENSWATHALGO_TARGET})
 
     # Step 1: Copy main OpenMS libraries (all platforms)
+    # Remove stale libraries while preserving current copies for incremental builds.
     add_custom_target(pyopenms_copy_deps ALL
+      COMMAND ${CMAKE_COMMAND} "-DDIR=${PYOPENMS_BUILD_DIR}/pyopenms"
+        "-DCURRENT_OPENMS=$<TARGET_FILE_NAME:${OPENMS_TARGET}>"
+        "-DCURRENT_SWATH=$<TARGET_FILE_NAME:${OPENSWATHALGO_TARGET}>"
+        -P "${PROJECT_SOURCE_DIR}/pyopenms_clean_old_libs.cmake"
       COMMAND ${CMAKE_COMMAND} -E copy_if_different $<TARGET_FILE:${OPENMS_TARGET}> "${PYOPENMS_BUILD_DIR}/pyopenms/"
       COMMAND ${CMAKE_COMMAND} -E copy_if_different $<TARGET_FILE:${OPENSWATHALGO_TARGET}> "${PYOPENMS_BUILD_DIR}/pyopenms/"
       COMMENT "Copying OpenMS dependencies to build dir"
@@ -942,6 +956,7 @@ if(PYOPENMS_USE_PREBUILT)
     PATTERN "*.pyi"
     PATTERN "py.typed"
     PATTERN "*.so"
+    PATTERN "*.so.*"
     PATTERN "*.dylib"
     PATTERN "*.pyd"
     PATTERN "__pycache__" EXCLUDE
@@ -999,6 +1014,8 @@ if((DEFINED OPENMS_TARGET AND TARGET ${OPENMS_TARGET}) OR TARGET OpenMS)
   # from the source tree (which would also expose the unbuilt Python package).
   configure_file(${PROJECT_SOURCE_DIR}/fix_stubs.py
                  ${PYOPENMS_BUILD_DIR}/fix_stubs.py COPYONLY)
+  configure_file(${PROJECT_SOURCE_DIR}/pyopenms_clean_old_libs.cmake
+                 ${PYOPENMS_BUILD_DIR}/pyopenms_clean_old_libs.cmake COPYONLY)
 
   enable_testing()
 
