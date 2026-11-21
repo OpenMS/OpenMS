@@ -1,0 +1,48 @@
+== joint2_D_156s0.txt
+D_156s0: windows 2312030, base features 45, with siblings 49; windows with a co-eluting sibling target 0.409 decoy 0.402  [6s]
+A tool score                       q<=0.01 N  17900 HeLa  17740 (DIA-NN covered 0.635) lower 0.0089 combined 0.0169 N@FDP_c1% 16678  [6s]
+B label-free GBM                   q<=0.01 N  18543 HeLa  18370 (DIA-NN covered 0.654) lower 0.0093 combined 0.0176 N@FDP_c1% 17265  [52s]
+Bs label-free GBM + siblings       q<=0.01 N  18733 HeLa  18563 (DIA-NN covered 0.658) lower 0.0091 combined 0.0172 N@FDP_c1% 17223  [88s]
+Bt hard decoys                     q<=0.01 N  19011 HeLa  18832 (DIA-NN covered 0.668) lower 0.0094 combined 0.0178 N@FDP_c1% 17434  [119s]
+Bts hard decoys + siblings         q<=0.01 N  22436 HeLa  22233 (DIA-NN covered 0.690) lower 0.0090 combined 0.0171 N@FDP_c1% 20152  [151s]
+JOINT2 D_156s0 A=16678/0.0089/17740 B=17265/0.0093/18370 Bs=17223/0.0091/18563 Bt=17434/0.0094/18832 Bts=20152/0.0090/22233
+== joint2_D_156s1.txt
+D_156s1: windows 2302176, base features 45, with siblings 49; windows with a co-eluting sibling target 0.409 decoy 0.402  [6s]
+A tool score                       q<=0.01 N  18088 HeLa  17929 (DIA-NN covered 0.641) lower 0.0088 combined 0.0166 N@FDP_c1% 17038  [6s]
+B label-free GBM                   q<=0.01 N  18839 HeLa  18654 (DIA-NN covered 0.662) lower 0.0098 combined 0.0186 N@FDP_c1% 17271  [57s]
+Bs label-free GBM + siblings       q<=0.01 N  19349 HeLa  19167 (DIA-NN covered 0.670) lower 0.0094 combined 0.0178 N@FDP_c1% 17638  [98s]
+Bt hard decoys                     q<=0.01 N  18881 HeLa  18713 (DIA-NN covered 0.665) lower 0.0089 combined 0.0168 N@FDP_c1% 17524  [132s]
+Bts hard decoys + siblings         q<=0.01 N  24345 HeLa  24131 (DIA-NN covered 0.694) lower 0.0088 combined 0.0166 N@FDP_c1% 21494  [164s]
+JOINT2 D_156s1 A=17038/0.0088/17929 B=17271/0.0098/18654 Bs=17638/0.0094/19167 Bt=17524/0.0089/18713 Bts=21494/0.0088/24131
+== joint2_D_r7.txt
+D_r7: windows 9114776, base features 45, with siblings 49; windows with a co-eluting sibling target 0.337 decoy 0.330  [22s]
+A tool score                       q<=0.01 N  16038 HeLa  15859 (DIA-NN covered 0.580) lower 0.0112 combined 0.0127 N@FDP_c1% 15465  [24s]
+B label-free GBM                   q<=0.01 N  16157 HeLa  15961 (DIA-NN covered 0.586) lower 0.0121 combined 0.0139 N@FDP_c1% 15387  [112s]
+Bs label-free GBM + siblings       q<=0.01 N  15771 HeLa  15571 (DIA-NN covered 0.572) lower 0.0127 combined 0.0145 N@FDP_c1% 14780  [194s]
+Bt hard decoys                     q<=0.01 N  16994 HeLa  16785 (DIA-NN covered 0.611) lower 0.0123 combined 0.0140 N@FDP_c1% 16131  [263s]
+Bts hard decoys + siblings         q<=0.01 N  20320 HeLa  20061 (DIA-NN covered 0.642) lower 0.0127 combined 0.0146 N@FDP_c1% 18672  [334s]
+JOINT2 D_r7 A=15465/0.0112/15859 B=15387/0.0121/15961 Bs=14780/0.0127/15571 Bt=16131/0.0123/16785 Bts=18672/0.0127/20061
+== joint2_H_156s0.txt
+H_156s0: windows 3398735, base features 45, with siblings 49; windows with a co-eluting sibling target 0.137 decoy 0.131  [6s]
+A tool score                       q<=0.01 N  32722 HeLa  32505 (DIA-NN covered 0.738) lower 0.0066 combined 0.0125 N@FDP_c1% 32310  [7s]
+B label-free GBM                   q<=0.01 N  34683 HeLa  34427 (DIA-NN covered 0.771) lower 0.0074 combined 0.0140 N@FDP_c1% 33711  [66s]
+Bs label-free GBM + siblings       q<=0.01 N  39187 HeLa  38894 (DIA-NN covered 0.789) lower 0.0075 combined 0.0141 N@FDP_c1% 38248  [133s]
+Bt hard decoys                     q<=0.01 N  35288 HeLa  35023 (DIA-NN covered 0.781) lower 0.0075 combined 0.0142 N@FDP_c1% 34378  [169s]
+Bts hard decoys + siblings         q<=0.01 N  39894 HeLa  39592 (DIA-NN covered 0.798) lower 0.0076 combined 0.0143 N@FDP_c1% 38958  [208s]
+JOINT2 H_156s0 A=32310/0.0066/32505 B=33711/0.0074/34427 Bs=38248/0.0075/38894 Bt=34378/0.0075/35023 Bts=38958/0.0076/39592
+== joint2_H_156s1.txt
+H_156s1: windows 3398220, base features 45, with siblings 49; windows with a co-eluting sibling target 0.138 decoy 0.133  [6s]
+A tool score                       q<=0.01 N  32844 HeLa  32622 (DIA-NN covered 0.740) lower 0.0068 combined 0.0128 N@FDP_c1% 32415  [7s]
+B label-free GBM                   q<=0.01 N  34751 HeLa  34482 (DIA-NN covered 0.772) lower 0.0077 combined 0.0146 N@FDP_c1% 33674  [63s]
+Bs label-free GBM + siblings       q<=0.01 N  39196 HeLa  38909 (DIA-NN covered 0.789) lower 0.0073 combined 0.0138 N@FDP_c1% 38406  [130s]
+Bt hard decoys                     q<=0.01 N  35396 HeLa  35116 (DIA-NN covered 0.783) lower 0.0079 combined 0.0150 N@FDP_c1% 34244  [167s]
+Bts hard decoys + siblings         q<=0.01 N  39858 HeLa  39554 (DIA-NN covered 0.797) lower 0.0076 combined 0.0144 N@FDP_c1% 38900  [207s]
+JOINT2 H_156s1 A=32415/0.0068/32622 B=33674/0.0077/34482 Bs=38406/0.0073/38909 Bt=34244/0.0079/35116 Bts=38900/0.0076/39554
+== joint2_H_r7.txt
+H_r7: windows 11854348, base features 45, with siblings 49; windows with a co-eluting sibling target 0.145 decoy 0.140  [23s]
+A tool score                       q<=0.01 N  31263 HeLa  30888 (DIA-NN covered 0.710) lower 0.0120 combined 0.0137 N@FDP_c1% 30543  [25s]
+B label-free GBM                   q<=0.01 N  32341 HeLa  31935 (DIA-NN covered 0.731) lower 0.0126 combined 0.0143 N@FDP_c1% 31250  [127s]
+Bs label-free GBM + siblings       q<=0.01 N  37597 HeLa  37152 (DIA-NN covered 0.754) lower 0.0118 combined 0.0135 N@FDP_c1% 36588  [241s]
+Bt hard decoys                     q<=0.01 N  33323 HeLa  32917 (DIA-NN covered 0.748) lower 0.0122 combined 0.0139 N@FDP_c1% 32353  [334s]
+Bts hard decoys + siblings         q<=0.01 N  38612 HeLa  38132 (DIA-NN covered 0.769) lower 0.0124 combined 0.0142 N@FDP_c1% 37500  [429s]
+JOINT2 H_r7 A=30543/0.0120/30888 B=31250/0.0126/31935 Bs=36588/0.0118/37152 Bt=32353/0.0122/32917 Bts=37500/0.0124/38132
