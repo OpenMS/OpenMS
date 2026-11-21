@@ -1,0 +1,84 @@
+== ana_D_r0.txt
+D_r0: windows 1037625, precursors 320602, features 45  [3s]
+DIA-NN HeLa q<=0.01 IDs mapped: 27901
+A tool score                             q<=0.01 N  19097 HeLa  19097 (in DIA-NN 0.919, DIA-NN covered 0.629)  [5s]
+B label-free GBM (3 rounds)              q<=0.01 N  20261 HeLa  20261 (in DIA-NN 0.907, DIA-NN covered 0.659)  [36s]
+Bt label-free GBM, hard decoys (3 rounds) q<=0.01 N  20338 HeLa  20338 (in DIA-NN 0.910, DIA-NN covered 0.663)  [71s]
+C DIA-NN-labelled ceiling (27247 pos)    q<=0.01 N  20644 HeLa  20644 (in DIA-NN 0.908, DIA-NN covered 0.671)  [81s]
+Ct DIA-NN-labelled, hard decoys          q<=0.01 N  16354 HeLa  16354 (in DIA-NN 0.944, DIA-NN covered 0.553)  [89s]
+
+funnel of DIA-NN-only HeLa IDs (10344 of 27901; 85 have no window at all): A_low 0.615 B2 0.114 C 0.272
+  by DIA-NN quantity quartile (share of that quartile missed; A_low / B2 / C):
+   Q1: missed 0.618  0.645 / 0.134 / 0.220
+   Q2: missed 0.465  0.599 / 0.106 / 0.295
+   Q3: missed 0.296  0.580 / 0.088 / 0.332
+   Q4: missed 0.104  0.603 / 0.099 / 0.298
+TPR tool FPR 0.0001: Q1 0.107 Q2 0.244 Q3 0.445 Q4 0.783 all 0.395 | FPR 0.001: Q1 0.318 Q2 0.483 Q3 0.669 Q4 0.876 all 0.586 | FPR 0.01: Q1 0.456 Q2 0.590 Q3 0.738 Q4 0.912 all 0.674
+TPR B    FPR 0.0001: Q1 0.098 Q2 0.224 Q3 0.404 Q4 0.725 all 0.363 | FPR 0.001: Q1 0.345 Q2 0.517 Q3 0.690 Q4 0.887 all 0.610 | FPR 0.01: Q1 0.524 Q2 0.641 Q3 0.766 Q4 0.919 all 0.713
+TPR C    FPR 0.0001: Q1 0.088 Q2 0.213 Q3 0.422 Q4 0.768 all 0.373 | FPR 0.001: Q1 0.332 Q2 0.508 Q3 0.690 Q4 0.889 all 0.605 | FPR 0.01: Q1 0.545 Q2 0.671 Q3 0.793 Q4 0.929 all 0.734
+
+SUMMARY D_r0: DIA-NN 27901; HeLa at own q<=0.01: tool 19097, B 20261 (+6.1%), Bt 20338 (+6.5%), C 20644 (+8.1%), Ct 16354 (-14.4%); tool/DIA-NN 0.684, best ceiling/DIA-NN 0.740
+== ana_H_r0.txt
+H_r0: windows 1601586, precursors 321436, features 45  [5s]
+DIA-NN HeLa q<=0.01 IDs mapped: 44866
+A tool score                             q<=0.01 N  34702 HeLa  34702 (in DIA-NN 0.937, DIA-NN covered 0.725)  [8s]
+B label-free GBM (3 rounds)              q<=0.01 N  37178 HeLa  37178 (in DIA-NN 0.922, DIA-NN covered 0.764)  [106s]
+Bt label-free GBM, hard decoys (3 rounds) q<=0.01 N  36919 HeLa  36919 (in DIA-NN 0.924, DIA-NN covered 0.760)  [329s]
+C DIA-NN-labelled ceiling (39082 pos)    q<=0.01 N  37444 HeLa  37444 (in DIA-NN 0.924, DIA-NN covered 0.771)  [343s]
+Ct DIA-NN-labelled, hard decoys          q<=0.01 N  34957 HeLa  34957 (in DIA-NN 0.937, DIA-NN covered 0.730)  [409s]
+
+funnel of DIA-NN-only HeLa IDs (12360 of 44866; 48 have no window at all): A_low 0.403 B2 0.119 C 0.478
+  by DIA-NN quantity quartile (share of that quartile missed; A_low / B2 / C):
+   Q1: missed 0.585  0.433 / 0.127 / 0.441
+   Q2: missed 0.323  0.370 / 0.111 / 0.519
+   Q3: missed 0.152  0.369 / 0.113 / 0.518
+   Q4: missed 0.042  0.372 / 0.090 / 0.538
+TPR tool FPR 0.0001: Q1 0.187 Q2 0.473 Q3 0.728 Q4 0.915 all 0.576 | FPR 0.001: Q1 0.334 Q2 0.613 Q3 0.811 Q4 0.942 all 0.675 | FPR 0.01: Q1 0.430 Q2 0.681 Q3 0.846 Q4 0.955 all 0.728
+TPR B    FPR 0.0001: Q1 0.188 Q2 0.466 Q3 0.726 Q4 0.912 all 0.573 | FPR 0.001: Q1 0.377 Q2 0.651 Q3 0.832 Q4 0.952 all 0.703 | FPR 0.01: Q1 0.547 Q2 0.742 Q3 0.873 Q4 0.965 all 0.782
+TPR C    FPR 0.0001: Q1 0.150 Q2 0.423 Q3 0.705 Q4 0.914 all 0.548 | FPR 0.001: Q1 0.364 Q2 0.645 Q3 0.829 Q4 0.951 all 0.697 | FPR 0.01: Q1 0.567 Q2 0.757 Q3 0.884 Q4 0.967 all 0.794
+
+SUMMARY H_r0: DIA-NN 44866; HeLa at own q<=0.01: tool 34702, B 37178 (+7.1%), Bt 36919 (+6.4%), C 37444 (+7.9%), Ct 34957 (+0.7%); tool/DIA-NN 0.773, best ceiling/DIA-NN 0.835
+== ana_D_r7.txt
+D_r7: windows 9114776, precursors 2416604, features 45  [23s]
+DIA-NN HeLa q<=0.01 IDs mapped: 25881
+A tool score                             q<=0.01 N  16038 HeLa  15859 (in DIA-NN 0.947, DIA-NN covered 0.580) lower 0.0112 combined 0.0127 N@FDP_c1% 15465  [46s]
+B label-free GBM (3 rounds)              q<=0.01 N  16157 HeLa  15961 (in DIA-NN 0.949, DIA-NN covered 0.586) lower 0.0121 combined 0.0139 N@FDP_c1% 15387  [143s]
+Bt label-free GBM, hard decoys (3 rounds) q<=0.01 N  16994 HeLa  16785 (in DIA-NN 0.943, DIA-NN covered 0.611) lower 0.0123 combined 0.0140 N@FDP_c1% 16131  [325s]
+C DIA-NN-labelled ceiling (24289 pos)    q<=0.01 N  15742 HeLa  15583 (in DIA-NN 0.954, DIA-NN covered 0.574) lower 0.0101 combined 0.0115 N@FDP_c1% 15330  [362s]
+Ct DIA-NN-labelled, hard decoys          q<=0.01 N  15405 HeLa  15274 (in DIA-NN 0.955, DIA-NN covered 0.563) lower 0.0085 combined 0.0097 N@FDP_c1% 15430  [399s]
+
+funnel of DIA-NN-only HeLa IDs (10865 of 25881; 18 have no window at all): A_low 0.623 B2 0.101 C 0.276
+  by DIA-NN quantity quartile (share of that quartile missed; A_low / B2 / C):
+   Q1: missed 0.689  0.655 / 0.118 / 0.227
+   Q2: missed 0.534  0.597 / 0.095 / 0.309
+   Q3: missed 0.337  0.602 / 0.082 / 0.316
+   Q4: missed 0.119  0.623 / 0.085 / 0.293
+TPR tool FPR 0.0001: Q1 0.233 Q2 0.393 Q3 0.601 Q4 0.857 all 0.521 | FPR 0.001: Q1 0.379 Q2 0.522 Q3 0.706 Q4 0.898 all 0.626 | FPR 0.01: Q1 0.487 Q2 0.605 Q3 0.758 Q4 0.918 all 0.692
+TPR B    FPR 0.0001: Q1 0.217 Q2 0.390 Q3 0.601 Q4 0.855 all 0.516 | FPR 0.001: Q1 0.402 Q2 0.545 Q3 0.720 Q4 0.901 all 0.642 | FPR 0.01: Q1 0.574 Q2 0.655 Q3 0.789 Q4 0.928 all 0.737
+TPR C    FPR 0.0001: Q1 0.198 Q2 0.364 Q3 0.583 Q4 0.849 all 0.498 | FPR 0.001: Q1 0.416 Q2 0.562 Q3 0.737 Q4 0.909 all 0.656 | FPR 0.01: Q1 0.625 Q2 0.707 Q3 0.824 Q4 0.939 all 0.774
+
+SUMMARY D_r7: DIA-NN 25881; HeLa at own q<=0.01: tool 15859, B 15961 (+0.6%), Bt 16785 (+5.8%), C 15583 (-1.7%), Ct 15274 (-3.7%); tool/DIA-NN 0.613, best ceiling/DIA-NN 0.602; N@FDP_c 1 %: tool 15465, C 15330
+== ana_H_r7.txt
+H_r7: windows 11854348, precursors 2391697, features 45  [47s]
+DIA-NN HeLa q<=0.01 IDs mapped: 41231
+A tool score                             q<=0.01 N  31263 HeLa  30888 (in DIA-NN 0.947, DIA-NN covered 0.710) lower 0.0120 combined 0.0137 N@FDP_c1% 30543  [70s]
+B label-free GBM (3 rounds)              q<=0.01 N  32341 HeLa  31935 (in DIA-NN 0.943, DIA-NN covered 0.731) lower 0.0126 combined 0.0143 N@FDP_c1% 31250  [167s]
+Bt label-free GBM, hard decoys (3 rounds) q<=0.01 N  33323 HeLa  32917 (in DIA-NN 0.937, DIA-NN covered 0.748) lower 0.0122 combined 0.0139 N@FDP_c1% 32353  [251s]
+C DIA-NN-labelled ceiling (36862 pos)    q<=0.01 N  32868 HeLa  32462 (in DIA-NN 0.941, DIA-NN covered 0.741) lower 0.0124 combined 0.0141 N@FDP_c1% 31666  [288s]
+Ct DIA-NN-labelled, hard decoys          q<=0.01 N  31937 HeLa  31600 (in DIA-NN 0.946, DIA-NN covered 0.725) lower 0.0106 combined 0.0120 N@FDP_c1% 31411  [314s]
+
+funnel of DIA-NN-only HeLa IDs (11973 of 41231; 11 have no window at all): A_low 0.509 B2 0.110 C 0.381
+  by DIA-NN quantity quartile (share of that quartile missed; A_low / B2 / C):
+   Q1: missed 0.605  0.530 / 0.117 / 0.353
+   Q2: missed 0.351  0.486 / 0.100 / 0.415
+   Q3: missed 0.159  0.490 / 0.104 / 0.406
+   Q4: missed 0.047  0.479 / 0.110 / 0.410
+TPR tool FPR 0.0001: Q1 0.298 Q2 0.576 Q3 0.795 Q4 0.937 all 0.651 | FPR 0.001: Q1 0.414 Q2 0.661 Q3 0.843 Q4 0.951 all 0.717 | FPR 0.01: Q1 0.503 Q2 0.718 Q3 0.870 Q4 0.959 all 0.762
+TPR B    FPR 0.0001: Q1 0.288 Q2 0.578 Q3 0.799 Q4 0.938 all 0.651 | FPR 0.001: Q1 0.464 Q2 0.706 Q3 0.866 Q4 0.959 all 0.749 | FPR 0.01: Q1 0.611 Q2 0.774 Q3 0.895 Q4 0.967 all 0.812
+TPR C    FPR 0.0001: Q1 0.299 Q2 0.582 Q3 0.804 Q4 0.942 all 0.657 | FPR 0.001: Q1 0.486 Q2 0.721 Q3 0.873 Q4 0.960 all 0.760 | FPR 0.01: Q1 0.663 Q2 0.803 Q3 0.911 Q4 0.972 all 0.837
+
+SUMMARY H_r7: DIA-NN 41231; HeLa at own q<=0.01: tool 30888, B 31935 (+3.4%), Bt 32917 (+6.6%), C 32462 (+5.1%), Ct 31600 (+2.3%); tool/DIA-NN 0.749, best ceiling/DIA-NN 0.787; N@FDP_c 1 %: tool 30543, C 31666
+SAME as /nfs/research/juan/singj/opendia/libsize-20261121/r0/opendia/D_s0
+SAME as /nfs/research/juan/singj/opendia/entlib-rtr-20261121/runs/D_rtr_s0
+SAME as /nfs/research/juan/singj/opendia/libsize-20261121/r0/opendia/H_s0
+SAME as /nfs/research/juan/singj/opendia/entlib-rtr-20261121/runs/H_rtr_s0
