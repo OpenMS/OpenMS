@@ -1,0 +1,63 @@
+== candrec_a_D_r0.txt
+D_r0: refined RT tolerance +-23.6 s; DIA-NN HeLa IDs 27901, missed by tool 10353, of which C 2809
+  all DIA-NN IDs: |RT - refined pred| p50 3.9 p95 14.7 p99 21.4 s; outside the window 0.006; single-window (ambiguous pred) 0.132
+qq                    Q1   Q2   Q3   Q4   all  share
+cat                                                 
+near (6-15 s)        710  665  486  143  2004  0.713
+no window at all      61   12    8    4    85  0.030
+picker (<5 windows)  161  256  167   55   639  0.227
+rt_out                17   24   25   15    81  0.029
+  windows per precursor: C-missed p50 2 (share with 5: 0.026); found-and-accepted p50 3 (0.197)
+  nearest-window distance for C-missed (s): p10 6.9 p25 8.0 p50 10.9 p75 14.9 p90 19.7
+  DIA-NN peak width (RT.Stop-RT.Start) p50: C-missed 7.9 s, accepted 6.9 s
+  rt_out: signed error p5/p50/p95 -30.9/25.5/30.0 s; |err|/tol p50 1.14
+  C share (all DIA-NN IDs, accepted or not) by windows per precursor: n=1: 0.254 (3899) n=2: 0.145 (7327) n=3: 0.069 (6734) n=4: 0.034 (4629) n=5: 0.014 (5227)
+  missed share by windows per precursor: n=1: 0.473 n=2: 0.383 n=3: 0.353 n=4: 0.316 n=5: 0.340
+== candrec_a_D_r7.txt
+D_r7: refined RT tolerance +-31.7 s; DIA-NN HeLa IDs 25881, missed by tool 10869, of which C 2995
+  all DIA-NN IDs: |RT - refined pred| p50 4.4 p95 16.2 p99 24.0 s; outside the window 0.002; single-window (ambiguous pred) 0.085
+qq                    Q1   Q2   Q3   Q4   all  share
+cat                                                 
+cap (5 windows)        5    3    1    0     9  0.003
+near (6-15 s)        732  652  454  145  1983  0.662
+no window at all      11    5    1    1    18  0.006
+picker (<5 windows)  262  405  222   70   959  0.320
+rt_out                 4    3   10    9    26  0.009
+  windows per precursor: C-missed p50 2 (share with 5: 0.067); found-and-accepted p50 4 (0.340)
+  nearest-window distance for C-missed (s): p10 7.0 p25 8.7 p50 11.8 p75 17.4 p90 23.6
+  DIA-NN peak width (RT.Stop-RT.Start) p50: C-missed 7.0 s, accepted 6.9 s
+  rt_out: signed error p5/p50/p95 -37.6/35.1/40.7 s; |err|/tol p50 1.15
+  C share (all DIA-NN IDs, accepted or not) by windows per precursor: n=1: 0.329 (2321) n=2: 0.208 (5348) n=3: 0.108 (5683) n=4: 0.067 (4415) n=5: 0.025 (8096)
+  missed share by windows per precursor: n=1: 0.554 n=2: 0.462 n=3: 0.413 n=4: 0.397 n=5: 0.370
+== candrec_a_H_r0.txt
+H_r0: refined RT tolerance +-115.5 s; DIA-NN HeLa IDs 44866, missed by tool 12360, of which C 5906
+  all DIA-NN IDs: |RT - refined pred| p50 16.1 p95 56.3 p99 85.0 s; outside the window 0.001; single-window (ambiguous pred) 0.000
+qq                     Q1    Q2   Q3   Q4   all  share
+cat                                                   
+cap (5 windows)      1809  1044  442  115  3410  0.577
+near (6-15 s)        1000   766  404  120  2290  0.388
+no window at all       28    13    4    3    48  0.008
+picker (<5 windows)    38    50   24    3   115  0.019
+rt_out                 14     8   10   11    43  0.007
+  windows per precursor: C-missed p50 5 (share with 5: 0.963); found-and-accepted p50 5 (0.987)
+  nearest-window distance for C-missed (s): p10 7.6 p25 10.5 p50 18.1 p75 31.5 p90 45.8
+  DIA-NN peak width (RT.Stop-RT.Start) p50: C-missed 8.6 s, accepted 8.6 s
+  rt_out: signed error p5/p50/p95 -162.7/-126.4/124.6 s; |err|/tol p50 1.09
+  C share (all DIA-NN IDs, accepted or not) by windows per precursor: n=1: nan (0) n=2: 0.636 (11) n=3: 0.333 (114) n=4: 0.257 (521) n=5: 0.133 (44172)
+  missed share by windows per precursor: n=1: nan n=2: 0.636 n=3: 0.368 n=4: 0.365 n=5: 0.273
+== candrec_a_H_r7.txt
+H_r7: refined RT tolerance +-99.0 s; DIA-NN HeLa IDs 41231, missed by tool 11976, of which C 4565
+  all DIA-NN IDs: |RT - refined pred| p50 16.5 p95 59.3 p99 89.6 s; outside the window 0.005; single-window (ambiguous pred) 0.000
+qq                     Q1   Q2   Q3  Q4   all  share
+cat                                                 
+cap (5 windows)      1149  620  221  50  2040  0.447
+near (6-15 s)         877  702  365  97  2041  0.447
+no window at all        7    1    1   2    11  0.002
+picker (<5 windows)   124  144   43  13   324  0.071
+rt_out                 45   33   36  35   149  0.033
+  windows per precursor: C-missed p50 5 (share with 5: 0.875); found-and-accepted p50 5 (0.944)
+  nearest-window distance for C-missed (s): p10 7.6 p25 10.5 p50 16.2 p75 26.7 p90 38.2
+  DIA-NN peak width (RT.Stop-RT.Start) p50: C-missed 9.5 s, accepted 8.6 s
+  rt_out: signed error p5/p50/p95 -138.4/-107.1/123.6 s; |err|/tol p50 1.13
+  C share (all DIA-NN IDs, accepted or not) by windows per precursor: n=1: 0.000 (3) n=2: 0.353 (68) n=3: 0.299 (566) n=4: 0.198 (1933) n=5: 0.106 (38650)
+  missed share by windows per precursor: n=1: 0.000 n=2: 0.397 n=3: 0.387 n=4: 0.351 n=5: 0.286
