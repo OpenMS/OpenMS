@@ -81,7 +81,7 @@ class NuXLAnnotateAndLocate
            residues the fragment ions support (see @ref NuXLSiteLocalization::localizeNHS),
            and stores how the site was chosen and that range in @c localization_method and
            @c localization_range_begin / @c localization_range_end.
-         - With @p loss_aware_localization, localizes by @ref NuXLSiteLocalization::localizeLossAware:
+         - With @p loss_aware_localization, localizes by @ref NuXLSiteLocalization::localizeLossAware and
            lowercases the tied residues in @c best_localization, stores the N-terminal-most in
            @c best_localization_position, their range in @c localization_range_begin /
            @c localization_range_end, the score distance to the next residue in @c localization_delta, and
