@@ -1,0 +1,73 @@
+run lvl      r    tool  seed  N_q01  hela_q01   E     thr  lower  combined  N_fdp1
+  D  r0 0.0000 OpenDIA     0  19082     19082   0  6.1772    NaN       NaN     NaN
+  D  r0 0.0000 OpenDIA     1  19055     19055   0  6.2383    NaN       NaN     NaN
+  D  r0 0.0000  DIA-NN     0  27901     27901   0     NaN    NaN       NaN     NaN
+  D  r1 0.9994 OpenDIA     0  17946     17849  97  7.5334 0.0054    0.0108 17716.0
+  D  r1 0.9994 OpenDIA     1  18181     18078 103  7.5067 0.0057    0.0113 17971.0
+  D  r1 0.9994  DIA-NN     0  28043     27941 102     NaN 0.0036    0.0073 28857.0
+  D  r3 3.0011 OpenDIA     0  16881     16752 129 10.4462 0.0076    0.0102 16863.0
+  D  r3 3.0011 OpenDIA     1  16720     16599 121  9.9141 0.0072    0.0096 16743.0
+  D  r3 3.0011  DIA-NN     0  26578     26434 144     NaN 0.0054    0.0072 27270.0
+  D  r7 7.0539 OpenDIA     0  16034     15855 179 14.0262 0.0112    0.0127 15465.0
+  D  r7 7.0539 OpenDIA     1  15877     15707 170 12.9224 0.0107    0.0122 15369.0
+  D  r7 7.0539  DIA-NN     0  26118     25881 237     NaN 0.0091    0.0104 26006.0
+  H  r0 0.0000 OpenDIA     0  34702     34702   0  5.2971    NaN       NaN     NaN
+  H  r0 0.0000 OpenDIA     1  34767     34767   0  5.2603    NaN       NaN     NaN
+  H  r0 0.0000  DIA-NN     0  44866     44866   0     NaN    NaN       NaN     NaN
+  H  r1 0.9994 OpenDIA     0  33686     33507 179  6.2443 0.0053    0.0106 33553.0
+  H  r1 0.9994 OpenDIA     1  33112     32944 168  6.4429 0.0051    0.0102 33038.0
+  H  r1 0.9994  DIA-NN     0  43613     43463 150     NaN 0.0034    0.0069 44421.0
+  H  r3 3.0011 OpenDIA     0  32816     32517 299  7.6004 0.0091    0.0121 32451.0
+  H  r3 3.0011 OpenDIA     1  32581     32295 286  7.7179 0.0088    0.0117 32273.0
+  H  r3 3.0011  DIA-NN     0  42729     42426 303     NaN 0.0071    0.0095 42910.0
+  H  r7 7.0539 OpenDIA     0  31260     30885 375  9.6629 0.0120    0.0137 30543.0
+  H  r7 7.0539 OpenDIA     1  31145     30793 352  9.8409 0.0113    0.0129 30618.0
+  H  r7 7.0539  DIA-NN     0  41649     41231 418     NaN 0.0100    0.0115 41272.0
+
+== per tool and level (OpenDIA: mean of 2 seeds): HeLa IDs at own q<=0.01, N at true FDP 1 %, share of r0 HeLa IDs
+
+D DIA-NN
+run   tool lvl      r  hela_q01  N_fdp1  lower  combined  thr  share_of_r0
+  D DIA-NN  r0 0.0000   27901.0     NaN    NaN       NaN  NaN       1.0000
+  D DIA-NN  r1 0.9994   27941.0 28857.0 0.0036    0.0073  NaN       1.0014
+  D DIA-NN  r3 3.0011   26434.0 27270.0 0.0054    0.0072  NaN       0.9474
+  D DIA-NN  r7 7.0539   25881.0 26006.0 0.0091    0.0104  NaN       0.9276
+
+D OpenDIA
+run    tool lvl      r  hela_q01  N_fdp1  lower  combined     thr  share_of_r0
+  D OpenDIA  r0 0.0000   19068.5     NaN    NaN       NaN  6.2077       1.0000
+  D OpenDIA  r1 0.9994   17963.5 17843.5 0.0055    0.0111  7.5201       0.9421
+  D OpenDIA  r3 3.0011   16675.5 16803.0 0.0074    0.0099 10.1802       0.8745
+  D OpenDIA  r7 7.0539   15781.0 15417.0 0.0109    0.0125 13.4743       0.8276
+
+H DIA-NN
+run   tool lvl      r  hela_q01  N_fdp1  lower  combined  thr  share_of_r0
+  H DIA-NN  r0 0.0000   44866.0     NaN    NaN       NaN  NaN       1.0000
+  H DIA-NN  r1 0.9994   43463.0 44421.0 0.0034    0.0069  NaN       0.9687
+  H DIA-NN  r3 3.0011   42426.0 42910.0 0.0071    0.0095  NaN       0.9456
+  H DIA-NN  r7 7.0539   41231.0 41272.0 0.0100    0.0115  NaN       0.9190
+
+H OpenDIA
+run    tool lvl      r  hela_q01  N_fdp1  lower  combined    thr  share_of_r0
+  H OpenDIA  r0 0.0000   34734.5     NaN    NaN       NaN 5.2787       1.0000
+  H OpenDIA  r1 0.9994   33225.5 33295.5 0.0052    0.0104 6.3436       0.9566
+  H OpenDIA  r3 3.0011   32406.0 32362.0 0.0089    0.0119 7.6592       0.9330
+  H OpenDIA  r7 7.0539   30839.0 30580.5 0.0116    0.0133 9.7519       0.8878
+
+== OpenDIA / DIA-NN, HeLa IDs at own q<=0.01 and N at true FDP 1 %
+  D r0: own-q HeLa 19068 / 27901 = 0.683
+  D r1: own-q HeLa 17964 / 27941 = 0.643;  N@FDP_c 1 % 17844 / 28857 = 0.618
+  D r3: own-q HeLa 16676 / 26434 = 0.631;  N@FDP_c 1 % 16803 / 27270 = 0.616
+  D r7: own-q HeLa 15781 / 25881 = 0.610;  N@FDP_c 1 % 15417 / 26006 = 0.593
+  H r0: own-q HeLa 34734 / 44866 = 0.774
+  H r1: own-q HeLa 33226 / 43463 = 0.764;  N@FDP_c 1 % 33296 / 44421 = 0.750
+  H r3: own-q HeLa 32406 / 42426 = 0.764;  N@FDP_c 1 % 32362 / 42910 = 0.754
+  H r7: own-q HeLa 30839 / 41231 = 0.748;  N@FDP_c 1 % 30580 / 41272 = 0.741
+
+== retention: of the r0 HeLa IDs (seed 0), share still identified at each level, and overlap with DIA-NN r0 IDs
+  D OpenDIA: r1 0.906  r3 0.860  r7 0.816
+  D DIA-NN: r1 0.903  r3 0.866  r7 0.861
+  D r0: OpenDIA IDs in DIA-NN 0.920; DIA-NN IDs in OpenDIA 0.629
+  H OpenDIA: r1 0.949  r3 0.919  r7 0.876
+  H DIA-NN: r1 0.930  r3 0.918  r7 0.895
+  H r0: OpenDIA IDs in DIA-NN 0.937; DIA-NN IDs in OpenDIA 0.725
