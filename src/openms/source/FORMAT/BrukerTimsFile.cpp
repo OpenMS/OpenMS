@@ -809,6 +809,45 @@ namespace OpenMS
     std::unordered_map<uint32_t, IonSource::Polarity> by_frame_;
   };
 
+  // The MALDI spot of the frames (MaldiFrameInfo.SpotName, in analysis.tdf and analysis.tsf), which a spectrum gets as
+  // the MetaValue "maldi_spot_id" (the spotID attribute in mzML and imzML): that of the frame its native ID names, as
+  // for FramePolarity. Data without MALDI frames gives no spot names.
+  class FrameSpotNames
+  {
+  public:
+    explicit FrameSpotNames(const std::string& db_path)
+    {
+      try
+      {
+        SQLite::Database db(db_path, SQLite::OPEN_READONLY);
+        if (!db.tableExists("MaldiFrameInfo")) return;
+        SQLite::Statement query(db, "SELECT Frame, SpotName FROM MaldiFrameInfo");
+        while (query.executeStep())
+        {
+          if (query.getColumn(1).isNull()) continue;
+          std::string name = query.getColumn(1).getString();
+          if (!name.empty()) by_frame_[static_cast<uint32_t>(query.getColumn(0).getInt64())] = std::move(name);
+        }
+      }
+      catch (const SQLite::Exception&)
+      {
+        // no SpotName column: the spectra get no spot name
+      }
+    }
+
+    void apply(MSSpectrum& spec) const
+    {
+      if (by_frame_.empty()) return;
+      const std::string& id = spec.getNativeID();
+      if (id.compare(0, 6, "frame=") != 0) return;
+      const auto it = by_frame_.find(static_cast<uint32_t>(std::strtoul(id.c_str() + 6, nullptr, 10)));
+      if (it != by_frame_.end()) spec.setMetaValue("maldi_spot_id", it->second);
+    }
+
+  private:
+    std::unordered_map<uint32_t, std::string> by_frame_;
+  };
+
   // One-shot validation of the frame_id and RT ranges against the file's
   // actual frame bounds + RT resolution. Called from each top-level public
   // entry point. Returns an effective Config in which frame_id_min/max have
@@ -3397,7 +3436,6 @@ namespace OpenMS
     std::string d_path;
     std::vector<Frame> frames; ///< the frames to read, by retention time (MS1 first among equal times)
     std::unordered_map<uint32_t, Precursor> precursors;   ///< of MS/MS frames (FrameMsMsInfo)
-    std::unordered_map<uint32_t, std::string> spot_names; ///< MaldiFrameInfo.SpotName of MALDI frames
     std::unique_ptr<Tof2MzConverter> mz_converter;
 
     /// Reads the metadata of the TSF data in the .d directory @p d_path (given by the caller as @p path)
@@ -3491,22 +3529,6 @@ namespace OpenMS
         precursors[static_cast<uint32_t>(query.getColumn(0).getInt64())] = std::move(precursor);
       }
     }
-
-    if (db.tableExists("MaldiFrameInfo"))
-    {
-      try
-      {
-        SQLite::Statement query(db, "SELECT Frame, SpotName FROM MaldiFrameInfo");
-        while (query.executeStep())
-        {
-          if (!query.getColumn(1).isNull()) spot_names[static_cast<uint32_t>(query.getColumn(0).getInt64())] = query.getColumn(1).getString();
-        }
-      }
-      catch (const SQLite::Exception&)
-      {
-        // no SpotName column: the spectra get no spot name
-      }
-    }
   }
 
   void BrukerTimsFile::loadTSF_(TSFRun& run, const SpectrumSink& sink)
@@ -3532,6 +3554,7 @@ namespace OpenMS
     std::vector<double> indices, mzs;
     std::vector<float> intensities;
     const FramePolarity polarity(run.d_path + "/analysis.tsf"); // the same table as in analysis.tdf
+    const FrameSpotNames spot_names(run.d_path + "/analysis.tsf");
 
     startProgress(0, run.frames.size(), "Loading frames");
     for (size_t i = 0; i < run.frames.size(); ++i)
@@ -3548,8 +3571,7 @@ namespace OpenMS
         const auto precursor = run.precursors.find(frame.id);
         if (precursor != run.precursors.end()) spec.setPrecursors({precursor->second});
       }
-      const auto spot = run.spot_names.find(frame.id);
-      if (spot != run.spot_names.end() && !spot->second.empty()) spec.setMetaValue("maldi_spot_id", spot->second);
+      spot_names.apply(spec);
 
       const uint32_t n = frame.num_peaks;
       if (n > 0)
@@ -3651,9 +3673,11 @@ namespace OpenMS
     keepFrameRangeOfUser(eff, config);
 
     const FramePolarity polarity(tdf_path);
-    const SpectrumSink to_experiment = selectingSink(eff, [&exp, &polarity](MSSpectrum& spec)
+    const FrameSpotNames spot_names(tdf_path);
+    const SpectrumSink to_experiment = selectingSink(eff, [&exp, &polarity, &spot_names](MSSpectrum& spec)
     {
       polarity.apply(spec);
+      spot_names.apply(spec);
       exp.addSpectrum(std::move(spec));
     });
     Config::ExportMode mode = eff.export_mode;
@@ -3734,11 +3758,13 @@ namespace OpenMS
     callConsumer([&] { consumer->setExperimentalSettings(settings); });
 
     const FramePolarity polarity(tdf_path);
+    const FrameSpotNames spot_names(tdf_path);
     const auto run_loader = [&](const SpectrumSink& emit)
     {
-      const SpectrumSink sink = selectingSink(eff, [&emit, &polarity](MSSpectrum& spec)
+      const SpectrumSink sink = selectingSink(eff, [&emit, &polarity, &spot_names](MSSpectrum& spec)
       {
         polarity.apply(spec);
+        spot_names.apply(spec);
         emit(spec);
       });
       if (mode == Config::FRAME)

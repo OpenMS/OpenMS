@@ -1282,7 +1282,13 @@ namespace
       }
 
       os << "\t\t\t<spectrum index=\"" << i << "\" id=\"" << XMLHandler::writeXMLEscape(native_id)
-         << "\" defaultArrayLength=\"" << spec.size() << "\">\n";
+         << "\" defaultArrayLength=\"" << spec.size() << "\"";
+      // the MALDI spot, which the reader (MzMLHandler) stores as the MetaValue maldi_spot_id
+      if (spec.metaValueExists("maldi_spot_id"))
+      {
+        os << " spotID=\"" << XMLHandler::writeXMLEscape(spec.getMetaValue("maldi_spot_id").toString()) << "\"";
+      }
+      os << ">\n";
       if (continuous)
       {
         os << "\t\t\t\t<referenceableParamGroupRef ref=\"mzArray\"/>\n";

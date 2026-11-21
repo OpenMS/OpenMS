@@ -2136,6 +2136,76 @@ START_SECTION([EXTRA] spectra have the polarity of their frames)
 }
 END_SECTION
 
+START_SECTION([EXTRA] spectra of MALDI runs have the spot of their frames)
+{
+  // MaldiFrameInfo.SpotName was read for TSF data only, so the spectra of TDF MALDI runs had no spot name
+  TempDir tmp;
+  BrukerTimsFile f;
+  BrukerTimsFile::Config frame_mode;
+  frame_mode.export_mode = BrukerTimsFile::Config::FRAME;
+  // the spot names of the spectra, '-' for none
+  const auto spots = [](const MSExperiment& exp)
+  {
+    std::string result;
+    for (const MSSpectrum& s : exp)
+    {
+      result += (result.empty() ? "" : ",") + (s.metaValueExists("maldi_spot_id") ? s.getMetaValue("maldi_spot_id").toString() : "-");
+    }
+    return result;
+  };
+  const auto addSpots = [](const std::string& d, const std::string& rows)
+  {
+    SqliteConnector conn(d + "/analysis.tdf", SqliteConnector::SqlOpenMode::READWRITE);
+    conn.executeStatement("CREATE TABLE MaldiFrameInfo (Frame INTEGER PRIMARY KEY, Chip INTEGER, SpotName TEXT, "
+                          "RegionNumber INTEGER, XIndexPos INTEGER, YIndexPos INTEGER);");
+    conn.executeStatement("INSERT INTO MaldiFrameInfo VALUES " + rows + ";");
+  };
+
+  // a MALDI spot run of MS1 frames: frame 3 has no spot name (NULL), frame 4 no row
+  const std::string ms1 = makeSyntheticTdf(tmp.getPath() + "/ms1.d", {{1, 0, '+', 0}, {2, 0, '+', 0}, {3, 0, '+', 0}, {4, 0, '+', 0}});
+  addSpots(ms1, "(1, 0, 'A1', 0, 1, 1), (2, 0, 'A2', 0, 2, 1), (3, 0, NULL, 0, 3, 1)");
+  MSExperiment exp;
+  f.load(ms1, exp, frame_mode);
+  TEST_STRING_EQUAL(spots(exp), "A1,A2,-,-")
+  f.load(ms1, exp); // AUTO: the MS1 frames of a run without DDA-PASEF precursors
+  TEST_STRING_EQUAL(spots(exp), "A1,A2,-,-")
+  MSDataStoringConsumer streamed;
+  f.transform(ms1, &streamed);
+  TEST_STRING_EQUAL(spots(streamed.getData()), "A1,A2,-,-")
+  // the mzML writer writes it as the spotID attribute
+  std::string mzml;
+  MzMLFile().storeBuffer(mzml, exp);
+  TEST_TRUE(hasText(mzml, "spotID=\"A1\""))
+  TEST_TRUE(hasText(mzml, "spotID=\"A2\""))
+
+  // a run without MaldiFrameInfo (LC-MS) gives no spot names
+  const std::string lc = makeSyntheticTdf(tmp.getPath() + "/lc.d", {{1, 0, '+', 0}, {2, 0, '+', 0}});
+  f.load(lc, exp, frame_mode);
+  TEST_STRING_EQUAL(spots(exp), "-,-")
+
+  // a DDA-PASEF MS2 spectrum has the spot of the first frame of its precursor
+  const std::string dda = makeSyntheticTdf(tmp.getPath() + "/dda.d", {{1, 8, '+', 0}, {2, 8, '+', 0}},
+    {{1, {{150, 20000, 100}}}, {2, {{150, 20000, 100}}}});
+  {
+    SqliteConnector conn(dda + "/analysis.tdf", SqliteConnector::SqlOpenMode::READWRITE);
+    conn.executeStatement("CREATE TABLE Precursors (Id INTEGER PRIMARY KEY, LargestPeakMz REAL, AverageMz REAL, MonoisotopicMz REAL, "
+                          "Charge INTEGER, ScanNumber REAL, Intensity REAL, Parent INTEGER);");
+    conn.executeStatement("INSERT INTO Precursors VALUES (1, 500.25, 500.3, 500.25, 2, 150.0, 1000.0, NULL);");
+    conn.executeStatement("CREATE TABLE PasefFrameMsMsInfo (Frame INTEGER NOT NULL, ScanNumBegin INTEGER NOT NULL, "
+                          "ScanNumEnd INTEGER NOT NULL, IsolationMz REAL NOT NULL, IsolationWidth REAL NOT NULL, "
+                          "CollisionEnergy REAL NOT NULL, Precursor INTEGER, PRIMARY KEY(Frame, ScanNumBegin)) WITHOUT ROWID;");
+    conn.executeStatement("INSERT INTO PasefFrameMsMsInfo VALUES (1, 100, 201, 500.25, 2.0, 30.0, 1), "
+                          "(2, 100, 201, 500.25, 2.0, 30.0, 1);");
+  }
+  addSpots(dda, "(1, 0, 'B1', 0, 1, 1), (2, 0, 'B2', 0, 2, 1)");
+  f.load(dda, exp);
+  TEST_EQUAL(exp.size(), 1)
+  ABORT_IF(exp.size() != 1)
+  TEST_STRING_EQUAL(exp[0].getNativeID(), "frame=1 scan=100 precursor=1")
+  TEST_STRING_EQUAL(spots(exp), "B1")
+}
+END_SECTION
+
 START_SECTION([EXTRA] the source file has the file format term of Bruker TDF data)
 {
   // The file type was "Bruker TDF", which is not the name of the PSI-MS term (MS:1002817 "Bruker TDF format"), so the
