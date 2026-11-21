@@ -46,6 +46,9 @@ target_link_libraries(OpenDIAScorer_arrays PRIVATE OpenDIA_impl)
 add_executable(OpenDIAMzIndex_test OpenDIAMzIndex_test.cpp)
 target_link_libraries(OpenDIAMzIndex_test PRIVATE OpenDIA_impl)
 add_test(NAME OpenDIAMzIndex_test COMMAND OpenDIAMzIndex_test)
+add_executable(OpenDIARTRefine_test OpenDIARTRefine_test.cpp)
+target_link_libraries(OpenDIARTRefine_test PRIVATE OpenDIA_impl)
+add_test(NAME OpenDIARTRefine_test COMMAND OpenDIARTRefine_test)
 # Design rule: no OpenSWATH code in the OpenDIA core library.
 add_test(NAME OpenDIA_no_openswath
   COMMAND ${CMAKE_COMMAND} -DSOURCE_DIR=${CMAKE_CURRENT_SOURCE_DIR}/.. -P ${CMAKE_CURRENT_SOURCE_DIR}/OpenDIA_no_openswath.cmake)

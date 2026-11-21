@@ -15,6 +15,7 @@
 #include <OpenDIALibrary.h>
 
 #include <array>
+#include <chrono>
 #include <cstddef>
 #include <cstdint>
 #include <string>
@@ -103,6 +104,9 @@ namespace OpenMS::OpenDIA
     /// Optional: reuse an OpenDIACalibrate JSON and anchor TSV instead of calibrating (reproduction of earlier runs).
     std::string calibration_json;
     std::string anchors_tsv;
+    /// Experimental (PRECHECK_RTIM): per-run ridge RT correction and a second search/extract/score pass.
+    bool rt_refine = false;
+    std::size_t rt_refine_min_ids = 500;  ///< Fewer q <= 0.01 target IDs skip the refinement.
   };
 
   /// One scored candidate window of the run (the population), with its features and result.
@@ -152,6 +156,12 @@ namespace OpenMS::OpenDIA
     RunResult run(const std::string& path);
 
   private:
+    /// Steps 2-6 into @p result (calibration set). @p targeted is a copy of the search library (consumed);
+    /// @p rt_correction (seconds per precursor, empty = none) is added to the calibrated compound RT.
+    void searchAndScore_(const std::string& path, RunResult& result, OpenDIA::Library& targeted,
+                         const std::vector<std::pair<std::string, double>>& anchors, const std::vector<double>& rt_correction,
+                         double rt_tolerance_s, const Log& say, std::chrono::steady_clock::time_point t_run);
+
     AnalysisLibrary& library_;
     RunOptions options_;
     Log log_;

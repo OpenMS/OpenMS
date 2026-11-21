@@ -26,6 +26,7 @@ add_library(OpenDIA_impl STATIC
   source/OpenDIAScorer.cpp
   source/OpenDIAFragmentGrid.cpp
   source/OpenDIAWorkflow.cpp
+  source/OpenDIARTRefine.cpp
   source/OpenDIALibrary.cpp
   include/OpenDIALibrary.h
   include/OpenDIAMzIndex.h
@@ -39,6 +40,7 @@ add_library(OpenDIA_impl STATIC
   include/OpenDIAInterference.h
   include/OpenDIAScorer.h
   include/OpenDIAFragmentGrid.h
+  include/OpenDIARTRefine.h
   include/OpenDIAWorkflow.h)
 target_include_directories(OpenDIA_impl PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
 target_link_libraries(OpenDIA_impl PUBLIC OpenMS::OpenMS_CLI)

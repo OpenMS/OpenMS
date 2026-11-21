@@ -11,6 +11,7 @@
 #include <OpenDIAFragmentGrid.h>
 #include <OpenDIAInterference.h>
 #include <OpenDIAPeakMaps.h>
+#include <OpenDIARTRefine.h>
 #include <OpenDIAStage2.h>
 #include <OpenDIATraces.h>
 
@@ -403,11 +404,93 @@ namespace OpenMS::OpenDIA
         " ms2_tolerance_ppm=" + std::to_string(cal.ms2_tolerance_ppm) + " boundary_half_widths=" + std::to_string(cal.boundary_half_widths) +
         " seconds=" + std::to_string(seconds(t_run)));
 
-    // 2. Search with the calibrated library.
+    // Steps 2-6.
+    searchAndScore_(path, result, targeted, anchors, {}, cal.tolerance_s, say, t_run);
+    if (!options_.rt_refine) return result;
+
+    // Experimental (PRECHECK_RTIM): per-run ridge RT correction from the first pass's own q <= 0.01 target IDs, then a
+    // second search, extraction and scoring pass with corrected RTs and a narrower RT window.
+    std::vector<std::uint32_t> best(lib.precursors.size(), UINT32_MAX);
+    for (std::uint32_t i = 0; i < result.windows.size(); ++i)
+    {
+      const auto& w = result.windows[i];
+      auto& b = best[w.precursor];
+      if (b == UINT32_MAX || w.score > result.windows[b].score) b = i;
+    }
+    std::vector<std::size_t> train;
+    std::vector<double> y;
+    std::vector<std::uint32_t> folds;
+    for (std::uint32_t pi = 0; pi < lib.precursors.size(); ++pi)
+    {
+      const auto& p = lib.precursors[pi];
+      if (p.decoy || !p.has_library_rt || best[pi] == UINT32_MAX || !(result.windows[best[pi]].q_value <= 0.01)) continue;
+      train.push_back(pi);
+      y.push_back(result.windows[best[pi]].peak.rt_apex - cal.map(p.library_rt));
+      folds.push_back(static_cast<std::uint32_t>(CrossFitScorer::fnv1a(p.family) % 5));
+    }
+    if (train.size() < options_.rt_refine_min_ids)
+    {
+      say("RT refine: skipped (" + std::to_string(train.size()) + " training IDs)");
+      return result;
+    }
+    std::vector<std::string> sequences;
+    sequences.reserve(lib.precursors.size());
+    for (const auto& p : lib.precursors) sequences.push_back(p.sequence);
+    const RTRefineModel model(sequences);
+    const std::size_t dim = model.dimension();
+    std::vector<double> x;
+    x.reserve(lib.precursors.size() * dim);
+    for (const auto& p : lib.precursors)
+    {
+      const auto f = model.features(p.sequence, p.charge, p.mz);
+      x.insert(x.end(), f.begin(), f.end());
+    }
+    const auto refine = fitRTRefine(x, dim, train, y, folds);
+    std::vector<double>().swap(x);
+    const auto p95 = [](std::vector<double> v)
+    {
+      for (auto& e : v) e = std::abs(e);
+      std::sort(v.begin(), v.end());
+      // Linear interpolation between order statistics (numpy's default quantile).
+      const double pos = 0.95 * static_cast<double>(v.size() - 1);
+      const std::size_t lo = static_cast<std::size_t>(pos);
+      const std::size_t hi = std::min(lo + 1, v.size() - 1);
+      return v[lo] + (pos - static_cast<double>(lo)) * (v[hi] - v[lo]);
+    };
+    std::vector<double> residual(y.size());
+    for (std::size_t r = 0; r < y.size(); ++r) residual[r] = y[r] - refine.out_of_fold[r];
+    const double base = p95(y), refined = p95(residual);
+    const double ratio = base > 0.0 ? std::clamp(refined / base, 0.3, 1.0) : 1.0;
+    const double new_tol = cal.tolerance_s * ratio;
+    say("RT refine: training IDs=" + std::to_string(train.size()) + ", alpha=" + std::to_string(refine.alpha) + ", p95 |residual| base=" +
+        std::to_string(base) + " s refined=" + std::to_string(refined) + " s, rt_tolerance_s " + std::to_string(cal.tolerance_s) + " -> " +
+        std::to_string(new_tol));
+    // Release the first pass before the second.
+    std::vector<RunWindow>().swap(result.windows);
+    std::vector<float>().swap(result.features);
+    result.feature_names.clear();
+    OpenDIA::Library second = lib.search;
+    searchAndScore_(path, result, second, anchors, refine.correction, new_tol, say, t_run);
+    return result;
+  }
+
+  void RunAnalysis::searchAndScore_(const std::string& path, RunResult& result, OpenDIA::Library& targeted,
+                                    const std::vector<std::pair<std::string, double>>& anchors, const std::vector<double>& rt_correction,
+                                    double rt_tolerance_s, const Log& say, std::chrono::steady_clock::time_point t_run)
+  {
+    auto& lib = library_;
+    const CalibrationRT& cal = result.calibration;
+
+    // 2. Search with the calibrated library (RTs shifted by the per-precursor correction when given).
     const auto t_search = std::chrono::steady_clock::now();
     for (auto& c : targeted.compounds)
     {
       if (std::isfinite(c.rt)) c.rt = cal.map(c.rt);
+      if (!rt_correction.empty() && std::isfinite(c.rt))
+      {
+        const auto it = lib.index.find(c.id);
+        if (it != lib.index.end()) c.rt += rt_correction[it->second];
+      }
       if (cal.has_im && std::isfinite(c.drift_time) && c.drift_time > 0.0) c.drift_time = cal.im_intercept + cal.im_slope * c.drift_time;
     }
     for (auto& t : targeted.transitions) t.product_mz *= 1.0 + cal.ms2_offset_ppm * 1e-6;
@@ -416,7 +499,7 @@ namespace OpenMS::OpenDIA
     std::string search_io;
     {
       SearchOptions so;
-      so.rt_window_seconds = cal.tolerance_s;
+      so.rt_window_seconds = rt_tolerance_s;
       so.fragment_tolerance_ppm = cal.ms2_tolerance_ppm;
       if (cal.has_im) so.ion_mobility_tolerance_vssc = cal.im_tolerance;
       so.ion_mobility_array_as_vssc = options_.im_array_as_vssc;
@@ -776,6 +859,5 @@ namespace OpenMS::OpenDIA
     for (std::size_t i = 0; i < n; ++i) at1 += !lib.precursors[windows[i].precursor].decoy && windows[i].q_value <= 0.01;
     say("Scoring: target precursors at q <= 0.01: " + std::to_string(at1) + " seconds=" + std::to_string(seconds(t_score)) +
         "; run total seconds=" + std::to_string(seconds(t_run)));
-    return result;
   }
 }
