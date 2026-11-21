@@ -179,6 +179,10 @@ public:
 
       If PeakFileOptions has m/z or intensity range set, the spectrum will be filtered accordingly.
 
+      A spectrum with an ion mobility array gets the IM peak type of a full load (MzMLFile::load): IM_PROFILE,
+      unless the file declares it as centroided (MS:1003441). Without meta data (openFile() with skipMetaData),
+      the declared type is not known and the IM peak type stays UNKNOWN.
+
       @param[in] id The index of the spectrum
     */
     MSSpectrum getSpectrum(Size id) override;
@@ -240,6 +244,8 @@ public:
 
     /**
       @brief returns a single spectrum
+
+      The IM peak type is set as in getSpectrum().
 
       @param[in] id The native identifier of the spectrum
     */
