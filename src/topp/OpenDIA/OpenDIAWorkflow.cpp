@@ -24,6 +24,7 @@
 #include <iterator>
 #include <map>
 #include <set>
+#include <sstream>
 #include <unistd.h>
 
 using namespace OpenMS;
@@ -96,6 +97,10 @@ protected:
     registerIntOption_("rt_refine_min_ids", "<n>", 500, "Advanced: skip the RT refinement (-rt_refine_anchors too) with fewer training IDs", false, true);
     setMinInt_("rt_refine_min_ids", 1);
     registerFlag_("rt_refine_anchors", "Experimental (PRECHECK_RTIM): fit the RT correction on the calibration anchors only and use it in the single pass; requires -no_rt_refine", true);
+    registerDoubleOption_("hard_decoys", "<fraction>", 0.0, "Experimental (PRECHECK_BT156): self-training rounds use all windows of the hardest <fraction> of decoy precursors as negatives instead of all decoy winners; 0 = off", false, true);
+    setMinFloat_("hard_decoys", 0.0);
+    setMaxFloat_("hard_decoys", 1.0);
+    registerStringOption_("scorer_self_q", "<q list>", "", "Experimental: space- or comma-separated q cuts, one self-training round each (e.g. \"0.01 0.01 0.01\"); empty keeps 0.15 0.05", false, true);
     registerStringOption_("calibration", "<files>", "", "Advanced: comma-separated OpenDIACalibrate JSON per run to reuse instead of calibrating", false, true);
     registerStringOption_("anchors", "<files>", "", "Advanced: comma-separated anchor TSV per run, with -calibration", false, true);
     registerStringOption_("decoys", "<mode>", "library",
@@ -293,6 +298,25 @@ protected:
     options.rt_refine = !getFlag_("no_rt_refine");
     options.rt_refine_min_ids = static_cast<std::size_t>(getIntOption_("rt_refine_min_ids"));
     options.rt_refine_anchors = getFlag_("rt_refine_anchors");
+    options.hard_decoys = getDoubleOption_("hard_decoys");
+    {
+      std::string list = getStringOption_("scorer_self_q");
+      std::replace(list.begin(), list.end(), ',', ' ');
+      std::istringstream in(list);
+      std::string tok;
+      while (in >> tok)
+      {
+        double v = 0.0;
+        std::size_t used = 0;
+        try { v = std::stod(tok, &used); } catch (...) { used = 0; }
+        if (used != tok.size() || !(v > 0.0 && v <= 1.0))
+        {
+          writeLogError_("-scorer_self_q values must be numbers in (0, 1].");
+          return ILLEGAL_PARAMETERS;
+        }
+        options.scorer_self_q.push_back(v);
+      }
+    }
     options.calibration.panel_targets = 40000;
 
     // Best (calibrated) score of each precursor per run, for the global q-value.

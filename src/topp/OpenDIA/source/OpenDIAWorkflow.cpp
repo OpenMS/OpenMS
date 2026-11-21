@@ -884,6 +884,8 @@ namespace OpenMS::OpenDIA
     CrossFitScorer::Options so;
     so.seed = options_.seed;
     so.threads = options_.threads;
+    so.hard_negative_fraction = options_.hard_decoys;
+    if (!options_.scorer_self_q.empty()) so.self_q = options_.scorer_self_q;
     const auto scored = CrossFitScorer::run(input, so, [&](const std::string& l) { say("Scorer " + l); });
     for (std::size_t i = 0; i < n; ++i)
     {

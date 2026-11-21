@@ -544,6 +544,16 @@ namespace OpenMS::OpenDIA
     }
   }
 
+  namespace
+  {
+    std::size_t n_hard_size(const CrossFitScorer::Input& in)
+    {
+      std::uint32_t m = 0;
+      for (std::uint32_t p : in.precursor) m = std::max(m, p + 1);
+      return m;
+    }
+  }
+
   CrossFitScorer::Result CrossFitScorer::run(const Input& in, const Options& o, const std::function<void(const std::string&)>& log)
   {
     const std::size_t n = in.rows(), d = in.dimension;
@@ -630,14 +640,35 @@ namespace OpenMS::OpenDIA
             ++positives;
           }
         }
-        for (std::uint32_t w : comp.winners)
-          if (in.decoy[w]) rows.push_back(w);
+        std::size_t hard_precursors = 0;
+        if (o.hard_negative_fraction > 0.0)
+        {
+          // Hard decoys: every training-fold row of the top-scoring decoy precursor winners.
+          std::vector<std::uint32_t> dw;
+          for (std::uint32_t w : comp.winners)
+            if (in.decoy[w]) dw.push_back(w);
+          std::sort(dw.begin(), dw.end(), [&](std::uint32_t a, std::uint32_t b)
+                    { return round_score[a] != round_score[b] ? round_score[a] > round_score[b] : a < b; });
+          const std::size_t take = std::min(dw.size(), std::max<std::size_t>(10, static_cast<std::size_t>(
+                                                                                   std::ceil(o.hard_negative_fraction * dw.size()))));
+          std::vector<std::uint8_t> hard(n_hard_size(in), 0);
+          for (std::size_t i = 0; i < take; ++i) hard[in.precursor[dw[i]]] = 1;
+          hard_precursors = take;
+          for (std::uint32_t row : train)
+            if (in.decoy[row] && hard[in.precursor[row]]) rows.push_back(row);
+        }
+        else
+        {
+          for (std::uint32_t w : comp.winners)
+            if (in.decoy[w]) rows.push_back(w);
+        }
         label.assign(rows.size(), 0);
         std::fill(label.begin(), label.begin() + positives, 1);
         for (std::uint32_t row : rows) valid.push_back(in.pair_hash[row] % 100 < o.validation_percent);
         model = fit(z, d, rows, label, valid, o.seed + 200 + 10 * k + r + 1, o);
         line += " | r" + std::to_string(r + 1) + " pos " + std::to_string(positives) + " neg " + std::to_string(rows.size() - positives) +
                 " " + std::to_string(model.epochs) + " ep crit " + std::to_string(model.criterion);
+        if (o.hard_negative_fraction > 0.0) line += " hard_neg " + std::to_string(rows.size() - positives) + " of " + std::to_string(hard_precursors) + " prec";
       }
       scoreRows(model, z, d, test, raw, &linear, o.threads);
       say(line);

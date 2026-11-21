@@ -107,7 +107,9 @@ namespace OpenMS::OpenDIA
     /// Per-run ridge RT correction and a second search/extract/score pass (PLAN_RTR D pass; -no_rt_refine turns it off).
     bool rt_refine = true;
     std::size_t rt_refine_min_ids = 500;  ///< Fewer training IDs skip the refinement.
-    bool rt_refine_anchors = false;  ///< Experimental: fit the RT correction on the calibration anchors and use it in the only pass.
+    bool rt_refine_anchors = false;
+    double hard_decoys = 0.0;  ///< Experimental (PRECHECK_BT156): CrossFitScorer::Options::hard_negative_fraction.
+    std::vector<double> scorer_self_q;  ///< Empty keeps CrossFitScorer::Options::self_q.  ///< Experimental: fit the RT correction on the calibration anchors and use it in the only pass.
   };
 
   /// One scored candidate window of the run (the population), with its features and result.

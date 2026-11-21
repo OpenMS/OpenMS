@@ -77,6 +77,9 @@ namespace OpenMS::OpenDIA
     2. Round 0 trains on the seed rows (e.g. anchor windows as positives, decoy windows as negatives).
     3. Rounds 1 and 2 relabel: the training folds are scored by the previous model, precursor winners compete in the
        pooled paired TDC, target winners at q <= self_q[r] are the positives and all decoy precursor winners the negatives.
+       If hard_negative_fraction > 0 (opt-in, experimental), the negatives are instead all training-fold rows (every
+       window) of the hardest decoy precursors: the top max(10, ceil(hard_negative_fraction * decoy winners)) decoy
+       precursor winners by the previous model's score (ties: lower row). Positives and the validation split are unchanged.
     4. Each fit uses Adam on minibatches of batch_positive + batch_negative rows for at most max_epochs epochs of
        steps_per_epoch steps, and keeps the parameters with the best readout objective on a validation share of the
        rows (selected by a hash of the row's group, so pairs or families stay together; patience `patience` epochs).
@@ -109,6 +112,7 @@ namespace OpenMS::OpenDIA
       double learning_rate = 1e-3;
       unsigned validation_percent = 15; ///< Rows whose group hash % 100 is below this validate.
       std::vector<double> self_q = {0.15, 0.05}; ///< One self-training round per entry.
+      double hard_negative_fraction = 0.0; ///< > 0: relabel rounds use all windows of the hardest decoy precursors as negatives.
     };
 
     struct Seed
