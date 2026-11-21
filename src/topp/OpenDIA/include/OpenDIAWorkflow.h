@@ -106,7 +106,8 @@ namespace OpenMS::OpenDIA
     std::string anchors_tsv;
     /// Experimental (PRECHECK_RTIM): per-run ridge RT correction and a second search/extract/score pass.
     bool rt_refine = false;
-    std::size_t rt_refine_min_ids = 500;  ///< Fewer q <= 0.01 target IDs skip the refinement.
+    std::size_t rt_refine_min_ids = 500;  ///< Fewer training IDs skip the refinement.
+    bool rt_refine_anchors = false;  ///< Experimental: fit the RT correction on the calibration anchors and use it in the only pass.
   };
 
   /// One scored candidate window of the run (the population), with its features and result.
@@ -161,6 +162,12 @@ namespace OpenMS::OpenDIA
     void searchAndScore_(const std::string& path, RunResult& result, OpenDIA::Library& targeted,
                          const std::vector<std::pair<std::string, double>>& anchors, const std::vector<double>& rt_correction,
                          double rt_tolerance_s, const Log& say, std::chrono::steady_clock::time_point t_run);
+    /// Fit the ridge RT correction on @p train (library precursor indices, targets @p y in seconds, CV folds @p folds).
+    /// Returns the per-precursor correction and the narrowed RT tolerance, or an empty correction when there are fewer
+    /// than rt_refine_min_ids training rows.
+    std::pair<std::vector<double>, double> refineRT_(const std::vector<std::size_t>& train, const std::vector<double>& y,
+                                                     const std::vector<std::uint32_t>& folds, double tolerance_s,
+                                                     const std::string& label, const Log& say);
 
     AnalysisLibrary& library_;
     RunOptions options_;

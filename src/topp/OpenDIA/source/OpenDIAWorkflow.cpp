@@ -404,6 +404,31 @@ namespace OpenMS::OpenDIA
         " ms2_tolerance_ppm=" + std::to_string(cal.ms2_tolerance_ppm) + " boundary_half_widths=" + std::to_string(cal.boundary_half_widths) +
         " seconds=" + std::to_string(seconds(t_run)));
 
+    // Experimental (PRECHECK_RTIM, -rt_refine_anchors): fit the ridge RT correction on the calibration anchors and use it
+    // in the only pass, at no extra cost (fewer training IDs than the second pass of -rt_refine).
+    if (options_.rt_refine_anchors && !options_.rt_refine)
+    {
+      std::vector<std::size_t> train;
+      std::vector<double> y;
+      std::vector<std::uint32_t> folds;
+      for (const auto& [id, run_rt] : anchors)
+      {
+        const auto it = lib.index.find(id);
+        if (it == lib.index.end()) continue;
+        const auto& p = lib.precursors[it->second];
+        if (p.decoy || !p.has_library_rt) continue;
+        train.push_back(it->second);
+        y.push_back(run_rt - cal.map(p.library_rt));
+        folds.push_back(static_cast<std::uint32_t>(CrossFitScorer::fnv1a(p.family) % 5));
+      }
+      const auto refined = refineRT_(train, y, folds, cal.tolerance_s, "RT refine (anchors)", say);
+      if (!refined.first.empty())
+      {
+        searchAndScore_(path, result, targeted, anchors, refined.first, refined.second, say, t_run);
+        return result;
+      }
+    }
+
     // Steps 2-6.
     searchAndScore_(path, result, targeted, anchors, {}, cal.tolerance_s, say, t_run);
     if (!options_.rt_refine) return result;
@@ -428,10 +453,26 @@ namespace OpenMS::OpenDIA
       y.push_back(result.windows[best[pi]].peak.rt_apex - cal.map(p.library_rt));
       folds.push_back(static_cast<std::uint32_t>(CrossFitScorer::fnv1a(p.family) % 5));
     }
+    const auto refined = refineRT_(train, y, folds, cal.tolerance_s, "RT refine", say);
+    if (refined.first.empty()) return result;
+    // Release the first pass before the second.
+    std::vector<RunWindow>().swap(result.windows);
+    std::vector<float>().swap(result.features);
+    result.feature_names.clear();
+    OpenDIA::Library second = lib.search;
+    searchAndScore_(path, result, second, anchors, refined.first, refined.second, say, t_run);
+    return result;
+  }
+
+  std::pair<std::vector<double>, double> RunAnalysis::refineRT_(const std::vector<std::size_t>& train, const std::vector<double>& y,
+                                                                const std::vector<std::uint32_t>& folds, double tolerance_s,
+                                                                const std::string& label, const Log& say)
+  {
+    auto& lib = library_;
     if (train.size() < options_.rt_refine_min_ids)
     {
-      say("RT refine: skipped (" + std::to_string(train.size()) + " training IDs)");
-      return result;
+      say(label + ": skipped (" + std::to_string(train.size()) + " training IDs)");
+      return {};
     }
     std::vector<std::string> sequences;
     sequences.reserve(lib.precursors.size());
@@ -461,17 +502,11 @@ namespace OpenMS::OpenDIA
     for (std::size_t r = 0; r < y.size(); ++r) residual[r] = y[r] - refine.out_of_fold[r];
     const double base = p95(y), refined = p95(residual);
     const double ratio = base > 0.0 ? std::clamp(refined / base, 0.3, 1.0) : 1.0;
-    const double new_tol = cal.tolerance_s * ratio;
-    say("RT refine: training IDs=" + std::to_string(train.size()) + ", alpha=" + std::to_string(refine.alpha) + ", p95 |residual| base=" +
-        std::to_string(base) + " s refined=" + std::to_string(refined) + " s, rt_tolerance_s " + std::to_string(cal.tolerance_s) + " -> " +
+    const double new_tol = tolerance_s * ratio;
+    say(label + ": training IDs=" + std::to_string(train.size()) + ", alpha=" + std::to_string(refine.alpha) + ", p95 |residual| base=" +
+        std::to_string(base) + " s refined=" + std::to_string(refined) + " s, rt_tolerance_s " + std::to_string(tolerance_s) + " -> " +
         std::to_string(new_tol));
-    // Release the first pass before the second.
-    std::vector<RunWindow>().swap(result.windows);
-    std::vector<float>().swap(result.features);
-    result.feature_names.clear();
-    OpenDIA::Library second = lib.search;
-    searchAndScore_(path, result, second, anchors, refine.correction, new_tol, say, t_run);
-    return result;
+    return {refine.correction, new_tol};
   }
 
   void RunAnalysis::searchAndScore_(const std::string& path, RunResult& result, OpenDIA::Library& targeted,
