@@ -58,7 +58,9 @@ NuXLParameterParsing::getAllFeasibleFragmentAdducts(
   const NuXLParameterParsing::NucleotideToFragmentAdductMap & nucleotide_to_fragment_adducts,
   const set<char> & can_xl, 
   const bool always_add_default_marker_ions,
-  const bool default_marker_ions_RNA)
+  const bool default_marker_ions_RNA,
+  const std::set<char> & oligo_nucleotides,
+  const std::map<char, EmpiricalFormula> & nucleotide_formulas)
 {
   PrecursorsToMS2Adducts all_pc_all_feasible_adducts;
 
@@ -92,7 +94,9 @@ NuXLParameterParsing::getAllFeasibleFragmentAdducts(
         nucleotide_to_fragment_adducts, 
         can_xl,
         always_add_default_marker_ions,
-        default_marker_ions_RNA);
+        default_marker_ions_RNA,
+        oligo_nucleotides,
+        nucleotide_formulas);
 
        all_pc_all_feasible_adducts[pc_adduct] = feasible_adducts;
        pc2mass[pc_adduct] = pc_mass;
@@ -254,7 +258,9 @@ NuXLParameterParsing::getFeasibleFragmentAdducts(const std::string &exp_pc_adduc
                                                   const NuXLParameterParsing::NucleotideToFragmentAdductMap &nucleotide_to_fragment_adducts,
                                                   const set<char> &can_xl,
                                                   const bool always_add_default_marker_ions,
-                                                  const bool default_marker_ions_RNA)
+                                                  const bool default_marker_ions_RNA,
+                                                  const std::set<char> &oligo_nucleotides,
+                                                  const std::map<char, EmpiricalFormula> &nucleotide_formulas)
 {
   OPENMS_LOG_DEBUG << "Generating fragment adducts for precursor adduct: '" << exp_pc_adduct << "'" << endl;
 
@@ -339,6 +345,34 @@ NuXLParameterParsing::getFeasibleFragmentAdducts(const std::string &exp_pc_adduc
         // store feasible adducts associated with a cross-link with character nucleotide
         vector<NuXLFragmentAdductDefinition> faa;
         std::copy(fragment_adducts.begin(), fragment_adducts.end(), back_inserter(faa));
+
+        if (!oligo_nucleotides.empty())
+        {
+          // A fragment can keep more of an oligonucleotide than one nucleotide: the complete adduct (also after loss of
+          // water), or the cross-linked nucleotide with the phosphate of its neighbour ("pNp"). They depend on the precursor
+          // adduct, so they can't be listed per nucleotide like the other fragment adducts, and they are no marker ions.
+          const EmpiricalFormula complete(exp_pc_formula);
+          const EmpiricalFormula water("H2O");
+          vector<pair<std::string, EmpiricalFormula>> larger = {{exp_pc_adduct, complete}, {exp_pc_adduct + "-H2O", complete - water}};
+          // The forms of the cross-linked nucleotide only for the listed nucleotides (U under UV): for nucleotides that
+          // rarely cross-link they mostly match by chance and raise the scores of decoys more than those of targets.
+          // (The complete adduct after loss of H3PO4 did the same and is not used.)
+          if (const auto nf = nucleotide_formulas.find(nucleotide); oligo_nucleotides.contains(nucleotide) && nf != nucleotide_formulas.end())
+          {
+            const std::string n(1, nucleotide);
+            const EmpiricalFormula bisphosphate = nf->second + EmpiricalFormula("HPO3");
+            larger.emplace_back("p" + n + "p", bisphosphate);
+            larger.emplace_back("p" + n + "p-H2O", bisphosphate - water);
+            larger.emplace_back(n + "-H2O-H2O", nf->second - water - water);
+          }
+          for (const auto& [name, formula] : larger)
+          {
+            // must be a (non-negative) subformula of the precursor adduct
+            if (StringUtils::hasSubstring(formula.toString(), "-") || StringUtils::hasSubstring((complete - formula).toString(), "-")) { continue; }
+            const bool known = std::any_of(faa.begin(), faa.end(), [&formula](const NuXLFragmentAdductDefinition& f) { return f.formula == formula; });
+            if (!known) { faa.emplace_back(formula, name, formula.getMonoWeight()); }
+          }
+        }
         ret.feasible_adducts.emplace_back(nucleotide, faa);
       }
     }
