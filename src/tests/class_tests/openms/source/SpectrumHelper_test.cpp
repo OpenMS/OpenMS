@@ -346,10 +346,24 @@ START_SECTION(void makePeakPositionUnique(PeakContainerT& p, const int m) )
   TEST_REAL_SIMILAR(c[2].getIntensity(), 9)
   TEST_REAL_SIMILAR(c[3].getIntensity(), 7)
   
+  // the spectrum/chromatogram's own metadata must survive the call, not just
+  // its merged peaks
+  s = s_template;
+  s.setRT(123.5);
+  s.setNativeID("spectrum=42");
+  makePeakPositionUnique(s, IntensityAveragingMethod::MEDIAN);
+  TEST_REAL_SIMILAR(s.getRT(), 123.5)
+  TEST_EQUAL(s.getNativeID(), "spectrum=42")
+
+  c = c_template;
+  c.setNativeID("chromatogram=42");
+  makePeakPositionUnique(c, IntensityAveragingMethod::MEDIAN);
+  TEST_EQUAL(c.getNativeID(), "chromatogram=42")
+
   MSSpectrum s_empty;
   makePeakPositionUnique(s_empty);
   TEST_EQUAL(s_empty.size(), 0)
-  
+
   MSChromatogram c_empty;
   makePeakPositionUnique(c_empty);
   TEST_EQUAL(c_empty.size(), 0)
