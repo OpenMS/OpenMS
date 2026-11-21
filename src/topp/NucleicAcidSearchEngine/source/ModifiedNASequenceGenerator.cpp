@@ -10,10 +10,13 @@
 
 #include <OpenMS/CHEMISTRY/Ribonucleotide.h>
 #include <OpenMS/CHEMISTRY/NASequence.h>
+#include <OpenMS/CONCEPT/Exception.h>
 
 #include <vector>
 #include <map>
 #include <algorithm>
+#include <cmath>
+#include <limits>
 
 using std::vector;
 using std::set;
@@ -66,40 +69,9 @@ namespace OpenMS
     }
   }
 
-  // static
-  void ModifiedNASequenceGenerator::applyVariableModifications(
-    const set<ConstRibonucleotidePtr>& var_mods,
-    const NASequence& seq,
-    size_t max_variable_mods_per_seq,
-    vector<NASequence>& all_modified_seqs,
-    bool keep_unmodified)
+  map<int, vector<ModifiedNASequenceGenerator::ConstRibonucleotidePtr>>
+  ModifiedNASequenceGenerator::compatibleModifications_(const set<ConstRibonucleotidePtr>& var_mods, const NASequence& seq)
   {
-    // no variable modifications specified or no variable mods allowed? no compatibility map needs to be build
-    if (var_mods.empty() || max_variable_mods_per_seq == 0)
-    {
-      // if unmodified seqs should be kept return the original list of digested seqs
-      if (keep_unmodified) { all_modified_seqs.push_back(seq); }
-      return;
-    }
-
-    // if there is at most one variable modification allowed for a seq we don't need combinatoric placement and can resort to a faster implementation
-    if (max_variable_mods_per_seq == 1)
-    {
-      applyAtMostOneVariableModification_(var_mods,
-                                          seq,
-                                          all_modified_seqs,
-                                          keep_unmodified);
-      return;
-    }
-
-    // keep a list of all possible modifications of this seq
-    vector<NASequence> modified_seqs;
-
-    // only add unmodified version if flag is set (default)
-    if (keep_unmodified) { modified_seqs.push_back(seq); }
-
-    //iterate over each residue and build compatibility mapping describing
-    //which ribonucleotide (seq index) is compatible with which modification
     map<int, vector<ConstRibonucleotidePtr>> map_compatibility;
 
     const int FIVE_PRIME_MODIFICATION_INDEX = -1;
@@ -143,6 +115,39 @@ namespace OpenMS
       });
       ++residue_index;
     }
+
+    return map_compatibility;
+  }
+
+  // static
+  void ModifiedNASequenceGenerator::applyVariableModifications(const set<ConstRibonucleotidePtr>& var_mods,
+                                                               const NASequence& seq,
+                                                               size_t max_variable_mods_per_seq,
+                                                               vector<NASequence>& all_modified_seqs,
+                                                               bool keep_unmodified)
+  {
+    // no variable modifications specified or no variable mods allowed? no compatibility map needs to be build
+    if (var_mods.empty() || max_variable_mods_per_seq == 0)
+    {
+      // if unmodified seqs should be kept return the original list of digested seqs
+      if (keep_unmodified) { all_modified_seqs.push_back(seq); }
+      return;
+    }
+
+    // if there is at most one variable modification allowed for a seq we don't need combinatoric placement and can resort to a faster implementation
+    if (max_variable_mods_per_seq == 1)
+    {
+      applyAtMostOneVariableModification_(var_mods, seq, all_modified_seqs, keep_unmodified);
+      return;
+    }
+
+    // keep a list of all possible modifications of this seq
+    vector<NASequence> modified_seqs;
+
+    // only add unmodified version if flag is set (default)
+    if (keep_unmodified) { modified_seqs.push_back(seq); }
+
+    auto map_compatibility = compatibleModifications_(var_mods, seq);
 
     // Check if no compatible site that can be modified by variable
     // modification. If so just return seqs without variable modifications.
@@ -197,6 +202,164 @@ namespace OpenMS
     all_modified_seqs.insert(all_modified_seqs.end(), modified_seqs.begin(), modified_seqs.end());
   }
 
+
+  ModifiedNASequenceGenerator::PlacementStatistics
+  ModifiedNASequenceGenerator::applyVariableModificationsConstrained(const set<ConstRibonucleotidePtr>& var_mods,
+                                                                     const NASequence& seq,
+                                                                     Size max_variable_mods,
+                                                                     vector<NASequence>& output,
+                                                                     const PlacementConstraints& constraints,
+                                                                     bool keep_original)
+  {
+    if (! constraints.accepts || constraints.max_nodes == 0)
+    {
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                       "Constrained placement needs a predicate and a positive node bound");
+    }
+    PlacementStatistics stats;
+    const Size initial_size = output.size();
+    const auto compatibility = max_variable_mods > 0 ? compatibleModifications_(var_mods, seq) : map<int, vector<ConstRibonucleotidePtr>> {};
+    max_variable_mods = std::min(max_variable_mods, compatibility.size());
+    const auto massOf
+      = [&constraints](const NASequence& sequence) { return constraints.use_average_mass ? sequence.getAverageWeight() : sequence.getMonoWeight(); };
+    const auto place = [](NASequence& sequence, int site, ConstRibonucleotidePtr modification) {
+      if (site == -2) { sequence.setThreePrimeMod(modification); }
+      else if (site == -1) { sequence.setFivePrimeMod(modification); }
+      else
+      {
+        sequence.set(site, modification);
+      }
+    };
+    const double base_mass = massOf(seq);
+    map<int, vector<double>> deltas;
+    map<int, std::pair<double, double>> ranges;
+    bool finite_bounds = std::isfinite(base_mass);
+    for (const auto& [site, choices] : compatibility)
+    {
+      auto& values = deltas[site];
+      for (const auto* modification : choices)
+      {
+        // Exact sequence chemistry also handles terminal groups and linkage changes.
+        NASequence modified = seq;
+        place(modified, site, modification);
+        const double delta = massOf(modified) - base_mass;
+        finite_bounds = finite_bounds && std::isfinite(delta);
+        values.push_back(delta);
+      }
+      const auto [low, high] = std::minmax_element(values.begin(), values.end());
+      ranges.emplace(site, std::pair(*low, *high));
+    }
+    const auto alternativesOf = [](const NASequence& sequence) {
+      ResidueAlternatives result;
+      result.reserve(sequence.size());
+      for (Size i = 0; i < sequence.size(); ++i)
+      {
+        result.push_back({sequence[i]});
+      }
+      return result;
+    };
+    const auto accepts = [&](double low, double high, const ResidueAlternatives& alternatives) {
+      if (++stats.visited_nodes > constraints.max_nodes)
+      {
+        stats.enumeration_fallback = true;
+        return false;
+      }
+      if (! finite_bounds)
+      {
+        low = -std::numeric_limits<double>::infinity();
+        high = std::numeric_limits<double>::infinity();
+      }
+      else
+      {
+        // Outward slack covers floating-point regrouping of formula differences.
+        const double slack = 1e-8 * std::max<Size>(1, seq.size() + compatibility.size())
+                             + 64 * std::numeric_limits<double>::epsilon() * std::max(std::abs(low), std::abs(high));
+        low -= slack;
+        high += slack;
+      }
+      if (constraints.accepts(low, high, alternatives)) { return true; }
+      ++stats.pruned_branches;
+      return false;
+    };
+
+    // A budget-aware outer bound can reject the entire oligo before selecting sites.
+    auto root_alternatives = alternativesOf(seq);
+    vector<double> lower, upper;
+    if (max_variable_mods > 0)
+    {
+      for (const auto& [site, choices] : compatibility)
+      {
+        lower.push_back(std::min(0.0, ranges.at(site).first));
+        upper.push_back(std::max(0.0, ranges.at(site).second));
+        if (site >= 0) { root_alternatives[site].insert(root_alternatives[site].end(), choices.begin(), choices.end()); }
+      }
+    }
+    std::sort(lower.begin(), lower.end());
+    std::sort(upper.begin(), upper.end(), std::greater<double>());
+    double low = base_mass, high = base_mass;
+    for (Size i = 0; i < max_variable_mods; ++i)
+    {
+      low += lower[i];
+      high += upper[i];
+    }
+    if (! accepts(low, high, root_alternatives)) { return stats; }
+    if (max_variable_mods == 0)
+    {
+      if (keep_original) { output.push_back(seq); }
+      stats.emitted_variants = output.size() - initial_size;
+      return stats;
+    }
+
+    const auto visit = [&](auto&& self, const vector<int>& sites, Size depth, const NASequence& current, double mass) -> bool {
+      auto alternatives = alternativesOf(current);
+      double branch_low = mass, branch_high = mass;
+      for (Size i = depth; i < sites.size(); ++i)
+      {
+        const int site = sites[i];
+        branch_low += ranges.at(site).first;
+        branch_high += ranges.at(site).second;
+        if (site >= 0) { alternatives[site] = compatibility.at(site); }
+      }
+      if (! accepts(branch_low, branch_high, alternatives)) { return ! stats.enumeration_fallback; }
+      if (depth == sites.size())
+      {
+        output.push_back(current);
+        return true;
+      }
+      const int site = sites[depth];
+      const auto& choices = compatibility.at(site);
+      for (Size i = 0; i < choices.size(); ++i)
+      {
+        NASequence modified = current;
+        place(modified, site, choices[i]);
+        if (! self(self, sites, depth + 1, modified, mass + deltas.at(site)[i])) { return false; }
+      }
+      return true;
+    };
+    if (keep_original) { visit(visit, {}, 0, seq, base_mass); }
+    for (Size count = 1; count <= max_variable_mods && ! stats.enumeration_fallback; ++count)
+    {
+      vector<bool> mask(compatibility.size(), false);
+      std::fill(mask.end() - count, mask.end(), true);
+      do
+      {
+        vector<int> sites;
+        Size index = 0;
+        for (const auto& [site, choices] : compatibility)
+        {
+          if (mask[index++]) { sites.push_back(site); }
+        }
+        if (! visit(visit, sites, 0, seq, base_mass)) { break; }
+      } while (std::next_permutation(mask.begin(), mask.end()));
+    }
+    if (stats.enumeration_fallback)
+    {
+      output.resize(initial_size);
+      applyVariableModifications(var_mods, seq, max_variable_mods, output, keep_original);
+    }
+    stats.emitted_variants = output.size() - initial_size;
+    return stats;
+  }
 
   // static
   void ModifiedNASequenceGenerator::recurseAndGenerateVariableModifiedSequences_(
