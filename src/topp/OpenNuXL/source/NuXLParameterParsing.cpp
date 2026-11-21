@@ -365,8 +365,10 @@ NuXLParameterParsing::getFeasibleFragmentAdducts(const std::string &exp_pc_adduc
             larger.emplace_back("p" + n + "p-H2O", bisphosphate - water);
             larger.emplace_back(n + "-H2O-H2O", nf->second - water - water);
           }
-          for (const auto& [name, formula] : larger)
+          for (const auto& entry : larger)
           {
+            const std::string& name = entry.first; // no structured binding: clang cannot capture one in an OpenMP build
+            const EmpiricalFormula& formula = entry.second;
             // must be a (non-negative) subformula of the precursor adduct
             if (StringUtils::hasSubstring(formula.toString(), "-") || StringUtils::hasSubstring((complete - formula).toString(), "-")) { continue; }
             const bool known = std::any_of(faa.begin(), faa.end(), [&formula](const NuXLFragmentAdductDefinition& f) { return f.formula == formula; });
