@@ -886,7 +886,46 @@ namespace OpenMS::OpenDIA
     so.threads = options_.threads;
     so.hard_negative_fraction = options_.hard_decoys;
     if (!options_.scorer_self_q.empty()) so.self_q = options_.scorer_self_q;
-    const auto scored = CrossFitScorer::run(input, so, [&](const std::string& l) { say("Scorer " + l); });
+    auto scored = CrossFitScorer::run(input, so, [&](const std::string& l) { say("Scorer " + l); });
+    if (options_.sibling_features)
+    {
+      // PRECHECK_JOINT2: siblings share the family fold, so first-pass scores are out-of-fold for each other.
+      std::unordered_map<std::string, std::uint32_t> group_of;
+      std::vector<std::uint32_t> precursor_group(lib.precursors.size()), group_precursors;
+      for (std::uint32_t pi = 0; pi < lib.precursors.size(); ++pi)
+      {
+        const auto& p = lib.precursors[pi];
+        const auto it = group_of.try_emplace((p.decoy ? "D" : "T") + p.sequence, static_cast<std::uint32_t>(group_of.size())).first;
+        if (it->second == group_precursors.size()) group_precursors.push_back(0);
+        ++group_precursors[it->second];
+        precursor_group[pi] = it->second;
+      }
+      std::vector<std::uint32_t> group(n), prec(n);
+      std::vector<double> rt(n);
+      for (std::size_t i = 0; i < n; ++i)
+      {
+        prec[i] = windows[i].precursor;
+        group[i] = precursor_group[prec[i]];
+        rt[i] = windows[i].peak.rt_apex;
+      }
+      const auto sib = stage2SiblingFeatures(group, prec, rt, scored.score, group_precursors, CrossFitScorer::NOT_KEPT);
+      constexpr std::size_t S = STAGE2_SIBLING_FEATURES;
+      const std::size_t d2 = d + S;
+      std::vector<float> wide(n * d2);
+      std::size_t co_t = 0, co_d = 0;
+      for (std::size_t i = 0; i < n; ++i)
+      {
+        std::copy_n(result.features.data() + i * d, d, wide.data() + i * d2);
+        std::copy_n(sib.data() + i * S, S, wide.data() + i * d2 + d);
+        if (sib[i * S + 1] > 0.0f) (lib.precursors[prec[i]].decoy ? co_d : co_t) += 1;
+      }
+      result.features = std::move(wide);
+      for (const char* nm : {"s_n", "s_co", "s_best", "s_best_d"}) result.feature_names.emplace_back(nm);
+      input.dimension = d2;
+      input.features = result.features;
+      scored = CrossFitScorer::run(input, so, [&](const std::string& l) { say("Scorer " + l); });
+      say("Sibling features: windows with a co-eluting sibling target=" + std::to_string(co_t) + " decoy=" + std::to_string(co_d) + "; rescored");
+    }
     for (std::size_t i = 0; i < n; ++i)
     {
       windows[i].score = scored.score[i];

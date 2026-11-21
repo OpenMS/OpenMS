@@ -530,6 +530,20 @@ int main()
     require(std::abs(OpenDIA::stage2RobustZ(x, 6, 5, 8) - 17.0 / (std::sqrt(3.0) + 1.0)) < 1e-9, "robust z by hand");
   }
 
+  {
+    // Sibling features. Group 0: target peptide with 3 library precursors (precursor 5 has no window), p0 and p1 co-elute,
+    // p1 also has a far window. Group 1: isolated p2. Group 2: decoy peptide p3, p4 co-eluting.
+    const float NK = -1e30f;
+    const std::vector<std::uint32_t> group{0, 0, 0, 1, 2, 2}, prec{0, 1, 1, 2, 3, 4}, counts{3, 1, 2};
+    const std::vector<double> rt{100.0, 101.5, 200.0, 100.0, 50.0, 52.0};
+    const std::vector<float> score{5.0f, NK, 7.0f, 3.0f, 2.0f, 4.0f};
+    const auto s = OpenDIA::stage2SiblingFeatures(group, prec, rt, score, counts, NK);
+    const std::vector<std::vector<float>> expect{{2, 1, 2, 1.5f}, {2, 1, 5, 1.5f}, {2, 0, 2, 3}, {0, 0, 2, 3}, {1, 1, 4, 2}, {1, 1, 2, 2}};
+    require(s.size() == 6 * OpenDIA::STAGE2_SIBLING_FEATURES, "sibling feature size");
+    for (std::size_t i = 0; i < 6; ++i)
+      for (std::size_t k = 0; k < 4; ++k) require(std::abs(s[i * 4 + k] - expect[i][k]) < 1e-6f, "sibling feature value");
+  }
+
   std::cout << "OpenDIAStage2_test passed\n";
   return 0;
 }

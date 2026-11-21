@@ -12,6 +12,7 @@
 
 #include <array>
 #include <cstddef>
+#include <cstdint>
 #include <string>
 #include <unordered_map>
 #include <vector>
@@ -378,4 +379,30 @@ namespace OpenMS::OpenDIA
   */
   std::vector<double> crossfitStage2LDA(const std::vector<Stage2Row>& rows, int folds, const Stage2Options& options,
                                         std::vector<Stage2FoldReport>& report);
+}
+
+namespace OpenMS::OpenDIA
+{
+  /// Number of charge-state sibling features (PRECHECK_JOINT2): s_n, s_co, s_best, s_best_d.
+  constexpr std::size_t STAGE2_SIBLING_FEATURES = 4;
+
+  /**
+    @brief Charge-state sibling features per window (PRECHECK_JOINT2).
+
+    Siblings of a window are the windows of other precursors in the same group. With smin the minimum score over kept
+    windows (score > not_kept): s_n = group_precursors[group] - 1; over sibling windows j with |rt_j - rt_i| <= rt_tolerance,
+    s_co = number of distinct precursors, s_best = max of (score_j if kept else smin), smin if none, and s_best_d = |rt_j - rt_i|
+    of the window attaining s_best (nearest on ties), rt_tolerance if none.
+
+    @param[in] group Group index per window (< group_precursors.size()).
+    @param[in] precursor Precursor index per window.
+    @param[in] rt Apex RT per window (seconds).
+    @param[in] score Score per window, not_kept for non-kept windows.
+    @param[in] group_precursors Library-wide number of precursors per group.
+    @return Row-major n x STAGE2_SIBLING_FEATURES.
+  */
+  std::vector<float> stage2SiblingFeatures(const std::vector<std::uint32_t>& group, const std::vector<std::uint32_t>& precursor,
+                                           const std::vector<double>& rt, const std::vector<float>& score,
+                                           const std::vector<std::uint32_t>& group_precursors, float not_kept,
+                                           double rt_tolerance = 3.0);
 }

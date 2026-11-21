@@ -1204,3 +1204,51 @@ namespace OpenMS::OpenDIA
     return out;
   }
 }
+
+namespace OpenMS::OpenDIA
+{
+  std::vector<float> stage2SiblingFeatures(const std::vector<std::uint32_t>& group, const std::vector<std::uint32_t>& precursor,
+                                           const std::vector<double>& rt, const std::vector<float>& score,
+                                           const std::vector<std::uint32_t>& group_precursors, float not_kept, double rt_tolerance)
+  {
+    const std::size_t n = group.size();
+    constexpr std::size_t F = STAGE2_SIBLING_FEATURES;
+    float smin = std::numeric_limits<float>::max();
+    bool any = false;
+    for (float s : score)
+      if (s > not_kept) { smin = std::min(smin, s); any = true; }
+    if (!any) smin = 0.0f;
+    // Windows sorted by (group, rt, row): each group is one contiguous run.
+    std::vector<std::uint32_t> order(n);
+    std::iota(order.begin(), order.end(), 0u);
+    std::sort(order.begin(), order.end(), [&](std::uint32_t a, std::uint32_t b)
+              { return group[a] != group[b] ? group[a] < group[b] : (rt[a] != rt[b] ? rt[a] < rt[b] : a < b); });
+    std::vector<float> out(n * F, 0.0f);
+    std::vector<std::uint32_t> seen;
+    std::size_t lo = 0;
+    for (std::size_t k = 0; k < n; ++k)
+    {
+      const std::uint32_t i = order[k];
+      while (group[order[lo]] != group[i] || rt[i] - rt[order[lo]] > rt_tolerance) ++lo;
+      float best = smin;
+      double best_d = rt_tolerance;
+      bool found = false;
+      seen.clear();
+      for (std::size_t m = lo; m < n && group[order[m]] == group[i] && rt[order[m]] - rt[i] <= rt_tolerance; ++m)
+      {
+        const std::uint32_t j = order[m];
+        if (precursor[j] == precursor[i]) continue;
+        if (std::find(seen.begin(), seen.end(), precursor[j]) == seen.end()) seen.push_back(precursor[j]);
+        const float s = score[j] > not_kept ? score[j] : smin;
+        const double d = std::abs(rt[j] - rt[i]);
+        if (!found || s > best || (s == best && d < best_d)) { best = s; best_d = d; found = true; }
+      }
+      float* f = out.data() + i * F;
+      f[0] = static_cast<float>(group_precursors[group[i]] > 0 ? group_precursors[group[i]] - 1 : 0);
+      f[1] = static_cast<float>(seen.size());
+      f[2] = best;
+      f[3] = static_cast<float>(best_d);
+    }
+    return out;
+  }
+}
