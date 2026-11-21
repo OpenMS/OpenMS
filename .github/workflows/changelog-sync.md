@@ -52,14 +52,16 @@ The details belong in the pull requests, which the bullets link by number. Do no
 Run the following bash command to find non-documentation files that changed in the last 8 days:
 
 ```bash
-git log --since="8 days ago" --name-only --pretty=format: \
+git log --since="8 days ago" --first-parent --diff-merges=first-parent --name-only --pretty=format: \
   | sort -u \
   | grep -v '^$' \
   | grep -vE '^(doc/|\.github/|src/tests/|tools/)' \
   | grep -E '\.(cpp|c|h|hpp|py|cmake)$|CMakeLists\.txt$|CHANGELOG_PARAMS$'
 ```
 
-Then list the merged pull requests of the same period (`git log --since="8 days ago" --oneline`; most subjects end with `(#<number>)`) and read the description of each one that touched those files. The filter leaves out packaging, so also read the pull requests that change only `vcpkg.json`, `vcpkg-overlays/`, `dockerfiles/`, `.github/workflows/release.yml` or the packaging scripts in `tools/` (dependency bumps, installer and SDK contents).
+`--first-parent --diff-merges=first-parent` lists what each commit on `develop` brought in, so the files of a pull request merged with a merge commit count even when its own commits are older than 8 days.
+
+Then list the merged pull requests of the same period (`git log --since="8 days ago" --first-parent --oneline`; a squash merge ends with `(#<number>)`, a merge commit reads `Merge pull request #<number>`). A commit with neither form came from a rebase merge or a direct push: search pull requests for its SHA (`repo:OpenMS/OpenMS is:pr is:merged <sha>`) and take the one merged in this period. Read the description of each pull request that touched those files. The filter leaves out packaging, so also read the pull requests that change only `vcpkg.json`, `vcpkg-overlays/`, `dockerfiles/`, `.github/workflows/release.yml` or the packaging scripts in `tools/` (dependency bumps, installer and SDK contents).
 
 If no pull request of either kind was merged, output a brief summary and stop — there is nothing to update.
 
