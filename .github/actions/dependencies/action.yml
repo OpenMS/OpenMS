@@ -59,6 +59,8 @@ runs:
       shell: bash
       run: |
         bash tools/ci/deps-windows.sh
+        # Runner CMake 4.5 breaks Boost.Locale's source_group; use vcpkg's pinned tools.
+        echo "VCPKG_FORCE_DOWNLOADED_BINARIES=1" >> "$GITHUB_ENV"
         echo "C:\Program Files (x86)\NSIS" >> $GITHUB_PATH
         echo "cmake_prefix=" >>"$GITHUB_OUTPUT"
 
