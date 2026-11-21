@@ -24,7 +24,33 @@
 namespace OpenMS
 {
 class IsotopeDistribution;
-  
+
+/**
+  @brief Targeted detection of features in MS1 data for a list of known compounds (small molecules).
+
+  For each target compound (see FeatureFinderMetaboIdentCompound: name, sum formula or mass,
+  charges, expected retention times) an assay of its isotopic m/z values is built. Chromatograms
+  are extracted from the MS1 spectra in a window around the target m/z ('extract:mz_window') and
+  the expected retention time ('extract:rt_window', or the RT range of the target), smoothed with
+  a Gaussian of the expected elution peak width ('detect:peak_width') and picked. The elution
+  peaks found are returned as features, optionally with a fitted elution model ('model:type').
+
+  Set the spectra with setFromMS1Data() (only MS1 spectra are kept), then call run(). run()
+  releases the spectra, so they have to be set again before another run. The
+  extracted chromatograms, the assay library and the deviations of the feature RTs from the
+  target RTs are available afterwards via getChromatograms(), getLibrary() and
+  getTransformations().
+
+  'detect:peak_width' should be about twice the width (FWHM) of the elution peaks in the data
+  (default: 20 seconds); a warning is logged if it is much too large. The default RT window
+  ('extract:rt_window') is 240 seconds, i.e. +/- 120 seconds around the target RT. See
+  @ref TOPP_FeatureFinderMetaboIdent for how to choose these parameters and for the format of
+  the assay table.
+
+  @htmlinclude OpenMS_FeatureFinderAlgorithmMetaboIdent.parameters
+
+  @ingroup Quantitation
+*/
 class OPENMS_DLLAPI FeatureFinderAlgorithmMetaboIdent :
   public DefaultParamHandler
 {
@@ -137,6 +163,7 @@ public:
         return ion_mobilities_;
       }
 
+      /// Return the adduct string (e.g. @c "M+H;1+"; empty if the adduct is inferred from the charge).
       const std::string& getAdduct() const {
         return adduct_;
       }
@@ -156,7 +183,7 @@ public:
   /// library since each FAIMS group has its own assay library.
   void run(const std::vector<FeatureFinderMetaboIdentCompound>& metaboIdentTable, FeatureMap& features, const std::string& spectra_file = "");
 
-  /// @brief Retrieve chromatograms (empty if run was not executed)
+  /// @brief Retrieve the MS1 spectra set with setFromMS1Data() (empty after run(), which releases them; set them again before another run)
   PeakMap& getMSData() { return ms_data_; }
   const PeakMap& getMSData() const { return ms_data_; }
 

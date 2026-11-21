@@ -139,6 +139,13 @@ For the untargeted detection of small molecule features we can use the :py:class
   fm.setUniqueIds()
   fm.setPrimaryMSRunPath(["ms_data.mzML"])
 
+.. NOTE::
+   :py:class:`~.MassTraceDetection` only reports mass traces of at least
+   ``min_trace_scans`` peaks (default: 4), in addition to the minimum length in
+   seconds (``min_trace_length``, default: 5). On data with a long :term:`MS1`
+   cycle time or very narrow elution peaks, lower ``min_trace_scans`` if
+   compounds are missed (``1`` disables the filter).
+
 Metabolomics - Targeted
 ***********************
 
@@ -239,7 +246,7 @@ Now we can use the following code to detect features with :py:class:`~.FeatureFi
   params = ff.getParameters()
   params["extract:mz_window"] = 5.0  # 5 ppm
   params["extract:rt_window"] = 20.0  # 20 seconds
-  params["detect:peak_width"] = 3.0  # 3 seconds
+  params["detect:peak_width"] = 3.0  # 3 seconds (about twice the FWHM of the elution peaks; default: 20)
   ff.setParameters(params)
 
   # run the FeatureFinderMetaboIdent with the metabo_table and mzML file path -> store results in fm
