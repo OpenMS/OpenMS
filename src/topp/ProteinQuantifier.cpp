@@ -79,6 +79,16 @@ Similarly, only proteotypic peptides (i.e. those matching to exactly one protein
 
 Peptides with the same sequence, but with different modifications are quantified separately on the peptide level, but treated as one peptide for the protein quantification (i.e. the contributions of differently-modified variants of the same peptide are accumulated).
 
+<B>Leaving modified peptides out of the protein quantification</B>
+
+The accumulated value stands for the amount of a peptide irrespective of how much of it carries a modification in a given sample. That is what is wanted where a modification merely splits the signal of a peptide (e.g. methionine oxidation), but not where the modification is itself regulated (e.g. phosphorylation): then neither the modified variants nor the unmodified one follow the abundance of the protein. Such peptides can be left out with @p modifications:exclude, a list of modification names as @ref TOPP_IDFilter uses them (e.g. <tt>-modifications:exclude "Phospho (S)" "Phospho (T)" "Phospho (Y)"</tt>). The list is empty by default, i.e. nothing is left out.
+
+- By default (@p modifications:exclude_counterparts @p true) a peptide is left out with <em>all</em> of its variants - the unmodified one and those carrying other modifications included - as soon as one variant with a listed modification was identified (quantified or not). The abundance of these counterparts depends on the share of the peptide that is modified, so they are no better a measure of the protein than the modified variant.
+- With @p modifications:exclude_counterparts @p false only the variants that carry a listed modification themselves are left out; the remaining ones are still accumulated.
+- Modifications are matched by their full name, specificity included, and only listed ones have an effect. Fixed modifications and labels (carbamidomethylation, TMT, SILAC labels, ...) therefore need no special treatment.
+- Only protein quantities change. The peptide-level output still reports every variant, and @p consensus:normalize, a peptide-level step, still uses all of them. A peptide that is left out does not count towards @p top:N, is not included in the @p n_peptides column of @p out and, with @p method @p iBAQ, does not count as theoretically observable (provided that all of its variants are left out).
+- The identifications are not touched. Unlike after removing them beforehand (@ref TOPP_IDFilter, @p blacklist:modifications), the peptides still support the identification of their protein: the quantification does not change the protein inference results or the PSM counts. A protein all of whose peptides are left out is not quantified. Like every protein that this tool does not quantify, it is then absent from the protein-level outputs: @p out, the protein rows of @p mztab and the protein group view of @p out_qpx.
+
 <B>Output granularity: assays vs. files and channels</B>
 
 By default one protein and peptide abundance is reported per assay. An assay is the experimental-design pair @c (fraction_group, @c label): it spans every fraction file of that fraction group at that label, and its reported value aggregates over those files. Columns are named @c abundance_fgroupF_labelL, where F is the design's Fraction_Group and L its Label. The SampleSection remains metadata and may group several assays as technical or biological replicates; ProteinQuantifier does not sum those replicates.
@@ -130,7 +140,7 @@ The output files produced by this tool have a table format, with columns as desc
 - @b protein: Protein accession(s) (as in the annotations in the input file; separated by "/" if more than one).
 - @b n_proteins: Number of indistinguishable proteins quantified (usually "1").
 - @b protein_score: Protein score, e.g. ProteinProphet probability (if available).
-- @b n_peptides: Number of proteotypic peptides observed for this protein (or group of indistinguishable proteins) across all assays. Note that not necessarily all of these peptides contribute to the protein abundance (depending on parameter @p top).
+- @b n_peptides: Number of proteotypic peptides observed for this protein (or group of indistinguishable proteins) across all assays, not counting peptides that @p modifications:exclude leaves out. Note that not necessarily all of these peptides contribute to the protein abundance (depending on parameter @p top).
 - @b abundance_fgroupF_labelL: Computed protein abundance for assay @c (F, @c L). There is one self-describing column per assay in the experimental design.
 
 <b>Peptide output</b> (one peptide or - if @p best_charge is set - one charge state and fraction of a peptide per line):
@@ -754,11 +764,21 @@ protected:
       }
     }
 
+    // Only protein quantities are affected, and only once the list names a modification: the
+    // header of every run with the default (empty) list stays as it was.
+    if (proteins && !algo_params_.getValue("modifications:exclude").toStringVector().empty())
+    {
+      relevant_params.push_back("modifications:exclude");
+      relevant_params.push_back("modifications:exclude_counterparts");
+    }
+
     std::string params;
     for (const std::string& str : relevant_params)
     {
       std::string value = algo_params_.getValue(str).toString();
-      if (value != "false")
+      // Flags are named only when set. 'modifications:exclude_counterparts' is the exception: it is
+      // on by default, so its 'false' is the value a reader has to be told about.
+      if ((value != "false") || (str == "modifications:exclude_counterparts"))
       {
         params += str + "=" + value + ", ";
       }

@@ -21,6 +21,7 @@
 #include <set>
 #include <string>
 #include <unordered_map>
+#include <unordered_set>
 #include <utility>
 #include <vector>
 
@@ -196,7 +197,15 @@ public:
     /// Get protein abundance data
     const ProteinQuant& getProteinResults();
 
-    /// Annotate protein quant results as meta data to protein ids
+    /**
+         @brief Annotate protein quant results as meta data to protein ids
+
+         The quantities are written as named data arrays on the protein groups of @p proteins. A group
+         that @p protein_quants does not quantify loses these arrays if it carries them from an earlier
+         annotation (e.g. groups read from a consensusXML that already held quantities), so that it is
+         not reported with outdated values. With @p remove_unquantified, the groups that were not
+         quantified are removed altogether, whatever other annotations they carry.
+    */
     void annotateQuantificationsToProteins(
       const ProteinQuant& protein_quants, 
       ProteinIdentification& proteins,
@@ -228,9 +237,15 @@ private:
     /// peptidoforms) sharing that unmodified sequence. Built once per quantifyProteins()
     /// call so that channel-level aggregation does not rescan @p pep_quant_ (calling
     /// AASequence::toUnmodifiedString() on every entry) for every (protein, peptide) pair.
-    /// Only looked up by key (never range-iterated); the per-bucket vector preserves
-    /// @p pep_quant_ (AASequence-sorted) order, so an unordered map keeps output identical.
+    /// Looked up by key, and range-iterated only where the order cannot reach the output; the
+    /// per-bucket vector preserves @p pep_quant_ (AASequence-sorted) order, so an unordered map
+    /// keeps output identical.
     typedef std::unordered_map<std::string, std::vector<const PeptideQuant::value_type*>> UnmodifiedToEntriesIndex;
+
+    /// The @p pep_quant_ entries (peptidoforms) that 'modifications:exclude' keeps out of the
+    /// protein quantification, see findPeptidoformsExcludedFromProteins_(). Pure membership test
+    /// (never iterated), so hashing the entry addresses does not affect output.
+    typedef std::unordered_set<const PeptideQuant::value_type*> ExcludedPeptidoforms;
 
     /// Processing statistics for output in the end
     Statistics stats_;
@@ -394,8 +409,28 @@ private:
          This method populates prot_quant_ with peptide abundance and PSM count data.
          
          @param[in] proteins Protein identification information
+         @param[in] excluded Peptidoforms whose abundances must not reach the proteins ('modifications:exclude'). Their identification evidence (PSM counts) is transferred all the same.
     */
-    void transferPeptideDataToProteins_(const ProteinIdentification& proteins);
+    void transferPeptideDataToProteins_(const ProteinIdentification& proteins,
+                                        const ExcludedPeptidoforms& excluded);
+
+    /**
+         @brief Determine the peptidoforms that 'modifications:exclude' keeps out of the protein quantification.
+
+         A peptidoform is excluded if it carries at least one of the listed modifications. With
+         'modifications:exclude_counterparts' (the default), every other peptidoform of the same
+         unmodified sequence is excluded as well - the unmodified form and the forms carrying other
+         modifications - because their abundance depends on how much of the peptide is modified.
+         The whole of @p pep_quant_ is taken as evidence that a peptide occurs in a modified form,
+         including peptidoforms that were identified but not quantified.
+
+         Both protein granularities (assay and file/channel) have to skip exactly these entries; they
+         are therefore determined once per quantifyProteins() call and handed to both.
+
+         @param[in] unmod_to_entries Precomputed index from unmodified peptide sequence to the @p pep_quant_ entries sharing it
+         @return The excluded @p pep_quant_ entries; empty if 'modifications:exclude' is empty (the default)
+    */
+    ExcludedPeptidoforms findPeptidoformsExcludedFromProteins_(const UnmodifiedToEntriesIndex& unmod_to_entries) const;
 
     /**
          @brief Select peptides for protein quantification based on filtering criteria.
@@ -444,6 +479,7 @@ private:
          @param[in] include_all Whether to include proteins with insufficient peptides
          @param[in] accession_to_leader Map for resolving protein group leaders
          @param[in] unmod_to_entries Precomputed index from unmodified peptide sequence to the @p pep_quant_ entries sharing it (avoids rescanning @p pep_quant_)
+         @param[in] excluded Peptidoforms that do not contribute ('modifications:exclude'); the same set that transferPeptideDataToProteins_() skipped
     */
     void calculateFileAndChannelLevelProteinAbundances_(const std::string& protein_accession,
                                            const std::vector<std::string>& selected_peptides,
@@ -451,14 +487,17 @@ private:
                                            Size top_n,
                                            bool include_all,
                                            const std::map<std::string, std::string>& accession_to_leader,
-                                           const UnmodifiedToEntriesIndex& unmod_to_entries);
+                                           const UnmodifiedToEntriesIndex& unmod_to_entries,
+                                           const ExcludedPeptidoforms& excluded);
 
     /**
          @brief Perform iBAQ normalization on protein abundances.
          
          @param[in] proteins Protein identification information containing sequences
+         @param[in] left_out_peptides Unmodified sequences of the peptides that 'modifications:exclude' leaves out with all of their forms; they do not count as theoretically observable
     */
-    void performIbaqNormalization_(const ProteinIdentification& proteins);
+    void performIbaqNormalization_(const ProteinIdentification& proteins,
+                                   const std::unordered_set<std::string>& left_out_peptides);
 
     /**
          @brief Get the "canonical" protein accession from the list of protein accessions of a peptide.
