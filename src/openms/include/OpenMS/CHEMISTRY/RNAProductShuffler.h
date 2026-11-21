@@ -22,7 +22,13 @@
 namespace OpenMS
 {
 /**
-  @brief Per-product shuffling of RNA sequences for NASE's background search ('background:enable').
+  @brief Per-product shuffling of RNA sequences, for RNA decoys (DecoyDatabase, method 'shuffle_products') and for
+  NucleicAcidSearchEngine's background search ('background:enable').
+
+  Unlike a shuffle of the whole sequence, a per-product shuffle keeps shared oligos shared: target sequences that
+  share a digestion product (e.g. tRNA isodecoders) get decoys that share its shuffle, so the numbers of distinct target
+  and decoy oligos stay balanced. Shuffles that equal a target oligo or another known RNA oligo can be avoided via the
+  'forbidden' callbacks.
 
   Sequences are handled one digestion product at a time (the products of a digestion without missed cleavages, which
   tile the sequence). A shuffle permutes the movable residues of a product: every residue except the last one and
@@ -36,16 +42,17 @@ namespace OpenMS
   Replacements of products of at least min_length residues never repeat.
 
   rewrite() also checks the products that a search with missed cleavages makes from the rewritten sequences
-  (combinations of consecutive products, including ones assembled from products shorter than min_length): if one is
-  forbidden, one of its component products gets its next shuffle (everywhere), until none is forbidden.
+  (combinations of consecutive products, including ones assembled from products shorter than min_length) and
+  changes the shuffles of their components to remove forbidden ones and collisions between distinct original oligos
+  (see rewrite()). Repairs are bounded; unresolved collisions are reported by failedCombinations().
 
   Products are compared by key(): the residues (with modifications) without terminal modifications.
 */
-class RNABackgroundDatabase
+class OPENMS_DLLAPI RNAProductShuffler
 {
 public:
   /// @p min_length: products shorter than this are never rewritten (they are not searched)
-  RNABackgroundDatabase(const DigestionEnzymeRNA& enzyme, Size min_length, std::uint64_t seed);
+  RNAProductShuffler(const DigestionEnzymeRNA& enzyme, Size min_length, std::uint64_t seed);
 
   /// The residues of @p oligo without terminal modifications, as a string
   static std::string key(const NASequence& oligo);
@@ -68,7 +75,7 @@ public:
                                            Size max_tries = 200, Size skip = 0) const;
 
   /**
-    @brief @p sequences with products replaced by shuffles
+    @brief @p sequences with products replaced by shuffles (shuffleProduct() with up to setMaxTries() tries)
 
     - Products of at least min_length residues for which @p select is true are replaced by a shuffle that is not
       @p forbidden (shuffleProduct()). A product without a qualifying shuffle stays as it is (counted in failed()).
@@ -78,8 +85,11 @@ public:
       least min_length residues are checked against @p forbidden. The component products of forbidden ones (also
       products that were not selected) then try other shuffles (up to 20 further qualifying ones; a product shorter
       than min_length may also stay as it is), and keep the one that leaves the fewest forbidden combinations around
-      its occurrences, provided it removes some and makes no new one. Each product keeps one replacement in all
-      sequences. This repeats until nothing improves; forbidden combinations left are counted in failedCombinations().
+      its occurrences, provided it removes some and makes no new one. Distinct original searchable products must not
+      share a rewritten key; identical originals may share it. The same repair checks both constraints, including
+      products assembled from short components. Each product keeps one replacement in all sequences. This repeats
+      until nothing improves or the repair budget is exhausted. Remaining forbidden or non-unique searchable windows
+      are counted in failedCombinations(); bounded repair cannot guarantee that every collision is resolved.
 
     A product keeps its replacement across calls. Terminal modifications of the sequences are kept.
   */
@@ -100,11 +110,17 @@ public:
   /// Number of distinct products of at least min_length residues that rewrite() had to replace but could not
   Size failed() const { return failed_; }
 
-  /// Number of forbidden missed-cleavage combinations left after the last rewrite()
+  /// Number of searchable windows still forbidden or shared by distinct originals after the last rewrite()
   Size failedCombinations() const { return failed_combinations_; }
 
   /// Keys of all replacements of products of at least min_length residues made by rewrite()
   const std::set<std::string>& replacements() const { return used_; }
+
+  /// Keys of the distinct products that rewrite() selected but could not replace (sorted)
+  std::vector<std::string> failedProducts() const;
+
+  /// Maximum number of shuffles that rewrite() tries per product (default: 200)
+  void setMaxTries(Size max_tries) { max_tries_ = max_tries; }
 
 private:
   std::vector<NASequence> products_(const NASequence& sequence) const;
@@ -133,5 +149,6 @@ private:
   Size rewritten_ = 0;
   Size failed_ = 0;
   Size failed_combinations_ = 0;
+  Size max_tries_ = 200;
 };
 } // namespace OpenMS
