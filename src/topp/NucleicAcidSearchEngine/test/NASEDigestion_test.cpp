@@ -37,6 +37,9 @@ public:
   using NucleicAcidSearchEngine::retainTopHit_;
   using NucleicAcidSearchEngine::sortHitsByValue_;
   using NucleicAcidSearchEngine::isDecoyHit_;
+  using NucleicAcidSearchEngine::isBackgroundHit_;
+  using NucleicAcidSearchEngine::removeBackgroundHits_;
+  using NucleicAcidSearchEngine::registerOptionsAndFlags_;
   using NucleicAcidSearchEngine::resolvedDecoyLabels_;
   using NucleicAcidSearchEngine::registerHitOligos_;
   using NucleicAcidSearchEngine::nativeReportCutoff_;
@@ -281,6 +284,82 @@ START_SECTION(([EXTRA] Cross spectrum runner up parents resolve training labels 
       }
     }
   }
+}
+END_SECTION
+
+START_SECTION(([EXTRA] pooled rescoring labels ignore background parents when database parents exist))
+{
+  for (bool database_decoy : {false, true})
+  {
+    for (bool background_decoy : {false, true})
+    {
+      IdentificationData data;
+      IdentificationData::ParentSequence database("DATABASE", IdentificationData::MoleculeType::RNA, "AACGU");
+      database.is_decoy = database_decoy;
+      const auto db = data.registerParentSequence(database);
+      IdentificationData::ParentSequence background("BG_SEQUENCE", IdentificationData::MoleculeType::RNA, "[mA]ACGU");
+      background.is_decoy = background_decoy;
+      background.setMetaValue("NASE:background", true);
+      const auto bg = data.registerParentSequence(background);
+      IdentificationData::IdentifiedOligo stored(NASequence::fromString("[mA]ACGU"));
+      stored.parent_matches[bg].insert(IdentificationData::ParentMatch(0, 4));
+      data.registerIdentifiedOligo(stored);
+      IdentificationData::IdentifiedOligo scaffold(NASequence::fromString("AACGU"));
+      scaffold.parent_matches[db].insert(IdentificationData::ParentMatch(0, 4));
+      TestNASE::AnnotatedHit hit;
+      hit.oligo_ref = data.registerIdentifiedOligo(scaffold);
+      hit.sequence = stored.sequence;
+      std::vector<TestNASE::HitsByScore> hits(1);
+      hits[0].emplace(10, hit);
+      const auto labels = TestNASE::resolvedDecoyLabels_(hits, data);
+      TEST_EQUAL(labels.at(hit.sequence), database_decoy)
+      TestNASE::registerHitOligos_(hits, data);
+      const auto& registered = hits[0].begin()->second;
+      TEST_EQUAL((*registered.registered_oligo)->parent_matches.size(), 2)
+      TEST_EQUAL(TestNASE::isDecoyHit_(registered), labels.at(hit.sequence))
+    }
+  }
+}
+END_SECTION
+
+START_SECTION(([EXTRA] background removal precedes native report cutoffs and the training pool))
+{
+  TestNASE tool;
+  tool.registerOptionsAndFlags_();
+  IdentificationData data;
+  const auto target = data.registerParentSequence(IdentificationData::ParentSequence("TARGET", IdentificationData::MoleculeType::RNA, "AACGU"));
+  IdentificationData::ParentSequence background("BG", IdentificationData::MoleculeType::RNA, "ACAGU");
+  background.setMetaValue("NASE:background", true);
+  const auto bg = data.registerParentSequence(background);
+  const auto make_hit = [&](const std::string& sequence, IdentificationData::ParentSequenceRef parent) {
+    IdentificationData::IdentifiedOligo oligo(NASequence::fromString(sequence));
+    oligo.parent_matches[parent].insert(IdentificationData::ParentMatch(0, 4));
+    TestNASE::AnnotatedHit hit;
+    hit.oligo_ref = data.registerIdentifiedOligo(oligo);
+    hit.sequence = oligo.sequence;
+    return hit;
+  };
+  const auto first = make_hit("AACGU", target);
+  const auto second = make_hit("A[mA]CGU", target);
+  const auto bg_hit = make_hit("ACAGU", bg);
+  std::vector<TestNASE::HitsByScore> hits(3);
+  hits[0].emplace(12, first);
+  hits[0].emplace(11, bg_hit);
+  hits[0].emplace(10, second);
+  hits[1].emplace(12, bg_hit);
+  hits[1].emplace(10, first);
+  hits[2].emplace(12, first);
+  hits[2].emplace(12, bg_hit);
+  // No report is requested, so the helper needs no spectrum or precursor metadata.
+  tool.removeBackgroundHits_({}, hits);
+  TEST_EQUAL(hits[0].size(), 2)
+  const double cutoff = TestNASE::nativeReportCutoff_(hits[0], 2);
+  TEST_TRUE(std::isinf(cutoff) && cutoff < 0)
+  TEST_TRUE(hits[1].empty())
+  TEST_EQUAL(hits[2].size(), 1)
+  const auto labels = TestNASE::resolvedDecoyLabels_(hits, data);
+  TEST_EQUAL(labels.size(), 2)
+  TEST_FALSE(labels.contains(bg_hit.sequence))
 }
 END_SECTION
 
