@@ -33,3 +33,11 @@ H (22474.d) was submitted after the D verdict was committed in docs `1362c68d5a`
   - Pair fairness goes from 0.521 to 0.540, under the 0.56 bar.
 - **Cost.** Wall time is 1.11× on node-noisy runs, and memory is unchanged.
 - **Verdict.** D passed every PLAN_GBT criterion (RESULT_GBT_D) and H confirms the gain. Next is the default flip, in a separate OpenMS commit with a byte check both ways. The looser q on H is recorded as a known cost to watch: it is the first lever since the matched filter that moved the tool's own calibration in the optimistic direction.
+
+## Default flip (22 Nov 2026)
+
+- **Commit:** OpenMS `bcb156e036` makes the GBM rescoring the default and adds `-no_gbm_rescore`. 27/27 tests pass.
+- **Container:** `opendia-pd10-gbmdef.sif`, sha256 `7dd8a1d6cfd2be1bb93a7b0237726474922fa713d434e8a1dd3e6d43524cbc03`. Runs are in `gbmdef-20261122`.
+- **Byte check on r ≈ 1.56 D seed 0:**
+  - The default run is byte-identical to the tested `-gbm_rescore` arm (`hneg-20261122/runs/D_gbt_s0`) on all three outputs: `precursors.tsv`, the run table and `calibration.json`.
+  - `-no_gbm_rescore` is byte-identical to the previous default (`D_cur_s0`) on all three outputs.
