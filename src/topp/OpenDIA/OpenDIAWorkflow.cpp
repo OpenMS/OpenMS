@@ -97,7 +97,7 @@ protected:
     registerIntOption_("rt_refine_min_ids", "<n>", 500, "Advanced: skip the RT refinement (-rt_refine_anchors too) with fewer training IDs", false, true);
     setMinInt_("rt_refine_min_ids", 1);
     registerFlag_("rt_refine_anchors", "Experimental (PRECHECK_RTIM): fit the RT correction on the calibration anchors only and use it in the single pass; requires -no_rt_refine", true);
-    registerFlag_("sibling_features", "Experimental (PRECHECK_JOINT2): score once, add four charge-state sibling features per window from those scores (siblings = other precursors of the same modified sequence, same target/decoy side), then score again", true);
+    registerFlag_("no_sibling_features", "Advanced: skip the charge-state sibling rescoring (PLAN_SIB): by default each scoring call scores once, adds four sibling features per window from those out-of-fold scores (siblings = other precursors of the same modified sequence, same target/decoy side), then scores again", true);
     registerDoubleOption_("hard_decoys", "<fraction>", 0.0, "Experimental (PRECHECK_BT156): self-training rounds use all windows of the hardest <fraction> of decoy precursors as negatives instead of all decoy winners; 0 = off", false, true);
     setMinFloat_("hard_decoys", 0.0);
     setMaxFloat_("hard_decoys", 1.0);
@@ -299,7 +299,7 @@ protected:
     options.rt_refine = !getFlag_("no_rt_refine");
     options.rt_refine_min_ids = static_cast<std::size_t>(getIntOption_("rt_refine_min_ids"));
     options.rt_refine_anchors = getFlag_("rt_refine_anchors");
-    options.sibling_features = getFlag_("sibling_features");
+    options.sibling_features = !getFlag_("no_sibling_features");
     options.hard_decoys = getDoubleOption_("hard_decoys");
     {
       std::string list = getStringOption_("scorer_self_q");

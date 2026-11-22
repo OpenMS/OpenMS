@@ -108,7 +108,7 @@ namespace OpenMS::OpenDIA
     bool rt_refine = true;
     std::size_t rt_refine_min_ids = 500;  ///< Fewer training IDs skip the refinement.
     bool rt_refine_anchors = false;
-    bool sibling_features = false;  ///< Experimental (PRECHECK_JOINT2): two-stage scoring with 4 charge-state sibling features.
+    bool sibling_features = true;  ///< Two-stage scoring with 4 charge-state sibling features (PLAN_SIB D pass; -no_sibling_features turns it off).
     double hard_decoys = 0.0;  ///< Experimental (PRECHECK_BT156): CrossFitScorer::Options::hard_negative_fraction.
     std::vector<double> scorer_self_q;  ///< Empty keeps CrossFitScorer::Options::self_q.  ///< Experimental: fit the RT correction on the calibration anchors and use it in the only pass.
   };
