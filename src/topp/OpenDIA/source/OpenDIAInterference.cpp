@@ -112,6 +112,7 @@ namespace OpenMS::OpenDIA
       std::uint32_t precursor;
       double distance;
       std::uint32_t window;
+      std::uint32_t pos;  ///< Position of the claimant window in the isolation group (index into the packed data).
       std::array<std::int8_t, K> a_to_b;
       std::array<std::int8_t, K> b_to_a;
     };
@@ -140,14 +141,6 @@ namespace OpenMS::OpenDIA
     }
     std::vector<SortedFragments> sorted(precursors.size());
     for (std::size_t p = 0; p < precursors.size(); ++p) sorted[p] = sortFragments(precursors[p]);
-
-    // Per window: cumulative profile, observed sqrt cosine and total central area.
-    std::vector<std::array<double, BINS + 1>> cumulative(n);
-    for (std::size_t i = 0; i < n; ++i)
-    {
-      cumulative[i][0] = 0.0;
-      for (std::size_t b = 0; b < BINS; ++b) cumulative[i][b + 1] = cumulative[i][b] + windows[i].profile[b];
-    }
 
     // Windows of linked isolation windows sorted by rt_start (groups of one isolation window). Each window computes its
     // own features from its partners, so results are written by exactly one iteration and do not depend on the thread
@@ -188,8 +181,10 @@ namespace OpenMS::OpenDIA
     // per fragment under the log(m/z) bin of width log(1 + tol), sorted by (bin, rt_start). A partner b of a must share a
     // fragment (|m_a - m_b| <= tol x m_a, so ln m_b lies within ln m_a + [ln(1 - tol), ln(1 + tol)]), and its range
     // must overlap a's (b.rt_start in [a.rt_start - widest range of the group, a.rt_end]). The lookup returns a superset
-    // of the linked windows (one spare bin on each side), and consider() applies exactly the tests of the former scan
-    // over all overlapping windows, so the claims and the features are unchanged. Only pairs_tested counts fewer pairs.
+    // of the linked windows (one spare bin on each side). The window tests (other precursor, RT overlap, 1/K0) are
+    // applied to the index entries; the fragment test depends only on the two precursors, so it runs once per claimant
+    // precursor, and each claimant precursor's nearest-apex window is its claimant window (ties by window index).
+    // pairs_tested and links count windows, as when every window pair was tested.
     const double bin_width = std::log1p(tol);
     const double lo_shift = std::log1p(-tol), hi_shift = std::log1p(tol);
     struct Entry
@@ -200,8 +195,20 @@ namespace OpenMS::OpenDIA
       std::uint32_t precursor;
       double rt_end;
       double im;
+      double rt_apex;
     };
     std::vector<Entry> index;
+    // What a claimant window contributes, copied in group order (by rt_start) so that the claimants of a window, which
+    // all overlap it in RT, are read from a few nearby megabytes instead of the whole run's window and precursor arrays.
+    struct Packed
+    {
+      std::array<double, BINS + 1> cumulative;  ///< Cumulative summed profile.
+      std::array<double, K> core_area;
+      std::array<double, K> library;            ///< Library intensities of the window's precursor.
+      SortedFragments fragments;                ///< Fragments of the window's precursor, sorted by m/z.
+      double rt_apex;
+    };
+    std::vector<Packed> packed;
     // Distinct bins of the index and the start of each bin's entries (bin_start[k + 1] ends bin k).
     std::vector<std::int64_t> bins;
     std::vector<std::uint32_t> bin_start;
@@ -217,7 +224,7 @@ namespace OpenMS::OpenDIA
         const SortedFragments& sb = sorted[b.precursor];
         for (std::size_t k = 0; k < sb.count; ++k)
           index.push_back({static_cast<std::int64_t>(std::floor(std::log(sb.mz[k]) / bin_width)), b.rt_start, static_cast<std::uint32_t>(q),
-                           b.precursor, b.rt_end, precursors[b.precursor].im});
+                           b.precursor, b.rt_end, precursors[b.precursor].im, b.rt_apex});
       }
       std::sort(index.begin(), index.end(), [](const Entry& x, const Entry& y)
       {
@@ -236,10 +243,32 @@ namespace OpenMS::OpenDIA
         }
       }
       bin_start.push_back(static_cast<std::uint32_t>(index.size()));
+      packed.resize(h - g);
+#pragma omp parallel for num_threads(threads) schedule(static)
+      for (std::ptrdiff_t q = static_cast<std::ptrdiff_t>(g); q < static_cast<std::ptrdiff_t>(h); ++q)
+      {
+        const Window& b = windows[order[q]];
+        Packed& pk = packed[static_cast<std::size_t>(q) - g];
+        pk.cumulative[0] = 0.0;
+        for (std::size_t k = 0; k < BINS; ++k) pk.cumulative[k + 1] = pk.cumulative[k] + b.profile[k];
+        pk.core_area = b.core_area;
+        pk.library = precursors[b.precursor].library;
+        pk.fragments = sorted[b.precursor];
+        pk.rt_apex = b.rt_apex;
+      }
 #pragma omp parallel num_threads(threads) reduction(+ : pairs_total, links_total, used_total, with_claimant)
     {
+      // Partner windows of a: claimant precursor, apex distance and window index, gathered from the index entries,
+      // which already carry every field of the link tests.
+      struct Candidate
+      {
+        std::uint32_t precursor;
+        std::uint32_t window;
+        double distance;
+        std::uint32_t pos;
+      };
+      std::vector<Candidate> candidates;
       std::vector<Claim> claims;
-      std::vector<std::uint32_t> partners;
 #pragma omp for schedule(dynamic, 512)
       for (std::ptrdiff_t pos = static_cast<std::ptrdiff_t>(g); pos < static_cast<std::ptrdiff_t>(h); ++pos)
       {
@@ -247,28 +276,11 @@ namespace OpenMS::OpenDIA
         const Window& a = windows[ai];
         const Precursor& pa = precursors[a.precursor];
         claims.clear();
-        const auto consider = [&](std::size_t q)
-        {
-          const std::uint32_t bi = order[q];
-          const Window& b = windows[bi];
-          if (b.precursor == a.precursor || b.rt_start > a.rt_end || b.rt_end < a.rt_start) return;
-          // With mobility, precursors whose extraction windows in 1/K0 do not overlap cannot share signal.
-          const Precursor& pb_im = precursors[b.precursor];
-          if (im_link_width > 0.0 && pa.im > 0.0 && pb_im.im > 0.0 && std::abs(pa.im - pb_im.im) > im_link_width) return;
-          ++pairs_total;
-          Claim c;
-          if (!sharedFragments(pa, sorted[b.precursor], tol, c.a_to_b, c.b_to_a)) return;
-          ++links_total;
-          c.precursor = b.precursor;
-          c.distance = std::abs(a.rt_apex - b.rt_apex);
-          c.window = bi;
-          claims.push_back(c);
-        };
-        partners.clear();
+        candidates.clear();
         const double rt_from = a.rt_start - widest;
         const auto before = [](const Entry& x, double rt) { return x.rt_start < rt; };
-        // The entry carries the fields of the cheap rejection tests of consider() (same precursor, no RT overlap,
-        // 1/K0 too far), so most index hits are rejected without touching the windows; consider() repeats every test.
+        // An entry passes when its window is of another precursor, its peak range overlaps a's and (with mobility)
+        // its 1/K0 is within the link width: exactly the window tests of a link.
         const bool test_im = im_link_width > 0.0 && pa.im > 0.0;
         for (std::size_t f = 0; f < K; ++f)
         {
@@ -284,52 +296,69 @@ namespace OpenMS::OpenDIA
             for (auto it = std::lower_bound(index.begin() + bin_start[k], bin_end, rt_from, before);
                  it != bin_end && it->rt_start <= a.rt_end; ++it)
             {
-              if (it->pos == static_cast<std::uint32_t>(pos) || it->precursor == a.precursor || it->rt_end < a.rt_start) continue;
+              if (it->precursor == a.precursor || it->rt_end < a.rt_start) continue;
               if (test_im && it->im > 0.0 && std::abs(pa.im - it->im) > im_link_width) continue;
-              partners.push_back(it->pos);
+              candidates.push_back({it->precursor, order[it->pos], std::abs(a.rt_apex - it->rt_apex), it->pos - static_cast<std::uint32_t>(g)});
             }
           }
         }
-        std::sort(partners.begin(), partners.end());
-        partners.erase(std::unique(partners.begin(), partners.end()), partners.end());
-        for (const std::uint32_t q : partners) consider(q);
-        if (claims.empty()) continue;
-        ++with_claimant;
-        // One claimant window per precursor: nearest apex, ties by window index.
-        std::sort(claims.begin(), claims.end(), [](const Claim& x, const Claim& y)
+        // By claimant precursor, nearest apex first, ties by window index. A window found through several fragments
+        // appears once per hit with the same key, so its copies are adjacent.
+        std::sort(candidates.begin(), candidates.end(), [](const Candidate& x, const Candidate& y)
         {
           if (x.precursor != y.precursor) return x.precursor < y.precursor;
           if (x.distance != y.distance) return x.distance < y.distance;
           return x.window < y.window;
         });
+        candidates.erase(std::unique(candidates.begin(), candidates.end(), [](const Candidate& x, const Candidate& y) { return x.window == y.window; }),
+                         candidates.end());
+        // Fragment sharing depends only on the two precursors, so it is tested once per claimant precursor; that
+        // precursor's nearest window is its claimant window.
+        for (std::size_t c = 0; c < candidates.size();)
+        {
+          std::size_t e = c + 1;
+          while (e < candidates.size() && candidates[e].precursor == candidates[c].precursor) ++e;
+          pairs_total += e - c;
+          Claim claim;
+          if (sharedFragments(pa, packed[candidates[c].pos].fragments, tol, claim.a_to_b, claim.b_to_a))
+          {
+            links_total += e - c;
+            claim.precursor = candidates[c].precursor;
+            claim.distance = candidates[c].distance;
+            claim.window = candidates[c].window;
+            claim.pos = candidates[c].pos;
+            claims.push_back(claim);
+          }
+          c = e;
+        }
+        if (claims.empty()) continue;
+        ++with_claimant;
         std::array<double, K> contribution{};
         std::size_t claimants = 0;
         double ratios[K];
         for (std::size_t c = 0; c < claims.size(); ++c)
         {
-          if (c > 0 && claims[c].precursor == claims[c - 1].precursor) continue;
           ++used_total;
           const Claim& claim = claims[c];
-          const Window& b = windows[claim.window];
-          const Precursor& pb = precursors[b.precursor];
+          const Packed& b = packed[claim.pos];
           std::size_t count = 0;
           for (std::size_t g = 0; g < K; ++g)
           {
-            if (claim.b_to_a[g] < 0 && pb.library[g] > 0.0 && b.core_area[g] > 0.0) ratios[count++] = b.core_area[g] / std::max(pb.library[g], 1e-12);
+            if (claim.b_to_a[g] < 0 && b.library[g] > 0.0 && b.core_area[g] > 0.0) ratios[count++] = b.core_area[g] / std::max(b.library[g], 1e-12);
           }
           if (count == 0) continue;
           const double scale = medianInPlace(ratios, count);
           const long shift = static_cast<long>(std::nearbyint((a.rt_apex - b.rt_apex) / rt_bin_seconds));
           const long lo = std::clamp(static_cast<long>(C0) + shift, 0L, NB);
           const long hi = std::clamp(static_cast<long>(C1) + shift, 0L, NB);
-          const auto& cb = cumulative[claim.window];
+          const auto& cb = b.cumulative;
           const double own = cb[C1] - cb[C0];
           const double frac = own > 0.0 ? (cb[hi] - cb[lo]) / std::max(own, 1e-12) : 0.0;
           double total = 0.0;
           for (std::size_t f = 0; f < K; ++f)
           {
             if (claim.a_to_b[f] < 0) continue;
-            const double e = scale * pb.library[static_cast<std::size_t>(claim.a_to_b[f])] * frac;
+            const double e = scale * b.library[static_cast<std::size_t>(claim.a_to_b[f])] * frac;
             contribution[f] += e;
             total += e;
           }
