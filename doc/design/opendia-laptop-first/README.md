@@ -28,7 +28,7 @@ The metric is N, precursors at true FDP 1 % (FDP_c), as the median of 5 seeds. D
 | **Charge-state sibling rescoring** | RESULT_SIB_D/H | 19,704 | 34,871 | 76 % / 84 % |
 | **Hard-negative GBM rescoring** | RESULT_GBT_D/H | **21,396** | **37,342** | **82 % / 90 %** |
 
-All records are in `gates/single-binary/pdec/`. Each row passed a frozen 5-seed plan on D. H was run only after the D verdict was committed. Each default flip is byte-identical to the tested arm, and its `-no_*` switch is byte-identical to the previous default.
+All records are in `gates/single-binary/pdec/`. Each row passed a frozen 5-seed plan on D. H was run only after the D verdict was committed. Each default flip was byte-identical to the tested arm, and its `-no_*` switch was byte-identical to the previous default. Since the 22 Nov cleanup these stages are fixed: the code has no switch to turn them off.
 
 **What the default does now.**
 1. **Calibration:** identification-free calibration.
@@ -54,14 +54,23 @@ All records are in `gates/single-binary/pdec/`. Each row passed a frozen 5-seed 
 - **H, candidates:** 38 % of H's missed IDs have no candidate within 6 s.
 - **Candidate arm:** `-valley_fraction 0.7 -max_peaks 6` (V7M6) gained D +13.3 % and H +3.6 % at r ≈ 7. It failed rule B only on D r ≈ 7 wall time (1.52× against 1.5×). It needs a user decision: re-time it on matched nodes, or find a cheaper split.
 
-**Removed (22 Nov cleanup).** These options failed their frozen plans or were never adopted, and are deleted from the code. Their records stay in `gates/`.
+**Removed (22 Nov cleanup).** The code now carries only the best default. Their records stay in `gates/`.
+
+Options that failed their frozen plans or were never adopted:
 - `-pg_scores`, `-mobility_apex`, `-faint_features`, `-im_peaks`, `-rt_refine_anchors`, `-hard_decoys` and `-scorer_self_q`;
 - the `-trace_tolerance_ppm 0` fixed 0.02 Da window (the value must now be positive);
 - the optional LibTorch `OpenDIACNN` path;
 - the standalone `OpenDIAInterference` diagnostic tool (the workflow's built-in interference features stay);
 - the Python trace-window pilot.
 
-The cleanup is OpenMS `319f043f77`: 30 files, 4,912 lines removed net, 27 of 27 unit tests pass.
+Switches back to an older default, now that each stage has passed:
+- `-no_extra_scores`, `-no_matched_filter`, `-no_sibling_features`, `-no_gbm_rescore` and `-gbm_hard_fraction` (fixed at 0.02);
+- `OpenDIACalibrate -max_panel_targets` (panel escalation, never used by the workflow);
+- code no tool calls: `InterferenceCollector`, `readTraceWindows` and `peakBoundaryName`, found by a `--gc-sections` link of all three tools.
+
+Kept: `-no_rt_refine` (about half the wall time, a real speed choice), the tuning knobs (`-max_peaks`, `-valley_fraction`, `-im_tolerance_scale`, `-trace_tolerance_ppm`), calibration reuse, and the step tools `OpenDIA` and `OpenDIACalibrate`, which the diagnostics use.
+
+The cleanup is OpenMS `319f043f77` (30 files, 4,912 lines removed net) and `9ba060f978` (19 files, 409 lines removed net). 25 of 25 unit tests pass; two CLI tests went with `-max_panel_targets`.
 
 **Astral.** Unchanged since 16 November: OpenDIA reaches 81-84 % of DIA-NN at FDP_c 1 % (archived snapshot). The diaPASEF levers above have not been re-measured on Astral.
 
