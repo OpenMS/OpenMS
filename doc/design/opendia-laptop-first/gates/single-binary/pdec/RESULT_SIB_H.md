@@ -31,3 +31,11 @@ H (22474.d) was submitted after the D verdict was committed in docs `896fbeff9f`
 - **Cost.** Wall time is up 1.13× and memory by about 1 GB.
 - **Against DIA-NN.** DIA-NN reports 41,272 on this run at r ≈ 7, so OpenDIA moves from 74 % to 84 % of it.
 - **Verdict.** D passed every PLAN_SIB criterion (RESULT_SIB_D) and H confirms it. Next is the default flip, in a separate OpenMS commit with a byte check both ways.
+
+## Default flip (22 Nov 2026)
+
+- **Commit:** OpenMS `e2e65938ce` makes the sibling rescoring the default and adds `-no_sibling_features`. 26/26 tests pass.
+- **Container:** `opendia-pd10-sibdef.sif`, sha256 `78cc3a625e28a15c2bb5c30f2a42606ae8aac88dcd6ddf6b67f4a936e9474f7b`. Runs are in `sibdef-20261122`.
+- **Byte check on r ≈ 1.56 D seed 0:**
+  - The default run is byte-identical to the tested `-sibling_features` arm (`sibcpp-20261121/runs/D_sib_s0`) on all four outputs: `precursors.tsv`, the run table, `calibration.json` and `features.tsv`.
+  - `-no_sibling_features` is byte-identical to the previous default (`D_cur_s0`) on all three outputs.
