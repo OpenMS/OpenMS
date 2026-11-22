@@ -2,7 +2,7 @@
 
 [Master plan](README.md)
 
-**Status, 16 November 2026.** This file lists the steps of each work package and the state of each step. Each row links to the record of the step. The script [`board_sync.py`](board_sync.py) copies the R-WP sections of this file to the GitHub project [OpenMS/38](https://github.com/orgs/OpenMS/projects/38). Edit this file first, then run the script. The "Now" table repeats rows from the R-WP sections, and the script does not copy it.
+**Status, 22 November 2026.** This file lists the steps of each work package and the state of each step. Each row links to the record of the step. The script [`board_sync.py`](board_sync.py) copies the R-WP sections of this file to the GitHub project [OpenMS/38](https://github.com/orgs/OpenMS/projects/38). Edit this file first, then run the script. The "Now" table repeats rows from the R-WP sections, and the script does not copy it.
 
 **States:**
 - **Done (pass)**: the step met its predeclared rule.
@@ -17,33 +17,18 @@ Counts are N at entrapment FDP_c 1 % on raw 01 / raw 02, unless the row says oth
 
 ## Now
 
-Rows of 12-18 November 2026. Earlier rows (voxel v2-v19, CNN + LDA) are in the R-WP sections and in git history.
+Current state on 22 November 2026: the HeLa diaPASEF entrapment at r ≈ 7. The metric is N at FDP_c 1 %, as the median of 5 seeds; DIA-NN gets 26,006 (D) and 41,272 (H). The rows of 12-18 November are in [archive/status-history-20261122/BOARD_now_20261118.md](archive/status-history-20261122/BOARD_now_20261118.md).
 
 | Step | WP | State | Record |
 |---|---|---|---|
-| Native-scan XIC IDs (PLAN_XIC_IDS): N up +390..+743 / +546..+1051 at 1 %, FDP_c at q ≤ 0.01 0.016 / 0.017 | R-WP3, R-WP4 | Done (fail, rule 1c) | [RESULT_XIC_IDS.md](gates/extraction-parity/RESULT_XIC_IDS.md) |
-| Fragment-deficit features (PLAN_INTERF): raw 01 FDP_c 0.023 | R-WP3 | Done (fail) | [RESULT_INTERF.md](gates/extraction-parity/RESULT_INTERF.md) |
-| Parent-complete library (PLAN_PAIRLIB): excess stays, FDP_c 0.032 / 0.017 | R-WP4 | Done (fail) | [RESULT_PAIRLIB.md](gates/extraction-parity/pairlib/RESULT_PAIRLIB.md) |
-| Predicted decoys (PLAN_DECOYGEN, `-predict_decoys`): rule 1c passes in every arm; C++ arm E reproduces arm D | R-WP4 | Done (pass, arm E) | [RESULT_DECOYGEN.md](gates/extraction-parity/decoygen/RESULT_DECOYGEN.md) |
-| Gap funnel against DIA-NN: losses are right-peak-below-cut (626 / 644) | R-WP5 | Done (diagnostic) | [RESULT_GAP.md](gates/extraction-parity/gap/RESULT_GAP.md) |
-| PLAN_GAP: shared-signal interference (I) passes, 1694 / 1628 → 1879 / 1921; A, G fail. C++ OpenDIAInterference reproduces it | R-WP3, R-WP5 | Done (pass, I) | [RESULT_GAP_ARMS.md](gates/extraction-parity/gap/arms/RESULT_GAP_ARMS.md) |
-| Dead-code removal (TOPAZ, MIL, stage-2 isotope/shape/refine, OpenDIARerank/Traces); outputs byte-identical | R-WP6 | Done | `86d82dfdd4` |
-| C++ CrossFitScorer (D11 network, self-training, W rule, tail, pooled TDC): 98.6 / 99.0 % of Python median | R-WP3 | Done (pass) | [RESULT_STEP1.md](gates/single-binary/step1/RESULT_STEP1.md) |
-| OpenDIAWorkflow, one binary on .raw: 1819 / 1870 (reused cal.), raw 02 at 97.1 % of Python (rule 98 %) | R-WP3, R-WP6 | Done (raw 01 pass, raw 02 fail) | [RESULT_WORKFLOW.md](gates/single-binary/workflow/RESULT_WORKFLOW.md) |
-| Validation: determinism, report, run and global q recompute, fail-closed CLI tests | R-WP6 | Done (pass) | [RESULT_WORKFLOW.md](gates/single-binary/workflow/RESULT_WORKFLOW.md) |
-| Self-calibrated RT spread: CALSPREAD fails offline; CALREFINE / CALREFINE2 (5 seeds) +5.8 % / −3.1 %, fail | R-WP2 | Done (fail) | [calspread](gates/single-binary/calspread/RESULT_CALSPREAD.md), [calrefine](gates/single-binary/calrefine/RESULT_CALREFINE2.md) |
-| RT window width rule: density crossing undefined, P_win against the evidence; cross-fitted width on IDs (PLAN_RTWIN2) −2.2 % raw 01, held-out raw 03 −2.3 %, removed | R-WP2 | Done (fail) | [RESULT_RTWIN2.md](gates/single-binary/rtwin/RESULT_RTWIN2.md) |
-| ID-based recalibration with RT-dependent window (PLAN_RTPROFILE): ends recovered, middle loses; raw 02 −1.05 %, raw 01 s4 FDP_c 0.0104, raw 03 −0.6 %, removed | R-WP2 | Done (fail) | [RESULT_RTPROFILE.md](gates/single-binary/rtwin/RESULT_RTPROFILE.md) |
-| Close the gap to DIA-NN. Astral (from .raw): 81-84 % at FDP_c 1 %. HeLa diaPASEF after RTCENTRE + IMGRID: 56 % (design) / 63 % (held out), 84 % of OpenSWATH SVM | R-WP5 | In progress | [RESULT_GAP.md](gates/extraction-parity/gap/RESULT_GAP.md), [RESULT_IMGRID.md](gates/single-binary/imgrid/RESULT_IMGRID.md) |
-| HeLa diaPASEF final benchmark: OpenDIA 11,653 vs DIA-NN 28,950 (40 %), OpenSWATH SVM 19,132 (61 %); below the earlier rewrite (13,253), so the Astral changes regress diaPASEF | R-WP5, R-WP6 | Done (diagnostic) | [RESULT_HELA.md](gates/single-binary/bench/RESULT_HELA.md) |
-| HeLa diagnosis: uncalibrated 1/K0 in the evidence pass (fixed 0e9e4fc3a5), early-gradient RT map bias (fixed by RTCENTRE 6dd893b954), mobility-blind grid/interference (fixed by IMGRID 963543c7f0); still open: b/y-ion floor, no 12-fragment HeLa library | R-WP2, R-WP5 | Done (diagnostic) | [DIAG_HELA.md](gates/single-binary/bench/DIAG_HELA.md) |
-| Fair same-laptop benchmark (raw 01, 8 threads, both read .raw): OpenDIA 10:14, 15.6 GB, 172 % CPU; DIA-NN 7:23, 6.8 GB, 765 % CPU | R-WP6 | Done (diagnostic) | [README snapshot](README.md), [bench/](gates/single-binary/bench/) |
-| Raw-pass speed: m/z-bucketed evidence pass (271 → 111 s) and level-aware Thermo read-ahead; laptop raw 01 10:14 → 7:18 (DIA-NN 7:23), byte-identical | R-WP6 | Done | [README snapshot](README.md) |
-| Calibration memory (14.4 GB peak after eaa2c95cd0, from the 600k-member windowed pass; DIA-NN 6.8 GB) | R-WP6 | Open | [README snapshot](README.md) |
-| Status snapshot vs DIA-NN: 87 % / 84 % of DIA-NN at FDP_c 1 %; 67-72 % of DIA-NN's q ≤ 0.01 IDs shared, 93 % of ours in DIA-NN; 6-7.5 min, 22 GB per raw | R-WP5, R-WP6 | Done (diagnostic) | [README snapshot](README.md), [STATUS_vs_DIANN.txt](gates/single-binary/STATUS_vs_DIANN.txt) |
-| Joint (presence-weighted) interference fit: no room, block I's explaining-away comes from absent claimants; labelled ceiling on current inputs about +100 / raw | R-WP5 | Done (diagnostic, not pursued) | [PRECHECK_JOINT.md](gates/extraction-parity/gap/PRECHECK_JOINT.md) |
-| Scorer capacity (option 1): interaction inputs and self-trained trees fail offline; seed ensemble (PLAN_ENSEMBLE, m = 3) +0.2 % / +0.6 % (rule +1 %), raw 03 +0.3 %, removed | R-WP3, R-WP5 | Done (fail) | [RESULT_ENSEMBLE.md](gates/single-binary/ensemble/RESULT_ENSEMBLE.md) |
-| Raw 03 held-out check: self-calibrating, `library12_full`, 1907 median, FDP_c ≤ 0.0096 | R-WP6 | Done | [RESULT_RTWIN2.md](gates/single-binary/rtwin/RESULT_RTWIN2.md) |
+| **Current default: 21,396 (D) / 37,342 (H), 82 % / 90 % of DIA-NN**; own q ≤ 0.01 lower bound D 1.11 %, H 1.29 % | R-WP5 | Done | [README](README.md) |
+| Hard-negative GBM rescoring (PLAN_GBT): D +8.6 %, H +7.1 %; default since OpenMS bcb156e036 | R-WP3, R-WP5 | Done (pass) | [RESULT_GBT_D.md](gates/single-binary/pdec/RESULT_GBT_D.md) |
+| Charge-state sibling rescoring (PLAN_SIB): D +28.2 %, H +13.9 %; default since OpenMS e2e65938ce | R-WP3, R-WP5 | Done (pass) | [RESULT_SIB_D.md](gates/single-binary/pdec/RESULT_SIB_D.md) |
+| Dead-code cleanup: failed opt-in options, the LibTorch CNN path and the Python pilot removed; default byte-identical | R-WP6 | Done | [README](README.md) |
+| Own-q calibration on H loosened with the GBM (lower bound 1.15 to 1.29 %) | R-WP4 | Open | [RESULT_GBT_H.md](gates/single-binary/pdec/RESULT_GBT_H.md) |
+| Candidate recall on H (38 % of missed IDs have no candidate); V7M6 gained D +13.3 % / H +3.6 % but missed the wall bar on one cell (1.52x) | R-WP1, R-WP5 | Blocked: user decision (re-time on matched nodes, or a cheaper split) | [RESULT_GAP2.md](gates/single-binary/pdec/RESULT_GAP2.md) |
+| Re-measure Astral on the current default (last 16 Nov: 81-84 % of DIA-NN) | R-WP5 | Open | [archive snapshot](archive/status-history-20261122/README.md) |
+| Speed and memory against DIA-NN (D about 20 min / 35 GB vs 3-4 min / under 7 GB) | R-WP6 | Open | [README](README.md) |
 
 ## R-WP1: Streaming search
 
@@ -54,7 +39,7 @@ Rows of 12-18 November 2026. Earlier rows (voxel v2-v19, CNN + LDA) are in the R
 | Native Thermo `.raw` input | Done | [R2 raw 01 section](work-packages/R2-calibration.md) |
 | Raw-point export `-out_xipm` (OpenSWATH `.xipm` Parquet) | Done | [R4 post-mortem](work-packages/R4-error-control.md) |
 | Consensus peak-group picker and anchor boundary labels (`e8cb5892b1`) | Done (diagnostic) | [peak-boundaries](gates/astral-raw01-peak-boundaries/RESULT.md) |
-| Candidate recall at calibrated windows, by cause | Open | [R1](work-packages/R1-streaming-search.md) |
+| Candidate recall at calibrated windows, by cause | Done (diagnostic): RESULT_CANDREC / RESULT_GAP2, D valley merge, H 5-candidate cap; V7M6 awaits a user decision | [RESULT_GAP2.md](gates/single-binary/pdec/RESULT_GAP2.md) |
 
 ## R-WP2: Calibration
 
@@ -203,7 +188,8 @@ Rows of 12-18 November 2026. Earlier rows (voxel v2-v19, CNN + LDA) are in the R
 | Calibration memory (14.4 GB peak after eaa2c95cd0, from the 600k-member windowed pass; DIA-NN 6.8 GB) | Open | [README snapshot](README.md) |
 | HeLa diaPASEF benchmark: 11,653 IDs, 40 % of DIA-NN, 61 % of OpenSWATH SVM, below the 2026-11-07 rewrite (13,253) | Done (diagnostic) | [RESULT_HELA.md](gates/single-binary/bench/RESULT_HELA.md) |
 | Native Bruker `.d` and Thermo `.raw` | Partial: both stream | [R6](work-packages/R6-acceptance.md) |
-| Packaging (LibTorch optional, CTD/INI docs) | Partial: LibTorch off the default path | [R6](work-packages/R6-acceptance.md) |
+| Packaging (CTD/INI docs) | Partial: the LibTorch CNN path is deleted (22 Nov cleanup) | [R6](work-packages/R6-acceptance.md) |
+| Dead-code cleanup 22 Nov: `-pg_scores`, `-mobility_apex`, `-faint_features`, `-im_peaks`, `-rt_refine_anchors`, `-hard_decoys`, `-scorer_self_q`, `-trace_tolerance_ppm 0`, OpenDIACNN, the standalone OpenDIAInterference tool and the Python pilot removed (`319f043f77`, -4,912 lines); default byte-identical on real data | Done | [README](README.md) |
 | Split the branch into reviewable PRs | Open | [R6](work-packages/R6-acceptance.md) |
 | Thermo RAW level-aware read-ahead split out: PR OpenMS#10925, approved by Timo; review comments addressed in abc2eb24af (transform MS2 4 threads on Astral: 25.4 s develop → 16.7 s) | Done (PR open, approved) | [#10925](https://github.com/OpenMS/OpenMS/pull/10925) |
 | One-command `OpenDIAWorkflow`, deterministic, fail-closed CLI tests (`9d6bf16f10`) | Done | [RESULT_WORKFLOW.md](gates/single-binary/workflow/RESULT_WORKFLOW.md) |
