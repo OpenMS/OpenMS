@@ -1,14 +1,13 @@
 #!/bin/bash
-# PRECHECK_V7M6T: one exclusive Ice Lake job per cell, ABBA (def, V7M6, V7M6, def) after a cache warm-up.
+# PRECHECK_V7M6T: one whole-node (48 of 48 cores) Ice Lake job per cell, ABBA (def, V7M6, V7M6, def) after a cache warm-up.
 set -e
 C=/nfs/research/juan/singj/opendia; W=$C/v7m6t-20261122
 mkdir -p $W/logs; export PATH=/ebi/slurm/codon/bin:$PATH
 cat > $W/cell.sbatch <<'EOF'
 #!/bin/bash
-#SBATCH -c 8
-#SBATCH --exclusive
+#SBATCH -c 48
 #SBATCH -C icelake
-#SBATCH --mem=200G
+#SBATCH --mem=400G
 #SBATCH -t 12:00:00
 # Usage: cell.sbatch D|H r0|r7
 C=/nfs/research/juan/singj/opendia; W=$C/v7m6t-20261122; LS=$C/libsize-20261121; V=$C/entlib-hela-20261118/data

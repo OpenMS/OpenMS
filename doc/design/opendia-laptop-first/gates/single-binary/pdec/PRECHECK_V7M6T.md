@@ -8,7 +8,7 @@
 
 - **Cells:** D and H × r0 and r7, the GAP2 libraries (r0 `libsize-20261121/r0/lib.pqp`, r7 `entlib-odp5-20261118/runs/D_cur_s0/hela_r5.predicted_decoys.pqp`). Seed 0, 8 threads, no `-features_out`.
 - **Arms:** def (no flag) and V7M6 (`-valley_fraction 0.7 -max_peaks 6`), both from `opendia-pd10-best.sif`.
-- **Matched nodes:** one job per cell, `--exclusive` on an Intel Ice Lake node (`-C icelake`). The job first reads the raw data and library once to warm the cache, then runs def, V7M6, V7M6, def in that order (ABBA), each under `/usr/bin/time -v`.
+- **Matched nodes:** one job per cell on an Intel Ice Lake node (`-C icelake`), holding all 48 of its 48 cores so no other job shares it (codon refuses `--exclusive`; amended before any job ran). The tool still runs with 8 threads. The job first reads the raw data and library once to warm the cache, then runs def, V7M6, V7M6, def in that order (ABBA), each under `/usr/bin/time -v`.
 - **Wall ratio per cell:** (V7M6 rep 1 + V7M6 rep 2) / (def rep 1 + def rep 2).
 - **IDs:** from rep 1 of each arm, with the GAP2 part B definitions: HeLa IDs at own q ≤ 0.01, and at r7 N @ FDP_c 1 % and the lower bound. Rep 2 must be byte-identical to rep 1 (a determinism check, reported).
 - **Sanity check:** H r7 def rep 1 must be byte-identical to `entlib-gbt-20261122/runs/H_gbt_s0` (the current default on that cell). If it is not, the precheck stops.
