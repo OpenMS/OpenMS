@@ -17,26 +17,30 @@ Per run:
    the calibrated width.
 2. **Candidate search** with the calibrated library: native-scan XIC peak picking, up to 5 peaks per precursor.
 3. **Population**: every candidate of each target-decoy pair whose best candidate has at least 3 supporting fragments.
-4. **One more pass over the spectra** collects the scoring evidence: 6-fragment traces and apex b/y ions, and the
-   12-fragment grid of every window. A grid is held only while its window is open. The 6-fragment traces match each
-   fragment within ±10 ppm (`-trace_tolerance_ppm`; PLAN_TRPPM, +18 % IDs at 1 % true FDP on the r ≈ 7 HeLa entrapment,
-   calibration not worse). `-trace_tolerance_ppm 0` restores the earlier fixed ±0.02 Da window.
-5. **36 features**:
-   - search 4;
-   - boundary 5;
-   - b/y ions 2;
-   - 12-fragment evidence 6;
-   - fragment deficit 3;
-   - shared-signal interference 4;
+4. **One more pass over the spectra** collects the scoring evidence: 6-fragment traces (each fragment within ±10 ppm,
+   `-trace_tolerance_ppm`) and apex b/y ions, and the 12-fragment grid of every window. A grid is held only while its
+   window is open.
+5. **49 scorer features**:
+   - search 4, boundary 5, b/y ions 2, 12-fragment evidence 6, fragment deficit 3, shared-signal interference 4;
    - evidence block 12 (core fragment and MS1 mass error, MS1 co-elution, isotope and area, MS2 area, ion-mobility
-     centroid, co-elution and share; PLAN_EXTRA, +38 % / +24 % IDs at 1 % true FDP on the r ≈ 7 HeLa entrapment).
-     `-no_extra_scores` leaves it out (24 features, the earlier default).
-   - experimental, opt-in `-mobility_apex` (ion mobility data only): 5 own-mobility-apex features from a per-fragment
-     1/K0 histogram of the core window (30 bins of 0.004 over ±0.06; PRECHECK_IMFEAT). Off by default: on the r ≈ 1.56
-     HeLa entrapment (2 seeds) it gave no IDs at 1 % true FDP and a worse FDP bound.
-6. **Scoring**: `OpenDIA::CrossFitScorer`, three folds by peptide family. Seeds are the calibration anchors' windows
-   and decoy windows. The scorer is a small network with a decoy-whitened readout and two self-training rounds. Then
-   comes one window per precursor, decoy-tail calibrated scores, and pooled paired target-decoy q-values.
+     centroid, co-elution and share; `-no_extra_scores` leaves it out);
+   - matched filter 9 (`mt_`; per-fragment robust z, leave-one-out correlation, cosine, dominance, LLR;
+     `-no_matched_filter` leaves it out);
+   - charge-state siblings 4 (`s_n`, `s_co`, `s_best`, `s_best_d`, from the first scoring pass; see step 6).
+6. **Scoring**:
+   - `OpenDIA::CrossFitScorer`, three folds by peptide family. Seeds are the calibration anchors' windows and decoy
+     windows. The scorer is a small network with a decoy-whitened readout and two self-training rounds, then one window
+     per precursor, decoy-tail calibrated scores and pooled paired target-decoy q-values.
+   - Sibling rescoring: the sibling features are computed from those out-of-fold scores and the network scores again
+     (`-no_sibling_features` skips it).
+   - Hard-negative GBM rescoring: three cross-fitted histogram gradient boosting rounds on the final features, trained
+     on q ≤ 0.01 targets against all windows of the hardest 2 % of decoy precursors (`-gbm_hard_fraction`;
+     `-no_gbm_rescore` keeps the network scores).
+7. **RT refine**: a ridge RT correction on sequence composition is fitted from the run's own q ≤ 0.01 IDs, then steps
+   2-6 run again with corrected RTs and a narrower RT window (`-no_rt_refine` skips it, about half the wall time).
+
+Decoys come from the library, or with `-decoys predict` (`-decoy_model_dir`, `-decoy_cache`) pseudo-reversed decoys are
+predicted like the targets.
 
 Across runs, a precursor's global q-value comes from its best run score, by paired target-decoy competition.
 
@@ -52,7 +56,7 @@ Across runs, a precursor's global q-value comes from its best run score, by pair
 - Search: 30-40 s.
 - Evidence pass: 5-6 min. It holds about 90,000 open 12-fragment grids and the 6-fragment trace tensor of 1.6 M windows.
 - Scorer: 1-2 min.
-- Calibration adds 1-3 passes when it is not reused.
+- Calibration adds 1-3 passes when it is not reused; the RT refine second pass repeats search, evidence and scoring.
 
 ## Single steps
 
@@ -61,9 +65,7 @@ The step tools stay for inspection and experiments.
 | Tool | Step |
 |---|---|
 | `OpenDIACalibrate` | Calibration only (`cal.json`, `-out_anchors`) |
-| `OpenDIA -calibration cal.json -features_out` | Candidate search and its feature table |
-| `OpenDIAInterference` | Interference features of given windows |
-| `OpenDIACNN` (optional, `-DOPENDIA_WITH_TORCH=ON`) | The earlier CNN + LDA scorer. It needs LibTorch and is not part of `OpenDIAWorkflow`. |
+| `OpenDIA -calibration cal.json -features_out` | Candidate search and its feature table (`-out_xipm`: peak-map Parquet) |
 
 ## Interference features
 

@@ -44,9 +44,6 @@ add_test(NAME OpenDIAGBM_test COMMAND OpenDIAGBM_test)
 add_executable(OpenDIAFragmentGrid_test OpenDIAFragmentGrid_test.cpp)
 target_link_libraries(OpenDIAFragmentGrid_test PRIVATE OpenDIA_impl)
 add_test(NAME OpenDIAFragmentGrid_test COMMAND OpenDIAFragmentGrid_test)
-# Validation driver on the PLAN_GAP scoring arrays (not a ctest).
-add_executable(OpenDIAScorer_arrays OpenDIAScorer_arrays.cpp)
-target_link_libraries(OpenDIAScorer_arrays PRIVATE OpenDIA_impl)
 add_executable(OpenDIAMzIndex_test OpenDIAMzIndex_test.cpp)
 target_link_libraries(OpenDIAMzIndex_test PRIVATE OpenDIA_impl)
 add_test(NAME OpenDIAMzIndex_test COMMAND OpenDIAMzIndex_test)
@@ -57,24 +54,8 @@ add_test(NAME OpenDIARTRefine_test COMMAND OpenDIARTRefine_test)
 add_test(NAME OpenDIA_no_openswath
   COMMAND ${CMAKE_COMMAND} -DSOURCE_DIR=${CMAKE_CURRENT_SOURCE_DIR}/.. -P ${CMAKE_CURRENT_SOURCE_DIR}/OpenDIA_no_openswath.cmake)
 
-if(TARGET OpenDIA_cnn)
-  add_executable(OpenDIACNN_test OpenDIACNN_test.cpp)
-  target_link_libraries(OpenDIACNN_test PRIVATE OpenDIA_cnn)
-  add_test(NAME OpenDIACNN_test COMMAND OpenDIACNN_test)
-  add_executable(OpenDIACNNQValues_test OpenDIACNNQValues_test.cpp)
-  target_link_libraries(OpenDIACNNQValues_test PRIVATE OpenDIA_cnn)
-  add_test(NAME OpenDIACNNQValues_test COMMAND OpenDIACNNQValues_test)
-endif()
-
 if(EXISTS "${CMAKE_SOURCE_DIR}/src/tests/topp/OpenSwathWorkflow_17_input.mzML" AND
    EXISTS "${CMAKE_SOURCE_DIR}/src/tests/topp/TargetedFileConverter_10_input.pqp")
-  if(TARGET OpenDIACNN)
-    add_test(NAME OpenDIACNN_cli_safety
-      COMMAND ${CMAKE_COMMAND} -DBINARY=$<TARGET_FILE:OpenDIACNN>
-        -DLIBRARY=${CMAKE_SOURCE_DIR}/src/tests/topp/TargetedFileConverter_10_input.pqp
-        -DWORK=${CMAKE_CURRENT_BINARY_DIR}/OpenDIACNN_cli_safety
-        -P ${CMAKE_CURRENT_SOURCE_DIR}/OpenDIACNN_cli_test.cmake)
-  endif()
   # OpenDIACalibrate refuses to overwrite its inputs, and fails closed (no silent fallback) when the tiny
   # fixture library has too few target-decoy pairs to calibrate.
   add_test(NAME OpenDIACalibrate_refuses_input_overwrite

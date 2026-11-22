@@ -64,19 +64,8 @@ protected:
     registerIntOption_("seed", "<n>", 0, "Scorer seed", false);
     setMinInt_("seed", 0);
     registerFlag_("im_array_as_vssc", "Interpret a spectrum ion-mobility array whose unit is not CCS as 1/K0");
-    registerFlag_("pg_scores", "Experimental (PLAN_PGSCORES): add 10 OpenSWATH-style peak-group scores (cross-correlation, S/N, mass deviation, fragment isotopes) to the scorer", true);
     registerFlag_("no_extra_scores", "Advanced: leave out the evidence block (core-window mass error, MS1 and ion-mobility evidence, 12 features; PLAN_EXTRA) and score with the 24 base features only", true);
-    registerFlag_("mobility_apex", "Experimental (PRECHECK_IMFEAT): add 5 own-mobility-apex features from a per-fragment core-window 1/K0 histogram (ion mobility data only)", true);
-    registerFlag_("faint_features", "Experimental (PRECHECK_FAINT): add pooled p_cos_apex and p_local_sn features from the existing trace tensor", true);
     registerFlag_("no_matched_filter", "Advanced: leave out the 9 mt_ matched-filter features (per-fragment robust z, leave-one-out correlation, cosine, dominance, LLR from the trace tensor; PLAN_MT) and score without them", true);
-    registerIntOption_("im_peaks", "<bins>", 0, "Experimental: RT x ion-mobility candidate picking with this many 1/K0 bins over the search mobility window (0 off, 3-16): "
-                       "peaks masked in the pooled trace by a precursor at another mobility get their own candidate", false, true);
-    setMinInt_("im_peaks", 0);
-    setMaxInt_("im_peaks", 16);
-    registerIntOption_("im_extra_peaks", "<n>", 2, "Experimental, with -im_peaks: at most this many mobility-band candidates added per precursor", false, true);
-    setMinInt_("im_extra_peaks", 1);
-    registerIntOption_("im_min_support", "<n>", 1, "Experimental, with -im_peaks: mobility-band candidates need at least this many supporting fragments", false, true);
-    setMinInt_("im_min_support", 1);
     registerIntOption_("max_peaks", "<n>", 5, "Advanced: candidate peaks kept per precursor by the search, best fragment co-elution first", false, true);
     setMinInt_("max_peaks", 1);
     registerDoubleOption_("valley_fraction", "<fraction>", 0.5, "Advanced: in the search, two maxima stay separate candidate peaks only if the valley "
@@ -88,24 +77,19 @@ protected:
     setMinFloat_("im_tolerance_scale", 0.05);
     setMaxFloat_("im_tolerance_scale", 4.0);
     registerDoubleOption_("trace_tolerance_ppm", "<ppm>", 10.0, "Advanced: fragment m/z half width of the 6-fragment trace tensor in ppm "
-                          "(PLAN_TRPPM: 10, +18 % IDs at 1 % true FDP on the r ~ 7 HeLa entrapment; 0 = the fixed 0.02 Da window, the earlier default)", false, true);
+                          "(PLAN_TRPPM: 10, +18 % IDs at 1 % true FDP on the r ~ 7 HeLa entrapment)", false, true);
     setMinFloat_("trace_tolerance_ppm", 0.0);
     registerIntOption_("trace_tensor_gb", "<GiB>", 64, "Advanced: hard cap on the 6-fragment trace tensor in GiB (about 6.1 KiB per candidate window with ion mobility); "
                        "raise it for very large libraries, memory permitting", false, true);
     setMinInt_("trace_tensor_gb", 1);
     registerFlag_("no_rt_refine", "Advanced: skip the per-run RT refinement (PLAN_RTR): by default a ridge RT correction on sequence composition is fitted from the run's own q<=0.01 IDs after a first pass, then search, extraction and scoring run again with corrected RTs and a narrower RT window (about 1.8-1.9x wall time)", true);
-    registerIntOption_("rt_refine_min_ids", "<n>", 500, "Advanced: skip the RT refinement (-rt_refine_anchors too) with fewer training IDs", false, true);
+    registerIntOption_("rt_refine_min_ids", "<n>", 500, "Advanced: skip the RT refinement with fewer training IDs", false, true);
     setMinInt_("rt_refine_min_ids", 1);
-    registerFlag_("rt_refine_anchors", "Experimental (PRECHECK_RTIM): fit the RT correction on the calibration anchors only and use it in the single pass; requires -no_rt_refine", true);
     registerFlag_("no_sibling_features", "Advanced: skip the charge-state sibling rescoring (PLAN_SIB): by default each scoring call scores once, adds four sibling features per window from those out-of-fold scores (siblings = other precursors of the same modified sequence, same target/decoy side), then scores again", true);
-    registerDoubleOption_("hard_decoys", "<fraction>", 0.0, "Experimental (PRECHECK_BT156): self-training rounds use all windows of the hardest <fraction> of decoy precursors as negatives instead of all decoy winners; 0 = off", false, true);
-    setMinFloat_("hard_decoys", 0.0);
-    setMaxFloat_("hard_decoys", 1.0);
     registerFlag_("no_gbm_rescore", "Advanced: skip the final hard-negative GBM rescoring (PLAN_GBT): by default three cross-fitted histogram gradient boosting rounds rescore the final features, trained on q<=0.01 targets against all windows of the hardest -gbm_hard_fraction of decoy precursors", true);
     registerDoubleOption_("gbm_hard_fraction", "<fraction>", 0.02, "Advanced: hard decoy precursor fraction for the GBM rescoring; 0 = all decoy winners", false, true);
     setMinFloat_("gbm_hard_fraction", 0.0);
     setMaxFloat_("gbm_hard_fraction", 1.0);
-    registerStringOption_("scorer_self_q", "<q list>", "", "Experimental: space- or comma-separated q cuts, one self-training round each (e.g. \"0.01 0.01 0.01\"); empty keeps 0.15 0.05", false, true);
     registerStringOption_("calibration", "<files>", "", "Advanced: comma-separated OpenDIACalibrate JSON per run to reuse instead of calibrating", false, true);
     registerStringOption_("anchors", "<files>", "", "Advanced: comma-separated anchor TSV per run, with -calibration", false, true);
     registerStringOption_("decoys", "<mode>", "library",
@@ -277,14 +261,8 @@ protected:
     options.threads = std::max(1, getIntOption_("threads"));
     options.seed = static_cast<std::uint64_t>(getIntOption_("seed"));
     options.im_array_as_vssc = getFlag_("im_array_as_vssc");
-    options.pg_scores = getFlag_("pg_scores");
     options.extra_scores = !getFlag_("no_extra_scores");
-    options.mobility_apex = getFlag_("mobility_apex");
-    options.faint_features = getFlag_("faint_features");
     options.matched_filter = !getFlag_("no_matched_filter");
-    options.search_im_bins = static_cast<std::size_t>(getIntOption_("im_peaks"));
-    options.search_im_extra_peaks = static_cast<std::size_t>(getIntOption_("im_extra_peaks"));
-    options.search_im_min_support = static_cast<std::size_t>(getIntOption_("im_min_support"));
     options.max_peaks = static_cast<std::size_t>(getIntOption_("max_peaks"));
     options.search_valley_fraction = getDoubleOption_("valley_fraction");
     options.im_tolerance_scale = getDoubleOption_("im_tolerance_scale");
@@ -294,37 +272,17 @@ protected:
       writeLogError_("-valley_fraction must be in (0, 1].");
       return ILLEGAL_PARAMETERS;
     }
-    if (options.search_im_bins > 0 && options.search_im_bins < 3)
+    if (!(options.trace_tolerance_ppm > 0.0))
     {
-      writeLogError_("-im_peaks must be 0 or 3..16.");
+      writeLogError_("-trace_tolerance_ppm must be positive.");
       return ILLEGAL_PARAMETERS;
     }
     options.trace_tensor_gb = static_cast<std::size_t>(getIntOption_("trace_tensor_gb"));
     options.rt_refine = !getFlag_("no_rt_refine");
     options.rt_refine_min_ids = static_cast<std::size_t>(getIntOption_("rt_refine_min_ids"));
-    options.rt_refine_anchors = getFlag_("rt_refine_anchors");
     options.sibling_features = !getFlag_("no_sibling_features");
-    options.hard_decoys = getDoubleOption_("hard_decoys");
     options.gbm_rescore = !getFlag_("no_gbm_rescore");
     options.gbm_hard_fraction = getDoubleOption_("gbm_hard_fraction");
-    {
-      std::string list = getStringOption_("scorer_self_q");
-      std::replace(list.begin(), list.end(), ',', ' ');
-      std::istringstream in(list);
-      std::string tok;
-      while (in >> tok)
-      {
-        double v = 0.0;
-        std::size_t used = 0;
-        try { v = std::stod(tok, &used); } catch (...) { used = 0; }
-        if (used != tok.size() || !(v > 0.0 && v <= 1.0))
-        {
-          writeLogError_("-scorer_self_q values must be numbers in (0, 1].");
-          return ILLEGAL_PARAMETERS;
-        }
-        options.scorer_self_q.push_back(v);
-      }
-    }
     options.calibration.panel_targets = 40000;
 
     // Best (calibrated) score of each precursor per run, for the global q-value.

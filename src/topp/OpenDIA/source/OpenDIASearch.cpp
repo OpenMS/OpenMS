@@ -74,12 +74,10 @@ namespace OpenMS::OpenDIA
         !std::isfinite(options_.rt_window_seconds) || !(options_.rt_window_seconds > 0.0) || options_.min_transitions == 0 ||
         !std::isfinite(picker.valley_fraction) || !(picker.valley_fraction > 0.0) || picker.valley_fraction > 1.0 ||
         !std::isfinite(picker.boundary_fraction) || picker.boundary_fraction < 0.0 || !(picker.boundary_fraction < 1.0) ||
-        picker.max_peaks == 0 || !std::isfinite(picker.boundary_half_widths) || picker.boundary_half_widths < 0.0 ||
-        options_.im_bins > MAX_IM_BINS || (options_.im_bins > 0 && options_.im_bins < 3))
+        picker.max_peaks == 0 || !std::isfinite(picker.boundary_half_widths) || picker.boundary_half_widths < 0.0)
     {
       throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                        "Search tolerances, the RT window and the minimum transition count must be positive, "
-                                        "and im_bins must be 0 or 3..16.");
+                                        "Search tolerances, the RT window and the minimum transition count must be positive.");
     }
 
     // Flatten the library into compact candidate/query arrays; candidates are numbered by first appearance.
@@ -429,55 +427,6 @@ namespace OpenMS::OpenDIA
         continue;
       }
       // The most intense point inside the m/z (and, when both sides have it, 1/K0) window; the first one wins ties.
-      // With im_bins, the most intense point of every mobility bin instead (their maximum is the pooled point).
-      if (options_.im_bins > 0 && query.has_precursor_im && has_peak_im)
-      {
-        const std::size_t bins = options_.im_bins;
-        float best[MAX_IM_BINS] = {};
-        double best_mz[MAX_IM_BINS] = {};
-        std::uint32_t seen = 0;
-        const double low_im = query.precursor_im - tolerance_im;
-        const double scale = static_cast<double>(bins) / (2.0 * tolerance_im);
-        for (auto point = cursor; point != points_end && point->mz <= query.high_mz; ++point)
-        {
-          const double peak_im = cell.has_per_peak_im ? point->ion_mobility : cell.scalar_im;
-          if (!std::isfinite(peak_im) || std::abs(peak_im - query.precursor_im) > tolerance_im)
-          {
-            continue;
-          }
-          const std::size_t b = std::min(bins - 1, static_cast<std::size_t>(std::max(0.0, (peak_im - low_im) * scale)));
-          const float value = static_cast<float>(point->intensity);
-          if (!(seen >> b & 1u) || value > best[b])
-          {
-            best[b] = value;
-            best_mz[b] = point->mz;
-          }
-          seen |= 1u << b;
-        }
-        // Keep the IM_BINS_KEPT most intense bins (bounded entries; the most intense, the pooled point, is always kept).
-        std::uint32_t emit = seen;
-        if (static_cast<std::size_t>(__builtin_popcount(seen)) > IM_BINS_KEPT)
-        {
-          emit = 0;
-          for (std::size_t k = 0; k < IM_BINS_KEPT; ++k)
-          {
-            std::size_t top = bins;
-            for (std::size_t b = 0; b < bins; ++b)
-            {
-              if ((seen >> b & 1u) && !(emit >> b & 1u) && (top == bins || best[b] > best[top])) top = b;
-            }
-            emit |= 1u << top;
-          }
-        }
-        for (std::size_t b = 0; b < bins; ++b)
-        {
-          if (emit >> b & 1u)
-          {
-            matches.push_back({query.candidate, {cell.id, static_cast<std::uint16_t>(query.slot), static_cast<std::uint8_t>(b + 1), best[b]}, best_mz[b]});
-          }
-        }
-        continue;
-      }
       double intensity = 0.0;
       double matched_mz = 0.0;
       bool matched = false;
@@ -500,7 +449,7 @@ namespace OpenMS::OpenDIA
       }
       if (matched)
       {
-        matches.push_back({query.candidate, {cell.id, static_cast<std::uint16_t>(query.slot), 0, static_cast<float>(intensity)}, matched_mz});
+        matches.push_back({query.candidate, {cell.id, static_cast<std::uint16_t>(query.slot), static_cast<float>(intensity)}, matched_mz});
       }
     }
   }
@@ -590,9 +539,8 @@ namespace OpenMS::OpenDIA
     const std::size_t count = end - begin;
     std::vector<std::string> peak_rows(count), feature_rows(count);
     std::vector<std::vector<SearchCandidate>> kept(keep_candidates_ ? count : 0);
-    std::size_t im_added_total = 0;
 #ifdef _OPENMP
-#pragma omp parallel if(count >= 64) reduction(+ : im_added_total)
+#pragma omp parallel if(count >= 64)
 #endif
     {
       std::vector<float> matrix;
@@ -603,10 +551,8 @@ namespace OpenMS::OpenDIA
       for (std::ptrdiff_t i = 0; i < static_cast<std::ptrdiff_t>(count); ++i)
       {
         const std::size_t candidate_index = close_order_[begin + static_cast<std::size_t>(i)];
-        std::size_t im_added = 0;
         pickCandidate_(candidate_index, matrix, scratch, peak_rows[static_cast<std::size_t>(i)], feature_rows[static_cast<std::size_t>(i)],
-                       keep_candidates_ ? &kept[static_cast<std::size_t>(i)] : nullptr, im_added);
-        im_added_total += im_added;
+                       keep_candidates_ ? &kept[static_cast<std::size_t>(i)] : nullptr);
         if (traces_ == nullptr || !dump_selected_[candidate_index])
         {
           std::vector<Entry>().swap(entries_[candidate_index]);
@@ -642,14 +588,11 @@ namespace OpenMS::OpenDIA
       }
     }
     close_cursor_ = end;
-    im_peaks_added_ += im_added_total;
   }
 
   void StreamSearch::pickCandidate_(std::size_t candidate_index, std::vector<float>& matrix, std::vector<double>& scratch,
-                                    std::string& peak_rows, std::string& feature_rows, std::vector<SearchCandidate>* kept,
-                                    std::size_t& im_added) const
+                                    std::string& peak_rows, std::string& feature_rows, std::vector<SearchCandidate>* kept) const
   {
-    im_added = 0;
     const std::vector<Entry>& entries = entries_[candidate_index];
     if (entries.empty())
     {
@@ -679,10 +622,6 @@ namespace OpenMS::OpenDIA
     }
     std::size_t peaks_found = 0;
     std::vector<XicPeak> peaks = pickXicPeaks(matrix.data(), cells.size(), fragments, rts.data(), options_.picker, peaks_found, scratch);
-    if (options_.im_bins > 0 && candidates_[candidate_index].has_precursor_im)
-    {
-      im_added = addMobilityPeaks_(candidate_index, cells, fragments, rts, peaks, scratch);
-    }
     const Candidate& candidate = candidates_[candidate_index];
     for (std::size_t rank = 0; rank < peaks.size(); ++rank)
     {
@@ -749,146 +688,6 @@ namespace OpenMS::OpenDIA
       count(peaks_found);
       feature_rows += '\n';
     }
-  }
-
-  std::size_t StreamSearch::addMobilityPeaks_(std::size_t candidate_index, const std::vector<std::pair<std::uint32_t, double>>& cells,
-                                              std::size_t fragments, const std::vector<double>& rts, std::vector<XicPeak>& peaks,
-                                              std::vector<double>& scratch) const
-  {
-    const std::size_t bins = options_.im_bins;
-    const std::size_t n = cells.size();
-    if (n < 3 || options_.im_extra_peaks == 0)
-    {
-      return 0;
-    }
-    // Scan x bin x fragment cube of the matched intensities (most intense per bin), reused per thread.
-    thread_local std::vector<float> cube, band;
-    thread_local std::vector<double> consensus, smooth;
-    cube.assign(n * bins * fragments, 0.0f);
-    bool any = false;
-    for (const Entry& entry : entries_[candidate_index])
-    {
-      const auto row = std::lower_bound(cells.begin(), cells.end(), entry.cell, [](const auto& cell, std::uint32_t id) { return cell.first < id; });
-      if (row == cells.end() || row->first != entry.cell || entry.bin == 0 || entry.bin > bins)
-      {
-        continue;
-      }
-      float& value = cube[(static_cast<std::size_t>(row - cells.begin()) * bins + entry.bin - 1) * fragments + entry.slot];
-      value = std::max(value, entry.intensity);
-      any = true;
-    }
-    if (!any)
-    {
-      return 0;  // No mobility-resolved entries (the cells lacked raw mobility).
-    }
-    // Consensus over fragments, smoothed once with [1 2 1]/4 along RT and along mobility.
-    consensus.assign(n * bins, 0.0);
-    for (std::size_t i = 0; i < n * bins; ++i)
-    {
-      for (std::size_t k = 0; k < fragments; ++k) consensus[i] += cube[i * fragments + k];
-    }
-    smooth.assign(n * bins, 0.0);
-    for (std::size_t s = 0; s < n; ++s)
-    {
-      for (std::size_t b = 0; b < bins; ++b)
-      {
-        const double c = consensus[s * bins + b];
-        const double l = s > 0 ? consensus[(s - 1) * bins + b] : c;
-        const double r = s + 1 < n ? consensus[(s + 1) * bins + b] : c;
-        smooth[s * bins + b] = 0.25 * l + 0.5 * c + 0.25 * r;
-      }
-    }
-    consensus = smooth;
-    for (std::size_t s = 0; s < n; ++s)
-    {
-      for (std::size_t b = 0; b < bins; ++b)
-      {
-        const double c = consensus[s * bins + b];
-        const double l = b > 0 ? consensus[s * bins + b - 1] : c;
-        const double r = b + 1 < bins ? consensus[s * bins + b + 1] : c;
-        smooth[s * bins + b] = 0.25 * l + 0.5 * c + 0.25 * r;
-      }
-    }
-    // Seeds: strict local maxima of the 3 x 3 neighbourhood (ties go to the earlier point), off the two edge bins.
-    struct Seed
-    {
-      std::size_t scan, bin;
-      double value;
-    };
-    std::vector<Seed> seeds;
-    for (std::size_t s = 0; s < n; ++s)
-    {
-      for (std::size_t b = 1; b + 1 < bins; ++b)
-      {
-        const double v = smooth[s * bins + b];
-        if (!(v > 0.0)) continue;
-        bool peak = true;
-        for (std::ptrdiff_t ds = -1; ds <= 1 && peak; ++ds)
-        {
-          for (std::ptrdiff_t db = -1; db <= 1 && peak; ++db)
-          {
-            if (ds == 0 && db == 0) continue;
-            const std::ptrdiff_t ss = static_cast<std::ptrdiff_t>(s) + ds, bb = static_cast<std::ptrdiff_t>(b) + db;
-            if (ss < 0 || ss >= static_cast<std::ptrdiff_t>(n)) continue;
-            const double w = smooth[static_cast<std::size_t>(ss) * bins + static_cast<std::size_t>(bb)];
-            const bool earlier = ds < 0 || (ds == 0 && db < 0);
-            peak = earlier ? v > w : v >= w;
-          }
-        }
-        if (peak) seeds.push_back({s, b, v});
-      }
-    }
-    // Nearest the window centre first (the library mobility), then the strongest.
-    const double centre = 0.5 * static_cast<double>(bins - 1);
-    std::sort(seeds.begin(), seeds.end(), [centre](const Seed& x, const Seed& y)
-    {
-      const double dx = std::abs(static_cast<double>(x.bin) - centre), dy = std::abs(static_cast<double>(y.bin) - centre);
-      if (dx != dy) return dx < dy;
-      if (x.value != y.value) return x.value > y.value;
-      return x.scan < y.scan;
-    });
-    XicPickerOptions band_options = options_.picker;
-    band_options.max_peaks = std::numeric_limits<std::size_t>::max();
-    std::size_t added = 0;
-    const std::size_t tries = std::min(seeds.size(), 4 * options_.im_extra_peaks);
-    for (std::size_t t = 0; t < tries && added < options_.im_extra_peaks; ++t)
-    {
-      const Seed& seed = seeds[t];
-      // Skip a seed already inside a candidate's apex neighbourhood.
-      const auto near = [&](std::size_t apex)
-      {
-        return std::any_of(peaks.begin(), peaks.end(), [apex](const XicPeak& p) { return (p.apex > apex ? p.apex - apex : apex - p.apex) <= 1; });
-      };
-      if (near(seed.scan)) continue;
-      // Band traces: the most intense of the 3 bins around the seed, per (scan, fragment).
-      band.assign(n * fragments, 0.0f);
-      for (std::size_t s = 0; s < n; ++s)
-      {
-        for (std::size_t b = seed.bin - 1; b <= seed.bin + 1; ++b)
-        {
-          for (std::size_t k = 0; k < fragments; ++k)
-          {
-            band[s * fragments + k] = std::max(band[s * fragments + k], cube[(s * bins + b) * fragments + k]);
-          }
-        }
-      }
-      std::size_t found = 0;
-      const std::vector<XicPeak> band_peaks = pickXicPeaks(band.data(), n, fragments, rts.data(), band_options, found, scratch);
-      const XicPeak* best = nullptr;
-      for (const XicPeak& p : band_peaks)
-      {
-        if (p.left <= seed.scan && seed.scan <= p.right &&
-            (best == nullptr || (p.apex > seed.scan ? p.apex - seed.scan : seed.scan - p.apex) <
-                                (best->apex > seed.scan ? best->apex - seed.scan : seed.scan - best->apex)))
-        {
-          best = &p;
-        }
-      }
-      if (best == nullptr || near(best->apex) || best->support < std::max(options_.im_min_support, options_.min_transitions)) continue;
-      peaks.push_back(*best);
-      ++added;
-    }
-    return added;
   }
 
   std::vector<std::pair<std::uint32_t, double>> StreamSearch::candidateCells_(std::size_t candidate_index) const

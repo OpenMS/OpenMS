@@ -182,58 +182,6 @@ int main()
     check(false_hits <= passing / 50 + 2, "false share at q <= 0.01 near the nominal level");
   }
 
-  // 7. Opt-in hard-decoy negatives: 0 matches the default, > 0 is deterministic and logs the negative count.
-  {
-    std::vector<bool> truth;
-    const auto in = synthetic(1500, 3, 3.0, 22, truth);
-    CrossFitScorer::Options o;
-    o.max_epochs = 4;
-    o.steps_per_epoch = 10;
-    o.batch_positive = 64;
-    o.batch_negative = 256;
-    o.hidden = 16;
-    o.embed = 4;
-    o.seed = 5;
-    const auto base = CrossFitScorer::run(in, o);
-    o.hard_negative_fraction = 0.0;
-    const auto zero = CrossFitScorer::run(in, o);
-    check(base.score == zero.score && base.q_value == zero.q_value && base.log == zero.log, "hard_negative_fraction 0 is the default");
-    bool plain_log = true;
-    for (const auto& l : base.log) plain_log = plain_log && l.find("hard_neg") == std::string::npos;
-    check(plain_log, "default log has no hard_neg field");
-    o.hard_negative_fraction = 0.2;
-    const auto h1 = CrossFitScorer::run(in, o);
-    const auto h2 = CrossFitScorer::run(in, o);
-    check(h1.score == h2.score && h1.q_value == h2.q_value && h1.log == h2.log, "hard decoys deterministic for a fixed seed");
-    check(h1.score != base.score, "hard decoys change the training");
-    std::uint32_t n_prec = 0;
-    for (auto p : in.precursor) n_prec = std::max(n_prec, p + 1);
-    for (std::size_t k = 0; k < h1.log.size(); ++k)
-    {
-      // Decoy precursors of the training folds, and their row counts.
-      std::vector<std::size_t> rows_of(n_prec, 0);
-      std::vector<std::uint8_t> is_decoy(n_prec, 0);
-      for (std::size_t r = 0; r < in.rows(); ++r)
-        if (in.fold[r] != k)
-        {
-          ++rows_of[in.precursor[r]];
-          is_decoy[in.precursor[r]] = in.decoy[r];
-        }
-      std::size_t decoy_winners = 0, windows = 0;
-      for (std::uint32_t p = 0; p < n_prec; ++p)
-        if (is_decoy[p] && rows_of[p] > 0)
-        {
-          ++decoy_winners;
-          windows = rows_of[p];
-        }
-      const std::size_t take = std::max<std::size_t>(10, static_cast<std::size_t>(std::ceil(0.2 * decoy_winners)));
-      const std::string expect = " hard_neg " + std::to_string(take * windows) + " of " + std::to_string(take) + " prec";
-      std::size_t found = 0;
-      for (std::size_t pos = h1.log[k].find(expect); pos != std::string::npos; pos = h1.log[k].find(expect, pos + 1)) ++found;
-      check(found == o.self_q.size(), "log reports the hard negative count (" + h1.log[k] + ")");
-    }
-  }
-
   // 6. Input validation.
   {
     std::vector<bool> truth;

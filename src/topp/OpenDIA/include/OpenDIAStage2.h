@@ -14,15 +14,14 @@
 #include <cstddef>
 #include <cstdint>
 #include <string>
-#include <unordered_map>
 #include <vector>
 
 namespace OpenMS::OpenDIA
 {
-  /// Feature order of the experimental second-stage score. Feature 0 is the main (initial ranking) score.
+  /// Feature order of stage2Features() (the evidence block reuses columns 1..7). Feature 0 is unused (zero).
   enum class Stage2Feature : std::size_t
   {
-    CNN_Z = 0,             ///< CNN logit standardised by its fold's decoy precursor winners (median, 1.4826 MAD).
+    CNN_Z = 0,             ///< Unused, zero (kept so the column indices stay stable).
     FRAGMENT_FRACTION,     ///< Share of library fragments with signal in the core window.
     FRAGMENT_COELUTION,    ///< Mean pairwise Pearson correlation of fragment traces in the core window.
     LIBRARY_CORRELATION,   ///< Pearson correlation of sqrt core fragment areas and sqrt library intensities.
@@ -33,8 +32,6 @@ namespace OpenMS::OpenDIA
     COUNT
   };
   constexpr std::size_t STAGE2_FEATURES = static_cast<std::size_t>(Stage2Feature::COUNT);
-  /// Column names, in Stage2Feature order.
-  const std::array<std::string, STAGE2_FEATURES>& stage2FeatureNames();
 
   struct Stage2ExtractionOptions
   {
@@ -47,7 +44,7 @@ namespace OpenMS::OpenDIA
   };
 
   /**
-    @brief Extraction features 1..7 of one window (feature 0, the CNN score, is filled by the caller).
+    @brief Extraction features 1..7 of one window (feature 0 is unused).
 
     @param[in] tensor One window of TraceCollector::SAMPLE_SIZE floats, fragment-major as in the collector.
     @param[in] library_intensities Library intensity per fragment channel.
@@ -59,27 +56,6 @@ namespace OpenMS::OpenDIA
   std::array<double, STAGE2_FEATURES> stage2Features(const float* tensor, const std::array<double, 6>& library_intensities,
                                                      const std::array<double, 6>& fragment_mz, const TraceEvidence& evidence,
                                                      const Stage2ExtractionOptions& options);
-
-  /**
-    @brief Which feature groups enter the second-stage discriminant. Feature 0 is always the standardised CNN logit.
-
-    Row order: cnn_z, then the seven extraction features, then the search features, then the boundary features, then the
-    b/y ion counts, each group only if selected.
-  */
-  struct Stage2FeatureSet
-  {
-    bool extraction = true;   ///< Stage2Feature columns 1..7 (tensor and MS1 evidence; the original -stage2 set).
-    bool search = false;      ///< The four search peak-group features (needs the OpenDIA -features_out table).
-    bool boundary = false;    ///< Peak-group boundary features (Stage2BoundaryFeature).
-    bool byion = false;       ///< Apex-spectrum b/y ion counts (Stage2ByIonFeature; needs TraceCollector::enableByIonCounts()).
-  };
-  /**
-    @brief Parse a '+'-separated list of groups, e.g. "extraction", "search+boundary+byion"; "extraction_search" means "extraction+search".
-    @throws std::invalid_argument On an unknown or repeated group name.
-  */
-  Stage2FeatureSet parseStage2FeatureSet(const std::string& name);
-  /// Column names of a feature set, in row order.
-  std::vector<std::string> stage2FeatureSetNames(const Stage2FeatureSet& set);
 
   /// Peak-group boundary features: the window is re-picked with pickPeakGroup and scored over [left, right].
   enum class Stage2BoundaryFeature : std::size_t
@@ -112,25 +88,6 @@ namespace OpenMS::OpenDIA
                                                                       const std::array<double, 6>& fragment_mz, const TraceEvidence& evidence,
                                                                       const Stage2ExtractionOptions& options);
 
-  /// OpenSWATH-style peak-group scores (PLAN_PGSCORES), over the boundary picker's peak and the core-window spectra.
-  enum class Stage2PeakGroupFeature : std::size_t
-  {
-    XCORR_COELUTION = 0,   ///< Mean + sample sd of |best lag| over fragment pairs i <= j (OpenSWATH xcorr_coelution).
-    XCORR_COELUTION_W,     ///< Library-weighted sum of |best lag| (xcorr_coelution_weighted).
-    XCORR_SHAPE,           ///< Mean best normalised cross-correlation (xcorr_shape).
-    XCORR_SHAPE_W,         ///< Library-weighted best cross-correlation (xcorr_shape_weighted).
-    LOG_SN,                ///< log1p(mean over fragments of apex / (median over scan bins + run floor)).
-    INTENSITY_FRACTION,    ///< Fragment signal inside the picked peak over the signal of all scan bins.
-    MASSDEV,               ///< Mean over fragments of min(1, |ppm| / tolerance); 1 for a fragment without signal.
-    MASSDEV_W,             ///< Library-weighted MASSDEV.
-    ISOTOPE_CORR,          ///< Area-weighted Pearson of M+0..M+4 against averagine (dia_isotope_scores isotope_corr).
-    ISOTOPE_OVERLAP,       ///< Area-weighted count of charges 1..4 with a larger peak one 13C spacing below.
-    COUNT
-  };
-  constexpr std::size_t STAGE2_PEAKGROUP_FEATURES = static_cast<std::size_t>(Stage2PeakGroupFeature::COUNT);
-  /// Peak-group column names, in Stage2PeakGroupFeature order.
-  const std::array<std::string, STAGE2_PEAKGROUP_FEATURES>& stage2PeakGroupFeatureNames();
-
   /// Evidence block (on by default since PLAN_EXTRA; -no_extra_scores leaves it out): core-window mass error, MS1 and ion mobility.
   enum class Stage2ExtraFeature : std::size_t
   {
@@ -157,29 +114,6 @@ namespace OpenMS::OpenDIA
   */
   std::array<double, STAGE2_EXTRA_FEATURES> stage2ExtraFeatures(const float* tensor, const std::array<double, 6>& library_intensities,
                                                                 const std::array<double, 6>& fragment_mz, const TraceEvidence& evidence,
-                                                                const Stage2ExtractionOptions& options);
-
-  /// Opt-in pooled faint-signal features (PRECHECK_FAINT) from the existing 6 x 32 x 8 trace tensor.
-  enum class Stage2FaintFeature : std::size_t
-  {
-    COS_APEX = 0, ///< Cosine of the pooled apex +/- 1 RT-bin fragment vector against sqrt library intensities.
-    LOCAL_SN,     ///< log1p consensus at the picked centre peak apex minus log1p median consensus outside that peak.
-    COUNT
-  };
-  constexpr std::size_t STAGE2_FAINT_FEATURES = static_cast<std::size_t>(Stage2FaintFeature::COUNT);
-  const std::array<std::string, STAGE2_FAINT_FEATURES>& stage2FaintFeatureNames();
-  /**
-    @brief Compute the opt-in PRECHECK_FAINT features from the pooled trace tensor.
-
-    Non-padding fragments are summed over ion mobility and only RT bins with an isolating MS2 scan are used. The cosine
-    uses the tensor centre bin and its neighbouring RT bins. The local S/N uses the peak picked around that centre bin;
-    its outside baseline is the median consensus over all scanned bins outside the inclusive picked boundaries, or zero
-    when no outside bins exist.
-  */
-  std::array<double, STAGE2_FAINT_FEATURES> stage2FaintFeatures(const float* tensor,
-                                                                const std::array<double, 6>& library_intensities,
-                                                                const std::array<double, 6>& fragment_mz,
-                                                                const TraceEvidence& evidence,
                                                                 const Stage2ExtractionOptions& options);
 
   /// Matched-filter block (default since PLAN_MT; -no_matched_filter turns it off) from the existing 6 x 32 x 8 trace tensor.
@@ -221,70 +155,6 @@ namespace OpenMS::OpenDIA
                                                                                   const TraceEvidence& evidence,
                                                                                   const Stage2ExtractionOptions& options);
 
-  /// Own-mobility-apex block (-mobility_apex, PRECHECK_IMFEAT): from the core-window 1/K0 histogram of the window.
-  enum class Stage2MobilityApexFeature : std::size_t
-  {
-    APEX_OFFSET = 0,  ///< |mobility apex - precursor 1/K0| (apex: argmax of the [1 2 1]-smoothed consensus histogram); 0.06 without signal.
-    FRAGMENT_SD,      ///< Intensity-weighted SD across fragments of their 1/K0 centroids within 5 bins of the apex; 0.03 if < 2 fragments.
-    APEX_COSINE,      ///< Cosine of the fragment sums within 2 bins of the apex with sqrt library intensities.
-    APEX_SUPPORT,     ///< Fragments with signal within 2 bins of the apex.
-    APEX_CONTRAST,    ///< log1p(consensus within 2 bins) - log1p(consensus 5..12 bins away).
-    COUNT
-  };
-  constexpr std::size_t STAGE2_MOBILITY_APEX_FEATURES = static_cast<std::size_t>(Stage2MobilityApexFeature::COUNT);
-  const std::array<std::string, STAGE2_MOBILITY_APEX_FEATURES>& stage2MobilityApexFeatureNames();
-  /**
-    @brief Own-mobility-apex features of one window; identical for targets and decoys and free of training.
-    @param[in] histogram TraceCollector::mobilityHistogram() of the window ([6][MOBILITY_HISTOGRAM_BINS]), or nullptr.
-    @param[in] library_intensities Library fragment intensities in tensor channel order.
-    @param[in] fragment_mz Fragment m/z in tensor channel order (0 = padding).
-  */
-  std::array<double, STAGE2_MOBILITY_APEX_FEATURES> stage2MobilityApexFeatures(const float* histogram, const std::array<double, 6>& library_intensities,
-                                                                              const std::array<double, 6>& fragment_mz);
-  /**
-    @brief Inputs of LOG_SN that do not depend on the run floor, so the feature can be finished once the floor is known
-    (streaming tensors). peakGroupLogSN() with the floor reproduces the LOG_SN of stage2PeakGroupFeatures() exactly.
-  */
-  struct PeakGroupSNParts
-  {
-    bool valid = false;                ///< False when LOG_SN is 0 regardless of the floor.
-    std::uint8_t channels = 0;
-    std::array<float, 6> apex{};       ///< Trace value at the consensus apex per channel.
-    std::array<float, 6> median{};     ///< Median over the scan bins per channel.
-  };
-  /**
-    @brief Peak-group scores of one window (PLAN_PGSCORES); identical for targets and decoys and free of training.
-
-    Library weights w are the non-padding library intensities normalised to sum 1; area shares a are the fragment
-    areas inside the picked peak over their total. Without a picked peak of at least 3 scan bins and 2 fragments with
-    signal the cross-correlation lags are 10, the shapes 0 and the S/N, intensity and isotope features 0.
-
-    @param[in] tensor One window of TraceCollector::SAMPLE_SIZE floats.
-    @param[in] library_intensities Library intensity per channel.
-    @param[in] fragment_mz Fragment m/z per channel; zero marks padding.
-    @param[in] fragment_charge Library fragment charge per channel (0 = unknown, taken as 1).
-    @param[in] evidence Window evidence (ms2_mask).
-    @param[in] pg Core-window spectrum evidence of the window.
-    @param[in] tolerance_ppm The run's fragment tolerance (positive).
-    @param[in] floor The run's intensity floor (peakGroupNoiseFloor()).
-    @param[out] sn_parts If set, receives the floor-independent inputs of LOG_SN (see PeakGroupSNParts).
-  */
-  std::array<double, STAGE2_PEAKGROUP_FEATURES> stage2PeakGroupFeatures(const float* tensor, const std::array<double, 6>& library_intensities,
-                                                                        const std::array<double, 6>& fragment_mz,
-                                                                        const std::array<std::int8_t, 6>& fragment_charge,
-                                                                        const TraceEvidence& evidence, const PeakGroupEvidence& pg,
-                                                                        double tolerance_ppm, double floor, PeakGroupSNParts* sn_parts = nullptr);
-  /// Median nonzero mobility-summed per-bin fragment intensity over up to 20,000 evenly strided windows (1 if none).
-  double peakGroupNoiseFloor(const TraceCollector& traces);
-  /// Windows sampled by peakGroupNoiseFloor(): every peakGroupFloorStep(n)-th window index, from 0.
-  std::size_t peakGroupFloorStep(std::size_t windows);
-  /// Append the nonzero mobility-summed per-bin fragment intensities of one window tensor (peakGroupNoiseFloor() input).
-  void appendPeakGroupFloorValues(const float* tensor, std::vector<float>& values);
-  /// The floor from all sampled values (order does not matter); 1 if none.
-  double peakGroupFloorFromValues(std::vector<float>& values);
-  /// LOG_SN from its parts and the run floor.
-  double peakGroupLogSN(const PeakGroupSNParts& parts, double floor);
-
   /// b/y ion evidence of the isolating MS2 spectrum nearest the window apex (all theoretical ions, not only the library's six).
   enum class Stage2ByIonFeature : std::size_t
   {
@@ -303,9 +173,9 @@ namespace OpenMS::OpenDIA
   std::array<double, STAGE2_BYION_FEATURES> stage2ByIonFeatures(const TraceEvidence& evidence);
 
   /**
-    @brief Peak-group evidence of one search candidate, read from the OpenDIA -features_out table.
+    @brief Peak-group evidence of one search candidate.
 
-    These come from the candidate search, not from the CNN tensor, and are computed identically for targets and decoys.
+    These come from the candidate search, not from the trace tensor, and are computed identically for targets and decoys.
   */
   struct SearchPeakFeatures
   {
@@ -316,69 +186,13 @@ namespace OpenMS::OpenDIA
     double peak_width_seconds = 0.0;
     double abs_rt_error_seconds = 0.0; ///< |apex - (calibrated) library RT|; 0 without a library RT.
   };
-  /// Number of search columns appended by the SEARCH sets.
+  /// Number of search columns.
   constexpr std::size_t STAGE2_SEARCH_FEATURES = 4;
   /// Search column names: transition_support, log_matched_scans, log_peak_width, abs_library_rt_error.
   const std::array<std::string, STAGE2_SEARCH_FEATURES>& stage2SearchFeatureNames();
   /// The four search columns of one candidate: support, log1p(scans), log1p(width), |RT error|.
   std::array<double, STAGE2_SEARCH_FEATURES> stage2SearchFeatures(const SearchPeakFeatures& peak);
 
-  /**
-    @brief Read the OpenDIA -features_out candidate table, keyed by candidate_row (the window sample_id).
-
-    @param[in] path TSV with candidate_row, precursor_id, rt_apex, peak_width_seconds, transition_support,
-      matched_scans, has_library_rt and apex_rt_error_seconds columns.
-    @return Map from candidate_row to its peak-group features.
-    @throws std::invalid_argument If the file is missing, a column is absent, a value is not finite or a row is duplicated.
-  */
-  std::unordered_map<std::string, SearchPeakFeatures> readSearchPeakFeatures(const std::string& path);
-
-  /// One window entering the second-stage discriminant. Every row of one call must have the same feature count.
-  struct Stage2Row
-  {
-    std::string precursor_id;
-    bool is_decoy = false;
-    int fold = 0;
-    std::vector<double> features;
-  };
-
-  struct Stage2Options
-  {
-    int iterations = 3;            ///< Semi-supervised LDA rounds per fold.
-    double initial_fdr = 0.15;     ///< Positive cut in round 1, ranked by feature 0 (PyProphet ss_initial_fdr).
-    double iteration_fdr = 0.05;   ///< Positive cut in later rounds (PyProphet ss_iteration_fdr).
-    double ridge = 1e-3;           ///< Added to the diagonal of the standardised within-class covariance.
-    std::size_t min_positives = 10;
-  };
-
-  /// Fitted weights of one held-out fold, on standardised features.
-  struct Stage2FoldReport
-  {
-    int fold = 0;
-    std::size_t positives = 0;
-    std::size_t negatives = 0;
-    int iterations = 0;
-    std::vector<double> weights;
-  };
-
-  /**
-    @brief Cross-fitted semi-supervised linear discriminant (PyProphet-style) over the rows.
-
-    For each fold k, the discriminant is trained only on rows of the other folds:
-    rank by feature 0, take precursor winners, use target winners at decoy-count q <= initial_fdr as
-    positives and every decoy winner as negatives, fit a ridge LDA on standardised features, rescore and
-    repeat with iteration_fdr. The final weights score fold k. Scores of different folds are therefore
-    on different scales; standardise per fold before pooling (aggregatePairedCNNQValues pooled).
-
-    @param[in] rows Windows with folds 0..folds-1.
-    @param[in] folds Number of folds.
-    @param[in] options Iteration settings.
-    @param[out] report One entry per fold.
-    @return One score per row, in input order.
-    @throws std::invalid_argument If folds, features (non-finite, or differing counts) or a training set are invalid (too few positives or negatives).
-  */
-  std::vector<double> crossfitStage2LDA(const std::vector<Stage2Row>& rows, int folds, const Stage2Options& options,
-                                        std::vector<Stage2FoldReport>& report);
 }
 
 namespace OpenMS::OpenDIA

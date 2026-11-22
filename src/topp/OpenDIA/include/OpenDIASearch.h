@@ -72,22 +72,6 @@ namespace OpenMS::OpenDIA
     bool ion_mobility_array_as_vssc = false;
     /// Peak picker settings.
     XicPickerOptions picker;
-    /**
-      Experimental RT x ion-mobility picking (0 = off, the pooled 1-D search). With N > 0 bins, every (scan, fragment)
-      keeps its most intense point per 1/K0 bin of the mobility window (N equal bins over +-ion_mobility_tolerance_vssc).
-      The pooled trace (maximum over bins) is unchanged, so the 1-D candidates are the same. In addition, local maxima
-      of the [1 2 1]-smoothed scan x bin consensus away from the two edge bins seed a pick on the 3-bin mobility band
-      around them (pickXicPeaks on the band traces), nearest the window centre first. The band peak that contains the
-      seed becomes a candidate when no candidate apex lies within one scan of its apex, so a peak that a precursor at
-      another mobility inside the window masks or merges in the pooled trace gets its own candidate. At most
-      im_extra_peaks band peaks per precursor, after the picker.max_peaks pooled ones. Only the 4 most intense bins of a
-      (scan, fragment) are kept (bounded memory; the pooled maximum is always kept). Needs library and raw mobility;
-      other precursors are searched as before. im_bins is 0 or 3..16.
-    */
-    std::size_t im_bins = 0;
-    std::size_t im_extra_peaks = 2;
-    /// Band peaks with fewer supporting fragments are not added (cheap filter; pooled peaks use min_transitions).
-    std::size_t im_min_support = 1;
   };
 
   /**
@@ -136,8 +120,6 @@ namespace OpenMS::OpenDIA
 
     /// Whether compatible raw and library mobility metadata activated filtering.
     bool ionMobilityFilteringUsed() const;
-    /// Band peaks added by RT x mobility picking (im_bins > 0).
-    std::size_t mobilityPeaksAdded() const { return im_peaks_added_; }
 
     /**
       @brief Inspection side channel: write the native-scan traces of selected precursors.
@@ -184,12 +166,11 @@ namespace OpenMS::OpenDIA
       bool has_precursor_im = false;
     };
 
-    /// One matched fragment intensity (the most intense point of its mobility bin when im_bins > 0, else of the scan).
+    /// One matched fragment intensity (the most intense point of the scan).
     struct Entry
     {
       std::uint32_t cell = 0;
       std::uint16_t slot = 0;
-      std::uint8_t bin = 0;  ///< Mobility bin + 1 (im_bins > 0); 0 for the pooled most intense point.
       float intensity = 0.0f;
     };
 
@@ -239,8 +220,6 @@ namespace OpenMS::OpenDIA
     };
 
     static constexpr std::size_t CANDIDATES_PER_CHUNK = 256;
-    static constexpr std::size_t MAX_IM_BINS = 16;
-    static constexpr std::size_t IM_BINS_KEPT = 4;
     static constexpr std::size_t MAX_BATCH_CELLS = 32;
     static constexpr std::size_t MAX_BATCH_POINTS = 1'000'000;
 
@@ -252,13 +231,7 @@ namespace OpenMS::OpenDIA
     void closeCandidates_(std::size_t end);
     /// Picks one candidate and formats its peak and feature rows (feature rows without the leading row number).
     void pickCandidate_(std::size_t candidate_index, std::vector<float>& matrix, std::vector<double>& scratch,
-                        std::string& peak_rows, std::string& feature_rows, std::vector<SearchCandidate>* kept,
-                        std::size_t& im_added) const;
-    /// Band peaks of the RT x mobility consensus that the pooled peaks miss (im_bins > 0), appended to @p peaks.
-    /// @return The number of peaks added.
-    std::size_t addMobilityPeaks_(std::size_t candidate_index, const std::vector<std::pair<std::uint32_t, double>>& cells,
-                                  std::size_t fragments, const std::vector<double>& rts, std::vector<XicPeak>& peaks,
-                                  std::vector<double>& scratch) const;
+                        std::string& peak_rows, std::string& feature_rows, std::vector<SearchCandidate>* kept) const;
     /// Scans (global cell id, RT) of every lane isolating the candidate inside its RT window, by cell id.
     std::vector<std::pair<std::uint32_t, double>> candidateCells_(std::size_t candidate_index) const;
     void dumpTraces_(std::size_t candidate_index);
@@ -291,7 +264,6 @@ namespace OpenMS::OpenDIA
     bool finished_ = false;
     bool keep_candidates_ = false;
     std::vector<SearchCandidate> kept_;
-    std::size_t im_peaks_added_ = 0;
     bool has_library_im_candidates_ = false;
     bool ion_mobility_filtering_used_ = false;
   };

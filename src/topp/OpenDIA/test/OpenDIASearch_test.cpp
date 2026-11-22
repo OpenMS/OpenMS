@@ -302,58 +302,6 @@ int main()
     require(used && count(rows, "interferer") == 1 && count(rows, "target") == 0, "scalar VSSC mobility did not select the matching candidate");
   }
 
-  // RT x mobility picking (im_bins): a weak target at its library mobility, overlapping in RT with a strong precursor at
-  // another mobility inside the window, is merged into the strong peak in the pooled trace; the mobility band finds it.
-  {
-    const std::vector<OpenDIA::TransitionQuery> queries = {{"target", 500.0, 100.0, 0.0, false, 0.80, true},
-                                                           {"target", 500.0, 200.0, 0.0, false, 0.80, true},
-                                                           {"target", 500.0, 300.0, 0.0, false, 0.80, true}};
-    std::vector<MSSpectrum> spectra;
-    // Scans every 1 s, 0..40 s. Interferer at 1/K0 0.84 (inside +-0.05), apex 18 s, height 1000; target at 0.80, apex
-    // 23 s, height 60. With a pooled maximum the target sits on the interferer's tail and is no separate maximum.
-    for (int s = 0; s <= 40; ++s)
-    {
-      const double rt = s;
-      const double inter = 1000.0 * std::exp(-0.5 * std::pow((rt - 18.0) / 2.5, 2));
-      const double targ = 60.0 * std::exp(-0.5 * std::pow((rt - 23.0) / 1.5, 2));
-      std::vector<Peak1D> peaks;
-      std::vector<float> ims;
-      for (const double mz : {100.0, 200.0, 300.0})
-      {
-        if (inter > 1.0) { peaks.emplace_back(mz, inter); ims.push_back(0.84f); }
-        if (targ > 1.0) { peaks.emplace_back(mz + 0.001, targ); ims.push_back(0.80f); }
-      }
-      MSSpectrum spec = spectrum(rt, 500.0, peaks);
-      DataArrays::FloatDataArray im_array;
-      IMDataConverter::setIMUnit(im_array, DriftTimeUnit::VSSC);
-      im_array.assign(ims.begin(), ims.end());
-      spec.getFloatDataArrays().push_back(std::move(im_array));
-      spectra.push_back(std::move(spec));
-    }
-    OpenDIA::SearchOptions options = defaults();
-    options.ion_mobility_tolerance_vssc = 0.05;
-    const auto pooled = parse(run(queries, options, spectra));
-    const auto has_apex = [](const std::vector<Row>& rows, double rt) { return std::any_of(rows.begin(), rows.end(), [rt](const Row& r) { return std::abs(r.apex - rt) <= 1.0; }); };
-    require(has_apex(pooled, 18.0) && !has_apex(pooled, 23.0), "test premise: the pooled trace hides the target peak");
-    options.im_bins = 8;
-    const auto binned = parse(run(queries, options, spectra));
-    require(has_apex(binned, 23.0), "RT x mobility picking did not recover the masked target peak");
-    require(has_apex(binned, 18.0), "RT x mobility picking dropped the pooled peak");
-    // The pooled peaks are unchanged: every pooled row is reproduced first.
-    for (std::size_t i = 0; i < pooled.size(); ++i)
-    {
-      require(binned[i].apex == pooled[i].apex && binned[i].score == pooled[i].score, "im_bins changed a pooled candidate");
-    }
-    // Without raw mobility, im_bins has no effect.
-    std::vector<MSSpectrum> plain;
-    for (const auto& s : spectra) { MSSpectrum p = s; p.getFloatDataArrays().clear(); plain.push_back(std::move(p)); }
-    OpenDIA::SearchOptions off = defaults();
-    off.ion_mobility_tolerance_vssc = 0.05;
-    require(run(queries, off, plain) == run(queries, options, plain), "im_bins changed a search without raw mobility");
-    require(throws([&] { OpenDIA::SearchOptions bad = defaults(); bad.im_bins = 2; std::ostringstream o; OpenDIA::StreamSearch(queries, bad, o); }),
-            "im_bins 2 must be rejected");
-  }
-
   // A ppm fragment tolerance scales with m/z: 10 ppm keeps a 0.008 Da error at 1000 but rejects it at 100.
   {
     OpenDIA::SearchOptions options = defaults();

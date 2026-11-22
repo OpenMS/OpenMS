@@ -178,7 +178,7 @@ namespace OpenMS::OpenDIA
   /// Mobility half width (1/K0) of the trace tensor; also tells the matched filter the tensor's mobility bin width.
   constexpr double TRACE_IM_HALF_WIDTH = 0.03;
 
-  std::vector<std::string> runFeatureNames(bool pg_scores, bool extra_scores, bool mobility_apex, bool faint_features, bool matched_filter)
+  std::vector<std::string> runFeatureNames(bool extra_scores, bool matched_filter)
   {
     std::vector<std::string> n;
     for (const auto& s : stage2SearchFeatureNames()) n.push_back(s);
@@ -187,14 +187,8 @@ namespace OpenMS::OpenDIA
     for (const char* s : FragmentGrid::evidenceNames()) n.emplace_back(s);
     for (const char* s : FragmentGrid::deficitNames()) n.emplace_back(s);
     for (const char* s : InterferenceResolver::featureNames()) n.emplace_back(s);
-    if (pg_scores)
-      for (const auto& s : stage2PeakGroupFeatureNames()) n.push_back(s);
     if (extra_scores)
       for (const auto& s : stage2ExtraFeatureNames()) n.push_back(s);
-    if (mobility_apex)
-      for (const auto& s : stage2MobilityApexFeatureNames()) n.push_back(s);
-    if (faint_features)
-      for (const auto& s : stage2FaintFeatureNames()) n.push_back(s);
     if (matched_filter)
       for (const auto& s : stage2MatchedFilterFeatureNames()) n.push_back(s);
     return n;
@@ -405,36 +399,11 @@ namespace OpenMS::OpenDIA
         " ms2_tolerance_ppm=" + std::to_string(cal.ms2_tolerance_ppm) + " boundary_half_widths=" + std::to_string(cal.boundary_half_widths) +
         " seconds=" + std::to_string(seconds(t_run)));
 
-    // Experimental (PRECHECK_RTIM, -rt_refine_anchors): fit the ridge RT correction on the calibration anchors and use it
-    // in the only pass, at no extra cost (fewer training IDs than the second pass of -rt_refine).
-    if (options_.rt_refine_anchors && !options_.rt_refine)
-    {
-      std::vector<std::size_t> train;
-      std::vector<double> y;
-      std::vector<std::uint32_t> folds;
-      for (const auto& [id, run_rt] : anchors)
-      {
-        const auto it = lib.index.find(id);
-        if (it == lib.index.end()) continue;
-        const auto& p = lib.precursors[it->second];
-        if (p.decoy || !p.has_library_rt) continue;
-        train.push_back(it->second);
-        y.push_back(run_rt - cal.map(p.library_rt));
-        folds.push_back(static_cast<std::uint32_t>(CrossFitScorer::fnv1a(p.family) % 5));
-      }
-      const auto refined = refineRT_(train, y, folds, cal.tolerance_s, "RT refine (anchors)", say);
-      if (!refined.first.empty())
-      {
-        searchAndScore_(path, result, targeted, anchors, refined.first, refined.second, say, t_run);
-        return result;
-      }
-    }
-
     // Steps 2-6.
     searchAndScore_(path, result, targeted, anchors, {}, cal.tolerance_s, say, t_run);
     if (!options_.rt_refine) return result;
 
-    // Experimental (PRECHECK_RTIM): per-run ridge RT correction from the first pass's own q <= 0.01 target IDs, then a
+    // Per-run ridge RT correction from the first pass's own q <= 0.01 target IDs, then a
     // second search, extraction and scoring pass with corrected RTs and a narrower RT window.
     std::vector<std::uint32_t> best(lib.precursors.size(), UINT32_MAX);
     for (std::uint32_t i = 0; i < result.windows.size(); ++i)
@@ -543,9 +512,6 @@ namespace OpenMS::OpenDIA
       so.picker.valley_fraction = options_.search_valley_fraction;
       so.picker.boundary_half_widths = cal.boundary_half_widths;
       so.min_transitions = options_.min_transitions;
-      so.im_bins = cal.has_im ? options_.search_im_bins : 0;
-      so.im_extra_peaks = options_.search_im_extra_peaks;
-      so.im_min_support = options_.search_im_min_support;
       // The peak table text is not needed: candidates are kept in memory. A stream without a buffer discards it.
       std::ostream sink(nullptr);
       StreamSearch search(makeQueries(targeted), so, sink, nullptr);
@@ -554,7 +520,6 @@ namespace OpenMS::OpenDIA
       const auto t_finish = std::chrono::steady_clock::now();
       search.finish();
       search_io += " finish_s=" + std::to_string(seconds(t_finish));
-      if (so.im_bins > 0) search_io += " im_peaks_added=" + std::to_string(search.mobilityPeaksAdded());
       candidates = search.candidates();
       search_to_library.resize(search.precursorCount());
       for (std::size_t p = 0; p < search.precursorCount(); ++p) search_to_library[p] = lib.index.at(search.precursorId(p));
@@ -640,36 +605,26 @@ namespace OpenMS::OpenDIA
     // calibrated 1/K0 tolerance of each precursor, as the search is; without one it pools all points as before.
     if (cal.has_im && cal.im_tolerance > 0.0) grids.enableIonMobility(cal.im_tolerance, options_.im_array_as_vssc);
     grids.setThreads(options_.threads);
-    // The 6-fragment tensor uses the calibrated search library (as OpenDIACNN -apply_calibration_coordinates):
+    // The 6-fragment tensor uses the calibrated search library (the calibrated coordinates):
     // fragment m/z shifted by the ppm offset and precursor 1/K0 mapped by the calibrated line. That is exactly
     // `targeted` after step 2 (it differs from it only in the mapped RT, which TraceCollector does not read), so it is
     // reused instead of a further copy of the library.
     OpenDIA::Library& trace_library = targeted;
     // Streaming tensors: a window's 6-fragment tensor is held only while its RT range is being read. The tensor-derived
-    // features (boundary, and with -pg_scores the peak-group scores) are computed when the window closes and the tensor
-    // is released, so tensor memory follows the windows co-eluting at one time. The peak-group LOG_SN needs the run floor
-    // (median over a fixed stride of windows); its floor-independent parts are kept and it is finished after the pass.
+    // features are computed when the window closes and the tensor is released, so tensor memory follows the windows
+    // co-eluting at one time.
     // Every feature is computed from the same tensor values as before (byte-identical).
     Stage2ExtractionOptions extraction;
     extraction.rt_half_width = options_.grid_half_width_s;
     extraction.core_half_width = options_.core_half_width_s;
     extraction.im_half_width = TRACE_IM_HALF_WIDTH;
-    const bool pg = options_.pg_scores;
     const bool extra = options_.extra_scores;
-    const bool mapex = options_.mobility_apex && cal.has_im;
-    const bool faint = options_.faint_features;
     const bool mfilter = options_.matched_filter;
-    std::vector<float> boundary(n * STAGE2_BOUNDARY_FEATURES, 0.0f), peak_group(pg ? n * STAGE2_PEAKGROUP_FEATURES : 0, 0.0f);
+    std::vector<float> boundary(n * STAGE2_BOUNDARY_FEATURES, 0.0f);
     std::vector<float> extra_block(extra ? n * STAGE2_EXTRA_FEATURES : 0, 0.0f);
-    std::vector<float> mapex_block(mapex ? n * STAGE2_MOBILITY_APEX_FEATURES : 0, 0.0f);
-    std::vector<float> faint_block(faint ? n * STAGE2_FAINT_FEATURES : 0, 0.0f);
     std::vector<float> mf_block(mfilter ? n * STAGE2_MATCHED_FILTER_FEATURES : 0, 0.0f);
-    std::vector<PeakGroupSNParts> sn_parts(pg ? n : 0);
-    std::vector<float> floor_values;
-    const std::size_t floor_step = peakGroupFloorStep(n);
-    const double pg_ppm = cal.ms2_tolerance_ppm;
     const int threads = options_.threads;
-    TraceCollector::CloseCallback on_close = [&, pg, extra, mapex, faint, mfilter, pg_ppm, threads](const std::vector<std::uint32_t>& closed, const TraceCollector& tc)
+    TraceCollector::CloseCallback on_close = [&, extra, mfilter, threads](const std::vector<std::uint32_t>& closed, const TraceCollector& tc)
     {
 #pragma omp parallel num_threads(threads)
       {
@@ -681,26 +636,10 @@ namespace OpenMS::OpenDIA
           const float* tensor = tc.windowTensor(i, view);
           const auto b = stage2BoundaryFeatures(tensor, tc.libraryIntensities(i), tc.fragmentMZ(i), tc.evidence(i), extraction);
           for (std::size_t k = 0; k < STAGE2_BOUNDARY_FEATURES; ++k) boundary[i * STAGE2_BOUNDARY_FEATURES + k] = static_cast<float>(b[k]);
-          if (pg)
-          {
-            const auto p = stage2PeakGroupFeatures(tensor, tc.libraryIntensities(i), tc.fragmentMZ(i), tc.fragmentCharges(i), tc.evidence(i),
-                                                   tc.peakGroupEvidence(i), pg_ppm, 0.0, &sn_parts[i]);
-            for (std::size_t k = 0; k < STAGE2_PEAKGROUP_FEATURES; ++k) peak_group[i * STAGE2_PEAKGROUP_FEATURES + k] = static_cast<float>(p[k]);
-          }
           if (extra)
           {
             const auto x = stage2ExtraFeatures(tensor, tc.libraryIntensities(i), tc.fragmentMZ(i), tc.evidence(i), extraction);
             for (std::size_t k = 0; k < STAGE2_EXTRA_FEATURES; ++k) extra_block[i * STAGE2_EXTRA_FEATURES + k] = static_cast<float>(x[k]);
-          }
-          if (mapex)
-          {
-            const auto x = stage2MobilityApexFeatures(tc.mobilityHistogram(i), tc.libraryIntensities(i), tc.fragmentMZ(i));
-            for (std::size_t k = 0; k < STAGE2_MOBILITY_APEX_FEATURES; ++k) mapex_block[i * STAGE2_MOBILITY_APEX_FEATURES + k] = static_cast<float>(x[k]);
-          }
-          if (faint)
-          {
-            const auto x = stage2FaintFeatures(tensor, tc.libraryIntensities(i), tc.fragmentMZ(i), tc.evidence(i), extraction);
-            for (std::size_t k = 0; k < STAGE2_FAINT_FEATURES; ++k) faint_block[i * STAGE2_FAINT_FEATURES + k] = static_cast<float>(x[k]);
           }
           if (mfilter)
           {
@@ -709,22 +648,14 @@ namespace OpenMS::OpenDIA
           }
         }
       }
-      if (pg)
-      {
-        std::array<float, TraceCollector::SAMPLE_SIZE> view;
-        for (const std::uint32_t i : closed)
-          if (i % floor_step == 0) appendPeakGroupFloorValues(tc.windowTensor(i, view), floor_values);
-      }
     };
     TraceCollector traces(std::move(trace_windows), trace_library, 0.02, options_.grid_half_width_s, TRACE_IM_HALF_WIDTH, n, options_.trace_tensor_gb << 30,
                           on_close);
     traces.setIonMobilityArrayAsVSSC(options_.im_array_as_vssc);
-    if (options_.trace_tolerance_ppm > 0.0) traces.setFragmentTolerancePpm(options_.trace_tolerance_ppm);
+    traces.setFragmentTolerancePpm(options_.trace_tolerance_ppm);
     traces.setThreads(options_.threads);
     traces.enableEvidence(20.0, options_.core_half_width_s);
     traces.enableByIonCounts(trace_library, options_.byion_ppm, options_.byion_intensity_min);
-    if (options_.pg_scores) traces.enablePeakGroupEvidence(cal.ms2_tolerance_ppm);
-    if (mapex) traces.enableMobilityHistogram();
     // The collector has copied what it needs (fragments, sequences' ions), so the calibrated library copy is dead:
     // release it before the extraction pass, where the run's memory peaks.
     targeted = OpenDIA::Library();
@@ -746,7 +677,7 @@ namespace OpenMS::OpenDIA
 
     // 5. Features.
     const auto t_features = std::chrono::steady_clock::now();
-    const auto names = runFeatureNames(options_.pg_scores, options_.extra_scores, mapex, faint, mfilter);
+    const auto names = runFeatureNames(options_.extra_scores, mfilter);
     const std::size_t d = names.size();
     result.feature_names = names;
     result.features.assign(n * d, 0.0f);
@@ -756,8 +687,6 @@ namespace OpenMS::OpenDIA
                                                             2.0 * options_.grid_half_width_s / InterferenceResolver::BINS, options_.threads,
                                                             nullptr, cal.has_im ? 2.0 * cal.im_tolerance : 0.0);
     const double interference_s = seconds(t_interference);
-    const double pg_floor = pg ? peakGroupFloorFromValues(floor_values) : 0.0;
-    std::vector<float>().swap(floor_values);
 #pragma omp parallel num_threads(options_.threads)
     {
 #pragma omp for schedule(dynamic, 1024)
@@ -779,26 +708,13 @@ namespace OpenMS::OpenDIA
         const auto& gp = grid_precursors[grid_windows[i].precursor];
         for (float v : FragmentGrid::deficit(grid_windows[i].core_area, gp.library, gp.search, noise)) f[o++] = v;
         for (std::size_t k = 0; k < InterferenceResolver::FEATURES; ++k) f[o++] = interference[i * InterferenceResolver::FEATURES + k];
-        if (pg)
-        {
-          for (std::size_t k = 0; k < STAGE2_PEAKGROUP_FEATURES; ++k)
-          {
-            const auto feature = static_cast<std::size_t>(Stage2PeakGroupFeature::LOG_SN);
-            f[o++] = k == feature ? static_cast<float>(peakGroupLogSN(sn_parts[i], pg_floor)) : peak_group[i * STAGE2_PEAKGROUP_FEATURES + k];
-          }
-        }
         if (extra)
           for (std::size_t k = 0; k < STAGE2_EXTRA_FEATURES; ++k) f[o++] = extra_block[i * STAGE2_EXTRA_FEATURES + k];
-        if (mapex)
-          for (std::size_t k = 0; k < STAGE2_MOBILITY_APEX_FEATURES; ++k) f[o++] = mapex_block[i * STAGE2_MOBILITY_APEX_FEATURES + k];
-        if (faint)
-          for (std::size_t k = 0; k < STAGE2_FAINT_FEATURES; ++k) f[o++] = faint_block[i * STAGE2_FAINT_FEATURES + k];
         if (mfilter)
           for (std::size_t k = 0; k < STAGE2_MATCHED_FILTER_FEATURES; ++k) f[o++] = mf_block[i * STAGE2_MATCHED_FILTER_FEATURES + k];
       }
     }
-    say("Features: " + std::to_string(d) + " per window, noise=" + std::to_string(noise) +
-        (options_.pg_scores ? " pg_floor=" + std::to_string(pg_floor) : std::string()) + " seconds=" + std::to_string(seconds(t_features)) +
+    say("Features: " + std::to_string(d) + " per window, noise=" + std::to_string(noise) + " seconds=" + std::to_string(seconds(t_features)) +
         " interference_seconds=" + std::to_string(interference_s));
 
     // 6. Scorer.
@@ -885,8 +801,6 @@ namespace OpenMS::OpenDIA
     CrossFitScorer::Options so;
     so.seed = options_.seed;
     so.threads = options_.threads;
-    so.hard_negative_fraction = options_.hard_decoys;
-    if (!options_.scorer_self_q.empty()) so.self_q = options_.scorer_self_q;
     auto scored = CrossFitScorer::run(input, so, [&](const std::string& l) { say("Scorer " + l); });
     if (options_.sibling_features)
     {

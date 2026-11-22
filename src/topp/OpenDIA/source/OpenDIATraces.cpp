@@ -143,7 +143,6 @@ namespace OpenMS::OpenDIA
       {
         sample.fragment_mz[i] = fragments[i]->product_mz;
         sample.library_intensity[i] = fragments[i]->library_intensity;
-        sample.fragment_charge[i] = fragments[i]->fragment_charge;
       }
       samples_.push_back(std::move(sample));
     }
@@ -153,7 +152,6 @@ namespace OpenMS::OpenDIA
     im_bins_ = std::any_of(samples_.begin(), samples_.end(), [](const Sample& s) { return s.precursor_im > 0.0; }) ? IM_BINS : 1;
     const std::size_t stored = SAMPLE_SIZE / IM_BINS * im_bins_;
     stride_ = stored;
-    tensor_floats_ = stored;
     if (on_close_)
     {
       // Streaming: tensors live in reusable slots between a window's first spectrum and its closing.
@@ -203,14 +201,6 @@ namespace OpenMS::OpenDIA
     }
   }
 
-  void TraceCollector::enablePeakGroupEvidence(double ppm)
-  {
-    require(evidence_on_, "Peak-group evidence requires enableEvidence() first.");
-    require(std::isfinite(ppm) && ppm > 0.0, "Peak-group evidence tolerance must be finite and positive.");
-    pg_ppm_ = ppm;
-    pg_evidence_.assign(samples_.size(), PeakGroupEvidence{});
-  }
-
   std::size_t TraceCollector::rtBin_(double rt, double apex_rt) const
   {
     return std::min(RT_BINS - 1, static_cast<std::size_t>(
@@ -222,27 +212,6 @@ namespace OpenMS::OpenDIA
     require(std::isfinite(ppm) && ppm >= 0.0, "Fragment ppm tolerance must be finite and non-negative.");
     require(chunks_.empty() && held_ == 0, "setFragmentTolerancePpm() after the first spectrum.");
     fragment_ppm_ = ppm;
-  }
-
-  void TraceCollector::enableMobilityHistogram()
-  {
-    require(evidence_on_, "The mobility histogram requires enableEvidence() first.");
-    require(static_cast<bool>(on_close_), "The mobility histogram requires streaming mode.");
-    require(chunks_.empty() && held_ == 0, "enableMobilityHistogram() after the first spectrum.");
-    if (mobility_histogram_ || im_bins_ != IM_BINS) return;  // no library mobility: nothing to histogram
-    mobility_histogram_ = true;
-    // The histogram shares the window's slot, so the held-window budget counts it.
-    max_held_ = max_held_ * stride_ / (stride_ + MOBILITY_HISTOGRAM_SIZE);
-    require(max_held_ > 0, "Trace tensor budget holds no window.");
-    stride_ += MOBILITY_HISTOGRAM_SIZE;
-  }
-
-  const float* TraceCollector::mobilityHistogram(std::size_t i) const
-  {
-    require(i < samples_.size(), "Window index out of range.");
-    if (!mobility_histogram_) return nullptr;
-    const float* stored = storedTensor_(i);
-    return stored == nullptr ? nullptr : stored + tensor_floats_;
   }
 
   void TraceCollector::enableByIonCounts(const OpenDIA::Library& library, double ppm, double intensity_min)
@@ -531,15 +500,6 @@ namespace OpenMS::OpenDIA
           if (compatible_im)
           {
             const double im = mobilities != nullptr ? (*mobilities)[point - spectrum.begin()] : scalar_im;
-            if (core && mobility_histogram_ && !sample.saw_missing_im && std::isfinite(im) && im > 0.0)
-            {
-              const double offset = im - sample.precursor_im + MOBILITY_HISTOGRAM_BINS * MOBILITY_HISTOGRAM_BIN / 2.0;
-              if (offset >= 0.0)
-              {
-                const auto bin = static_cast<std::size_t>(offset / MOBILITY_HISTOGRAM_BIN);
-                if (bin < MOBILITY_HISTOGRAM_BINS) tensor[tensor_floats_ + fragment * MOBILITY_HISTOGRAM_BINS + bin] += static_cast<float>(intensity);
-              }
-            }
             if (!std::isfinite(im) || im <= 0.0 || std::abs(im - sample.precursor_im) > im_half_width_)
             {
               continue;
@@ -558,38 +518,6 @@ namespace OpenMS::OpenDIA
           {
             evidence->ms2_ppm_sum += intensity * (point->getMZ() - mz) / mz * 1e6;
             evidence->ms2_weight += intensity;
-          }
-        }
-        if (core && !pg_evidence_.empty())
-        {
-          // Sum of the points within pg_ppm_ of target (and the tensor's mobility window); optionally their ppm sum.
-          const auto sum_at = [&](double target, double* ppm_sum)
-          {
-            const double tol = target * pg_ppm_ * 1e-6;
-            double total = 0.0;
-            for (auto point = mz_index_.lowerBound(target - tol); point != spectrum.end() && point->getMZ() <= target + tol; ++point)
-            {
-              const double intensity = point->getIntensity();
-              if (!std::isfinite(intensity) || intensity <= 0.0) continue;
-              if (compatible_im)
-              {
-                const double im = mobilities != nullptr ? (*mobilities)[point - spectrum.begin()] : scalar_im;
-                if (!std::isfinite(im) || im <= 0.0 || std::abs(im - sample.precursor_im) > im_half_width_) continue;
-              }
-              total += intensity;
-              if (ppm_sum != nullptr) *ppm_sum += intensity * (point->getMZ() - target) / target * 1e6;
-            }
-            return total;
-          };
-          auto& pg = pg_evidence_[index];
-          double ppm_sum = 0.0;
-          pg.mono[fragment] += static_cast<float>(sum_at(mz, &ppm_sum));
-          pg.ppm_sum[fragment] += static_cast<float>(ppm_sum);
-          const double z = std::abs(sample.fragment_charge[fragment] != 0 ? static_cast<double>(sample.fragment_charge[fragment]) : 1.0);
-          for (std::size_t iso = 0; iso < PeakGroupEvidence::ISOTOPES; ++iso)
-          {
-            pg.isotope[fragment][iso] += static_cast<float>(sum_at(mz + (iso + 1) * 1.0033548 / z, nullptr));
-            pg.before[fragment][iso] += static_cast<float>(sum_at(mz - 1.0033548 / static_cast<double>(iso + 1), nullptr));
           }
         }
       }
@@ -742,7 +670,6 @@ namespace OpenMS::OpenDIA
       buffer.fill(0.0f);
       return buffer.data();
     }
-    // The tensor is the first SAMPLE_SIZE floats of the slot (an optional mobility histogram follows it).
     if (im_bins_ == IM_BINS) { return stored; }
     buffer.fill(0.0f);
     for (std::size_t k = 0; k < FRAGMENTS * RT_BINS; ++k) { buffer[k * IM_BINS + IM_BINS / 2] = stored[k]; }

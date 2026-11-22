@@ -54,23 +54,6 @@ namespace OpenMS::OpenDIA
   };
 
   /**
-    @brief Optional per-window fragment spectrum evidence (TraceCollector::enablePeakGroupEvidence()).
-
-    Sums over the isolating MS2 spectra within the core half width of the apex, points within the tolerance and the
-    tensor's mobility window, per tensor channel: the monoisotope, its isotopes +1..+4 at the library fragment charge and
-    the positions one 13C spacing before it at charges 1..4.
-  */
-  struct PeakGroupEvidence
-  {
-    static constexpr std::size_t FRAGMENTS = 6;
-    static constexpr std::size_t ISOTOPES = 4;
-    std::array<float, FRAGMENTS> mono{};    ///< Monoisotope intensity.
-    std::array<float, FRAGMENTS> ppm_sum{}; ///< Sum of intensity x signed ppm of the monoisotope points.
-    std::array<std::array<float, ISOTOPES>, FRAGMENTS> isotope{}; ///< Isotope i + 1 intensity.
-    std::array<std::array<float, ISOTOPES>, FRAGMENTS> before{};  ///< Intensity at mono - 1.0033548 / (c + 1).
-  };
-
-  /**
     @brief Extract bounded raw RT/IM intensity tensors for a specified sample of candidates.
 
     This second streaming pass retains no run-wide spectra. Six library fragments
@@ -199,33 +182,6 @@ namespace OpenMS::OpenDIA
     const TraceEvidence& evidence(std::size_t i) const;
     /// Matched b and y ion counts of sample i (TraceEvidence::byion_b/_y), also after the window closed.
     std::array<std::uint16_t, 2> byIonCounts(std::size_t i) const;
-    /**
-      @brief Also collect PeakGroupEvidence. Requires enableEvidence() first (its core half width is used).
-      @param[in] ppm Matching half width in ppm around each target m/z.
-      @throws Exception::InvalidParameter If evidence is not enabled or @p ppm is not positive.
-    */
-    void enablePeakGroupEvidence(double ppm);
-    /// Peak-group evidence of sample i; requires enablePeakGroupEvidence().
-    const PeakGroupEvidence& peakGroupEvidence(std::size_t i) const { return pg_evidence_.at(i); }
-    /// Bins and width of the optional per-fragment core-window 1/K0 histogram (enableMobilityHistogram()).
-    static constexpr std::size_t MOBILITY_HISTOGRAM_BINS = 30;
-    static constexpr double MOBILITY_HISTOGRAM_BIN = 0.004;
-    static constexpr std::size_t MOBILITY_HISTOGRAM_SIZE = FRAGMENTS * MOBILITY_HISTOGRAM_BINS;
-    /**
-      @brief Also collect, per window and fragment, a 1/K0 histogram of the points in the core window (enableEvidence()).
-
-      MOBILITY_HISTOGRAM_BINS bins of MOBILITY_HISTOGRAM_BIN 1/K0 centred on the window's precursor mobility (+-0.06),
-      points within the fragment m/z tolerance and within the core half width of the apex. The histogram is wider than
-      the tensor's mobility window, so it shows where the window's own mobility apex lies. It is held in the window's
-      streaming slot (memory follows the open windows) and read with mobilityHistogram() in the close callback. Windows
-      without compatible mobility data keep an empty histogram. Requires streaming mode and enableEvidence(), and must
-      be called before the first spectrum. The tensor and all other evidence are unchanged.
-    */
-    void enableMobilityHistogram();
-    /// Core-window 1/K0 histogram of window i, [fragment][bin]; nullptr unless enabled and the window received signal.
-    const float* mobilityHistogram(std::size_t i) const;
-    /// Library fragment charge per tensor channel (0 if unknown or padding).
-    const std::array<std::int8_t, FRAGMENTS>& fragmentCharges(std::size_t i) const { return samples_.at(i).fragment_charge; }
     /// RT half width of the tensor in seconds.
     double rtHalfWidth() const { return rt_half_width_; }
 
@@ -241,7 +197,6 @@ namespace OpenMS::OpenDIA
       bool saw_missing_im = false;
       std::array<double, FRAGMENTS> fragment_mz{};
       std::array<double, FRAGMENTS> library_intensity{};
-      std::array<std::int8_t, FRAGMENTS> fragment_charge{};
     };
     std::vector<Sample> samples_;
     std::vector<TraceWindow> windows_;  ///< Candidate identities by sample, until releaseWindowIds().
@@ -270,16 +225,12 @@ namespace OpenMS::OpenDIA
     std::vector<std::array<std::uint32_t, 3>> byion_range_; ///< Per sample: first b, first y, end in byion_mz_.
     double byion_ppm_ = 0.0;
     double byion_intensity_min_ = 0.0;
-    std::vector<PeakGroupEvidence> pg_evidence_;
-    double pg_ppm_ = 0.0;
     // Streaming mode (see the constructor).
     static constexpr std::uint32_t NO_SLOT = std::numeric_limits<std::uint32_t>::max();
     static constexpr std::size_t SLOT_CHUNK = 16384;
     static constexpr std::size_t CLOSE_BATCH = 4096;
     CloseCallback on_close_;
     std::size_t stride_ = 0;                         ///< Stored floats per window.
-    std::size_t tensor_floats_ = 0;                  ///< Tensor floats per window (stride_ minus the optional histogram).
-    bool mobility_histogram_ = false;
     std::size_t max_held_ = 0;                       ///< Tensor budget in windows (streaming mode).
     std::vector<std::unique_ptr<float[]>> chunks_;   ///< Slot storage, SLOT_CHUNK slots per chunk.
     std::vector<std::uint32_t> slot_of_;

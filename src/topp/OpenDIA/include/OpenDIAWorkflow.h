@@ -79,7 +79,7 @@ namespace OpenMS::OpenDIA
     /// Multiplies the calibrated 1/K0 half width used by the search, the grid, the trace tensor and the interference
     /// resolver (PLAN_IMNARROW D pass: 0.6; 1 = as calibrated). The written calibration JSON keeps the calibrated value.
     double im_tolerance_scale = 0.6;
-    double trace_tolerance_ppm = 10.0;  ///< Trace-tensor fragment half width in ppm (PLAN_TRPPM D pass: 10); 0 = the earlier fixed 0.02 Da.
+    double trace_tolerance_ppm = 10.0;  ///< Trace-tensor fragment half width in ppm (PLAN_TRPPM D pass: 10). Must be positive.
     std::size_t min_transitions = 1;
     std::size_t population_min_support = 3;     ///< Pairs whose best candidate has fewer supporting fragments are dropped.
     double grid_half_width_s = 15.0;
@@ -92,14 +92,8 @@ namespace OpenMS::OpenDIA
     std::uint64_t seed = 0;
     int threads = 1;
     bool im_array_as_vssc = false;
-    bool pg_scores = false;  ///< PLAN_PGSCORES: append the 10 peak-group scores (Stage2PeakGroupFeature).
     bool extra_scores = true;  ///< PLAN_EXTRA (D pass, H reported): append the evidence block (Stage2ExtraFeature).
-    bool mobility_apex = false;  ///< Experimental (PRECHECK_IMFEAT): append the own-mobility-apex block (Stage2MobilityApexFeature).
-    bool faint_features = false;  ///< Experimental (PRECHECK_FAINT): append pooled p_cos_apex and p_local_sn.
     bool matched_filter = true;  ///< The 9 mt_ matched-filter features (PLAN_MT D pass); -no_matched_filter turns them off.
-    std::size_t search_im_bins = 0;  ///< Experimental RT x ion-mobility candidate picking (SearchOptions::im_bins); 0 off.
-    std::size_t search_im_extra_peaks = 2;   ///< SearchOptions::im_extra_peaks.
-    std::size_t search_im_min_support = 1;   ///< SearchOptions::im_min_support.
     std::size_t trace_tensor_gb = 64;  ///< Hard cap on the 6-fragment trace tensor (raw floats), in GiB.
     /// Optional: reuse an OpenDIACalibrate JSON and anchor TSV instead of calibrating (reproduction of earlier runs).
     std::string calibration_json;
@@ -107,12 +101,9 @@ namespace OpenMS::OpenDIA
     /// Per-run ridge RT correction and a second search/extract/score pass (PLAN_RTR D pass; -no_rt_refine turns it off).
     bool rt_refine = true;
     std::size_t rt_refine_min_ids = 500;  ///< Fewer training IDs skip the refinement.
-    bool rt_refine_anchors = false;
     bool sibling_features = true;  ///< Two-stage scoring with 4 charge-state sibling features (PLAN_SIB D pass; -no_sibling_features turns it off).
     bool gbm_rescore = true;  ///< Final hard-negative HistGBM rescoring (PLAN_GBT D pass; -no_gbm_rescore turns it off).
     double gbm_hard_fraction = 0.02;  ///< gbmRescore hard decoy precursor fraction; 0 = all decoy winners.
-    double hard_decoys = 0.0;  ///< Experimental (PRECHECK_BT156): CrossFitScorer::Options::hard_negative_fraction.
-    std::vector<double> scorer_self_q;  ///< Empty keeps CrossFitScorer::Options::self_q.  ///< Experimental: fit the RT correction on the calibration anchors and use it in the only pass.
   };
 
   /// One scored candidate window of the run (the population), with its features and result.
@@ -179,8 +170,7 @@ namespace OpenMS::OpenDIA
     Log log_;
   };
 
-  /// Feature names of RunAnalysis, in column order (with the PLAN_PGSCORES block when @p pg_scores, then the
-  /// experimental evidence block when @p extra_scores).
-  std::vector<std::string> runFeatureNames(bool pg_scores = false, bool extra_scores = false, bool mobility_apex = false,
-                                            bool faint_features = false, bool matched_filter = false);
+  /// Feature names of RunAnalysis, in column order (the evidence block when @p extra_scores, the mt_ block when
+  /// @p matched_filter).
+  std::vector<std::string> runFeatureNames(bool extra_scores = false, bool matched_filter = false);
 }
