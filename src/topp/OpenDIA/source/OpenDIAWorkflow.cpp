@@ -178,7 +178,7 @@ namespace OpenMS::OpenDIA
   /// Mobility half width (1/K0) of the trace tensor; also tells the matched filter the tensor's mobility bin width.
   constexpr double TRACE_IM_HALF_WIDTH = 0.03;
 
-  std::vector<std::string> runFeatureNames(bool extra_scores, bool matched_filter)
+  std::vector<std::string> runFeatureNames()
   {
     std::vector<std::string> n;
     for (const auto& s : stage2SearchFeatureNames()) n.push_back(s);
@@ -187,10 +187,8 @@ namespace OpenMS::OpenDIA
     for (const char* s : FragmentGrid::evidenceNames()) n.emplace_back(s);
     for (const char* s : FragmentGrid::deficitNames()) n.emplace_back(s);
     for (const char* s : InterferenceResolver::featureNames()) n.emplace_back(s);
-    if (extra_scores)
-      for (const auto& s : stage2ExtraFeatureNames()) n.push_back(s);
-    if (matched_filter)
-      for (const auto& s : stage2MatchedFilterFeatureNames()) n.push_back(s);
+    for (const auto& s : stage2ExtraFeatureNames()) n.push_back(s);
+    for (const auto& s : stage2MatchedFilterFeatureNames()) n.push_back(s);
     return n;
   }
 
@@ -618,13 +616,11 @@ namespace OpenMS::OpenDIA
     extraction.rt_half_width = options_.grid_half_width_s;
     extraction.core_half_width = options_.core_half_width_s;
     extraction.im_half_width = TRACE_IM_HALF_WIDTH;
-    const bool extra = options_.extra_scores;
-    const bool mfilter = options_.matched_filter;
     std::vector<float> boundary(n * STAGE2_BOUNDARY_FEATURES, 0.0f);
-    std::vector<float> extra_block(extra ? n * STAGE2_EXTRA_FEATURES : 0, 0.0f);
-    std::vector<float> mf_block(mfilter ? n * STAGE2_MATCHED_FILTER_FEATURES : 0, 0.0f);
+    std::vector<float> extra_block(n * STAGE2_EXTRA_FEATURES, 0.0f);
+    std::vector<float> mf_block(n * STAGE2_MATCHED_FILTER_FEATURES, 0.0f);
     const int threads = options_.threads;
-    TraceCollector::CloseCallback on_close = [&, extra, mfilter, threads](const std::vector<std::uint32_t>& closed, const TraceCollector& tc)
+    TraceCollector::CloseCallback on_close = [&, threads](const std::vector<std::uint32_t>& closed, const TraceCollector& tc)
     {
 #pragma omp parallel num_threads(threads)
       {
@@ -636,16 +632,10 @@ namespace OpenMS::OpenDIA
           const float* tensor = tc.windowTensor(i, view);
           const auto b = stage2BoundaryFeatures(tensor, tc.libraryIntensities(i), tc.fragmentMZ(i), tc.evidence(i), extraction);
           for (std::size_t k = 0; k < STAGE2_BOUNDARY_FEATURES; ++k) boundary[i * STAGE2_BOUNDARY_FEATURES + k] = static_cast<float>(b[k]);
-          if (extra)
-          {
-            const auto x = stage2ExtraFeatures(tensor, tc.libraryIntensities(i), tc.fragmentMZ(i), tc.evidence(i), extraction);
-            for (std::size_t k = 0; k < STAGE2_EXTRA_FEATURES; ++k) extra_block[i * STAGE2_EXTRA_FEATURES + k] = static_cast<float>(x[k]);
-          }
-          if (mfilter)
-          {
-            const auto x = stage2MatchedFilterFeatures(tensor, tc.libraryIntensities(i), tc.fragmentMZ(i), tc.evidence(i), extraction);
-            for (std::size_t k = 0; k < STAGE2_MATCHED_FILTER_FEATURES; ++k) mf_block[i * STAGE2_MATCHED_FILTER_FEATURES + k] = static_cast<float>(x[k]);
-          }
+          const auto x = stage2ExtraFeatures(tensor, tc.libraryIntensities(i), tc.fragmentMZ(i), tc.evidence(i), extraction);
+          for (std::size_t k = 0; k < STAGE2_EXTRA_FEATURES; ++k) extra_block[i * STAGE2_EXTRA_FEATURES + k] = static_cast<float>(x[k]);
+          const auto m = stage2MatchedFilterFeatures(tensor, tc.libraryIntensities(i), tc.fragmentMZ(i), tc.evidence(i), extraction);
+          for (std::size_t k = 0; k < STAGE2_MATCHED_FILTER_FEATURES; ++k) mf_block[i * STAGE2_MATCHED_FILTER_FEATURES + k] = static_cast<float>(m[k]);
         }
       }
     };
@@ -677,7 +667,7 @@ namespace OpenMS::OpenDIA
 
     // 5. Features.
     const auto t_features = std::chrono::steady_clock::now();
-    const auto names = runFeatureNames(options_.extra_scores, mfilter);
+    const auto names = runFeatureNames();
     const std::size_t d = names.size();
     result.feature_names = names;
     result.features.assign(n * d, 0.0f);
@@ -708,10 +698,8 @@ namespace OpenMS::OpenDIA
         const auto& gp = grid_precursors[grid_windows[i].precursor];
         for (float v : FragmentGrid::deficit(grid_windows[i].core_area, gp.library, gp.search, noise)) f[o++] = v;
         for (std::size_t k = 0; k < InterferenceResolver::FEATURES; ++k) f[o++] = interference[i * InterferenceResolver::FEATURES + k];
-        if (extra)
-          for (std::size_t k = 0; k < STAGE2_EXTRA_FEATURES; ++k) f[o++] = extra_block[i * STAGE2_EXTRA_FEATURES + k];
-        if (mfilter)
-          for (std::size_t k = 0; k < STAGE2_MATCHED_FILTER_FEATURES; ++k) f[o++] = mf_block[i * STAGE2_MATCHED_FILTER_FEATURES + k];
+        for (std::size_t k = 0; k < STAGE2_EXTRA_FEATURES; ++k) f[o++] = extra_block[i * STAGE2_EXTRA_FEATURES + k];
+        for (std::size_t k = 0; k < STAGE2_MATCHED_FILTER_FEATURES; ++k) f[o++] = mf_block[i * STAGE2_MATCHED_FILTER_FEATURES + k];
       }
     }
     say("Features: " + std::to_string(d) + " per window, noise=" + std::to_string(noise) + " seconds=" + std::to_string(seconds(t_features)) +
@@ -802,9 +790,8 @@ namespace OpenMS::OpenDIA
     so.seed = options_.seed;
     so.threads = options_.threads;
     auto scored = CrossFitScorer::run(input, so, [&](const std::string& l) { say("Scorer " + l); });
-    if (options_.sibling_features)
     {
-      // PRECHECK_JOINT2: siblings share the family fold, so first-pass scores are out-of-fold for each other.
+      // Charge-state sibling rescoring (PLAN_SIB): siblings share the family fold, so first-pass scores are out-of-fold for each other.
       std::unordered_map<std::string, std::uint32_t> group_of;
       std::vector<std::uint32_t> precursor_group(lib.precursors.size()), group_precursors;
       for (std::uint32_t pi = 0; pi < lib.precursors.size(); ++pi)
@@ -841,9 +828,9 @@ namespace OpenMS::OpenDIA
       scored = CrossFitScorer::run(input, so, [&](const std::string& l) { say("Scorer " + l); });
       say("Sibling features: windows with a co-eluting sibling target=" + std::to_string(co_t) + " decoy=" + std::to_string(co_d) + "; rescored");
     }
-    if (options_.gbm_rescore)
     {
-      auto gbm = gbmRescore(input, scored.score, options_.gbm_hard_fraction, options_.seed, options_.threads, say);
+      // Hard-negative GBM rescoring (PLAN_GBT) on the hardest 2 % of decoy precursors.
+      auto gbm = gbmRescore(input, scored.score, 0.02, options_.seed, options_.threads, say);
       scored.score = std::move(gbm.score);
       scored.q_value = std::move(gbm.q_value);
     }

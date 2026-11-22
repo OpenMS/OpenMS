@@ -218,7 +218,7 @@ int main()
     require(f[0] == 7.0 && f[1] == 9.0, "byion features copy the counts");
   }
 
-  // 12. Experimental evidence block (-extra_scores): copies of the extraction features, core areas and mobility.
+  // 12. Evidence block: copies of the extraction features, core areas and mobility.
   {
     std::vector<std::vector<double>> p;
     for (std::size_t c = 0; c < 6; ++c) p.push_back(gaussian(library[c], 16.0, 1.5));
@@ -241,7 +241,7 @@ int main()
     require(z[8] == 0.0 && z[9] == IM / 2.0 && z[10] == 0.0 && z[11] == 0.0, "empty window");
   }
 
-  // 15. PRECHECK_MF matched-filter features: names, no signal, coherent peak, single interferer, robust z by hand.
+  // 15. Matched-filter features: names, no signal, coherent peak, single interferer, robust z by hand.
   {
     const auto& names = OpenDIA::stage2MatchedFilterFeatureNames();
     require(names.size() == 9 && names[0] == "mt_z_med" && names[3] == "mt_n_z3" && names[8] == "mt_llr", "matched-filter names are stable");

@@ -37,14 +37,12 @@ namespace OpenMS
       registerOutputFile_("out_diagnostics", "<file>", "", "Optional per panel member stage TSV (best RT, score, q per stage and the stage maps), written also when calibration fails", false);
       registerIntOption_("panel_targets", "<n>", 10000, "Targets sampled evenly over library RT; each brings its paired decoy", false);
       setMinInt_("panel_targets", 50);
-      registerIntOption_("max_panel_targets", "<n>", 0, "Experimental: if calibration fails for too few anchors, retry with a 4x larger panel up to this many targets (one more raw pass per retry; memory grows ~75 KB per pair). 0 disables", false);
-      setMinInt_("max_panel_targets", 0);
       registerDoubleOption_("search_ppm", "<ppm>", 15.0, "Uncalibrated fragment search half width", false);
       registerDoubleOption_("search_im", "<1/K0>", 0.05, "Uncalibrated 1/K0 search half width around the library mobility", false);
       registerDoubleOption_("anchor_fdr", "<fraction>", 0.01, "Paired target-decoy q-value cut for anchors", false);
-      registerIntOption_("window_panel_targets", "<n>", 0, "Experimental: if stage 1 succeeds but stage 3 finds too few anchors, make one more raw pass with a panel of up to this many targets, "
-                         "collected only inside the stage-3 windows around the stage-1 map, and repeat stages 3 and 4 on it (stage 2 is not used). "
-                         "Runs after any -max_panel_targets escalation. Memory ~10 KB per pair on a short gradient. 0 disables", false);
+      registerIntOption_("window_panel_targets", "<n>", 0, "If stage 1 succeeds but stage 3 finds too few anchors, make one more raw pass with a panel of up to this many targets, "
+                         "collected only inside the stage-3 windows around the stage-1 map, and repeat stages 3 and 4 on it (stage 2 is not used; "
+                         "OpenDIAWorkflow uses 300000). Memory ~10 KB per pair on a short gradient. 0 disables", false);
       setMinInt_("window_panel_targets", 0);
       registerFlag_("im_array_as_vssc", "Interpret a spectrum ion-mobility array whose unit is not CCS as 1/K0, e.g. unitless mzML 'Ion Mobility' arrays");
     }
@@ -88,12 +86,6 @@ namespace OpenMS
       const std::vector<std::pair<std::string, std::string>> traml_ids(traml_map.begin(), traml_map.end());
 
       const auto start = std::chrono::steady_clock::now();
-      const auto max_panel = static_cast<std::size_t>(getIntOption_("max_panel_targets"));
-      if (max_panel != 0 && max_panel <= options.panel_targets)
-      {
-        writeLogError_("max_panel_targets must exceed panel_targets (or be 0).");
-        return ILLEGAL_PARAMETERS;
-      }
       std::optional<OpenDIA::CalibrationResult> calibrated;
       // Set after a whole-run failure with a usable stage-1 map, when the windowed pass is enabled.
       std::optional<OpenDIA::CalibrationWindow> window;
@@ -128,15 +120,6 @@ namespace OpenMS
           if (!write_diagnostics())
           {
             return CANNOT_WRITE_OUTPUT_FILE;
-          }
-          // Escalate only the panel size; every other setting stays fixed. The library limits the panel size.
-          const std::size_t panel_pairs = collector.panelSize() / 2;
-          if (!window && max_panel != 0 && options.panel_targets < max_panel && panel_pairs >= options.panel_targets)
-          {
-            writeLogWarn_("Calibration with panel_targets=" + std::to_string(options.panel_targets) + " failed (" + error.what() +
-                          "); retrying with a larger panel.");
-            options.panel_targets = std::min(max_panel, 4 * options.panel_targets);
-            continue;
           }
           if (!window && window_panel > options.panel_targets && diagnostics.window)
           {

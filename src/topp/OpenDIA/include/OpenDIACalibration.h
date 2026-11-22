@@ -30,7 +30,7 @@ namespace OpenMS::OpenDIA
   /**
     @brief Stage-1 map and windows of a calibration whose stage 3 had too few anchors.
 
-    Used for an experimental windowed second pass: a larger panel is collected only inside these
+    Used for the windowed second pass: a larger panel is collected only inside these
     windows around the stage-1 map, and stage 3 and 4 are repeated on it unchanged.
   */
   struct CalibrationWindow
@@ -122,7 +122,7 @@ namespace OpenMS::OpenDIA
     std::vector<double> em_knots_library, em_knots_run;
     double stage3_half_window_s = 0.0;
     std::size_t stage3_extended_targets = 0; ///< Windowed pass: targets searched to the run edge (outside the stage-1 support).
-    bool windowed = false; ///< Experimental windowed second pass: stages 1 and 2 were skipped, stage 3 centred on the stage-1 map.
+    bool windowed = false; ///< Windowed second pass: stages 1 and 2 were skipped, stage 3 centred on the stage-1 map.
     std::size_t half_window_spectra = 0;
     double peak_fwhm_s = 0.0;
     std::size_t anchor_targets = 0, anchor_decoys = 0;
@@ -217,7 +217,7 @@ namespace OpenMS::OpenDIA
 
     The collector keeps the panel's traces in memory (panel x spectra x 6 x 12 bytes).
 
-    @note This is an experimental heuristic calibration, not an identification
+    @note This is a heuristic calibration, not an identification
     or FDR-controlled result. Anchor q-values only control the anchor set.
   */
   class CalibrationCollector final : public Interfaces::IMSDataConsumer
@@ -231,7 +231,7 @@ namespace OpenMS::OpenDIA
       @param[in] traml_ids PQP precursor ID to TRAML_ID map, used to pair decoys with targets.
       @param[in] options Fixed calibration settings.
       @param[in] window If set, collect each member only inside its stage-3 window around this stage-1 map
-                        (plus a 30 s margin), and let calibrate() skip stages 1 and 2. Experimental.
+                        (plus a 30 s margin), and let calibrate() skip stages 1 and 2.
       @throws std::invalid_argument If no eligible target-decoy pairs exist or options are invalid.
     */
     CalibrationCollector(const OpenDIA::Library& library,

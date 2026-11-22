@@ -174,7 +174,4 @@ namespace OpenMS::OpenDIA
             references do not separate.
   */
   BoundaryHalfWidthFit estimateBoundaryHalfWidths(const std::vector<BoundaryTrace>& traces, const XicPickerOptions& options);
-
-  /// Short name of a boundary reason ("valley", "floor", "edge").
-  const char* peakBoundaryName(PeakBoundary reason);
 }

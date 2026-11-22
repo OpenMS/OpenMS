@@ -526,14 +526,4 @@ namespace OpenMS::OpenDIA
     }
     return fit;
   }
-
-  const char* peakBoundaryName(PeakBoundary reason)
-  {
-    switch (reason)
-    {
-      case PeakBoundary::VALLEY: return "valley";
-      case PeakBoundary::FLOOR: return "floor";
-      default: return "edge";
-    }
-  }
 }

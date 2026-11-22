@@ -64,8 +64,6 @@ protected:
     registerIntOption_("seed", "<n>", 0, "Scorer seed", false);
     setMinInt_("seed", 0);
     registerFlag_("im_array_as_vssc", "Interpret a spectrum ion-mobility array whose unit is not CCS as 1/K0");
-    registerFlag_("no_extra_scores", "Advanced: leave out the evidence block (core-window mass error, MS1 and ion-mobility evidence, 12 features; PLAN_EXTRA) and score with the 24 base features only", true);
-    registerFlag_("no_matched_filter", "Advanced: leave out the 9 mt_ matched-filter features (per-fragment robust z, leave-one-out correlation, cosine, dominance, LLR from the trace tensor; PLAN_MT) and score without them", true);
     registerIntOption_("max_peaks", "<n>", 5, "Advanced: candidate peaks kept per precursor by the search, best fragment co-elution first", false, true);
     setMinInt_("max_peaks", 1);
     registerDoubleOption_("valley_fraction", "<fraction>", 0.5, "Advanced: in the search, two maxima stay separate candidate peaks only if the valley "
@@ -73,7 +71,7 @@ protected:
     setMinFloat_("valley_fraction", 0.0);
     setMaxFloat_("valley_fraction", 1.0);
     registerDoubleOption_("im_tolerance_scale", "<factor>", 0.6, "Advanced: multiply the calibrated 1/K0 half width used for search and extraction "
-                          "(PLAN_IMNARROW: 0.6; 1 = as calibrated, the earlier default)", false, true);
+                          "(PLAN_IMNARROW: 0.6; 1 = as calibrated)", false, true);
     setMinFloat_("im_tolerance_scale", 0.05);
     setMaxFloat_("im_tolerance_scale", 4.0);
     registerDoubleOption_("trace_tolerance_ppm", "<ppm>", 10.0, "Advanced: fragment m/z half width of the 6-fragment trace tensor in ppm "
@@ -85,11 +83,6 @@ protected:
     registerFlag_("no_rt_refine", "Advanced: skip the per-run RT refinement (PLAN_RTR): by default a ridge RT correction on sequence composition is fitted from the run's own q<=0.01 IDs after a first pass, then search, extraction and scoring run again with corrected RTs and a narrower RT window (about 1.8-1.9x wall time)", true);
     registerIntOption_("rt_refine_min_ids", "<n>", 500, "Advanced: skip the RT refinement with fewer training IDs", false, true);
     setMinInt_("rt_refine_min_ids", 1);
-    registerFlag_("no_sibling_features", "Advanced: skip the charge-state sibling rescoring (PLAN_SIB): by default each scoring call scores once, adds four sibling features per window from those out-of-fold scores (siblings = other precursors of the same modified sequence, same target/decoy side), then scores again", true);
-    registerFlag_("no_gbm_rescore", "Advanced: skip the final hard-negative GBM rescoring (PLAN_GBT): by default three cross-fitted histogram gradient boosting rounds rescore the final features, trained on q<=0.01 targets against all windows of the hardest -gbm_hard_fraction of decoy precursors", true);
-    registerDoubleOption_("gbm_hard_fraction", "<fraction>", 0.02, "Advanced: hard decoy precursor fraction for the GBM rescoring; 0 = all decoy winners", false, true);
-    setMinFloat_("gbm_hard_fraction", 0.0);
-    setMaxFloat_("gbm_hard_fraction", 1.0);
     registerStringOption_("calibration", "<files>", "", "Advanced: comma-separated OpenDIACalibrate JSON per run to reuse instead of calibrating", false, true);
     registerStringOption_("anchors", "<files>", "", "Advanced: comma-separated anchor TSV per run, with -calibration", false, true);
     registerStringOption_("decoys", "<mode>", "library",
@@ -261,8 +254,6 @@ protected:
     options.threads = std::max(1, getIntOption_("threads"));
     options.seed = static_cast<std::uint64_t>(getIntOption_("seed"));
     options.im_array_as_vssc = getFlag_("im_array_as_vssc");
-    options.extra_scores = !getFlag_("no_extra_scores");
-    options.matched_filter = !getFlag_("no_matched_filter");
     options.max_peaks = static_cast<std::size_t>(getIntOption_("max_peaks"));
     options.search_valley_fraction = getDoubleOption_("valley_fraction");
     options.im_tolerance_scale = getDoubleOption_("im_tolerance_scale");
@@ -280,9 +271,6 @@ protected:
     options.trace_tensor_gb = static_cast<std::size_t>(getIntOption_("trace_tensor_gb"));
     options.rt_refine = !getFlag_("no_rt_refine");
     options.rt_refine_min_ids = static_cast<std::size_t>(getIntOption_("rt_refine_min_ids"));
-    options.sibling_features = !getFlag_("no_sibling_features");
-    options.gbm_rescore = !getFlag_("no_gbm_rescore");
-    options.gbm_hard_fraction = getDoubleOption_("gbm_hard_fraction");
     options.calibration.panel_targets = 40000;
 
     // Best (calibrated) score of each precursor per run, for the global q-value.

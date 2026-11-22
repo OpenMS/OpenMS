@@ -31,7 +31,7 @@ namespace OpenMS::OpenDIA
   };
 
   /**
-    @brief Optional per-window extraction evidence for the experimental second-stage score.
+    @brief Per-window extraction evidence for the scorer features.
 
     Collected only after TraceCollector::enableEvidence(). RT bins match the raw tensor.
     Mass errors are intensity-weighted signed ppm sums over points within the core window around the apex.
@@ -256,11 +256,4 @@ namespace OpenMS::OpenDIA
     void countByIons_(const MSSpectrum& spectrum, std::size_t index, double dt);
     std::size_t rtBin_(double rt, double apex_rt) const;
   };
-
-  /** @brief Read explicitly selected windows from a TSV, rejecting missing grouping/labels.
-    @param[in] path TSV containing sample_id, precursor_id, group_id, label, rt_apex.
-    @param[in] max_samples Maximum rows to accept, not a silent truncation limit.
-    @return Requested candidate windows in file order.
-  */
-  std::vector<TraceWindow> readTraceWindows(const std::string& path, std::size_t max_samples);
 }

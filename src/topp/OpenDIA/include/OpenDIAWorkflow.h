@@ -92,8 +92,6 @@ namespace OpenMS::OpenDIA
     std::uint64_t seed = 0;
     int threads = 1;
     bool im_array_as_vssc = false;
-    bool extra_scores = true;  ///< PLAN_EXTRA (D pass, H reported): append the evidence block (Stage2ExtraFeature).
-    bool matched_filter = true;  ///< The 9 mt_ matched-filter features (PLAN_MT D pass); -no_matched_filter turns them off.
     std::size_t trace_tensor_gb = 64;  ///< Hard cap on the 6-fragment trace tensor (raw floats), in GiB.
     /// Optional: reuse an OpenDIACalibrate JSON and anchor TSV instead of calibrating (reproduction of earlier runs).
     std::string calibration_json;
@@ -101,9 +99,6 @@ namespace OpenMS::OpenDIA
     /// Per-run ridge RT correction and a second search/extract/score pass (PLAN_RTR D pass; -no_rt_refine turns it off).
     bool rt_refine = true;
     std::size_t rt_refine_min_ids = 500;  ///< Fewer training IDs skip the refinement.
-    bool sibling_features = true;  ///< Two-stage scoring with 4 charge-state sibling features (PLAN_SIB D pass; -no_sibling_features turns it off).
-    bool gbm_rescore = true;  ///< Final hard-negative HistGBM rescoring (PLAN_GBT D pass; -no_gbm_rescore turns it off).
-    double gbm_hard_fraction = 0.02;  ///< gbmRescore hard decoy precursor fraction; 0 = all decoy winners.
   };
 
   /// One scored candidate window of the run (the population), with its features and result.
@@ -170,7 +165,6 @@ namespace OpenMS::OpenDIA
     Log log_;
   };
 
-  /// Feature names of RunAnalysis, in column order (the evidence block when @p extra_scores, the mt_ block when
-  /// @p matched_filter).
-  std::vector<std::string> runFeatureNames(bool extra_scores = false, bool matched_filter = false);
+  /// Feature names of RunAnalysis before the sibling block, in column order.
+  std::vector<std::string> runFeatureNames();
 }

@@ -8,13 +8,9 @@
 
 #pragma once
 
-#include <OpenMS/INTERFACES/IMSDataConsumer.h>
-#include <OpenMS/KERNEL/MSSpectrum.h>
-
 #include <array>
 #include <cstddef>
 #include <cstdint>
-#include <map>
 #include <string>
 #include <utility>
 #include <vector>
@@ -106,68 +102,5 @@ namespace OpenMS::OpenDIA
 
     /// Feature column names, in output order.
     static const std::array<const char*, FEATURES>& featureNames();
-  };
-
-  /**
-    @brief Stream MS2 spectra and collect the per-window inputs of InterferenceResolver.
-
-    For every window and every MS2 spectrum that isolates the window's precursor with RT inside apex +- rt_half_width
-    (open interval), the intensity of every point within extraction_ppm of each calibrated fragment m/z is added to the
-    window's grid bin floor((rt - apex + half) / (2 half) x BINS), as build12.py. A scan within 1 ms of the apex is the
-    apex scan and goes to the upper central bin (the apex sits on the edge of the two central bins). Points of central
-    bins also add to the fragment's central area. Ion mobility is ignored (points are pooled), as in the 12-fragment
-    features. Fragment sums are computed once per (precursor, spectrum) and shared by that precursor's windows.
-
-    The distinct isolation windows of the run are recorded, and each precursor is assigned the window with the largest
-    lower edge at or below its m/z, if its m/z lies below that window's upper edge (as interference_components.py).
-  */
-  class InterferenceCollector final : public Interfaces::IMSDataConsumer
-  {
-  public:
-    /**
-      @param[in] precursor_mz Precursor m/z per precursor (index = InterferenceResolver::Window::precursor).
-      @param[in] extraction_mz Calibrated fragment m/z per precursor and slot (0 = absent).
-      @param[in,out] windows Windows to fill (rt fields set by the caller; areas and profiles are accumulated).
-      @param[in] rt_half_width Half width of the grid in seconds.
-      @param[in] extraction_ppm Half width of each fragment extraction in ppm.
-    */
-    InterferenceCollector(std::vector<double> precursor_mz,
-                          std::vector<std::array<double, InterferenceResolver::FRAGMENTS>> extraction_mz,
-                          std::vector<InterferenceResolver::Window>& windows, double rt_half_width, double extraction_ppm);
-
-    void consumeSpectrum(MSSpectrum& spectrum) override;
-    void consumeChromatogram(MSChromatogram&) override {}
-    void setExpectedSize(std::size_t, std::size_t) override {}
-    void setExperimentalSettings(const ExperimentalSettings&) override {}
-
-    /// Isolation window index per precursor (-1 none), from the isolation windows seen so far.
-    std::vector<std::int32_t> isolationIndices() const;
-    /// Distinct isolation windows seen, sorted by lower edge.
-    std::vector<std::pair<double, double>> isolationWindows() const;
-    std::size_t spectraUsed() const { return spectra_used_; }
-    std::size_t outOfOrderSpectra() const { return out_of_order_; }
-
-  private:
-    struct Lane
-    {
-      std::vector<std::uint32_t> precursors; ///< Precursors with m/z in the isolation window, by first window apex - half.
-      std::size_t cursor = 0;                ///< Next precursor not yet activated.
-      std::vector<std::uint32_t> active;     ///< Activated precursors whose last window can still receive points.
-    };
-
-    Lane& lane_(double lo, double hi);
-
-    std::vector<double> precursor_mz_;
-    std::vector<std::array<double, InterferenceResolver::FRAGMENTS>> extraction_mz_;
-    std::vector<InterferenceResolver::Window>& windows_;
-    std::vector<std::uint32_t> window_offsets_;   ///< CSR: windows of precursor p are window_index_[offsets[p], offsets[p+1]).
-    std::vector<std::uint32_t> window_index_;
-    std::vector<double> rt_low_, rt_high_;          ///< Per precursor: min apex - half, max apex + half.
-    std::map<std::pair<double, double>, Lane> lanes_;
-    double half_;
-    double ppm_;
-    double last_rt_ = -1e300;
-    std::size_t spectra_used_ = 0;
-    std::size_t out_of_order_ = 0;
   };
 }

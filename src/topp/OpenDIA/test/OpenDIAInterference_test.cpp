@@ -8,9 +8,7 @@
 
 #include "OpenDIAInterference.h"
 
-#include <OpenMS/KERNEL/MSSpectrum.h>
-#include <OpenMS/METADATA/Precursor.h>
-
+#include <algorithm>
 #include <cmath>
 #include <iostream>
 #include <random>
@@ -260,54 +258,6 @@ namespace
       require(near(one[ai * 4 + 3], std::log1p(static_cast<double>(claimants)), 1e-5), "claimant count equals brute force");
     }
   }
-
-  /// Collector: binning, central area, isolation filter and the open RT interval.
-  void testCollector()
-  {
-    std::vector<double> precursor_mz{450.0, 700.0};
-    std::vector<std::array<double, K>> extraction(2);
-    extraction[0][0] = 500.0;
-    extraction[1][0] = 500.0;
-    std::vector<InterferenceResolver::Window> windows(2);
-    windows[0].precursor = 0;
-    windows[0].rt_apex = 100.0;
-    windows[1].precursor = 1;
-    windows[1].rt_apex = 100.0;
-    InterferenceCollector collector(precursor_mz, extraction, windows, 15.0, 17.5);
-    const auto spectrum = [](double rt, double lo, double hi, double mz, double intensity)
-    {
-      MSSpectrum s;
-      s.setMSLevel(2);
-      s.setRT(rt);
-      OpenMS::Precursor p;
-      p.setMZ(0.5 * (lo + hi));
-      p.setIsolationWindowLowerOffset(0.5 * (hi - lo));
-      p.setIsolationWindowUpperOffset(0.5 * (hi - lo));
-      s.setPrecursors({p});
-      Peak1D peak;
-      peak.setMZ(mz);
-      peak.setIntensity(static_cast<float>(intensity));
-      s.push_back(peak);
-      return s;
-    };
-    auto s1 = spectrum(100.2, 440.0, 460.0, 500.004, 10.0);  // isolates precursor 0 only; +8 ppm, inside 17.5
-    auto s2 = spectrum(100.4, 440.0, 460.0, 500.01, 99.0);   // +20 ppm: outside
-    auto s3 = spectrum(85.0, 440.0, 460.0, 500.0, 77.0);     // |rt - apex| = 15: outside the open grid
-    auto s4 = spectrum(110.0, 690.0, 710.0, 500.0, 5.0);     // precursor 1
-    collector.consumeSpectrum(s3);
-    collector.consumeSpectrum(s1);
-    collector.consumeSpectrum(s2);
-    collector.consumeSpectrum(s4);
-    const std::size_t bin1 = static_cast<std::size_t>((100.2 - 100.0 + 15.0) / 30.0 * 32);
-    require(windows[0].profile[bin1] == 10.0 && windows[0].core_area[0] == 10.0, "binned and central area");
-    double total0 = 0.0;
-    for (double v : windows[0].profile) total0 += v;
-    require(total0 == 10.0, "outside-tolerance and outside-grid points ignored");
-    const std::size_t bin4 = static_cast<std::size_t>((110.0 - 100.0 + 15.0) / 30.0 * 32);
-    require(windows[1].profile[bin4] == 5.0 && windows[1].core_area[0] == 0.0, "non-central bin adds no central area");
-    const auto iso = collector.isolationIndices();
-    require(iso[0] == 0 && iso[1] == 1, "isolation window indices");
-  }
 }
 
 int main()
@@ -317,7 +267,6 @@ int main()
     testExplainedShare();
     testNoOverlapNoSharedNoUnshared();
     testRandomAgainstBruteForce();
-    testCollector();
   }
   catch (const std::exception& error)
   {

@@ -23,19 +23,16 @@ Per run:
 5. **49 scorer features**:
    - search 4, boundary 5, b/y ions 2, 12-fragment evidence 6, fragment deficit 3, shared-signal interference 4;
    - evidence block 12 (core fragment and MS1 mass error, MS1 co-elution, isotope and area, MS2 area, ion-mobility
-     centroid, co-elution and share; `-no_extra_scores` leaves it out);
-   - matched filter 9 (`mt_`; per-fragment robust z, leave-one-out correlation, cosine, dominance, LLR;
-     `-no_matched_filter` leaves it out);
+     centroid, co-elution and share);
+   - matched filter 9 (`mt_`; per-fragment robust z, leave-one-out correlation, cosine, dominance, LLR);
    - charge-state siblings 4 (`s_n`, `s_co`, `s_best`, `s_best_d`, from the first scoring pass; see step 6).
 6. **Scoring**:
    - `OpenDIA::CrossFitScorer`, three folds by peptide family. Seeds are the calibration anchors' windows and decoy
      windows. The scorer is a small network with a decoy-whitened readout and two self-training rounds, then one window
      per precursor, decoy-tail calibrated scores and pooled paired target-decoy q-values.
-   - Sibling rescoring: the sibling features are computed from those out-of-fold scores and the network scores again
-     (`-no_sibling_features` skips it).
+   - Sibling rescoring: the sibling features are computed from those out-of-fold scores and the network scores again.
    - Hard-negative GBM rescoring: three cross-fitted histogram gradient boosting rounds on the final features, trained
-     on q ≤ 0.01 targets against all windows of the hardest 2 % of decoy precursors (`-gbm_hard_fraction`;
-     `-no_gbm_rescore` keeps the network scores).
+     on q ≤ 0.01 targets against all windows of the hardest 2 % of decoy precursors. Its scores and q-values are final.
 7. **RT refine**: a ridge RT correction on sequence composition is fitted from the run's own q ≤ 0.01 IDs, then steps
    2-6 run again with corrected RTs and a narrower RT window (`-no_rt_refine` skips it, about half the wall time).
 

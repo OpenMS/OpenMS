@@ -1548,7 +1548,7 @@ namespace OpenMS::OpenDIA
         << ", \"decoys_above_cut\": " << r.anchor_decoys;
     if (r.windowed)
     {
-      // Only written for the experimental windowed pass, so the default file is unchanged.
+      // Only written for the windowed pass.
       out << ", \"windowed_second_pass\": true, \"centre\": \"stage1_map\", \"extended_to_run_edge_targets\": " << r.stage3_extended_targets;
     }
     out << "},\n"

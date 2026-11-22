@@ -16,7 +16,7 @@
 namespace OpenMS::OpenDIA
 {
   /**
-    @brief Per-run RT refinement (experimental, PRECHECK_RTIM): a ridge regression of the RT residual on sequence composition.
+    @brief Per-run RT refinement (default since PLAN_RTR): a ridge regression of the RT residual on sequence composition.
 
     Features per precursor: token counts over a vocabulary of modified residues, N- and C-terminal residue one-hots,
     residue count and its log, a charge one-hot (1..4) and the precursor m/z. Features are standardised on the

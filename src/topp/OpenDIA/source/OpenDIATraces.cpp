@@ -8,7 +8,6 @@
 
 #include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/CONCEPT/Exception.h>
-#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <OpenMS/IONMOBILITY/IMTypes.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
 
@@ -16,8 +15,6 @@
 #include <bit>
 #include <cmath>
 #include <exception>
-#include <fstream>
-#include <iomanip>
 #include <limits>
 #include <map>
 #include <numeric>
@@ -39,44 +36,6 @@ namespace OpenMS::OpenDIA
     {
       return !text.empty() && text.find_first_of("\t\r\n") == std::string::npos;
     }
-  }
-
-  std::vector<TraceWindow> readTraceWindows(const std::string& path, std::size_t max_samples)
-  {
-    std::ifstream input(path);
-    require(input.good(), "Could not open candidate windows: " + path);
-    std::string line;
-    require(static_cast<bool>(std::getline(input, line)), "Candidate window table is empty.");
-    if (!line.empty() && line.back() == '\r')
-    {
-      line.pop_back();
-    }
-    std::vector<std::string> columns;
-    StringUtils::split(line, '\t', columns);
-    const std::array<std::string, 5> names = {"sample_id", "precursor_id", "group_id", "label", "rt_apex"};
-    std::array<std::size_t, 5> indices{};
-    for (std::size_t i = 0; i < names.size(); ++i)
-    {
-      require(std::count(columns.begin(), columns.end(), names[i]) == 1, "Expected one column: " + names[i]);
-      indices[i] = std::find(columns.begin(), columns.end(), names[i]) - columns.begin();
-    }
-    std::vector<TraceWindow> windows;
-    while (std::getline(input, line))
-    {
-      if (!line.empty() && line.back() == '\r')
-      {
-        line.pop_back();
-      }
-      require(!line.empty(), "Blank candidate window row.");
-      std::vector<std::string> values;
-      StringUtils::split(line, '\t', values);
-      require(values.size() == columns.size(), "Candidate window column count differs from header.");
-      require(windows.size() < max_samples, "Candidate windows exceed max_samples. Select a representative subset explicitly.");
-      windows.push_back({values[indices[0]], values[indices[1]], values[indices[2]],
-                         StringUtils::toInt32(values[indices[3]]), StringUtils::toDouble(values[indices[4]])});
-    }
-    require(input.eof(), "Error reading candidate windows.");
-    return windows;
   }
 
   TraceCollector::TraceCollector(std::vector<TraceWindow> windows, const OpenDIA::Library& library,

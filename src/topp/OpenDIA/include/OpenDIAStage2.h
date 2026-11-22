@@ -88,7 +88,7 @@ namespace OpenMS::OpenDIA
                                                                       const std::array<double, 6>& fragment_mz, const TraceEvidence& evidence,
                                                                       const Stage2ExtractionOptions& options);
 
-  /// Evidence block (on by default since PLAN_EXTRA; -no_extra_scores leaves it out): core-window mass error, MS1 and ion mobility.
+  /// Evidence block (PLAN_EXTRA): core-window mass error, MS1 and ion mobility.
   enum class Stage2ExtraFeature : std::size_t
   {
     FRAGMENT_FRACTION = 0, ///< Stage2Feature::FRAGMENT_FRACTION.
@@ -108,7 +108,7 @@ namespace OpenMS::OpenDIA
   constexpr std::size_t STAGE2_EXTRA_FEATURES = static_cast<std::size_t>(Stage2ExtraFeature::COUNT);
   const std::array<std::string, STAGE2_EXTRA_FEATURES>& stage2ExtraFeatureNames();
   /**
-    @brief Experimental evidence block of one window; identical for targets and decoys and free of training.
+    @brief Evidence block of one window; identical for targets and decoys and free of training.
     @param[in] tensor One window of TraceCollector::SAMPLE_SIZE floats ([6,32,8]).
     @param[in] options Window geometry and run mass offsets (as stage2Features()).
   */
@@ -116,7 +116,7 @@ namespace OpenMS::OpenDIA
                                                                 const std::array<double, 6>& fragment_mz, const TraceEvidence& evidence,
                                                                 const Stage2ExtractionOptions& options);
 
-  /// Matched-filter block (default since PLAN_MT; -no_matched_filter turns it off) from the existing 6 x 32 x 8 trace tensor.
+  /// Matched-filter block (PLAN_MT) from the existing 6 x 32 x 8 trace tensor.
   enum class Stage2MatchedFilterFeature : std::size_t
   {
     Z_MED = 0, ///< slog of the median per-fragment robust z at the centre bin.
@@ -141,7 +141,7 @@ namespace OpenMS::OpenDIA
   */
   double stage2RobustZ(const std::vector<double>& x, std::size_t centre, std::size_t a, std::size_t b);
   /**
-    @brief Compute the opt-in matched-filter (PRECHECK_MF) features from the trace tensor.
+    @brief Compute the matched-filter (PLAN_MT) features from the trace tensor.
 
     Channels are non-padding fragments (fewer than 2 gives zeros). Each RT bin is weighted over mobility with a Gaussian
     (sd 0.008 1/K0, i.e. 0.008 / (2 * options.im_half_width / 8) bins) centred on the smoothed core (centre +/- 2 RT bins)
@@ -197,11 +197,11 @@ namespace OpenMS::OpenDIA
 
 namespace OpenMS::OpenDIA
 {
-  /// Number of charge-state sibling features (PRECHECK_JOINT2): s_n, s_co, s_best, s_best_d.
+  /// Number of charge-state sibling features (PLAN_SIB): s_n, s_co, s_best, s_best_d.
   constexpr std::size_t STAGE2_SIBLING_FEATURES = 4;
 
   /**
-    @brief Charge-state sibling features per window (PRECHECK_JOINT2).
+    @brief Charge-state sibling features per window (PLAN_SIB).
 
     Siblings of a window are the windows of other precursors in the same group. With smin the minimum score over kept
     windows (score > not_kept): s_n = group_precursors[group] - 1; over sibling windows j with |rt_j - rt_i| <= rt_tolerance,

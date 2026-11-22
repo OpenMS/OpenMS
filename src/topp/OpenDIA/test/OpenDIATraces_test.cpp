@@ -184,14 +184,6 @@ int main(int argc, char** argv)
   library.transitions[1].setDecoy(true);
   rejects([&] { OpenDIA::TraceCollector positive_decoy(windows, library); });
 
-  std::ofstream table(prefix + ".windows.tsv");
-  table << "sample_id\tprecursor_id\tgroup_id\tlabel\trt_apex\n"
-           "s0\ttarget\tpeptide_family\t1\t10\n";
-  table.close();
-  require(OpenDIA::readTraceWindows(prefix + ".windows.tsv", 1).front().group_id == "peptide_family",
-          "Window parser lost explicit grouping.");
-  rejects([&] { OpenDIA::readTraceWindows(prefix + ".windows.tsv", 0); });
-
   // A library without ion mobility stores only the central mobility bin; windowTensor() restores the [6,32,8] layout
   // that the 8-bin collector builds for the same spectra, and the byte budget counts the compact storage.
   {
