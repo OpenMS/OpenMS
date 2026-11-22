@@ -1,0 +1,22 @@
+library: target precursors 366357, r = 1.1225, targets with a paired decoy 366122 (0.9994)
+arm  seed  N_q01  E_q01  lower  combined  N_at_FDPc1
+cur     0  24110    179 0.0074    0.0140       23428
+cur     1  24413    182 0.0075    0.0141       23392
+gbm     0  25169    204 0.0081    0.0153       24103
+gbm     1  25212    198 0.0079    0.0148       24214
+gbt     0  25995    220 0.0085    0.0160       24714
+gbt     1  25778    214 0.0083    0.0157       24325
+cur: pooled q<=0.01 lower 0.0074 (90 % 0.0068-0.0081), combined 0.0141 (90 % 0.0129-0.0153); E 361, N 48523; median N@FDP_c 1 % 23410 (23392-23428); P(entrapment beats own decoy | best q<=0.05) 0.499 (n 3340, 90 % +-0.014)
+gbm: pooled q<=0.01 lower 0.0080 (90 % 0.0073-0.0087), combined 0.0151 (90 % 0.0139-0.0164); E 402, N 50381; median N@FDP_c 1 % 24158 (24103-24214); P(entrapment beats own decoy | best q<=0.05) 0.538 (n 3794, 90 % +-0.013)
+gbt: pooled q<=0.01 lower 0.0084 (90 % 0.0077-0.0091), combined 0.0159 (90 % 0.0146-0.0172); E 434, N 51773; median N@FDP_c 1 % 24520 (24325-24714); P(entrapment beats own decoy | best q<=0.05) 0.542 (n 3901, 90 % +-0.013)
+library: target precursors 366357, r = 1.1225, targets with a paired decoy 366122 (0.9994)
+arm  seed  N_q01  E_q01  lower  combined  N_at_FDPc1
+cur     0  37320    245 0.0066    0.0124       36845
+cur     1  37055    243 0.0066    0.0124       36610
+gbm     0  39129    283 0.0072    0.0137       38420
+gbm     1  39331    291 0.0074    0.0140       38499
+gbt     0  39834    298 0.0075    0.0141       38903
+gbt     1  39914    309 0.0077    0.0146       38878
+cur: pooled q<=0.01 lower 0.0066 (90 % 0.0061-0.0071), combined 0.0124 (90 % 0.0115-0.0134); E 488, N 74375; median N@FDP_c 1 % 36728 (36610-36845); P(entrapment beats own decoy | best q<=0.05) 0.507 (n 4994, 90 % +-0.012)
+gbm: pooled q<=0.01 lower 0.0073 (90 % 0.0068-0.0078), combined 0.0138 (90 % 0.0129-0.0148); E 574, N 78460; median N@FDP_c 1 % 38460 (38420-38499); P(entrapment beats own decoy | best q<=0.05) 0.515 (n 5658, 90 % +-0.011)
+gbt: pooled q<=0.01 lower 0.0076 (90 % 0.0071-0.0081), combined 0.0144 (90 % 0.0134-0.0154); E 607, N 79748; median N@FDP_c 1 % 38890 (38878-38903); P(entrapment beats own decoy | best q<=0.05) 0.518 (n 5867, 90 % +-0.011)
