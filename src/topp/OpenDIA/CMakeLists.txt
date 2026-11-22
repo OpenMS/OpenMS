@@ -24,6 +24,7 @@ add_library(OpenDIA_impl STATIC
   source/OpenDIAPeakPicker.cpp
   source/OpenDIAInterference.cpp
   source/OpenDIAScorer.cpp
+  source/OpenDIAGBM.cpp
   source/OpenDIAFragmentGrid.cpp
   source/OpenDIAWorkflow.cpp
   source/OpenDIARTRefine.cpp
@@ -39,6 +40,7 @@ add_library(OpenDIA_impl STATIC
   include/OpenDIAPeakPicker.h
   include/OpenDIAInterference.h
   include/OpenDIAScorer.h
+  include/OpenDIAGBM.h
   include/OpenDIAFragmentGrid.h
   include/OpenDIARTRefine.h
   include/OpenDIAWorkflow.h)

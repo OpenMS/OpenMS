@@ -101,6 +101,10 @@ protected:
     registerDoubleOption_("hard_decoys", "<fraction>", 0.0, "Experimental (PRECHECK_BT156): self-training rounds use all windows of the hardest <fraction> of decoy precursors as negatives instead of all decoy winners; 0 = off", false, true);
     setMinFloat_("hard_decoys", 0.0);
     setMaxFloat_("hard_decoys", 1.0);
+    registerFlag_("gbm_rescore", "Experimental: after scoring, rescore the final features with three rounds of a cross-fitted histogram gradient boosting model trained on q<=0.01 targets against hard decoys", true);
+    registerDoubleOption_("gbm_hard_fraction", "<fraction>", 0.02, "Experimental: with -gbm_rescore, negatives are all windows of the hardest <fraction> of decoy precursors; 0 = all decoy winners", false, true);
+    setMinFloat_("gbm_hard_fraction", 0.0);
+    setMaxFloat_("gbm_hard_fraction", 1.0);
     registerStringOption_("scorer_self_q", "<q list>", "", "Experimental: space- or comma-separated q cuts, one self-training round each (e.g. \"0.01 0.01 0.01\"); empty keeps 0.15 0.05", false, true);
     registerStringOption_("calibration", "<files>", "", "Advanced: comma-separated OpenDIACalibrate JSON per run to reuse instead of calibrating", false, true);
     registerStringOption_("anchors", "<files>", "", "Advanced: comma-separated anchor TSV per run, with -calibration", false, true);
@@ -301,6 +305,8 @@ protected:
     options.rt_refine_anchors = getFlag_("rt_refine_anchors");
     options.sibling_features = !getFlag_("no_sibling_features");
     options.hard_decoys = getDoubleOption_("hard_decoys");
+    options.gbm_rescore = getFlag_("gbm_rescore");
+    options.gbm_hard_fraction = getDoubleOption_("gbm_hard_fraction");
     {
       std::string list = getStringOption_("scorer_self_q");
       std::replace(list.begin(), list.end(), ',', ' ');

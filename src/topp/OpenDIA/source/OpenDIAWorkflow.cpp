@@ -9,6 +9,7 @@
 #include <OpenDIAWorkflow.h>
 
 #include <OpenDIAFragmentGrid.h>
+#include <OpenDIAGBM.h>
 #include <OpenDIAInterference.h>
 #include <OpenDIAPeakMaps.h>
 #include <OpenDIARTRefine.h>
@@ -925,6 +926,12 @@ namespace OpenMS::OpenDIA
       input.features = result.features;
       scored = CrossFitScorer::run(input, so, [&](const std::string& l) { say("Scorer " + l); });
       say("Sibling features: windows with a co-eluting sibling target=" + std::to_string(co_t) + " decoy=" + std::to_string(co_d) + "; rescored");
+    }
+    if (options_.gbm_rescore)
+    {
+      auto gbm = gbmRescore(input, scored.score, options_.gbm_hard_fraction, options_.seed, options_.threads, say);
+      scored.score = std::move(gbm.score);
+      scored.q_value = std::move(gbm.q_value);
     }
     for (std::size_t i = 0; i < n; ++i)
     {

@@ -37,6 +37,10 @@ add_executable(OpenDIAScorer_test OpenDIAScorer_test.cpp)
 target_link_libraries(OpenDIAScorer_test PRIVATE OpenDIA_impl)
 add_test(NAME OpenDIAScorer_test COMMAND OpenDIAScorer_test)
 
+add_executable(OpenDIAGBM_test OpenDIAGBM_test.cpp)
+target_link_libraries(OpenDIAGBM_test PRIVATE OpenDIA_impl)
+add_test(NAME OpenDIAGBM_test COMMAND OpenDIAGBM_test)
+
 add_executable(OpenDIAFragmentGrid_test OpenDIAFragmentGrid_test.cpp)
 target_link_libraries(OpenDIAFragmentGrid_test PRIVATE OpenDIA_impl)
 add_test(NAME OpenDIAFragmentGrid_test COMMAND OpenDIAFragmentGrid_test)
