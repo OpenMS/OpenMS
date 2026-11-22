@@ -52,7 +52,7 @@ All records are in `gates/single-binary/pdec/`. Each row passed a frozen 5-seed 
 **Where the remaining gap is** (RESULT_GAP2, measured on the sibling default before the GBM):
 - **D, scoring:** the DIA-NN-labelled GBM ceiling is now below the tool. 64 % of D's missed IDs at r ≈ 7 have the right peak but score too low.
 - **H, candidates:** 38 % of H's missed IDs have no candidate within 6 s.
-- **Candidate arm:** `-valley_fraction 0.7 -max_peaks 6` (V7M6) gained D +13.3 % and H +3.6 % at r ≈ 7. It failed rule B only on D r ≈ 7 wall time (1.52× against 1.5×). It needs a user decision: re-time it on matched nodes, or find a cheaper split.
+- **Candidate arm:** `-valley_fraction 0.7 -max_peaks 6` (V7M6). Re-timed on matched nodes on the GBM default (RESULT_V7M6T), it gains D +13.3 % and H +4.2 % at r ≈ 7 with a slightly tighter q, but D r ≈ 7 wall is 1.504× against the 1.5× bar, so it fails rule B again. This was not node noise. 62 % of the extra time is the interference step, which grows 2.44× for 1.39× windows. The next step would be a near-linear interference resolver, then the same gate again (needs a decision).
 
 **Removed (22 Nov cleanup).** The code now carries only the best default. Their records stay in `gates/`.
 

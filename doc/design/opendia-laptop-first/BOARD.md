@@ -26,7 +26,7 @@ Current state on 22 November 2026: the HeLa diaPASEF entrapment at r ≈ 7. The 
 | Charge-state sibling rescoring (PLAN_SIB): D +28.2 %, H +13.9 %; default since OpenMS e2e65938ce | R-WP3, R-WP5 | Done (pass) | [RESULT_SIB_D.md](gates/single-binary/pdec/RESULT_SIB_D.md) |
 | Dead-code cleanup: failed opt-in options, the LibTorch CNN path and the Python pilot removed; default byte-identical | R-WP6 | Done | [README](README.md) |
 | Own-q calibration on H loosened with the GBM (lower bound 1.15 to 1.29 %) | R-WP4 | Open | [RESULT_GBT_H.md](gates/single-binary/pdec/RESULT_GBT_H.md) |
-| Candidate recall on H (38 % of missed IDs have no candidate); V7M6 gained D +13.3 % / H +3.6 % but missed the wall bar on one cell (1.52x) | R-WP1, R-WP5 | Blocked: user decision (re-time on matched nodes, or a cheaper split) | [RESULT_GAP2.md](gates/single-binary/pdec/RESULT_GAP2.md) |
+| Candidate recall on H (38 % of missed IDs have no candidate); V7M6 re-timed on matched nodes (RESULT_V7M6T): D +13.3 % / H +4.2 %, lower -0.05 pp, but D r7 wall 1.504x > 1.5x, FAIL; interference step 2.44x for 1.39x windows | R-WP1, R-WP5 | Blocked: user decision (near-linear interference resolver, then the same gate) | [RESULT_V7M6T.md](gates/single-binary/pdec/RESULT_V7M6T.md) |
 | Re-measure Astral on the current default (last 16 Nov: 81-84 % of DIA-NN) | R-WP5 | Open | [archive snapshot](archive/status-history-20261122/README.md) |
 | Speed and memory against DIA-NN (D about 20 min / 35 GB vs 3-4 min / under 7 GB) | R-WP6 | Open | [README](README.md) |
 
@@ -39,7 +39,7 @@ Current state on 22 November 2026: the HeLa diaPASEF entrapment at r ≈ 7. The 
 | Native Thermo `.raw` input | Done | [R2 raw 01 section](work-packages/R2-calibration.md) |
 | Raw-point export `-out_xipm` (OpenSWATH `.xipm` Parquet) | Done | [R4 post-mortem](work-packages/R4-error-control.md) |
 | Consensus peak-group picker and anchor boundary labels (`e8cb5892b1`) | Done (diagnostic) | [peak-boundaries](gates/astral-raw01-peak-boundaries/RESULT.md) |
-| Candidate recall at calibrated windows, by cause | Done (diagnostic): RESULT_CANDREC / RESULT_GAP2, D valley merge, H 5-candidate cap; V7M6 awaits a user decision | [RESULT_GAP2.md](gates/single-binary/pdec/RESULT_GAP2.md) |
+| Candidate recall at calibrated windows, by cause | Done (diagnostic): RESULT_CANDREC / RESULT_GAP2, D valley merge, H 5-candidate cap; V7M6 failed the wall bar on matched nodes too (RESULT_V7M6T, 1.504x) | [RESULT_V7M6T.md](gates/single-binary/pdec/RESULT_V7M6T.md) |
 
 ## R-WP2: Calibration
 
