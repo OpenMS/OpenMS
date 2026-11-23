@@ -34,7 +34,7 @@ namespace OpenMS
     class OPENMS_DLLAPI DDAWorkflowCommons
     {
         public:
-        /* @brief create Map between mzML file and corresponding id file
+        /** @brief create Map between mzML file and corresponding id file
          * Checks implemented:
          *      - Check if the number of spectra and id files match.
          *      - If spectra and id files share common base names (without extension)

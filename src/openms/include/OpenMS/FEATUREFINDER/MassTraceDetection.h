@@ -19,7 +19,7 @@
 namespace OpenMS
 {
 
-    /*
+    /**
       @brief A mass trace extraction method that gathers peaks similar in m/z and moving along retention time.
 
       Peaks of a @ref MSExperiment are sorted by their intensity and stored in a

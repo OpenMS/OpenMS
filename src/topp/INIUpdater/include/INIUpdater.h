@@ -34,7 +34,7 @@ public:
 
     const ToolMapping & getNameMapping();
 
-    /*
+    /**
       Finds the name of the new tool.
       The tools_type is optional and should be "" if there is none.
 

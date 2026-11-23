@@ -81,7 +81,7 @@ protected:
     */
     struct CmpInfo_;
 
-    /*
+    /**
       @brief test for obviously wrong parameter settings and warn
 
       Currently supports the following scenarios:

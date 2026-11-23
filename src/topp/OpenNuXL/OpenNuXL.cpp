@@ -766,11 +766,15 @@ struct ImmoniumIonsInPeptide
              - new fragment mass tolerance = 4.0 * 68th percentile of median absolute fragment error (identipy)
              - (optional, pcrecalibration) correct global fragment error by subtracting the median
 
-    2. Configuring XL search
+    3. Configuring XL search
         - user configuration
         - presets for different protocols (UV, DEB, NM, etc.)
-    3. Generation of Precursor/MS1 adduct to nucleotides to fragment adduct rules
-    4. Fragment spectra preprocessing
+    4. Generation of Precursor/MS1 adduct to nucleotides to fragment adduct rules
+       - (optional, NuXL:oligo_fragment_adducts) larger fragment adducts for precursor adducts of two or more
+         nucleotides: the complete adduct (also after loss of H2O) and, for the cross-linked nucleotides listed, the
+         nucleotide with the phosphate of its neighbour ('pNp', 'pNp-H2O') and after loss of two waters. The RNA-UV
+         presets of the unmodified nucleotides enable them for U.
+    5. Fragment spectra preprocessing
        - Remove zero intensities
        - Remove isotopic peaks and determine charge (unknown charge set to z=1)
        - Remove interfering peaks from cofragmentation
@@ -780,15 +784,15 @@ struct ImmoniumIonsInPeptide
        - Keep max. 400 peaks per spectrum
          to highly charged fragments in the low m/z region
        - Calculate and store TIC of filtered spectrum
-    5. Experimental feature precalculation from spectra
+    6. Experimental feature precalculation from spectra
        - Precalculate nucleotide tags
        - Calculate intensity ranks
        - Calculate amino acid tags
-    6. Generate decoy sequences
+    7. Generate decoy sequences
        - Uses maximum number of attempts to shuffle in order to minimize sequence similarity
        - Sequence similarity target vs. decoy is calculated by overlap prefix with prefix
          and prefix to suffix (e.g, reversing is also discouraged if possible)
-    7. Search:
+    8. Search:
        For all proteins:
        - Diggest current protein
        - For all peptides of current digest
@@ -799,6 +803,17 @@ struct ImmoniumIonsInPeptide
          - For all modified peptide sequences (of current peptide)
            -
            - For peptides with methionine try to also score plain precursors - CH4S (NM and DEB related methionie cross-link)
+    9. Localization of the cross-link in the peptide (NuXL:localization)
+       - 'loss_aware' (default): the residue most consistent with all fragment ions. Shifted ions count for the residues
+         they contain and against all others; unshifted ions count against the residues they contain, unless a shifted
+         ion of the same length shows that the cross-link was merely lost. Residues that no fragment ion tells apart are
+         reported as a range (NuXL:localization_range), together with the score distance to the best other residue
+         (NuXL:localization_delta) and, if the fragment ions show one, a second cross-linked form
+         (NuXL:secondary_localization_position, NuXL:secondary_localization_range, NuXL:secondary_localization_gain).
+       - 'fragments': the residue the shifted fragment ions point to.
+       - 'NHS': for cross-linkers attached through an NHS ester (e.g. SDA), by its chemistry among the residues the
+         fragment ions can't tell apart (free protein N-terminus, then lysine, then S/T/Y with a histidine within four
+         residues).
 
     @note Score recalibration: Percolator rescores the PSMs (given decoys and about 1000 PSMs or more) and writes the
     model weights next to the output. By default ('-percolator_backend builtin') OpenNuXL rescores them itself with the

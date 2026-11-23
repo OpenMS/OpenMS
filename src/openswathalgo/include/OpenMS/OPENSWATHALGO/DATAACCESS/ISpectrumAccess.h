@@ -68,7 +68,7 @@ public:
     /// Returns the native id of the chromatogram at the given id
     virtual std::string getChromatogramNativeID(int id) const = 0;
 
-    /* @brief Fetches a spectrumSequence (multiple spectra pointers) closest to the given RT
+    /** @brief Fetches a spectrumSequence (multiple spectra pointers) closest to the given RT
      *
      * Returns the spectrum closest to @p RT plus up to @p nr_spectra_to_fetch / 2 neighbours
      * on either side, in alternating order around the closest spectrum (the result is not
@@ -81,7 +81,7 @@ public:
     */
     SpectrumSequence getMultipleSpectra(double RT, int nr_spectra_to_fetch);
 
-    /* @brief Fetches a spectrumSequence (multiple spectra pointers) closest to the given RT. Filters all spectra by specified @p drift_start and @p drift_end
+    /** @brief Fetches a spectrumSequence (multiple spectra pointers) closest to the given RT. Filters all spectra by specified @p drift_start and @p drift_end
      *
      * The returned sequence is built as described for the driftless overload above: the
      * closest spectrum plus up to @p nr_spectra_to_fetch / 2 neighbours per side, in

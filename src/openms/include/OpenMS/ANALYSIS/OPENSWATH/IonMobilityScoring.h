@@ -210,7 +210,7 @@ namespace OpenMS
     static std::vector<double> computeGrid_(const std::vector< Mobilogram >& mobilograms, double eps);
 
 
-    /*
+    /**
      @brief Extracts ion mobility values projected onto a grid
 
      For a given ion mobility profile and a grid, compute an ion mobilogram
@@ -229,7 +229,7 @@ namespace OpenMS
                  double eps,
                  Size & max_peak_idx);
 
-    /*
+    /**
     @brief Extracts intensity values from a vector of Mobilogram objects
 
     This function takes a vector of Mobilogram objects and extracts the intensity
@@ -258,7 +258,7 @@ namespace OpenMS
 
   };
 
-  /*
+  /**
   @brief Helper function to sum up aligned mobilograms
 
   This function takes a vector of aligned mobilograms and sums them up to create a single Mobilogram object. The resulting Mobilogram object will contain the sum of the intensity values from all the input mobilograms.

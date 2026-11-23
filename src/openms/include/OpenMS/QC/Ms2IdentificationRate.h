@@ -49,7 +49,7 @@ namespace OpenMS
     /// returns number of all ms2 spectra in an MSExperiment
     Size getMS2Count_(const MSExperiment& exp);
 
-    /*
+    /**
      * @brief Checks pepID for target/decoy
      *
      * Only checks the first (!) hit, all other hits are ignored
@@ -62,7 +62,7 @@ namespace OpenMS
      */
     static bool isTargetPeptide_(const PeptideIdentification& id, bool all_targets);
 
-    /*
+    /**
      * @brief Calculates id-rate and writes the result into a IdentificationRateData object which is appended to rate_result_
      *
      * @param[in] ms2_spectra_count  number of found ms2 spectra

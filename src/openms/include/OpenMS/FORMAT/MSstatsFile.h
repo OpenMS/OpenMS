@@ -89,15 +89,15 @@ namespace OpenMS
       static const char accdelim_ = ';';
       static const char quote_ = '"';
 
-      /*
+      /**
         *  @brief Quote a free-text CSV field if it contains the delimiter, a quote character, or a
         *  newline, doubling any embedded quote characters (RFC 4180). Fields that don't need it are
         *  returned unchanged, so most lines keep their current, unquoted form.
         */
       static std::string csvQuoteIfNeeded_(const std::string& field);
 
-      /*
-        *  @brief: Struct to aggregate intermediate information from ConsensusFeature and ConsensusMap,
+      /**
+        *  @brief Struct to aggregate intermediate information from ConsensusFeature and ConsensusMap,
         *  such as filenames, intensities, retention times, labels and features (for further processing)
         */
       struct AggregatedConsensusInfo
@@ -109,25 +109,25 @@ namespace OpenMS
         std::vector<BaseFeature> features;                                        //<s Features of ConsensusMap
       };
 
-      /*
-        *  @brief: Aggregates information from ConsensusFeature and ConsensusMap,
+      /**
+        *  @brief Aggregates information from ConsensusFeature and ConsensusMap,
         *  such as filenames, intensities, retention times, labels and features.
         *  Stores them in AggregatedConsensusInfo for later processing
         */
       MSstatsFile::AggregatedConsensusInfo aggregateInfo_(const ConsensusMap& consensus_map,
                                                           const std::vector<std::string>& spectra_paths);
 
-      /*
-        *  @brief: Internal function to check if MSstats_BioReplicate and MSstats_Condition exists in Experimental Design
+      /**
+        *  @brief Internal function to check if MSstats_BioReplicate and MSstats_Condition exists in Experimental Design
         */
       static void checkConditionLFQ_(const ExperimentalDesign::SampleSection& sampleSection, const std::string& bioreplicate, const std::string& condition);
 
-      /*
-        *  @brief: Internal function to check if MSstats_BioReplicate, MSstats_Condition and MSstats_Mixture in Experimental Design
+      /**
+        *  @brief Internal function to check if MSstats_BioReplicate, MSstats_Condition and MSstats_Mixture in Experimental Design
         */
       static void checkConditionISO_(const ExperimentalDesign::SampleSection& sampleSection, const std::string& bioreplicate, const std::string& condition, const std::string& mixture);
 
-      /*
+      /**
         *  @brief MSstats treats runs differently than OpenMS. In MSstats, runs are an enumeration of (SpectraFilePath, Fraction)
         *  In OpenMS, a run is split into multiple fractions.
         */
@@ -135,7 +135,7 @@ namespace OpenMS
               std::map< std::pair< std::string, unsigned>, unsigned> &run_map,
               const ExperimentalDesign &design);
 
-      /*
+      /**
         * @brief checks if the first vector is a subset of the second
         */
       static bool isSubsetOf_(const std::vector< std::string> &first, const std::vector< std::string > &second);
@@ -291,7 +291,7 @@ namespace OpenMS
         std::string fraction_;
       };
 
-      /*
+      /**
         *  @brief Constructs the lines and adds them to the TextFile
         *  @param[out] peptideseq_quantifyable Has to be a set (only) for deterministic  ordered output
         */
@@ -302,13 +302,13 @@ namespace OpenMS
                           const std::set<std::string>& peptideseq_quantifyable,
                           LineType & peptideseq_to_prefix_to_intensities) const;
 
-      /*
+      /**
       *  @brief Constructs the accession to indist. group mapping
       */
       static std::unordered_map<std::string, const IndProtGrp* > getAccessionToGroupMap_(const IndProtGrps& ind_prots);
 
 
-      /*
+      /**
        * @brief Based on the evidence accession set in a PeptideHit, checks if is unique and therefore quantifyable
        * in a group context.
        *

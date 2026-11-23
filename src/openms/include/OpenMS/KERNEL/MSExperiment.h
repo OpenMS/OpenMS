@@ -312,7 +312,7 @@ public:
     /// Returns a non-mutable invalid area iterator marking the end of an area
     ConstAreaIterator areaEndConst() const;
 
-    /* @brief Retrieves the peak data in the given mz-rt range and store data spectrum-wise in separate arrays.
+    /** @brief Retrieves the peak data in the given mz-rt range and store data spectrum-wise in separate arrays.
      *
      * For fast pyOpenMS access to peak data in format: [rt, [mz, intensity]]
      *
@@ -335,7 +335,7 @@ public:
       std::vector<std::vector<float>>& mz,
       std::vector<std::vector<float>>& intensity) const;
 
-    /* @brief Retrieves the peak data in the given mz-rt range and store data spectrum-wise in separate arrays.
+    /** @brief Retrieves the peak data in the given mz-rt range and store data spectrum-wise in separate arrays.
      *
      * For fast pyOpenMS access to MS1 peak data in format: [rt, [mz, intensity, ion mobility]]
      *
@@ -360,7 +360,7 @@ public:
       std::vector<std::vector<float>>& intensity,
       std::vector<std::vector<float>>& ion_mobility) const;
 
-    /* @brief Retrieves the peak data in the given mz-rt range and store in separate arrays.
+    /** @brief Retrieves the peak data in the given mz-rt range and store in separate arrays.
      *
      * For fast pyOpenMS access to MS1 peak data in format: [rt, mz, intensity]
      *
@@ -384,7 +384,7 @@ public:
       std::vector<float>& intensity) const;
 
 
-    /* @brief Retrieves the peak data in the given mz-rt range and store in separate arrays.
+    /** @brief Retrieves the peak data in the given mz-rt range and store in separate arrays.
      *
      * For fast pyOpenMS access to MS1 peak data in format: [rt, mz, intensity, ion mobility]
      *
@@ -1393,7 +1393,7 @@ std::vector<MSChromatogram> extractXICs(
     };
 
 
-    /*
+    /**
       @brief Append a spectrum to current MSExperiment
 
       @param[in] rt RT of new spectrum
@@ -1401,7 +1401,7 @@ std::vector<MSChromatogram> extractXICs(
     */
     SpectrumType* createSpec_(PeakType::CoordinateType rt);
 
-    /*
+    /**
       @brief Append a spectrum including floatdata arrays to current MSExperiment
 
       @param[in] rt RT of new spectrum

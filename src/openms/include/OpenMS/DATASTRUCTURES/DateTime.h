@@ -160,12 +160,13 @@ public:
     /// Sets the undefined date: 00/00/0000 00:00:00
     void clear();
 
-    /* @brief Returns a string representation of the DateTime object.
+    /** @brief Returns a string representation of the DateTime object.
        @param[in] format "yyyy-MM-ddThh:mm:ss" corresponds to ISO 8601 and should be preferred.
 	  */
 	  std::string toString(const std::string& format = "yyyy-MM-ddThh:mm:ss") const;
 
-    /* @brief Creates a DateTime object from string representation.
+    /** @brief Creates a DateTime object from string representation.
+       @param[in] date The date and time as string, in the given @p format
        @param[in] format "yyyy-MM-ddThh:mm:ss" corresponds to ISO 8601 and should be preferred.
 	  */
       static DateTime fromString(const std::string& date, const std::string& format = "yyyy-MM-ddThh:mm:ss");

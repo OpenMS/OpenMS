@@ -93,7 +93,7 @@ public:
       /// Equality operator
       bool operator==(const ProteinGroup& rhs) const;
 
-      /*
+      /**
         @brief Comparison operator (for sorting)
 
         This operator is intended for sorting protein groups in a "best first"

@@ -44,16 +44,17 @@ namespace OpenMS
     /// Enum to specify the overlap detection mode (alias for backward compatibility)
     using OverlapMode = FeatureOverlapMode;
     
-    /*
+    /**
         @brief Filter overlapping features using a spatial datastructure (quadtree).
                Retains only the best feature in each cluster of overlapping features.
 
+        @param[in,out] fmap The feature map to filter
         @param[in] FeatureComparator must implement the concept of a less comparator.
                If several features overlap, the feature that evaluates as "smallest" is considered the best (according to the passed comparator) and is kept.
                The other overlapping features are removed and FeatureOverlapCallback evaluated on them.
                Default: overall feature quality.
 
-        @param[in] FeatureOverlapCallback(best_in_cluster, f) is called if a feature f overlaps with a feature best_in_cluster.
+        @param[in] FeatureOverlapCallback is called as FeatureOverlapCallback(best_in_cluster, f) if a feature f overlaps with a feature best_in_cluster.
                FeatureOverlapCallback provides a customization point to e.g.:
               - transfer information from the soon-to-be-removed feature f over to the best_in_cluster feature
               - gather overlap statistics
@@ -62,6 +63,8 @@ namespace OpenMS
               in form of a callable.
               If the FeatureOverlapCallback returns false, the overlapping feature will be treated as not overlapping with best_in_cluster (and not removed).
               Default: function that just returns true.
+        @param[in] check_overlap_at_trace_level If true, features overlap if their mass traces overlap (FeatureOverlapMode::TRACE_LEVEL);
+              if false, if their convex hulls overlap (FeatureOverlapMode::CONVEX_HULL).
 
         @ingroup Datareduction
     */
@@ -70,7 +73,7 @@ namespace OpenMS
       std::function<bool(Feature&, Feature&)> FeatureOverlapCallback = [](Feature&, Feature&){ return true; },
       bool check_overlap_at_trace_level = true);
       
-    /*
+    /**
         @brief Filter overlapping features with configurable overlap detection mode.
                Extended version that allows choosing between different overlap detection strategies.
 

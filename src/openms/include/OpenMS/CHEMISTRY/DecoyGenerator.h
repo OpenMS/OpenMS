@@ -33,13 +33,13 @@ namespace OpenMS
       // random seed for shuffling
       void setSeed(UInt64 seed);
 
-      /* 
+      /** 
          @brief reverses the protein sequence. 
          note: modifications are discarded
       */
       AASequence reverseProtein(const AASequence& protein) const;
     
-      /* 
+      /** 
           @brief reverses the protein's peptide sequences between enzymatic cutting positions. 
           With 'unspecific cleavage' (no enzymatic termini to keep), the whole protein is reversed (reverseProtein()).
           note: modifications are discarded
@@ -68,7 +68,7 @@ namespace OpenMS
       */
       std::vector<AASequence> shuffle(const AASequence& protein, const std::string& protease, int decoy_factor = 1);
 
-      /*
+      /**
           @brief shuffle the protein's peptide sequences between enzymatic cutting positions.
           each peptide is shuffled @p max_attempts times to minimize sequence identity.
           With 'unspecific cleavage' (no enzymatic termini to keep), the whole protein is shuffled as one sequence.

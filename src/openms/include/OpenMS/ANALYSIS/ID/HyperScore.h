@@ -108,7 +108,7 @@ struct OPENMS_DLLAPI HyperScore
                                     double mass_error_sd_ppm,
                                     PSMDetail& detail);
 
-  /* @brief compute the (ln transformed) X!Tandem HyperScore only matching peaks that match in charge
+  /** @brief compute the (ln transformed) X!Tandem HyperScore only matching peaks that match in charge
    *  1. the dot product of peak intensities between matching peaks in experimental and theoretical spectrum is calculated
    *  2. the HyperScore is calculated from the dot product by multiplying by factorials of matching b- and y-ions
    * @note Peak intensities of the theoretical spectrum are typically 1 or TIC normalized, but can also be e.g. ion probabilities
@@ -126,7 +126,7 @@ struct OPENMS_DLLAPI HyperScore
                         const PeakSpectrum& theo_spectrum,
                         const DataArrays::IntegerDataArray& theo_charges);
 
-  /* @brief compute the (ln transformed) X!Tandem HyperScore only matching peaks that match in charge
+  /** @brief compute the (ln transformed) X!Tandem HyperScore only matching peaks that match in charge
    *  1. the dot product of peak intensities between matching peaks in experimental and theoretical spectrum is calculated
    *  2. the HyperScore is calculated from the dot product by multiplying by factorials of matching b- and y-ions
    * @note Peak intensities of the theoretical spectrum are typically 1 or TIC normalized, but can also be e.g. ion probabilities

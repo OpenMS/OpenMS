@@ -55,7 +55,7 @@ namespace OpenMS
         Size min_peak_nr, double min_correlation, int max_lag,
         double max_rt_apex_difference);
 
-    /* Score two mass traces against each other
+    /** Score two mass traces against each other
      *
      * This function scores two mass traces (vector of <RT,Intensity>) against each other:
      *
@@ -85,7 +85,7 @@ namespace OpenMS
                          const int max_lag,
                          const double mindiff = 0.1);
 
-    /* Create a cache of the features in a consensus map
+    /** Create a cache of the features in a consensus map
      *
      * This creates a cache of the input consensus map by creating the
      * following data structures:
