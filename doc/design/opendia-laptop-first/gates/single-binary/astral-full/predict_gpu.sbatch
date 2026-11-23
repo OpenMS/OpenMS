@@ -1,6 +1,5 @@
 #!/bin/bash
 #SBATCH --job-name=afull-predict
-#SBATCH --partition=gpu
 #SBATCH --gres=gpu:a100:1
 #SBATCH --cpus-per-task=16
 #SBATCH --mem=384G
