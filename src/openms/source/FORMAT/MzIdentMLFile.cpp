@@ -60,11 +60,29 @@ namespace OpenMS
   std::string MzIdentMLFile::detectVersion(const std::string& filename) const
   {
     // Read the first few lines of the header and look for the mzIdentML version. The version is
-    // declared both as a 'version="x.y.z"' attribute on the <MzIdentML> root and in the target
+    // declared both as a 'version="x.y.z"' attribute on the <MzIdentML> root and in its target
     // namespace ('.../mzIdentML/x.y'). We prefer the explicit version attribute and fall back to
     // the namespace; if neither maps to a bundled schema we keep the adapter default (1.3.0).
     TextFile file(filename, true, 15);
     std::string header = StringUtils::concatenate(file, " ");
+    // Only the root element declares the mzIdentML version; other elements have version attributes of their own
+    // (e.g. <AnalysisSoftware version="1.3.0">). Search only the root's start tag if it is in the header.
+    for (std::string::size_type pos = header.find('<'); pos != std::string::npos; pos = header.find('<', pos + 1))
+    {
+      const std::string::size_type name_end = header.find_first_of(" \t\r\n/>", pos + 1);
+      if (name_end == std::string::npos)
+      {
+        break;
+      }
+      std::string name = header.substr(pos + 1, name_end - pos - 1);
+      name = name.substr(name.rfind(':') + 1); // without namespace prefix (npos + 1 == 0)
+      if (name == "MzIdentML" || name == "mzIdentML") // root of mzIdentML 1.1+ / 1.0
+      {
+        const std::string::size_type tag_end = header.find('>', name_end);
+        header = header.substr(pos, tag_end == std::string::npos ? std::string::npos : tag_end - pos);
+        break;
+      }
+    }
 
     // candidate versions we ship schemas for, newest first
     static const std::vector<std::string> known_versions = {"1.3.0", "1.2.0", "1.1.0", "1.0.0"};

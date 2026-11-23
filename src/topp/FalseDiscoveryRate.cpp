@@ -13,6 +13,7 @@
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/METADATA/PeptideIdentificationList.h>
@@ -229,14 +230,19 @@ protected:
           else
           {
             fdr.applyBasic(run, groups);
+            if (groups)
+            {
+              // the group q-values were just recalculated: a cutoff recorded on the old values no longer applies
+              run.removeMetaValue(Constants::UserParam::PROTEIN_GROUP_SCORE_THRESHOLD);
+              run.removeMetaValue(Constants::UserParam::PROTEIN_GROUP_SCORE_THRESHOLD_TYPE);
+            }
             if (protein_fdr < 1)
             {
               if (groups)
               {
                 OPENMS_LOG_INFO << "FDR control: Filtering protein groups..." << endl;
                 IDFilter::filterGroupsByScore(run.getIndistinguishableProteins(), protein_fdr, run.isHigherScoreBetter());
-                // e.g. for the protein detection threshold in mzIdentML; the group q-values were just recalculated, so an
-                // earlier cutoff (on the old values) no longer applies
+                // e.g. for the protein detection threshold in mzIdentML
                 IDFilter::recordGroupScoreThreshold(run, protein_fdr, false);
                 filter_applied = true;
               }

@@ -1479,7 +1479,11 @@ START_SECTION(([EXTRA] store and load protein groups (issue #1105)))
     std::string version_1_1 = invalid;
     StringUtils::substitute(version_1_1, "mzIdentML/1.3", "mzIdentML/1.1");
     StringUtils::substitute(version_1_1, "version=\"1.3.0\"", "version=\"1.1.0\"");
+    // the version of the search engine (in the header, after the root element) is not the mzIdentML version
+    TEST_EQUAL(countOf(version_1_1, "version=\"2024.03.26\""), 1)
+    StringUtils::substitute(version_1_1, "version=\"2024.03.26\"", "version=\"1.3.0\"");
     std::ofstream(invalid_file) << version_1_1;
+    TEST_EQUAL(file.detectVersion(invalid_file), "1.1.0")
     StringList errors4, warnings4;
     TEST_EQUAL(file.isSemanticallyValid(invalid_file, errors4, warnings4), true)
     TEST_EQUAL(ListUtils::concatenate(errors4, "\n"), "")
