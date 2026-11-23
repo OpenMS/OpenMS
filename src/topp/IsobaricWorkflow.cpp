@@ -134,6 +134,11 @@ using namespace std;
   (If desired, such features can be removed by applying an intensity filter in @ref TOPP_FileFilter.)
   However, if the spectrum is completely empty (no ions whatsoever), no consensus feature will be generated.
 
+  Protein groups that pass the filters but cannot be quantified, for example a protein that is identified only
+  by peptides it shares with other proteins, are kept in all outputs without abundances. They are part of the
+  inference result: @ref TOPP_ProteinQuantifier needs them to compute the same protein abundances from the
+  written consensusXML.
+
   Isotope correction is done using non-negative least squares (NNLS), i.e.:@n
   Minimize ||Ax - b||, subject to x >= 0, where b is the vector of observed reporter intensities (with "contaminating" isotope species),
   A is a correction matrix (as supplied by the manufacturer of the labeling kit) and x is the desired vector of corrected (real) reporter intensities.
@@ -1350,9 +1355,11 @@ protected:
     }
 
     // Annotate quants to protein(groups) for easier export in mzTab
-    // Note: we keep protein groups that have not been quantified
+    // Note: we keep protein groups that have not been quantified. They are part of the inference
+    // result: a peptide shared with such a group is not unique to the other group, and removing
+    // the group would make it look unique to anything that quantifies the written file again.
     prot_quantifier.annotateQuantificationsToProteins(
-      protein_quants, inferred_proteins, true);
+      protein_quants, inferred_proteins, false);
 
     {
       if (!out_qpx.empty())
