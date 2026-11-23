@@ -185,7 +185,7 @@ Current state on 23 November 2026: the HeLa diaPASEF entrapment at r ≈ 7. The 
 
 | Step | State | Record |
 |---|---|---|
-| Full predicted-library Astral capacity: GPU max20 fragments, three raws x five seeds, IDs/quant/calibration curves/resources | In progress (protocol freeze, no outcomes yet) | [PLAN_ASTRAL_FULL](gates/single-binary/astral-full/PLAN_ASTRAL_FULL.md) |
+| Full predicted-library Astral capacity: GPU max20 fragments, three raws x five seeds, IDs/quant/calibration curves/resources | In progress (GPU prediction running, search/evaluation dependency queued) | [PLAN_ASTRAL_FULL](gates/single-binary/astral-full/PLAN_ASTRAL_FULL.md), [submission](gates/single-binary/astral-full/SUBMITTED.md) |
 | Raw 03 held-out check under each new hashed plan | Done for PLAN_RTWIN2 / PLAN_RTPROFILE (current setup 1907 median) | [RESULT_RTWIN2.md](gates/single-binary/rtwin/RESULT_RTWIN2.md) |
 | Memory: the 22 GB peak came from the windowed calibration pass, not the scoring library. Trimmed calibration traces: 21.6 → 15.6 GB, outputs byte-identical (a132e9104e) | Done | [README snapshot](README.md) |
 | Fair same-laptop benchmark (raw 01, 8 threads, both read .raw): OpenDIA 10:14, 15.6 GB, 172 % CPU; DIA-NN 7:23, 6.8 GB, 765 % CPU | Done | [bench/](gates/single-binary/bench/) |
