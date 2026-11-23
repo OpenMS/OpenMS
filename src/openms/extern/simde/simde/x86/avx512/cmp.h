@@ -38,6 +38,10 @@ HEDLEY_DIAGNOSTIC_PUSH
 SIMDE_DISABLE_UNWANTED_DIAGNOSTICS
 SIMDE_BEGIN_DECLS_
 
+#if defined(__clang__) && SIMDE_FLOAT16_API == SIMDE_FLOAT16_API_FP16
+SIMDE_DIAGNOSTIC_DISABLE_DOUBLE_PROMOTION_
+#endif
+
 SIMDE_HUGE_FUNCTION_ATTRIBUTES
 simde__mmask64
 simde_mm512_cmp_epi8_mask (simde__m512i a, simde__m512i b, const int imm8)
@@ -244,7 +248,11 @@ simde_mm512_cmp_ps_mask (simde__m512 a, simde__m512 b, const int imm8)
     r_,
     a_ = simde__m512_to_private(a),
     b_ = simde__m512_to_private(b);
-
+  #if !defined(SIMDE_STATEMENT_EXPR_) && SIMDE_NATURAL_VECTOR_SIZE_LE(128)
+    for (size_t i = 0 ; i < (sizeof(r_.m128) / sizeof(r_.m128[0])) ; i++) {
+      SIMDE_CONSTIFY_32_(simde_mm_cmp_ps, r_.m128[i], simde_mm_undefined_ps(), imm8, a_.m128[i], b_.m128[i]);
+    }
+  #else
   switch (imm8) {
     case SIMDE_CMP_EQ_OQ:
     case SIMDE_CMP_EQ_OS:
@@ -427,7 +435,7 @@ simde_mm512_cmp_ps_mask (simde__m512 a, simde__m512 b, const int imm8)
     default:
       HEDLEY_UNREACHABLE();
   }
-
+  #endif
   return simde_mm512_movepi32_mask(simde_mm512_castps_si512(simde__m512_from_private(r_)));
 }
 #if defined(SIMDE_X86_AVX512F_NATIVE)
@@ -492,7 +500,11 @@ simde_mm512_cmp_pd_mask (simde__m512d a, simde__m512d b, const int imm8)
     r_,
     a_ = simde__m512d_to_private(a),
     b_ = simde__m512d_to_private(b);
-
+  #if !defined(SIMDE_STATEMENT_EXPR_) && SIMDE_NATURAL_VECTOR_SIZE_LE(128)
+    for (size_t i = 0 ; i < (sizeof(r_.m128d) / sizeof(r_.m128d[0])) ; i++) {
+      SIMDE_CONSTIFY_32_(simde_mm_cmp_pd, r_.m128d[i], simde_mm_undefined_pd(), imm8, a_.m128d[i], b_.m128d[i]);
+    }
+  #else
   switch (imm8) {
     case SIMDE_CMP_EQ_OQ:
     case SIMDE_CMP_EQ_OS:
@@ -675,7 +687,7 @@ simde_mm512_cmp_pd_mask (simde__m512d a, simde__m512d b, const int imm8)
     default:
       HEDLEY_UNREACHABLE();
   }
-
+  #endif
   return simde_mm512_movepi64_mask(simde_mm512_castpd_si512(simde__m512d_from_private(r_)));
 }
 #if defined(SIMDE_X86_AVX512F_NATIVE)
@@ -1067,7 +1079,7 @@ simde_mm512_cmp_epi16_mask (simde__m512i a, simde__m512i b, const int imm8)
 #endif
 #if defined(SIMDE_X86_AVX512BW_ENABLE_NATIVE_ALIASES)
   #undef _mm512_mask_cmp_epi16_mask
-#define _mm512_mask_cmp_epi16_mask(a, b, imm8) simde_mm512_mask_cmp_epi16_mask((a), (b), (imm8))
+#define _mm512_mask_cmp_epi16_mask(k1, a, b, imm8) simde_mm512_mask_cmp_epi16_mask((k1), (a), (b), (imm8))
 #endif
 
 SIMDE_HUGE_FUNCTION_ATTRIBUTES
@@ -1592,7 +1604,7 @@ simde_mm512_cmp_epu32_mask (simde__m512i a, simde__m512i b, const int imm8)
 #endif
 #if defined(SIMDE_X86_AVX512F_ENABLE_NATIVE_ALIASES)
   #undef _mm512_mask_cmp_epu32_mask
-#define _mm512_mask_cmp_epu32_mask(a, b, imm8) simde_mm512_mask_cmp_epu32_mask((a), (b), (imm8))
+#define _mm512_mask_cmp_epu32_mask(k1, a, b, imm8) simde_mm512_mask_cmp_epu32_mask((k1), (a), (b), (imm8))
 #endif
 
 SIMDE_HUGE_FUNCTION_ATTRIBUTES
@@ -1701,7 +1713,7 @@ simde_mm512_cmp_epu64_mask (simde__m512i a, simde__m512i b, const int imm8)
 #endif
 #if defined(SIMDE_X86_AVX512F_ENABLE_NATIVE_ALIASES)
   #undef _mm512_mask_cmp_epu64_mask
-#define _mm512_mask_cmp_epu64_mask(a, b, imm8) simde_mm512_mask_cmp_epu64_mask((a), (b), (imm8))
+#define _mm512_mask_cmp_epu64_mask(k1, a, b, imm8) simde_mm512_mask_cmp_epu64_mask((k1), (a), (b), (imm8))
 #endif
 
 SIMDE_END_DECLS_
