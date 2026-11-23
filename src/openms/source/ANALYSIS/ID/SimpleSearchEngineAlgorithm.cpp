@@ -359,6 +359,18 @@ void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
     // Alignment is needed for fragment error, fragment annotations, longest ion run, and MIC
     const bool need_alignment = annotation_fragment_error_ppm || annotation_fragment_annotations || annotation_longest_ion_run || annotation_matched_ion_current;
 
+    // Align with the search's fragment tolerance (as ProSE does), not SpectrumAlignment's default
+    // of 0.3 Da: otherwise annotations, fragment errors, longest ion run and MIC include peaks far
+    // outside the tolerance the PSM was scored with. getSpectrumAlignment() is const, so all
+    // threads share this instance.
+    SpectrumAlignment sa;
+    {
+      Param sa_param(sa.getParameters());
+      sa_param.setValue("tolerance", fragment_mass_tolerance);
+      sa_param.setValue("is_relative_tolerance", fragment_mass_tolerance_unit_ppm == "ppm" ? "true" : "false");
+      sa.setParameters(sa_param);
+    }
+
 #pragma omp parallel for
     for (SignedSize scan_index = 0; scan_index < (SignedSize)annotated_hits.size(); ++scan_index)
     {
@@ -420,7 +432,6 @@ void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
 
             const int max_frag_z = (charge >= 2) ? std::min<int>(charge - 1, 2) : 1;
             tsg.getSpectrum(theoretical_spec, fixed_and_variable_modified_peptide, 1, max_frag_z);
-            SpectrumAlignment sa;
             sa.getSpectrumAlignment(alignment, theoretical_spec, spec);
           }
 
