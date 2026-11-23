@@ -1,6 +1,5 @@
 #!/bin/bash
 #SBATCH --job-name=afull-prepare
-#SBATCH --partition=bigmem
 #SBATCH --cpus-per-task=16
 #SBATCH --mem=512G
 #SBATCH --time=24:00:00
