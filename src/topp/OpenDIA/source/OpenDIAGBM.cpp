@@ -321,7 +321,9 @@ namespace OpenMS::OpenDIA
     std::vector<double> weight(n, 1.0);
     HistGBM::Options go;
     go.threads = threads;
-    for (int round = 0; round < 3; ++round)
+    constexpr int ROUNDS = 3;
+    int round = 0;
+    for (; round < ROUNDS; ++round)
     {
       CrossFitScorer::Competition comp;
       try
@@ -402,6 +404,20 @@ namespace OpenMS::OpenDIA
       prev = std::move(s);
       s = next;
       if (log) log(line);
+    }
+    // The last round gets the same check as the others: a degenerate round (e.g. a fold whose model kept no tree, so
+    // its scores are constant) is discarded.
+    if (round == ROUNDS)
+    {
+      try
+      {
+        CrossFitScorer::pooledPairedTDC(in, s, all);
+      }
+      catch (const std::invalid_argument& e)
+      {
+        if (log) log("GBM rescore r" + std::to_string(ROUNDS) + ": discarded (" + e.what() + "); keeping round " + std::to_string(ROUNDS - 1) + " scores");
+        s = prev;
+      }
     }
 
     // Per precursor the best window (ties: lower row) keeps its score.
