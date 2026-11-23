@@ -4255,6 +4255,18 @@ add_test("TOPP_ProteinQuantifier_28" ${TOPP_BIN_PATH}/ProteinQuantifier -test -i
 add_test("TOPP_ProteinQuantifier_28_out1" ${DIFF} -in1 ${TESTS_TEMP_DIR}/ProteinQuantifier_28_output.tmp -in2 ${DATA_DIR_TOPP}/ProteinQuantifier_28_output.txt -whitelist "computed from file" )
 set_tests_properties("TOPP_ProteinQuantifier_28_out1" PROPERTIES DEPENDS "TOPP_ProteinQuantifier_28")
 
+# 34: quantities stored in the input must not be reported for proteins that this run does not
+#     quantify. The input is a consensusXML written by IsobaricWorkflow (a copy of
+#     IsobaricWorkflow_1_out.consensusXML), whose protein groups carry the quantities of that run.
+#     With 'top:N 5' no protein is quantified: the protein table is empty, and the mzTab file must
+#     not list a protein group with the abundances of the earlier run.
+#     (30-33 are left to the tests of 'modifications:exclude'.)
+add_test("TOPP_ProteinQuantifier_34" ${TOPP_BIN_PATH}/ProteinQuantifier -test -in ${DATA_DIR_TOPP}/ProteinQuantifier_34_input.consensusXML -out ${TESTS_TEMP_DIR}/ProteinQuantifier_34_output.tmp -mztab ${TESTS_TEMP_DIR}/ProteinQuantifier_34_output_mztab.tmp.mzTab -top:N 5 -top:aggregate sum)
+add_test("TOPP_ProteinQuantifier_34_out1" ${DIFF} -in1 ${TESTS_TEMP_DIR}/ProteinQuantifier_34_output.tmp -in2 ${DATA_DIR_TOPP}/ProteinQuantifier_34_output.txt -whitelist "computed from file" )
+set_tests_properties("TOPP_ProteinQuantifier_34_out1" PROPERTIES DEPENDS "TOPP_ProteinQuantifier_34")
+add_test("TOPP_ProteinQuantifier_34_out2" ${DIFF} -in1 ${TESTS_TEMP_DIR}/ProteinQuantifier_34_output_mztab.tmp.mzTab -in2 ${DATA_DIR_TOPP}/ProteinQuantifier_34_output_mztab.mzTab -whitelist "software")
+set_tests_properties("TOPP_ProteinQuantifier_34_out2" PROPERTIES DEPENDS "TOPP_ProteinQuantifier_34")
+
 # 29: 'fractions:aggregate best' on the same fractionated design, against _26, which is the same
 #     command line at the default 'sum'. AAAAAK (fraction 1 only) and CCCCCK (fraction 2 only) are
 #     unaffected; PEPTIDEK, seen in both at 100/10 and 50/5, has equal label prevalence in the two,
