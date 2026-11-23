@@ -11,6 +11,8 @@ The branch's [`src/topp/OpenDIA/README.md`](https://github.com/OpenMS/OpenMS/blo
 
 ## Current state, 23 November 2026
 
+**Calibration curve diagnostic:** [RESULT_CALIB](gates/single-binary/calib/RESULT_CALIB.md), frozen in `d129bac5ea` with the structural audit in `e8284fe208`. Full q=0.1-5% curves reproduce all 50 old q=1% counts. H has a lower entrapment estimate near 0.32% at reported q=0.1% with or without GBM, so the issue is not solely GBM. Astral shows threshold-dependent departures, not a uniform scale error. The paired estimator remains blocked on an authenticated generator pair map. Structural audits find 1,051 Astral and 1,114 HeLa own-decoy pairs with extra target-side siblings, plus missing partners. Candidate-window diagnostics need missing features exports. No scoring/default change or revised prior gate verdict, and repeated seeds are not independent experimental replicates.
+
 **Benchmark.** HeLa diaPASEF entrapment, r ≈ 7. The library is 1.39 M targets with predicted decoys and homolog-free foreign entrapments. There are two runs:
 - **D:** 2737.d, the design run.
 - **H:** 22474.d, the held-out run.

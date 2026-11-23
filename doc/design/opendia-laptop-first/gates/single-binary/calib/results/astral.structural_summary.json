@@ -1,0 +1,44 @@
+{
+  "source": "/home/singjc/.jcode/scratch/dia2/astral_structural_calib_20261123.json",
+  "source_sha256": "ffded86b0cd11478908928aad077090d9199073606f93f45e2878f73d1cadce4",
+  "provenance": {
+    "synthetic": false,
+    "precheck_commit": "e8284fe208473d361ecb2c1b7a8ba393f3f7f9b5",
+    "pushed_attestation": true,
+    "inputs": {
+      "/home/singjc/Documents/github/OpenMS-r1-benchmark-20261107/gap-20261114/armE_raw01/library.pqp": "d9e3fbe045dad14a321a540519b9334fcd35b4553e1f830552f719f8922f5c4b"
+    }
+  },
+  "candidate_population": "unavailable_library_only",
+  "library_precursors": 603421,
+  "own_decoy_pairs": 300942,
+  "unpaired_precursors": 1537,
+  "equal": 299891,
+  "target_more": 1051,
+  "decoy_more": 0,
+  "target_minus_decoy_siblings": {
+    "0": 299891,
+    "1": 1051
+  },
+  "sides": {
+    "target": {
+      "distribution": {
+        "0": 19054,
+        "1": 118870,
+        "2": 162387,
+        "3": 631
+      },
+      "mean": 1.4804746429544564
+    },
+    "decoy": {
+      "distribution": {
+        "0": 20000,
+        "1": 118026,
+        "2": 162288,
+        "3": 628
+      },
+      "mean": 1.476982275654445
+    }
+  },
+  "interpretation": "Structural opportunities only, not proof of null asymmetry or FDR inflation"
+}

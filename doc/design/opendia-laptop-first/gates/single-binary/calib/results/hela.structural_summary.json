@@ -1,0 +1,43 @@
+{
+  "source": "/home/singjc/.jcode/scratch/dia2/hela_structural_calib_20261123.json",
+  "source_sha256": "8f4f7e1167c075dd0ff6aa0f08e99ef926bfacba2180deb2f73a0c1ff7ac561c",
+  "provenance": {
+    "synthetic": false,
+    "precheck_commit": "e8284fe208473d361ecb2c1b7a8ba393f3f7f9b5",
+    "pushed_attestation": true,
+    "inputs": {
+      "/home/singjc/.jcode/scratch/dia2/entlib10/cut/hela_r5.predicted_decoys.pqp": "76f2a6c22277eaf464a301b446e97b0fd909fbf6b26d79736b1b0337c304f15c"
+    }
+  },
+  "candidate_population": "unavailable_library_only",
+  "library_precursors": 2778189,
+  "own_decoy_pairs": 1388026,
+  "unpaired_precursors": 2137,
+  "equal": 1386912,
+  "target_more": 1114,
+  "decoy_more": 0,
+  "target_minus_decoy_siblings": {
+    "0": 1386912,
+    "1": 1113,
+    "2": 1
+  },
+  "sides": {
+    "target": {
+      "distribution": {
+        "0": 256705,
+        "1": 670925,
+        "2": 460396
+      },
+      "mean": 1.1467486920273828
+    },
+    "decoy": {
+      "distribution": {
+        "0": 257579,
+        "1": 670292,
+        "2": 460155
+      },
+      "mean": 1.1459453929537342
+    }
+  },
+  "interpretation": "Structural opportunities only, not proof of null asymmetry or FDR inflation"
+}
