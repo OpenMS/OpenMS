@@ -160,28 +160,22 @@ int main()
     require(std::stoul(anchor.precursor_id) % 2 == 0, "decoy reported as anchor");
     require(std::stoul(anchor.precursor_id) / 2 % 5 != 0, "absent target reported as anchor");
   }
-  std::ostringstream json, anchors;
+  std::ostringstream json;
   OpenDIA::writeCalibrationJSON(result, options, json);
-  OpenDIA::writeCalibrationAnchors(result, anchors);
   require(json.str().find("\"offset_ppm\"") != std::string::npos, "JSON output");
 
-  // Diagnostics do not change the result and record every panel member's stage values.
-  OpenDIA::CalibrationDiagnostics diagnostics;
-  const auto diagnosed = collector.calibrate(&diagnostics);
-  std::ostringstream json_diagnosed;
-  OpenDIA::writeCalibrationJSON(diagnosed, options, json_diagnosed);
-  require(json_diagnosed.str() == json.str(), "diagnostics change the calibration");
-  require(diagnostics.rows.size() == collector.panelSize() && diagnostics.failure.empty(), "diagnostic rows");
-  std::size_t stage3_accepted = 0;
-  for (const auto& row : diagnostics.rows)
+  // The JSON reads back to the models used for extraction.
   {
-    require(std::isfinite(row.em_rt) && std::isfinite(row.stage1_map_rt), "stage maps in diagnostics");
-    stage3_accepted += !row.is_decoy && row.stage3_q <= options.anchor_fdr;
+    std::istringstream in(json.str());
+    const OpenDIA::CalibrationRT read = OpenDIA::readCalibrationRT(in, "test");
+    const auto near = [](double a, double b) { return std::fabs(a - b) <= 1e-6 * std::max(1.0, std::fabs(b)); };
+    require(read.has_ms2 && near(read.ms2_offset_ppm, result.ms2_offset_ppm) && near(read.ms2_tolerance_ppm, result.ms2_tolerance_ppm),
+            "JSON round trip of the fragment model");
+    require(read.has_im && near(read.im_tolerance, result.im_tolerance) && near(read.tolerance_s, result.rt_tolerance_s),
+            "JSON round trip of the RT and IM tolerances");
+    for (double library_rt : {10.0, 50.0, 90.0})
+      require(near(read.map(library_rt), result.runRT(library_rt)), "JSON round trip of the RT map");
   }
-  require(stage3_accepted == result.anchor_targets, "diagnostic stage-3 q-values match the anchors");
-  std::ostringstream diagnostic_table;
-  OpenDIA::writeCalibrationDiagnostics(diagnostics, diagnostic_table);
-  require(diagnostic_table.str().find("stage3_q") != std::string::npos, "diagnostic TSV");
 
   // Windowed second pass: collect only inside +-60 s of a supplied stage-1 map, skip stages 1 and 2.
   {
@@ -227,8 +221,7 @@ int main()
       spectrum.sortByPosition();
       windowed.consumeSpectrum(spectrum);
     }
-    OpenDIA::CalibrationDiagnostics window_diagnostics;
-    const auto windowed_result = windowed.calibrate(&window_diagnostics);
+    const auto windowed_result = windowed.calibrate();
     require(windowed_result.windowed, "windowed flag");
     require(windowed_result.anchor_targets >= 150, "windowed anchor count " + std::to_string(windowed_result.anchor_targets));
     require(windowed_result.anchor_decoys <= 3, "windowed decoy anchors " + std::to_string(windowed_result.anchor_decoys));
@@ -239,14 +232,6 @@ int main()
                 std::to_string(trueRT(library_rt)) + " (window map " + std::to_string(window.map(library_rt)) + ", anchors " +
                 std::to_string(windowed_result.anchor_targets) + ")");
     }
-    // Each member keeps only spectra inside its window plus margin, far fewer than the whole run.
-    std::size_t max_spectra = 0;
-    for (const auto& row : window_diagnostics.rows)
-    {
-      max_spectra = std::max(max_spectra, row.spectra);
-    }
-    const double collected_span = 2.0 * (window.half_window_s + 30.0 + 2.0 * window.peak_fwhm_s) + 1.0;
-    require(static_cast<double>(max_spectra) <= collected_span, "windowed collection range " + std::to_string(max_spectra));
     std::ostringstream windowed_json;
     OpenDIA::writeCalibrationJSON(windowed_result, options, windowed_json);
     require(windowed_json.str().find("\"windowed_second_pass\": true") != std::string::npos, "windowed JSON marker");
@@ -354,14 +339,8 @@ int main()
       spectrum.sortByPosition();
       one_pass.consumeSpectrum(spectrum);
     }
-    OpenDIA::CalibrationDiagnostics bent_diagnostics;
-    const auto bent_result = one_pass.calibrate(&bent_diagnostics);
+    const auto bent_result = one_pass.calibrate();
     require(!bent_result.windowed, "bent gradient calibrates in one pass");
-    // The centre of every stage-3 window is the stage-1 map (the EM map is reported, not used for the window).
-    for (const auto& row : bent_diagnostics.rows)
-    {
-      require(row.stage3_centre_rt == row.stage1_map_rt, "one-pass stage 3 is centred on the stage-1 map");
-    }
     std::size_t early = 0;
     for (const auto& anchor : bent_result.anchors) early += anchor.used && anchor.library_rt < 10.0;
     require(early >= 15, "early anchors on a bent gradient " + std::to_string(early));

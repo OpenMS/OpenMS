@@ -1,6 +1,6 @@
 # OpenDIA uses OpenMS readers and low-level classes only, no OpenSWATH code (design rule). Fails if the OpenDIA core
-# library sources (include/, source/) reference OpenSWATH headers or the OpenSwath:: namespace. The command-line tools
-# may use OpenSWATH only at explicitly marked edges (OpenDIAWorkflow -decoys predict, the OpenDIA -out_xipm writer).
+# library sources (include/, source/) reference OpenSWATH headers or the OpenSwath:: namespace. The command-line tool
+# may use OpenSWATH only at its explicitly marked edge (OpenDIAWorkflow -decoys predict).
 file(GLOB core "${SOURCE_DIR}/include/*.h" "${SOURCE_DIR}/source/*.cpp")
 set(bad "")
 foreach(f IN LISTS core)

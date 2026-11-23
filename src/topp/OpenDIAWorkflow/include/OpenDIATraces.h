@@ -137,10 +137,6 @@ namespace OpenMS::OpenDIA
     const std::array<double, FRAGMENTS>& libraryIntensities(std::size_t i) const { return samples_.at(i).library_intensity; }
     /// Fragment m/z in tensor channel order, with zero denoting padding.
     const std::array<double, FRAGMENTS>& fragmentMZ(std::size_t i) const { return samples_.at(i).fragment_mz; }
-    /// Library precursor m/z of sample i.
-    double precursorMZ(std::size_t i) const { return samples_.at(i).precursor_mz; }
-    /// Library precursor charge of sample i (0 if unknown).
-    int precursorCharge(std::size_t i) const { return samples_.at(i).precursor_charge; }
     /// Treat a spectrum ion-mobility array with a non-CCS unit as 1/K0 (VSSC).
     void setIonMobilityArrayAsVSSC(bool value) { ion_mobility_array_as_vssc_ = value; }
     /**
@@ -182,8 +178,6 @@ namespace OpenMS::OpenDIA
     const TraceEvidence& evidence(std::size_t i) const;
     /// Matched b and y ion counts of sample i (TraceEvidence::byion_b/_y), also after the window closed.
     std::array<std::uint16_t, 2> byIonCounts(std::size_t i) const;
-    /// RT half width of the tensor in seconds.
-    double rtHalfWidth() const { return rt_half_width_; }
 
   private:
     struct Sample

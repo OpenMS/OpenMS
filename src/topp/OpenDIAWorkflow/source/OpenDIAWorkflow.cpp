@@ -11,7 +11,6 @@
 #include <OpenDIAFragmentGrid.h>
 #include <OpenDIAGBM.h>
 #include <OpenDIAInterference.h>
-#include <OpenDIAPeakMaps.h>
 #include <OpenDIARTRefine.h>
 #include <OpenDIAStage2.h>
 #include <OpenDIATraces.h>
@@ -159,6 +158,18 @@ namespace OpenMS::OpenDIA
       std::size_t spectra = 0, peaks = 0;
     };
 
+    /// Forward every spectrum to two consumers in order.
+    struct TeeConsumer final : Interfaces::IMSDataConsumer
+    {
+      TeeConsumer(Interfaces::IMSDataConsumer& a, Interfaces::IMSDataConsumer& b) : first(a), second(b) {}
+      void consumeSpectrum(MSSpectrum& s) override { first.consumeSpectrum(s); second.consumeSpectrum(s); }
+      void consumeChromatogram(MSChromatogram& c) override { first.consumeChromatogram(c); second.consumeChromatogram(c); }
+      void setExpectedSize(Size s, Size c) override { first.setExpectedSize(s, c); second.setExpectedSize(s, c); }
+      void setExperimentalSettings(const ExperimentalSettings& e) override { first.setExperimentalSettings(e); second.setExperimentalSettings(e); }
+      Interfaces::IMSDataConsumer& first;
+      Interfaces::IMSDataConsumer& second;
+    };
+
     /// Stream a run into @p consumer; returns " read_s=.. consume_s=.. spectra=.. peaks=.." for the stage log.
     std::string readSpectra(const std::string& path, Interfaces::IMSDataConsumer& consumer, std::vector<Int> levels)
     {
@@ -194,11 +205,11 @@ namespace OpenMS::OpenDIA
 
   // ------------------------------------------------------------------------------------------------ library
 
-  AnalysisLibrary AnalysisLibrary::read(const std::string& search_pqp, const std::string& scoring_pqp)
+  AnalysisLibrary AnalysisLibrary::read(const std::string& pqp)
   {
     AnalysisLibrary lib;
-    lib.search = readLibrary(search_pqp);
-    const auto traml = readPrecursorTraMLIDs(search_pqp);
+    lib.search = readLibrary(pqp);
+    const auto traml = readPrecursorTraMLIDs(pqp);
     lib.traml_ids.assign(traml.begin(), traml.end());
     std::unordered_map<std::string, std::string> traml_to_id;
     for (const auto& [id, name] : traml) traml_to_id.emplace(name, id);
@@ -279,25 +290,11 @@ namespace OpenMS::OpenDIA
         p.scoring_in_search[s] = search_annotations[pi].contains(annotation(*list[s].second));
       }
     };
-    if (scoring_pqp.empty())
+    for (std::uint32_t pi = 0; pi < lib.precursors.size(); ++pi)
     {
-      for (std::uint32_t pi = 0; pi < lib.precursors.size(); ++pi)
-      {
-        std::vector<std::pair<long, const OpenDIA::LibraryTransition*>> list;
-        for (const auto* t : fragments[pi]) list.emplace_back(std::stol(t->transition_name), t);
-        assign(pi, list);
-      }
-    }
-    else
-    {
-      const OpenDIA::Library scoring = readLibrary(scoring_pqp);
-      std::vector<std::vector<std::pair<long, const OpenDIA::LibraryTransition*>>> lists(lib.precursors.size());
-      for (const auto& t : scoring.getTransitions())
-      {
-        const auto it = lib.index.find(t.peptide_ref);
-        if (it != lib.index.end()) lists[it->second].emplace_back(std::stol(t.transition_name), &t);
-      }
-      for (std::uint32_t pi = 0; pi < lib.precursors.size(); ++pi) assign(pi, lists[pi]);
+      std::vector<std::pair<long, const OpenDIA::LibraryTransition*>> list;
+      for (const auto* t : fragments[pi]) list.emplace_back(std::stol(t->transition_name), t);
+      assign(pi, list);
     }
     return lib;
   }
@@ -321,34 +318,9 @@ namespace OpenMS::OpenDIA
     auto& lib = library_;
     const auto t_run = std::chrono::steady_clock::now();
 
-    // 1. Calibration (uncalibrated library), or a given calibration and its anchors.
+    // 1. Calibration (uncalibrated library).
     OpenDIA::Library targeted = lib.search;
     std::vector<std::pair<std::string, double>> anchors;  // used anchors: precursor id, run RT
-    if (!options_.calibration_json.empty())
-    {
-      result.calibration = readCalibrationRT(options_.calibration_json);
-      std::ifstream in(options_.anchors_tsv);
-      std::string line;
-      if (!in || !std::getline(in, line)) throw Exception::FileNotReadable(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, options_.anchors_tsv);
-      std::vector<std::string> header;
-      StringUtils::split(line, '\t', header);
-      const auto col = [&](const std::string& name)
-      {
-        const auto it = std::find(header.begin(), header.end(), name);
-        if (it == header.end()) throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "anchors: column " + name);
-        return static_cast<std::size_t>(it - header.begin());
-      };
-      const std::size_t c_id = col("precursor_id"), c_rt = col("run_rt"), c_used = col("used");
-      while (std::getline(in, line))
-      {
-        if (line.empty()) continue;
-        std::vector<std::string> v;
-        StringUtils::split(line, '\t', v);
-        if (v[c_used] == "1") anchors.emplace_back(v[c_id], StringUtils::toDouble(v[c_rt]));
-      }
-      say("Calibration: reused " + options_.calibration_json + ", used anchors=" + std::to_string(anchors.size()));
-    }
-    else
     {
       CalibrationOptions copt = options_.calibration;
       std::optional<CalibrationResult> calibrated;
@@ -362,18 +334,18 @@ namespace OpenMS::OpenDIA
         const std::string io = readSpectra(path, collector, {2});
         ++passes;
         say("Calibration: pass " + std::to_string(passes) + " collected panel=" + std::to_string(collector.panelSize()) + io);
-        CalibrationDiagnostics diagnostics;
+        std::optional<CalibrationWindow> retry_window;
         try
         {
-          calibrated = collector.calibrate(options_.window_panel_targets ? &diagnostics : nullptr);
+          calibrated = collector.calibrate(options_.window_panel_targets ? &retry_window : nullptr);
         }
         catch (const std::runtime_error& error)
         {
-          if (!window && options_.window_panel_targets > copt.panel_targets && diagnostics.window)
+          if (!window && options_.window_panel_targets > copt.panel_targets && retry_window)
           {
             say(std::string("Calibration: whole-run pass failed (") + error.what() + "); windowed pass with up to " +
                 std::to_string(options_.window_panel_targets) + " targets.");
-            window = diagnostics.window;
+            window = retry_window;
             copt.panel_targets = options_.window_panel_targets;
             continue;
           }
@@ -510,10 +482,8 @@ namespace OpenMS::OpenDIA
       so.picker.valley_fraction = options_.search_valley_fraction;
       so.picker.boundary_half_widths = cal.boundary_half_widths;
       so.min_transitions = options_.min_transitions;
-      // The peak table text is not needed: candidates are kept in memory. A stream without a buffer discards it.
-      std::ostream sink(nullptr);
-      StreamSearch search(makeQueries(targeted), so, sink, nullptr);
-      search.keepCandidates();
+      // Candidates are kept in memory.
+      StreamSearch search(makeQueries(targeted), so);
       search_io = readSpectra(path, search, {2});
       const auto t_finish = std::chrono::steady_clock::now();
       search.finish();

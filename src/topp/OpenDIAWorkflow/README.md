@@ -1,4 +1,4 @@
-# OpenDIA
+# OpenDIAWorkflow
 
 Identification-free DIA analysis on a predicted spectral library. Targets and decoys are treated identically; no labels
 or external identifications are used.
@@ -6,7 +6,7 @@ or external identifications are used.
 ## One command: `OpenDIAWorkflow`
 
 ```
-OpenDIAWorkflow -in run1.raw run2.raw ... -lib library.pqp [-scoring_lib library12.pqp] -out_dir results -threads 8
+OpenDIAWorkflow -in run1.raw run2.raw ... -lib library.pqp -out_dir results -threads 8
 ```
 
 Per run:
@@ -53,16 +53,7 @@ Across runs, a precursor's global q-value comes from its best run score, by pair
 - Search: 30-40 s.
 - Evidence pass: 5-6 min. It holds about 90,000 open 12-fragment grids and the 6-fragment trace tensor of 1.6 M windows.
 - Scorer: 1-2 min.
-- Calibration adds 1-3 passes when it is not reused; the RT refine second pass repeats search, evidence and scoring.
-
-## Single steps
-
-The step tools stay for inspection and experiments.
-
-| Tool | Step |
-|---|---|
-| `OpenDIACalibrate` | Calibration only (`cal.json`, `-out_anchors`) |
-| `OpenDIA -calibration cal.json -features_out` | Candidate search and its feature table (`-out_xipm`: peak-map Parquet) |
+- Calibration adds 1-2 passes; the RT refine second pass repeats search, evidence and scoring.
 
 ## Interference features
 
@@ -92,7 +83,7 @@ result:
 
 ## Tests
 
-Run `ctest -R '^OpenDIA|OpenDIACalibrate'`.
+Run `ctest -R '^OpenDIA'`.
 - **`OpenDIAScorer_test`:**
   - gradients against finite differences;
   - the readout in closed form;

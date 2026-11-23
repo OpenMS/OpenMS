@@ -151,43 +151,7 @@ namespace OpenMS::OpenDIA
     double runRT(double library_rt) const { return rt_map(library_rt); }
     /// Library 1/K0 to calibrated run 1/K0.
     double runIM(double library_im) const { return im_intercept + im_slope * library_im; }
-    /// Library m/z to calibrated MS2 m/z.
-    double runMZ(double library_mz) const { return library_mz * (1.0 + ms2_offset_ppm * 1e-6); }
   };
-
-  /**
-    @brief Per panel member stage values, for diagnosing a calibration (also filled when it fails).
-
-    Rows are in panel order. Values of a stage that was not reached stay NaN (q-values 1).
-  */
-  struct CalibrationDiagnostics
-  {
-    struct Row
-    {
-      std::string precursor_id;
-      bool is_decoy = false;
-      double library_rt = 0.0;
-      std::size_t spectra = 0; ///< Isolating MS2 spectra collected.
-      double stage1_rt = std::numeric_limits<double>::quiet_NaN(), stage1_score = std::numeric_limits<double>::quiet_NaN();
-      double stage1_q = 1.0;
-      double stage1_map_rt = std::numeric_limits<double>::quiet_NaN(); ///< Stage-1 map at the target library RT.
-      double em_rt = std::numeric_limits<double>::quiet_NaN(); ///< Stage-2 map at the target library RT.
-      double stage3_centre_rt = std::numeric_limits<double>::quiet_NaN(); ///< Centre of the stage-3 window.
-      double stage3_rt = std::numeric_limits<double>::quiet_NaN(), stage3_score = std::numeric_limits<double>::quiet_NaN();
-      double stage3_q = 1.0;
-    };
-    std::vector<Row> rows;
-    double first_rt = 0.0, last_rt = 0.0;
-    double cycle_s = 0.0; ///< Median spectrum spacing per precursor.
-    double peak_fwhm_s = 0.0; ///< Median stage-1 anchor FWHM (0 if stage 1 failed).
-    std::size_t half_window_spectra = 0; ///< Stage-2/3 co-elution half window (0 if stage 1 failed).
-    std::string failure; ///< Empty if calibration succeeded.
-    /// Set when stage 1 succeeded but stage 3 found too few anchors (seed for a windowed second pass).
-    std::optional<CalibrationWindow> window;
-  };
-
-  /// Write @p diagnostics as TSV to @p out (header comment carries the run RT range and any failure).
-  void writeCalibrationDiagnostics(const CalibrationDiagnostics& diagnostics, std::ostream& out);
 
   /**
     @brief Identification-free calibration of RT, fragment m/z and 1/K0 from the run itself.
@@ -250,10 +214,11 @@ namespace OpenMS::OpenDIA
 
     /**
       @brief Run stages 1-4 on the collected traces.
-      @param[out] diagnostics Optional per-member stage values; filled up to the stage reached, also on failure.
+      @param[out] retry_window Optional: set when stage 1 succeeded but stage 3 found too few anchors (seed for a
+                  windowed second pass); left unchanged otherwise.
       @throws std::runtime_error If a stage has too few anchors to fit.
     */
-    CalibrationResult calibrate(CalibrationDiagnostics* diagnostics = nullptr) const;
+    CalibrationResult calibrate(std::optional<CalibrationWindow>* retry_window = nullptr) const;
 
     /// Number of panel precursors (targets plus decoys).
     std::size_t panelSize() const { return panel_.size(); }
@@ -295,7 +260,6 @@ namespace OpenMS::OpenDIA
     /// Stages 3 and 4 around @p centre (library RT to run RT); throws if too few anchors. Targets whose library RT
     /// is below @p support_low (above @p support_high) and their decoys are searched from the run start (to the run end).
     void finish_(CalibrationResult& result, const std::function<double(double)>& centre, std::size_t half_window,
-                 CalibrationDiagnostics* diagnostics,
                  double support_low = -std::numeric_limits<double>::infinity(),
                  double support_high = std::numeric_limits<double>::infinity()) const;
 
@@ -314,9 +278,6 @@ namespace OpenMS::OpenDIA
   /// Write @p result as JSON (units in keys) to @p out.
   void writeCalibrationJSON(const CalibrationResult& result, const CalibrationOptions& options, std::ostream& out);
 
-  /// Write anchors as TSV to @p out.
-  void writeCalibrationAnchors(const CalibrationResult& result, std::ostream& out);
-
   /** @brief Models read back from a calibration JSON written by writeCalibrationJSON(). */
   struct CalibrationRT
   {
@@ -332,10 +293,9 @@ namespace OpenMS::OpenDIA
   };
 
   /**
-    @brief Read the RT map and tolerance from a calibration JSON file.
-    @throws std::invalid_argument If the file is missing, not version 1, or the map or tolerance is invalid.
+    @brief Read the RT map and tolerance from a calibration JSON written by writeCalibrationJSON().
+    @param[in] name Used in error messages.
+    @throws std::invalid_argument If the JSON is not version 1, or the map or tolerance is invalid.
   */
-  CalibrationRT readCalibrationRT(const std::string& path);
-  /// As above, from a stream (@p name is used in error messages).
   CalibrationRT readCalibrationRT(std::istream& in, const std::string& name);
 }

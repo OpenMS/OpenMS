@@ -134,7 +134,6 @@ namespace OpenMS::OpenDIA
     /// Isolation window index per precursor (-1 none).
     std::vector<std::int32_t> isolationIndices() const;
     std::size_t isolationWindowCount() const { return lanes_.size(); }
-    std::size_t spectraUsed() const { return spectra_used_; }
     /// Largest number of grids held at once.
     std::size_t peakOpenGrids() const { return peak_open_; }
     /// Worker threads for the per-spectrum fragment sums (results do not depend on it). Default 1.
@@ -171,7 +170,7 @@ namespace OpenMS::OpenDIA
     double im_half_ = 0.0;
     bool im_array_as_vssc_ = false;
     double last_rt_ = -1e300;
-    std::size_t spectra_used_ = 0, open_ = 0, peak_open_ = 0;
+    std::size_t open_ = 0, peak_open_ = 0;
     bool finished_ = false;
     int threads_ = 1;
     std::vector<std::uint32_t> reached_;                         ///< Precursors reached by the current spectrum.

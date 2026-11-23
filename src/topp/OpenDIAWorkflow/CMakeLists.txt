@@ -19,7 +19,6 @@ add_library(OpenDIA_impl STATIC
   source/OpenDIATraces.cpp
   source/OpenDIARTMap.cpp
   source/OpenDIACalibration.cpp
-  source/OpenDIAPeakMaps.cpp
   source/OpenDIAStage2.cpp
   source/OpenDIAPeakPicker.cpp
   source/OpenDIAInterference.cpp
@@ -35,7 +34,6 @@ add_library(OpenDIA_impl STATIC
   include/OpenDIATraces.h
   include/OpenDIARTMap.h
   include/OpenDIACalibration.h
-  include/OpenDIAPeakMaps.h
   include/OpenDIAStage2.h
   include/OpenDIAPeakPicker.h
   include/OpenDIAInterference.h
@@ -62,18 +60,6 @@ endif()
 target_link_libraries(OpenDIA_impl PRIVATE nlohmann_json::nlohmann_json)
 if(COMMAND openms_add_library_compiler_flags)
   openms_add_library_compiler_flags(OpenDIA_impl)
-endif()
-
-add_executable(OpenDIA OpenDIA.cpp)
-target_link_libraries(OpenDIA PRIVATE OpenDIA_impl)
-if(COMMAND openms_add_executable_compiler_flags)
-  openms_add_executable_compiler_flags(OpenDIA)
-endif()
-
-add_executable(OpenDIACalibrate OpenDIACalibrate.cpp)
-target_link_libraries(OpenDIACalibrate PRIVATE OpenDIA_impl)
-if(COMMAND openms_add_executable_compiler_flags)
-  openms_add_executable_compiler_flags(OpenDIACalibrate)
 endif()
 
 add_executable(OpenDIAWorkflow OpenDIAWorkflow.cpp)

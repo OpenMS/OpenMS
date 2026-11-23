@@ -62,11 +62,10 @@ namespace OpenMS::OpenDIA
     std::size_t pairs = 0;
 
     /**
-      @brief Read the search library and, if given, the scoring library (same precursor IDs; up to 12 fragments each,
-      in transition ID order). Without a scoring library the search fragments are the scoring fragments.
-      @throws Exception::InvalidValue On a decoy without its target or a precursor missing from the scoring library.
+      @brief Read the library; the search fragments (in transition ID order) are also the scoring fragments.
+      @throws Exception::InvalidValue On a precursor without TRAML_ID or a decoy TRAML_ID not named DECOY_<target>.
     */
-    static AnalysisLibrary read(const std::string& search_pqp, const std::string& scoring_pqp = "");
+    static AnalysisLibrary read(const std::string& pqp);
   };
 
   /// Settings of one run.
@@ -93,9 +92,6 @@ namespace OpenMS::OpenDIA
     int threads = 1;
     bool im_array_as_vssc = false;
     std::size_t trace_tensor_gb = 64;  ///< Hard cap on the 6-fragment trace tensor (raw floats), in GiB.
-    /// Optional: reuse an OpenDIACalibrate JSON and anchor TSV instead of calibrating (reproduction of earlier runs).
-    std::string calibration_json;
-    std::string anchors_tsv;
     /// Per-run ridge RT correction and a second search/extract/score pass (PLAN_RTR D pass; -no_rt_refine turns it off).
     bool rt_refine = true;
     std::size_t rt_refine_min_ids = 500;  ///< Fewer training IDs skip the refinement.
@@ -115,7 +111,7 @@ namespace OpenMS::OpenDIA
   {
     std::string run;
     CalibrationRT calibration;
-    std::string calibration_json;  ///< Written calibration (empty when a calibration was reused).
+    std::string calibration_json;  ///< Written calibration.
     std::vector<RunWindow> windows;
     std::vector<std::string> feature_names;
     std::vector<float> features;  ///< windows x feature_names, row-major.

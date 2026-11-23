@@ -53,9 +53,6 @@ protected:
     registerInputFileList_("in", "<files>", {}, "DIA runs (Thermo raw, mzML, ...)");
     registerInputFile_("lib", "<file>", "", "PQP library with decoys named DECOY_<target TRAML_ID> (search fragments, up to 6 per precursor)");
     setValidFormats_("lib", {"pqp"});
-    registerInputFile_("scoring_lib", "<file>", "", "Optional PQP with up to 12 scoring fragments per precursor (same precursor IDs); "
-                       "default: the search fragments", false);
-    setValidFormats_("scoring_lib", {"pqp"});
     registerOutputDir_("out_dir", "<dir>", "", "Output directory");
     registerDoubleOption_("q", "<q>", 0.01, "q-value cut of the combined precursor table", false);
     setMinFloat_("q", 0.0);
@@ -83,8 +80,6 @@ protected:
     registerFlag_("no_rt_refine", "Advanced: skip the per-run RT refinement (PLAN_RTR): by default a ridge RT correction on sequence composition is fitted from the run's own q<=0.01 IDs after a first pass, then search, extraction and scoring run again with corrected RTs and a narrower RT window (about 1.8-1.9x wall time)", true);
     registerIntOption_("rt_refine_min_ids", "<n>", 500, "Advanced: skip the RT refinement with fewer training IDs", false, true);
     setMinInt_("rt_refine_min_ids", 1);
-    registerStringOption_("calibration", "<files>", "", "Advanced: comma-separated OpenDIACalibrate JSON per run to reuse instead of calibrating", false, true);
-    registerStringOption_("anchors", "<files>", "", "Advanced: comma-separated anchor TSV per run, with -calibration", false, true);
     registerStringOption_("decoys", "<mode>", "library",
                           "library: use the library's decoys. predict: replace them by pseudo-reversed decoys predicted like the "
                           "targets (own RT, ion mobility and fragment intensities, PeptDeep; DESIGN_OPENDIA_DECOYS), written to "
@@ -101,14 +96,6 @@ protected:
   static std::string stem_(const std::string& path)
   {
     return std::filesystem::path(path).stem().string();
-  }
-
-  static std::vector<std::string> list_(const std::string& s)
-  {
-    std::vector<std::string> out;
-    if (s.empty()) return out;
-    StringUtils::split(s, ',', out);
-    return out;
   }
 
   static void number_(std::string& row, double v)
@@ -215,13 +202,6 @@ protected:
       return ILLEGAL_PARAMETERS;
     }
     std::filesystem::create_directories(out_dir);
-    const auto calibrations = list_(getStringOption_("calibration"));
-    const auto anchor_files = list_(getStringOption_("anchors"));
-    if ((!calibrations.empty() || !anchor_files.empty()) && (calibrations.size() != inputs.size() || anchor_files.size() != inputs.size()))
-    {
-      writeLogError_("-calibration and -anchors need one file per input run.");
-      return ILLEGAL_PARAMETERS;
-    }
     std::map<std::string, int> stems;
     for (const auto& in : inputs)
     {
@@ -235,16 +215,11 @@ protected:
     std::string lib_path = getStringOption_("lib");
     if (getStringOption_("decoys") == "predict")
     {
-      if (!getStringOption_("scoring_lib").empty())
-      {
-        writeLogError_("-decoys predict does not support -scoring_lib (its decoys would not match the predicted ones).");
-        return ILLEGAL_PARAMETERS;
-      }
       const std::string cache = getStringOption_("decoy_cache");
       lib_path = predictDecoys_(lib_path, cache.empty() ? out_dir : cache);
     }
     writeLogInfo_("Reading library " + lib_path);
-    OpenDIA::AnalysisLibrary library = OpenDIA::AnalysisLibrary::read(lib_path, getStringOption_("scoring_lib"));
+    OpenDIA::AnalysisLibrary library = OpenDIA::AnalysisLibrary::read(lib_path);
     std::size_t library_rss = 0;
     SysInfo::getProcessMemoryConsumption(library_rss);
     writeLogInfo_("Library: precursors=" + std::to_string(library.precursors.size()) + " pairs=" + std::to_string(library.pairs) +
@@ -285,16 +260,10 @@ protected:
     std::vector<OpenDIA::RunResult> results;
     for (std::size_t r = 0; r < inputs.size(); ++r)
     {
-      if (!calibrations.empty())
-      {
-        options.calibration_json = calibrations[r];
-        options.anchors_tsv = anchor_files[r];
-      }
       const std::string name = stem_(inputs[r]);
       writeLogInfo_("Run " + std::to_string(r + 1) + "/" + std::to_string(inputs.size()) + ": " + inputs[r]);
       OpenDIA::RunAnalysis analysis(library, options, [&](const std::string& line) { writeLogInfo_("  " + line); });
       OpenDIA::RunResult result = analysis.run(inputs[r]);
-      if (!result.calibration_json.empty())
       {
         std::ofstream json(out_dir + "/" + name + ".calibration.json");
         json << result.calibration_json;

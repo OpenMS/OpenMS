@@ -14,13 +14,10 @@
 #include <OpenMS/METADATA/Precursor.h>
 
 #include <algorithm>
-#include <charconv>
 #include <cmath>
-#include <iomanip>
 #include <limits>
 #include <map>
 #include <numeric>
-#include <ostream>
 #include <string_view>
 #include <unordered_map>
 #include <utility>
@@ -29,21 +26,6 @@ namespace OpenMS::OpenDIA
 {
   namespace
   {
-    // Same text as std::ostream << std::setprecision(precision) << value (printf %.<precision>g), without the stream.
-    void appendDouble(std::string& out, double value, int precision)
-    {
-      char buffer[64];
-      const auto result = std::to_chars(buffer, buffer + sizeof(buffer), value, std::chars_format::general, precision);
-      out.append(buffer, result.ptr);
-    }
-
-    void appendSize(std::string& out, std::size_t value)
-    {
-      char buffer[24];
-      const auto result = std::to_chars(buffer, buffer + sizeof(buffer), value);
-      out.append(buffer, result.ptr);
-    }
-
     struct PrecursorKeyHash
     {
       std::size_t operator()(const std::pair<std::string_view, double>& key) const
@@ -53,19 +35,8 @@ namespace OpenMS::OpenDIA
     };
   }
 
-  const char* StreamSearch::featureHeader()
-  {
-    return "candidate_row\tprecursor_id\tprecursor_mz\tis_decoy\trt_start\trt_apex\trt_end\t"
-           "peak_width_seconds\tarea\tapex_intensity\ttransition_support\tmatched_scans\t"
-           "has_library_rt\tapex_rt_error_seconds\thas_library_im\t"
-           "fwhm_seconds\tcoelution\tpeak_rank\tpeaks_in_window";
-  }
-
-  StreamSearch::StreamSearch(std::vector<TransitionQuery> queries, SearchOptions options, std::ostream& output,
-                             std::ostream* candidate_features) :
-    options_(options),
-    output_(output),
-    candidate_features_(candidate_features)
+  StreamSearch::StreamSearch(std::vector<TransitionQuery> queries, SearchOptions options) :
+    options_(options)
   {
     const XicPickerOptions& picker = options_.picker;
     if (!std::isfinite(options_.fragment_tolerance_da) || !(options_.fragment_tolerance_da > 0.0) ||
@@ -104,7 +75,6 @@ namespace OpenMS::OpenDIA
         candidate.precursor_im = query.precursor_im;
         candidate.has_precursor_im = query.has_precursor_im && std::isfinite(query.precursor_im) && query.precursor_im > 0.0;
         candidate.is_decoy = query.is_decoy;
-        has_library_im_candidates_ = has_library_im_candidates_ || candidate.has_precursor_im;
         candidates_.push_back(std::move(candidate));
       }
       else if (candidates_[candidate_index].is_decoy != query.is_decoy)
@@ -265,8 +235,6 @@ namespace OpenMS::OpenDIA
       scalar_im = spectrum.getDriftTime();
       has_scalar_im = std::isfinite(scalar_im) && scalar_im > 0.0;
     }
-    const bool has_raw_im = im_values != nullptr || has_scalar_im;
-    ion_mobility_filtering_used_ = ion_mobility_filtering_used_ || (has_raw_im && has_library_im_candidates_);
     // TDF spectra commonly repeat one mobility value for every centroid: store it once per cell.
     bool uniform_per_peak_im = im_values != nullptr && !im_values->empty() && std::isfinite((*im_values)[0]) && (*im_values)[0] > 0.0f;
     if (uniform_per_peak_im)
@@ -428,7 +396,6 @@ namespace OpenMS::OpenDIA
       }
       // The most intense point inside the m/z (and, when both sides have it, 1/K0) window; the first one wins ties.
       double intensity = 0.0;
-      double matched_mz = 0.0;
       bool matched = false;
       for (auto point = cursor; point != points_end && point->mz <= query.high_mz; ++point)
       {
@@ -443,13 +410,12 @@ namespace OpenMS::OpenDIA
         if (!matched || point->intensity > intensity)
         {
           intensity = point->intensity;
-          matched_mz = point->mz;
         }
         matched = true;
       }
       if (matched)
       {
-        matches.push_back({query.candidate, {cell.id, static_cast<std::uint16_t>(query.slot), static_cast<float>(intensity)}, matched_mz});
+        matches.push_back({query.candidate, {cell.id, static_cast<std::uint16_t>(query.slot), static_cast<float>(intensity)}});
       }
     }
   }
@@ -505,10 +471,6 @@ namespace OpenMS::OpenDIA
       for (const Match& match : unit_matches_[u])
       {
         entries_[match.candidate].push_back(match.entry);
-        if (traces_ != nullptr && dump_selected_[match.candidate])
-        {
-          dump_mz_[match.candidate].push_back(match.mz);
-        }
       }
     }
 
@@ -537,8 +499,7 @@ namespace OpenMS::OpenDIA
       return;
     }
     const std::size_t count = end - begin;
-    std::vector<std::string> peak_rows(count), feature_rows(count);
-    std::vector<std::vector<SearchCandidate>> kept(keep_candidates_ ? count : 0);
+    std::vector<std::vector<SearchCandidate>> kept(count);
 #ifdef _OPENMP
 #pragma omp parallel if(count >= 64)
 #endif
@@ -551,47 +512,19 @@ namespace OpenMS::OpenDIA
       for (std::ptrdiff_t i = 0; i < static_cast<std::ptrdiff_t>(count); ++i)
       {
         const std::size_t candidate_index = close_order_[begin + static_cast<std::size_t>(i)];
-        pickCandidate_(candidate_index, matrix, scratch, peak_rows[static_cast<std::size_t>(i)], feature_rows[static_cast<std::size_t>(i)],
-                       keep_candidates_ ? &kept[static_cast<std::size_t>(i)] : nullptr);
-        if (traces_ == nullptr || !dump_selected_[candidate_index])
-        {
-          std::vector<Entry>().swap(entries_[candidate_index]);
-        }
+        pickCandidate_(candidate_index, matrix, scratch, kept[static_cast<std::size_t>(i)]);
+        std::vector<Entry>().swap(entries_[candidate_index]);
       }
     }
-    std::string numbered;
-    for (std::size_t i = 0; i < count; ++i)
+    for (const auto& k : kept)
     {
-      output_ << peak_rows[i];
-      if (keep_candidates_)
-      {
-        kept_.insert(kept_.end(), kept[i].begin(), kept[i].end());
-      }
-      if (candidate_features_ != nullptr)
-      {
-        // Feature rows are formatted without their running row number.
-        numbered.clear();
-        for (std::size_t start = 0; start < feature_rows[i].size();)
-        {
-          const std::size_t line_end = feature_rows[i].find('\n', start);
-          appendSize(numbered, candidate_feature_row_++);
-          numbered += '\t';
-          numbered.append(feature_rows[i], start, line_end + 1 - start);
-          start = line_end + 1;
-        }
-        *candidate_features_ << numbered;
-      }
-      const std::size_t candidate_index = close_order_[begin + i];
-      if (traces_ != nullptr && dump_selected_[candidate_index])
-      {
-        dumpTraces_(candidate_index);
-      }
+      kept_.insert(kept_.end(), k.begin(), k.end());
     }
     close_cursor_ = end;
   }
 
   void StreamSearch::pickCandidate_(std::size_t candidate_index, std::vector<float>& matrix, std::vector<double>& scratch,
-                                    std::string& peak_rows, std::string& feature_rows, std::vector<SearchCandidate>* kept) const
+                                    std::vector<SearchCandidate>& kept) const
   {
     const std::vector<Entry>& entries = entries_[candidate_index];
     if (entries.empty())
@@ -631,62 +564,21 @@ namespace OpenMS::OpenDIA
         continue;
       }
       const double start_rt = rts[peak.left], apex_rt = rts[peak.apex], end_rt = rts[peak.right];
-      // Peak table, %.10g.
-      peak_rows += candidate.id;
-      for (const double value : {candidate.precursor_mz, start_rt, apex_rt, end_rt, peak.area > 0.0 ? peak.area : peak.apex_height})
-      {
-        peak_rows += '\t';
-        appendDouble(peak_rows, value, 10);
-      }
-      peak_rows += '\t';
-      appendSize(peak_rows, peak.support);
-      peak_rows += '\t';
-      appendSize(peak_rows, peak.signal_scans);
-      peak_rows += '\n';
-      if (kept != nullptr)
-      {
-        SearchCandidate c;
-        c.precursor = static_cast<std::uint32_t>(candidate_index);
-        c.rt_start = start_rt;
-        c.rt_apex = apex_rt;
-        c.rt_end = end_rt;
-        c.area = peak.area;
-        c.apex_intensity = peak.apex_height;
-        c.transition_support = static_cast<std::uint32_t>(peak.support);
-        c.matched_scans = static_cast<std::uint32_t>(peak.signal_scans);
-        c.apex_rt_error_seconds = candidate.has_library_rt ? apex_rt - candidate.library_rt : 0.0;
-        c.fwhm_seconds = peak.fwhm;
-        c.coelution = peak.coelution;
-        c.peak_rank = static_cast<std::uint16_t>(rank);
-        c.peaks_in_window = static_cast<std::uint16_t>(peaks_found);
-        kept->push_back(c);
-      }
-      if (candidate_features_ == nullptr)
-      {
-        continue;
-      }
-      // Feature table, %.17g, without the leading candidate_row.
-      const auto number = [&feature_rows](double value) { feature_rows += '\t'; appendDouble(feature_rows, value, 17); };
-      const auto count = [&feature_rows](std::size_t value) { feature_rows += '\t'; appendSize(feature_rows, value); };
-      feature_rows += candidate.id;
-      number(candidate.precursor_mz);
-      count(candidate.is_decoy ? 1 : 0);
-      number(start_rt);
-      number(apex_rt);
-      number(end_rt);
-      number(end_rt - start_rt);
-      number(peak.area);
-      number(peak.apex_height);
-      count(peak.support);
-      count(peak.signal_scans);
-      count(candidate.has_library_rt ? 1 : 0);
-      number(candidate.has_library_rt ? apex_rt - candidate.library_rt : 0.0);
-      count(candidate.has_precursor_im ? 1 : 0);
-      number(peak.fwhm);
-      number(peak.coelution);
-      count(rank);
-      count(peaks_found);
-      feature_rows += '\n';
+      SearchCandidate c;
+      c.precursor = static_cast<std::uint32_t>(candidate_index);
+      c.rt_start = start_rt;
+      c.rt_apex = apex_rt;
+      c.rt_end = end_rt;
+      c.area = peak.area;
+      c.apex_intensity = peak.apex_height;
+      c.transition_support = static_cast<std::uint32_t>(peak.support);
+      c.matched_scans = static_cast<std::uint32_t>(peak.signal_scans);
+      c.apex_rt_error_seconds = candidate.has_library_rt ? apex_rt - candidate.library_rt : 0.0;
+      c.fwhm_seconds = peak.fwhm;
+      c.coelution = peak.coelution;
+      c.peak_rank = static_cast<std::uint16_t>(rank);
+      c.peaks_in_window = static_cast<std::uint16_t>(peaks_found);
+      kept.push_back(c);
     }
   }
 
@@ -713,71 +605,6 @@ namespace OpenMS::OpenDIA
     return cells;
   }
 
-  void StreamSearch::setTraceDump(std::ostream& output, const std::vector<std::string>& precursor_ids)
-  {
-    std::map<std::string_view, bool> wanted;
-    for (const std::string& id : precursor_ids)
-    {
-      wanted.emplace(id, true);
-    }
-    dump_selected_.assign(candidates_.size(), false);
-    for (std::size_t c = 0; c < candidates_.size(); ++c)
-    {
-      dump_selected_[c] = wanted.contains(std::string_view(candidates_[c].id));
-    }
-    dump_mz_.assign(candidates_.size(), {});
-    traces_ = &output;
-    output << "precursor_id\tscan\trt\tslot\tfragment_mz\tintensity\tobserved_mz\n";
-  }
-
-  void StreamSearch::dumpTraces_(std::size_t candidate_index)
-  {
-    const std::vector<Entry>& entries = entries_[candidate_index];
-    const std::vector<double>& observed = dump_mz_[candidate_index];
-    const std::vector<std::pair<std::uint32_t, double>> cells = candidateCells_(candidate_index);
-    const std::size_t offset = candidate_query_offsets_[candidate_index];
-    const std::size_t fragments = candidate_query_offsets_[candidate_index + 1] - offset;
-    // Same reduction as pickCandidate_: the most intense match of a (scan, fragment) wins.
-    std::vector<float> intensity(cells.size() * fragments, 0.0f);
-    std::vector<double> mz(cells.size() * fragments, std::numeric_limits<double>::quiet_NaN());
-    for (std::size_t e = 0; e < entries.size(); ++e)
-    {
-      const auto row = std::lower_bound(cells.begin(), cells.end(), entries[e].cell, [](const auto& cell, std::uint32_t id) { return cell.first < id; });
-      if (row == cells.end() || row->first != entries[e].cell)
-      {
-        continue;
-      }
-      const std::size_t at = static_cast<std::size_t>(row - cells.begin()) * fragments + entries[e].slot;
-      if (std::isnan(mz[at]) || entries[e].intensity > intensity[at])
-      {
-        intensity[at] = entries[e].intensity;
-        mz[at] = e < observed.size() ? observed[e] : std::numeric_limits<double>::quiet_NaN();
-      }
-    }
-    std::ostream& out = *traces_;
-    const std::string& id = candidates_[candidate_index].id;
-    for (std::size_t s = 0; s < cells.size(); ++s)
-    {
-      for (std::size_t f = 0; f < fragments; ++f)
-      {
-        const std::size_t at = s * fragments + f;
-        out << id << '\t' << cells[s].first << '\t' << std::setprecision(10) << cells[s].second << '\t' << f << '\t'
-            << queries_[candidate_query_indices_[offset + f]].fragment_mz << '\t' << intensity[at] << '\t';
-        if (std::isnan(mz[at]))
-        {
-          out << "nan";
-        }
-        else
-        {
-          out << mz[at];
-        }
-        out << '\n';
-      }
-    }
-    std::vector<Entry>().swap(entries_[candidate_index]);
-    std::vector<double>().swap(dump_mz_[candidate_index]);
-  }
-
   void StreamSearch::finish()
   {
     if (finished_)
@@ -790,8 +617,4 @@ namespace OpenMS::OpenDIA
     finished_ = true;
   }
 
-  bool StreamSearch::ionMobilityFilteringUsed() const
-  {
-    return ion_mobility_filtering_used_;
-  }
 }

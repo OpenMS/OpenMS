@@ -312,7 +312,6 @@ namespace OpenMS::OpenDIA
       }
     }
     const bool spectrum_has_im = mobilities != nullptr || scalar_im > 0.0;
-    bool used = false;
     // Serially: the precursors this spectrum reaches, in the former visiting order. In parallel: their fragment sums
     // (independent, read-only on the spectrum). Serially again: the grid additions in that same order, so every grid
     // cell receives the same sums in the same order as before (thread-count invariant, byte-identical).
@@ -380,7 +379,6 @@ namespace OpenMS::OpenDIA
       if (!any_[r]) continue;
       const std::uint32_t p = reached_[r];
       const std::array<double, K>& sum = sums_[r];
-      used = true;
       {
         for (std::uint32_t k = window_offsets_[p]; k < window_offsets_[p + 1]; ++k)
         {
@@ -395,7 +393,6 @@ namespace OpenMS::OpenDIA
         }
       }
     }
-    if (used) ++spectra_used_;
   }
 
   void FragmentGridCollector::finish()

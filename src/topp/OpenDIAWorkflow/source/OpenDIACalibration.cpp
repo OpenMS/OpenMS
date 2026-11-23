@@ -16,7 +16,6 @@
 #include <cmath>
 #include <exception>
 #include <numbers>
-#include <fstream>
 #include <iomanip>
 #include <limits>
 #include <map>
@@ -670,31 +669,12 @@ namespace OpenMS::OpenDIA
     return out;
   }
 
-  CalibrationResult CalibrationCollector::calibrate(CalibrationDiagnostics* diagnostics) const
+  CalibrationResult CalibrationCollector::calibrate(std::optional<CalibrationWindow>* retry_window) const
   {
     if (!saw_spectrum_ || !(last_rt_ > first_rt_))
     {
       throw std::runtime_error("Calibration saw no MS2 spectra spanning a positive RT range");
     }
-    if (diagnostics != nullptr)
-    {
-      diagnostics->rows.assign(panel_.size(), {});
-      diagnostics->first_rt = first_rt_;
-      diagnostics->last_rt = last_rt_;
-      for (std::size_t m = 0; m < panel_.size(); ++m)
-      {
-        auto& row = diagnostics->rows[m];
-        row.precursor_id = panel_[m].id;
-        row.is_decoy = panel_[m].is_decoy;
-        row.library_rt = panel_[m].library_rt;
-        row.spectra = panel_[m].rt.size();
-      }
-    }
-    // Library RT of the target a member is searched around (a decoy uses its target's).
-    const auto target_library_rt = [this](std::size_t m)
-    {
-      return panel_[panel_[m].is_decoy ? panel_[m].partner : m].library_rt;
-    };
     if (window_)
     {
       // Windowed second pass: stages 1 and 2 come from the first pass; stage 3 is centred on its stage-1 map.
@@ -711,16 +691,7 @@ namespace OpenMS::OpenDIA
       result.half_window_spectra = window_->half_window_spectra;
       result.stage3_half_window_s = window_->half_window_s;
       const RTMap& map = window_->map;
-      if (diagnostics != nullptr)
-      {
-        diagnostics->peak_fwhm_s = window_->peak_fwhm_s;
-        diagnostics->half_window_spectra = window_->half_window_spectra;
-        for (std::size_t m = 0; m < panel_.size(); ++m)
-        {
-          diagnostics->rows[m].stage1_map_rt = map(target_library_rt(m));
-        }
-      }
-      finish_(result, [&map](double library_rt) { return map(library_rt); }, window_->half_window_spectra, diagnostics,
+      finish_(result, [&map](double library_rt) { return map(library_rt); }, window_->half_window_spectra,
               window_->support_low, window_->support_high);
       return result;
     }
@@ -765,18 +736,6 @@ namespace OpenMS::OpenDIA
       }
     }
     const auto stage1_q = pairedQValues_(stage1_score, panel_decoy, panel_partner, stage1_present);
-    if (diagnostics != nullptr)
-    {
-      for (std::size_t m = 0; m < panel_.size(); ++m)
-      {
-        if (stage1_present[m])
-        {
-          diagnostics->rows[m].stage1_rt = stage1_best[m].rt;
-          diagnostics->rows[m].stage1_score = stage1_score[m];
-          diagnostics->rows[m].stage1_q = stage1_q[m];
-        }
-      }
-    }
     std::vector<std::pair<double, double>> stage1;
     std::vector<double> stage1_fwhm;
     for (std::size_t m = 0; m < panel_.size(); ++m)
@@ -880,22 +839,9 @@ namespace OpenMS::OpenDIA
     }
     const RTMap map1 = fitRTMap(stage1, mapBins_(stage1.size()));
     result.stage1_sigma_s = map1.sigma;
-    if (diagnostics != nullptr)
-    {
-      for (std::size_t m = 0; m < panel_.size(); ++m)
-      {
-        diagnostics->rows[m].stage1_map_rt = map1(target_library_rt(m));
-      }
-    }
     const std::size_t half_window = std::clamp<std::size_t>(static_cast<std::size_t>(std::lround(median_(stage1_fwhm))), 3, 64);
     result.half_window_spectra = half_window;
     result.peak_fwhm_s = median_(stage1_fwhm) * cycle_s;
-    if (diagnostics != nullptr)
-    {
-      diagnostics->cycle_s = cycle_s;
-      diagnostics->peak_fwhm_s = result.peak_fwhm_s;
-      diagnostics->half_window_spectra = half_window;
-    }
 
     // ---- Stage 2: identification-free latent peak/no-peak mixture over all target candidates.
     // Library RT normalized over the panel's target span; run RT over the measured run interval.
@@ -1102,17 +1048,6 @@ namespace OpenMS::OpenDIA
       result.em_knots_library.push_back(lib_lo + knot_x[k] * (lib_hi - lib_lo));
       result.em_knots_run.push_back(first_rt_ + knot_y[k] * run_span);
     }
-    const auto em_map = [&](double library_rt)
-    {
-      return interpolate_(result.em_knots_library, result.em_knots_run, library_rt);
-    };
-    if (diagnostics != nullptr)
-    {
-      for (std::size_t m = 0; m < panel_.size(); ++m)
-      {
-        diagnostics->rows[m].em_rt = em_map(target_library_rt(m));
-      }
-    }
 
     // ---- Stage 3: paired target-decoy anchors around the stage-1 map.
     // The window is centred on the stage-1 map, as in the windowed pass: the stage-2 EM map is a smooth fixed-width
@@ -1122,12 +1057,12 @@ namespace OpenMS::OpenDIA
     result.stage3_half_window_s = std::max(options_.rt_sigma_multiple * result.stage1_sigma_s, options_.min_window_s);
     try
     {
-      finish_(result, [&map1](double library_rt) { return map1(library_rt); }, half_window, diagnostics,
+      finish_(result, [&map1](double library_rt) { return map1(library_rt); }, half_window,
               stage1.front().first, stage1.back().first);
     }
     catch (const std::runtime_error&)
     {
-      if (diagnostics != nullptr)
+      if (retry_window != nullptr)
       {
         // Stage 1 worked; keep its map so a caller may try a windowed second pass.
         CalibrationWindow window;
@@ -1142,7 +1077,7 @@ namespace OpenMS::OpenDIA
         window.cycle_s = cycle_s;
         window.run_first_rt = first_rt_;
         window.run_last_rt = last_rt_;
-        diagnostics->window = window;
+        *retry_window = window;
       }
       throw;
     }
@@ -1150,7 +1085,7 @@ namespace OpenMS::OpenDIA
   }
 
   void CalibrationCollector::finish_(CalibrationResult& result, const std::function<double(double)>& centre_of,
-                                     std::size_t half_window, CalibrationDiagnostics* diagnostics,
+                                     std::size_t half_window,
                                      double support_low, double support_high) const
   {
     const auto target_library_rt = [this](std::size_t m)
@@ -1175,10 +1110,6 @@ namespace OpenMS::OpenDIA
       const double high = library_rt > support_high ? std::numeric_limits<double>::infinity() : centre + result.stage3_half_window_s;
       result.stage3_extended_targets += !is_decoy[m] && (library_rt < support_low || library_rt > support_high);
       rt_informative[m] = library_rt >= support_low && library_rt <= support_high;
-      if (diagnostics != nullptr)
-      {
-        diagnostics->rows[m].stage3_centre_rt = centre;
-      }
       const auto candidates = candidates_(m, half_window, low, high, options_.candidates, options_.min_fragments);
       for (const auto& candidate : candidates)
       {
@@ -1218,18 +1149,6 @@ namespace OpenMS::OpenDIA
       }
     }
     const auto q = pairedQValues_(evidence, is_decoy, partner, present);
-    if (diagnostics != nullptr)
-    {
-      for (std::size_t m = 0; m < panel_.size(); ++m)
-      {
-        if (present[m])
-        {
-          diagnostics->rows[m].stage3_rt = best[m].rt;
-          diagnostics->rows[m].stage3_score = score[m];
-          diagnostics->rows[m].stage3_q = q[m];
-        }
-      }
-    }
     std::vector<std::pair<double, double>> anchor_points;
     for (std::size_t m = 0; m < panel_.size(); ++m)
     {
@@ -1602,41 +1521,6 @@ namespace OpenMS::OpenDIA
         << "  \"im\": {\"available\": " << (r.has_im ? "true" : "false") << ", \"intercept_vssc\": " << r.im_intercept
         << ", \"slope\": " << r.im_slope << ", \"sigma_vssc\": " << r.im_sigma << ", \"tolerance_half_width_vssc\": " << r.im_tolerance
         << ", \"points\": " << r.im_points << "}\n}\n";
-  }
-
-  void writeCalibrationDiagnostics(const CalibrationDiagnostics& d, std::ostream& out)
-  {
-    out << "# first_rt_s=" << std::setprecision(10) << d.first_rt << " last_rt_s=" << d.last_rt << " cycle_s=" << d.cycle_s
-        << " peak_fwhm_s=" << d.peak_fwhm_s << " half_window_spectra=" << d.half_window_spectra
-        << " failure=" << (d.failure.empty() ? std::string("none") : d.failure) << '\n'
-        << "precursor_id\tdecoy\tlibrary_rt\tspectra\tstage1_rt\tstage1_score\tstage1_q\tstage1_map_rt\tem_rt\tstage3_centre_rt\tstage3_rt\tstage3_score\tstage3_q\n";
-    for (const auto& r : d.rows)
-    {
-      out << r.precursor_id << '\t' << r.is_decoy << '\t' << r.library_rt << '\t' << r.spectra << '\t' << r.stage1_rt << '\t'
-          << r.stage1_score << '\t' << r.stage1_q << '\t' << r.stage1_map_rt << '\t' << r.em_rt << '\t' << r.stage3_centre_rt << '\t'
-          << r.stage3_rt << '\t' << r.stage3_score << '\t' << r.stage3_q << '\n';
-    }
-  }
-
-  void writeCalibrationAnchors(const CalibrationResult& r, std::ostream& out)
-  {
-    out << "precursor_id\tlibrary_rt\trun_rt\tlibrary_im\tobserved_im\tcorrelation\tcosine\tfragments\tq_value\tused\n"
-        << std::setprecision(10);
-    for (const auto& a : r.anchors)
-    {
-      out << a.precursor_id << '\t' << a.library_rt << '\t' << a.run_rt << '\t' << a.library_im << '\t' << a.observed_im << '\t'
-          << a.correlation << '\t' << a.cosine << '\t' << a.fragments << '\t' << a.q_value << '\t' << a.used << '\n';
-    }
-  }
-
-  CalibrationRT readCalibrationRT(const std::string& path)
-  {
-    std::ifstream in(path);
-    if (!in)
-    {
-      throw std::invalid_argument("Cannot read calibration file " + path);
-    }
-    return readCalibrationRT(in, path);
   }
 
   CalibrationRT readCalibrationRT(std::istream& in, const std::string& path)
