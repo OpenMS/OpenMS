@@ -1630,6 +1630,8 @@ namespace OpenMS::Internal
 
         copy_hit.removeMetaValue("calcMZ");
         copy_hit.removeMetaValue(Constants::UserParam::TARGET_DECOY);
+        // the rank is the 'rank' attribute; as userParam it would be read back as string and break PeptideHit::getRank()
+        copy_hit.removeMetaValue(Constants::UserParam::RANK);
         writeMetaInfos_(sii_tmp, copy_hit, 5);
 
         //~ sidres += "<cvParam accession=\"MS:1000796\" cvRef=\"PSI-MS\" value=\"55.835.842.3.dta\" name=\"spectrum title\"/>";
