@@ -11,6 +11,7 @@
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/CHEMISTRY/ProteaseDB.h>
 #include <OpenMS/CHEMISTRY/ProteaseDigestion.h>
+#include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/FORMAT/FASTAFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/CONCEPT/LogStream.h>
@@ -24,6 +25,7 @@
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/SYSTEM/File.h>
 
+#include <algorithm>
 #include <limits>
 
 using namespace OpenMS;
@@ -143,7 +145,7 @@ protected:
     registerStringOption_("score:type_protein", "<type>", "", "The type of the score which should be reached by a protein hit to be kept. If empty, the most recently set score is used.", false, true);
     setValidStrings_("score:type_protein", ids.getScoreNames());
 
-    registerDoubleOption_("score:proteingroup", "<score>", NAN, "The score which should be reached by a protein group to be kept. Performs group level score filtering (including groups of single proteins). Use in combination with 'delete_unreferenced_peptide_hits' to remove affected peptides. (use 'NAN' to disable this filter)", false);
+    registerDoubleOption_("score:proteingroup", "<score>", NAN, "The score which should be reached by a protein group to be kept. Performs group level score filtering (including groups of single proteins). Use in combination with 'delete_unreferenced_peptide_hits' to remove affected peptides. The cutoff is recorded in the output (and exported as protein detection threshold to mzIdentML). (use 'NAN' to disable this filter)", false);
 
     registerTOPPSubsection_("whitelist", "Filtering by whitelisting (only peptides/proteins from a given set can pass)");
     registerInputFile_("whitelist:proteins", "<file>", "", "Filename of a FASTA file containing protein sequences.\n"
@@ -707,6 +709,16 @@ protected:
         OPENMS_LOG_INFO << "Filtering by protein group score..." << endl;
         IDFilter::filterGroupsByScore(proteinid.getIndistinguishableProteins(), prot_grp_score, proteinid.isHigherScoreBetter());
         IDFilter::filterGroupsByScore(proteinid.getProteinGroups(), prot_grp_score, proteinid.isHigherScoreBetter());
+        // record the cutoff, e.g. for the protein detection threshold in mzIdentML; of repeated cutoffs on the same score, the stricter one applies
+        double cutoff = prot_grp_score;
+        if (proteinid.metaValueExists(Constants::UserParam::PROTEIN_GROUP_SCORE_THRESHOLD) &&
+            proteinid.getMetaValue(Constants::UserParam::PROTEIN_GROUP_SCORE_THRESHOLD_TYPE, "").toString() == proteinid.getScoreType())
+        {
+          const double previous = proteinid.getMetaValue(Constants::UserParam::PROTEIN_GROUP_SCORE_THRESHOLD);
+          cutoff = proteinid.isHigherScoreBetter() ? std::max(cutoff, previous) : std::min(cutoff, previous);
+        }
+        proteinid.setMetaValue(Constants::UserParam::PROTEIN_GROUP_SCORE_THRESHOLD, cutoff);
+        proteinid.setMetaValue(Constants::UserParam::PROTEIN_GROUP_SCORE_THRESHOLD_TYPE, proteinid.getScoreType());
       }
     }
     else
