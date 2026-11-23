@@ -192,7 +192,7 @@ namespace OpenMS
      * @param[out] im computed weighted average ion mobility
      * @param[out] intensity intensity computed intensity
      * @param[out] res outputted ion mobilogram
-     * @param[in] eps minimum distance to allow for two seperate points
+     * @param[in] eps minimum distance to allow for two separate points
      */
     static void computeIonMobilogram(const SpectrumSequence& spectra,
                               const RangeMZ & mz_range,
