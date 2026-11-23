@@ -65,6 +65,9 @@
 		<InputSpectra spectraData_ref="SDAT_13440783915218733453"/>
 		<SearchDatabaseRef searchDatabase_ref="SDB_15916652588957785155"/>
 	</SpectrumIdentification>
+	<ProteinDetection id="PD_11115414975438642789" proteinDetectionProtocol_ref="PDP_11115414975438642789" proteinDetectionList_ref="PDL_11115414975438642789">
+		<InputSpectrumIdentifications spectrumIdentificationList_ref="SIL_7804704400743266335"/>
+	</ProteinDetection>
 </AnalysisCollection>
 <AnalysisProtocolCollection>
 	<SpectrumIdentificationProtocol id="SIP_12999979801269632061" analysisSoftware_ref="SOF_17749660155506638460">
@@ -138,6 +141,15 @@
 			<cvParam accession="MS:1001494" cvRef="PSI-MS" name="no threshold"/>
 		</Threshold>
 	</SpectrumIdentificationProtocol>
+	<ProteinDetectionProtocol id="PDP_11115414975438642789" analysisSoftware_ref="SOF_17749660155506638460">
+		<AnalysisParams>
+			<userParam name="protein score type" type="xsd:string" value="MOWSE"/>
+			<userParam name="higher protein score better" type="xsd:boolean" value="true"/>
+		</AnalysisParams>
+		<Threshold>
+			<cvParam accession="MS:1001494" cvRef="PSI-MS" name="no threshold"/>
+		</Threshold>
+	</ProteinDetectionProtocol>
 </AnalysisProtocolCollection>
 <DataCollection>
 	<Inputs>
@@ -205,6 +217,34 @@
 				</SpectrumIdentificationItem>
 			</SpectrumIdentificationResult>
 		</SpectrumIdentificationList>
+		<ProteinDetectionList id="PDL_11115414975438642789">
+			<ProteinAmbiguityGroup id="PAG_1">
+				<ProteinDetectionHypothesis id="PDH_1" dBSequence_ref="PROT_15157403601844400700" passThreshold="true">
+					<PeptideHypothesis peptideEvidence_ref="PEV_12524258085768770586">
+						<SpectrumIdentificationItemRef spectrumIdentificationItem_ref="SII_14811341817612382122"/>
+					</PeptideHypothesis>
+					<cvParam accession="MS:1002401" cvRef="PSI-MS" name="leading protein"/>
+					<cvParam accession="MS:1002403" cvRef="PSI-MS" name="group representative"/>
+					<cvParam accession="MS:1001594" cvRef="PSI-MS" name="sequence same-set protein" value="PDH_2"/>
+					<userParam name="MOWSE" type="xsd:double" value="34.399999999999999"/>
+					<userParam name="name" unitName="xsd:string" value="ProteinHit"/>
+				</ProteinDetectionHypothesis>
+				<ProteinDetectionHypothesis id="PDH_2" dBSequence_ref="PROT_6408859317243173796" passThreshold="true">
+					<PeptideHypothesis peptideEvidence_ref="PEV_1755235105885170967">
+						<SpectrumIdentificationItemRef spectrumIdentificationItem_ref="SII_14811341817612382122"/>
+					</PeptideHypothesis>
+					<cvParam accession="MS:1002401" cvRef="PSI-MS" name="leading protein"/>
+					<cvParam accession="MS:1001594" cvRef="PSI-MS" name="sequence same-set protein" value="PDH_1"/>
+					<userParam name="MOWSE" type="xsd:double" value="24.399999999999999"/>
+				</ProteinDetectionHypothesis>
+				<cvParam accession="MS:1002415" cvRef="PSI-MS" name="protein group passes threshold" value="true"/>
+				<userParam name="MOWSE" type="xsd:double" value="0.0"/>
+				<cvParam accession="MS:1002407" cvRef="PSI-MS" name="cluster identifier" value="1"/>
+				<userParam name="cluster score" type="xsd:double" value="0.88"/>
+			</ProteinAmbiguityGroup>
+			<cvParam accession="MS:1002404" cvRef="PSI-MS" name="count of identified proteins" value="1"/>
+			<cvParam accession="MS:1002406" cvRef="PSI-MS" name="count of identified clusters" value="1"/>
+		</ProteinDetectionList>
 	</AnalysisData>
 </DataCollection>
 </MzIdentML>

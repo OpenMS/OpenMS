@@ -91,6 +91,8 @@ results with probability-based scores (i.e. Percolator with PEP score or scores 
 secondary or non-probability main scores will be written as "search_scores" only.
 
 Support for conversion to/from mzIdentML (.mzid) is still experimental and may lose information.
+Protein inference results (indistinguishable and general protein groups) are converted to and from the mzIdentML
+ProteinDetectionList, see @ref OpenMS::MzIdentMLFile "MzIdentMLFile".
 
 The xquest.xml format is very specific to Protein-Protein Cross-Linking MS (XL-MS) applications and is only considered useful for compatibility
 of OpenPepXL with the xQuest / xProphet / xTract pipeline. It will only have useful output when converting from idXML or mzid containg XL-MS data.

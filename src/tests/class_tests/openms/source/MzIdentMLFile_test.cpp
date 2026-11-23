@@ -12,6 +12,7 @@
 ///////////////////////////
 
 #include <OpenMS/FORMAT/MzIdentMLFile.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/FORMAT/TextFile.h>
 #include <OpenMS/CONCEPT/FuzzyStringComparator.h>
 #include <OpenMS/CHEMISTRY/CrossLinksDB.h>
@@ -27,6 +28,106 @@
 
 using namespace OpenMS;
 using namespace std;
+
+// helpers for the protein group tests (issue #1105)
+
+// accessions of a protein group, for comparisons
+static std::vector<std::string> accessionsOf(const ProteinIdentification::ProteinGroup& group)
+{
+  return group.accessions;
+}
+
+// A protein inference run as written by Epifany: indistinguishable proteins A and B, protein C, decoy protein
+// DECOY_D, and a general protein group (cluster) of A, B and C. PSMs: PEPTIDEK (A, B, C), ELVISK (A, B), the
+// decoy GLYCINEK (DECOY_D), and a second-ranked hit SAMPLER (C) that is not used as evidence.
+static void makeInferenceRun(std::vector<ProteinIdentification>& proteins, PeptideIdentificationList& peptides)
+{
+  ProteinIdentification run;
+  run.setIdentifier("inference_run");
+  run.setSearchEngine("MS-GF+");
+  run.setSearchEngineVersion("2024.03.26");
+  ProteinIdentification::SearchParameters search_parameters;
+  search_parameters.db = "db.fasta";
+  run.setSearchParameters(search_parameters);
+  run.setInferenceEngine("Epifany"); // stored in the search parameters
+  run.setInferenceEngineVersion("3.6.0");
+  run.setMetaValue("spectra_data", StringList{"run.mzML"});
+  run.setScoreType("Posterior Probability");
+  run.setHigherScoreBetter(true);
+  auto add_hit = [&run](const std::string& acc, double score, const std::string& seq, bool decoy)
+  {
+    ProteinHit hit(score, 1, acc, seq);
+    hit.setTargetDecoyType(decoy ? ProteinHit::TargetDecoyType::DECOY : ProteinHit::TargetDecoyType::TARGET);
+    run.insertHit(hit);
+  };
+  add_hit("A", 0.98, "MPEPTIDEKELVISK", false);
+  add_hit("B", 0.98, "MPEPTIDEKELVISKR", false);
+  add_hit("C", 0.5, "MPEPTIDEKSAMPLER", false);
+  add_hit("DECOY_D", 0.3, "MGLYCINEK", true);
+  run.getHits()[0].setCoverage(93.3);
+  ProteinIdentification::ProteinGroup ab, c, d, abc;
+  ab.probability = 0.98;
+  ab.accessions = {"A", "B"};
+  c.probability = 0.5;
+  c.accessions = {"C"};
+  d.probability = 0.3;
+  d.accessions = {"DECOY_D"};
+  abc.probability = 0.99;
+  abc.accessions = {"A", "B", "C"};
+  run.insertIndistinguishableProteins(ab);
+  run.insertIndistinguishableProteins(c);
+  run.insertIndistinguishableProteins(d);
+  run.insertProteinGroup(abc);
+  proteins.push_back(run);
+
+  auto add_psm = [&peptides](const std::string& spectrum, const std::vector<std::pair<std::string, std::vector<std::string>>>& hits, bool decoy)
+  {
+    PeptideIdentification id;
+    id.setIdentifier("inference_run");
+    id.setScoreType("q-value");
+    id.setHigherScoreBetter(false);
+    id.setSpectrumReference(spectrum);
+    id.setRT(100.0);
+    id.setMZ(500.0);
+    double score = 0.001;
+    UInt rank = 0;
+    for (const auto& [sequence, accessions] : hits)
+    {
+      PeptideHit hit(score, rank++, 2, AASequence::fromString(sequence));
+      score *= 10;
+      for (const std::string& acc : accessions)
+      {
+        PeptideEvidence evidence;
+        evidence.setProteinAccession(acc);
+        hit.addPeptideEvidence(evidence);
+      }
+      hit.setMetaValue(Constants::UserParam::TARGET_DECOY, decoy ? "decoy" : "target");
+      id.insertHit(hit);
+    }
+    peptides.push_back(id);
+  };
+  add_psm("index=1", {{"PEPTIDEK", {"A", "B", "C"}}, {"SAMPLER", {"C"}}}, false);
+  add_psm("index=2", {{"ELVISK", {"A", "B"}}}, false);
+  add_psm("index=3", {{"GLYCINEK", {"DECOY_D"}}}, true);
+}
+
+static Size countOf(const std::string& text, const std::string& what)
+{
+  Size n = 0;
+  for (std::string::size_type pos = text.find(what); pos != std::string::npos; pos = text.find(what, pos + what.size()))
+  {
+    ++n;
+  }
+  return n;
+}
+
+static std::string readFile(const std::string& filename)
+{
+  std::ifstream in(filename);
+  std::stringstream buffer;
+  buffer << in.rdbuf();
+  return buffer.str();
+}
 
 START_TEST(MzIdentMLFile, "$Id")
 
@@ -625,6 +726,17 @@ START_SECTION(([EXTRA] mzIdentML 1.3 noncovalent association))
     }
   }
   TEST_EQUAL(total_hits > 0, true)
+
+  // the ProteinDetectionList: each protein is listed once (it used to be added again for each
+  // ProteinDetectionHypothesis) and each ProteinAmbiguityGroup becomes a protein group
+  ABORT_IF(protein_ids.size() != 1)
+  std::set<std::string> accessions;
+  for (const ProteinHit& hit : protein_ids[0].getHits())
+  {
+    accessions.insert(hit.getAccession());
+  }
+  TEST_EQUAL(accessions.size(), protein_ids[0].getHits().size())
+  TEST_EQUAL(protein_ids[0].getIndistinguishableProteins().size(), 2)
 }
 END_SECTION
 
@@ -1210,6 +1322,248 @@ START_SECTION(([EXTRA] legacy DOM writer emits UTF8 namespaces and propagates ou
 
   // An existing regular file cannot be used as the parent directory of an output.
   TEST_EXCEPTION(Exception::UnableToCreateFile, writer.writeMzIdentMLFile(filename + "/unwritable.mzid"))
+}
+END_SECTION
+
+// ---------------------------------------------------------------------------------------------------------------------
+// protein groups (ProteinDetectionList), issue #1105
+// ---------------------------------------------------------------------------------------------------------------------
+
+START_SECTION(([EXTRA] read protein groups from a ProteinDetectionList (issue #1105)))
+{
+  std::vector<ProteinIdentification> proteins;
+  PeptideIdentificationList peptides;
+  MzIdentMLFile().load(OPENMS_GET_TEST_DATA_PATH("MzIdentML_protein_groups.mzid"), proteins, peptides);
+  ABORT_IF(proteins.size() != 1)
+  const ProteinIdentification& run = proteins[0];
+  TEST_EQUAL(peptides.size(), 5)
+
+  // each protein once, with the score of its ProteinDetectionHypothesis
+  TEST_EQUAL(run.getHits().size(), 7)
+  std::map<std::string, const ProteinHit*> hits;
+  for (const ProteinHit& hit : run.getHits())
+  {
+    hits[hit.getAccession()] = &hit;
+  }
+  TEST_EQUAL(hits.size(), 7)
+  ABORT_IF(hits.size() != 7)
+  TEST_EQUAL(run.getScoreType(), "Posterior Probability")
+  TEST_EQUAL(run.isHigherScoreBetter(), true)
+  TEST_REAL_SIMILAR(hits["A"]->getScore(), 0.98)
+  TEST_REAL_SIMILAR(hits["C"]->getScore(), 0.2)
+  TEST_REAL_SIMILAR(hits["G"]->getScore(), 0.1)
+  TEST_REAL_SIMILAR(hits["A"]->getCoverage(), 93.3)
+  TEST_EQUAL(run.getInferenceEngine(), "Epifany")
+  TEST_EQUAL(run.getInferenceEngineVersion(), "3.6.0")
+
+  // indistinguishable groups: the leading proteins (representative first), or - without annotation (PAG_3) - the
+  // proteins with the most peptides
+  const auto& indist = run.getIndistinguishableProteins();
+  TEST_EQUAL(indist.size(), 3)
+  ABORT_IF(indist.size() != 3)
+  TEST_EQUAL(ListUtils::concatenate(accessionsOf(indist[0]), ","), "B,A")
+  TEST_REAL_SIMILAR(indist[0].probability, 0.97) // the group score of the PAG
+  TEST_EQUAL(ListUtils::concatenate(accessionsOf(indist[1]), ","), "D")
+  TEST_REAL_SIMILAR(indist[1].probability, 0.6)
+  TEST_EQUAL(ListUtils::concatenate(accessionsOf(indist[2]), ","), "E,F")
+  TEST_REAL_SIMILAR(indist[2].probability, 0.4) // no group score: the best protein score
+
+  // general groups: the unannotated PAG_3 (with its sub-set protein G) and cluster 1 (PAG_1 and PAG_2)
+  const auto& general = run.getProteinGroups();
+  TEST_EQUAL(general.size(), 2)
+  ABORT_IF(general.size() != 2)
+  TEST_EQUAL(ListUtils::concatenate(accessionsOf(general[0]), ","), "E,F,G")
+  TEST_EQUAL(ListUtils::concatenate(accessionsOf(general[1]), ","), "B,A,C,D")
+  TEST_REAL_SIMILAR(general[1].probability, 0.97)
+
+  // PAG_3 does not pass the threshold
+  TEST_EQUAL(hits["E"]->getMetaValue("pass_threshold", "").toString(), "false")
+  TEST_EQUAL(hits["A"]->metaValueExists("pass_threshold"), false)
+  // the protein group-level FDR threshold
+  TEST_REAL_SIMILAR(double(run.getMetaValue(Constants::UserParam::PROTEIN_GROUP_SCORE_THRESHOLD)), 0.05)
+  TEST_EQUAL(run.getMetaValue(Constants::UserParam::PROTEIN_GROUP_SCORE_THRESHOLD_TYPE).toString(), "q-value")
+}
+END_SECTION
+
+START_SECTION(([EXTRA] store and load protein groups (issue #1105)))
+{
+  std::vector<ProteinIdentification> proteins;
+  PeptideIdentificationList peptides;
+  makeInferenceRun(proteins, peptides);
+
+  std::string filename;
+  NEW_TMP_FILE_EXT(filename, ".mzid")
+  MzIdentMLFile file;
+  file.store(filename, proteins, peptides);
+
+  // the file
+  const std::string text = readFile(filename);
+  TEST_EQUAL(countOf(text, "<ProteinDetectionList "), 1)
+  TEST_EQUAL(countOf(text, "<ProteinDetection "), 1)
+  TEST_EQUAL(countOf(text, "<ProteinDetectionProtocol "), 1)
+  TEST_EQUAL(countOf(text, "<ProteinAmbiguityGroup "), 3)
+  TEST_EQUAL(countOf(text, "<ProteinDetectionHypothesis "), 4)
+  TEST_EQUAL(countOf(text, "name=\"leading protein\""), 4)
+  TEST_EQUAL(countOf(text, "name=\"group representative\""), 3)
+  TEST_EQUAL(countOf(text, "name=\"sequence same-set protein\""), 2)
+  TEST_EQUAL(countOf(text, "name=\"EPIFANY:Protein posterior probability\""), 4)
+  TEST_EQUAL(countOf(text, "name=\"protein group-level probability\""), 3)
+  TEST_EQUAL(countOf(text, "name=\"EPIFANY\""), 1)
+  // the decoy group is not reported as identified
+  TEST_EQUAL(countOf(text, "name=\"protein group passes threshold\" value=\"true\""), 2)
+  TEST_EQUAL(countOf(text, "name=\"protein group passes threshold\" value=\"false\""), 1)
+  TEST_EQUAL(countOf(text, "name=\"count of identified proteins\" value=\"2\""), 1)
+  TEST_EQUAL(countOf(text, "name=\"no threshold\""), 2) // PSMs and proteins
+  // two clusters: A, B and C (with the score of the general group) and the decoy group
+  TEST_EQUAL(countOf(text, "name=\"cluster identifier\" value=\"1\""), 2)
+  TEST_EQUAL(countOf(text, "name=\"cluster identifier\" value=\"2\""), 1)
+  TEST_EQUAL(countOf(text, "<userParam name=\"cluster score\""), 2)
+  TEST_EQUAL(countOf(text, "name=\"count of identified clusters\" value=\"1\""), 1)
+  // evidence: the top hits only (6 PeptideHypotheses: PEPTIDEK for A, B, C; ELVISK for A, B; GLYCINEK for DECOY_D),
+  // not the second-ranked SAMPLER for C
+  TEST_EQUAL(countOf(text, "<PeptideHypothesis "), 6)
+
+  std::string version;
+  std::stringstream schema_errors;
+  TEST_EQUAL(file.isValid(filename, schema_errors, version), true)
+  TEST_EQUAL(schema_errors.str(), "")
+  StringList errors, warnings;
+  file.isSemanticallyValid(filename, errors, warnings);
+  Size protein_errors = 0;
+  for (const std::string& error : errors)
+  {
+    if (StringUtils::hasSubstring(error, "ProteinDetection") || StringUtils::hasSubstring(error, "ProteinAmbiguityGroup"))
+    {
+      ++protein_errors;
+      std::cout << "semantic error: " << error << std::endl;
+    }
+  }
+  TEST_EQUAL(protein_errors, 0)
+
+  // round trip
+  std::vector<ProteinIdentification> proteins2;
+  PeptideIdentificationList peptides2;
+  file.load(filename, proteins2, peptides2);
+  ABORT_IF(proteins2.size() != 1)
+  const ProteinIdentification& run = proteins[0];
+  const ProteinIdentification& run2 = proteins2[0];
+  TEST_EQUAL(run2.getHits().size(), 4) // no duplicates
+  TEST_EQUAL(run2.getScoreType(), "Posterior Probability")
+  TEST_EQUAL(run2.isHigherScoreBetter(), true)
+  TEST_EQUAL(run2.getInferenceEngine(), "Epifany")
+  TEST_EQUAL(run2.getInferenceEngineVersion(), "3.6.0")
+  std::map<std::string, const ProteinHit*> hits2;
+  for (const ProteinHit& hit : run2.getHits())
+  {
+    hits2[hit.getAccession()] = &hit;
+  }
+  ABORT_IF(hits2.size() != 4)
+  for (const ProteinHit& hit : run.getHits())
+  {
+    TEST_REAL_SIMILAR(hits2[hit.getAccession()]->getScore(), hit.getScore())
+  }
+  TEST_REAL_SIMILAR(hits2["A"]->getCoverage(), 93.3)
+  TEST_EQUAL(hits2["DECOY_D"]->getMetaValue("target_decoy", "").toString(), "decoy")
+  TEST_EQUAL(hits2["DECOY_D"]->getMetaValue("pass_threshold", "").toString(), "false")
+  TEST_EQUAL(run2.getIndistinguishableProteins().size(), 3)
+  ABORT_IF(run2.getIndistinguishableProteins().size() != 3)
+  for (Size i = 0; i < 3; ++i)
+  {
+    TEST_EQUAL(ListUtils::concatenate(accessionsOf(run2.getIndistinguishableProteins()[i]), ","),
+               ListUtils::concatenate(accessionsOf(run.getIndistinguishableProteins()[i]), ","))
+    TEST_REAL_SIMILAR(run2.getIndistinguishableProteins()[i].probability, run.getIndistinguishableProteins()[i].probability)
+  }
+  TEST_EQUAL(run2.getProteinGroups().size(), 1)
+  ABORT_IF(run2.getProteinGroups().size() != 1)
+  TEST_EQUAL(ListUtils::concatenate(accessionsOf(run2.getProteinGroups()[0]), ","), "A,B,C")
+  TEST_REAL_SIMILAR(run2.getProteinGroups()[0].probability, 0.99)
+
+  // storing again gives the same protein groups
+  std::string filename2;
+  NEW_TMP_FILE_EXT(filename2, ".mzid")
+  file.store(filename2, proteins2, peptides2);
+  const std::string text2 = readFile(filename2);
+  TEST_EQUAL(countOf(text2, "<ProteinAmbiguityGroup "), 3)
+  TEST_EQUAL(countOf(text2, "name=\"protein group passes threshold\" value=\"true\""), 2)
+  TEST_EQUAL(countOf(text2, "<userParam name=\"cluster score\""), 2)
+}
+END_SECTION
+
+START_SECTION(([EXTRA] store protein groups with a recorded group score threshold (issue #1105)))
+{
+  std::vector<ProteinIdentification> proteins;
+  PeptideIdentificationList peptides;
+  makeInferenceRun(proteins, peptides);
+  // as IDFilter -score:proteingroup 0.6: only the group of A and B has a better score
+  proteins[0].setMetaValue(Constants::UserParam::PROTEIN_GROUP_SCORE_THRESHOLD, 0.6);
+  proteins[0].setMetaValue(Constants::UserParam::PROTEIN_GROUP_SCORE_THRESHOLD_TYPE, "Posterior Probability");
+
+  std::string filename;
+  NEW_TMP_FILE_EXT(filename, ".mzid")
+  MzIdentMLFile().store(filename, proteins, peptides);
+  const std::string text = readFile(filename);
+  TEST_EQUAL(countOf(text, "name=\"protein group-level statistical threshold\" value=\"0.6\""), 1)
+  TEST_EQUAL(countOf(text, "name=\"no threshold\""), 1) // only for the PSMs
+  TEST_EQUAL(countOf(text, "name=\"protein group passes threshold\" value=\"true\""), 1)
+  TEST_EQUAL(countOf(text, "name=\"count of identified proteins\" value=\"1\""), 1)
+
+  std::vector<ProteinIdentification> proteins2;
+  PeptideIdentificationList peptides2;
+  MzIdentMLFile().load(filename, proteins2, peptides2);
+  ABORT_IF(proteins2.size() != 1)
+  TEST_REAL_SIMILAR(double(proteins2[0].getMetaValue(Constants::UserParam::PROTEIN_GROUP_SCORE_THRESHOLD)), 0.6)
+  TEST_EQUAL(proteins2[0].getMetaValue(Constants::UserParam::PROTEIN_GROUP_SCORE_THRESHOLD_TYPE).toString(), "Posterior Probability")
+
+  // a threshold on another score type is not used
+  proteins[0].setMetaValue(Constants::UserParam::PROTEIN_GROUP_SCORE_THRESHOLD_TYPE, "q-value");
+  MzIdentMLFile().store(filename, proteins, peptides);
+  const std::string text2 = readFile(filename);
+  TEST_EQUAL(countOf(text2, "name=\"no threshold\""), 2)
+  TEST_EQUAL(countOf(text2, "name=\"protein group passes threshold\" value=\"true\""), 2)
+}
+END_SECTION
+
+START_SECTION(([EXTRA] store protein groups: only one run may have protein inference results (issue #1105)))
+{
+  std::vector<ProteinIdentification> proteins;
+  PeptideIdentificationList peptides;
+  makeInferenceRun(proteins, peptides);
+  makeInferenceRun(proteins, peptides);
+  proteins[1].setIdentifier("inference_run_2");
+  for (Size i = peptides.size() / 2; i < peptides.size(); ++i)
+  {
+    peptides[i].setIdentifier("inference_run_2");
+  }
+  std::string filename;
+  NEW_TMP_FILE_EXT(filename, ".mzid")
+  MzIdentMLFile().store(filename, proteins, peptides);
+  const std::string text = readFile(filename);
+  TEST_EQUAL(countOf(text, "<ProteinDetectionList "), 0) // two lists are not allowed: no protein groups are written
+  TEST_EQUAL(countOf(text, "<SpectrumIdentificationList "), 2) // but the PSMs are
+
+  // without protein inference, there are no protein results to write
+  std::vector<ProteinIdentification> search_only(1, proteins[0]);
+  search_only[0].getIndistinguishableProteins().clear();
+  search_only[0].getProteinGroups().clear();
+  search_only[0].getSearchParameters().removeMetaValue("InferenceEngine");
+  PeptideIdentificationList search_peptides(std::vector<PeptideIdentification>(peptides.begin(), peptides.begin() + peptides.size() / 2));
+  MzIdentMLFile().store(filename, search_only, search_peptides);
+  TEST_EQUAL(countOf(readFile(filename), "<ProteinDetectionList "), 0)
+
+  // protein inference without groups: every protein is a group of its own
+  std::vector<ProteinIdentification> ungrouped(1, proteins[0]);
+  ungrouped[0].getIndistinguishableProteins().clear();
+  ungrouped[0].getProteinGroups().clear();
+  MzIdentMLFile().store(filename, ungrouped, search_peptides);
+  const std::string text2 = readFile(filename);
+  TEST_EQUAL(countOf(text2, "<ProteinAmbiguityGroup "), 4)
+  TEST_EQUAL(countOf(text2, "name=\"cluster identifier\""), 0)
+  std::vector<ProteinIdentification> proteins2;
+  PeptideIdentificationList peptides2;
+  MzIdentMLFile().load(filename, proteins2, peptides2);
+  ABORT_IF(proteins2.size() != 1)
+  TEST_EQUAL(proteins2[0].getIndistinguishableProteins().size(), 4)
+  TEST_EQUAL(proteins2[0].getProteinGroups().size(), 0)
 }
 END_SECTION
 

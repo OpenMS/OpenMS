@@ -123,9 +123,17 @@ protected:
       ProteinIdentification& runOfList_(const std::string& spectrum_identification_list_ref);
       void parseSpectrumIdentificationItemSetXLMS(std::set<std::string>::const_iterator set_it, std::multimap<std::string, int> xl_val_map, xmlNode* element_res, const std::string& spectrumID);
       void parseSpectrumIdentificationItemElement_(xmlNode* spectrumIdentificationItemElement, PeptideIdentification& spectrum_identification, std::string& spectrumIdentificationList_ref);
-      void parseProteinDetectionHypothesisElement_(xmlNode* proteinDetectionHypothesisElement, ProteinIdentification& protein_identification);
-      void parseProteinAmbiguityGroupElement_(xmlNode* proteinAmbiguityGroupElement, ProteinIdentification& protein_identification);
-      void parseProteinDetectionListElements_(const std::vector<xmlNode*>& proteinDetectionListElements);
+      /**
+        @brief Reads the protein inference results (ProteinDetectionList) into the identification run they were inferred for
+
+        The run is the one of the SpectrumIdentificationList referenced by the ProteinDetection of the list. Each
+        ProteinAmbiguityGroup becomes an indistinguishable protein group (its "leading protein"s; without such
+        annotations, the proteins with the largest sets of supporting peptides), clusters ("cluster identifier") become
+        general protein groups. See MzIdentMLProteinDetection for the mapping.
+      */
+      void parseProteinDetectionListElements_(const std::vector<xmlNode*>& proteinDetectionListElements,
+                                              const std::vector<xmlNode*>& proteinDetectionElements,
+                                              const std::vector<xmlNode*>& proteinDetectionProtocolElements);
       static ProteinIdentification::SearchParameters findSearchParameters_(std::pair<CVTermList, std::map<std::string, DataValue> > as_params);
       //@}
 
@@ -208,6 +216,31 @@ private:
         std::string version;
         DateTime date;
       };
+      ///Struct to hold the information from the ProteinDetectionHypothesis xml tag
+      struct ProteinHypothesis
+      {
+        std::string dbsequence_ref;
+        std::string accession;
+        bool leading = false;         ///< annotated as "leading protein"
+        bool non_leading = false;     ///< annotated as "non-leading protein"
+        bool representative = false;  ///< annotated as "group representative"
+        bool pass_threshold = true;   ///< the passThreshold attribute
+        std::set<std::string> peptides; ///< unmodified sequences of the supporting peptides
+        std::vector<CVTerm> cv_params; ///< in document order
+        std::vector<std::pair<std::string, DataValue>> user_params; ///< in document order
+      };
+      ///Struct to hold the information from the ProteinAmbiguityGroup xml tag
+      struct ProteinAmbiguityGroup
+      {
+        std::vector<ProteinHypothesis> hypotheses; ///< only those with a known DBSequence
+        std::vector<CVTerm> cv_params; ///< in document order
+        std::vector<std::pair<std::string, DataValue>> user_params; ///< in document order
+      };
+
+      /// Parses a ProteinAmbiguityGroup with its ProteinDetectionHypotheses
+      ProteinAmbiguityGroup parseProteinAmbiguityGroupElement_(xmlNode* proteinAmbiguityGroupElement);
+      /// Adds a cvParam or userParam element to @p cv_params or @p user_params (other elements are ignored)
+      void collectParam_(xmlNode* param, std::vector<CVTerm>& cv_params, std::vector<std::pair<std::string, DataValue>>& user_params);
 
 
       std::unique_ptr<XMLHandler> xml_handler_ = nullptr;
@@ -235,6 +268,7 @@ private:
       std::map<std::string, PeptideEvidence> pe_ev_map_; ///< mapping PeptideEvidence id -> PeptideEvidence
       std::map<std::string, std::string> pv_db_map_; ///< mapping PeptideEvidence id -> DBSequence id
       std::multimap<std::string, std::string> p_pv_map_; ///< mapping Peptide id -> PeptideEvidence id, multiple PeptideEvidences can have equivalent Peptides.
+      std::map<std::string, std::string> pv_p_map_; ///< mapping PeptideEvidence id -> Peptide id
       std::map<std::string, DBSequence> db_sq_map_; ///< mapping DBSequence id -> Sequence
 
       std::list<std::list<std::string> > hit_pev_; ///< writing help only
@@ -252,6 +286,7 @@ private:
       std::set<std::string> q_score_child_terms_;
       std::set<std::string> e_score_child_terms_;
       std::set<std::string> specific_score_child_terms_;
+      std::set<std::string> protein_score_terms_; ///< protein-level statistics and search engine specific scores (for ProteinDetectionHypothesis)
     };
   } // namespace Internal
 } // namespace OpenMS
