@@ -1422,17 +1422,29 @@ set_tests_properties("TOPP_IsobaricWorkflow_1_out1" PROPERTIES DEPENDS "TOPP_Iso
 
 # Same run as TOPP_IsobaricWorkflow_1 with a third protein, PROTD, that is identified only by a
 # peptide it shares with PROTB (see the input). The peptide is unique to neither, so PROTB is
-# quantified from its other peptide and PROTD is not quantified. PROTD's group has to stay in the
-# output: it is part of the inference result. The second test quantifies the written file again
-# with ProteinQuantifier and the workflow's settings and expects the workflow's abundances. With
-# PROTD's group removed, the shared peptide looked unique to PROTB there and changed its abundance.
+# quantified from its other peptide and PROTD is not quantified. PROTD's group has to stay in every
+# output: it is part of the inference result. In the mzTab file it is a protein row with null
+# abundances. In the QPX pg view it is one identification-only row next to the 2 x 10 rows of the
+# two quantified groups, hence the floor of 21. The last test quantifies the written consensusXML
+# again with ProteinQuantifier and the workflow's settings and expects the workflow's abundances.
+# With PROTD's group removed, the shared peptide looked unique to PROTB there and changed its
+# abundance.
+add_test(NAME "TOPP_IsobaricWorkflow_shared_peptide_clean" COMMAND ${CMAKE_COMMAND} -E rm -rf ${TESTS_TEMP_DIR}/IsobaricWorkflow_shared_peptide_qpx_dir)
 add_test("TOPP_IsobaricWorkflow_shared_peptide" ${TOPP_BIN_PATH}/IsobaricWorkflow -test -type tmt10plex
   -in ${DATA_DIR_TOPP}/TMTTenPlexMethod_test.mzML
   -in_id ${DATA_DIR_TOPP}/IsobaricWorkflow_shared_peptide_input.idXML
   -exp_design ${DATA_DIR_TOPP}/IsobaricWorkflow_1_design.tsv
-  -out ${TESTS_TEMP_DIR}/IsobaricWorkflow_shared_peptide_out.tmp.consensusXML)
+  -out ${TESTS_TEMP_DIR}/IsobaricWorkflow_shared_peptide_out.tmp.consensusXML
+  -out_mzTab ${TESTS_TEMP_DIR}/IsobaricWorkflow_shared_peptide_out.tmp.mzTab
+  -out_qpx ${TESTS_TEMP_DIR}/IsobaricWorkflow_shared_peptide_qpx_dir)
+set_tests_properties("TOPP_IsobaricWorkflow_shared_peptide" PROPERTIES DEPENDS "TOPP_IsobaricWorkflow_shared_peptide_clean")
 add_test("TOPP_IsobaricWorkflow_shared_peptide_out1" ${DIFF} -whitelist "?xml-stylesheet" "spectra_data" "InferenceEngineVersion" -in1 ${TESTS_TEMP_DIR}/IsobaricWorkflow_shared_peptide_out.tmp.consensusXML -in2 ${DATA_DIR_TOPP}/IsobaricWorkflow_shared_peptide_out.consensusXML )
 set_tests_properties("TOPP_IsobaricWorkflow_shared_peptide_out1" PROPERTIES DEPENDS "TOPP_IsobaricWorkflow_shared_peptide")
+add_test("TOPP_IsobaricWorkflow_shared_peptide_out2" ${DIFF} -whitelist "software" -in1 ${TESTS_TEMP_DIR}/IsobaricWorkflow_shared_peptide_out.tmp.mzTab -in2 ${DATA_DIR_TOPP}/IsobaricWorkflow_shared_peptide_out.mzTab )
+set_tests_properties("TOPP_IsobaricWorkflow_shared_peptide_out2" PROPERTIES DEPENDS "TOPP_IsobaricWorkflow_shared_peptide")
+add_test("TOPP_IsobaricWorkflow_shared_peptide_qpx_pg" ${TOPP_BIN_PATH}/ParquetDiff
+  -in1 ${TESTS_TEMP_DIR}/IsobaricWorkflow_shared_peptide_qpx_dir/quantms.pg.parquet -schema pg -min_rows 21)
+set_tests_properties("TOPP_IsobaricWorkflow_shared_peptide_qpx_pg" PROPERTIES DEPENDS "TOPP_IsobaricWorkflow_shared_peptide")
 add_test("TOPP_IsobaricWorkflow_shared_peptide_requantified" ${TOPP_BIN_PATH}/ProteinQuantifier -test
   -in ${TESTS_TEMP_DIR}/IsobaricWorkflow_shared_peptide_out.tmp.consensusXML
   -top:include_all
