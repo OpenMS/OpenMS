@@ -48,3 +48,10 @@ The candidates all address a GBM trained on too few positives:
 2. Score the GBM output through the network's calibrated tail instead of its own (a bigger change).
 
 Option 1 would get its own precheck: Astral pooled bound ≤ 1.00 %, plus HeLa byte-identity.
+
+**Withdrawn (23 Nov, after review).** Option 1 is cherry-picking:
+- The floor of about 5,000 was chosen after seeing the positive counts (HeLa ≥ 18,000, Astral ≤ 2,300). Its only job is to select NG on Astral.
+- NG is already known to give 0.73 % on raws 01+02, so the proposed bar was certain to pass.
+- A fix for a GBM with too few positives needs a rule fixed in advance from the mechanism, not from entrapment results. It must be tested on data not used to choose it: Astral raw 03 has not been in ASTQ or GBMFIX, plus at least one new dataset.
+
+Until then, the GBM stays as is and the Astral looseness is reported as a known limit.
