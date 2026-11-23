@@ -60,13 +60,33 @@
  */
 
 #if defined(__clang__) && !defined(SIMDE_DETECT_CLANG_VERSION)
-#  if __has_attribute(nouwtable)  // no new warnings in 16.0
+#  if __has_warning("-Wlifetime-safety")
+#    define SIMDE_DETECT_CLANG_VERSION 230000
+#  elif __has_warning("-Wunsafe-buffer-usage-in-format-attr-call")
+#    define SIMDE_DETECT_CLANG_VERSION 220100
+#  elif __has_builtin(__builtin_elementwise_fshl)
+#    define SIMDE_DETECT_CLANG_VERSION 220000
+#  elif __has_warning("-Wdefault-const-init-var") || __has_builtin(__builtin_structured_binding_size)
+#    if __clang_major__ == 21 && __clang_minor__ >= 1 && __clang_patchlevel__ >= 1
+#      define SIMDE_DETECT_CLANG_VERSION 210101  // for SIMDE_BUG_CLANG_179057
+#    else
+#      define SIMDE_DETECT_CLANG_VERSION 210000
+#    endif
+#  elif __has_warning("-Warray-compare-cxx26")
+#    define SIMDE_DETECT_CLANG_VERSION 200000
+#  elif __has_warning("-Wmissing-designated-field-initializers")
+#    define SIMDE_DETECT_CLANG_VERSION 190000
+#  elif __has_warning("-Woverriding-option")
+#    define SIMDE_DETECT_CLANG_VERSION 180000
+#  elif __has_attribute(unsafe_buffer_usage)  // no new warnings in 17.0
+#    define SIMDE_DETECT_CLANG_VERSION 170000
+#  elif __has_attribute(nouwtable)  // no new warnings in 16.0
 #    define SIMDE_DETECT_CLANG_VERSION 160000
 #  elif __has_warning("-Warray-parameter")
 #    define SIMDE_DETECT_CLANG_VERSION 150000
 #  elif __has_warning("-Wbitwise-instead-of-logical")
 #    define SIMDE_DETECT_CLANG_VERSION 140000
-#  elif __has_warning("-Wwaix-compat")
+#  elif __has_warning("-Waix-compat")
 #    define SIMDE_DETECT_CLANG_VERSION 130000
 #  elif __has_warning("-Wformat-insufficient-args")
 #    define SIMDE_DETECT_CLANG_VERSION 120000
@@ -78,7 +98,7 @@
 #    define SIMDE_DETECT_CLANG_VERSION 90000
 #  elif __has_warning("-Wextra-semi-stmt") || __has_builtin(__builtin_rotateleft32)
 #    define SIMDE_DETECT_CLANG_VERSION 80000
-// For reasons unknown, XCode 10.3 (Apple LLVM version 10.0.1) is apparently
+// For reasons unknown, Xcode 10.3 (Apple LLVM version 10.0.1) is apparently
 // based on Clang 7, but does not support the warning we test.
 // See https://en.wikipedia.org/wiki/Xcode#Toolchain_versions and
 // https://trac.macports.org/wiki/XcodeVersionInfo.
@@ -115,8 +135,8 @@
  * such as pragmas to disable a specific warning. */
 
 #if defined(SIMDE_DETECT_CLANG_VERSION)
-#  define SIMDE_DETECT_CLANG_VERSION_CHECK(major, minor, revision) (SIMDE_DETECT_CLANG_VERSION >= ((major * 10000) + (minor * 1000) + (revision)))
-#  define SIMDE_DETECT_CLANG_VERSION_NOT(major, minor, revision) (SIMDE_DETECT_CLANG_VERSION < ((major * 10000) + (minor * 1000) + (revision)))
+#  define SIMDE_DETECT_CLANG_VERSION_CHECK(major, minor, revision) (SIMDE_DETECT_CLANG_VERSION >= ((major * 10000) + (minor * 100) + (revision)))
+#  define SIMDE_DETECT_CLANG_VERSION_NOT(major, minor, revision) (SIMDE_DETECT_CLANG_VERSION < ((major * 10000) + (minor * 100) + (revision)))
 #else
 #  define SIMDE_DETECT_CLANG_VERSION_CHECK(major, minor, revision) (0)
 #  define SIMDE_DETECT_CLANG_VERSION_NOT(major, minor, revision) (0)
