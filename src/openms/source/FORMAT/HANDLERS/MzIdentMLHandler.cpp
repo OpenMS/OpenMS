@@ -8,6 +8,7 @@
 
 #include <OpenMS/FORMAT/HANDLERS/MzIdentMLHandler.h>
 #include <OpenMS/FORMAT/HANDLERS/MzIdentMLProteinDetection.h>
+#include <OpenMS/ANALYSIS/ID/Scores.h>
 
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/FORMAT/FileHandler.h>
@@ -1198,6 +1199,7 @@ namespace OpenMS::Internal
             group_of.emplace(acc, g);
           }
         }
+        Size n_ungrouped = 0;
         for (Size c = 0; c < general.size() && write_clusters; ++c)
         {
           const std::unordered_set<std::string> members(general[c].accessions.begin(), general[c].accessions.end());
@@ -1206,7 +1208,8 @@ namespace OpenMS::Internal
             const auto g = group_of.find(acc);
             if (g == group_of.end())
             {
-              continue; // not in a reported group
+              ++n_ungrouped; // e.g. a sub-set protein: only proteins of (indistinguishable) groups are written
+              continue;
             }
             const bool complete = std::all_of(groups[g->second].accessions.begin(), groups[g->second].accessions.end(),
                                               [&members](const std::string& a) { return members.contains(a); });
@@ -1222,6 +1225,11 @@ namespace OpenMS::Internal
         {
           OPENMS_LOG_WARN << "The general protein groups do not consist of complete indistinguishable protein groups. "
                           << "They are not written to mzIdentML (as clusters)." << endl;
+        }
+        else if (n_ungrouped > 0)
+        {
+          OPENMS_LOG_WARN << n_ungrouped << " protein(s) of general protein groups are in no indistinguishable protein group. "
+                          << "They are not written to mzIdentML, so their clusters are incomplete there." << endl;
         }
       }
 
@@ -1243,14 +1251,27 @@ namespace OpenMS::Internal
         return std::string(indent, '\t') + "<userParam name=\"" + writeXMLEscape(score_type) + "\" type=\"xsd:double\" value=\""
                + StringUtils::toStr(score) + "\"/>\n";
       };
-      bool use_threshold = run.metaValueExists(Constants::UserParam::PROTEIN_GROUP_SCORE_THRESHOLD);
-      const double threshold = use_threshold ? double(run.getMetaValue(Constants::UserParam::PROTEIN_GROUP_SCORE_THRESHOLD)) : 0.0;
-      if (use_threshold && run.getMetaValue(Constants::UserParam::PROTEIN_GROUP_SCORE_THRESHOLD_TYPE, score_type).toString() != score_type)
+      // the cutoff that the groups were filtered with (IDFilter::recordGroupScoreThreshold()), if it applies to their score
+      bool use_threshold = false;
+      double threshold = 0.0;
+      if (run.metaValueExists(Constants::UserParam::PROTEIN_GROUP_SCORE_THRESHOLD))
       {
-        OPENMS_LOG_WARN << "The protein group score threshold was applied to scores of type '"
-                        << run.getMetaValue(Constants::UserParam::PROTEIN_GROUP_SCORE_THRESHOLD_TYPE).toString()
-                        << "', but the protein groups have scores of type '" << score_type << "'. It is not written to mzIdentML." << endl;
-        use_threshold = false;
+        const std::string threshold_type = run.getMetaValue(Constants::UserParam::PROTEIN_GROUP_SCORE_THRESHOLD_TYPE, score_type).toString();
+        const DataValue& value = run.getMetaValue(Constants::UserParam::PROTEIN_GROUP_SCORE_THRESHOLD);
+        if (!Scores::isSameScoreType(threshold_type, score_type))
+        {
+          OPENMS_LOG_WARN << "The protein group score threshold was applied to scores of type '" << threshold_type
+                          << "', but the protein groups have scores of type '" << score_type << "'. It is not written to mzIdentML." << endl;
+        }
+        else if (value.valueType() != DataValue::DOUBLE_VALUE && value.valueType() != DataValue::INT_VALUE)
+        {
+          OPENMS_LOG_WARN << "Ignoring the non-numeric protein group score threshold '" << value.toString() << "'." << endl;
+        }
+        else
+        {
+          threshold = value;
+          use_threshold = true;
+        }
       }
       auto is_decoy = [](const ProteinHit& hit)
       {
@@ -1364,7 +1385,7 @@ namespace OpenMS::Internal
             pag += "\t\t\t\t\t" + cv_.getTerm("MS:1001594").toXMLString(cv_ns, same_set) + "\n"; // sequence same-set protein
           }
           pag += score_param(protein_score_acc, hypothesis.hit->getScore(), 5);
-          if (hypothesis.hit->getCoverage() > 0.0)
+          if (hypothesis.hit->getCoverage() != ProteinHit::COVERAGE_UNKNOWN)
           {
             pag += "\t\t\t\t\t" + cv_.getTerm("MS:1001093").toXMLString(cv_ns, StringUtils::toStr(hypothesis.hit->getCoverage())) + "\n"; // sequence coverage
           }
@@ -1423,7 +1444,10 @@ namespace OpenMS::Internal
       const std::string software_id = search_software != sof_ids.end() ? search_software->second : "SOF_" + uid;
 
       list = "\t\t<ProteinDetectionList id=\"" + list_id + "\">\n" + pags;
-      list += "\t\t\t" + cv_.getTerm("MS:1002404").toXMLString(cv_ns, StringUtils::toStr(n_passing)) + "\n"; // count of identified proteins
+      DataValue n_identified(static_cast<int>(n_passing));
+      n_identified.setUnit(189); // UO:0000189 (count unit), required by the term
+      n_identified.setUnitType(DataValue::UnitType::UNIT_ONTOLOGY);
+      list += "\t\t\t" + cv_.getTerm("MS:1002404").toXMLString(cv_ns, n_identified) + "\n"; // count of identified proteins
       if (write_clusters)
       {
         list += "\t\t\t" + cv_.getTerm("MS:1002406").toXMLString(cv_ns, StringUtils::toStr(passing_clusters.size())) + "\n"; // count of identified clusters

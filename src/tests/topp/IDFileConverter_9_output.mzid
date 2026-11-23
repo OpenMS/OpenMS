@@ -242,7 +242,7 @@
 				<cvParam accession="MS:1002407" cvRef="PSI-MS" name="cluster identifier" value="1"/>
 				<userParam name="cluster score" type="xsd:double" value="0.88"/>
 			</ProteinAmbiguityGroup>
-			<cvParam accession="MS:1002404" cvRef="PSI-MS" name="count of identified proteins" value="1"/>
+			<cvParam accession="MS:1002404" cvRef="PSI-MS" name="count of identified proteins" value="1" unitAccession="UO:0000189" unitCvRef="UO"/>
 			<cvParam accession="MS:1002406" cvRef="PSI-MS" name="count of identified clusters" value="1"/>
 		</ProteinDetectionList>
 	</AnalysisData>

@@ -68,8 +68,6 @@
 					<CvTerm termAccession="MS:1001494" useTermName="false" useTerm="true" termName="no threshold" isRepeatable="false" allowChildren="false" cvIdentifierRef="MS" />
 				    <CvTerm termAccession="MS:1001153" useTermName="false" useTerm="false" termName="search engine specific score" isRepeatable="false" allowChildren="true" cvIdentifierRef="MS" />
 				    <CvTerm termAccession="MS:1001302" useTermName="false" useTerm="false" termName="search engine specific input parameter" isRepeatable="false" allowChildren="true" cvIdentifierRef="MS" />
-				    <CvTerm termAccession="MS:1002572" useTermName="false" useTerm="false" termName="protein detection statistical threshold" isRepeatable="false" allowChildren="true" cvIdentifierRef="MS" />
-				    <CvTerm termAccession="MS:1002706" useTermName="false" useTerm="false" termName="protein group-level result list statistic" isRepeatable="false" allowChildren="true" cvIdentifierRef="MS" />
 				</CvMappingRule>
 
 				<CvMappingRule id="SpectrumIdentificationProtocolThreshold_rule" cvElementPath="/mzIdentML/AnalysisProtocolCollection/SpectrumIdentificationProtocol/Threshold/cvParam/@accession" requirementLevel="MUST"  scopePath="" cvTermsCombinationLogic="OR">
@@ -207,13 +205,6 @@
     
         <CvMappingRule id="ProteinDetectionList_rule" cvElementPath="/mzIdentML/DataCollection/AnalysisData/ProteinDetectionList/cvParam/@accession" requirementLevel="MAY"  scopePath="" cvTermsCombinationLogic="OR">
             <CvTerm termAccession="MS:1001184" useTermName="false" useTerm="false" termName="search statistics" isRepeatable="true" allowChildren="true" cvIdentifierRef="MS" />
-            <CvTerm termAccession="MS:1002704" useTermName="false" useTerm="false" termName="protein-level result list attribute" isRepeatable="false" allowChildren="true" cvIdentifierRef="MS" />
-            <CvTerm termAccession="MS:1002405" useTermName="false" useTerm="false" termName="protein group-level result list attribute" isRepeatable="false" allowChildren="true" cvIdentifierRef="MS" />
-        </CvMappingRule>
-
-        <!-- mzIdentML 1.2 protein grouping: the number of protein groups that pass the threshold -->
-        <CvMappingRule id="ProteinDetectionListCount_rule" cvElementPath="/mzIdentML/DataCollection/AnalysisData/ProteinDetectionList/cvParam/@accession" requirementLevel="MUST"  scopePath="" cvTermsCombinationLogic="OR">
-            <CvTerm termAccession="MS:1002404" useTermName="false" useTerm="true" termName="count of identified proteins" isRepeatable="false" allowChildren="false" cvIdentifierRef="MS" />
         </CvMappingRule>
         
         <CvMappingRule id="ProteinAmbiguityGroupProteinDetectionHypothesis_rule" cvElementPath="/mzIdentML/DataCollection/AnalysisData/ProteinDetectionList/ProteinAmbiguityGroup/ProteinDetectionHypothesis/cvParam/@accession" requirementLevel="MAY"  scopePath="" cvTermsCombinationLogic="OR">
@@ -221,21 +212,60 @@
 						<CvTerm termAccession="MS:1001085" useTermName="false" useTerm="false" termName="protein result details" isRepeatable="true" allowChildren="true" cvIdentifierRef="MS" />
 						<CvTerm termAccession="MS:1001060" useTermName="false" useTerm="false" termName="quality estimation method details" isRepeatable="true" allowChildren="true" cvIdentifierRef="MS" />
         </CvMappingRule>
+        
+        <!--CvMappingRule id="R37" cvElementPath="/mzIdentML/DataCollection/AnalysisData/ProteinDetectionList/ProteinAmbiguityGroup/cvParam/@accession" requirementLevel="MAY"  scopePath="" cvTermsCombinationLogic="OR">
+            <CvTerm termAccession="" useTermName="false" useTerm="false" termName="" isRepeatable="true" allowChildren="true" cvIdentifierRef="MS" />
+        </CvMappingRule-->
+	
+        <!--
+          Protein detection in mzIdentML 1.1 and later (root element 'MzIdentML'; the paths above use the root
+          'mzIdentML' of mzIdentML 1.0). Includes the protein grouping rules of mzIdentML 1.2.
+        -->
+        <CvMappingRule id="MzIdentML_ProteinDetectionProtocolThreshold_rule" cvElementPath="/MzIdentML/AnalysisProtocolCollection/ProteinDetectionProtocol/Threshold/cvParam/@accession" requirementLevel="MUST"  scopePath="" cvTermsCombinationLogic="OR">
+            <CvTerm termAccession="MS:1001447" useTermName="false" useTerm="true" termName="prot:FDR threshold" isRepeatable="false" allowChildren="false" cvIdentifierRef="MS" />
+            <CvTerm termAccession="MS:1001494" useTermName="false" useTerm="true" termName="no threshold" isRepeatable="false" allowChildren="false" cvIdentifierRef="MS" />
+            <CvTerm termAccession="MS:1001153" useTermName="false" useTerm="false" termName="search engine specific score" isRepeatable="false" allowChildren="true" cvIdentifierRef="MS" />
+            <CvTerm termAccession="MS:1001302" useTermName="false" useTerm="false" termName="search engine specific input parameter" isRepeatable="false" allowChildren="true" cvIdentifierRef="MS" />
+            <CvTerm termAccession="MS:1002572" useTermName="false" useTerm="false" termName="protein detection statistical threshold" isRepeatable="false" allowChildren="true" cvIdentifierRef="MS" />
+            <CvTerm termAccession="MS:1002706" useTermName="false" useTerm="false" termName="protein group-level result list statistic" isRepeatable="false" allowChildren="true" cvIdentifierRef="MS" />
+        </CvMappingRule>
 
-        <!-- mzIdentML 1.2 protein grouping: every protein of a group is a leading or non-leading protein (or has another relationship to the group) -->
-        <CvMappingRule id="ProteinDetectionHypothesisRelationship_rule" cvElementPath="/mzIdentML/DataCollection/AnalysisData/ProteinDetectionList/ProteinAmbiguityGroup/ProteinDetectionHypothesis/cvParam/@accession" requirementLevel="MUST"  scopePath="" cvTermsCombinationLogic="OR">
-            <CvTerm termAccession="MS:1001101" useTermName="false" useTerm="false" termName="protein group or subset relationship" isRepeatable="true" allowChildren="true" cvIdentifierRef="MS" />
+        <CvMappingRule id="MzIdentML_ProteinDetectionProtocolAnalysisParams_rule" cvElementPath="/MzIdentML/AnalysisProtocolCollection/ProteinDetectionProtocol/AnalysisParams/cvParam/@accession" requirementLevel="MAY"  scopePath="" cvTermsCombinationLogic="OR">
+            <CvTerm termAccession="MS:1001194" useTermName="false" useTerm="false" termName="quality estimation with decoy database" isRepeatable="true" allowChildren="true" cvIdentifierRef="MS" />
+            <CvTerm termAccession="MS:1001302" useTermName="false" useTerm="false" termName="search engine specific input parameter" isRepeatable="true" allowChildren="true" cvIdentifierRef="MS" />
+        </CvMappingRule>
+
+        <CvMappingRule id="MzIdentML_ProteinDetectionList_rule" cvElementPath="/MzIdentML/DataCollection/AnalysisData/ProteinDetectionList/cvParam/@accession" requirementLevel="MAY"  scopePath="" cvTermsCombinationLogic="OR">
+            <CvTerm termAccession="MS:1001184" useTermName="false" useTerm="false" termName="search statistics" isRepeatable="true" allowChildren="true" cvIdentifierRef="MS" />
+            <CvTerm termAccession="MS:1002704" useTermName="false" useTerm="false" termName="protein-level result list attribute" isRepeatable="true" allowChildren="true" cvIdentifierRef="MS" />
+            <CvTerm termAccession="MS:1002405" useTermName="false" useTerm="false" termName="protein group-level result list attribute" isRepeatable="true" allowChildren="true" cvIdentifierRef="MS" />
+        </CvMappingRule>
+
+        <!-- mzIdentML 1.2 protein grouping: the number of protein groups that pass the threshold -->
+        <CvMappingRule id="MzIdentML_ProteinDetectionListCount_rule" cvElementPath="/MzIdentML/DataCollection/AnalysisData/ProteinDetectionList/cvParam/@accession" requirementLevel="MUST"  scopePath="" cvTermsCombinationLogic="OR">
+            <CvTerm termAccession="MS:1002404" useTermName="false" useTerm="true" termName="count of identified proteins" isRepeatable="false" allowChildren="false" cvIdentifierRef="MS" />
         </CvMappingRule>
 
         <!-- mzIdentML 1.2 protein grouping: every group says whether it passes the threshold -->
-        <CvMappingRule id="ProteinAmbiguityGroupThreshold_rule" cvElementPath="/mzIdentML/DataCollection/AnalysisData/ProteinDetectionList/ProteinAmbiguityGroup/cvParam/@accession" requirementLevel="MUST"  scopePath="" cvTermsCombinationLogic="OR">
+        <CvMappingRule id="MzIdentML_ProteinAmbiguityGroupThreshold_rule" cvElementPath="/MzIdentML/DataCollection/AnalysisData/ProteinDetectionList/ProteinAmbiguityGroup/cvParam/@accession" requirementLevel="MUST"  scopePath="" cvTermsCombinationLogic="OR">
             <CvTerm termAccession="MS:1002415" useTermName="false" useTerm="true" termName="protein group passes threshold" isRepeatable="false" allowChildren="false" cvIdentifierRef="MS" />
         </CvMappingRule>
 
-        <CvMappingRule id="ProteinAmbiguityGroup_rule" cvElementPath="/mzIdentML/DataCollection/AnalysisData/ProteinDetectionList/ProteinAmbiguityGroup/cvParam/@accession" requirementLevel="MAY"  scopePath="" cvTermsCombinationLogic="OR">
+        <CvMappingRule id="MzIdentML_ProteinAmbiguityGroup_rule" cvElementPath="/MzIdentML/DataCollection/AnalysisData/ProteinDetectionList/ProteinAmbiguityGroup/cvParam/@accession" requirementLevel="MAY"  scopePath="" cvTermsCombinationLogic="OR">
             <CvTerm termAccession="MS:1002346" useTermName="false" useTerm="false" termName="protein group-level identification attribute" isRepeatable="true" allowChildren="true" cvIdentifierRef="MS" />
             <CvTerm termAccession="MS:1002698" useTermName="false" useTerm="false" termName="protein cluster identification attribute" isRepeatable="false" allowChildren="true" cvIdentifierRef="MS" />
         </CvMappingRule>
-	
+
+        <CvMappingRule id="MzIdentML_ProteinDetectionHypothesis_rule" cvElementPath="/MzIdentML/DataCollection/AnalysisData/ProteinDetectionList/ProteinAmbiguityGroup/ProteinDetectionHypothesis/cvParam/@accession" requirementLevel="MAY"  scopePath="" cvTermsCombinationLogic="OR">
+            <CvTerm termAccession="MS:1001153" useTermName="false" useTerm="false" termName="search engine specific score" isRepeatable="true" allowChildren="true" cvIdentifierRef="MS" />
+            <CvTerm termAccession="MS:1001085" useTermName="false" useTerm="false" termName="protein result details" isRepeatable="true" allowChildren="true" cvIdentifierRef="MS" />
+            <CvTerm termAccession="MS:1001060" useTermName="false" useTerm="false" termName="quality estimation method details" isRepeatable="true" allowChildren="true" cvIdentifierRef="MS" />
+        </CvMappingRule>
+
+        <!-- mzIdentML 1.2 protein grouping: every protein of a group is a leading or non-leading protein (or has another relationship to the group) -->
+        <CvMappingRule id="MzIdentML_ProteinDetectionHypothesisRelationship_rule" cvElementPath="/MzIdentML/DataCollection/AnalysisData/ProteinDetectionList/ProteinAmbiguityGroup/ProteinDetectionHypothesis/cvParam/@accession" requirementLevel="MUST"  scopePath="" cvTermsCombinationLogic="OR">
+            <CvTerm termAccession="MS:1001101" useTermName="false" useTerm="false" termName="protein group or subset relationship" isRepeatable="true" allowChildren="true" cvIdentifierRef="MS" />
+        </CvMappingRule>
+
     </CvMappingRuleList>
 </CvMapping>

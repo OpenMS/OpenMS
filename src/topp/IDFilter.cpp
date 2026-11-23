@@ -11,7 +11,6 @@
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/CHEMISTRY/ProteaseDB.h>
 #include <OpenMS/CHEMISTRY/ProteaseDigestion.h>
-#include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/FORMAT/FASTAFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/CONCEPT/LogStream.h>
@@ -25,7 +24,6 @@
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/SYSTEM/File.h>
 
-#include <algorithm>
 #include <limits>
 
 using namespace OpenMS;
@@ -709,16 +707,7 @@ protected:
         OPENMS_LOG_INFO << "Filtering by protein group score..." << endl;
         IDFilter::filterGroupsByScore(proteinid.getIndistinguishableProteins(), prot_grp_score, proteinid.isHigherScoreBetter());
         IDFilter::filterGroupsByScore(proteinid.getProteinGroups(), prot_grp_score, proteinid.isHigherScoreBetter());
-        // record the cutoff, e.g. for the protein detection threshold in mzIdentML; of repeated cutoffs on the same score, the stricter one applies
-        double cutoff = prot_grp_score;
-        if (proteinid.metaValueExists(Constants::UserParam::PROTEIN_GROUP_SCORE_THRESHOLD) &&
-            proteinid.getMetaValue(Constants::UserParam::PROTEIN_GROUP_SCORE_THRESHOLD_TYPE, "").toString() == proteinid.getScoreType())
-        {
-          const double previous = proteinid.getMetaValue(Constants::UserParam::PROTEIN_GROUP_SCORE_THRESHOLD);
-          cutoff = proteinid.isHigherScoreBetter() ? std::max(cutoff, previous) : std::min(cutoff, previous);
-        }
-        proteinid.setMetaValue(Constants::UserParam::PROTEIN_GROUP_SCORE_THRESHOLD, cutoff);
-        proteinid.setMetaValue(Constants::UserParam::PROTEIN_GROUP_SCORE_THRESHOLD_TYPE, proteinid.getScoreType());
+        IDFilter::recordGroupScoreThreshold(proteinid, prot_grp_score); // e.g. for the protein detection threshold in mzIdentML
       }
     }
     else

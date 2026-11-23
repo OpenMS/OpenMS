@@ -9,6 +9,7 @@
 #include <OpenMS/FORMAT/HANDLERS/MzIdentMLDOMHandler.h>
 #include <OpenMS/CONCEPT/Init.h>
 
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/FORMAT/HANDLERS/MzIdentMLProteinDetection.h>
 #include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
 #include <OpenMS/SYSTEM/File.h>
@@ -31,7 +32,10 @@
 #include <libxml/parser.h>
 #include <libxml/tree.h>
 #include <libxml/xmlsave.h>
+#include <cmath>
+#include <functional>
 #include <memory>
+#include <numeric>
 #include <unordered_map>
 
 using namespace std;
@@ -206,12 +210,18 @@ namespace OpenMS::Internal
       return s.empty() ? 0.0 : StringUtils::toDouble(s);
     }
 
-    // The numeric value of a cvParam/userParam value; false if it has none (e.g. a flag term or a non-numeric string).
+    // The numeric value of a cvParam/userParam value; false if it has none (e.g. a flag term, a non-numeric string or a
+    // non-finite number). @p result is only changed on success.
     bool numericValue_(const DataValue& value, double& result)
     {
       if (value.valueType() == DataValue::DOUBLE_VALUE || value.valueType() == DataValue::INT_VALUE)
       {
-        result = double(value);
+        const double number = double(value);
+        if (!std::isfinite(number))
+        {
+          return false;
+        }
+        result = number;
         return true;
       }
       if (value.valueType() != DataValue::STRING_VALUE)
@@ -226,7 +236,12 @@ namespace OpenMS::Internal
       }
       try
       {
-        result = StringUtils::toDouble(s);
+        const double number = StringUtils::toDouble(s);
+        if (!std::isfinite(number))
+        {
+          return false;
+        }
+        result = number;
         return true;
       }
       catch (const Exception::ConversionError&)
@@ -290,10 +305,10 @@ namespace OpenMS::Internal
       cv_.addAllChildTerms(e_score_child_terms_, "MS:1001872");
       cv_.addAllChildTerms(e_score_child_terms_, "MS:1002353");
       cv_.addAllChildTerms(specific_score_child_terms_, "MS:1001143");
-      // scores of proteins: protein-level statistics, search engine specific protein (group) scores and - used by
+      // scores of proteins and groups: protein-level and group-level statistics and - used by
       // older files on ProteinDetectionHypotheses - any search engine specific score
       cv_.addAllChildTerms(protein_score_terms_, "MS:1001116");
-      cv_.addAllChildTerms(protein_score_terms_, "MS:1002368");
+      cv_.addAllChildTerms(protein_score_terms_, "MS:1002348"); // protein group-level statistics (including MS:1002368)
       cv_.addAllChildTerms(protein_score_terms_, "MS:1001153");
     }
 
@@ -2388,7 +2403,16 @@ namespace OpenMS::Internal
       }
       else if (equal_(name_(param), "userParam"))
       {
-        user_params.push_back(parseUserParam_(param));
+        try
+        {
+          user_params.push_back(parseUserParam_(param));
+        }
+        catch (const Exception::ConversionError&)
+        {
+          // e.g. type="xsd:double" with a non-numeric value: these params are optional, do not fail the whole file
+          OPENMS_LOG_WARN << "Skipping 'userParam' '" << attribute_(param, "name") << "' with a value that does not match its type ('"
+                          << attribute_(param, "value") << "')." << endl;
+        }
       }
     }
 
@@ -2411,6 +2435,7 @@ namespace OpenMS::Internal
           continue;
         }
         ProteinHypothesis hypothesis;
+        hypothesis.id = attribute_(child, "id");
         hypothesis.dbsequence_ref = dbsequence_ref;
         hypothesis.accession = db->second.accession;
         // 'passThreshold' is required, but be lenient with files that lack it
@@ -2438,6 +2463,16 @@ namespace OpenMS::Internal
           if (cv.getAccession() == "MS:1002401") { hypothesis.leading = true; }
           else if (cv.getAccession() == "MS:1002402") { hypothesis.non_leading = true; }
           else if (cv.getAccession() == "MS:1002403") { hypothesis.representative = true; }
+          else if (cv.getAccession() == "MS:1001594" || cv.getAccession() == "MS:1001595") // sequence/spectrum same-set protein
+          {
+            // the value lists the ids of the same-set ProteinDetectionHypotheses
+            std::vector<std::string> ids = ListUtils::create<std::string>(cv.getValue().toString(), ' ');
+            for (std::string& id : ids)
+            {
+              StringUtils::trim(id);
+              if (!id.empty()) { hypothesis.same_set.push_back(id); }
+            }
+          }
         }
         group.hypotheses.push_back(std::move(hypothesis));
       }
@@ -2585,44 +2620,65 @@ namespace OpenMS::Internal
       };
       if (score_type.empty())
       {
-        auto detect_score_type = [&]()
+        // the first score term with a value in @p cvs
+        auto detect_score_type = [&](const std::vector<CVTerm>& cvs) -> bool
+        {
+          for (const CVTerm& cv : cvs)
+          {
+            double value;
+            if (!numericValue_(cv.getValue(), value))
+            {
+              continue;
+            }
+            const std::string known = MzIdentMLProteinDetection::scoreTypeOfAccession(cv.getAccession());
+            if (!known.empty())
+            {
+              score_type = known;
+              higher_better = !Scores::isScoreType(known, Scores::IDType::QVAL);
+              return true;
+            }
+            if (protein_score_terms_.contains(cv.getAccession()))
+            {
+              score_type = term_name(cv.getAccession());
+              higher_better = !isLowerBetterEngineScore_(cv_.getTerm(cv.getAccession()));
+              return true;
+            }
+          }
+          return false;
+        };
+        // protein scores first; files may also report group scores only (as the mzIdentML 1.2 guidelines suggest)
+        bool found = false;
+        for (Size pass = 0; pass < 2 && !found; ++pass)
         {
           for (const ProteinAmbiguityGroup& pag : pags)
           {
+            if (pass == 1 && detect_score_type(pag.cv_params))
+            {
+              found = true;
+              break;
+            }
             for (const ProteinHypothesis& hypothesis : pag.hypotheses)
             {
-              for (const CVTerm& cv : hypothesis.cv_params)
+              if (pass == 0 && detect_score_type(hypothesis.cv_params))
               {
-                double value;
-                if (!numericValue_(cv.getValue(), value))
-                {
-                  continue;
-                }
-                const std::string known = MzIdentMLProteinDetection::scoreTypeOfAccession(cv.getAccession());
-                if (!known.empty())
-                {
-                  score_type = known;
-                  higher_better = !Scores::isScoreType(known, Scores::IDType::QVAL);
-                  return;
-                }
-                if (protein_score_terms_.contains(cv.getAccession()))
-                {
-                  score_type = term_name(cv.getAccession());
-                  higher_better = !isLowerBetterEngineScore_(cv_.getTerm(cv.getAccession()));
-                  return;
-                }
+                found = true;
+                break;
               }
             }
+            if (found)
+            {
+              break;
+            }
           }
-        };
-        detect_score_type();
+        }
       }
       if (!score_type.empty())
       {
         run->setScoreType(score_type);
         run->setHigherScoreBetter(higher_better);
       }
-      // the score of a protein or a group: a term for the score type, or a userParam named after it
+      // the score of a protein or a group: a term for the score type, or a userParam named after it (score type
+      // aliases such as "qvalue" and "q-value" match)
       auto find_score = [&](const std::vector<CVTerm>& cvs, const std::vector<std::pair<std::string, DataValue>>& ups, double& score) -> bool
       {
         if (score_type.empty())
@@ -2631,7 +2687,8 @@ namespace OpenMS::Internal
         }
         for (const CVTerm& cv : cvs)
         {
-          if ((MzIdentMLProteinDetection::scoreTypeOfAccession(cv.getAccession()) == score_type || term_name(cv.getAccession()) == score_type)
+          const std::string known = MzIdentMLProteinDetection::scoreTypeOfAccession(cv.getAccession());
+          if (((!known.empty() && Scores::isSameScoreType(known, score_type)) || term_name(cv.getAccession()) == score_type)
               && numericValue_(cv.getValue(), score))
           {
             return true;
@@ -2639,7 +2696,7 @@ namespace OpenMS::Internal
         }
         for (const auto& [name, value] : ups)
         {
-          if (name == score_type && numericValue_(value, score))
+          if (Scores::isSameScoreType(name, score_type) && numericValue_(value, score))
           {
             return true;
           }
@@ -2692,6 +2749,7 @@ namespace OpenMS::Internal
       struct Cluster
       {
         Size n_groups = 0;
+        bool has_others = false; ///< has proteins that are not in an indistinguishable group (sub-set proteins)
         std::vector<std::string> accessions;
         Scored score;   ///< from the userParam CLUSTER_SCORE_PARAM
         Scored best;    ///< best group score
@@ -2727,7 +2785,7 @@ namespace OpenMS::Internal
           }
           for (const auto& [name, value] : hypothesis.user_params)
           {
-            if (name != score_type)
+            if (!Scores::isSameScoreType(name, score_type))
             {
               hit.setMetaValue(name, value);
             }
@@ -2748,7 +2806,44 @@ namespace OpenMS::Internal
         }
         if (annotated && !leading.empty())
         {
-          subgroups.push_back(leading);
+          // "leading" means strongest (or about equally strong) evidence, not identical evidence: leading proteins are
+          // indistinguishable if annotated as same-set proteins or - without such annotations - if they have the same peptides
+          std::vector<Size> root(hypotheses.size());
+          std::iota(root.begin(), root.end(), 0);
+          std::function<Size(Size)> find_root = [&](Size i) { return root[i] == i ? i : root[i] = find_root(root[i]); };
+          const bool same_set_annotated = std::any_of(leading.begin(), leading.end(),
+            [&hypotheses](Size i) { return !hypotheses[i].same_set.empty(); });
+          std::map<std::string, Size> leading_by_id;
+          for (Size i : leading)
+          {
+            leading_by_id.emplace(hypotheses[i].id, i);
+          }
+          for (Size a = 0; a < leading.size(); ++a)
+          {
+            const ProteinHypothesis& h = hypotheses[leading[a]];
+            if (same_set_annotated)
+            {
+              for (const std::string& id : h.same_set)
+              {
+                const auto other = leading_by_id.find(id);
+                if (other != leading_by_id.end()) { root[find_root(other->second)] = find_root(leading[a]); }
+              }
+            }
+            else
+            {
+              for (Size b = 0; b < a; ++b)
+              {
+                if (hypotheses[leading[b]].peptides == h.peptides) { root[find_root(leading[a])] = find_root(leading[b]); }
+              }
+            }
+          }
+          std::map<Size, Size> subgroup_of_root; // in order of first appearance
+          for (Size i : leading)
+          {
+            const auto [it, inserted] = subgroup_of_root.emplace(find_root(i), subgroups.size());
+            if (inserted) { subgroups.emplace_back(); }
+            subgroups[it->second].push_back(i);
+          }
           for (Size i = 0; i < hypotheses.size(); ++i)
           {
             if (!hypotheses[i].leading) { others.push_back(i); }
@@ -2856,6 +2951,7 @@ namespace OpenMS::Internal
           }
           Cluster& cluster = it->second;
           cluster.n_groups += subgroups.size();
+          cluster.has_others = cluster.has_others || !others.empty();
           cluster.accessions.insert(cluster.accessions.end(), pag_accessions.begin(), pag_accessions.end());
           if (cluster_score.has_score)
           {
@@ -2875,11 +2971,11 @@ namespace OpenMS::Internal
           general.push_back(std::move(group));
         }
       }
-      // clusters of several groups (or with a score) are general protein groups
+      // clusters of several groups, with sub-set proteins or with a score are general protein groups
       for (const std::string& id : cluster_order)
       {
         const Cluster& cluster = clusters[id];
-        if (cluster.n_groups > 1 || cluster.score.has_score)
+        if (cluster.n_groups > 1 || cluster.has_others || cluster.score.has_score)
         {
           ProteinIdentification::ProteinGroup group;
           group.accessions = cluster.accessions;
@@ -2900,7 +2996,9 @@ namespace OpenMS::Internal
       {
         run->setMetaValue(Constants::UserParam::PROTEIN_GROUP_SCORE_THRESHOLD, threshold);
         // a protein group-level global FDR (or protein FDR) threshold is a cutoff on q-values
-        run->setMetaValue(Constants::UserParam::PROTEIN_GROUP_SCORE_THRESHOLD_TYPE, threshold_accession == "MS:1002486" ? score_type : std::string("q-value"));
+        const bool q_value_cutoff = threshold_accession != "MS:1002486";
+        run->setMetaValue(Constants::UserParam::PROTEIN_GROUP_SCORE_THRESHOLD_TYPE,
+                          (!q_value_cutoff || Scores::isScoreType(score_type, Scores::IDType::QVAL)) ? score_type : std::string("q-value"));
       }
     }
 

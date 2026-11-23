@@ -219,12 +219,14 @@ private:
       ///Struct to hold the information from the ProteinDetectionHypothesis xml tag
       struct ProteinHypothesis
       {
+        std::string id;
         std::string dbsequence_ref;
         std::string accession;
         bool leading = false;         ///< annotated as "leading protein"
         bool non_leading = false;     ///< annotated as "non-leading protein"
         bool representative = false;  ///< annotated as "group representative"
         bool pass_threshold = true;   ///< the passThreshold attribute
+        std::vector<std::string> same_set; ///< ids of the ProteinDetectionHypotheses annotated as same-set proteins
         std::set<std::string> peptides; ///< unmodified sequences of the supporting peptides
         std::vector<CVTerm> cv_params; ///< in document order
         std::vector<std::pair<std::string, DataValue>> user_params; ///< in document order
@@ -286,7 +288,7 @@ private:
       std::set<std::string> q_score_child_terms_;
       std::set<std::string> e_score_child_terms_;
       std::set<std::string> specific_score_child_terms_;
-      std::set<std::string> protein_score_terms_; ///< protein-level statistics and search engine specific scores (for ProteinDetectionHypothesis)
+      std::set<std::string> protein_score_terms_; ///< protein- and group-level statistics and search engine specific scores (for ProteinDetectionList)
     };
   } // namespace Internal
 } // namespace OpenMS
