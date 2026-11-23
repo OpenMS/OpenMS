@@ -323,7 +323,7 @@ END_SECTION
 
 START_SECTION((static void PeakAnnotation::writePeakAnnotationsString_(std::string&, const std::vector<PeakAnnotation>&)))
 {
-  PeptideHit::PeakAnnotation unknown{"b2", 1, 200.0, 50.0};
+  PeptideHit::PeakAnnotation unknown{"b2", 1, 200.0, 50.0, std::nullopt};
   // (binary-exact values: doubles are written with 15 fractional digits, trailing zeros trimmed to one)
   PeptideHit::PeakAnnotation known{"y4", 1, 500.0, 100.0, 499.75};
   std::string packed;

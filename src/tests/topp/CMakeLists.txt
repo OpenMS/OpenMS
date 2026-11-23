@@ -6133,7 +6133,7 @@ add_test("TOPP_SimpleSearchEngine_3_fasta_alias" ${TOPP_BIN_PATH}/SimpleSearchEn
 -ini ${DATA_DIR_TOPP}/SimpleSearchEngine_1.ini -in
 ${DATA_DIR_TOPP}/SimpleSearchEngine_1.mzML -out ${TESTS_TEMP_DIR}/SimpleSearchEngine_3_out.tmp.idXML
 -database ${DATA_DIR_TOPP_BIN}/SimpleSearchEngine_alias.fa)
-add_test("TOPP_SimpleSearchEngine_3_fasta_alias_out" ${DIFF} -in1 ${TESTS_TEMP_DIR}/SimpleSearchEngine_3_out.tmp.idXML -in2 ${DATA_DIR_TOPP}/SimpleSearchEngine_1_out.idXML -whitelist "IdentificationRun date" "SearchParameters id=\"SP_0\" db=")
+add_test("TOPP_SimpleSearchEngine_3_fasta_alias_out" ${DIFF} -in1 ${TESTS_TEMP_DIR}/SimpleSearchEngine_3_out.tmp.idXML -in2 ${DATA_DIR_TOPP}/SimpleSearchEngine_1_out.idXML -whitelist "IdentificationRun date" "SearchParameters id=\"SP_0\" db=" "name=\"fragment_annotation\"")
 set_tests_properties("TOPP_SimpleSearchEngine_3_fasta_alias_out" PROPERTIES DEPENDS
 "TOPP_SimpleSearchEngine_3_fasta_alias")
 
