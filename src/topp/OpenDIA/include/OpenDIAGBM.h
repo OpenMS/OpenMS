@@ -70,7 +70,7 @@ namespace OpenMS::OpenDIA
   /**
     @brief Hard-negative GBM rescoring of CrossFitScorer windows.
 
-    Three rounds: positives are the target winners at pooled paired TDC q <= 0.01 under the current score, negatives
+    Up to `rounds` rounds (default 3): positives are the target winners at pooled paired TDC q <= `positive_q` (default 0.01) under the current score, negatives
     all rows of the top `hard_fraction` decoy precursors ranked by their winner score (0: all decoy winners). Per fold
     a HistGBM is trained on the other folds (negatives subsampled to at most 1.5 M, positive weight n_neg / n_pos,
     validation rows by pair_hash % 100 < 10) and scores its fold by the raw margin. Finally each precursor keeps its
@@ -78,5 +78,6 @@ namespace OpenMS::OpenDIA
     Only score and q_value of the result are filled.
   */
   CrossFitScorer::Result gbmRescore(const CrossFitScorer::Input& input, const std::vector<float>& score, double hard_fraction,
-                                    std::uint64_t seed, int threads, const std::function<void(const std::string&)>& log = {});
+                                    std::uint64_t seed, int threads, const std::function<void(const std::string&)>& log = {},
+                                    int rounds = 3, double positive_q = 0.01);
 }

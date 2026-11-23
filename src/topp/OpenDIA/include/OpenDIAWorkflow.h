@@ -80,6 +80,8 @@ namespace OpenMS::OpenDIA
     /// resolver (PLAN_IMNARROW D pass: 0.6; 1 = as calibrated). The written calibration JSON keeps the calibrated value.
     double im_tolerance_scale = 0.6;
     double trace_tolerance_ppm = 10.0;  ///< Trace-tensor fragment half width in ppm (PLAN_TRPPM D pass: 10). Must be positive.
+    int gbm_rounds = 3;                 ///< GBM rescore rounds (PRECHECK_GBMFIX; default 3 = PLAN_GBT).
+    double gbm_positive_q = 0.01;       ///< GBM positives: target winners at this pooled q (default 0.01 = PLAN_GBT).
     std::size_t min_transitions = 1;
     std::size_t population_min_support = 3;     ///< Pairs whose best candidate has fewer supporting fragments are dropped.
     double grid_half_width_s = 15.0;

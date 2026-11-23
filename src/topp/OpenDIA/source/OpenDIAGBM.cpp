@@ -303,10 +303,12 @@ namespace OpenMS::OpenDIA
   }
 
   CrossFitScorer::Result gbmRescore(const CrossFitScorer::Input& in, const std::vector<float>& score, double hard_fraction,
-                                    std::uint64_t seed, int threads, const std::function<void(const std::string&)>& log)
+                                    std::uint64_t seed, int threads, const std::function<void(const std::string&)>& log,
+                                    int rounds, double positive_q)
   {
     const std::size_t n = in.rows(), d = in.dimension;
     if (score.size() != n || in.features.size() != n * d) throw std::invalid_argument("gbmRescore: inconsistent input sizes.");
+    if (rounds < 1 || !(positive_q > 0.0) || positive_q > 1.0) throw std::invalid_argument("gbmRescore: rounds must be >= 1 and positive_q in (0, 1].");
     threads = std::max(1, threads);
     constexpr std::size_t MAX_NEG = 1500000;
     std::uint8_t n_folds = 0;
@@ -321,7 +323,7 @@ namespace OpenMS::OpenDIA
     std::vector<double> weight(n, 1.0);
     HistGBM::Options go;
     go.threads = threads;
-    constexpr int ROUNDS = 3;
+    const int ROUNDS = rounds;
     int round = 0;
     for (; round < ROUNDS; ++round)
     {
@@ -340,7 +342,7 @@ namespace OpenMS::OpenDIA
       }
       std::vector<std::uint32_t> pos, neg;
       for (std::size_t i = 0; i < comp.ranked.size(); ++i)
-        if (comp.q[i] <= 0.01 && !in.decoy[comp.ranked[i]]) pos.push_back(comp.ranked[i]);
+        if (comp.q[i] <= positive_q && !in.decoy[comp.ranked[i]]) pos.push_back(comp.ranked[i]);
       std::size_t hard_precursors = 0;
       std::vector<std::uint32_t> dw;
       for (std::uint32_t w : comp.winners)
