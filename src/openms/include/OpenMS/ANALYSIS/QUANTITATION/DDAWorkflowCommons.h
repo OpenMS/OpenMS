@@ -64,7 +64,7 @@ namespace OpenMS
          * Estimates the median chromatographic full width at half maximum (FWHM) for a given MSExperiment.
          *
          * @param[in] ms_centroided The centroided MSExperiment for which to estimate the FWHM.
-         * @return The estimated median chromatographic FWHM in retention time units.
+         * @return The estimated median chromatographic FWHM in retention time units, or 0 if no mass trace was found.
          * @note FWHM is a measure of peak width and is crucial for chromatographic peak detection and feature finding.
          *       The estimation is based on the top 1000 intensity mass traces to focus on prominent chromatographic peaks.
         */

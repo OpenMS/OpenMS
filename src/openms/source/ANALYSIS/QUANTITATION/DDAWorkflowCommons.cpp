@@ -168,6 +168,10 @@ namespace OpenMS
             for (const auto& [cv, ms1] : groups) add_fwhms(ms1, per_group);
         }
 
+        if (fwhms.empty())
+        {
+            return 0.0; // no mass trace (Math::median() rejects an empty range)
+        }
         double median_fwhm = Math::median(fwhms.begin(), fwhms.end());
 
         return median_fwhm;

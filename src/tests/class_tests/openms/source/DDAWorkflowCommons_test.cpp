@@ -139,6 +139,63 @@ START_SECTION(([EXTRA] FAIMS: calculateSeeds and estimateMedianChromatographicFW
 }
 END_SECTION
 
+START_SECTION(([EXTRA] FAIMS: calculateSeeds and estimateMedianChromatographicFWHM if only the MS2 spectra carry a CV))
+{
+  // issue #10770: as above, but the MS1 spectra carry no CV; each is followed by an MS2 spectrum that does
+  const int charge = 2;
+  std::vector<std::pair<double, std::pair<double, IsotopeDistribution>>> analytes; // CV, (m/z, isotope pattern)
+  for (const auto& [cv, seq] : std::vector<std::pair<double, std::string>>{{-45.0, "LVNELTEFAK"}, {-60.0, "YLYEIARR"}})
+  {
+    const AASequence peptide = AASequence::fromString(seq);
+    analytes.push_back({cv, {peptide.getMZ(charge), CoarseIsotopePatternGenerator(4).estimateFromPeptideWeight(peptide.getMonoWeight())}});
+  }
+  const double apex = 60.0, sigma = 6.0;
+  MSExperiment exp;
+  for (int t = 0; t < 120; ++t)
+  {
+    const double cv = (t % 2 == 0) ? -45.0 : -60.0;
+    MSSpectrum ms1;
+    ms1.setMSLevel(1);
+    ms1.setRT(static_cast<double>(t));
+    ms1.setType(SpectrumSettings::SpectrumType::CENTROID);
+    const double elution = 1e7 * std::exp(-0.5 * std::pow((t - apex) / sigma, 2));
+    for (const auto& [analyte_cv, mz_pattern] : analytes)
+    {
+      if (analyte_cv != cv) continue;
+      for (Size i = 0; i < mz_pattern.second.size(); ++i)
+      {
+        ms1.emplace_back(mz_pattern.first + i * Constants::C13C12_MASSDIFF_U / charge, elution * mz_pattern.second[i].getIntensity());
+      }
+    }
+    ms1.sortByPosition();
+    exp.addSpectrum(std::move(ms1));
+    MSSpectrum ms2;
+    ms2.setMSLevel(2);
+    ms2.setRT(t + 0.5);
+    ms2.setDriftTime(cv);
+    ms2.setDriftTimeUnit(DriftTimeUnit::FAIMS_COMPENSATION_VOLTAGE);
+    exp.addSpectrum(std::move(ms2));
+  }
+  exp.updateRanges();
+
+  // MassTraceDetection finds no trace in these MS1 spectra: the estimate is 0 (it threw Exception::InvalidRange)
+  const double fwhm = DDAWorkflowCommons::estimateMedianChromatographicFWHM(exp);
+  TEST_EQUAL(fwhm, 0.0)
+
+  // A zero peak width gives FeatureFinderMultiplex an rt_typical of 0, which MultiplexClustering rejects (its RT grid
+  // never ended before, until std::bad_alloc)
+  FeatureMap seeds;
+  TEST_EXCEPTION(Exception::IllegalArgument, DDAWorkflowCommons::calculateSeeds(exp, 0.0, seeds, 0.0, "2:2", 3.0))
+
+  // The MS1 spectra are not resolved by CV: the seeds are found in all of them and carry no CV
+  DDAWorkflowCommons::calculateSeeds(exp, 0.0, seeds, 2.355 * sigma, "2:2", 3.0);
+  for (const Feature& seed : seeds)
+  {
+    TEST_FALSE(seed.metaValueExists(Constants::UserParam::FAIMS_CV))
+  }
+}
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST

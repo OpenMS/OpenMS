@@ -1706,8 +1706,9 @@ protected:
     {
       median_fwhm = DDAWorkflowCommons::estimateMedianChromatographicFWHM(ms_centroided);
       OPENMS_LOG_INFO << "Median chromatographic FWHM: " << median_fwhm << "\n";
-      // Most mass traces had no width (seen for the MS1 spectra of several FAIMS CVs that carry no CV, issue #10770).
-      // A zero width would reach the seeding (FeatureFinderMultiplex rejects rt_typical 0) and the feature detection.
+      // No mass trace, or most mass traces without a width (e.g. the MS1 spectra of several FAIMS CVs without a CV,
+      // issue #10770). A zero width would reach the seeding (FeatureFinderMultiplex rejects rt_typical 0) and the
+      // feature detection.
       if (!(median_fwhm > 0.0))
       {
         median_fwhm = 30.0;
