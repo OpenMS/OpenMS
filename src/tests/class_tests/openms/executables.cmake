@@ -387,6 +387,7 @@ set(math_executables_list
   LinearRegression_test
   LinearRegressionWithoutIntercept_test
   MathFunctions_test
+  PortableMath_test
   MultipleTesting_test
   #MSNumpress_test
   NNLS_test

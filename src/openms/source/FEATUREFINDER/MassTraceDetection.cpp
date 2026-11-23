@@ -7,6 +7,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FEATUREFINDER/MassTraceDetection.h>
+#include <OpenMS/MATH/PortableMath.h>
 
 #include <OpenMS/MATH/StatisticFunctions.h>
 
@@ -182,9 +183,9 @@ namespace OpenMS
 
     void updateWeightedSDEstimateRobust(const MassTrace::PeakType& p, const double& mean_t1, double& sd_t, double& last_weights_sum)
     {
-      double denom1 = std::log(last_weights_sum) + 2 * std::log(sd_t);
-      double denom2 = std::log(p.getIntensity()) + 2 * std::log(std::abs(p.getMZ() - mean_t1));
-      double denom = std::sqrt(std::exp(denom1) + std::exp(denom2));
+      double denom1 = PortableMath::log(last_weights_sum) + 2 * PortableMath::log(sd_t);
+      double denom2 = PortableMath::log(p.getIntensity()) + 2 * PortableMath::log(std::abs(p.getMZ() - mean_t1));
+      double denom = std::sqrt(PortableMath::exp(denom1) + PortableMath::exp(denom2));
       double weights_sum = last_weights_sum + p.getIntensity();
       double tmp_sd = denom / std::sqrt(weights_sum);
 
