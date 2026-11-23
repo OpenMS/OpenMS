@@ -1,0 +1,22 @@
+library: target precursors 1390163, r = 7.0539, targets with a paired decoy 1388026 (0.9985)
+ arm  seed  N_q01  E_q01  lower  combined  N_at_FDPc1
+ cur     0  22204    254 0.0114    0.0131       21468
+ cur     1  21804    252 0.0116    0.0132       21016
+ cur     2  22153    242 0.0109    0.0125       21396
+ cur     3  21732    228 0.0105    0.0120       21054
+ cur     4  22017    246 0.0112    0.0128       21459
+v7m6     0  24956    273 0.0109    0.0125       24324
+v7m6     1  25043    285 0.0114    0.0130       24249
+v7m6     2  24653    265 0.0107    0.0123       23896
+v7m6     3  25171    264 0.0105    0.0120       24551
+v7m6     4  24992    297 0.0119    0.0136       23962
+cur: pooled q<=0.01 lower 0.0111 (90 % 0.0106-0.0117), combined 0.0127 (90 % 0.0121-0.0133); E 1222, N 109910; median N@FDP_c 1 % 21396 (21016-21468); P(entrapment beats own decoy | best q<=0.05) 0.544 (n 12436, 90 % +-0.007)
+v7m6: pooled q<=0.01 lower 0.0111 (90 % 0.0106-0.0116), combined 0.0127 (90 % 0.0121-0.0132); E 1384, N 124815; median N@FDP_c 1 % 24249 (23896-24551); P(entrapment beats own decoy | best q<=0.05) 0.540 (n 14032, 90 % +-0.007)
+
+Runs (entlib-v7m6-20261123/runs), wall (h:mm:ss / m:ss) and peak RSS (kB); CUR precursors.tsv byte-identical to entlib-gbt-20261122/runs/D_gbt_s<seed> on all 5 seeds:
+D_cur_s0  20:15.72 34231716   D_v7m6_s0 26:38.99 46765544
+D_cur_s1  18:55.10 34222936   D_v7m6_s1 26:49.58 46712412
+D_cur_s2  18:57.28 34070680   D_v7m6_s2 30:09.32 46570508
+D_cur_s3  18:38.98 34418772   D_v7m6_s3 28:43.30 47129880
+D_cur_s4  20:24.55 34410152   D_v7m6_s4 35:27.99 46511616
+median wall: cur 18:57.28 (1137.3 s), v7m6 28:43.30 (1723.3 s), ratio 1.515
