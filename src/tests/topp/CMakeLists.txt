@@ -4208,6 +4208,23 @@ set_tests_properties("TOPP_ProteinQuantifier_19_qpx_feature_exists" PROPERTIES D
 add_test("TOPP_ProteinQuantifier_19_qpx_pg_exists" ${TOPP_BIN_PATH}/ParquetDiff
   -in1 ${TESTS_TEMP_DIR}/ProteinQuantifier_19_qpx_dir/quantms.pg.parquet -schema pg -min_rows 48)
 set_tests_properties("TOPP_ProteinQuantifier_19_qpx_pg_exists" PROPERTIES DEPENDS "TOPP_ProteinQuantifier_19_qpx")
+
+# No protein is quantified here (none has 50 peptides), so no protein group is left for the QPX
+# protein-group view: the export is refused and the tool ends with an error that says so. The
+# protein and the peptide table have to be written all the same. The export used to run before
+# them, so its refusal suppressed both. The tables are removed first for the reason given above.
+add_test(NAME "TOPP_ProteinQuantifier_35_clean" COMMAND ${CMAKE_COMMAND} -E rm -rf ${TESTS_TEMP_DIR}/ProteinQuantifier_35_qpx_dir ${TESTS_TEMP_DIR}/ProteinQuantifier_35_output.tmp ${TESTS_TEMP_DIR}/ProteinQuantifier_35_peptides.tmp)
+add_test(NAME "TOPP_ProteinQuantifier_35" COMMAND ${CMAKE_COMMAND}
+  "-DCOMMAND=${TOPP_BIN_PATH}/ProteinQuantifier;-test;-in;${DATA_DIR_TOPP}/ProteinQuantifier_input.consensusXML;-out;${TESTS_TEMP_DIR}/ProteinQuantifier_35_output.tmp;-peptide_out;${TESTS_TEMP_DIR}/ProteinQuantifier_35_peptides.tmp;-out_qpx;${TESTS_TEMP_DIR}/ProteinQuantifier_35_qpx_dir;-top:N;50"
+  -DEXPECTED_CODE=5
+  "-DEXPECTED_OUTPUT_REGEX=no protein was quantified"
+  -DABSENT_FILE=${TESTS_TEMP_DIR}/ProteinQuantifier_35_qpx_dir/quantms.feature.parquet
+  -P ${DATA_DIR_TOPP}/check_exit_code.cmake)
+set_tests_properties("TOPP_ProteinQuantifier_35" PROPERTIES DEPENDS "TOPP_ProteinQuantifier_35_clean")
+add_test("TOPP_ProteinQuantifier_35_out1" ${DIFF} -in1 ${TESTS_TEMP_DIR}/ProteinQuantifier_35_output.tmp -in2 ${DATA_DIR_TOPP}/ProteinQuantifier_35_output.txt -whitelist "computed from file" )
+set_tests_properties("TOPP_ProteinQuantifier_35_out1" PROPERTIES DEPENDS "TOPP_ProteinQuantifier_35")
+add_test("TOPP_ProteinQuantifier_35_out2" ${DIFF} -in1 ${TESTS_TEMP_DIR}/ProteinQuantifier_35_peptides.tmp -in2 ${DATA_DIR_TOPP}/ProteinQuantifier_35_peptides.txt -whitelist "computed from file" )
+set_tests_properties("TOPP_ProteinQuantifier_35_out2" PROPERTIES DEPENDS "TOPP_ProteinQuantifier_35")
 # NOTE: numbering continues at 23 - 18 and 19 are already taken by the "_qpx" tests above,
 # which write ${TESTS_TEMP_DIR}/ProteinQuantifier_18_output.tmp.csv and
 # ${TESTS_TEMP_DIR}/ProteinQuantifier_19_output.tmp. ctest runs in parallel, so reusing a temp
