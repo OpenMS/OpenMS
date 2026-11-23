@@ -2,7 +2,7 @@
 
 [Master plan](README.md)
 
-**Status, 22 November 2026.** This file lists the steps of each work package and the state of each step. Each row links to the record of the step. The script [`board_sync.py`](board_sync.py) copies the R-WP sections of this file to the GitHub project [OpenMS/38](https://github.com/orgs/OpenMS/projects/38). Edit this file first, then run the script. The "Now" table repeats rows from the R-WP sections, and the script does not copy it.
+**Status, 23 November 2026.** This file lists the steps of each work package and the state of each step. Each row links to the record of the step. The script [`board_sync.py`](board_sync.py) copies the R-WP sections of this file to the GitHub project [OpenMS/38](https://github.com/orgs/OpenMS/projects/38). Edit this file first, then run the script. The "Now" table repeats rows from the R-WP sections, and the script does not copy it.
 
 **States:**
 - **Done (pass)**: the step met its predeclared rule.
@@ -17,27 +17,27 @@ Counts are N at entrapment FDP_c 1 % on raw 01 / raw 02, unless the row says oth
 
 ## Now
 
-Current state on 22 November 2026: the HeLa diaPASEF entrapment at r ≈ 7. The metric is N at FDP_c 1 %, as the median of 5 seeds; DIA-NN gets 26,006 (D) and 41,272 (H). The rows of 12-18 November are in [archive/status-history-20261122/BOARD_now_20261118.md](archive/status-history-20261122/BOARD_now_20261118.md).
+Current state on 23 November 2026: the HeLa diaPASEF entrapment at r ≈ 7. The metric is N at FDP_c 1 %, as the median of 5 seeds; DIA-NN gets 26,006 (D) and 41,272 (H). Earlier tables: [12-18 November](archive/status-history-20261122/BOARD_now_20261118.md), [22 November](archive/status-history-20261122/BOARD_now_20261122.md).
 
 | Step | WP | State | Record |
 |---|---|---|---|
-| **Current default: 21,396 (D) / 37,342 (H), 82 % / 90 % of DIA-NN**; own q ≤ 0.01 lower bound D 1.11 %, H 1.29 % | R-WP5 | Done | [README](README.md) |
-| Hard-negative GBM rescoring (PLAN_GBT): D +8.6 %, H +7.1 %; default since OpenMS bcb156e036 | R-WP3, R-WP5 | Done (pass) | [RESULT_GBT_D.md](gates/single-binary/pdec/RESULT_GBT_D.md) |
-| Charge-state sibling rescoring (PLAN_SIB): D +28.2 %, H +13.9 %; default since OpenMS e2e65938ce | R-WP3, R-WP5 | Done (pass) | [RESULT_SIB_D.md](gates/single-binary/pdec/RESULT_SIB_D.md) |
-| Dead-code cleanup: failed opt-in options, the LibTorch CNN path and the Python pilot removed; default byte-identical | R-WP6 | Done | [README](README.md) |
+| **Current default: 21,396 (D) / 37,342 (H), 82 % / 90 % of DIA-NN**; own q ≤ 0.01 lower bound D 1.11 %, H 1.29 % (OpenMS bcb156e036) | R-WP5 | Done | [README](README.md) |
+| Cleanup to one tool: `OpenDIA` / `OpenDIACalibrate` step tools and their-only code removed, directory `src/topp/OpenDIAWorkflow/` (OpenMS 35db7eaee1, after 319f043f77 and 9ba060f978); 14/14 tests, no warnings | R-WP6 | Done (byte-identical: D156, D7V, H7, 9/9 files) | [README](README.md) |
+| Faster interference resolver (OpenMS 955516d84c): D r ≈ 7 V7M6 first pass 1,562 → 878 s, output-identical | R-WP6 | Done | [RESULT_V7M6T2.md](gates/single-binary/pdec/RESULT_V7M6T2.md) |
+| Candidate recall on H (38 % of missed IDs have no candidate); PLAN_V7M6 D FAIL on wall only: median N@FDP_c 1 % 21,396 → 24,249 (+13.3 %), bounds unchanged, fairness 0.540, median wall 1.515x > 1.5x (unmatched AMD nodes; 1.375x on matched nodes) | R-WP1, R-WP5 | Blocked: user decision (keep opt-in, speed up then new plan, or timing-rule change for future plans) | [RESULT_V7M6_D.md](gates/single-binary/pdec/RESULT_V7M6_D.md) |
 | Own-q calibration on H loosened with the GBM (lower bound 1.15 to 1.29 %) | R-WP4 | Open | [RESULT_GBT_H.md](gates/single-binary/pdec/RESULT_GBT_H.md) |
-| Candidate recall on H (38 % of missed IDs have no candidate); PLAN_V7M6 D FAIL on wall only: median N@FDP_c 1 % 21,396 -> 24,249 (+13.3 %), bounds unchanged, fairness 0.540, median wall 1.515x > 1.5x (unmatched AMD nodes; 1.375x on matched nodes) | R-WP1, R-WP5 | Blocked: user decision (accept, more speed-up then new plan, or timing-rule change for future plans) | [RESULT_V7M6_D.md](gates/single-binary/pdec/RESULT_V7M6_D.md) |
+| Speed and memory against DIA-NN (D about 19 min / 34 GB vs 3-4 min / under 7 GB) | R-WP6 | Open | [README](README.md) |
 | Re-measure Astral on the current default (last 16 Nov: 81-84 % of DIA-NN) | R-WP5 | Open | [archive snapshot](archive/status-history-20261122/README.md) |
-| Speed and memory against DIA-NN (D about 20 min / 35 GB vs 3-4 min / under 7 GB) | R-WP6 | Open | [README](README.md) |
+| Push the local OpenMS commits (bcb156e036 to 35db7eaee1) | R-WP6 | Blocked: user approval | [README](README.md) |
 
 ## R-WP1: Streaming search
 
 | Step | State | Record |
 |---|---|---|
-| Streaming sparse-grid search, multi-apex candidates, `-features_out` | Done | [R1](work-packages/R1-streaming-search.md) |
-| Search inside calibrated windows (`-calibration`) | Done | [R1](work-packages/R1-streaming-search.md) |
+| Streaming sparse-grid search, multi-apex candidates | Done | [R1](work-packages/R1-streaming-search.md) |
+| Search inside calibrated windows | Done | [R1](work-packages/R1-streaming-search.md) |
 | Native Thermo `.raw` input | Done | [R2 raw 01 section](work-packages/R2-calibration.md) |
-| Raw-point export `-out_xipm` (OpenSWATH `.xipm` Parquet) | Done | [R4 post-mortem](work-packages/R4-error-control.md) |
+| Raw-point export `-out_xipm` (OpenSWATH `.xipm` Parquet); removed with the `OpenDIA` step tool 23 Nov | Done | [R4 post-mortem](work-packages/R4-error-control.md) |
 | Consensus peak-group picker and anchor boundary labels (`e8cb5892b1`) | Done (diagnostic) | [peak-boundaries](gates/astral-raw01-peak-boundaries/RESULT.md) |
 | Candidate recall at calibrated windows, by cause | Done (diagnostic): RESULT_CANDREC / RESULT_GAP2, D valley merge, H 5-candidate cap; V7M6 failed the wall bar on matched nodes too (RESULT_V7M6T, 1.504x) | [RESULT_V7M6T.md](gates/single-binary/pdec/RESULT_V7M6T.md) |
 
@@ -45,7 +45,7 @@ Current state on 22 November 2026: the HeLa diaPASEF entrapment at r ≈ 7. The 
 
 | Step | State | Record |
 |---|---|---|
-| `OpenDIACalibrate` on HeLa (1278 anchors) | Done (pass) | [R2](work-packages/R2-calibration.md) |
+| ID-free calibration on HeLa (1278 anchors; then the `OpenDIACalibrate` tool, now inside `OpenDIAWorkflow`) | Done (pass) | [R2](work-packages/R2-calibration.md) |
 | Frozen design on Astral raw 01: 0 anchors | Done (fail) | [R2](work-packages/R2-calibration.md) |
 | Windowed second pass `-window_panel_targets` (raw 01: 512 anchors) | Done (pass) | [R2](work-packages/R2-calibration.md) |
 | Low-input runs (500 pg) | Open | [R2](work-packages/R2-calibration.md) |
@@ -189,7 +189,7 @@ Current state on 22 November 2026: the HeLa diaPASEF entrapment at r ≈ 7. The 
 | HeLa diaPASEF benchmark: 11,653 IDs, 40 % of DIA-NN, 61 % of OpenSWATH SVM, below the 2026-11-07 rewrite (13,253) | Done (diagnostic) | [RESULT_HELA.md](gates/single-binary/bench/RESULT_HELA.md) |
 | Native Bruker `.d` and Thermo `.raw` | Partial: both stream | [R6](work-packages/R6-acceptance.md) |
 | Packaging (CTD/INI docs) | Partial: the LibTorch CNN path is deleted (22 Nov cleanup) | [R6](work-packages/R6-acceptance.md) |
-| Dead-code cleanup 22 Nov: `-pg_scores`, `-mobility_apex`, `-faint_features`, `-im_peaks`, `-rt_refine_anchors`, `-hard_decoys`, `-scorer_self_q`, `-trace_tolerance_ppm 0`, OpenDIACNN, the standalone OpenDIAInterference tool and the Python pilot removed (`319f043f77`, -4,912 lines); then the ablation switches `-no_extra_scores`, `-no_matched_filter`, `-no_sibling_features`, `-no_gbm_rescore`, `-gbm_hard_fraction`, `OpenDIACalibrate -max_panel_targets` and linker-dead code (`9ba060f978`, -409 lines), so the code carries only the best default; default byte-identical on real data | Done | [README](README.md) |
+| Dead-code cleanup 22-23 Nov: `-pg_scores`, `-mobility_apex`, `-faint_features`, `-im_peaks`, `-rt_refine_anchors`, `-hard_decoys`, `-scorer_self_q`, `-trace_tolerance_ppm 0`, OpenDIACNN, the standalone OpenDIAInterference tool and the Python pilot removed (`319f043f77`, -4,912 lines); then the ablation switches `-no_extra_scores`, `-no_matched_filter`, `-no_sibling_features`, `-no_gbm_rescore`, `-gbm_hard_fraction`, `OpenDIACalibrate -max_panel_targets` and linker-dead code (`9ba060f978`, -409 lines), so the code carries only the best default; then one tool (`35db7eaee1`, -2,202 lines): step tools `OpenDIA` / `OpenDIACalibrate`, `-out_xipm`, search text tables, trace dump, calibration diagnostics and anchors TSV, `-calibration`/`-anchors` reuse, `-scoring_lib` and the stale `TOPP_OpenDIA_*` tests removed; default byte-identical on real data | Done | [README](README.md) |
 | Split the branch into reviewable PRs | Open | [R6](work-packages/R6-acceptance.md) |
 | Thermo RAW level-aware read-ahead split out: PR OpenMS#10925, approved by Timo; review comments addressed in abc2eb24af (transform MS2 4 threads on Astral: 25.4 s develop → 16.7 s) | Done (PR open, approved) | [#10925](https://github.com/OpenMS/OpenMS/pull/10925) |
 | One-command `OpenDIAWorkflow`, deterministic, fail-closed CLI tests (`9d6bf16f10`) | Done | [RESULT_WORKFLOW.md](gates/single-binary/workflow/RESULT_WORKFLOW.md) |
