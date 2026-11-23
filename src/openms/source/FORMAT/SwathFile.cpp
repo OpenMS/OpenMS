@@ -343,7 +343,8 @@ namespace OpenMS
       Spectrum indices per FAIMS compensation voltage, with the assignment of
       IMDataConverter::splitByFAIMSCV(): a spectrum goes to the CV in its drift time if the drift time
       unit is FAIMS_COMPENSATION_VOLTAGE, an MS2+ spectrum without a CV to the most recent CV before
-      it, and other spectra are skipped. Without any CV, all spectra form one group with CV NaN.
+      it, every MS1 spectrum to every CV if no MS1 spectrum carries a CV, and other spectra are
+      skipped. Without any CV, all spectra form one group with CV NaN.
     */
     std::vector<std::pair<double, std::vector<Size>>> partitionByFAIMSCV(const PeakMap& metadata)
     {
@@ -358,11 +359,20 @@ namespace OpenMS
       }
       std::map<double, std::vector<Size>> groups;
       for (double cv : cvs) { groups[cv]; }
+      const bool share_ms1 = std::none_of(metadata.begin(), metadata.end(), [](const MSSpectrum& s)
+      {
+        return s.getMSLevel() == 1 && s.getDriftTimeUnit() == DriftTimeUnit::FAIMS_COMPENSATION_VOLTAGE;
+      });
       double last_cv = std::numeric_limits<double>::quiet_NaN();
       Size skipped = 0;
       for (Size i = 0; i < metadata.size(); ++i)
       {
         const MSSpectrum& s = metadata[i];
+        if (share_ms1 && s.getMSLevel() == 1)
+        {
+          for (auto& kv : groups) { kv.second.push_back(i); }
+          continue;
+        }
         double cv = std::numeric_limits<double>::quiet_NaN();
         if (s.getDriftTimeUnit() == DriftTimeUnit::FAIMS_COMPENSATION_VOLTAGE)
         {

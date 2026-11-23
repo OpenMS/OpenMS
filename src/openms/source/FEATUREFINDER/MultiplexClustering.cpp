@@ -6,6 +6,7 @@
 // $Authors: Lars Nilse $
 // --------------------------------------------------------------------------
 
+#include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
@@ -25,6 +26,17 @@ namespace OpenMS
 {
   namespace
   {
+    /// @throw Exception::IllegalArgument unless @p rt_typical is positive: the RT grid is spaced by it, so with zero (or a
+    /// negative or NaN value) building the grid would never end
+    void checkRTTypical(double rt_typical, const char* function)
+    {
+      if (!(rt_typical > 0.0))
+      {
+        throw Exception::IllegalArgument(__FILE__, __LINE__, function,
+          "The typical elution time 'rt_typical' must be positive, but is " + StringUtils::toStr(rt_typical) + ".");
+      }
+    }
+
     /// the m/z of the peak at position size/2 of all peaks of @p exp, sorted by m/z (the upper median)
     double medianMZ(const MSExperiment& exp)
     {
@@ -46,6 +58,7 @@ namespace OpenMS
   MultiplexClustering::MultiplexClustering(const MSExperiment& exp_profile, const MSExperiment& exp_picked, const std::vector<std::vector<PeakPickerHiRes::PeakBoundary> >& boundaries, double rt_typical) :
     rt_typical_(rt_typical)
   {
+    checkRTTypical(rt_typical, OPENMS_PRETTY_FUNCTION);
     if (exp_picked.size() != boundaries.size())
     {
       throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Centroided data and the corresponding list of peak boundaries do not contain same number of spectra.");
@@ -90,6 +103,7 @@ namespace OpenMS
   MultiplexClustering::MultiplexClustering(const MSExperiment& exp, double mz_tolerance, bool mz_tolerance_unit, double rt_typical) :
     rt_typical_(rt_typical)
   {
+    checkRTTypical(rt_typical, OPENMS_PRETTY_FUNCTION);
     // ranges of the experiment
     double mz_min = exp.spectrumRanges().byMSLevel(1).getMinMZ();
     double mz_max = exp.spectrumRanges().byMSLevel(1).getMaxMZ();

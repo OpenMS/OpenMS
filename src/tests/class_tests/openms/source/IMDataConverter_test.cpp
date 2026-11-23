@@ -16,6 +16,10 @@
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 
+#include <cmath>
+#include <limits>
+#include <vector>
+
 using namespace OpenMS;
 using namespace std;
 
@@ -303,6 +307,67 @@ START_SECTION((std::vector<std::pair<double, MSExperiment>> splitByFAIMSCV retur
   TEST_REAL_SIMILAR(r45.getMaxRT(), 20.0)
   TEST_REAL_SIMILAR(r45.getMinMZ(), 600.0)
   TEST_REAL_SIMILAR(r45.getMaxMZ(), 700.0)
+}
+END_SECTION
+
+START_SECTION((std::vector<std::pair<double, MSExperiment>> splitByFAIMSCV gives every CV group the MS1 spectra if only MS2 spectra carry a CV))
+{
+  // issue #10770: the MS1 spectra were skipped, so every CV group was left without MS1 spectra
+  const double no_cv = std::numeric_limits<double>::quiet_NaN();
+  auto make = [](UInt level, double rt, double cv)
+  {
+    MSSpectrum s;
+    s.setMSLevel(level);
+    s.setRT(rt);
+    if (!std::isnan(cv))
+    {
+      s.setDriftTimeUnit(DriftTimeUnit::FAIMS_COMPENSATION_VOLTAGE);
+      s.setDriftTime(cv);
+    }
+    s.push_back(Peak1D(400.0 + rt, 100.0));
+    return s;
+  };
+  PeakMap exp;
+  exp.addSpectrum(make(1, 1.0, no_cv)); // before any spectrum with a CV
+  exp.addSpectrum(make(2, 2.0, -45.0));
+  exp.addSpectrum(make(2, 3.0, -65.0));
+  exp.addSpectrum(make(1, 4.0, no_cv));
+  exp.addSpectrum(make(2, 5.0, -45.0));
+  exp.addSpectrum(make(2, 6.0, no_cv)); // MS2 without a CV: the last CV seen (-45)
+
+  auto bins = IMDataConverter::splitByFAIMSCV(std::move(exp));
+  TEST_EQUAL(bins.size(), 2)
+  TEST_EQUAL(bins[0].first, -65.0)
+  TEST_EQUAL(bins[1].first, -45.0)
+
+  auto rts_of_level = [](const MSExperiment& e, UInt level)
+  {
+    std::vector<double> rts;
+    for (const auto& s : e) if (s.getMSLevel() == level) rts.push_back(s.getRT());
+    return rts;
+  };
+  for (const auto& bin : bins)
+  {
+    const MSExperiment& group = bin.second;
+    TEST_EQUAL(rts_of_level(group, 1) == (std::vector<double>{1.0, 4.0}), true) // both MS1 spectra, in run order
+    TEST_EQUAL(group.isSorted(false), true)
+    TEST_REAL_SIMILAR(group.spectrumRanges().byMSLevel(1).getMinRT(), 1.0)
+    TEST_REAL_SIMILAR(group.spectrumRanges().byMSLevel(1).getMaxRT(), 4.0)
+  }
+  TEST_EQUAL(rts_of_level(bins[0].second, 2) == (std::vector<double>{3.0}), true)
+  TEST_EQUAL(rts_of_level(bins[1].second, 2) == (std::vector<double>{2.0, 5.0, 6.0}), true)
+
+  // If MS1 spectra carry a CV, an MS1 spectrum without one is still skipped
+  PeakMap exp_mixed;
+  exp_mixed.addSpectrum(make(1, 1.0, -45.0));
+  exp_mixed.addSpectrum(make(2, 2.0, -45.0));
+  exp_mixed.addSpectrum(make(1, 3.0, no_cv));
+  exp_mixed.addSpectrum(make(1, 4.0, -65.0));
+  exp_mixed.addSpectrum(make(2, 5.0, -65.0));
+  auto bins_mixed = IMDataConverter::splitByFAIMSCV(std::move(exp_mixed));
+  TEST_EQUAL(bins_mixed.size(), 2)
+  TEST_EQUAL(rts_of_level(bins_mixed[0].second, 1) == (std::vector<double>{4.0}), true)
+  TEST_EQUAL(rts_of_level(bins_mixed[1].second, 1) == (std::vector<double>{1.0}), true)
 }
 END_SECTION
 

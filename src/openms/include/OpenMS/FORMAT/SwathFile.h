@@ -233,8 +233,9 @@ public:
 
       The assignment follows IMDataConverter::splitByFAIMSCV(): a spectrum with drift time unit
       FAIMS_COMPENSATION_VOLTAGE goes to the CV in its drift time, an MS2+ spectrum without a CV to the
-      most recent CV before it, other spectra are skipped. SWATH windows are then determined within
-      each CV. Without FAIMS data, one group with CV NaN holds all spectra.
+      most recent CV before it, every MS1 spectrum to every CV if no MS1 spectrum carries a CV, other
+      spectra are skipped. SWATH windows are then determined within each CV. Without FAIMS data, one
+      group with CV NaN holds all spectra.
 
       @param[in] experiment Open random-access experiment
       @param[out] exp_meta Run metadata

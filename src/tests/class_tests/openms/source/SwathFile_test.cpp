@@ -24,8 +24,11 @@
 #include <OpenMS/FORMAT/DATAACCESS/MSDataTransformingConsumer.h>
 #include <OpenMS/KERNEL/OnDiscMSExperiment.h>
 
+#include <algorithm>
 #include <cmath>
+#include <tuple>
 #include <utility>
+#include <vector>
 
 
 using namespace OpenMS;
@@ -500,6 +503,56 @@ START_SECTION((std::vector<FAIMSSwathMapGroup> loadOnDiscByFAIMSCV(const std::sh
   TEST_EXCEPTION(Exception::IllegalArgument, SwathFile().loadOnDiscByFAIMSCV(on_disc_no_meta, meta))
   std::shared_ptr<IMSExperimentRandomAccess> null_experiment;
   TEST_EXCEPTION(Exception::NullPointer, SwathFile().loadOnDisc(null_experiment, meta))
+}
+END_SECTION
+
+START_SECTION(([EXTRA] loadOnDiscByFAIMSCV and loadFromMSExperimentByFAIMSCV: only the MS2 spectra carry a CV))
+{
+  // Two cycles, at -55 V and -45 V; the MS1 spectra have no CV, so each CV group gets both of them (issue #10770)
+  PeakMap exp;
+  for (const auto& [cv, offset, rt] : std::vector<std::tuple<double, double, double>>{{-55.0, 5500.0, 0.0}, {-45.0, 4500.0, 3.0}})
+  {
+    exp.addSpectrum(makeFAIMSSpectrum(1, rt, 100.0, static_cast<float>(1000.0 + offset), cv, false));
+    exp.addSpectrum(makeFAIMSSpectrum(2, rt + 1.0, 110.0, static_cast<float>(1100.0 + offset), cv, true, 412.5, 12.5, 12.5));
+    exp.addSpectrum(makeFAIMSSpectrum(2, rt + 2.0, 120.0, static_cast<float>(1200.0 + offset), cv, true, 437.5, 12.5, 12.5));
+  }
+  // mzML stores the drift time only with a scan (acquisition) entry
+  for (auto& spectrum : exp)
+  {
+    spectrum.getAcquisitionInfo().push_back(Acquisition());
+  }
+  std::string file;
+  NEW_TMP_FILE(file)
+  MzMLFile().store(file, exp);
+
+  auto on_disc = std::make_shared<OnDiscMSExperiment>();
+  TEST_TRUE(on_disc->openFile(file))
+  std::shared_ptr<ExperimentalSettings> meta;
+  auto groups = SwathFile().loadOnDiscByFAIMSCV(on_disc, meta);
+  std::shared_ptr<ExperimentalSettings> meta_in_memory;
+  auto in_memory = SwathFile().loadFromMSExperimentByFAIMSCV(PeakMap(exp), SystemSettings::getTempDirectory() + "/", meta_in_memory, "normal");
+
+  const std::vector<double> cvs = {-55.0, -45.0};
+  const std::vector<double> ms2_intensities = {6600.0, 5600.0}; // the MS2 spectra stay with their CV
+  for (const auto* result : {&groups, &in_memory})
+  {
+    TEST_EQUAL(result->size(), 2)
+    for (Size g = 0; g < std::min(result->size(), cvs.size()); ++g)
+    {
+      TEST_REAL_SIMILAR((*result)[g].faims_cv, cvs[g])
+      const auto& maps = (*result)[g].swath_maps;
+      TEST_EQUAL(maps.size(), 3)
+      if (maps.size() != 3) continue;
+      TEST_EQUAL(maps[0].ms1, true)
+      TEST_EQUAL(maps[0].sptr->getNrSpectra(), 2) // the MS1 spectra of both cycles
+      if (maps[0].sptr->getNrSpectra() != 2) continue;
+      TEST_REAL_SIMILAR(maps[0].sptr->getSpectrumById(0)->getIntensityArray()->data[0], 6500.0)
+      TEST_REAL_SIMILAR(maps[0].sptr->getSpectrumById(1)->getIntensityArray()->data[0], 5500.0)
+      TEST_EQUAL(maps[1].sptr->getNrSpectra(), 1)
+      TEST_EQUAL(maps[2].sptr->getNrSpectra(), 1)
+      TEST_REAL_SIMILAR(maps[1].sptr->getSpectrumById(0)->getIntensityArray()->data[0], ms2_intensities[g])
+    }
+  }
 }
 END_SECTION
 

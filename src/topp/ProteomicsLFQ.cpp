@@ -191,6 +191,8 @@ FAIMS data is automatically detected based on compensation voltage (CV) annotati
 The data is split by CV and processed separately for each voltage group: the chromatographic peak width is
 estimated from the mass traces of each CV, untargeted seeds (Seeding:algorithm multiplex or biosaur2) are found
 per CV and extracted at their CV only, and so is every identification.
+If only the MS2 spectra carry a CV and the MS1 spectra do not, the MS1 spectra are not split: features are
+detected in all of them, for the identifications of every CV.
 Features representing the same analyte detected at different CV values are merged automatically.
 The merged features are then aligned and linked across runs based on RT and m/z.
 No special preparation of the input mzML file is required.
@@ -1704,6 +1706,14 @@ protected:
     {
       median_fwhm = DDAWorkflowCommons::estimateMedianChromatographicFWHM(ms_centroided);
       OPENMS_LOG_INFO << "Median chromatographic FWHM: " << median_fwhm << "\n";
+      // Most mass traces had no width (seen for the MS1 spectra of several FAIMS CVs that carry no CV, issue #10770).
+      // A zero width would reach the seeding (FeatureFinderMultiplex rejects rt_typical 0) and the feature detection.
+      if (!(median_fwhm > 0.0))
+      {
+        median_fwhm = 30.0;
+        OPENMS_LOG_WARN << "Warning: The chromatographic FWHM could not be estimated from the MS1 spectra. Using default: "
+                        << median_fwhm << " seconds.\n";
+      }
     }
     // For .d/IM_PEAK: FWHM is estimated from Biosaur2 features below (after seed generation)
 

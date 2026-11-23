@@ -18,6 +18,7 @@
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/ML/CLUSTERING/GridBasedClustering.h>
 
+#include <limits>
 #include <random>
 
 using namespace OpenMS;
@@ -181,6 +182,28 @@ START_SECTION(([EXTRA] cluster() of groups of points equals the clustering of al
   std::vector<MultiplexFilteredMSExperiment> outside(1);
   outside[0].addPeak(MultiplexFilteredPeak(1000.0, 100.0, 0, 0));
   TEST_EXCEPTION(Exception::IllegalArgument, clustering_range.cluster(outside))
+}
+END_SECTION
+
+// The RT grid is spaced by rt_typical, so a zero rt_typical never ended it: the grid grew until std::bad_alloc (in
+// ProteomicsLFQ, rt_typical is three times the estimated peak width, which was 0, see issue #10770).
+START_SECTION(([EXTRA] MultiplexClustering() rejects an rt_typical that is not positive))
+{
+  MSExperiment exp_rt;
+  for (int s = 0; s <= 100; s += 50)
+  {
+    MSSpectrum spectrum;
+    spectrum.setMSLevel(1);
+    spectrum.setRT(s);
+    spectrum.push_back(Peak1D(400.0, 1.0));
+    exp_rt.addSpectrum(spectrum);
+  }
+  exp_rt.updateRanges();
+  for (const double invalid : {0.0, -30.0, std::numeric_limits<double>::quiet_NaN()})
+  {
+    TEST_EXCEPTION(Exception::IllegalArgument, MultiplexClustering(exp_rt, 0.01, false, invalid))
+    TEST_EXCEPTION(Exception::IllegalArgument, MultiplexClustering(exp, exp_picked, boundaries_exp_s, invalid))
+  }
 }
 END_SECTION
 

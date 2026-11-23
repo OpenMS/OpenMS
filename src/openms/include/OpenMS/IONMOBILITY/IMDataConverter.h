@@ -40,11 +40,15 @@ namespace OpenMS
         PeakMap is unusable afterwards (it is moved-from).
 
         Behavior:
-        - If the dataset contains FAIMS spectra (MS1 with DriftTimeUnit::FAIMS_COMPENSATION_VOLTAGE),
+        - If the dataset contains FAIMS spectra (spectra with DriftTimeUnit::FAIMS_COMPENSATION_VOLTAGE),
           returns a vector of (CV, MSExperiment) pairs, one per unique FAIMS CV. Each experiment
           contains all spectra assigned to that CV.
         - MS2+ spectra without an explicit FAIMS CV are assigned to the last seen FAIMS CV
           (based on run order). Spectra without a prior FAIMS CV context are skipped with a warning.
+        - If only MS2+ spectra carry a FAIMS CV and no MS1 spectrum does, the MS1 spectra are not
+          resolved by CV: every group gets a copy of all MS1 spectra (like identifications and features
+          without a CV, see FAIMSHelper::filterPeptidesByFAIMSCV). Otherwise MS1 spectra without a CV
+          are skipped with a warning.
         - If the dataset contains no FAIMS spectra at all, an informational message is logged and a
           single-element vector is returned. This element contains the original PeakMap (i.e. no
           splitting took place) under a synthetic key (NaN). Callers that specifically work on

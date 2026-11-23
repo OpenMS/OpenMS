@@ -18,6 +18,7 @@
 #include <OpenMS/KERNEL/MSExperiment.h>
 
 
+#include <algorithm>
 #include <climits>
 #include <cstddef>
 #include <map>
@@ -48,11 +49,30 @@ namespace OpenMS
       split_peakmap.emplace(cv, std::move(pm));
     }
 
+    // If no MS1 spectrum carries a CV (only the MS2+ spectra do), the MS1 spectra are not resolved by CV: each CV group
+    // gets a copy of all of them, the way identifications and features without a CV belong to every CV group (see
+    // FAIMSHelper::filterPeptidesByFAIMSCV). Skipping them would leave every group without MS1 spectra.
+    const bool share_ms1 = std::none_of(exp.begin(), exp.end(), [](const MSSpectrum& s)
+    {
+      return s.getMSLevel() == 1 && s.getDriftTimeUnit() == DriftTimeUnit::FAIMS_COMPENSATION_VOLTAGE;
+    });
+    Size n_shared_ms1 = 0;
+
     // fill up the PeakMaps by moving spectra from the input PeakMap
     // Keep MS2 spectra which might not carry a FAIMS CV (typically they do) by assigning them to the last seen FAIMS CV (nearest previous in run order)
     double last_faims_cv = std::numeric_limits<double>::quiet_NaN();
     for (MSSpectrum& spec : exp)
     {
+      if (share_ms1 && spec.getMSLevel() == 1)
+      {
+        for (auto& kv : split_peakmap)
+        {
+          kv.second.addSpectrum(spec);
+        }
+        ++n_shared_ms1;
+        continue;
+      }
+
       if (spec.getDriftTimeUnit() == DriftTimeUnit::FAIMS_COMPENSATION_VOLTAGE)
       {
         last_faims_cv = spec.getDriftTime();
@@ -81,7 +101,13 @@ namespace OpenMS
       // Otherwise skip with a warning
       OPENMS_LOG_WARN << "Skipping spectrum without FAIMS CV (no prior FAIMS CV context or unexpected layout)." << std::endl;
     }
-    
+
+    if (n_shared_ms1 > 0)
+    {
+      OPENMS_LOG_WARN << "Warning: Only MS2+ spectra carry a FAIMS compensation voltage, the MS1 spectra do not. Each of the "
+                      << split_peakmap.size() << " CV groups gets all " << n_shared_ms1 << " MS1 spectra." << std::endl;
+    }
+
     exp.clear(true);
 
     // move from map (sorted by CV) into vector of (CV, MSExperiment) pairs

@@ -49,9 +49,10 @@ namespace OpenMS
          * @param[in] exp_profile    experimental data in profile mode
          * @param[in] exp_picked    experimental data in centroid mode
          * @param[in] boundaries    peak boundaries for exp_picked
-         * @param[in] rt_typical    elution time of a characteristic peptide in the sample
+         * @param[in] rt_typical    elution time of a characteristic peptide in the sample, positive (the RT grid is spaced by it)
          *
          * @throw Exception::IllegalArgument if centroided data and the corresponding list of peak boundaries do not contain same number of spectra
+         * @throw Exception::IllegalArgument if @p rt_typical is not positive
          */
         MultiplexClustering(const MSExperiment& exp_profile, const MSExperiment& exp_picked, const std::vector<std::vector<PeakPickerHiRes::PeakBoundary> >& boundaries, double rt_typical);
         
@@ -61,9 +62,10 @@ namespace OpenMS
          * @param[in] exp    experimental data in centroid mode
          * @param[in] mz_tolerance    margin in m/z with which the centres of the same peak in different spectra my shift (or 'jitter')
          * @param[in] mz_tolerance_unit    unit for mz_tolerance, ppm (true), Da (false)
-         * @param[in] rt_typical    elution time of a characteristic peptide in the sample
+         * @param[in] rt_typical    elution time of a characteristic peptide in the sample, positive (the RT grid is spaced by it)
          *
          * @throw Exception::IllegalArgument if centroided data and the corresponding list of peak boundaries do not contain same number of spectra
+         * @throw Exception::IllegalArgument if @p rt_typical is not positive
          */
         MultiplexClustering(const MSExperiment& exp, double mz_tolerance, bool mz_tolerance_unit, double rt_typical);
         
