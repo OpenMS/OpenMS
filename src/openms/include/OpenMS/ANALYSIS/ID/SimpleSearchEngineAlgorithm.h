@@ -168,9 +168,12 @@ class OPENMS_DLLAPI SimpleSearchEngineAlgorithm :
       @param[in]  modifications_variable           UniMod names of variable modifications (for the ID metadata stamp).
       @param[in]  peptide_missed_cleavages         Allowed missed cleavages (for the ID metadata stamp).
       @param[in]  precursor_mass_tolerance         Precursor mass tolerance value.
-      @param[in]  fragment_mass_tolerance          Fragment mass tolerance value.
+      @param[in]  fragment_mass_tolerance          Fragment mass tolerance value; also the tolerance for matching
+                                                   theoretical to observed peaks for the fragment annotations
+                                                   and the meta values derived from them.
       @param[in]  precursor_mass_tolerance_unit_ppm "ppm" or "Da"; recorded in the ID metadata.
-      @param[in]  fragment_mass_tolerance_unit_ppm  "ppm" or "Da"; recorded in the ID metadata.
+      @param[in]  fragment_mass_tolerance_unit_ppm  "ppm" or "Da"; recorded in the ID metadata and used for
+                                                   the annotation tolerance.
       @param[in]  precursor_min_charge             Minimum precursor charge considered.
       @param[in]  precursor_max_charge             Maximum precursor charge considered.
       @param[in]  enzyme                           Enzyme name (for the ID metadata stamp).
