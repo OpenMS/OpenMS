@@ -9416,3 +9416,7 @@ add_test("TOPP_MassTraceExtractor_3_json" ${TOPP_BIN_PATH}/MassTraceExtractor -t
 #add_test("TOPP_MassTraceExtractor_3_json_out" ${CMAKE_COMMAND} -E compare_files --ignore-eol ${DATA_DIR_TOPP}/MassTraceExtractor_3_expected.ini)
 add_test("TOPP_MassTraceExtractor_3_json_out" ${DIFF} -whitelist "Version of the tool that generated this parameters file." "supported_formats" -in1 ${TESTS_TEMP_DIR}/MassTraceExtractor_3.ini -in2 ${DATA_DIR_TOPP}/MassTraceExtractor_3_expected.ini )
 set_tests_properties("TOPP_MassTraceExtractor_3_json_out" PROPERTIES DEPENDS "TOPP_MassTraceExtractor_3_json")
+
+# TEMPORARY (scratch branch only): dump real Measure_error values of the OpenPepXL mzIdentML output
+add_test("TOPP_OpenPepXL_1_dump_measure_error" ${CMAKE_COMMAND} -DMZID=${TESTS_TEMP_DIR}/OpenPepXL_output.tmp.mzid -P ${DATA_DIR_TOPP}/OpenPepXL_dump_measure_error.cmake)
+set_tests_properties("TOPP_OpenPepXL_1_dump_measure_error" PROPERTIES DEPENDS "TOPP_OpenPepXL_1")
