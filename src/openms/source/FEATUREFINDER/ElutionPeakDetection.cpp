@@ -15,6 +15,7 @@
 #include <boost/dynamic_bitset.hpp>
 
 #include <algorithm>
+#include <iterator>
 #include <span>
 #include <utility>
 #include <vector>
@@ -43,6 +44,10 @@ namespace OpenMS
 
     defaults_.setValue("masstrace_snr_filtering", "false", "Apply post-filtering by signal-to-noise ratio after smoothing.", {"advanced"});
     defaults_.setValidStrings("masstrace_snr_filtering", {"true","false"});
+    // The smoothing window is chrom_fwhm / scan time. Derived from the trace's own points, the scan time of a trace
+    // with gaps is inflated by the gaps, so a long, gappy trace gets a narrower window than its neighbours, and a
+    // part of a trace is smoothed differently from the whole. A caller that knows the acquisition's cycle time sets it.
+    defaults_.setValue("scan_time", 0.0, "Scan (cycle) time in seconds used to convert chrom_fwhm into the smoothing window. 0 = derive it from each mass trace's own average cycle time.", {"advanced"});
 
     defaultsToParam_();
     this->setLogType(CMD);
@@ -330,23 +335,34 @@ namespace OpenMS
     this->startProgress(0, mt_vec.size(), "elution peak detection");
     Size progress(0);
 #ifdef _OPENMP
-#pragma omp parallel for
+    // No output vector is shared between threads, so detectElutionPeaks_() needs no lock. At the top level each
+    // thread collects into its own vector; the static schedule hands out contiguous blocks in thread order, so
+    // concatenating the per-thread vectors keeps the input order. Called from inside another parallel region
+    // (where the nested team would usually be a single thread anyway), it runs serially into the caller's vector:
+    // a named critical there serialised all concurrent callers of the whole program.
+    if (!omp_in_parallel())
+    {
+      const int nthreads = omp_get_max_threads();
+      std::vector<std::vector<MassTrace>> local(nthreads > 0 ? nthreads : 1);
+#pragma omp parallel for schedule(static)
+      for (SignedSize i = 0; i < (SignedSize) mt_vec.size(); ++i)
+      {
+        IF_MASTERTHREAD this->setProgress(progress);
+#pragma omp atomic
+        ++progress;
+        detectElutionPeaks_(mt_vec[i], local[omp_get_thread_num()]);
+      }
+      for (auto& part : local)
+      {
+        std::move(part.begin(), part.end(), std::back_inserter(single_mtraces));
+      }
+      this->endProgress();
+      return;
+    }
 #endif
     for (SignedSize i = 0; i < (SignedSize) mt_vec.size(); ++i)
-    {
-      IF_MASTERTHREAD this->setProgress(progress);
-
-#ifdef _OPENMP
-#pragma omp atomic
-#endif
-      ++progress;
-
-      // push_back to 'single_mtraces' is protected, so threading is ok
       detectElutionPeaks_(mt_vec[i], single_mtraces);
-    }
-
     this->endProgress();
-
     return;
   }
 
@@ -390,8 +406,11 @@ namespace OpenMS
     // Step 1: Smooth data
     // *********************************************************************
 
-    double scan_time(mt.getAverageMS1CycleTime());
-    Size win_size = std::ceil(chrom_fwhm_ / scan_time);
+    double scan_time(scan_time_ > 0.0 ? scan_time_ : mt.getAverageMS1CycleTime());
+    // With a fixed scan time the ratio can sit on an integer (7 s / 1.4 s): a last-bit difference
+    // in the scan time then flips ceil() between two windows, so back off by an epsilon there.
+    // The per-trace path keeps the original expression.
+    Size win_size = scan_time_ > 0.0 ? (Size)std::ceil(chrom_fwhm_ / scan_time - 1e-6) : (Size)std::ceil(chrom_fwhm_ / scan_time);
 
     // add smoothed data (original data is still accessible)
     smoothData(mt, static_cast<Int>(win_size));
@@ -462,12 +481,7 @@ namespace OpenMS
           mt.estimateFWHM(true);
         }
 
-#ifdef _OPENMP
-#pragma omp critical (OPENMS_ElutionPeakDetection_mtraces)
-#endif
-        {
-          single_mtraces.push_back(mt);
-        }
+        single_mtraces.push_back(mt); // single_mtraces is private to the calling thread
 
       }
     }
@@ -544,12 +558,7 @@ namespace OpenMS
           new_mt.setQuantMethod(mt.getQuantMethod());
           new_mt.estimateFWHM(true);
 
-#ifdef _OPENMP
-#pragma omp critical (OPENMS_ElutionPeakDetection_mtraces)
-#endif
-          {
-            single_mtraces.push_back(std::move(new_mt));
-          }
+          single_mtraces.push_back(std::move(new_mt)); // single_mtraces is private to the calling thread
         }
       }
     }
@@ -662,6 +671,7 @@ namespace OpenMS
     chrom_peak_snr_ = (double)param_.getValue("chrom_peak_snr");
     min_fwhm_ = (double)param_.getValue("min_fwhm");
     max_fwhm_ = (double)param_.getValue("max_fwhm");
+    scan_time_ = (double)param_.getValue("scan_time");
 
     pw_filtering_ = param_.getValue("width_filtering").toString();
     mt_snr_filtering_ = param_.getValue("masstrace_snr_filtering").toBool();

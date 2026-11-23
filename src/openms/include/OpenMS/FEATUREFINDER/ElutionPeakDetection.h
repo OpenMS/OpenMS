@@ -158,6 +158,7 @@ private:
 
     double min_fwhm_;
     double max_fwhm_;
+    double scan_time_ = 0.0;   ///< fixed scan time (s) for the smoothing window; 0 = each trace's own average cycle time
 
     /// Type of width filtering
     std::string pw_filtering_;
