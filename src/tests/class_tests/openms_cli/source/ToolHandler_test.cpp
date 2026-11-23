@@ -1,0 +1,115 @@
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
+//
+// --------------------------------------------------------------------------
+// $Maintainer: Chris Bielow $
+// $Authors: Chris Bielow $
+// --------------------------------------------------------------------------
+
+#include <OpenMS/CONCEPT/ClassTest.h>
+#include <OpenMS/test_config.h>
+
+///////////////////////////
+#include <OpenMS/APPLICATIONS/ToolHandler.h>
+///////////////////////////
+
+#include <cstdlib>
+
+using namespace OpenMS;
+using namespace std;
+
+START_TEST(ToolHandler, "$Id$")
+
+// The registry is read once per process, on the first lookup, and also from the directories
+// named by these environment variables. Remove them before that, so registry files of a
+// developer's environment (e.g. those of the GUI layer) do not change what this test sees.
+for (const char* var : {"OPENMS_TOOL_REGISTRY_PATH", "OPENMS_TTD_INTERNAL_PATH"})
+{
+#ifdef OPENMS_WINDOWSPLATFORM
+  _putenv_s(var, "");
+#else
+  unsetenv(var);
+#endif
+}
+
+/////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////
+
+ToolHandler* ptr = nullptr;
+ToolHandler* null_ptr = nullptr;
+START_SECTION(ToolHandler())
+{
+	ptr = new ToolHandler();
+	TEST_NOT_EQUAL(ptr, null_ptr)
+}
+END_SECTION
+
+START_SECTION(~ToolHandler())
+{
+	delete ptr;
+}
+END_SECTION
+
+START_SECTION((static ToolListType getTOPPToolList()))
+{
+  ToolListType list = ToolHandler::getTOPPToolList();
+  TEST_TRUE(list.find("DecoyDatabase") != list.end())
+  TEST_TRUE(list.size() > 30)  // assume we have over 30 tools in there
+  // the registry comes from the registry files of the share directory; an empty list means they
+  // were not found, which would let every check below pass vacuously
+  TEST_TRUE(!list.empty())
+  // the key and the description's own name are the same thing: the name the registry entry declares
+  TEST_EQUAL(list.find("DecoyDatabase")->second.name, "DecoyDatabase")
+  TEST_EQUAL(list.find("QCCalculator")->second.name, "QCCalculator")
+  // the TOPP tools of the GUI layer (ImageCreator, ExecutePipeline) are built and registered by
+  // OpenMS-TOPP-GUI in a registry file of its own, never by this build
+  TEST_TRUE(list.find("ImageCreator") == list.end())
+  TEST_TRUE(list.find("ExecutePipeline") == list.end())
+  // a tool behind a build option is listed only by a build that has the option: the
+  // openms_topp_tool() declaration is inside that option's if(), so a build without it
+  // neither builds the tool nor writes it to the generated registry
+#ifdef WITH_WNETALIGN
+  TEST_TRUE(list.find("FeatureLinkerWNet") != list.end())
+#else
+  TEST_TRUE(list.find("FeatureLinkerWNet") == list.end())
+#endif
+}
+END_SECTION
+
+START_SECTION((static const ToolListType& getTOPPToolListRef()))
+{
+  const ToolListType& list = ToolHandler::getTOPPToolListRef();
+  TEST_EQUAL(list.size(), ToolHandler::getTOPPToolList().size())
+  TEST_TRUE(list.find("DecoyDatabase") != list.end())
+  // served from the process-wide cache, so the reference is the same one every time
+  TEST_EQUAL(&list, &ToolHandler::getTOPPToolListRef())
+}
+END_SECTION
+
+START_SECTION((static StringList getTypes(const std::string &toolname)))
+{
+  TEST_EQUAL(ToolHandler::getTypes("IsobaricAnalyzer").empty(), true);
+  TEST_EQUAL(ToolHandler::getTypes("IDMapper").empty(), true);
+  // An unknown tool has no types rather than being an error: a tool that is not in this
+  // installation's registry still has to be able to write its own CTD/CWL description
+  // (TOPPBase::handleWriteCommands_ asks for the types to know how many files to write).
+  TEST_EQUAL(ToolHandler::getTypes("DOESNOTEXIST").empty(), true);
+}
+END_SECTION
+
+START_SECTION((static std::string getToolRegistryPath()))
+{
+  TEST_NOT_EQUAL(ToolHandler::getToolRegistryPath(), std::string())
+}
+END_SECTION
+
+START_SECTION((static std::string getCategory(const std::string &toolname)))
+{
+  TEST_EQUAL(ToolHandler::getCategory("IDFilter"), "File Filtering, Extraction and Merging")
+  TEST_EQUAL(ToolHandler::getCategory("DOESNOTEXIST"), "")
+}
+END_SECTION
+
+/////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////
+END_TEST

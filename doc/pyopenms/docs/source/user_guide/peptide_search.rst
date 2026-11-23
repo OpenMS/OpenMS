@@ -30,10 +30,9 @@ a fasta database of protein sequences:
     gh = "https://raw.githubusercontent.com/OpenMS/OpenMS/develop/doc/pyopenms"
     urlretrieve(gh + "/src/data/SimpleSearchEngine_1.mzML", "searchfile.mzML")
     urlretrieve(gh + "/src/data/SimpleSearchEngine_1.fasta", "search.fasta")
-    protein_ids = []
     peptide_ids = oms.PeptideIdentificationList()
-    oms.SimpleSearchEngineAlgorithm().search(
-        "searchfile.mzML", "search.fasta", protein_ids, peptide_ids
+    exit_code, protein_ids = oms.SimpleSearchEngineAlgorithm().search(
+        "searchfile.mzML", "search.fasta", peptide_ids
     )
 
 This will print search engine output including the number of peptides and
@@ -139,17 +138,16 @@ ppm\ (\pm 2\ ppm)`, we expect that we will not find the hit at :math:`775.38` m/
     salgo = oms.SimpleSearchEngineAlgorithm()
     p = salgo.getDefaults()
     print(p.items())
-    p[b"precursor:mass_tolerance"] = 4.0
+    p["precursor:mass_tolerance"] = 4.0
     salgo.setParameters(p)
 
-    protein_ids = []
     peptide_ids = oms.PeptideIdentificationList()
-    salgo.search("searchfile.mzML", "search.fasta", protein_ids, peptide_ids)
+    exit_code, protein_ids = salgo.search("searchfile.mzML", "search.fasta", peptide_ids)
     print("Found", peptide_ids.size(), "peptides")
 
 As we can see, using a smaller precursor mass tolerance leads the algorithm to
 find only one hit instead of two. Similarly, if we use the wrong enzyme for
-the digestion (e.g. ``p[b'enzyme'] = "Formic_acid"``), we find no results.
+the digestion (e.g. ``p['enzyme'] = "Formic_acid"``), we find no results.
 
 More detailed example
 *********************
@@ -161,8 +159,11 @@ Now include some additional decoy database generation step as well as subsequent
 
     from urllib.request import urlretrieve
 
-    searchfile = "../../../src/data/BSA1.mzML"
-    searchdb = "../../../src/data/18Protein_SoCe_Tr_detergents_trace.fasta"
+    gh = "https://raw.githubusercontent.com/OpenMS/OpenMS/develop/doc/pyopenms"
+    searchfile = "BSA1.mzML"
+    searchdb = "18Protein_SoCe_Tr_detergents_trace.fasta"
+    urlretrieve(gh + "/src/data/" + searchfile, searchfile)
+    urlretrieve(gh + "/src/data/" + searchdb, searchdb)
 
     # generate a protein database with additional decoy sequenes
     targets = list()
@@ -188,18 +189,17 @@ Now include some additional decoy database generation step as well as subsequent
     )  # store the database with appended decoy sequences
 
     # Run SimpleSearchAlgorithm, store protein and peptide ids
-    protein_ids = []
     peptide_ids = oms.PeptideIdentificationList()
 
     # set some custom search parameters
     simplesearch = oms.SimpleSearchEngineAlgorithm()
     params = simplesearch.getDefaults()
-    score_annot = [b"fragment_mz_error_median_ppm", b"precursor_mz_error_ppm"]
-    params.setValue(b"annotate:PSM", score_annot)
-    params.setValue(b"peptide:max_size", 30)
+    score_annot = ["fragment_mz_error_median_ppm", "precursor_mz_error_ppm"]
+    params.setValue("annotate:PSM", score_annot)
+    params.setValue("peptide:max_size", 30)
     simplesearch.setParameters(params)
 
-    simplesearch.search(searchfile, target_decoy_database, protein_ids, peptide_ids)
+    exit_code, protein_ids = simplesearch.search(searchfile, target_decoy_database, peptide_ids)
 
     # Annotate q-value
     oms.FalseDiscoveryRate().apply(peptide_ids)
@@ -223,11 +223,10 @@ This is done by applying one of the available protein inference algorithms on th
 .. code-block:: python
     :linenos:
 
-    protein_ids = []
     peptide_ids = oms.PeptideIdentificationList()
 
     # Re-run search since we need to keep decoy hits for inference
-    simplesearch.search(searchfile, target_decoy_database, protein_ids, peptide_ids)
+    exit_code, protein_ids = simplesearch.search(searchfile, target_decoy_database, peptide_ids)
 
     # Run inference
     bpia = oms.BasicProteinInferenceAlgorithm()
@@ -248,7 +247,7 @@ This is done by applying one of the available protein inference algorithms on th
 
     # Restore valid references into the proteins
     remove_peptides_without_reference = True
-    idfilter.updateProteinReferences(
+    idfilter.removeDanglingProteinReferences(
         peptide_ids, protein_ids, remove_peptides_without_reference
     )
 

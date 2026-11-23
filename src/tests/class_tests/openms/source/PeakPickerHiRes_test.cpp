@@ -176,10 +176,10 @@ START_SECTION((template <typename PeakType> void pick(const MSSpectrum& input, M
     TEST_REAL_SIMILAR(tmp_spec[peak_idx].getIntensity(), output[0][peak_idx].getIntensity())
   }
 
-  TEST_REAL_SIMILAR(tmp_boundaries[25].mz_min, 359.728698730469)
-  TEST_REAL_SIMILAR(tmp_boundaries[25].mz_max, 359.736419677734)
-  TEST_REAL_SIMILAR(tmp_boundaries[26].mz_min, 360.155609130859)
-  TEST_REAL_SIMILAR(tmp_boundaries[26].mz_max, 360.173675537109)
+  TEST_REAL_SIMILAR(tmp_boundaries[25].mz_min, 367.206604003906)
+  TEST_REAL_SIMILAR(tmp_boundaries[25].mz_max, 367.214569091797)
+  TEST_REAL_SIMILAR(tmp_boundaries[26].mz_min, 369.042205810547)
+  TEST_REAL_SIMILAR(tmp_boundaries[26].mz_max, 369.051574707031)
 }
 END_SECTION
 

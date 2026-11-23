@@ -28,10 +28,6 @@ namespace OpenMS
     return  nearest_neighbour_index_;
   }
 
-  bool MinimumDistance::operator<(const MinimumDistance& other) const
-  {
-    return distance_ < other.distance_;
-  }
   
   bool MinimumDistance::operator>(const MinimumDistance& other) const
   {

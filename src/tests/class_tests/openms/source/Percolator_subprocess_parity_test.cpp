@@ -25,6 +25,7 @@
 #include <OpenMS/METADATA/PeptideIdentificationList.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/SYSTEM/TempFiles.h>
 
 #include <algorithm>
 #include <cmath>
@@ -203,6 +204,51 @@ std::string percolatorBinary()
   return std::string(env);
 }
 
+/// The --help text of the percolator executable @p bin (cached per executable)
+const std::string& binaryHelp(const std::string& bin)
+{
+  static std::map<std::string, std::string> known;
+  const auto it = known.find(bin);
+  if (it != known.end()) return it->second;
+  const std::string help = TempFiles::getTemporaryFile();
+  std::string cmd = "\"" + bin + "\" --help > \"" + help + "\" 2>&1";
+#ifdef _WIN32
+  cmd = "\"" + cmd + "\""; // (see runSubprocess)
+#endif
+  [[maybe_unused]] const int status = std::system(cmd.c_str());
+  std::ifstream f(help.c_str());
+  std::stringstream text;
+  text << f.rdbuf();
+  return known[bin] = text.str();
+}
+
+/// Whether the percolator executable @p bin offers the command line option @p option (e.g. "--irls-pep")
+bool binaryOffers(const std::string& bin, const std::string& option)
+{
+  return binaryHelp(bin).find(" " + option + " ") != std::string::npos;
+}
+
+/// Whether the percolator executable @p bin trains as Percolator does after 3.09 (it offers --classic-training): each
+/// SVM warm-started, each fold's (Cpos, Cneg) pair fixed after three iterations, a stop at a gain below 0.1%. The
+/// in-process Percolator trains as the executables up to 3.09 by default (e.g. the 3.07 of OpenMS' THIRDPARTY); against
+/// a later executable, the comparisons set its parameter classic_training to false.
+bool binaryHasNewTraining(const std::string& bin)
+{
+  return binaryOffers(bin, "--classic-training");
+}
+
+/// The Percolator defaults for a comparison with the executable @p bin, with @p seed (see binaryHasNewTraining), and the
+/// solver 'tron', which reaches the optimum of the executable's SVMlin solver along the same path (the default 'newton'
+/// reaches it too, but stops at a looser tolerance in the earlier iterations of classic training)
+Param parityDefaults(const Percolator& p, const std::string& bin, int seed = 1)
+{
+  Param par = p.getDefaults();
+  par.setValue("seed", seed);
+  par.setValue("solver", "tron");
+  par.setValue("classic_training", binaryHasNewTraining(bin) ? "false" : "true");
+  return par;
+}
+
 /// Generate a realistic-scale synthetic dataset: 2000 PSMs with a mildly
 /// informative 3-feature signal, same shape as the "realistic" Percolator
 /// class test. Large enough to comfortably pass SanityCheck.
@@ -318,10 +364,10 @@ SubprocessOut runSubprocess(const std::string& bin,
                             const std::string& pin_path,
                             const std::string& extra_args = "")
 {
-  const std::string target_pout = File::getTemporaryFile();
-  const std::string decoy_pout  = File::getTemporaryFile();
-  const std::string stdout_log  = File::getTemporaryFile();
-  const std::string stderr_log  = File::getTemporaryFile();
+  const std::string target_pout = TempFiles::getTemporaryFile();
+  const std::string decoy_pout  = TempFiles::getTemporaryFile();
+  const std::string stdout_log  = TempFiles::getTemporaryFile();
+  const std::string stderr_log  = TempFiles::getTemporaryFile();
 
   std::ostringstream cmd;
   cmd << "\"" << bin << "\""
@@ -479,7 +525,7 @@ START_SECTION([EXTRA] PIN file content equals stamped meta values)
   const std::string enz = "no_enzyme";
 
   // (a) Write PIN via store(). This also internally stamps, then serializes.
-  const std::string pin_path = File::getTemporaryFile();
+  const std::string pin_path = TempFiles::getTemporaryFile();
   PercolatorInfile::store(pin_path, pids, feature_set, enz, min_charge, max_charge);
 
   // (b) Stamp an independent copy so we can read back the meta values
@@ -610,7 +656,7 @@ START_SECTION([EXTRA] scores and FDR-threshold counts match subprocess)
     RescoreInput ri;
     generateSyntheticData(ri, rng);
 
-    const std::string pin_path = File::getTemporaryFile();
+    const std::string pin_path = TempFiles::getTemporaryFile();
     writePinFile(pin_path, ri);
 
     SubprocessOut sub = runSubprocess(bin, pin_path, "-S 1");
@@ -619,8 +665,7 @@ START_SECTION([EXTRA] scores and FDR-threshold counts match subprocess)
 
     // Subprocess percolator uses isotonic PEP by default; match it.
     Percolator p;
-    Param par = p.getDefaults();
-    par.setValue("seed", 1);
+    Param par = parityDefaults(p, bin);
     par.setValue("pep_method", "isotonic");
     p.setParameters(par);
     RescoreOutput out = p.rescore(ri);
@@ -688,15 +733,14 @@ START_SECTION([EXTRA] ranking parity at q &lt;= 0.01 / 0.05 / 0.10)
     RescoreInput ri;
     generateSyntheticData(ri, rng);
 
-    const std::string pin_path = File::getTemporaryFile();
+    const std::string pin_path = TempFiles::getTemporaryFile();
     writePinFile(pin_path, ri);
 
     SubprocessOut sub = runSubprocess(bin, pin_path, "-S 1");
     TEST_EQUAL(sub.exit_code, 0)
 
     Percolator p;
-    Param par = p.getDefaults();
-    par.setValue("seed", 1);
+    Param par = parityDefaults(p, bin);
     par.setValue("pep_method", "isotonic");
     p.setParameters(par);
     RescoreOutput out = p.rescore(ri);
@@ -802,15 +846,14 @@ START_SECTION([EXTRA] parameter matrix: each flag flows through to the SVM)
       std::mt19937 rng(2026);
       RescoreInput ri;
       generateSyntheticData(ri, rng);
-      const std::string pin_path = File::getTemporaryFile();
+      const std::string pin_path = TempFiles::getTemporaryFile();
       writePinFile(pin_path, ri);
 
       SubprocessOut sub = runSubprocess(bin, pin_path, tc.extra_args);
       TEST_EQUAL(sub.exit_code, 0)
 
       Percolator p;
-      Param par = p.getDefaults();
-      par.setValue("seed", 1);
+      Param par = parityDefaults(p, bin);
       par.setValue("pep_method", "isotonic");
       tc.tune(par);
       p.setParameters(par);
@@ -890,11 +933,11 @@ START_SECTION([EXTRA] SVM weights match average of per-fold subprocess weights)
     std::mt19937 rng(2026);
     RescoreInput ri;
     generateSyntheticData(ri, rng);
-    const std::string pin_path = File::getTemporaryFile();
+    const std::string pin_path = TempFiles::getTemporaryFile();
     writePinFile(pin_path, ri);
 
     // Ask percolator to dump weights.
-    const std::string wfile = File::getTemporaryFile();
+    const std::string wfile = TempFiles::getTemporaryFile();
     SubprocessOut sub = runSubprocess(
       bin, pin_path, "-S 1 -w \"" + wfile + "\"");
     TEST_EQUAL(sub.exit_code, 0)
@@ -939,8 +982,7 @@ START_SECTION([EXTRA] SVM weights match average of per-fold subprocess weights)
 
     // In-process.
     Percolator p;
-    Param par = p.getDefaults();
-    par.setValue("seed", 1);
+    Param par = parityDefaults(p, bin);
     par.setValue("pep_method", "isotonic");
     p.setParameters(par);
     RescoreOutput out = p.rescore(ri);
@@ -968,6 +1010,103 @@ START_SECTION([EXTRA] SVM weights match average of per-fold subprocess weights)
                  std::string("weights match"))
     }
     TEST_TRUE(max_abs <= 1e-3)
+  }
+}
+END_SECTION
+
+///////////////////////////////////////////////////////////////////////////////
+// Test 5b: Percolator::storeWeights() writes the executable's -w file.
+//
+// Same data and seed as Test 5. The file has the executable's comment lines and,
+// per CV bin, the same feature-name line, and the same feature weights, normalized
+// and raw (printed with 3 or 4 decimals), within WEIGHTS_FILE_TOLERANCE: both
+// paths write the weights after the cross-validation rescaled each bin's model by
+// its test set (CrossValidation::postIterationProcessing).
+//
+// The bias (m0) is not compared. On this data both paths replace the learned
+// model by the default direction (the sanity check: fewer identifications than
+// the best single feature), and Scores::getInitDirection zeroes the feature
+// weights of the default vector but keeps each bin's learned bias (upstream
+// Percolator too). All test sets are then scored with bin 1's vector and each
+// bin's vector is rescaled by its test set, so the bias written for bins 2 and 3
+// depends on how their learned biases differ from bin 1's. The vendored training
+// (TRON solver) and the executable's (SVMlin) learn slightly different models,
+// so these biases differ (on data without the reset, the learned feature weights
+// differ by up to ~0.1 in a bin).
+///////////////////////////////////////////////////////////////////////////////
+
+START_SECTION([EXTRA] storeWeights writes the weights file of the executable (-w))
+{
+  const std::string bin = percolatorBinary();
+  if (bin.empty())
+  {
+    TEST_EQUAL(true, true);  // skip silently
+  }
+  else
+  {
+    const double WEIGHTS_FILE_TOLERANCE = 1e-3;
+    std::mt19937 rng(2026);
+    RescoreInput ri;
+    generateSyntheticData(ri, rng);
+    const std::string pin_path = TempFiles::getTemporaryFile();
+    writePinFile(pin_path, ri);
+    const std::string sub_file = TempFiles::getTemporaryFile();
+    SubprocessOut sub = runSubprocess(bin, pin_path, "-S 1 -w \"" + sub_file + "\"");
+    TEST_EQUAL(sub.exit_code, 0)
+
+    Percolator p;
+    Param par = parityDefaults(p, bin);
+    par.setValue("pep_method", "isotonic");
+    p.setParameters(par);
+    p.rescore(ri);
+    const std::string in_file = TempFiles::getTemporaryFile();
+    p.storeWeights(in_file);
+
+    auto lines = [](const std::string& file)
+    {
+      std::vector<std::string> result;
+      std::ifstream is(file.c_str());
+      std::string line;
+      while (std::getline(is, line)) result.push_back(line);
+      return result;
+    };
+    auto fields = [](const std::string& line)
+    {
+      std::vector<std::string> result;
+      std::istringstream ls(line);
+      std::string field;
+      while (std::getline(ls, field, '\t')) result.push_back(field);
+      return result;
+    };
+    const std::vector<std::string> sub_lines = lines(sub_file), in_lines = lines(in_file);
+    TEST_EQUAL(in_lines.size(), sub_lines.size())
+    TEST_EQUAL(in_lines.size(), 3 + 3 * 3)
+    double max_abs = 0.0;
+    std::string worst;
+    for (size_t i = 0; i < std::min(in_lines.size(), sub_lines.size()); ++i)
+    {
+      // comment lines and feature names: the same text
+      if (i < 3 || (i - 3) % 3 == 0)
+      {
+        TEST_EQUAL(in_lines[i], sub_lines[i])
+        continue;
+      }
+      const std::vector<std::string> in_w = fields(in_lines[i]), sub_w = fields(sub_lines[i]);
+      TEST_EQUAL(in_w.size(), sub_w.size())
+      TEST_EQUAL(in_w.size(), ri.feature_names.size() + 1)
+      for (size_t j = 0; j + 1 < std::min(in_w.size(), sub_w.size()); ++j) // (not the bias m0, see above)
+      {
+        const double d = std::abs(std::stod(in_w[j]) - std::stod(sub_w[j]));
+        if (d > max_abs)
+        {
+          max_abs = d;
+          worst = "line " + std::to_string(i + 1) + " column " + std::to_string(j + 1) + ": in-process " + in_w[j]
+                  + ", executable " + sub_w[j];
+        }
+      }
+    }
+    STATUS("weights file: largest difference of a feature weight " << max_abs << (worst.empty() ? "" : " (" + worst + ")"))
+    TEST_TRUE(max_abs <= WEIGHTS_FILE_TOLERANCE)
   }
 }
 END_SECTION
@@ -1017,7 +1156,7 @@ START_SECTION([EXTRA] realistic idXML parity at library layer)
     const std::string enz = "trypsin";
 
     // Write .pin (also stamps meta values under the hood).
-    const std::string pin_path = File::getTemporaryFile();
+    const std::string pin_path = TempFiles::getTemporaryFile();
     PercolatorInfile::store(pin_path, pids, feature_set, enz, min_charge, max_charge);
 
     // Parse .pin back to build RescoreInput that matches subprocess input
@@ -1066,8 +1205,15 @@ START_SECTION([EXTRA] realistic idXML parity at library layer)
     }
     TEST_TRUE(ri.features.size() >= 20)
 
-    // Run subprocess.
-    SubprocessOut sub = runSubprocess(bin, pin_path, "-S 1 -t 0.5 -F 0.5");
+    // Run subprocess. -p 0.1: the library default c_pos (without -p the executable selects Cpos by
+    // cross-validation). Training converges on this fixture, so a different Cpos gives a different model.
+    // The executables since 3.08 calibrate their PEPs with another method by default; --irls-pep selects the cubic
+    // spline that pep_method "nonparametric" computes, --ip-pep (of an executable that ranks by default) its variant
+    // from the score.
+    std::string pep_args;
+    if (binaryOffers(bin, "--irls-pep")) pep_args += " --irls-pep";
+    if (binaryOffers(bin, "--ip-pep")) pep_args += " --ip-pep";
+    SubprocessOut sub = runSubprocess(bin, pin_path, "-S 1 -t 0.5 -F 0.5 -p 0.1" + pep_args);
     TEST_EQUAL(sub.exit_code, 0)
 
     // Run in-process, matching subprocess's CLI defaults. The library has
@@ -1075,9 +1221,8 @@ START_SECTION([EXTRA] realistic idXML parity at library layer)
     // than the upstream percolator CLI (both off unless explicitly enabled);
     // set them to "false" here to mirror the subprocess invocation.
     Percolator p;
-    Param par = p.getDefaults();
-    par.setValue("seed", 1);
-    par.setValue("pep_method", "nonparametric");  // matches 3.06 subprocess PosteriorEstimator::estimatePEP
+    Param par = parityDefaults(p, bin);
+    par.setValue("pep_method", "nonparametric");  // the executable's P-IRLS spline (3.07, or --irls-pep)
     par.setValue("test_fdr",  0.5);
     par.setValue("train_fdr", 0.5);
     par.setValue("post_processing_tdc",  "false");
@@ -1107,14 +1252,10 @@ START_SECTION([EXTRA] realistic idXML parity at library layer)
 
     TEST_TRUE(matches >= 20)
     TEST_TRUE(r >= 0.99)
-    // max_dpep tolerance of 0.15: with pep_method="nonparametric" routing to
-    // the vendored PosteriorEstimator::estimatePEP (3.08.01), the SVM scores
-    // and q-values match the 3.06 subprocess bit-identically (r=1.0, accepted
-    // sets equal), but the PEP smoothing kernel has been updated between 3.06
-    // and 3.08 — residual max |Δpep| observed at 0.10 on this fixture.
-    // TODO(percolator-3.08-binary): tighten to 0.05 after upgrading the
-    // bundled binary to 3.08.01; the gap is algorithmic 3.06↔3.08 drift,
-    // not a parity regression.
+    STATUS("max |dPEP| = " << max_dpep)
+    // max_dpep tolerance of 0.15: the SVM scores and q-values match the executable's (r=1.0, accepted sets equal).
+    // Executables built from Percolator's rel-3-07, eb157f7 and a90106b give the same PEPs within 5e-4; against the
+    // 3.07 executable of OpenMS' THIRDPARTY, max |dPEP| was 0.10 when this test was written.
     TEST_TRUE(max_dpep <= 0.15)
 
     for (double thr : {0.01, 0.05, 0.10})
@@ -1162,15 +1303,14 @@ START_SECTION([EXTRA] reservoir-sampling parity at 20k rows)
     generateSyntheticData(ri, rng, /*size_mult=*/10.0);
     TEST_EQUAL(ri.features.size(), 20000)
 
-    const std::string pin_path = File::getTemporaryFile();
+    const std::string pin_path = TempFiles::getTemporaryFile();
     writePinFile(pin_path, ri);
 
     SubprocessOut sub = runSubprocess(bin, pin_path, "-S 1 -N 5000");
     TEST_EQUAL(sub.exit_code, 0)
 
     Percolator p;
-    Param par = p.getDefaults();
-    par.setValue("seed", 1);
+    Param par = parityDefaults(p, bin);
     par.setValue("pep_method", "isotonic");
     par.setValue("subset_max_train", 5000);
     p.setParameters(par);
@@ -1280,15 +1420,14 @@ START_SECTION([EXTRA] multi-file PIN parity)
       ri.spec_file_numbers[i] = (i < half) ? 0 : 1;
     }
 
-    const std::string pin_path = File::getTemporaryFile();
+    const std::string pin_path = TempFiles::getTemporaryFile();
     writePinFile(pin_path, ri, /*emit_filename=*/true);
 
     SubprocessOut sub = runSubprocess(bin, pin_path, "-S 1");
     TEST_EQUAL(sub.exit_code, 0)
 
     Percolator p;
-    Param par = p.getDefaults();
-    par.setValue("seed", 1);
+    Param par = parityDefaults(p, bin);
     par.setValue("pep_method", "isotonic");
     p.setParameters(par);
     RescoreOutput out = p.rescore(ri);

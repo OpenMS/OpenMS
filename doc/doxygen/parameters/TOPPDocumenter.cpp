@@ -10,15 +10,13 @@
 
 #include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/SYSTEM/SystemSettings.h>
 
 #include <OpenMS/FORMAT/XMLFile.h>
 #include <OpenMS/FORMAT/ParamXMLFile.h>
 #include <OpenMS/SYSTEM/ExternalProcess.h>
 
-#include <QtCore/QString>
-#include <QtCore/QStringList>
-#include <QtCore/QProcess> // for qputenv
-
+#include <cstdlib>
 #include <iostream>
 #include <fstream>
 #include <sstream>
@@ -26,6 +24,19 @@
 using namespace std;
 using namespace OpenMS;
 using namespace Internal;
+
+namespace
+{
+  /// Set an environment variable, overwriting any existing value.
+  void setEnvVar(const char* name, const char* value)
+  {
+#ifdef _WIN32
+    _putenv_s(name, value);
+#else
+    setenv(name, value, 1);
+#endif
+  }
+} // namespace
 
 void convertINI2HTML(const Param& p, ostream& os)
 {
@@ -212,21 +223,15 @@ void convertINI2HTML(const Param& p, ostream& os)
 bool generate(const ToolListType& tools, const std::string& prefix, const std::string& binary_directory)
 {
   // Add an environment variable (used by each TOPP tool to determine width of help text (see TOPPBase))
-  qputenv("COLUMNS", "110"); 
+  setEnvVar("COLUMNS", "110"); 
   // Add Global environment variable to suppress stty errors
-  qputenv("TERM", "dumb");
-  qputenv("STTY", "/bin/true"); 
+  setEnvVar("TERM", "dumb");
+  setEnvVar("STTY", "/bin/true"); 
   
   bool errors_occured = false;
   for (ToolListType::const_iterator it = tools.begin(); it != tools.end(); ++it)
   {
     std::string command = binary_directory + it->first;
-#if defined(__APPLE__)
-    if (it->first == "TOPPView" || it->first == "TOPPAS")
-    {
-      command = binary_directory + it->first + ".app/Contents/MacOS/" + it->first;
-    }
-#endif
 #ifdef OPENMS_WINDOWSPLATFORM
     command += ".exe"; // otherwise File::exists() will fail
 #endif
@@ -269,36 +274,32 @@ bool generate(const ToolListType& tools, const std::string& prefix, const std::s
     //////
     // get the INI file and convert it into HTML
     //////
-    if (it->first != "TOPPView" && // do not support -write_ini
-        it->first != "TOPPAS")
-    {
-      std::string tmp_file = File::getTempDirectory() + "/" + File::getUniqueName() + "_" + it->first + ".ini";
-      const std::vector<std::string> ini_command_args = {"-write_ini", tmp_file};
+    std::string tmp_file = SystemSettings::getTempDirectory() + "/" + File::getUniqueName() + "_" + it->first + ".ini";
+    const std::vector<std::string> ini_command_args = {"-write_ini", tmp_file};
 
-      ExternalProcess ep([&](const std::string& s) { f << s; }, [&](const std::string& s) { f << s; });
-      std::string error_msg;
-      if (ep.run(command, ini_command_args, "", false, error_msg,
-                 ExternalProcess::IO_MODE::READ_WRITE)
-            != ExternalProcess::RETURNSTATE::SUCCESS
-          || ! File::exists(tmp_file))
-      { // error while generation cli docu
-        std::cerr << "Errors occurred while writing ini file for " << it->first << "!" << std::endl;
-        std::string args_str;
-        for (const auto& a : ini_command_args) args_str += " " + a;
-        std::cerr << "Command line was: \n " << command << args_str << std::endl;
-        errors_occured = true;
-        continue;
-      }
-
-      // load content of written ini file
-      Param p;
-      ParamXMLFile pf;
-      pf.load(tmp_file, p);
-      File::remove(tmp_file);
-      ofstream f_html((std::string("output/") + prefix + it->first + ".html").c_str());
-      convertINI2HTML(p, f_html);
-      f_html.close();
+    ExternalProcess ep([&](const std::string& s) { f << s; }, [&](const std::string& s) { f << s; });
+    std::string error_msg;
+    if (ep.run(command, ini_command_args, "", false, error_msg,
+               ExternalProcess::IO_MODE::READ_WRITE)
+          != ExternalProcess::RETURNSTATE::SUCCESS
+        || ! File::exists(tmp_file))
+    { // error while generation cli docu
+      std::cerr << "Errors occurred while writing ini file for " << it->first << "!" << std::endl;
+      std::string args_str;
+      for (const auto& a : ini_command_args) args_str += " " + a;
+      std::cerr << "Command line was: \n " << command << args_str << std::endl;
+      errors_occured = true;
+      continue;
     }
+
+    // load content of written ini file
+    Param p;
+    ParamXMLFile pf;
+    pf.load(tmp_file, p);
+    File::remove(tmp_file);
+    ofstream f_html((std::string("output/") + prefix + it->first + ".html").c_str());
+    convertINI2HTML(p, f_html);
+    f_html.close();
   }
   return errors_occured;
 }
@@ -321,8 +322,6 @@ int main(int argc, char** argv)
 
   //TOPP tools
   ToolListType topp_tools = ToolHandler::getTOPPToolList();
-  topp_tools["TOPPView"] = Internal::ToolDescription(); // these two need to be excluded from writing an INI file later!
-  topp_tools["TOPPAS"] = Internal::ToolDescription();
 
   bool errors_occured = generate(topp_tools, "TOPP_", binary_directory);
 

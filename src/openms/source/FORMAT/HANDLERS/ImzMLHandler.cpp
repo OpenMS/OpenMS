@@ -7,16 +7,22 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/HANDLERS/ImzMLHandler.h>
+#include <OpenMS/FORMAT/DATAACCESS/HTTPInputSource.h>
 #include <OpenMS/INTERFACES/IMSDataConsumer.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/DATASTRUCTURES/StringUtils.h>
+#include <OpenMS/IONMOBILITY/IMDataArrayUtils.h>
+#include <OpenMS/IONMOBILITY/IMTypes.h>
+#include <OpenMS/KERNEL/MSSpectrum.h>
 
-#include <xercesc/util/XMLString.hpp>
 
+#include <algorithm>
+#include <cmath>
 #include <cstring>
 #include <limits>
 #include <stdexcept>
+#include <utility>
 
 namespace OpenMS
 {
@@ -101,23 +107,23 @@ namespace
     }
     try
     {
-      size_t pos = 0;
-      const double v = std::stod(val, &pos);
-      if (pos != val.size())
-      {
-        throwImsParseError_(file, acc, val, "trailing characters");
-      }
-      return v;
+      // StringUtils::toDouble is locale-independent (std::stod honours LC_NUMERIC) and rejects
+      // trailing characters
+      return StringUtils::toDouble(val);
     }
-    catch (const Exception::ParseError&)
-    {
-      throw;
-    }
-    catch (...)
+    catch (const Exception::ConversionError&)
     {
       throwImsParseError_(file, acc, val, "not a valid floating-point number");
     }
   }
+
+  [[noreturn]] void throwCompressedExternalError_(const std::string& ibd_path, const std::string& what)
+  {
+    throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, ibd_path,
+      "Compressed external " + what + " are not supported "
+      "(need uncompressed MS:1000576). Re-export without compression.");
+  }
+
 } // namespace
 
 // ===========================================================================
@@ -163,6 +169,17 @@ public:
       s.setMetaValue("imzml:y", static_cast<Int>(ims->y));
       s.setMetaValue("imzml:z", static_cast<Int>(ims->z));
 
+      // An imzML "scan start time" (MS:1000016) is the acquisition time of a pixel, not a
+      // chromatographic retention time: keep it (in seconds, as MzMLHandler converted it) as
+      // the MetaValue imzml:scan_start_time and leave RT unset (-1), as for files without it.
+      // Only a parsed MS:1000016 counts (an RT from the "elution time" fallback does not). It is
+      // relative to the start of the run, so a negative value is a placeholder for "unknown"
+      if (ims->has_scan_start_time && s.getRT() >= 0.0)
+      {
+        s.setMetaValue("imzml:scan_start_time", s.getRT());
+      }
+      s.setRT(-1.0);
+
       // Update dataset-level bounding box
       if (ims->x > handler_.meta_.max_count_x) handler_.meta_.max_count_x = ims->x;
       if (ims->y > handler_.meta_.max_count_y) handler_.meta_.max_count_y = ims->y;
@@ -174,6 +191,10 @@ public:
         std::vector<double> mz_vec;
         std::vector<float>  int_vec;
         const std::string& ibd_path = handler_.meta_.ibd_file_path;
+        if (ims->mz_meta.compressed || ims->int_meta.compressed)
+        {
+          throwCompressedExternalError_(ibd_path, "m/z or intensity arrays");
+        }
         if (ims->mz_meta.is_ext)
         {
           ImzMLBinaryIO::readMzArray(handler_.ibd_, ims->mz_meta.offset, ims->mz_meta.count,
@@ -214,15 +235,94 @@ public:
           s[i].setMZ(mz_vec[i]);
           s[i].setIntensity(int_vec[i]);
         }
+      }
 
-        // Record first-seen data types at dataset level
+      // Record first-seen data types at dataset level (also when the .ibd is not decoded:
+      // index-only, metadata-only and on-disc loads report the same ImzMLMeta)
+      if (ims->mz_meta.is_ext || ims->int_meta.is_ext)
+      {
         if (handler_.meta_.mz_data_type.empty())
           handler_.meta_.mz_data_type  = dtStr_(ims->mz_meta.dt);
         if (handler_.meta_.int_data_type.empty())
           handler_.meta_.int_data_type = dtStr_(ims->int_meta.dt);
       }
 
-      // Build full spectrum index entry
+      // Fill auxiliary arrays (ion mobility, …) from the .ibd. MzMLHandler has already
+      // created an empty FloatDataArray (or IntegerDataArray) per auxiliary binaryDataArray.
+      // Check declared length before reading so a single bad IMS:1000103 cannot abort the load.
+      if (handler_.ibd_ && handler_.decode_ibd_ && !ims->aux_meta.empty())
+      {
+        const std::string& ibd_path = handler_.meta_.ibd_file_path;
+        for (const auto& aux : ims->aux_meta)
+        {
+          if (aux.compressed)
+          {
+            throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, ibd_path,
+              "Compressed external auxiliary array '" + aux.name
+              + "' is not supported (IMS:1000104 encoded length="
+              + StringConversions::toString(aux.encoded_bytes) + "). "
+              "Re-export without compression.");
+          }
+          if (!ImzMLSpectrumRules::isLoadableAuxArray(aux.name, aux.count, aux.dt, s.size(), true, ims->x, ims->y, ims->z))
+          {
+            continue;
+          }
+          std::vector<float> values; // exactly aux.count values (readAuxArray throws otherwise)
+          ImzMLBinaryIO::readAuxArray(handler_.ibd_, aux.offset, aux.count, aux.dt, values, ibd_path, aux.name);
+          ImzMLSpectrumRules::attachAuxArray(s, aux.name, aux.unit_accession, values);
+        }
+      }
+
+      if ((ims->mz_meta.is_ext || ims->int_meta.is_ext) && !ims->inline_aux_names.empty())
+      {
+        for (const std::string& name : ims->inline_aux_names)
+        {
+          OPENMS_LOG_WARN << "Skipping inline auxiliary array '" << name
+                          << "' at pixel (" << ims->x << "," << ims->y << "," << ims->z
+                          << "): peak data is stored in the .ibd, so inline aux payloads are not decoded\n";
+        }
+      }
+
+      // MzMLHandler pre-creates empty named arrays for every aux binaryDataArray. After the
+      // .ibd fill, drop leftovers (zero-length, length mismatch, integer-typed, inline) so
+      // containsIMData() matches OnDiscImzMLExperiment. Without .ibd decoding (index-only,
+      // metadata-only) keep them, empty, so no array metadata is lost; OnDiscImzMLExperiment
+      // fills and prunes them.
+      if (handler_.decode_ibd_)
+      {
+        ImzMLSpectrumRules::pruneEmptyDataArrays(s);
+      }
+
+      // MzMLHandler::populateSpectraWithData_() runs before this late .ibd aux fill:
+      // it defaults UNKNOWN → IM_PROFILE from a still-empty named IM array, which we
+      // may have just pruned. Sync the peak type with the arrays that actually remain.
+      // Without .ibd decoding (index-only, metadata-only) no aux array is read: use the IM
+      // arrays a decode would load, so the type equals the in-memory load.
+      // OnDiscImzMLExperiment applies the same rule after it reads the arrays.
+      bool has_im_array = false;
+      if (handler_.decode_ibd_)
+      {
+        has_im_array = s.containsIMData();
+      }
+      else
+      {
+        // A compressed array is never read (a decode throws), so it gives no IM type.
+        has_im_array = std::any_of(ims->aux_meta.begin(), ims->aux_meta.end(), [this, ims](const ImzMLHandler::ArrayMeta& aux) {
+          return !aux.compressed && ImzMLSpectrumRules::isLoadableAuxArray(aux.name, aux.count, aux.dt, ims->mz_meta.count)
+                 && isIMArrayName_(aux.name);
+        });
+      }
+      ImzMLSpectrumRules::applyIMPeakType(s, has_im_array);
+
+      // MzMLHandler sorted before consumeSpectrum(), which is a no-op for external
+      // arrays (peaks are overwritten from the .ibd). Re-sort here so MZBegin/MZEnd
+      // ion-image lookup matches OnDiscImzMLExperiment and the mzML path.
+      if (handler_.getOptions().getSortSpectraByMZ() && !s.isSorted())
+      {
+        s.sortByPosition();
+      }
+
+      // Build full spectrum index entry (includes aux so OnDisc can decode IM lazily).
       ImzMLSpectrumIndex entry;
       entry.index      = idx;
       entry.x          = ims->x;
@@ -231,9 +331,29 @@ public:
       entry.mz_offset  = ims->mz_meta.offset;
       entry.mz_length  = ims->mz_meta.count;
       entry.mz_type    = ims->mz_meta.dt;
+      entry.mz_compressed = ims->mz_meta.compressed;
       entry.int_offset = ims->int_meta.offset;
       entry.int_length = ims->int_meta.count;
       entry.int_type   = ims->int_meta.dt;
+      entry.int_compressed = ims->int_meta.compressed;
+      entry.aux.reserve(ims->aux_meta.size());
+      for (const auto& aux : ims->aux_meta)
+      {
+        if (aux.name.empty())
+        {
+          continue;
+        }
+        ImzMLSpectrumIndex::AuxArray a;
+        a.name = aux.name;
+        a.accession = aux.accession;
+        a.unit_accession = aux.unit_accession;
+        a.offset = aux.offset;
+        a.length = aux.count;
+        a.encoded_bytes = aux.encoded_bytes;
+        a.type = aux.dt;
+        a.compressed = aux.compressed;
+        entry.aux.push_back(std::move(a));
+      }
       handler_.index_.push_back(entry);
     }
 
@@ -249,6 +369,21 @@ private:
   ImzMLHandler&                handler_;
   Interfaces::IMSDataConsumer* downstream_;
   int                          spec_idx_  {0};
+  /// Whether an array name is an ion mobility array (as for containsIMData()), per distinct name
+  std::unordered_map<std::string, bool> im_array_names_;
+
+  bool isIMArrayName_(const std::string& name)
+  {
+    auto it = im_array_names_.find(name);
+    if (it == im_array_names_.end())
+    {
+      DataArrays::FloatDataArray named;
+      named.setName(name);
+      DriftTimeUnit unit;
+      it = im_array_names_.emplace(name, IMDataArrayUtils::getIMUnit(named, unit)).first;
+    }
+    return it->second;
+  }
 
   static std::string dtStr_(ImzMLSpectrumIndex::DataType dt)
   {
@@ -306,7 +441,7 @@ void ImzMLHandler::openIBD(const std::string& ibd_path)
 }
 
 // ===========================================================================
-// SAX2 overrides
+// XML event callbacks
 // ===========================================================================
 
 void ImzMLHandler::onStartElement(const char16_t* qname, const XMLAttributes& attrs)
@@ -324,6 +459,8 @@ void ImzMLHandler::onStartElement(const char16_t* qname, const XMLAttributes& at
     cur_y_seen_ = false;
     cur_mz_meta_.reset();
     cur_int_meta_.reset();
+    cur_aux_metas_.clear();
+    cur_inline_aux_names_.clear();
   }
   if (tag == "scan"            && in_spectrum_) in_scan_ = true;
   if (tag == "binaryDataArray" && in_spectrum_)
@@ -350,14 +487,16 @@ void ImzMLHandler::onStartElement(const char16_t* qname, const XMLAttributes& at
   // Intercept <cvParam> before MzMLHandler: capture IMS:* terms
   if (tag == "cvParam")
   {
-    std::string acc_om, val_om;
+    std::string acc_om, name_om, val_om, unit_om;
     optionalAttributeAsString_(acc_om, attrs, "accession");
+    optionalAttributeAsString_(name_om, attrs, "name");
     optionalAttributeAsString_(val_om, attrs, "value");
+    optionalAttributeAsString_(unit_om, attrs, "unitAccession");
 
     if (in_ref_group_)
-      ref_groups_[cur_ref_id_].emplace_back(acc_om, val_om);
+      ref_groups_[cur_ref_id_].push_back(CvEntry{acc_om, name_om, val_om, unit_om});
     else
-      handleIMSCvParam_(acc_om, val_om);
+      handleIMSCvParam_(acc_om, name_om, val_om, unit_om);
     // Fall through: MzMLHandler still processes MS:* terms below
   }
 
@@ -372,6 +511,14 @@ void ImzMLHandler::onEndElement(const char16_t* qname)
   {
     if      (cur_array_.is_mz)  cur_mz_meta_  = cur_array_;
     else if (cur_array_.is_int) cur_int_meta_ = cur_array_;
+    // Auxiliary external array (ion mobility, SNR, …). MzMLHandler creates a
+    // correspondingly named — but empty — FloatDataArray from the same CV term;
+    // ImzMLInterceptConsumer fills it from the .ibd.
+    else if (cur_array_.is_ext) cur_aux_metas_.push_back(cur_array_);
+    else
+    {
+      cur_inline_aux_names_.push_back(cur_array_.name.empty() ? cur_array_.accession : cur_array_.name);
+    }
 
     // For external (.ibd) arrays the inline <binary> is an empty placeholder, but the
     // base MzMLHandler captured this array's expected length from defaultArrayLength
@@ -394,7 +541,7 @@ void ImzMLHandler::onEndElement(const char16_t* qname)
   {
     if (!cur_x_seen_ || !cur_y_seen_)
     {
-      throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, file_,
+      throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, HTTPInputSource::redactURL(file_),
                                   "imzML spectrum missing required IMS pixel coordinate (x and/or y)");
     }
     // Snapshot per-spectrum IMS state NOW — before cur_* are reset.
@@ -418,7 +565,14 @@ void ImzMLHandler::onEndElement(const char16_t* qname)
       snap.z        = cur_z_;
       snap.mz_meta  = cur_mz_meta_;
       snap.int_meta = cur_int_meta_;
-      spec_ims_.push_back(snap);
+      // MzMLHandler resets rt_set_ in its endElement below, after this snapshot
+      snap.has_scan_start_time = rt_set_;
+      // Safe to move: both vectors are cleared unconditionally below, and nothing
+      // between here and that reset reads them. Saves a per-spectrum copy of the
+      // aux name/accession/unit strings on datasets with a pixel per spectrum.
+      snap.aux_meta = std::move(cur_aux_metas_);
+      snap.inline_aux_names = std::move(cur_inline_aux_names_);
+      spec_ims_.push_back(std::move(snap));
     }
 
     // imzML peak data lives in the companion .ibd, so the inline <binary> arrays are
@@ -438,6 +592,19 @@ void ImzMLHandler::onEndElement(const char16_t* qname)
     {
       default_array_length_ = 0;
     }
+    // Without .ibd decoding (index-only, metadata-only) no peaks are loaded, inline ones neither:
+    // drop the inline payloads so MzMLHandler still creates the arrays with their metadata, empty.
+    // Zero the declared length as well, as for external arrays above: a length mismatch is
+    // logged inside MzMLHandler's parallel decode, which is not thread-safe.
+    if (!decode_ibd_)
+    {
+      for (auto& bd : bin_data_)
+      {
+        bd.base64.clear();
+        bd.size = 0;
+      }
+      default_array_length_ = 0;
+    }
     in_spectrum_ = false;
   }
   if (tag == "referenceableParamGroup")
@@ -454,6 +621,8 @@ void ImzMLHandler::onEndElement(const char16_t* qname)
     cur_z_ = 1;
     cur_mz_meta_.reset();
     cur_int_meta_.reset();
+    cur_aux_metas_.clear();
+    cur_inline_aux_names_.clear();
   }
 }
 
@@ -461,7 +630,8 @@ void ImzMLHandler::onEndElement(const char16_t* qname)
 // IMS CV dispatch
 // ===========================================================================
 
-void ImzMLHandler::handleIMSCvParam_(const std::string& acc, const std::string& val)
+void ImzMLHandler::handleIMSCvParam_(const std::string& acc, const std::string& /*name*/, const std::string& val,
+                                     const std::string& unit_accession)
 {
   // Pixel coordinates (inside <scan> inside <spectrum>)
   if (in_scan_ && in_spectrum_)
@@ -484,6 +654,41 @@ void ImzMLHandler::handleIMSCvParam_(const std::string& acc, const std::string& 
     if (acc == "IMS:1000101"){ cur_array_.is_ext = true;    return; }
     if (acc == "IMS:1000102") { cur_array_.offset = parseImsUInt64_(file_, acc, val); return; }
     if (acc == "IMS:1000103") { cur_array_.count  = parseImsUInt64_(file_, acc, val); return; }
+    if (acc == "IMS:1000104") { cur_array_.encoded_bytes = parseImsUInt64_(file_, acc, val); return; }
+    if (acc == "MS:1000576") { cur_array_.compressed = false; return; }  // no compression
+    // Any other child of MS:1000572 (zlib, numpress, numpress+zlib, …) is compressed.
+    if (cv_.exists(acc) && cv_.isChildOf(acc, "MS:1000572"))
+    {
+      cur_array_.compressed = true;
+      return;
+    }
+    // Array identity: only MS:1000786 / children of MS:1000513 (PSI binary data array).
+    // Match MzMLHandler naming so FloatDataArray lookup uses the ontology name, not XML @name.
+    if (acc == "MS:1000786")
+    {
+      cur_array_.accession = acc;
+      if (!val.empty())
+      {
+        cur_array_.name = val;
+      }
+      if (!unit_accession.empty())
+      {
+        cur_array_.unit_accession = unit_accession;
+      }
+      return;
+    }
+    if (cv_.exists(acc) && cv_.isChildOf(acc, "MS:1000513"))
+    {
+      cur_array_.accession = acc;
+      cur_array_.name = cv_.getTerm(acc).name;
+      if (!unit_accession.empty())
+      {
+        cur_array_.unit_accession = unit_accession;
+      }
+      return;
+    }
+    // Ignore other cvParams here (units, etc.) so they cannot overwrite the array name.
+    return;
   }
 
   // Dataset-level imaging metadata
@@ -493,8 +698,32 @@ void ImzMLHandler::handleIMSCvParam_(const std::string& acc, const std::string& 
   if (acc == "IMS:1000031") { meta_.imaging_mode        = "processed";   return; }
   if (acc == "IMS:1000091") { meta_.ibd_sha1            = val;           return; }
   if (acc == "IMS:1000090") { meta_.ibd_md5             = val;           return; }
-  if (acc == "IMS:1000046") { meta_.pixel_size_x  = parseImsDouble_(file_, acc, val); return; }
-  if (acc == "IMS:1000047") { meta_.pixel_size_y  = parseImsDouble_(file_, acc, val); return; }
+  if (acc == "IMS:1000046" || acc == "IMS:1000047")
+  {
+    const bool is_x = (acc == "IMS:1000046");
+    if (!is_x) { pixel_size_y_given_ = true; }
+    // IMS:1000046/47 only require a UO length unit; files without one are taken as micrometer
+    const std::string unit_acc = unit_accession.empty() ? "UO:0000017" : unit_accession;
+    const std::optional<int> exponent = lengthUnitExponent(unit_acc);
+    if (!exponent)
+    {
+      OPENMS_LOG_WARN << "imzML: unit '" << unit_accession << "' of " << acc
+                      << " is not a supported length unit; pixel size left unknown." << std::endl;
+      return;
+    }
+    double& size = is_x ? meta_.pixel_size_x : meta_.pixel_size_y;
+    size = parseImsDouble_(file_, acc, val);
+    if ((is_x ? meta_.pixel_size_y : meta_.pixel_size_x) > 0)
+    {
+      // the other axis was read first: convert this value into its unit
+      size *= std::pow(10.0, *exponent - *lengthUnitExponent(cv_.getTermByName(meta_.pixel_size_unit).id));
+    }
+    else
+    {
+      meta_.pixel_size_unit = cv_.getTerm(unit_acc).name;
+    }
+    return;
+  }
   if (acc == "IMS:1000080") { if (!val.empty()) meta_.uuid = val;        return; }
   if (acc == "IMS:1000044") { meta_.max_dim_x     = parseImsDouble_(file_, acc, val); return; }
   if (acc == "IMS:1000045") { meta_.max_dim_y     = parseImsDouble_(file_, acc, val); return; }
@@ -514,8 +743,8 @@ void ImzMLHandler::applyRefGroup_(const std::string& id)
 {
   auto it = ref_groups_.find(id);
   if (it == ref_groups_.end()) return;
-  for (const auto& kv : it->second)
-    handleIMSCvParam_(kv.first, kv.second);
+  for (const auto& cv : it->second)
+    handleIMSCvParam_(cv.accession, cv.name, cv.value, cv.unit_accession);
 }
 
 } // namespace Internal

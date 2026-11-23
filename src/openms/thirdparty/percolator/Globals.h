@@ -7,113 +7,122 @@ You may obtain a copy of the License at
 
 http://www.apache.org/licenses/LICENSE-2.0
 
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+
 *******************************************************************************/
-// Static stub replacing Percolator's CMake-generated Globals.h (was Globals.h.cmake
-// in upstream). Placeholder values substituted for paths we don't exercise in
-// the vendored PSM-only subset.
+// Static stub replacing Percolator's CMake-generated Globals.h (Globals.h.cmake
+// in upstream, with the values of upstream's CommonCMake.txt substituted).
 #ifndef GLOBALS_H_
 #define GLOBALS_H_
-
-#include <time.h>
-#include <string>
-#include <iosfwd>
-#include <fstream>
 
 #ifndef PIN_VERSION_MAJOR
   #define PIN_VERSION_MAJOR "1"
 #endif
+
 #ifndef POUT_VERSION_MAJOR
   #define POUT_VERSION_MAJOR "1"
 #endif
+
 #ifndef PIN_VERSION_MINOR
   #define PIN_VERSION_MINOR "3"
 #endif
+
 #ifndef POUT_VERSION_MINOR
   #define POUT_VERSION_MINOR "5"
 #endif
-#ifndef PERCOLATOR_IN_NAMESPACE
-  #define PERCOLATOR_IN_NAMESPACE ""
-#endif
-#ifndef PERCOLATOR_OUT_NAMESPACE
-  #define PERCOLATOR_OUT_NAMESPACE ""
-#endif
-#ifndef WRITABLE_DIR
-  #define WRITABLE_DIR ""
-#endif
-#ifndef PIN_SCHEMA_LOCATION
-  #define PIN_SCHEMA_LOCATION ""
-#endif
-#ifndef POUT_SCHEMA_LOCATION
-  #define POUT_SCHEMA_LOCATION ""
-#endif
-#ifndef ELUDE_MODELS_PATH
-  #define ELUDE_MODELS_PATH ""
-#endif
 
-#ifndef M_PI
+#ifndef M_PI // for some reason Windows removed the Pi constant from math.h
   #define M_PI 3.14159265358979323846
 #endif
 
 #ifdef WIN32
-  #define C_DARRAY(name,nelem) double *name = (double *) _malloca((nelem) * sizeof(double));
-  #define D_DARRAY(name) _freea(name);
   #include <float.h>
-#else
-  #define C_DARRAY(name,nelem) double name[nelem];
-  #define D_DARRAY(name)
+#endif
+
+#ifdef _WIN32
+  #ifndef __stdcall
+    //#define __stdcall
+  #endif
+#endif
+#ifdef _WIN32
+  #include <fcntl.h>
 #endif
 
 #ifdef _MSC_VER
   #ifndef NOMINMAX
     #define NOMINMAX
   #endif
-  // Modern MSVC has std::isfinite from <cmath>; the legacy
-  // `#define isfinite _finite` macro that used to live here
-  // pollutes <format> and Eigen (both reference std::isfinite /
-  // std::_finite via their own helpers, and the function-like
-  // macro mangles the std-qualified usage). Use std::isfinite at
-  // call sites instead.
 #endif
 
-#include "Logger.h"
-#include "MyException.h"
 
-namespace OpenMS { namespace Internal { namespace Percolator {
-using namespace std;
+
+#ifdef __APPLE__
+  #ifdef __INTEL_COMPILER
+    #define isnan(x) _isnan(x)
+    #define isinf(x) _isinf(x)
+//  #else
+//    #define isinf(x) std::isinf(x)
+//    #define isnan(x) x!=x
+  #endif
+#endif
+
 
 #define VERB (Globals::getInstance()->getVerbose())
 #define NO_TERMINATE (Globals::getInstance()->getNoTerminate())
-#define STD_CERR (*(Globals::getInstance()->getLogger()))
+#include <time.h>
+#include <fstream>
+#include <iostream>
+#include <sstream>
+#include <string>
+#include "MyException.h"
 
+namespace OpenMS { namespace Internal { namespace Percolator {
+
+using namespace std;
+
+/* Process-wide settings: verbosity and the no-terminate flag. */
 class Globals {
   public:
-    virtual ~Globals();
     static Globals* getInstance();
+    // restores the default settings
     static void clean();
-    Logger* getLogger();
-
-    const std::string& getLogFile(){ return fileLog; }
-    int getVerbose() { return verbose; }
-    void setVerbose(int verb) { verbose = verb; }
-    void decVerbose() { verbose--; }
-    void incVerbose() { verbose++; }
-    void setNoTerminate(bool noTerminate) { noTerminate_ = noTerminate; }
-    bool getNoTerminate() { return noTerminate_; }
-    void setLogFile(const std::string& filename);
-    void initLogger();
-    int redirectBuffer();
-    void unredirectBuffer();
+    
+    int getVerbose() {
+      return verbose;
+    }
+    void setVerbose(int verb) {
+      verbose = verb;
+    }
+    void decVerbose() {
+      verbose--;
+    }
+    void incVerbose() {
+      verbose++;
+    }
+    void setNoTerminate(bool noTerminate) {
+      noTerminate_ = noTerminate;
+    }
+    bool getNoTerminate() {
+      return noTerminate_;
+    }
+    // For an error that --no-terminate lets the run survive. Without the
+    // flag, throws MyException(error + thrownSuffix). With it, prints error
+    // and recovery ("No-terminate flag set: ...") to stderr and returns; the
+    // caller then does what the recovery text says.
+    static void failUnlessNoTerminate(const std::string& error,
+                                      const char* recovery,
+                                      const char* thrownSuffix = "");
   private:
-    Globals();
-    int verbose;
-    bool noTerminate_;
-    static Globals* glob;
-    Logger *log;
-    std::string fileLog;
-    bool buffer_redirected;
-    std::streambuf* save_sbuf_cerr;
-    std::ofstream ferr;
+    Globals() = default;
+    int verbose = 2;
+    bool noTerminate_ = false;
 };
 
 }}}  // namespace OpenMS::Internal::Percolator
+
 #endif /*GLOBALS_H_*/
+

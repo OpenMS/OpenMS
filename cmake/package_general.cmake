@@ -31,10 +31,8 @@ set(OPENMS_LOGOSMALL_NAME openms_logo_corner_small.png) ## The filename of the l
 set(OPENMS_LOGOSMALL ${PROJECT_SOURCE_DIR}/cmake/MacOSX/${OPENMS_LOGOSMALL_NAME}) ## The logo to be used for the OpenMS folder e.g. on the PKG
 
 ########################################################### Fixing dynamic dependencies
-## Qt Plugins needed for the CL tools should have been installed before (such as QSqliteDriverPlugin)
-## This currently works because our libs and TOPP tools include all dependencies. For macOS,
-##  the app bundles need to have a different RUNTIME_DEPENDENCY_SET (TOPPView_DEPS, ...) due
-##  to CMake assuming you want standalone bundles. But we want to share libs between them.
+## Our libs and TOPP tools are installed with RUNTIME_DEPENDENCY_SET OPENMS_DEPS, which
+## collects all their shared dependencies.
 
 # Add CMAKE_PREFIX_PATH directories to search for runtime dependencies.
 # We need this because TARGET_RUNTIME_DLLS (used during build stage copy) has limitations:
@@ -88,13 +86,13 @@ endforeach()
 if(WIN32)
   # exclude dll's which are system dll's and should not be shipped (bloats installer and leads to incompatibilities)
   set(PRE_EXCLUDE
-                  ## these two are direct systems deps of TOPPView etc. Exclude to save time
+                  ## API sets, resolved by Windows itself. Exclude to save time
                   "api-ms" "ext-ms"
                   ## "HvsiFileTrust" "PdmUtilities" are detected as a dependency by CMake which cannot be resolved (and would lead to errors), so ignore it
                   "hvsi" "pdmutilities"  ## make all lower case, since this is what CMake extracts from the targets and the regex is case sensitive
                   ## MSVC runtime DLLs are handled separately by InstallRequiredSystemLibraries (in package_nsis.cmake).
                   ## Exclude them here to avoid "Multiple conflicting paths" errors when the same DLL
-                  ## exists in multiple search directories (e.g. Conda env and contrib/bin). CMake 4.x
+                  ## exists in multiple search directories (e.g. a Conda env and another prefix's bin/). CMake 4.x
                   ## treats such conflicts as fatal errors.
                   "vcruntime" "msvcp" "concrt" "vccorlib" "ucrtbase"
                   )
@@ -110,24 +108,70 @@ elseif(APPLE)
   set(POST_EXCLUDE "")
 else()
   set(PRE_EXCLUDE "")
-  set(POST_EXCLUDE ".*/ld-linux-.*" ".*/linux-vdso.*" ".*/libm\\..*" ".*/libc\\..*" ".*/libpthread\\..*" ".*/libdl\\..*" ".*/libstdc\\+\\+\\..*" ".*/libgcc_s.*" ".*/libgomp\\..*" ".*/libQt6.*")
+  set(POST_EXCLUDE ".*/ld-linux-.*" ".*/linux-vdso.*" ".*/libm\\..*" ".*/libc\\..*" ".*/libpthread\\..*" ".*/libdl\\..*" ".*/libstdc\\+\\+\\..*" ".*/libgcc_s.*" ".*/libgomp\\..*")
 endif()
 
-# TODO check if we can reduce the permissions
+## The bundled libraries are writable by their owner only (0755), like any installed
+## library. With GROUP_WRITE and WORLD_WRITE they were world-writable: the DEB's in
+## /usr/lib, where any local user could replace code that the OpenMS tools load, also when
+## root runs them. The packaging
+## steps that modify the staged libraries (code signing on macOS, the RUNPATH clean-up of
+## the DEB) run as their owner.
 install(RUNTIME_DEPENDENCY_SET OPENMS_DEPS
         DESTINATION ${INSTALL_LIB_DIR}
         PERMISSIONS
           OWNER_READ OWNER_WRITE OWNER_EXECUTE
-          GROUP_READ GROUP_WRITE GROUP_EXECUTE
-          WORLD_READ WORLD_WRITE WORLD_EXECUTE
+          GROUP_READ GROUP_EXECUTE
+          WORLD_READ WORLD_EXECUTE
         COMPONENT Dependencies
         PRE_EXCLUDE_REGEXES ${PRE_EXCLUDE}
         POST_EXCLUDE_REGEXES ${POST_EXCLUDE}
         DIRECTORIES ${RUNTIME_DEP_SEARCH_DIRS})
 
-#install(RUNTIME_DEPENDENCY_SET TOPPView_DEPS) # I think without giving DESTINATION and COMPONENT it will be inferred
-#install(RUNTIME_DEPENDENCY_SET TOPPAS_DEPS)
-#...
+########################################################### OpenMP runtime (macOS)
+## Apple's Clang ships no OpenMP runtime, so the build takes libomp from Homebrew
+## (tools/ci/deps-macos.sh; keg-only, found through OpenMP_ROOT). The runtime dependency
+## set above bundles libomp.dylib. Its omp.h goes next to the OpenMS headers, some of which
+## include it: OpenMSConfig.cmake points FindOpenMP of a consuming project at that header
+## and the bundled library, so that a program built against the package or the SDK loads
+## the bundled runtime only. Two OpenMP runtimes in one process abort ("OMP: Error #15").
+set(_openms_omp_libraries "")
+if(APPLE AND OPENMP_FOUND)
+  set(_openms_omp_libraries ${OpenMP_CXX_LIBRARIES})
+  foreach(_openms_omp_include_dir IN LISTS OpenMP_CXX_INCLUDE_DIRS)
+    if(EXISTS "${_openms_omp_include_dir}/omp.h")
+      install(FILES "${_openms_omp_include_dir}/omp.h"
+              DESTINATION ${INSTALL_INCLUDE_DIR}
+              COMPONENT thirdparty_headers)
+      break()
+    endif()
+  endforeach()
+endif()
+
+########################################################### Third-party licenses
+## The license texts of what only the packages bundle: on macOS, the Homebrew formulae
+## (cmake/third_party_licenses.cmake). Those of the vcpkg ports are installed for every
+## installation (CMakeLists.txt). On macOS libomp comes from Homebrew
+## (tools/ci/deps-macos.sh): its formula is the keg that holds the library.
+set(_openms_homebrew_formulae "")
+set(_openms_homebrew_prefix "")
+if(APPLE)
+  openms_homebrew_formulae_of(_openms_homebrew_formulae _openms_homebrew_prefix ${_openms_omp_libraries})
+endif()
+openms_install_third_party_licenses(HOMEBREW_PREFIX "${_openms_homebrew_prefix}"
+                                    HOMEBREW_FORMULAE ${_openms_homebrew_formulae})
+## On Linux, the runtime dependency set also bundles the libraries of the build machine that
+## vcpkg's libraries need and the exclusions above keep (currently none: libgfortran, which
+## the LAPACK of the removed COIN-OR solver needed, was the only one). Their licenses come
+## from the Debian packages that installed them, so only the DEB does this.
+if("${PACKAGE_TYPE}" STREQUAL "deb"
+   AND OPENMS_USE_VCPKG AND VCPKG_INSTALLED_DIR AND VCPKG_TARGET_TRIPLET)
+  file(GLOB _openms_vcpkg_shared_libraries LIST_DIRECTORIES false
+       "${VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/lib/*.so"
+       "${VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/lib/*.so.*")
+  openms_install_system_library_licenses(ROOTS ${_openms_vcpkg_shared_libraries}
+                                         EXCLUDE_REGEXES ${POST_EXCLUDE})
+endif()
 
 ########################################################### SEARCHENGINES
 set(THIRDPARTY_COMPONENT_GROUP)
@@ -136,8 +180,24 @@ if(EXISTS ${SEARCH_ENGINES_DIRECTORY})
   ## Automatically recurse over all subfolders in SEARCH_ENGINES_DIRECTORY
   file(GLOB THIRDPARTY_SUBDIRS RELATIVE ${SEARCH_ENGINES_DIRECTORY} ${SEARCH_ENGINES_DIRECTORY}/*)
   foreach(SUBDIR ${THIRDPARTY_SUBDIRS})
+    ## Not shipped, although THIRDPARTY has them:
+    ## - ProteoWizard (pwiz-bin, Windows only). OpenMS does not use it, and it carries the
+    ##   libraries of several instrument vendors, each under its own license terms. Users get
+    ##   msconvert from ProteoWizard itself.
+    ## - X!Tandem (XTandem). No OpenMS tool runs it since XTandemAdapter was removed in 3.4.0,
+    ##   and its Linux build embeds expat 2.0.1, which Critical CVEs affect.
+    if(SUBDIR STREQUAL "pwiz-bin" OR SUBDIR STREQUAL "XTandem")
+      continue()
+    endif()
     if(IS_DIRECTORY ${SEARCH_ENGINES_DIRECTORY}/${SUBDIR})
       install_thirdparty_folder("${SUBDIR}")
+      ## The license and notice files the tool ships with, for THIRD-PARTY-NOTICES.txt.
+      openms_third_party_notice_files_of_tool(_openms_tool_notices
+                                              "${SEARCH_ENGINES_DIRECTORY}/${SUBDIR}")
+      foreach(_openms_tool_notice IN LISTS _openms_tool_notices)
+        openms_add_third_party_notice("THIRDPARTY/${SUBDIR}/${_openms_tool_notice}"
+                                      "${SEARCH_ENGINES_DIRECTORY}/${SUBDIR}/${_openms_tool_notice}")
+      endforeach()
     endif()
   endforeach()
 endif()

@@ -7,10 +7,12 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/ClassTest.h>
+#include <OpenMS/DATASTRUCTURES/DataValue.h>
 #include <OpenMS/test_config.h>
 
 ///////////////////////////
 #include <OpenMS/FORMAT/ProteinIdentificationArrowIO.h>
+#include <OpenMS/SYSTEM/File.h>
 ///////////////////////////
 
 #include <OpenMS/config.h>
@@ -560,6 +562,10 @@ START_SECTION(exportProteinsToParquet())
   int idx = metadata->FindKey("file_type");
   TEST_EQUAL(idx >= 0, true)
   TEST_EQUAL(metadata->value(idx), "proteins")
+  // This is an OpenMS-native round-trip file, not a QPX exchange view: it uses the native schema
+  // and a file_type outside psm_file/feature_file/pg_file. It must not claim a qpx_version --
+  // ArrowIOHelpers uses the mere presence of that key to decide a table is QPX (#9864 C4).
+  TEST_EQUAL(metadata->FindKey("qpx_version"), -1)
 }
 END_SECTION
 
@@ -607,6 +613,8 @@ START_SECTION(exportProteinGroupsToParquet())
   int idx = metadata->FindKey("file_type");
   TEST_EQUAL(idx >= 0, true)
   TEST_EQUAL(metadata->value(idx), "protein_groups")
+  // Native round-trip file, not a QPX pg_file -- must not claim a qpx_version (#9864 C4).
+  TEST_EQUAL(metadata->FindKey("qpx_version"), -1)
 }
 END_SECTION
 
@@ -679,6 +687,7 @@ START_SECTION(importSearchParamsFromArrow - round trip)
   prot_id.setHigherScoreBetter(false);
   prot_id.setSignificanceThreshold(0.01);
   prot_id.setPrimaryMSRunPath(StringList{"sample_1.mzML", "sample_2.mzML"});
+  prot_id.setPrimaryMSRunPath(StringList{"sample_1.raw", "sample_2.raw"}, true);
 
   DateTime dt;
   dt.set("2024-06-15 14:30:00");
@@ -738,6 +747,10 @@ START_SECTION(importSearchParamsFromArrow - round trip)
   TEST_EQUAL(ms_runs.size(), 2)
   TEST_EQUAL(ms_runs[0], "sample_1.mzML")
   TEST_EQUAL(ms_runs[1], "sample_2.mzML")
+  // The raw files have no column of their own; they travel as a meta value.
+  StringList raw_runs;
+  imp.getPrimaryMSRunPath(raw_runs, true);
+  TEST_EQUAL(raw_runs == StringList({"sample_1.raw", "sample_2.raw"}), true)
 
   // SearchParameters
   const auto& imp_sp = imp.getSearchParameters();
@@ -772,6 +785,22 @@ START_SECTION(importSearchParamsFromArrow - round trip)
 
   // Cross-check: sp_custom_param should NOT be on the ProteinIdentification object
   TEST_EQUAL(imp.metaValueExists("sp_custom_param"), false)
+}
+END_SECTION
+
+START_SECTION(importSearchParamsFromArrow - an empty file list is not stored)
+{
+  // the file list column holds an empty list for a run without files; older bundles may also hold an empty raw file list
+  ProteinIdentification prot_id;
+  prot_id.setIdentifier("run_without_files");
+  prot_id.setMetaValue("spectra_data_raw", StringList());
+  auto table = ProteinIdentificationArrowIO::exportSearchParamsToArrow(vector<ProteinIdentification>{prot_id});
+  TEST_NOT_EQUAL(table, nullptr)
+  vector<ProteinIdentification> imported_ids;
+  TEST_EQUAL(ProteinIdentificationArrowIO::importSearchParamsFromArrow(table, imported_ids), true)
+  TEST_EQUAL(imported_ids.size(), 1)
+  TEST_EQUAL(imported_ids[0].metaValueExists("spectra_data"), false)
+  TEST_EQUAL(imported_ids[0].metaValueExists("spectra_data_raw"), false)
 }
 END_SECTION
 
@@ -1454,6 +1483,35 @@ START_SECTION(static void checkUniqueIdentifiers(const std::vector<ProteinIdenti
     Exception::InvalidValue,
     ProteinIdentificationArrowIO::checkUniqueIdentifiers(dup),
     "the value 'dup' was used but is not valid; ProteinIdentification run identifiers are not unique. This can lead to loss of unique PeptideIdentification assignment. Duplicated Protein-ID is:")
+}
+END_SECTION
+
+
+START_SECTION(([EXTRA] a failed write leaves no partial .parquet behind))
+{
+  ProteinIdentification prot;
+  prot.setIdentifier("run_0");
+  ProteinHit hit;
+  hit.setAccession("PROT_A");
+  hit.setScore(1.0);
+  prot.setHits({hit});
+  const std::vector<ProteinIdentification> prot_ids{prot};
+
+  std::string good_file;
+  NEW_TMP_FILE(good_file)
+  TEST_TRUE(ProteinIdentificationArrowIO::exportProteinsToParquet(prot_ids, good_file))
+  TEST_TRUE(File::exists(good_file))
+
+  // arrow::io::FileOutputStream::Open creates and truncates the file before the table is written,
+  // so a failure afterwards leaves a fragment with no Parquet footer, which a reader reports as
+  // corrupt. A row group size of 0 is refused by Parquet for a non-empty table, which reaches
+  // that failure deterministically on every platform.
+  ParquetWriteConfig no_row_group;
+  no_row_group.row_group_size = 0;
+  std::string failed_file;
+  NEW_TMP_FILE(failed_file)
+  TEST_FALSE(ProteinIdentificationArrowIO::exportProteinsToParquet(prot_ids, failed_file, no_row_group))
+  TEST_FALSE(File::exists(failed_file))
 }
 END_SECTION
 

@@ -26,15 +26,18 @@ set(sources_list
   PASEFHillCentroider.cpp
   PTMXMLHandler.cpp
   ParamXMLHandler.cpp
-  ToolDescriptionHandler.cpp
+  ThermoRawFileMetadata.cpp
   TraMLHandler.cpp
   UnimodXMLHandler.cpp
-  UniProtXMLHandler.cpp
   StringManager.cpp
   XMLAttributes.cpp
   XMLHandler.cpp
   XQuestResultXMLHandler.cpp
 )
+
+if (WITH_THERMO_RAW)
+  list(APPEND sources_list ThermoRawScanReader.cpp)
+endif()
 
 ### add path to the filenames
 set(sources)

@@ -101,8 +101,21 @@ def testSpectrumNativeIDParser():
     # merged PASEF spectra carry multiple scan= tokens; the last one is the merged scan number
     assert pyopenms.SpectrumNativeIDParser.extractScanNumber("frame=1 scan=5 frame=1 scan=9", "MS:1002818") == 9
 
+    # "frame=<N>" without a scan= token (Bruker MS1 frames, diaTracer pseudo-DDA): the frame number is the key
+    assert pyopenms.SpectrumNativeIDParser.getRegExFromNativeID("frame=17") == "frame=(?<GROUP>\\d+)"
+
     print("All SpectrumNativeIDParser tests passed!")
 
 
 if __name__ == "__main__":
     testSpectrumNativeIDParser()
+
+
+def test_regex_pattern_overloads():
+    """Compiled C++ regex arguments are accepted as pattern strings in Python."""
+    pattern = r"scan=(?<SCAN>\d+)"
+    for parser in (pyopenms.SpectrumNativeIDParser, pyopenms.SpectrumLookup):
+        assert parser.extractScanNumber("scan=42", pattern, False) == 42
+        assert parser.extractScanNumber("scan=42 scan=99", pattern, False) == 99
+        assert parser.extractScanNumber("missing", pattern, True) == -1
+        assert parser.extractScanNumber("scan=42", "MS:1000768") == 42

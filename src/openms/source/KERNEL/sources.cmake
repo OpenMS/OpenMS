@@ -16,7 +16,10 @@ DPeak.cpp
 Feature.cpp
 FeatureHandle.cpp
 FeatureMap.cpp
+FeatureUniqueIds.cpp
+IMSExperimentRandomAccess.cpp
 MassTrace.cpp
+MassTraceStatistics.cpp
 MobilityPeak1D.cpp
 MobilityPeak2D.cpp
 Mobilogram.cpp
@@ -30,6 +33,7 @@ OnDiscImzMLExperiment.cpp
 Peak1D.cpp
 Peak2D.cpp
 PeakIndex.cpp
+PeakTypeEstimator.cpp
 RangeManager.cpp
 RichPeak2D.cpp
 SpectrumHelper.cpp
@@ -48,3 +52,4 @@ set(OpenMS_sources ${OpenMS_sources} ${sources})
 
 ### source group definition
 source_group("Source Files\\KERNEL" FILES ${sources})
+list(APPEND OpenMS_private_headers ${directory}/PeakContainerHelpers.h)

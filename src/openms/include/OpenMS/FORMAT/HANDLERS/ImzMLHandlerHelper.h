@@ -13,11 +13,13 @@
 
 #include <cstdint>
 #include <cstdio>
+#include <optional>
 #include <string>
 #include <vector>
 
 namespace OpenMS
 {
+  class MSSpectrum;
 
   /**
     @brief Dataset-level metadata for imzML mass spectrometry imaging files.
@@ -41,8 +43,9 @@ namespace OpenMS
     uint32_t max_count_x  {0};  ///< Max pixel column (IMS:1000042)
     uint32_t max_count_y  {0};  ///< Max pixel row    (IMS:1000043)
     uint32_t max_count_z  {1};  ///< Max depth slice  (usually 1 for 2-D datasets)
-    double   pixel_size_x {0};  ///< Physical pixel width  in µm (IMS:1000046)
-    double   pixel_size_y {0};  ///< Physical pixel height in µm (IMS:1000047)
+    double   pixel_size_x {-1}; ///< Physical pixel width  in @p pixel_size_unit (IMS:1000046), -1 if unknown
+    double   pixel_size_y {-1}; ///< Physical pixel height in @p pixel_size_unit (IMS:1000047), -1 if unknown
+    std::string pixel_size_unit {"unknown"}; ///< UO length unit name of the pixel size, "unknown" if no pixel size
     double   max_dim_x    {0};  ///< Physical x extent in µm (IMS:1000044)
     double   max_dim_y    {0};  ///< Physical y extent in µm (IMS:1000045)
 
@@ -79,15 +82,36 @@ namespace OpenMS
     std::string polarity;            ///< "positive" | "negative"  (MS:1000130/129)
   };
 
+  /**
+    @brief SI exponent of the UO length unit @p unit_accession, i.e. its power of ten relative to meter.
+
+    The imzML pixel size (IMS:1000046/47) may use a UO length unit, while the max
+    dimension (IMS:1000044/45) is fixed to micrometer. Only meter, centimeter, millimeter,
+    micrometer, nanometer, angstrom and picometer are known; this also serves as the
+    check which pixel size units are supported.
+
+    @param[in] unit_accession UO accession of the length unit, e.g. "UO:0000018" (nanometer)
+    @return SI exponent, e.g. -9 for nanometer, or std::nullopt if the unit is not known
+  */
+  OPENMS_DLLAPI std::optional<int> lengthUnitExponent(const std::string& unit_accession);
+
 
   /**
     @brief Per-spectrum binary index entry for an imzML dataset.
 
-    Records the byte offset and element count for both the m/z and intensity
+    Records the byte offset and element count for the m/z and intensity
     arrays in the companion .ibd file, together with the pixel (x,y,z)
-    coordinates.  Built during ImzMLHandler parsing and stored inside
-    OnDiscImzMLExperiment so that random-access spectrum decoding requires
-    only a single fseek + fread per call.
+    coordinates and zlib-compression flags (@c MS:1000574).  Built during
+    ImzMLHandler parsing and stored inside OnDiscImzMLExperiment so that
+    random-access spectrum decoding requires only a single fseek + fread
+    per call. Compressed m/z, intensity, and auxiliary arrays (any child of
+    @c MS:1000572 other than uncompressed @c MS:1000576) are rejected at
+    decode time (inflate / numpress of external arrays is not supported).
+
+    Optional @p aux entries describe additional external arrays (ion mobility
+    and other @c FloatDataArray values). Both in-memory @p ImzMLFile::load and
+    @p OnDiscImzMLExperiment::getSpectrum() attach those as @c FloatDataArray
+    on the returned spectrum when present.
 
     @ingroup FileIO
   */
@@ -96,6 +120,25 @@ namespace OpenMS
     /// Scalar type identifier for binary array elements.
     enum class DataType : uint8_t { FLOAT32, FLOAT64, INT32, INT64, UNKNOWN };
 
+    /**
+      @brief Index entry for one auxiliary (non-m/z, non-intensity) external array.
+
+      Used for ion mobility and other per-peak FloatDataArrays so on-disc and
+      in-memory loaders expose the same viewer contract (@c containsIMData(),
+      equal length to peaks).
+    */
+    struct AuxArray
+    {
+      std::string name;                 ///< Ontology / free-text array name (FloatDataArray::getName)
+      std::string accession;            ///< MS accession (e.g. MS:1003006), may be empty
+      std::string unit_accession;       ///< unitAccession on the array-identity cvParam (may be empty)
+      uint64_t offset {0};              ///< IMS:1000102
+      uint64_t length {0};              ///< IMS:1000103 element count
+      uint64_t encoded_bytes {0};       ///< IMS:1000104 byte length on disk
+      DataType type {DataType::UNKNOWN};
+      bool compressed {false};          ///< Child of MS:1000572 other than MS:1000576 (unsupported)
+    };
+
     int32_t  index      {0};               ///< 0-based document order
     uint32_t x          {0};               ///< Pixel column (1-based, IMS:1000050)
     uint32_t y          {0};               ///< Pixel row    (1-based, IMS:1000051)
@@ -103,9 +146,12 @@ namespace OpenMS
     uint64_t mz_offset  {0};              ///< Byte offset of m/z array (IMS:1000102)
     uint64_t mz_length  {0};              ///< Element count             (IMS:1000103)
     DataType mz_type    {DataType::UNKNOWN};
+    bool mz_compressed {false};           ///< Compressed (not MS:1000576) on m/z array
     uint64_t int_offset {0};              ///< Byte offset of intensity array
     uint64_t int_length {0};              ///< Element count
     DataType int_type   {DataType::UNKNOWN};
+    bool int_compressed {false};          ///< Compressed (not MS:1000576) on intensity array
+    std::vector<AuxArray> aux;            ///< Extra external arrays (IM, …) in document order
   };
 
   /**
@@ -148,6 +194,38 @@ namespace OpenMS
                              const std::string& ibd_path);
 
     /**
+      @brief Read an auxiliary (non-m/z, non-intensity) array from the .ibd file.
+
+      imzML permits additional @c binaryDataArray entries per spectrum beyond the
+      mandatory m/z and intensity pair — most notably ion mobility arrays such as
+      @c MS:1003006 "mean inverse reduced ion mobility array". Values are returned
+      as @c float because OpenMS stores auxiliary spectrum data in
+      @p MSSpectrum::FloatDataArray.
+
+      @param[in] ibd        Open binary file handle.
+      @param[in] offset     Byte offset (IMS:1000102).
+      @param[in] count      Element count (IMS:1000103).
+      @param[in] dt         Scalar type of stored values.
+      @param[out] out       Decoded values as float (FloatDataArray storage).
+      @param[in] ibd_path   Path used in error messages.
+      @param[in] array_name Array name used in error messages (e.g. the CV term name).
+
+      @note Compressed external arrays (any child of MS:1000572 other than
+      uncompressed MS:1000576) are not decoded; callers must reject them before
+      invoking this method. @c IMS:1000104 is then required to know how many
+      compressed bytes to read.
+
+      @throws Exception::ParseError if seek or read fails.
+    */
+    static void readAuxArray(FILE* ibd,
+                             uint64_t offset,
+                             uint64_t count,
+                             ImzMLSpectrumIndex::DataType dt,
+                             std::vector<float>& out,
+                             const std::string& ibd_path,
+                             const std::string& array_name);
+
+    /**
       @brief Write a float32 array to the companion .ibd file (little-endian).
 
       @throws Exception::ParseError if write fails.
@@ -184,6 +262,60 @@ namespace OpenMS
     static void writeMzAsFloat64(FILE* ibd,
                                  const std::vector<double>& mz,
                                  const std::string& ibd_path);
+  };
+
+  /**
+    @brief Per-spectrum rules shared by every imzML access path (in-memory, streaming,
+    metadata-only, index-only and @p OnDiscImzMLExperiment), so they cannot drift apart.
+
+    @ingroup FileIO
+  */
+  class OPENMS_DLLAPI ImzMLSpectrumRules
+  {
+  public:
+    /**
+      @brief Acquisition (scan start) time of an imaging spectrum in seconds.
+
+      Imaging spectra keep RT at -1 and store the time as the MetaValue
+      @p imzml:scan_start_time. An RT the caller set (>= 0) wins over the MetaValue;
+      a non-numeric, non-finite or negative MetaValue counts as no time (a scan start time is
+      relative to the start of the run, so a negative one is a placeholder).
+
+      @return The time (>= 0), or the (negative) RT if the spectrum has none.
+    */
+    static double scanStartTime(const MSSpectrum& s);
+
+    /**
+      @brief Whether an external auxiliary array is read from the .ibd for a spectrum
+      with @p n_peaks peaks (it needs an identity, a non-zero length equal to the peak
+      count and a known binary data type). The one rule for every access path.
+
+      With @p warn, a skipped array (other than one of length 0) is logged with the pixel
+      @p x / @p y / @p z.
+    */
+    static bool isLoadableAuxArray(const std::string& name, uint64_t length,
+                                   ImzMLSpectrumIndex::DataType type, uint64_t n_peaks,
+                                   bool warn = false, uint32_t x = 0, uint32_t y = 0, uint32_t z = 0);
+
+    /**
+      @brief Set the IM peak type after the auxiliary arrays are known: with an ion
+      mobility array, @c UNKNOWN becomes @c IM_PROFILE (a type the file declares, e.g.
+      @c MS:1003441, is kept); without one, the type is @c UNKNOWN.
+    */
+    static void applyIMPeakType(MSSpectrum& s, bool has_im_array);
+
+    /**
+      @brief Attach the values of an external auxiliary array read from the .ibd.
+
+      They go into the first still-empty FloatDataArray named @p name (MzMLHandler creates
+      one per auxiliary binaryDataArray, with its metadata), so repeated names map 1:1 in
+      order; without one, a new array named @p name (and @p unit_accession) is added.
+    */
+    static void attachAuxArray(MSSpectrum& s, const std::string& name, const std::string& unit_accession,
+                               const std::vector<float>& values);
+
+    /// Drop the empty Float/Integer/StringDataArrays left by MzMLHandler for aux arrays that were not filled.
+    static void pruneEmptyDataArrays(MSSpectrum& s);
   };
 
 } // namespace OpenMS

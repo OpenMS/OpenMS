@@ -10,6 +10,7 @@
 
 #include <OpenMS/FORMAT/ArrowSchemaRegistry.h>
 #include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/IONMOBILITY/IMTypes.h>
 
 #include <arrow/api.h>
@@ -1259,20 +1260,33 @@ bool writeTableToParquet(
     arrow_properties
   );
 
+  // FileOutputStream::Open above already created (and truncated) the file, so any failure from
+  // here on leaves a partial .parquet behind -- and a truncated Parquet file has no footer, so a
+  // reader reports it as corrupt rather than as the smaller table it looks like. Close before
+  // removing: on Windows an open handle blocks the unlink. (The Close was already checked here;
+  // only the removal was missing.)
+  const auto abandon = [&](const std::string& what)
+  {
+    OPENMS_LOG_ERROR << "ParquetExport: " << what << std::endl;
+    (void)outfile->Close();
+    if (!File::remove(filename))
+    {
+      OPENMS_LOG_ERROR << "ParquetExport: Failed to remove incomplete output " << filename
+                       << std::endl;
+    }
+    return false;
+  };
+
   if (!status.ok())
   {
-    OPENMS_LOG_ERROR << "ParquetExport: Failed to write Parquet file: "
-                     << status.ToString() << std::endl;
-    return false;
+    return abandon("Failed to write Parquet file: " + status.ToString());
   }
 
   // Close the file
   auto close_status = outfile->Close();
   if (!close_status.ok())
   {
-    OPENMS_LOG_ERROR << "ParquetExport: Failed to close file: "
-                     << close_status.ToString() << std::endl;
-    return false;
+    return abandon("Failed to close file: " + close_status.ToString());
   }
 
   return true;

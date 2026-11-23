@@ -85,6 +85,8 @@ def _b_feature_map():
 
 def _b_consensus_map():
     o = pyopenms.ConsensusMap(); o.setMetaValue("k", "a"); return o
+def _b_data_filter():
+    o = pyopenms.DataFilter(); o.fromString("Intensity >= 100"); return o
 
 
 # (id, build, mutate, observe):
@@ -109,6 +111,7 @@ CASES = [
     ("MSExperiment",          _b_experiment,        lambda o: o.setMetaValue("k", "b"),             lambda o: str(o.getMetaValue("k"))),
     ("FeatureMap",            _b_feature_map,       lambda o: o.setMetaValue("k", "b"),             lambda o: str(o.getMetaValue("k"))),
     ("ConsensusMap",          _b_consensus_map,     lambda o: o.setMetaValue("k", "b"),             lambda o: str(o.getMetaValue("k"))),
+    ("DataFilter",            _b_data_filter,       lambda o: o.fromString("Charge = 2"),           lambda o: o.toString()),
 ]
 
 CASE_IDS = [c[0] for c in CASES]

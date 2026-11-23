@@ -7,10 +7,21 @@ macOS
 
 ## Install via macOS installer
 
+The installer needs macOS 15 (Sequoia) or newer on a Mac with Apple silicon. OpenMS 3.5 was the
+last release for Macs with Intel processors.
+
+The installer installs OpenMS for all users into `/Applications` (or onto another volume), so it
+needs an administrator account. Installing only for the current user (`~/Applications`) is not
+offered: the installer of the graphical tools installs into the same folder.
+
 To install OpenMS on macOS, run the following steps:
 
-1. Download and install the macOS drag-and-drop installer from the [archive](https://abibuilder.cs.uni-tuebingen.de/archive/openms/OpenMSInstaller/release/latest/).
-2.Double click on the downloaded file. It will start to open the `OpenMS-<version>-macOS.pkg` installer file.
+1. Download and install the macOS drag-and-drop installer from the [archive](https://archive.openms.de/openms/OpenMSInstaller/release/latest/).
+2. Double click on the downloaded file. It will start to open the `OpenMS-<version>-macOS.pkg` installer file.
+
+Since OpenMS 3.6, the installer is signed and notarized by Apple, so macOS opens it without a
+warning. The installers of earlier versions are not notarized, and macOS shows this warning when
+you open one of them:
 
 ```{image} /_images/installations/macos/Warning-openMS-3.3.0-macOS-Silicon.pkg-Not-Opened.png
 :alt: macOS warning message when opening OpenMS-<version>-macOS.pkg  
@@ -73,6 +84,17 @@ By following these steps, you’re instructing macOS to trust the OpenMS install
 :width: 500px  
 ```
 
+### Install the graphical tools (TOPPView, TOPPAS, INIFileEditor)
+
+The graphical tools are not part of the OpenMS installer. They come with a separate installer from
+[OpenMS-TOPP-GUI](https://github.com/OpenMS/OpenMS-TOPP-GUI), which is installed on top of OpenMS:
+
+1. Install OpenMS first, as described above.
+2. Download the GUI installer `OpenMS-GUI-<version>-macOS-Silicon.pkg` of the **same version** from the
+   [archive](https://archive.openms.de/openms/OpenMSInstaller/release/latest/) or the [OpenMS-TOPP-GUI releases](https://github.com/OpenMS/OpenMS-TOPP-GUI/releases).
+3. Double click on it. It installs TOPPView.app, TOPPAS.app and INIFileEditor.app into the OpenMS folder
+   (`/Applications/OpenMS-<version>`) and refuses to install if OpenMS of that version is not installed there.
+
 To use {term}`TOPP` as regular app in the shell, add the following lines to the `~/.profile` file.
 
 :::{warning} Known Installer Issues
@@ -80,11 +102,11 @@ To use {term}`TOPP` as regular app in the shell, add the following lines to the 
 1. Nothing happens when you click OpenMS apps or the validity of the developer could not be confirmed.
    
    This usually means the OpenMS software lands in quarantine even after installation of the `.pkg`. This was more common with our older `.dmg` image but may still happen.
-   Since macOS Catalina (maybe also Mojave) all apps and executables have to be officially notarized by Apple but we
-   currently do not have the resources for a streamlined notarization workflow.
+   Since macOS Catalina, all apps and executables have to be notarized by Apple. The installers of OpenMS 3.6 and
+   later are notarized; installations of earlier versions can be blocked.
 
-   To have a streamlined experience without blocking popups, it is recommended to remove the quarantine flag manually,
-   using the following steps:
+   To avoid the blocking popups for such an installation, remove the quarantine flag manually, using the following
+   steps:
 
    Open the Terminal.app and type the following (replace the first line with the actual installation directory):
    ```bash
@@ -116,7 +138,9 @@ To use {term}`TOPP` as regular app in the shell, add the following lines to the 
 
 OpenMS reads Thermo Fisher `.raw` files natively through the openms-thermo-bridge, which is
 enabled by default in the release binaries. This requires a **.NET 8 runtime** to be
-present at run time so that the managed bridge libraries can be loaded.
+present at run time so that the managed bridge libraries can be loaded. Which tools read
+`.raw` files, and how FileConverter converts them, is described in
+[Vendor formats](/getting-started/vendor-formats.md).
 
 Install it from the [.NET download page](https://dotnet.microsoft.com/download), or with
 Homebrew:
@@ -139,23 +163,28 @@ export DOTNET_ROOT="$(brew --prefix)/opt/dotnet/libexec"
 
 ## Build OpenMS from source
 
-To build OpenMS from source, follow the build instructions for [macOS](https://abibuilder.cs.uni-tuebingen.de/archive/openms/Documentation/release/latest/html/install_mac.html).
+To build OpenMS from source, follow the build instructions for [macOS](https://archive.openms.de/openms/Documentation/release/latest/html/install_mac.html).
+The graphical tools are built from [OpenMS-TOPP-GUI](https://github.com/OpenMS/OpenMS-TOPP-GUI) against the installed
+OpenMS (see its README).
 
 ## OpenMP / SIMD on macOS
 
-OpenMS uses `#pragma omp simd` directives to enable SIMD vectorization in
-performance-critical loops. Apple's stock Clang does not ship the OpenMP
-runtime library, so by default OpenMS automatically falls back to the
-`-fopenmp-simd` compiler flag — SIMD pragmas vectorize, but `#pragma omp parallel`
-regions do not. **No extra installation is required for SIMD support.**
-
-To get **full OpenMP** (parallel regions) on macOS, install Homebrew's libomp
-and point CMake at it:
+OpenMS runs in parallel with OpenMP (`#pragma omp parallel`, the `-threads` option of the
+tools) and uses `#pragma omp simd` directives to vectorize performance-critical loops.
+Apple's stock Clang does not ship the OpenMP runtime library, so install Homebrew's libomp
+(the Homebrew commands of the build instructions include it). The macOS presets (e.g.
+`cmake --preset macos-arm64-release`) find it in `/opt/homebrew/opt/libomp`; for other
+builds, point CMake at it:
 
 ```bash
 brew install libomp
 cmake -DOpenMP_ROOT=$(brew --prefix libomp) [other cmake options]
 ```
+
+Without the runtime, OpenMS falls back to the `-fopenmp-simd` compiler flag: SIMD pragmas
+vectorize, but `#pragma omp parallel` regions do not, so OpenMS runs single-threaded and
+`-threads` has no effect. `-DMT_REQUIRE_OPENMP=ON`, which the CI presets set, turns this
+fallback into a configuration error.
 
 To skip OpenMP entirely, pass:
 

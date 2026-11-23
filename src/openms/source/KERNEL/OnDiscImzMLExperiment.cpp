@@ -3,16 +3,18 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
-// $Authors: Aditya Sarna $
+// $Authors: Aditya Sarna, Patrick Boschmann $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/KERNEL/OnDiscImzMLExperiment.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/FORMAT/ImzMLFile.h>
 #include <OpenMS/FORMAT/HANDLERS/ImzMLHandlerHelper.h>
 #include <OpenMS/IMAGING/MSImagingGeometry.h>
 #include <OpenMS/IMAGING/IonImage.h>
 #include <OpenMS/IMAGING/IonImageExtraction.h>
 #include <OpenMS/CONCEPT/Exception.h>
+#include <OpenMS/CONCEPT/LogStream.h>
 
 #include <cmath>
 #include <cstdio>
@@ -27,15 +29,21 @@ struct OnDiscImzMLExperiment::Impl
   FILE* ibd_ {nullptr};
   ImzMLMeta meta_;
   std::vector<ImzMLSpectrumIndex> index_;
+  // Per-spectrum metadata (no peaks) and dataset settings from the same parse as index_;
+  // spectra_[i] belongs to index_[i]. decodeSpectrum() starts from a copy of it. Empty when
+  // opened with skip_metadata.
+  MSExperiment spectra_;
 
   // Standard 2D imaging geometry (pixel grid + (x,y)->spectrum index), shared with
   // the in-memory path. Built eagerly in open(): it is an in-memory O(n) pass over
   // the already-parsed index (no .ibd reads), negligible next to the XML parse open()
   // already performs — only peak decoding is worth deferring. Building it at open()
-  // also fails fast on a structurally broken coordinate grid (duplicate / <1 coords).
+  // also surfaces a structurally broken coordinate grid (duplicate / <1 coords) there;
+  // both are always warned about, never thrown.
   MSImagingGeometry geometry_;
 
   bool is_open_ {false};
+  bool skip_metadata_ {false}; // open(..., skip_metadata): spectra_ stays empty
   std::string ibd_path_;
 
   ~Impl()
@@ -54,13 +62,17 @@ struct OnDiscImzMLExperiment::Impl
     ImzMLFile::buildImagingGeometry(index_, meta_, geometry_);
   }
 
-  MSSpectrum decodeSpectrum(std::size_t i) const
+  // Decode m/z and intensity into 's'. Deliberately does not sort: callers attach
+  // auxiliary arrays first and sort afterwards, so FloatDataArrays stay aligned
+  // with peak order.
+  void decodePeaksInto_(const ImzMLSpectrumIndex& e, MSSpectrum& s) const
   {
-    const ImzMLSpectrumIndex& e = index_[i];
-    MSSpectrum s;
-    s.setMetaValue("imzml:x", static_cast<Int>(e.x));
-    s.setMetaValue("imzml:y", static_cast<Int>(e.y));
-    s.setMetaValue("imzml:z", static_cast<Int>(e.z));
+    if (e.mz_compressed || e.int_compressed)
+    {
+      throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, ibd_path_,
+        "Compressed external m/z or intensity arrays are not supported "
+        "(need uncompressed MS:1000576). Re-export without compression.");
+    }
 
     std::vector<double> mz_vec = readMz_(e);
     std::vector<float> int_vec = readInt_(e);
@@ -85,6 +97,67 @@ struct OnDiscImzMLExperiment::Impl
       s[k].setMZ(mz_vec[k]);
       s[k].setIntensity(int_vec[k]);
     }
+  }
+
+  MSSpectrum decodeSpectrum(std::size_t i) const
+  {
+    const ImzMLSpectrumIndex& e = index_[i];
+    MSSpectrum s;
+    if (skip_metadata_)
+    {
+      s.setMetaValue("imzml:x", static_cast<Int>(e.x));
+      s.setMetaValue("imzml:y", static_cast<Int>(e.y));
+      s.setMetaValue("imzml:z", static_cast<Int>(e.z));
+    }
+    else
+    {
+      s = spectra_[i]; // metadata incl. imzml:x/y/z and empty data arrays; peaks and values follow
+    }
+
+    decodePeaksInto_(e, s);
+    const std::size_t n = s.size();
+
+    // Attach auxiliary external arrays (ion mobility, …) before sortByPosition
+    // so FloatDataArrays stay aligned with peak order.
+    for (const ImzMLSpectrumIndex::AuxArray& aux : e.aux)
+    {
+      if (aux.compressed)
+      {
+        throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, ibd_path_,
+          "Compressed external auxiliary array '" + aux.name
+          + "' is not supported (IMS:1000104 encoded length="
+          + StringConversions::toString(aux.encoded_bytes) + ")");
+      }
+      if (!ImzMLSpectrumRules::isLoadableAuxArray(aux.name, aux.length, aux.type, n, true, e.x, e.y, e.z))
+      {
+        continue;
+      }
+      std::vector<float> values; // exactly aux.length values (readAuxArray throws otherwise)
+      ImzMLBinaryIO::readAuxArray(ibd_, aux.offset, aux.length, aux.type, values, ibd_path_, aux.name);
+      ImzMLSpectrumRules::attachAuxArray(s, aux.name, aux.unit_accession, values);
+    }
+    // Same as ImzMLInterceptConsumer: drop the arrays no .ibd values went into.
+    ImzMLSpectrumRules::pruneEmptyDataArrays(s);
+
+    // Same rule as ImzMLInterceptConsumer after its .ibd fill (the parsed type comes with
+    // the spectrum metadata). Without metadata (skip_metadata) the declared type is unknown,
+    // so the IM peak type stays UNKNOWN rather than a guess.
+    if (!skip_metadata_)
+    {
+      ImzMLSpectrumRules::applyIMPeakType(s, s.containsIMData());
+    }
+
+    s.sortByPosition();
+    return s;
+  }
+
+  // Ion image extraction only sums intensities inside an m/z window (via
+  // MZBegin/MZEnd), so skip the auxiliary array reads and the pixel MetaValues
+  // that decodeSpectrum() has to produce.
+  MSSpectrum decodePeaks(std::size_t i) const
+  {
+    MSSpectrum s;
+    decodePeaksInto_(index_[i], s);
     s.sortByPosition();
     return s;
   }
@@ -136,16 +209,24 @@ OnDiscImzMLExperiment& OnDiscImzMLExperiment::operator=(OnDiscImzMLExperiment&& 
   return *this;
 }
 
-void OnDiscImzMLExperiment::open(const std::string& imzml_path, const std::string& ibd_path_override)
+void OnDiscImzMLExperiment::open(const std::string& imzml_path, const std::string& ibd_path_override, bool skip_metadata)
 {
   pimpl_ = std::make_unique<Impl>();
 
   ImzMLFile f;
   f.setLogType(ProgressLogger::NONE);
-  f.loadSpectraIndex(imzml_path, pimpl_->meta_, pimpl_->index_, ibd_path_override);
+  if (skip_metadata)
+  { // parsed with the index, then released at the end of this scope
+    MSExperiment discarded;
+    f.loadSpectraIndex(imzml_path, pimpl_->meta_, pimpl_->index_, discarded, ibd_path_override);
+  }
+  else
+  {
+    f.loadSpectraIndex(imzml_path, pimpl_->meta_, pimpl_->index_, pimpl_->spectra_, ibd_path_override);
+  }
 
   // Build the 2D imaging geometry up front (in-memory pass over the index, no .ibd
-  // reads). Fails fast here on a broken coordinate grid; only peak decode stays lazy.
+  // reads). Coordinate-grid problems surface here; only peak decode stays lazy.
   pimpl_->buildGeometry_();
 
   pimpl_->ibd_path_ = ibd_path_override.empty() ? pimpl_->meta_.ibd_file_path : ibd_path_override;
@@ -162,6 +243,7 @@ void OnDiscImzMLExperiment::open(const std::string& imzml_path, const std::strin
   if (!pimpl_->ibd_)
     throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, pimpl_->ibd_path_);
 
+  pimpl_->skip_metadata_ = skip_metadata;
   pimpl_->is_open_ = true;
 }
 
@@ -173,7 +255,14 @@ void OnDiscImzMLExperiment::close() noexcept
     pimpl_->ibd_ = nullptr;
   }
   pimpl_->is_open_ = false;
+  // Release everything open() built (fresh containers free the capacity, which clear() keeps), so no
+  // getter describes a dataset that is no longer open.
   pimpl_->geometry_.clear();
+  pimpl_->spectra_ = MSExperiment();
+  std::vector<ImzMLSpectrumIndex>().swap(pimpl_->index_);
+  pimpl_->meta_ = ImzMLMeta();
+  pimpl_->ibd_path_.clear();
+  pimpl_->skip_metadata_ = false;
 }
 
 bool OnDiscImzMLExperiment::isOpen() const noexcept
@@ -233,7 +322,7 @@ IonImage OnDiscImzMLExperiment::extractIonImage(double mz, double tolerance_ppm)
   std::vector<Size> all(pimpl_->geometry_.getNumberOfPixels());
   std::iota(all.begin(), all.end(), Size(0));
   return Internal::extractIonImage(pimpl_->geometry_, mz, tolerance_ppm, all, pimpl_->index_.size(),
-                                   [this](Size i) -> MSSpectrum { return pimpl_->decodeSpectrum(i); });
+                                   [this](Size i) -> MSSpectrum { return pimpl_->decodePeaks(i); });
 }
 
 IonImage OnDiscImzMLExperiment::extractIonImage(double mz, double tolerance_ppm, Size region_id) const
@@ -244,7 +333,7 @@ IonImage OnDiscImzMLExperiment::extractIonImage(double mz, double tolerance_ppm,
   // getRegionPixels throws Exception::ElementNotFound for an unknown region_id.
   const std::vector<Size> region = pimpl_->geometry_.getRegionPixels(region_id);
   return Internal::extractIonImage(pimpl_->geometry_, mz, tolerance_ppm, region, pimpl_->index_.size(),
-                                   [this](Size i) -> MSSpectrum { return pimpl_->decodeSpectrum(i); });
+                                   [this](Size i) -> MSSpectrum { return pimpl_->decodePeaks(i); });
 }
 
 const MSImagingGeometry& OnDiscImzMLExperiment::getGeometry() const
@@ -260,6 +349,11 @@ MSImagingGeometry& OnDiscImzMLExperiment::getGeometry()
 const ImzMLMeta& OnDiscImzMLExperiment::getImzMLMeta() const noexcept
 {
   return pimpl_->meta_;
+}
+
+const ExperimentalSettings& OnDiscImzMLExperiment::getExperimentalSettings() const
+{
+  return pimpl_->spectra_.getExperimentalSettings();
 }
 
 uint32_t OnDiscImzMLExperiment::gridWidth() const noexcept

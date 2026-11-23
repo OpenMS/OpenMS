@@ -10,6 +10,7 @@
 #include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/test_config.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/SYSTEM/TempFiles.h>
 
 ///////////////////////////
 
@@ -38,7 +39,7 @@ AbsoluteQuantitationMethodFile* ptr = nullptr;
 AbsoluteQuantitationMethodFile* nullPointer = nullptr;
 const std::string in_file_1 = OPENMS_GET_TEST_DATA_PATH("AbsoluteQuantitationMethodFile_in_1.csv");
 const std::string in_file_2 = OPENMS_GET_TEST_DATA_PATH("AbsoluteQuantitationMethodFile_in_2.csv");
-const std::string out_file = File::getTemporaryFile();
+const std::string out_file = TempFiles::getTemporaryFile();
 
 START_SECTION((AbsoluteQuantitationMethodFile()))
 	ptr = new AbsoluteQuantitationMethodFile();

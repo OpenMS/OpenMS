@@ -7,14 +7,26 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/ClassTest.h>
+#include <OpenMS/DATASTRUCTURES/DataValue.h>
 #include <OpenMS/test_config.h>
 
 ///////////////////////////
 #include <OpenMS/FORMAT/FeatureMapArrowIO.h>
+#include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/SYSTEM/SystemSettings.h>
 ///////////////////////////
 
 #include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/CHEMISTRY/ProteaseDB.h>
+#include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
+#include <OpenMS/CHEMISTRY/ModificationsDB.h>
+#include <OpenMS/CHEMISTRY/ResidueModification.h>
+#include <OpenMS/CONCEPT/Constants.h>
+
+#include <cmath>
+#include <fstream>
+#include <limits>
+#include <sstream>
 #include <OpenMS/DATASTRUCTURES/ConvexHull2D.h>
 #include <OpenMS/DATASTRUCTURES/DateTime.h>
 #include <OpenMS/FORMAT/FileTypes.h>
@@ -27,9 +39,67 @@
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/config.h>
 #include <arrow/api.h>
+#include <parquet/properties.h>
+#include <parquet/arrow/writer.h>
+#include <parquet/arrow/reader.h>
+#include <arrow/io/file.h>
 
 using namespace OpenMS;
 using namespace std;
+
+namespace
+{
+  // registers a tool-defined modification; ModificationsDB is process-wide, so every section uses its own name
+  const ResidueModification* defineMod4b(const std::string& id, char origin, const std::string& formula)
+  {
+    ResidueModification d;
+    d.setId(id);
+    d.setOrigin(origin);
+    d.setTermSpecificity(ResidueModification::ANYWHERE);
+    d.setFullId();
+    d.setDiffFormula(EmpiricalFormula(formula));
+    d.setDiffMonoMass(EmpiricalFormula(formula).getMonoWeight());
+    return ModificationsDB::getInstance()->registerDefinition(d);
+  }
+
+  // a definition record for a name that is NOT registered in this process
+  std::string freshRecord4b(const std::string& id, char origin, const std::string& formula)
+  {
+    ResidueModification d;
+    d.setId(id);
+    d.setOrigin(origin);
+    d.setTermSpecificity(ResidueModification::ANYWHERE);
+    d.setFullId();
+    d.setDiffFormula(EmpiricalFormula(formula));
+    d.setDiffMonoMass(EmpiricalFormula(formula).getMonoWeight());
+    return d.toDefinitionString();
+  }
+
+  std::string slurp4b(const std::string& path)
+  {
+    std::ifstream in(path);
+    std::stringstream ss;
+    ss << in.rdbuf();
+    return ss.str();
+  }
+
+  bool fileContains4b(const std::string& path, const std::string& needle)
+  {
+    return slurp4b(path).find(needle) != std::string::npos;
+  }
+
+  // first occurrence only; returns false when @p from is absent
+  bool replaceInFile4b(const std::string& path, const std::string& from, const std::string& to)
+  {
+    std::string s = slurp4b(path);
+    const std::size_t pos = s.find(from);
+    if (pos == std::string::npos) return false;
+    s.replace(pos, from.size(), to);
+    std::ofstream out(path);
+    out << s;
+    return true;
+  }
+}
 
 START_TEST(FeatureMapArrowIO, "$Id$")
 
@@ -1104,6 +1174,182 @@ START_SECTION(exportToParquet / importFromParquet - FeatureMap metadata round - 
 }
 END_SECTION
 
+START_SECTION([EXTRA] importFromParquet - metadata JSON with non-string fields from other writers)
+{
+  // Unknown keys may carry numbers, literals, arrays or objects (e.g. added by another tool or a
+  // later version). They must be skipped, not hang the import, and the known fields after them
+  // must still be read. A large int metavalue must keep its type.
+  FeatureMap fm;
+  Feature f;
+  f.setRT(100.0);
+  f.setMZ(500.0);
+  f.setUniqueId(7);
+  fm.push_back(f);
+  ProteinIdentification prot_id;
+  prot_id.setIdentifier("run_1");
+  fm.setProteinIdentifications({prot_id});
+
+  std::string tmp_dir;
+  NEW_TMP_FILE(tmp_dir)
+  tmp_dir += ".fmd";
+  TEST_EQUAL(FeatureMapArrowIO::exportToParquet(fm, tmp_dir), true)
+
+  const std::string features_file = tmp_dir + "/features.parquet";
+  std::shared_ptr<arrow::Table> table;
+  {
+    auto infile = arrow::io::ReadableFile::Open(features_file).ValueOrDie();
+    auto reader = parquet::arrow::OpenFile(infile, arrow::default_memory_pool()).ValueOrDie();
+    TEST_EQUAL(reader->ReadTable(&table).ok(), true)
+  }
+  const std::string peak_picking = DataProcessing::processingActionToString(DataProcessing::PEAK_PICKING);
+  const std::string data_processing =
+    std::string("[{\"schema\":2,\"software_name\":\"Tool\",\"flags\":[1,true,null],")
+    + "\"actions\":[\"" + peak_picking + "\",3],"
+    + "\"nested\":{\"a\":[\"]\",\"}\"],\"b\":{}},"
+    + "\"metavalues\":[{\"name\":\"num\",\"value\":5,\"type\":\"string\"},"
+    + "{\"name\":\"big\",\"value\":\"5000000000\",\"type\":\"int\",\"extra\":{\"x\":[1,2]}}],"
+    + "\"software_version\":\"1.0\"},"
+    // malformed: a stray '}' in the actions array must not hang the import either
+    + "{\"software_name\":\"Bad\",\"actions\":[}]}]";
+  const std::string fmap_metavalues =
+    "[{\"note\":null,\"name\":\"spectra_count\",\"value\":\"6000000000\",\"type\":\"int\",\"w\":-1.5e3}]";
+  auto md = table->schema()->metadata() ? table->schema()->metadata()->Copy() : std::make_shared<arrow::KeyValueMetadata>();
+  TEST_EQUAL(md->Set("data_processing", data_processing).ok(), true)
+  TEST_EQUAL(md->Set("fmap_metavalues", fmap_metavalues).ok(), true)
+  table = table->ReplaceSchemaMetadata(md);
+  {
+    auto outfile = arrow::io::FileOutputStream::Open(features_file).ValueOrDie();
+    auto arrow_props = parquet::ArrowWriterProperties::Builder().store_schema()->build();
+    TEST_EQUAL(parquet::arrow::WriteTable(*table, arrow::default_memory_pool(), outfile, 1024,
+                                          parquet::default_writer_properties(), arrow_props).ok(), true)
+    TEST_EQUAL(outfile->Close().ok(), true)
+  }
+
+  FeatureMap imported;
+  TEST_EQUAL(FeatureMapArrowIO::importFromParquet(tmp_dir, imported), true)
+  TEST_EQUAL(imported.size(), 1)
+  ABORT_IF(imported.getDataProcessing().empty())
+  const DataProcessing& dp = imported.getDataProcessing()[0];
+  TEST_EQUAL(dp.getSoftware().getName(), "Tool")
+  TEST_EQUAL(dp.getSoftware().getVersion(), "1.0") // after all the skipped values
+  TEST_EQUAL(dp.getProcessingActions().size(), 1)
+  TEST_EQUAL(dp.getProcessingActions().count(DataProcessing::PEAK_PICKING), 1)
+  TEST_FALSE(dp.metaValueExists("num")) // non-string value: entry dropped, parsing goes on
+  TEST_EQUAL(dp.metaValueExists("big"), true)
+  TEST_EQUAL(dp.getMetaValue("big").valueType(), DataValue::INT_VALUE)
+  TEST_EQUAL(static_cast<Int64>(dp.getMetaValue("big")), 5000000000LL)
+  TEST_EQUAL(imported.metaValueExists("spectra_count"), true)
+  TEST_EQUAL(imported.getMetaValue("spectra_count").valueType(), DataValue::INT_VALUE)
+  TEST_EQUAL(static_cast<Int64>(imported.getMetaValue("spectra_count")), 6000000000LL)
+}
+END_SECTION
+
+START_SECTION([EXTRA] importFromParquet - JSON escapes written by other writers)
+{
+  // Python's json.dumps writes non-BMP characters as surrogate pairs; other writers also use
+  // \b, \f and \/, which ParquetFile::jsonEscape() never writes.
+  FeatureMap fm;
+  Feature f;
+  f.setRT(100.0);
+  f.setMZ(500.0);
+  f.setUniqueId(7);
+  fm.push_back(f);
+  ProteinIdentification prot_id;
+  prot_id.setIdentifier("run_1");
+  fm.setProteinIdentifications({prot_id});
+
+  std::string tmp_dir;
+  NEW_TMP_FILE(tmp_dir)
+  tmp_dir += ".fmd";
+  TEST_EQUAL(FeatureMapArrowIO::exportToParquet(fm, tmp_dir), true)
+
+  const std::string features_file = tmp_dir + "/features.parquet";
+  std::shared_ptr<arrow::Table> table;
+  {
+    auto infile = arrow::io::ReadableFile::Open(features_file).ValueOrDie();
+    auto reader = parquet::arrow::OpenFile(infile, arrow::default_memory_pool()).ValueOrDie();
+    TEST_EQUAL(reader->ReadTable(&table).ok(), true)
+  }
+  const std::string fmap_metavalues =
+    "[{\"name\":\"emoji\",\"value\":\"\\ud83d\\ude00\",\"type\":\"string\"},"
+    "{\"name\":\"controls\",\"value\":\"a\\bb\\fc\\/d\",\"type\":\"string\"},"
+    "{\"name\":\"lone\",\"value\":\"x\\ud83dy\",\"type\":\"string\"},"
+    "{\"name\":\"e_acute\",\"value\":\"\\u00e9\",\"type\":\"string\"}]";
+  auto md = table->schema()->metadata() ? table->schema()->metadata()->Copy() : std::make_shared<arrow::KeyValueMetadata>();
+  TEST_EQUAL(md->Set("fmap_metavalues", fmap_metavalues).ok(), true)
+  table = table->ReplaceSchemaMetadata(md);
+  {
+    auto outfile = arrow::io::FileOutputStream::Open(features_file).ValueOrDie();
+    auto arrow_props = parquet::ArrowWriterProperties::Builder().store_schema()->build();
+    TEST_EQUAL(parquet::arrow::WriteTable(*table, arrow::default_memory_pool(), outfile, 1024,
+                                          parquet::default_writer_properties(), arrow_props).ok(), true)
+    TEST_EQUAL(outfile->Close().ok(), true)
+  }
+
+  FeatureMap imported;
+  TEST_EQUAL(FeatureMapArrowIO::importFromParquet(tmp_dir, imported), true)
+  TEST_EQUAL(imported.getMetaValue("emoji").toString(), "\xF0\x9F\x98\x80") // U+1F600 as 4-byte UTF-8
+  TEST_EQUAL(imported.getMetaValue("controls").toString(), "a\bb\fc/d")
+  TEST_EQUAL(imported.getMetaValue("lone").toString(), "x\xEF\xBF\xBDy") // lone surrogate: U+FFFD
+  TEST_EQUAL(imported.getMetaValue("e_acute").toString(), "\xC3\xA9")
+}
+END_SECTION
+
+START_SECTION([EXTRA] importFromParquet - metadata JSON with non-array values of array fields)
+{
+  // "actions" and "metavalues" are arrays when OpenMS writes them. Another value (null, an object)
+  // or a metavalue entry that is not an object must be skipped, like a non-string value of a string
+  // field, without dropping the fields and DataProcessing entries after it.
+  FeatureMap fm;
+  Feature f;
+  f.setRT(100.0);
+  f.setMZ(500.0);
+  f.setUniqueId(7);
+  fm.push_back(f);
+  ProteinIdentification prot_id;
+  prot_id.setIdentifier("run_1");
+  fm.setProteinIdentifications({prot_id});
+
+  std::string tmp_dir;
+  NEW_TMP_FILE(tmp_dir)
+  tmp_dir += ".fmd";
+  TEST_EQUAL(FeatureMapArrowIO::exportToParquet(fm, tmp_dir), true)
+
+  const std::string features_file = tmp_dir + "/features.parquet";
+  std::shared_ptr<arrow::Table> table;
+  {
+    auto infile = arrow::io::ReadableFile::Open(features_file).ValueOrDie();
+    auto reader = parquet::arrow::OpenFile(infile, arrow::default_memory_pool()).ValueOrDie();
+    TEST_EQUAL(reader->ReadTable(&table).ok(), true)
+  }
+  const std::string data_processing =
+    std::string("[{\"software_name\":\"A\",\"actions\":null,\"software_version\":\"1.0\"},")
+    + "{\"software_name\":\"B\",\"metavalues\":{},\"software_version\":\"2.0\"},"
+    + "{\"software_name\":\"C\",\"metavalues\":[7,{\"name\":\"x\",\"value\":\"1\",\"type\":\"int\"}],"
+    + "\"software_version\":\"3.0\"}]";
+  auto md = table->schema()->metadata() ? table->schema()->metadata()->Copy() : std::make_shared<arrow::KeyValueMetadata>();
+  TEST_EQUAL(md->Set("data_processing", data_processing).ok(), true)
+  table = table->ReplaceSchemaMetadata(md);
+  {
+    auto outfile = arrow::io::FileOutputStream::Open(features_file).ValueOrDie();
+    auto arrow_props = parquet::ArrowWriterProperties::Builder().store_schema()->build();
+    TEST_EQUAL(parquet::arrow::WriteTable(*table, arrow::default_memory_pool(), outfile, 1024,
+                                          parquet::default_writer_properties(), arrow_props).ok(), true)
+    TEST_EQUAL(outfile->Close().ok(), true)
+  }
+
+  FeatureMap imported;
+  TEST_EQUAL(FeatureMapArrowIO::importFromParquet(tmp_dir, imported), true)
+  const std::vector<DataProcessing>& dps = imported.getDataProcessing();
+  TEST_EQUAL(dps.size(), 3)
+  ABORT_IF(dps.size() != 3)
+  TEST_EQUAL(dps[0].getSoftware().getVersion(), "1.0")
+  TEST_EQUAL(dps[1].getSoftware().getVersion(), "2.0")
+  TEST_EQUAL(dps[2].getSoftware().getVersion(), "3.0")
+  TEST_TRUE(dps[2].metaValueExists("x"))
+}
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 // PSM completeness round-trip test
 /////////////////////////////////////////////////////////////
@@ -1465,7 +1711,516 @@ START_SECTION(exportToParquet - duplicate ProteinIdentification identifiers thro
 }
 END_SECTION
 
+
+START_SECTION(([EXTRA] a failed write leaves no partial .parquet behind))
+{
+  FeatureMap fmap;
+  Feature f;
+  f.setRT(100.0);
+  f.setMZ(500.0);
+  f.setIntensity(1000.0f);
+  fmap.push_back(f);
+
+  const std::string dir = SystemSettings::getTempDirectory() + "/" + File::getUniqueName() + "_fmio";
+  TEST_TRUE(File::makeDir(dir))
+
+  TEST_TRUE(FeatureMapArrowIO::exportToParquet(fmap, dir))
+  TEST_TRUE(File::exists(dir + "/features.parquet"))
+  File::remove(dir + "/features.parquet");
+
+  // arrow::io::FileOutputStream::Open creates and truncates the file before the table is written,
+  // so a failure afterwards leaves a fragment with no Parquet footer, which a reader reports as
+  // corrupt. A row group size of 0 is refused by Parquet for a non-empty table, which reaches
+  // that failure deterministically on every platform. This is the FIRST file of the collection,
+  // so nothing else has been written yet - collection-level atomicity is a separate concern.
+  ParquetWriteConfig no_row_group;
+  no_row_group.row_group_size = 0;
+  TEST_FALSE(FeatureMapArrowIO::exportToParquet(fmap, dir, no_row_group))
+  TEST_FALSE(File::exists(dir + "/features.parquet"))
+
+  File::removeDirRecursively(dir);
+}
+END_SECTION
+
+/////////////////////////////////////////////////////////////
+// Checkpoint fidelity
+//
+// A .featureParquet directory is used as a checkpoint: written by one run of a
+// tool and read back by another, in place of recomputing it. That is a stricter
+// contract than "a reader that copes with what it is given", and these sections
+// pin the parts of it that a lenient reader would otherwise paper over.
+/////////////////////////////////////////////////////////////
+
+START_SECTION(([EXTRA] exportToParquet / importFromParquet - every peptide identification needs its protein identification run))
+{
+  FeatureMap fm;
+  ProteinIdentification run; // no protein hits
+  run.setIdentifier("search");
+  run.setSearchEngine("SearchEngine");
+  fm.setProteinIdentifications({run});
+
+  PeptideIdentification pep;
+  pep.setIdentifier("search");
+  pep.setScoreType("q-value");
+  pep.setHigherScoreBetter(false);
+  PeptideHit hit;
+  hit.setSequence(AASequence::fromString("PEPTIDEK"));
+  hit.setCharge(2);
+  hit.setScore(0.01);
+  pep.insertHit(hit);
+
+  Feature f;
+  f.setRT(10.0);
+  f.setMZ(500.0);
+  f.setIntensity(100.0f);
+  f.setCharge(2);
+  f.setUniqueId(42);
+  Feature sub = f;
+  sub.setUniqueId(43);
+  sub.getPeptideIdentifications().push_back(pep); // a subordinate with its own identification
+  f.getSubordinates().push_back(sub);
+  f.getPeptideIdentifications().push_back(pep);
+  fm.push_back(f);
+
+  // the identifications of features, subordinates and unassigned ones are checked before anything is written
+  {
+    FeatureMap bad = fm;
+    bad[0].getSubordinates()[0].getPeptideIdentifications()[0].setIdentifier("other");
+    std::string tmp_dir;
+    NEW_TMP_FILE(tmp_dir)
+    tmp_dir += ".featureparquet";
+    TEST_EXCEPTION(Exception::InvalidParameter, FeatureMapArrowIO::exportToParquet(bad, tmp_dir))
+    TEST_FALSE(File::exists(tmp_dir))
+  }
+
+  // the run identifier is synthesized on load: the identifications of the subordinates follow it, too
+  const std::string dir = SystemSettings::getTempDirectory() + "/" + File::getUniqueName() + "_fmruns";
+  TEST_TRUE(File::makeDir(dir))
+  TEST_TRUE(FeatureMapArrowIO::exportToParquet(fm, dir))
+  FeatureMap in;
+  TEST_TRUE(FeatureMapArrowIO::importFromParquet(dir, in))
+  ABORT_IF(in.size() != 1 || in[0].getSubordinates().size() != 1 || in.getProteinIdentifications().size() != 1)
+  const std::string& identifier = in.getProteinIdentifications()[0].getIdentifier();
+  TEST_EQUAL(in[0].getPeptideIdentifications()[0].getIdentifier(), identifier)
+  TEST_EQUAL(in[0].getSubordinates()[0].getPeptideIdentifications().size(), 1)
+  TEST_EQUAL(in[0].getSubordinates()[0].getPeptideIdentifications()[0].getIdentifier(), identifier)
+  File::removeDirRecursively(dir);
+}
+END_SECTION
+
+START_SECTION(([EXTRA] exportToParquet / importFromParquet - the map level unique id survives))
+{
+  FeatureMap fm;
+  fm.setUniqueId(1234567890123ULL);
+
+  Feature f;
+  f.setRT(10.0);
+  f.setMZ(500.0);
+  f.setIntensity(100.0f);
+  f.setCharge(2);
+  f.setUniqueId(42);
+  fm.push_back(f);
+
+  const std::string dir = SystemSettings::getTempDirectory() + "/" + File::getUniqueName() + "_fmuid";
+  TEST_TRUE(File::makeDir(dir))
+  TEST_TRUE(FeatureMapArrowIO::exportToParquet(fm, dir))
+
+  FeatureMap in;
+  TEST_TRUE(FeatureMapArrowIO::importFromParquet(dir, in))
+
+  // Distinct from the per-feature unique ids and from DocumentIdentifier. ProteomicsLFQ copies
+  // it into the consensus column header of the run it belongs to, so losing it annotates every
+  // run with 0 - and the TOPP consensusXML diffs whitelist "map id=", so nothing downstream
+  // would report it either.
+  TEST_EQUAL(in.getUniqueId(), 1234567890123ULL)
+
+  File::removeDirRecursively(dir);
+}
+END_SECTION
+
+START_SECTION(([EXTRA] importPSMsFromArrow - a PSM naming an unknown feature is rejected))
+{
+  ProteinIdentification prot;
+  prot.setIdentifier("run_dangling");
+  prot.setScoreType("score");
+  prot.setHigherScoreBetter(true);
+
+  // A PSM table whose rows reference feature unique id 5001 ...
+  FeatureMap src;
+  src.setProteinIdentifications({prot});
+  Feature f;
+  f.setRT(1.0);
+  f.setMZ(2.0);
+  f.setIntensity(3.0f);
+  f.setCharge(2);
+  f.setUniqueId(5001);
+  PeptideIdentification pid;
+  pid.setIdentifier("run_dangling");
+  pid.setScoreType("score");
+  pid.setHigherScoreBetter(true);
+  PeptideHit hit;
+  hit.setSequence(AASequence::fromString("PEPTIDER"));
+  hit.setCharge(2);
+  hit.setScore(1.0);
+  pid.insertHit(hit);
+  f.setPeptideIdentifications({pid});
+  src.push_back(f);
+
+  auto psm_table = FeatureMapArrowIO::exportPSMsToArrow(src);
+  TEST_EQUAL(psm_table == nullptr, false)
+
+  // ... imported into a map that contains no such feature.
+  FeatureMap target;
+  target.setProteinIdentifications({prot});
+  Feature other;
+  other.setRT(1.0);
+  other.setMZ(2.0);
+  other.setIntensity(3.0f);
+  other.setCharge(2);
+  other.setUniqueId(9999);
+  target.push_back(other);
+
+  // Quietly re-filing the PSM as unassigned would move it across the attached/unassigned
+  // partition. That partition is not bookkeeping: FDR is estimated over both lists together and
+  // every exporter reports them separately, so a reader that repairs the link reports a
+  // different experiment from the one that was written. Refuse the input instead.
+  TEST_FALSE(FeatureMapArrowIO::importPSMsFromArrow(psm_table, target))
+}
+END_SECTION
+
+START_SECTION(([EXTRA] exportToParquet / importFromParquet - a ProteomicsLFQ-shaped map round-trips))
+{
+  // The shape FeatureFinderIdentification leaves behind once ProteomicsLFQ has stripped meta
+  // values, cleared subordinates and convex hulls, and run IDConflictResolver: few fields, but
+  // every one of them is load-bearing somewhere downstream.
+  FeatureMap fm;
+  fm.setUniqueId(987654321ULL);
+  fm.setPrimaryMSRunPath({"BSA1_F1.mzML"});
+
+  ProteinIdentification prot;
+  prot.setIdentifier("SimpleSearchEngine_1_1F1"); // <engine>_<fraction_group>F<fraction>
+  prot.setSearchEngine("SimpleSearchEngine");
+  prot.setScoreType("Posterior Error Probability");
+  prot.setHigherScoreBetter(false);
+  prot.setPrimaryMSRunPath({"BSA1_F1.mzML"});
+  prot.setMetaValue("fraction", 1);
+  prot.setMetaValue("fraction_group", 1);
+
+  ProteinIdentification::SearchParameters sp;
+  sp.db = "18Protein_SoCe_Tr_detergents_trace_target_decoy.fasta";
+  sp.fixed_modifications = {"Carbamidomethyl (C)"};
+  sp.variable_modifications = {"Oxidation (M)"};
+  prot.setSearchParameters(sp);
+
+  // computeCoverage needs the sequence PeptideIndexing wrote; a checkpoint is the only place
+  // the combining step could still get it from, since it never reads the FASTA.
+  ProteinHit prot_hit;
+  prot_hit.setAccession("P02769");
+  prot_hit.setSequence("MKWVTFISLLLLFSSAYSRGVFRR");
+  prot_hit.setDescription("Serum albumin OS=Bos taurus");
+  prot_hit.setScore(0.99);
+  prot.insertHit(prot_hit);
+  fm.setProteinIdentifications({prot});
+
+  PeptideHit hit;
+  hit.setSequence(AASequence::fromString("LVNELTEFAK"));
+  hit.setCharge(2);
+  hit.setScore(0.001);
+  hit.setMetaValue("target_decoy", "target");
+  hit.setMetaValue("MS:1002252_score", 1.75);
+  hit.setMetaValue("q-value", 0.004);
+  PeptideEvidence ev;
+  ev.setProteinAccession("P02769");
+  hit.addPeptideEvidence(ev);
+
+  PeptideIdentification pid;
+  pid.setIdentifier("SimpleSearchEngine_1_1F1");
+  pid.setScoreType("Posterior Error Probability");
+  pid.setHigherScoreBetter(false);
+  pid.setRT(1234.5);
+  pid.setMZ(582.3195);
+  pid.setSpectrumReference("controllerType=0 controllerNumber=1 scan=1234");
+  pid.insertHit(hit);
+
+  Feature feat;
+  feat.setRT(1234.5);
+  feat.setMZ(582.3195);
+  feat.setIntensity(123456.0f);
+  feat.setCharge(2);
+  feat.setOverallQuality(0.87f);
+  feat.setUniqueId(777);
+  feat.setMetaValue("IM_median", 0.8123);
+  feat.setMetaValue("masserror_ppm", -1.25);
+  feat.setMetaValue("pipecho_obs_envelope", DoubleList({100.0, 55.5, 20.25}));
+  feat.setPeptideIdentifications({pid});
+  fm.push_back(feat);
+
+  // An identification not attached to any feature. FDR is estimated over this list together
+  // with the attached ones, so which list a PSM is in is part of the result.
+  PeptideHit un_hit;
+  un_hit.setSequence(AASequence::fromString("DAFLGSFLYEYSR"));
+  un_hit.setCharge(2);
+  un_hit.setScore(0.02);
+  un_hit.setMetaValue("target_decoy", "target");
+  PeptideIdentification un_pid;
+  un_pid.setIdentifier("SimpleSearchEngine_1_1F1");
+  un_pid.setScoreType("Posterior Error Probability");
+  un_pid.setHigherScoreBetter(false);
+  un_pid.setRT(999.0);
+  un_pid.setMZ(784.3);
+  un_pid.setSpectrumReference("controllerType=0 controllerNumber=1 scan=999");
+  un_pid.insertHit(un_hit);
+  fm.setUnassignedPeptideIdentifications({un_pid});
+
+  const std::string dir = SystemSettings::getTempDirectory() + "/" + File::getUniqueName() + "_plfq";
+  TEST_TRUE(File::makeDir(dir))
+  TEST_TRUE(FeatureMapArrowIO::exportToParquet(fm, dir))
+
+  FeatureMap in;
+  TEST_TRUE(FeatureMapArrowIO::importFromParquet(dir, in))
+
+  // --- map level ---
+  TEST_EQUAL(in.getUniqueId(), 987654321ULL)
+  StringList run_path;
+  in.getPrimaryMSRunPath(run_path);
+  TEST_EQUAL(run_path.size(), 1)
+  TEST_EQUAL(run_path[0], "BSA1_F1.mzML")
+
+  // --- the partition ---
+  TEST_EQUAL(in.size(), 1)
+  TEST_EQUAL(in[0].getPeptideIdentifications().size(), 1)
+  TEST_EQUAL(in.getUnassignedPeptideIdentifications().size(), 1)
+
+  // --- feature, typed columns are exact ---
+  TEST_REAL_SIMILAR(in[0].getRT(), 1234.5)
+  TEST_REAL_SIMILAR(in[0].getMZ(), 582.3195)
+  TEST_REAL_SIMILAR(in[0].getIntensity(), 123456.0)
+  TEST_EQUAL(in[0].getCharge(), 2)
+  TEST_REAL_SIMILAR(in[0].getOverallQuality(), 0.87)
+
+  // --- the feature meta values ProteomicsLFQ deliberately keeps ---
+  TEST_EQUAL(in[0].metaValueExists("IM_median"), true)
+  TEST_REAL_SIMILAR((double)in[0].getMetaValue("IM_median"), 0.8123)
+  TEST_EQUAL(in[0].metaValueExists("masserror_ppm"), true)
+  TEST_REAL_SIMILAR((double)in[0].getMetaValue("masserror_ppm"), -1.25)
+  TEST_EQUAL(in[0].metaValueExists("pipecho_obs_envelope"), true)
+  TEST_EQUAL(in[0].getMetaValue("pipecho_obs_envelope").valueType(), DataValue::DOUBLE_LIST)
+  TEST_EQUAL(in[0].getMetaValue("pipecho_obs_envelope") == DataValue(DoubleList({100.0, 55.5, 20.25})), true)
+
+  // --- attached PSM ---
+  const PeptideIdentification& in_pid = in[0].getPeptideIdentifications()[0];
+  TEST_EQUAL(in_pid.getScoreType(), "Posterior Error Probability")
+  TEST_EQUAL(in_pid.isHigherScoreBetter(), false)
+  TEST_EQUAL(in_pid.getSpectrumReference(), "controllerType=0 controllerNumber=1 scan=1234")
+  TEST_EQUAL(in_pid.getHits().size(), 1)
+  const PeptideHit& in_hit = in_pid.getHits()[0];
+  TEST_EQUAL(in_hit.getSequence().toString(), "LVNELTEFAK")
+  TEST_EQUAL(in_hit.getCharge(), 2)
+  TEST_REAL_SIMILAR(in_hit.getScore(), 0.001)
+  TEST_EQUAL(in_hit.getMetaValue("target_decoy").toString(), "target")
+  TEST_EQUAL(in_hit.metaValueExists("MS:1002252_score"), true)
+  TEST_EQUAL(in_hit.metaValueExists("q-value"), true)
+  TEST_EQUAL(in_hit.getPeptideEvidences().size(), 1)
+  TEST_EQUAL(in_hit.getPeptideEvidences()[0].getProteinAccession(), "P02769")
+
+  // --- unassigned PSM stayed unassigned ---
+  TEST_EQUAL(in.getUnassignedPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "DAFLGSFLYEYSR")
+
+  // --- protein run: sequence and description feed computeCoverage on the combining side ---
+  TEST_EQUAL(in.getProteinIdentifications().size(), 1)
+  const ProteinIdentification& in_prot = in.getProteinIdentifications()[0];
+  TEST_EQUAL(in_prot.getHits().size(), 1)
+  TEST_EQUAL(in_prot.getHits()[0].getAccession(), "P02769")
+  TEST_EQUAL(in_prot.getHits()[0].getSequence(), "MKWVTFISLLLLFSSAYSRGVFRR")
+  TEST_EQUAL(in_prot.getHits()[0].getDescription(), "Serum albumin OS=Bos taurus")
+  TEST_EQUAL(in_prot.getSearchParameters().db, "18Protein_SoCe_Tr_detergents_trace_target_decoy.fasta")
+  TEST_EQUAL(in_prot.getSearchParameters().fixed_modifications.size(), 1)
+  TEST_EQUAL(in_prot.getSearchParameters().fixed_modifications[0], "Carbamidomethyl (C)")
+  TEST_EQUAL(in_prot.getSearchParameters().variable_modifications[0], "Oxidation (M)")
+
+  // The run identifier is deliberately re-synthesized on import, so it is not asserted here;
+  // a checkpoint must carry the canonical one itself and re-stamp it after loading.
+  TEST_EQUAL(in_prot.getIdentifier() == in_pid.getIdentifier(), true)
+
+  File::removeDirRecursively(dir);
+}
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
+
+START_SECTION([EXTRA] exportToParquet / importFromParquet - tool-defined modifications travel with their definitions)
+{
+  TEST_TRUE(defineMod4b("TestFMap:Assigned", 'K', "C2H2O") != nullptr)
+  TEST_TRUE(defineMod4b("TestFMap:Unassigned", 'R', "CH2") != nullptr)
+  FeatureMap map;
+  map.ensureUniqueId();
+  ProteinIdentification prot;
+  prot.setIdentifier("run4b");
+  prot.setDateTime(DateTime::now());
+  map.getProteinIdentifications().push_back(prot);
+
+  Feature f;
+  f.setRT(100.0);
+  f.setMZ(500.0);
+  f.setIntensity(1000.0);
+  f.ensureUniqueId();
+  PeptideIdentification pa;
+  pa.setIdentifier("run4b");
+  PeptideHit ha;
+  ha.setSequence(AASequence::fromString("PEPK(TestFMap:Assigned)IDE"));
+  pa.insertHit(ha);
+  f.getPeptideIdentifications().push_back(pa);
+  map.push_back(f);
+
+  PeptideIdentification pu;
+  pu.setIdentifier("run4b");
+  PeptideHit hu;
+  hu.setSequence(AASequence::fromString("PEPR(TestFMap:Unassigned)IDE"));
+  pu.insertHit(hu);
+  map.getUnassignedPeptideIdentifications().push_back(pu);
+
+  std::string dir;
+  NEW_TMP_FILE(dir) dir += ".fmd";
+  TEST_TRUE(FeatureMapArrowIO::exportToParquet(map, dir))
+  FeatureMap in;
+  TEST_TRUE(FeatureMapArrowIO::importFromParquet(dir, in))
+  TEST_EQUAL(in.size(), 1)
+  TEST_EQUAL(in.getUnassignedPeptideIdentifications().size(), 1)
+  if (in.size() == 1 && !in[0].getPeptideIdentifications().empty() && !in[0].getPeptideIdentifications()[0].getHits().empty())
+  {
+    TEST_EQUAL(in[0].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "PEPK(TestFMap:Assigned)IDE")
+  }
+  if (in.getUnassignedPeptideIdentifications().size() == 1 && !in.getUnassignedPeptideIdentifications()[0].getHits().empty())
+  {
+    TEST_EQUAL(in.getUnassignedPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "PEPR(TestFMap:Unassigned)IDE")
+  }
+  if (in.getProteinIdentifications().size() == 1)
+  {
+    const auto& sp = in.getProteinIdentifications()[0].getSearchParameters();
+    TEST_TRUE(sp.metaValueExists(Constants::UserParam::MODIFICATION_DEFINITIONS))
+    if (sp.metaValueExists(Constants::UserParam::MODIFICATION_DEFINITIONS))
+    {
+      const std::string v = sp.getMetaValue(Constants::UserParam::MODIFICATION_DEFINITIONS).toString();
+      TEST_TRUE(v.find("TestFMap:Assigned") != std::string::npos)
+      TEST_TRUE(v.find("TestFMap:Unassigned") != std::string::npos)
+    }
+  }
+  File::removeDirRecursively(dir);
+}
+END_SECTION
+
+START_SECTION([EXTRA] importFromParquet - definitions are registered from search_params.parquet)
+{
+  const ModificationsDB* db = ModificationsDB::getInstance();
+  TEST_FALSE(db->hasDefinedModification("TestFMap:Fresh"))
+  FeatureMap map;
+  map.ensureUniqueId();
+  ProteinIdentification prot;
+  prot.setIdentifier("run4b_fresh");
+  prot.setDateTime(DateTime::now());
+  ProteinIdentification::SearchParameters sp;
+  sp.setMetaValue(Constants::UserParam::MODIFICATION_DEFINITIONS, freshRecord4b("TestFMap:Fresh", 'K', "C2H2O"));
+  prot.setSearchParameters(sp);
+  map.getProteinIdentifications().push_back(prot);
+
+  std::string dir;
+  NEW_TMP_FILE(dir) dir += ".fmd";
+  TEST_TRUE(FeatureMapArrowIO::exportToParquet(map, dir))
+  TEST_FALSE(db->hasDefinedModification("TestFMap:Fresh")) // exporting registers nothing
+  FeatureMap in;
+  TEST_TRUE(FeatureMapArrowIO::importFromParquet(dir, in))
+  TEST_TRUE(db->hasDefinedModification("TestFMap:Fresh"))
+  File::removeDirRecursively(dir);
+}
+END_SECTION
+
+START_SECTION([EXTRA] exportToParquet / importFromParquet - meta values come back exactly)
+{
+  // ProteomicsLFQ -feat_dir combines runs from these files, so every value has to read back exactly as it was
+  // written, including doubles that 15 decimals do not represent (e.g. a mass error of -3.6414734172058556 ppm)
+  // and target_decoy values other than "target" and "decoy".
+  const double a = -3.6414734172058556, b = 0.30000000000000004, c = 7.3296492739417545, d = 0.012345678901234567;
+  const DoubleList list = {0.75226820063371558, -0.0073793547922970121, 1234.5678901234567, 1e-300, -2.5e20};
+
+  FeatureMap fm;
+  fm.setUniqueId(4242);
+  fm.setMetaValue("map_double", c);
+  DataProcessing dp;
+  dp.getSoftware().setName("ProteomicsLFQ");
+  dp.setMetaValue("dp_double", d);
+  fm.setDataProcessing({dp});
+
+  ProteinIdentification prot;
+  prot.setIdentifier("run_1");
+  prot.setMetaValue("run_double", b);
+  ProteinHit prot_hit;
+  prot_hit.setAccession("P1");
+  prot_hit.setMetaValue("protein_double", a);
+  prot.insertHit(prot_hit);
+  fm.setProteinIdentifications({prot});
+
+  PeptideHit hit;
+  hit.setSequence(AASequence::fromString("PEPTIDEK"));
+  hit.setCharge(2);
+  hit.setScore(0.0123456789012345678);
+  hit.setMetaValue("target_decoy", "target+decoy"); // more than the is_decoy column holds
+  hit.setMetaValue("psm_double", d);
+  hit.setMetaValue("psm_double_list", list);
+  PeptideIdentification pid;
+  pid.setIdentifier("run_1");
+  pid.setScoreType("Posterior Error Probability");
+  pid.setRT(1234.5678901234567);
+  pid.setMZ(456.78901234567891);
+  pid.setMetaValue("spectrum_double", a);
+  pid.insertHit(hit);
+
+  Feature feat;
+  feat.setRT(1234.5678901234567);
+  feat.setMZ(456.78901234567891);
+  feat.setCharge(2);
+  feat.setUniqueId(7);
+  feat.setMetaValue("masserror_ppm", a);
+  feat.setMetaValue("IM_median", b);
+  feat.setMetaValue("pipecho_obs_envelope", list);
+  feat.setMetaValue("not_a_number", std::numeric_limits<double>::quiet_NaN());
+  feat.setMetaValue("infinite", -std::numeric_limits<double>::infinity());
+  feat.setPeptideIdentifications({pid});
+  fm.push_back(feat);
+
+  std::string dir;
+  NEW_TMP_FILE(dir) dir += ".fmd";
+  TEST_TRUE(FeatureMapArrowIO::exportToParquet(fm, dir))
+  FeatureMap in;
+  TEST_TRUE(FeatureMapArrowIO::importFromParquet(dir, in))
+
+  // compared with ==, not TEST_REAL_SIMILAR: they have to be the same doubles
+  TEST_EQUAL(double(in.getMetaValue("map_double")) == c, true)
+  TEST_EQUAL(in.getDataProcessing().size(), 1)
+  TEST_EQUAL(double(in.getDataProcessing()[0].getMetaValue("dp_double")) == d, true)
+  TEST_EQUAL(in.getProteinIdentifications().size(), 1)
+  TEST_EQUAL(double(in.getProteinIdentifications()[0].getMetaValue("run_double")) == b, true)
+  TEST_EQUAL(double(in.getProteinIdentifications()[0].getHits()[0].getMetaValue("protein_double")) == a, true)
+  TEST_EQUAL(in.size(), 1)
+  const Feature& f = in[0];
+  TEST_EQUAL(double(f.getMetaValue("masserror_ppm")) == a, true)
+  TEST_EQUAL(double(f.getMetaValue("IM_median")) == b, true)
+  TEST_EQUAL(f.getMetaValue("pipecho_obs_envelope").valueType(), DataValue::DOUBLE_LIST)
+  TEST_EQUAL(f.getMetaValue("pipecho_obs_envelope").toDoubleList() == list, true)
+  TEST_EQUAL(std::isnan(double(f.getMetaValue("not_a_number"))), true)
+  TEST_EQUAL(double(f.getMetaValue("infinite")) == -std::numeric_limits<double>::infinity(), true)
+  TEST_EQUAL(f.getPeptideIdentifications().size(), 1)
+  const PeptideIdentification& in_pid = f.getPeptideIdentifications()[0];
+  TEST_EQUAL(in_pid.getRT() == pid.getRT(), true)
+  TEST_EQUAL(in_pid.getMZ() == pid.getMZ(), true)
+  TEST_EQUAL(double(in_pid.getMetaValue("spectrum_double")) == a, true)
+  const PeptideHit& in_hit = in_pid.getHits()[0];
+  TEST_EQUAL(in_hit.getScore() == hit.getScore(), true)
+  TEST_EQUAL(in_hit.getMetaValue("target_decoy").toString(), "target+decoy")
+  TEST_EQUAL(double(in_hit.getMetaValue("psm_double")) == d, true)
+  TEST_EQUAL(in_hit.getMetaValue("psm_double_list").toDoubleList() == list, true)
+  File::removeDirRecursively(dir);
+}
+END_SECTION
 
 END_TEST

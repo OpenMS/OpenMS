@@ -13,6 +13,7 @@
 
 #include <OpenMS/FORMAT/FileInfo.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/SYSTEM/SystemSettings.h>
 
 #include <string>
 
@@ -130,7 +131,7 @@ START_SECTION((forced type selects the parse branch for an unrecognized extensio
   // content sniffing). A wrong-but-known extension (e.g. .mzML) would
   // therefore throw, so it cannot be used to demonstrate a "bypass" here.
   std::string src_path = OPENMS_GET_TEST_DATA_PATH("AccurateMassSearchEngine_input1.featureXML");
-  std::string tmp_path = File::getTempDirectory() + "/test_forced_type.tmp";
+  std::string tmp_path = SystemSettings::getTempDirectory() + "/test_forced_type.tmp";
 
   bool copy_success = File::copy(src_path, tmp_path);
   TEST_EQUAL(copy_success, true)

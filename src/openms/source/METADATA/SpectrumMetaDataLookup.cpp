@@ -6,7 +6,10 @@
 // $Authors: Hendrik Weisser $
 // --------------------------------------------------------------------------
 
+#include "../DATASTRUCTURES/RegularExpressionInternal.h"
 #include <OpenMS/METADATA/SpectrumMetaDataLookup.h>
+#include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/IONMOBILITY/IMTypes.h>
 #include <OpenMS/IONMOBILITY/FAIMSHelper.h>
 #include <OpenMS/CONCEPT/Constants.h>
@@ -15,6 +18,7 @@ using namespace std;
 
 namespace OpenMS
 {
+  using Internal::RegularExpressionAccess;
   void SpectrumMetaDataLookup::getSpectrumMetaData(Size index,
                                                    SpectrumMetaData& meta) const
   {
@@ -29,7 +33,7 @@ namespace OpenMS
 
   void SpectrumMetaDataLookup::getSpectrumMetaData(
     const MSSpectrum& spectrum, SpectrumMetaData& meta,
-    const boost::regex& scan_regexp, const map<Size, double>& precursor_rts)
+    const RegularExpression& scan_regexp, const map<Size, double>& precursor_rts)
   {
     meta.native_id = spectrum.getNativeID();
     meta.rt = spectrum.getRT();
@@ -68,11 +72,11 @@ namespace OpenMS
                                                    SpectrumMetaData& meta,
                                                    MetaDataFlags flags) const
   {
-    for (std::vector<boost::regex>::const_iterator it = 
+    for (std::vector<RegularExpression>::const_iterator it =
            reference_formats.begin(); it != reference_formats.end(); ++it)
     {
-      boost::smatch match;
-      bool found = boost::regex_search(spectrum_ref, match, *it);
+      Internal::RegularExpressionMatch match;
+      bool found = boost::regex_search(spectrum_ref, static_cast<boost::smatch&>(match), RegularExpressionAccess::get(*it));
       if (found)
       {
         // first try to extract the requested meta data from the reference:
@@ -210,8 +214,10 @@ bool SpectrumMetaDataLookup::addMissingRTsToPeptideIDs(PeptideIdentificationList
       std::string native_id = pep.getSpectrumReference();
       Size index = lookup.findByNativeID(native_id);
       const MSSpectrum& spec =  exp.getSpectra()[index];
-      // Check if desired IM format is present
-	  if (IMTypes::determineIMFormat(spec) == IMFormat::IM_SPECTRUM)
+      // Check if desired IM format is present (a FAIMS compensation voltage is no ion mobility value:
+      // addMissingFAIMSToPeptideIDs annotates it as FAIMS_CV)
+	  if (IMTypes::determineIMFormat(spec) == IMFormat::IM_SPECTRUM
+          && spec.getDriftTimeUnit() != DriftTimeUnit::FAIMS_COMPENSATION_VOLTAGE)
 	  {
         pep.setMetaValue(Constants::UserParam::IM, spec.getDriftTime());
 	  }
@@ -302,10 +308,19 @@ bool SpectrumMetaDataLookup::addMissingRTsToPeptideIDs(PeptideIdentificationList
   }
 
   bool SpectrumMetaDataLookup::addMissingSpectrumReferences(PeptideIdentificationList& peptides, const std::string& filename,
-    bool stop_on_error, 
-    bool override_spectra_data, 
+    bool stop_on_error,
+    bool override_spectra_data,
+    bool override_spectra_references)
+  {
+    vector<ProteinIdentification> no_proteins;
+    return addMissingSpectrumReferences(peptides, filename, stop_on_error, override_spectra_data, override_spectra_references, no_proteins);
+  }
+
+  bool SpectrumMetaDataLookup::addMissingSpectrumReferences(PeptideIdentificationList& peptides, const std::string& filename,
+    bool stop_on_error,
+    bool override_spectra_data,
     bool override_spectra_references,
-    vector<ProteinIdentification> proteins)
+    vector<ProteinIdentification>& proteins)
   {
     bool success = true;
     PeakMap exp;

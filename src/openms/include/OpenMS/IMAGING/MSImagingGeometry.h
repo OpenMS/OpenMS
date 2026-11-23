@@ -59,16 +59,16 @@ public:
       @brief Records the physical pixel size and its unit.
       @param[in] x    Pixel size along x.
       @param[in] y    Pixel size along y.
-      @param[in] unit Length unit (default "micrometer").
+      @param[in] unit Length unit, e.g. "micrometer".
     */
-    void setPixelSize(double x, double y, const std::string& unit = "micrometer");
+    void setPixelSize(double x, double y, const std::string& unit);
 
   /// @brief Physical pixel size along x.
-  /// @return Stored x pixel size.
+  /// @return Stored x pixel size. -1 if unknown.
   double getPixelSizeX() const;
 
   /// @brief Physical pixel size along y.
-  /// @return Stored y pixel size.
+  /// @return Stored y pixel size. -1 if unknown.
   double getPixelSizeY() const;
 
     /// @brief Unit for the pixel size.
@@ -184,9 +184,9 @@ public:
   private:
     UInt width_ = 0;
     UInt height_ = 0;
-    double pixel_size_x_ = 1.0;
-    double pixel_size_y_ = 1.0;
-    std::string pixel_size_unit_ = "micrometer";
+    double pixel_size_x_ = -1.0;
+    double pixel_size_y_ = -1.0;
+    std::string pixel_size_unit_ = "unknown";
     std::vector<Pixel> pixels_;
     std::unordered_map<UInt64, Size> lookup_;
 

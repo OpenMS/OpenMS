@@ -306,14 +306,14 @@ code.
     ethanol = oms.EmpiricalFormula("CH2") + methanol
     print("Ethanol chemical formula:", ethanol.toString())
     print("Ethanol composition:", ethanol.getElementalComposition())
-    print("Ethanol has", ethanol.getElementalComposition()[b"H"], "hydrogen atoms")
+    print("Ethanol has", ethanol.getElementalComposition()["H"], "hydrogen atoms")
 
 which produces
 
 .. code-block:: output
 
     Ethanol chemical formula: C2H6O1
-    Ethanol composition: {b'C': 2, b'H': 6, b'O': 1}
+    Ethanol composition: {'C': 2, 'H': 6, 'O': 1}
     Ethanol has 6 hydrogen atoms
 
 
@@ -352,15 +352,15 @@ which produces
 .. code-block:: output
 
   Ethanol chemical formula: C2H6O1
-  Ethanol composition: {b'C': 2, b'H': 6, b'O': 1}
+  Ethanol composition: {'C': 2, 'H': 6, 'O': 1}
   Ethanol weight: 46.0418651914
 
   Ethanol chemical formula: (13)C1C1H6O1
-  Ethanol composition: {b'(13)C': 1, b'C': 1, b'H': 6, b'O': 1}
+  Ethanol composition: {'(13)C': 1, 'C': 1, 'H': 6, 'O': 1}
   Ethanol weight: 47.0452201914
 
   Ethanol chemical formula: (13)C2H6O1
-  Ethanol composition: {b'(13)C': 2, b'H': 6, b'O': 1}
+  Ethanol composition: {'(13)C': 2, 'H': 6, 'O': 1}
   Ethanol weight: 48.0485751914
 
 Isotopic Distributions
@@ -674,14 +674,14 @@ same class. Currently, support for RNA is implemented.
 
 .. code-block:: python
 
-    uridine = oms.RibonucleotideDB().getRibonucleotide(b"U")
+    uridine = oms.RibonucleotideDB().getRibonucleotide("U")
     print(uridine.getName())
     print(uridine.getCode())
     print(uridine.getAvgMass())
     print(uridine.getMonoMass())
     print(uridine.getFormula().toString())
     print(uridine.isModified())
-    methyladenosine = oms.RibonucleotideDB().getRibonucleotide(b"m1A")
+    methyladenosine = oms.RibonucleotideDB().getRibonucleotide("m1A")
     print(methyladenosine.getName())
     print(methyladenosine.isModified())
 
@@ -698,7 +698,7 @@ same class. Currently, support for RNA is implemented.
     True
 
 .. We could also showcase the "get alternatives" method
-.. for alt in RibonucleotideDB().getRibonucleotideAlternatives(b"mmA?"):  print(alt.getName())
+.. for alt in RibonucleotideDB().getRibonucleotideAlternatives("mmA?"):  print(alt.getName())
 
 
 .. [1] Łącki MK, Startek M, Valkenborg D, Gambin A.

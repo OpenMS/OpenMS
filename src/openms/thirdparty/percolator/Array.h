@@ -8,7 +8,6 @@
 #define _Array_H
 
 
-
 #include <iostream>
 #include <vector>
 #include <cmath>
@@ -18,6 +17,8 @@
 #include <functional>
 
 namespace OpenMS { namespace Internal { namespace Percolator {
+
+
 
 template <typename T>
 class Array 

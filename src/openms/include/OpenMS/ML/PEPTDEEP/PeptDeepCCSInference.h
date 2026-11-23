@@ -22,18 +22,18 @@ namespace OpenMS
   public:
     /// @brief Constructor initializes the ONNX session with the specified model graph.
     /// @param model_path Absolute or relative path to the PeptDeep CCS ONNX model file.
-    /// @param intra_op_threads Number of ONNX execution threads (default 4).
+    /// @param threads The model runs (of at most @p batch_size peptides of one length each) that run at once, each on one thread (default 4).
     /// @param batch_size Maximum number of peptides to process in a single ONNX run (default 500).
-    explicit PeptDeepCCSInference(const std::string& model_path, int intra_op_threads = 4, size_t batch_size = 500);
+    explicit PeptDeepCCSInference(const std::string& model_path, int threads = 4, size_t batch_size = 500);
 
     /// @brief Destructor
     ~PeptDeepCCSInference();
 
-    /// @brief Predicts CCS values for a batch of unmodified peptide sequences.
-    /// @param peptides A vector of raw uppercase peptide strings.
+    /// @brief Predicts CCS values for a batch of peptide sequences.
+    /// @param peptides A vector of peptide strings. Supports OpenMS AASequence modification notation (e.g., "PEPTIDEK", "M(Oxidation)PEP").
     /// @param charges A vector of precursor charge states. Must match peptides size.
     /// @return A vector of predicted CCS values corresponding to the input peptides.
-    /// @throws Exception::IllegalArgument if peptides is empty, charges.size() != peptides.size(), or a sequence is invalid/modified.
+    /// @throws Exception::IllegalArgument if peptides is empty, size constraints fail, or a sequence is chemically invalid.
     std::vector<float> predictCCS(
       const std::vector<std::string>& peptides,
       const std::vector<float>& charges);

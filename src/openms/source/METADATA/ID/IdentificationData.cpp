@@ -10,6 +10,7 @@
 #include <OpenMS/CHEMISTRY/ProteaseDB.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <numeric>
+#include <tuple>
 
 using namespace std;
 
@@ -72,7 +73,8 @@ namespace OpenMS
       throw Exception::IllegalArgument(__FILE__, __LINE__,
                                         OPENMS_PRETTY_FUNCTION, msg);
     }
-    container.modify(ref, [&key, &value](typename ContainerType::value_type& element)
+    auto position = ref; // modify() updates the position it is given; a meta value is no key
+    container.modify(position, [&key, &value](typename ContainerType::value_type& element)
     {
       element.setMetaValue(key, value);
     });
@@ -293,6 +295,13 @@ namespace OpenMS
         std::string msg = "invalid reference to database search parameters - register those first";
         throw Exception::IllegalArgument(__FILE__, __LINE__,
                                          OPENMS_PRETTY_FUNCTION, msg);
+      }
+      const auto existing = db_search_steps_.find(step_ref);
+      if (existing != db_search_steps_.end() && existing->second != search_ref)
+      {
+        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+          "A processing step is already associated with different database search parameters. Use a distinct processing step.",
+          step.date_time.toString("yyyy-MM-ddThh:mm:ss.zzz"));
       }
       db_search_steps_.insert(make_pair(step_ref, search_ref));
     }
@@ -619,6 +628,24 @@ namespace OpenMS
   }
 
 
+  bool IdentificationData::observationMatchLess(const ObservationMatch& left, const ObservationMatch& right)
+  {
+    // Reference ordering uses memory addresses. Equal scores must instead be
+    // resolved by stable molecule/adduct values, without preferring target status.
+    auto tie_key = [](const ObservationMatch& match)
+    {
+      const auto& molecule = match.identified_molecule_var;
+      const auto& adduct = match.adduct_opt;
+      return std::make_tuple(molecule.getMoleculeType(), molecule.toString(), match.charge,
+                             bool(adduct),
+                             adduct ? (*adduct)->getName() : std::string(),
+                             adduct ? (*adduct)->getEmpiricalFormula().toString() : std::string(),
+                             adduct ? (*adduct)->getCharge() : 0,
+                             adduct ? (*adduct)->getMolMultiplier() : UInt(0));
+    };
+    return tie_key(left) < tie_key(right);
+  }
+
   vector<IdentificationData::ObservationMatchRef>
   IdentificationData::getBestMatchPerObservation(ScoreTypeRef score_ref,
                                                  bool require_score) const
@@ -634,7 +661,9 @@ namespace OpenMS
       pair<double, bool> current_score = ref->getScore(score_ref);
       if (current_score.second && (!best_score.second ||
                                    score_ref->isBetterScore(current_score.first,
-                                                           best_score.first)))
+                                                           best_score.first) ||
+                                   ((current_score.first == best_score.first) &&
+                                    observationMatchLess(*ref, *best_ref))))
       {
         // new best score for the current observation:
         best_score = current_score;
@@ -938,10 +967,16 @@ namespace OpenMS
            group_it != group_set.groups.end(); )
       {
         Size old_size = group_it->parent_refs.size();
-        group_set.groups.modify(group_it, [&](ParentGroup& group)
+        // A group whose remaining members equal another group's is erased by modify(),
+        // which then leaves group_it at the next group.
+        if (!group_set.groups.modify(group_it, [&](ParentGroup& group)
         {
           removeFromSetIfNotHashed_(group.parent_refs, parent_lookup_);
-        });
+        }))
+        {
+          warn = true;
+          continue;
+        }
         if (group_it->parent_refs.empty())
         {
           group_it = group_set.groups.erase(group_it);
@@ -968,10 +1003,14 @@ namespace OpenMS
          group_it != observation_match_groups_.end(); )
     {
       Size old_size = group_it->observation_match_refs.size();
-      observation_match_groups_.modify(group_it, [&](ObservationMatchGroup& group)
+      if (!observation_match_groups_.modify(group_it, [&](ObservationMatchGroup& group)
       {
         removeFromSetIfNotHashed_(group.observation_match_refs, observation_match_lookup_);
-      });
+      }))
+      {
+        warn = true;
+        continue;
+      }
       if (group_it->observation_match_refs.empty())
       {
         group_it = observation_match_groups_.erase(group_it);
@@ -1350,7 +1389,8 @@ namespace OpenMS
       std::string msg = "invalid reference to an observation match";
       throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, msg);
     }
-    observation_matches_.modify(ref, [&key](ObservationMatch& element)
+    auto position = ref;
+    observation_matches_.modify(position, [&key](ObservationMatch& element)
     {
       element.removeMetaValue(key);
     });

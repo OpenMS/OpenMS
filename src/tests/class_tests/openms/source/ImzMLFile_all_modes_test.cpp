@@ -3,7 +3,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
-// $Authors: Aditya Sarna $
+// $Authors: Aditya Sarna, Patrick Boschmann $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/ClassTest.h>
@@ -123,7 +123,8 @@ START_SECTION(mode 4: loadSpectraIndex for on-disc access)
 {
   ImzMLMeta meta;
   std::vector<ImzMLSpectrumIndex> index;
-  ImzMLFile().loadSpectraIndex(continuous_path, meta, index);
+  MSExperiment index_spectra;
+  ImzMLFile().loadSpectraIndex(continuous_path, meta, index, index_spectra);
 
   TEST_EQUAL(index.size(), k_continuous_spectra)
   TEST_EQUAL(meta.imaging_mode, "continuous")
@@ -135,6 +136,18 @@ START_SECTION(mode 4: loadSpectraIndex for on-disc access)
     TEST_EQUAL(index[0].y, 1)
     TEST_EQUAL(index[0].mz_length > 0, true)
   }
+
+  // spectrum metadata in index order: the full load's spectra without peaks
+  MSExperiment full = loadImzMLExperiment_(continuous_path);
+  TEST_EQUAL(index_spectra.getNrSpectra(), index.size())
+  for (Size i = 0; i < index_spectra.getNrSpectra(); ++i)
+  {
+    TEST_TRUE(index_spectra[i].empty())
+    MSSpectrum ref = full[i];
+    ref.clear(false);
+    TEST_TRUE(index_spectra[i] == ref)
+  }
+  TEST_TRUE(static_cast<const ExperimentalSettings&>(index_spectra) == static_cast<const ExperimentalSettings&>(full))
 }
 END_SECTION
 

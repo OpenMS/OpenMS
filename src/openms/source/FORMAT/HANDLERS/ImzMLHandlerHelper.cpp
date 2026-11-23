@@ -8,12 +8,20 @@
 
 #include <OpenMS/FORMAT/HANDLERS/ImzMLHandlerHelper.h>
 #include <OpenMS/CONCEPT/Exception.h>
+#include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CONCEPT/Types.h>
+#include <OpenMS/IONMOBILITY/IMTypes.h>
+#include <OpenMS/KERNEL/MSSpectrum.h>
 
+#include <algorithm>
+#include <array>
+#include <cmath>
 #include <cstdint>
 #include <cstdio>
 #include <cstring>
 #include <limits>
+#include <string_view>
+#include <utility>
 
 #ifndef OPENMS_IS_BIG_ENDIAN
 #if defined(OPENMS_BIG_ENDIAN)
@@ -186,6 +194,86 @@ void ImzMLBinaryIO::readMzArray(FILE* ibd,
   }
 }
 
+namespace
+{
+  /// Shared float-typed .ibd array reader. @p context names the array in error messages.
+  void readFloatVector_(FILE* ibd,
+                        const uint64_t offset,
+                        const uint64_t count,
+                        const ImzMLSpectrumIndex::DataType dt,
+                        std::vector<float>& out,
+                        const std::string& ibd_path,
+                        const std::string& context)
+  {
+    out.clear();
+    if (!ibd || count == 0)
+    {
+      return;
+    }
+
+    validateCount_(count, ibd_path, context.c_str());
+
+    seekIbd_(ibd, offset, ibd_path, context.c_str());
+
+    out.resize(count);
+
+    switch (dt)
+    {
+      case ImzMLSpectrumIndex::DataType::FLOAT32:
+        if (fread(out.data(), 4, count, ibd) != count)
+        {
+          throwReadError_(ibd_path, "failed to read float32 " + context + " from .ibd");
+        }
+        decodeLittleEndian_(out.data(), count);
+        break;
+      case ImzMLSpectrumIndex::DataType::FLOAT64:
+      {
+        std::vector<double> tmp(count);
+        if (fread(tmp.data(), 8, count, ibd) != count)
+        {
+          throwReadError_(ibd_path, "failed to read float64 " + context + " from .ibd");
+        }
+        decodeLittleEndian_(tmp.data(), count);
+        for (Size i = 0; i < count; ++i)
+        {
+          out[i] = static_cast<float>(tmp[i]);
+        }
+        break;
+      }
+      case ImzMLSpectrumIndex::DataType::INT32:
+      {
+        std::vector<int32_t> tmp(count);
+        if (fread(tmp.data(), 4, count, ibd) != count)
+        {
+          throwReadError_(ibd_path, "failed to read int32 " + context + " from .ibd");
+        }
+        decodeLittleEndian_(tmp.data(), count);
+        for (Size i = 0; i < count; ++i)
+        {
+          out[i] = static_cast<float>(tmp[i]);
+        }
+        break;
+      }
+      case ImzMLSpectrumIndex::DataType::INT64:
+      {
+        std::vector<int64_t> tmp(count);
+        if (fread(tmp.data(), 8, count, ibd) != count)
+        {
+          throwReadError_(ibd_path, "failed to read int64 " + context + " from .ibd");
+        }
+        decodeLittleEndian_(tmp.data(), count);
+        for (Size i = 0; i < count; ++i)
+        {
+          out[i] = static_cast<float>(tmp[i]);
+        }
+        break;
+      }
+      default:
+        throwReadError_(ibd_path, "unsupported " + context + " data type in .ibd");
+    }
+  }
+} // namespace
+
 void ImzMLBinaryIO::readIntArray(FILE* ibd,
                                  const uint64_t offset,
                                  const uint64_t count,
@@ -193,72 +281,19 @@ void ImzMLBinaryIO::readIntArray(FILE* ibd,
                                  std::vector<float>& out,
                                  const std::string& ibd_path)
 {
-  out.clear();
-  if (!ibd || count == 0)
-  {
-    return;
-  }
+  readFloatVector_(ibd, offset, count, dt, out, ibd_path, "intensity array");
+}
 
-  validateCount_(count, ibd_path, "intensity array");
-
-  seekIbd_(ibd, offset, ibd_path, "intensity array");
-
-  out.resize(count);
-
-  switch (dt)
-  {
-    case ImzMLSpectrumIndex::DataType::FLOAT32:
-      if (fread(out.data(), 4, count, ibd) != count)
-      {
-        throwReadError_(ibd_path, "failed to read float32 intensity array from .ibd");
-      }
-      decodeLittleEndian_(out.data(), count);
-      break;
-    case ImzMLSpectrumIndex::DataType::FLOAT64:
-    {
-      std::vector<double> tmp(count);
-      if (fread(tmp.data(), 8, count, ibd) != count)
-      {
-        throwReadError_(ibd_path, "failed to read float64 intensity array from .ibd");
-      }
-      decodeLittleEndian_(tmp.data(), count);
-      for (Size i = 0; i < count; ++i)
-      {
-        out[i] = static_cast<float>(tmp[i]);
-      }
-      break;
-    }
-    case ImzMLSpectrumIndex::DataType::INT32:
-    {
-      std::vector<int32_t> tmp(count);
-      if (fread(tmp.data(), 4, count, ibd) != count)
-      {
-        throwReadError_(ibd_path, "failed to read int32 intensity array from .ibd");
-      }
-      decodeLittleEndian_(tmp.data(), count);
-      for (Size i = 0; i < count; ++i)
-      {
-        out[i] = static_cast<float>(tmp[i]);
-      }
-      break;
-    }
-    case ImzMLSpectrumIndex::DataType::INT64:
-    {
-      std::vector<int64_t> tmp(count);
-      if (fread(tmp.data(), 8, count, ibd) != count)
-      {
-        throwReadError_(ibd_path, "failed to read int64 intensity array from .ibd");
-      }
-      decodeLittleEndian_(tmp.data(), count);
-      for (Size i = 0; i < count; ++i)
-      {
-        out[i] = static_cast<float>(tmp[i]);
-      }
-      break;
-    }
-    default:
-      throwReadError_(ibd_path, "unsupported intensity array data type in .ibd");
-  }
+void ImzMLBinaryIO::readAuxArray(FILE* ibd,
+                                 const uint64_t offset,
+                                 const uint64_t count,
+                                 const ImzMLSpectrumIndex::DataType dt,
+                                 std::vector<float>& out,
+                                 const std::string& ibd_path,
+                                 const std::string& array_name)
+{
+  readFloatVector_(ibd, offset, count, dt, out, ibd_path,
+                   array_name.empty() ? std::string("auxiliary array") : array_name);
 }
 
 void ImzMLBinaryIO::writeFloat32Array(FILE* ibd,
@@ -346,6 +381,120 @@ void ImzMLBinaryIO::writeMzAsFloat64(FILE* ibd,
     return;
   }
   writeFloat64Array(ibd, mz.data(), mz.size(), ibd_path);
+}
+
+double ImzMLSpectrumRules::scanStartTime(const MSSpectrum& s)
+{
+  if (s.getRT() >= 0.0) // a caller-set RT wins; also skips the MetaValue lookup for non-imaging spectra
+  {
+    return s.getRT();
+  }
+  const DataValue& v = s.getMetaValue("imzml:scan_start_time"); // DataValue::EMPTY if not set
+  if (v.valueType() == DataValue::DOUBLE_VALUE || v.valueType() == DataValue::INT_VALUE)
+  {
+    const double t = static_cast<double>(v);
+    if (std::isfinite(t) && t >= 0.0)
+    {
+      return t;
+    }
+  }
+  return s.getRT();
+}
+
+bool ImzMLSpectrumRules::isLoadableAuxArray(const std::string& name, uint64_t length,
+                                            ImzMLSpectrumIndex::DataType type, uint64_t n_peaks,
+                                            bool warn, uint32_t x, uint32_t y, uint32_t z)
+{
+  std::string reason;
+  if (name.empty())
+  {
+    reason = "no MS:1000513 / MS:1000786 identity";
+  }
+  else if (length == 0)
+  {
+    return false; // nothing to read
+  }
+  else if (length != n_peaks)
+  {
+    reason = "length " + StringConversions::toString(length) + " != peak count " + StringConversions::toString(n_peaks)
+             + " (viewers require equal length for ion mobility)";
+  }
+  else if (type == ImzMLSpectrumIndex::DataType::UNKNOWN)
+  { // no MS:1000521/1000523/1000519/1000522 on this array: skip it rather than abort,
+    // as for the other bad aux arrays
+    reason = "missing or unsupported binary data type";
+  }
+  else
+  {
+    return true;
+  }
+  if (warn)
+  {
+    OPENMS_LOG_WARN << "Skipping auxiliary array '" << name << "' at pixel (" << x << "," << y << "," << z
+                    << "): " << reason << "\n";
+  }
+  return false;
+}
+
+void ImzMLSpectrumRules::attachAuxArray(MSSpectrum& s, const std::string& name, const std::string& unit_accession,
+                                        const std::vector<float>& values)
+{
+  auto& float_arrays = s.getFloatDataArrays();
+  auto it = std::find_if(float_arrays.begin(), float_arrays.end(),
+                         [&name](const auto& a) { return a.empty() && a.getName() == name; });
+  if (it == float_arrays.end())
+  {
+    it = float_arrays.emplace(float_arrays.end());
+    it->setName(name);
+    if (!unit_accession.empty())
+    {
+      it->setMetaValue("unit_accession", unit_accession);
+    }
+  }
+  it->assign(values.begin(), values.end());
+}
+
+void ImzMLSpectrumRules::pruneEmptyDataArrays(MSSpectrum& s)
+{
+  auto prune = [](auto& arrays) {
+    arrays.erase(std::remove_if(arrays.begin(), arrays.end(),
+                                [](const auto& a) { return a.empty(); }),
+                 arrays.end());
+  };
+  prune(s.getFloatDataArrays());
+  prune(s.getIntegerDataArrays());
+  prune(s.getStringDataArrays());
+}
+
+void ImzMLSpectrumRules::applyIMPeakType(MSSpectrum& s, bool has_im_array)
+{
+  if (!has_im_array)
+  {
+    s.setIMPeakType(IMPeakType::UNKNOWN);
+  }
+  else if (s.getIMPeakType() == IMPeakType::UNKNOWN)
+  {
+    s.setIMPeakType(IMPeakType::IM_PROFILE);
+  }
+}
+
+std::optional<int> lengthUnitExponent(const std::string& unit_accession)
+{
+  // UO length units with their SI exponent (power of ten relative to meter)
+  static constexpr std::array<std::pair<std::string_view, int>, 7> units{{
+    {"UO:0000008",   0}, // meter
+    {"UO:0000015",  -2}, // centimeter
+    {"UO:0000016",  -3}, // millimeter
+    {"UO:0000017",  -6}, // micrometer
+    {"UO:0000018",  -9}, // nanometer
+    {"UO:0000019", -10}, // angstrom
+    {"UO:0000020", -12}, // picometer
+  }};
+  for (const auto& [acc, exp] : units)
+  {
+    if (acc == unit_accession) return exp;
+  }
+  return std::nullopt;
 }
 
 } // namespace OpenMS

@@ -1,0 +1,43 @@
+# Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+# SPDX-License-Identifier: BSD-3-Clause
+# $Maintainer: OpenMS Team $
+# Check the CLI seed forwarding on both the heavy (TraML) and light (TSV) paths.
+function(run_tool)
+  execute_process(COMMAND ${ARGV} RESULT_VARIABLE result OUTPUT_VARIABLE output ERROR_VARIABLE error)
+  if (NOT result EQUAL 0)
+    message(FATAL_ERROR "Seed regression command failed (${result}): ${ARGV}\n${output}\n${error}")
+  endif()
+endfunction()
+
+file(MAKE_DIRECTORY "${OUTPUT_DIR}")
+run_tool("${CONVERTER}" -test -in "${INPUT}" -out "${OUTPUT_DIR}/input.tsv")
+foreach(path heavy light)
+  if (path STREQUAL "heavy")
+    set(input "${INPUT}")
+  else()
+    set(input "${OUTPUT_DIR}/input.tsv")
+  endif()
+  foreach(seed default 1 42 -1)
+    set(seed_option)
+    if (NOT seed STREQUAL "default")
+      set(seed_option -shuffle_seed ${seed})
+    endif()
+    set(output "${OUTPUT_DIR}/${path}_${seed}.tsv")
+    run_tool("${GENERATOR}" -test -in "${input}" -out "${output}" -method shuffle
+      -separate -switchKR false -min_decoy_fraction 0 -product_mz_threshold 0.8 ${seed_option})
+    file(STRINGS "${output}" lines)
+    list(LENGTH lines line_count)
+    if (line_count LESS 2)
+      message(FATAL_ERROR "${path} seed ${seed} produced no decoy rows")
+    endif()
+    # Output row ordering is not part of the seed contract.
+    list(SORT lines)
+    set(rows_${seed} "${lines}")
+  endforeach()
+  if (NOT rows_default STREQUAL rows_1)
+    message(FATAL_ERROR "${path}: default seed differs from explicit seed 1")
+  endif()
+  if (rows_1 STREQUAL rows_42)
+    message(FATAL_ERROR "${path}: explicit seed 42 was not forwarded")
+  endif()
+endforeach()

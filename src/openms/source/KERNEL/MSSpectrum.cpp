@@ -8,96 +8,44 @@
 
 #include <OpenMS/config.h>
 #include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/CONCEPT/Macros.h>
 
 #include <OpenMS/KERNEL/MSSpectrum.h>
 
-#include <OpenMS/CONCEPT/LogStream.h>
-#include <OpenMS/FORMAT/ControlledVocabulary.h>
-#include <OpenMS/FORMAT/PeakTypeEstimator.h>
-#include <OpenMS/IONMOBILITY/IMDataConverter.h>
+#include <OpenMS/KERNEL/PeakTypeEstimator.h>
+#include <OpenMS/IONMOBILITY/IMDataArrayUtils.h>
+
+#include "PeakContainerHelpers.h"
 
 namespace OpenMS
 {
-  MSSpectrum &MSSpectrum::select(const std::vector<Size> &indices)
+  void MSSpectrum::checkDataArraySizes_() const
   {
-    Size snew = indices.size();
-    ContainerType tmp;
-    tmp.reserve(indices.size());
+    Internal::PeakContainerHelpers::checkDataArraySizes(size(), float_data_arrays_, string_data_arrays_, integer_data_arrays_,
+                                                        "spectrum", OPENMS_PRETTY_FUNCTION);
+  }
 
-    const Size peaks_old = size();
+  MSSpectrum& MSSpectrum::select(const std::vector<Size>& indices)
+  {
+    // The range check is the guarantee of this entry point (and of the Python binding): an
+    // out-of-range index is rejected before any storage is touched, so the spectrum is left
+    // unchanged. selectUnchecked() then performs the actual reordering.
+    Internal::PeakContainerHelpers::checkSelectIndices(indices, size(), "spectrum", OPENMS_PRETTY_FUNCTION);
+    return selectUnchecked(indices);
+  }
 
-    for (Size i = 0; i < snew; ++i)
-    {
-      tmp.push_back(std::move(ContainerType::operator[](indices[i])));
-    }
-    ContainerType::swap(tmp);
+  MSSpectrum& MSSpectrum::selectUnchecked(const std::vector<Size>& indices)
+  {
+    // Cheap and independent of the indices: guards a mis-sized data array from being indexed out
+    // of bounds during the reorder below. Deliberately re-checked here even though sort() already
+    // checks before its stable_sort(): selectUnchecked() is public and callable directly, so this is
+    // not dead code -- the two calls guard different windows (the predicate vs. the reorder loops).
+    checkDataArraySizes_();
 
-    std::vector<float> mda_tmp_float;
-    for (Size i = 0; i < float_data_arrays_.size(); ++i)
-    {
-      if (float_data_arrays_[i].empty())
-      {
-        continue;
-      }
-      if (float_data_arrays_[i].size() != peaks_old)
-      {
-        throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "FloatDataArray[" + StringUtils::toStr(i) + "] size (" +
-                                                                                  StringUtils::toStr(float_data_arrays_[i].size()) + ") does not match spectrum size (" + StringUtils::toStr(peaks_old) + ")");
-      }
-
-      mda_tmp_float.clear();
-      mda_tmp_float.reserve(float_data_arrays_[i].size());
-      for (Size j = 0; j < snew; ++j)
-      {
-        mda_tmp_float.push_back(std::move(float_data_arrays_[i][indices[j]]));
-      }
-      std::swap(float_data_arrays_[i], mda_tmp_float);
-    }
-
-    std::vector<std::string> mda_tmp_str;
-    for (Size i = 0; i < string_data_arrays_.size(); ++i)
-    {
-      if (string_data_arrays_[i].empty())
-      {
-        continue;
-      }
-      if (string_data_arrays_[i].size() != peaks_old)
-      {
-        throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "StringDataArray[" + StringUtils::toStr(i) + "] size (" +
-                                                                                  StringUtils::toStr(string_data_arrays_[i].size()) + ") does not match spectrum size (" + StringUtils::toStr(peaks_old) + ")");
-      }
-
-      mda_tmp_str.clear();
-      mda_tmp_str.reserve(string_data_arrays_[i].size());
-      for (Size j = 0; j < snew; ++j)
-      {
-        mda_tmp_str.push_back(std::move(string_data_arrays_[i][indices[j]]));
-      }
-      std::swap(string_data_arrays_[i], mda_tmp_str);
-    }
-
-    std::vector<Int> mda_tmp_int;
-    for (Size i = 0; i < integer_data_arrays_.size(); ++i)
-    {
-      if (integer_data_arrays_[i].empty())
-      {
-        continue;
-      }
-      if (integer_data_arrays_[i].size() != peaks_old)
-      {
-        throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "IntegerDataArray[" + StringUtils::toStr(i) + "] size (" +
-                                                                                  StringUtils::toStr(integer_data_arrays_[i].size()) + ") does not match spectrum size (" + StringUtils::toStr(peaks_old) + ")");
-      }
-
-      mda_tmp_int.clear();
-      mda_tmp_int.reserve(integer_data_arrays_[i].size());
-      for (Size j = 0; j < snew; ++j)
-      {
-        mda_tmp_int.push_back(std::move(integer_data_arrays_[i][indices[j]]));
-      }
-      std::swap(integer_data_arrays_[i], mda_tmp_int);
-    }
-
+    // Duplicate indices are undefined behaviour (asserted in debug builds only; release builds pay
+    // nothing for it).
+    Internal::PeakContainerHelpers::selectByIndices(static_cast<ContainerType&>(*this), float_data_arrays_, string_data_arrays_,
+                                                    integer_data_arrays_, indices);
     return *this;
   }
 
@@ -128,21 +76,7 @@ namespace OpenMS
 
   MSSpectrum::ConstIterator MSSpectrum::getBasePeak() const
   {
-    ConstIterator largest = cbegin();
-    if (empty())
-    {
-      return largest;
-    }
-    ConstIterator current = cbegin();
-    ++current;
-    for (; current != cend(); ++current)
-    {
-      if (largest->getIntensity() < current->getIntensity())
-      {
-        largest = current;
-      }
-    }
-    return largest;
+    return Internal::PeakContainerHelpers::basePeak(cbegin(), cend());
   }
 
   MSSpectrum::Iterator MSSpectrum::getBasePeak()
@@ -214,78 +148,13 @@ namespace OpenMS
   Int MSSpectrum::findNearest(MSSpectrum::CoordinateType mz, MSSpectrum::CoordinateType tolerance_left,
                               MSSpectrum::CoordinateType tolerance_right) const
   {
-    if (ContainerType::empty())
-    {
-      return -1;
-    }
-    // do a binary search for nearest peak first
-    Size i = findNearest(mz);
-
-    const double nearest_mz = this->operator[](i).getMZ();
-
-    if (nearest_mz < mz)
-    {
-      if (nearest_mz >= mz - tolerance_left)
-      {
-        return i; // success: nearest peak is in left tolerance window
-      }
-      else
-      {
-        if (i == this->size() - 1)
-        {
-          return -1; // we are at the last peak which is too far left
-        }
-        // Nearest peak is too far left so there can't be a closer peak in the left window.
-        // There still might be a peak to the right of mz that falls in the right window
-        ++i;  // now we are at a peak exactly on or to the right of mz
-        const double next_mz = this->operator[](i).getMZ();
-        if (next_mz <= mz + tolerance_right) 
-        {
-          return i;
-        }
-      }
-    }
-    else
-    {
-      if (nearest_mz <= mz + tolerance_right)
-      {
-        return i; // success: nearest peak is in right tolerance window
-      }
-      else
-      {
-        if (i == 0)
-        {
-          return -1; // we are at the first peak which is too far right
-        }
-        --i;  // now we are at a peak exactly on or to the right of mz
-        const double next_mz = this->operator[](i).getMZ();
-        if (next_mz >= mz - tolerance_left)
-        {
-          return i;
-        }
-      }
-    }
-
-    // neither in the left nor the right tolerance window
-    return -1;
+    return Internal::PeakContainerHelpers::nearestIndexInWindow(*this, mz, tolerance_left, tolerance_right,
+                                                                [](const PeakType& p) { return p.getMZ(); });
   }
 
   Int MSSpectrum::findNearest(MSSpectrum::CoordinateType mz, MSSpectrum::CoordinateType tolerance) const
   {
-    if (ContainerType::empty())
-    {
-      return -1;
-    }
-    Size i = findNearest(mz);
-    const double found_mz = this->operator[](i).getMZ();
-    if (found_mz >= mz - tolerance && found_mz <= mz + tolerance)
-    {
-      return static_cast<Int>(i);
-    }
-    else
-    {
-      return -1;
-    }
+    return Internal::PeakContainerHelpers::nearestIndexInTolerance(*this, mz, tolerance, [](const PeakType& p) { return p.getMZ(); });
   }
 
   Size MSSpectrum::findNearest(MSSpectrum::CoordinateType mz) const
@@ -295,28 +164,8 @@ namespace OpenMS
     {
       throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "There must be at least one peak to determine the nearest peak!");
     }
-    // search for position for inserting
-    ConstIterator it = MZBegin(mz);
-    // border cases
-    if (it == ContainerType::begin())
-    {
-      return 0;
-    }
-    if (it == ContainerType::end())
-    {
-      return ContainerType::size() - 1;
-    }
-    // the peak before or the current peak are closest
-    ConstIterator it2 = it;
-    --it2;
-    if (std::fabs(it->getMZ() - mz) < std::fabs(it2->getMZ() - mz))
-    {
-      return Size(it - ContainerType::begin());
-    }
-    else
-    {
-      return Size(it2 - ContainerType::begin());
-    }
+    // search for position for inserting, then pick the closer of its two neighbours
+    return Internal::PeakContainerHelpers::nearestIndex(cbegin(), cend(), MZBegin(mz), mz, [](const PeakType& p) { return p.getMZ(); });
   }
 
   Int MSSpectrum::findHighestInWindow(MSSpectrum::CoordinateType mz, MSSpectrum::CoordinateType tolerance_left,
@@ -326,20 +175,8 @@ namespace OpenMS
     {
       return -1;
     }
-    // get left/right iterator
-    auto left = this->MZBegin(mz - tolerance_left);
-    auto right = this->MZEnd(mz + tolerance_right);
-
-    // no MS1 precursor peak in +- tolerance window found
-    if  (left == right)
-    {
-      return -1;
-    }
-
-    auto max_intensity_it = std::max_element(left, right, Peak1D::IntensityLess());
-
-    // find peak (index) with highest intensity to expected position
-    return (max_intensity_it - this->begin());
+    // most intense peak in [mz - tolerance_left, mz + tolerance_right], -1 if there is none
+    return Internal::PeakContainerHelpers::highestIndexInRange(cbegin(), MZBegin(mz - tolerance_left), MZEnd(mz + tolerance_right));
   }
 
   void MSSpectrum::sortByIonMobility()
@@ -398,7 +235,8 @@ namespace OpenMS
 
       rec(0, chunks.size() - 1);
 
-      select(select_indices);
+      // select_indices is a permutation of [0, size): in range and duplicate-free by construction.
+      selectUnchecked(select_indices);
     }
   }
 
@@ -770,7 +608,7 @@ namespace OpenMS
   {
     for (index = 0; index < fdas.size(); ++index)
     {
-      if (IMDataConverter::getIMUnit(fdas[index], unit))
+      if (IMDataArrayUtils::getIMUnit(fdas[index], unit))
       {
         return true;
       }

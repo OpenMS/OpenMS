@@ -122,7 +122,7 @@ public:
   MakeGUIProgressLoggerFunc make_gui_progress_logger = 
     []() -> ProgressLogger::ProgressLoggerImpl* { return new NoProgressLoggerImpl(); };
 
-  int ProgressLogger::recursion_depth_ = 0;
+  std::atomic<int> ProgressLogger::recursion_depth_{0};
 
   ProgressLogger::ProgressLogger() :
     type_(NONE),
@@ -234,8 +234,9 @@ public:
   {
     OPENMS_PRECONDITION(begin <= end, "ProgressLogger::init : invalid range!");
     last_invoke_ = time(nullptr);
-    current_logger_->startProgress(begin, end, label, recursion_depth_);
-    ++recursion_depth_;
+    // the depth is raised after the display started, as before (a display that throws leaves it unchanged)
+    current_logger_->startProgress(begin, end, label, recursion_depth_.load());
+    recursion_depth_.fetch_add(1);
   }
 
   void ProgressLogger::setProgress(SignedSize value) const
@@ -246,7 +247,7 @@ public:
       return;
     }
     last_invoke_ = time(nullptr);
-    current_logger_->setProgress(value, recursion_depth_);
+    current_logger_->setProgress(value, recursion_depth_.load());
   }
   void ProgressLogger::nextProgress() const
   {
@@ -258,16 +259,15 @@ public:
     }
 
     last_invoke_ = time(nullptr);
-    current_logger_->setProgress(p, recursion_depth_);
+    current_logger_->setProgress(p, recursion_depth_.load());
   }
 
   void ProgressLogger::endProgress(UInt64 bytes_processed) const
   {
-    if (recursion_depth_)
-    {
-      --recursion_depth_;
-    }
-    current_logger_->endProgress(recursion_depth_, bytes_processed);
+    // one less, but not below 0 (as before)
+    int depth = recursion_depth_.load();
+    while (depth > 0 && !recursion_depth_.compare_exchange_weak(depth, depth - 1)) {}
+    current_logger_->endProgress(depth > 0 ? depth - 1 : 0, bytes_processed);
   }
 
 } //namespace OpenMS

@@ -16,6 +16,7 @@
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/OnDiscImzMLExperiment.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/SYSTEM/TempFiles.h>
 #include <OpenMS/openms_data_path.h> // OPENMS_DOC_PATH (location of bundled tutorial data)
 
 #include <algorithm>
@@ -76,7 +77,8 @@ namespace
     std::cout << "  imaging_mode: " << meta.imaging_mode << "\n";
     std::cout << "  grid: " << meta.max_count_x << " x " << meta.max_count_y
               << " x " << meta.max_count_z << "\n";
-    std::cout << "  pixel_size (um): " << meta.pixel_size_x << " x " << meta.pixel_size_y << "\n";
+    std::cout << "  pixel_size: " << meta.pixel_size_x << " x " << meta.pixel_size_y << " " << meta.pixel_size_unit
+              << " (-1: unknown)\n";
     std::cout << "  index entries: " << index_entries << "\n";
 
     if (!exp.empty() && exp[0].metaValueExists("imzml:x"))
@@ -113,7 +115,8 @@ int main(int argc, const char** argv)
 
   ImzMLMeta dataset_meta;
   std::vector<ImzMLSpectrumIndex> dataset_index;
-  loader.loadSpectraIndex(path, dataset_meta, dataset_index);
+  MSExperiment dataset_index_spectra;
+  loader.loadSpectraIndex(path, dataset_meta, dataset_index, dataset_index_spectra);
   printDatasetMetadata(exp, dataset_meta, dataset_index.size());
 
   if (exp.getNrSpectra() > 0)
@@ -143,7 +146,8 @@ int main(int argc, const char** argv)
   std::cout << "\n=== Mode 3: loadSpectraIndex ===\n";
   ImzMLMeta meta;
   std::vector<ImzMLSpectrumIndex> index;
-  loader.loadSpectraIndex(path, meta, index);
+  MSExperiment index_spectra;
+  loader.loadSpectraIndex(path, meta, index, index_spectra);
   std::cout << "index entries: " << index.size() << ", mode: " << meta.imaging_mode << "\n";
 
   // ------------------------------------------------------------------
@@ -181,7 +185,7 @@ int main(int argc, const char** argv)
   // Mode 6: export (store) and reload
   // ------------------------------------------------------------------
   std::cout << "\n=== Mode 6: ImzMLFile::store round-trip ===\n";
-  std::string tmp_imzml = File::getTemporaryFile("Tutorial_ImzMLFile_export.imzML");
+  std::string tmp_imzml = TempFiles::getTemporaryFile("Tutorial_ImzMLFile_export.imzML");
   loader.store(tmp_imzml, exp);
   MSImagingExperiment reloaded_img;
   loader.load(tmp_imzml, reloaded_img);

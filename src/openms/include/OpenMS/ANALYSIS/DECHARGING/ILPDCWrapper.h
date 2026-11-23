@@ -37,8 +37,7 @@ namespace OpenMS
     solves one ILP per component (so a single big input doesn't translate into a single
     intractable LP) — this slicing is handled internally and is transparent to callers.
 
-    LP-solver choice (GLPK, COIN-OR, or HiGHS — selected at build time via the
-    @c LP_SOLVER CMake variable) is hidden behind @ref LPWrapper.
+    The LP solver (HiGHS) is accessed through @ref LPWrapper.
 
     @ingroup Quantitation
   */
@@ -89,8 +88,8 @@ private:
                             const PairsIndex margin_right,
                             const Size verbose_level) const;
 
-    /// Log-score of one putative charge-pair edge given the underlying feature intensities and the recorded mass-shift probability
-    double getLogScore_(const PairsType::value_type& pair, const FeatureMap& fm) const;
+    /// Log-score of one putative charge-pair edge: the log-probability of its compomer
+    double getLogScore_(const PairsType::value_type& pair) const;
 
     /// Internal lookup: feature id (as @c std::string) -> set of compatible charge-annotation variant indices encountered for that feature so far
     typedef std::map<std::string, std::set<Size> > FeatureType_;

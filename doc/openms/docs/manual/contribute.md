@@ -3,10 +3,12 @@ Contribute
 
 ## Reporting Bugs and Issues
 
-A list of known issues in the current OpenMS release can be found [here](https://abibuilder.cs.uni-tuebingen.de/archive/openms/Documentation/nightly/html/known_dev_bugs.html). 
+The known issues of a release are listed at the end of its section in the [CHANGELOG](https://github.com/OpenMS/OpenMS/blob/develop/CHANGELOG), and open bugs are in the [issue tracker](https://github.com/OpenMS/OpenMS/issues).
 Please check if your OpenMS version matches the current version and if the bug has already been reported.
 
 In order to report a new bug, please create a [GitHub issue](manual/contribute.md#Write and Label GitHub Issues) or [contact us](/about/communication.md).
+Bugs of the graphical tools (TOPPView, TOPPAS, INIFileEditor) go to the
+[OpenMS-TOPP-GUI issue tracker](https://github.com/OpenMS/OpenMS-TOPP-GUI/issues).
 
 Include the following information in your bug report:
 

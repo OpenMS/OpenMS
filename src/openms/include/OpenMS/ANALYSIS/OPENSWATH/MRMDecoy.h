@@ -11,6 +11,7 @@
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMIonSeries.h>
 #include <OpenMS/ANALYSIS/TARGETED/TargetedExperiment.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
+#include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/OPENSWATHALGO/DATAACCESS/TransitionExperiment.h>
 
@@ -85,6 +86,27 @@ public:
 
       Bruderer et al. Mol Cell Proteomics. 2017. 10.1074/mcp.RA117.000314.
 
+      @param[in] exp The target experiment
+      @param[out] dec The decoy experiment
+      @param[in] method The decoy generation method: shuffle, reverse, pseudo-reverse, or shift
+      @param[in] aim_decoy_fraction Fraction of decoys to generate (1.0 = 100%)
+      @param[in] switchKR Whether to switch terminal K/R
+      @param[in] decoy_tag Tag to prepend to decoy IDs
+      @param[in] max_attempts Maximum shuffle attempts
+      @param[in] identity_threshold Maximum sequence identity for shuffled decoys
+      @param[in] precursor_mz_shift Precursor m/z shift for decoys
+      @param[in] product_mz_shift Product m/z shift for the shift method
+      @param[in] product_mz_threshold Product m/z threshold for annotation
+      @param[in] fragment_types Fragment types to consider
+      @param[in] fragment_charges Fragment charges to consider
+      @param[in] enable_specific_losses Enable specific neutral losses
+      @param[in] enable_unspecific_losses Enable unspecific neutral losses
+      @param[in] round_decPow Round product m/z values to decimal power
+      @param[in] shuffle_seed Base seed for subset selection and sequence-derived peptide shuffles (default 1 for reproducibility, -1 resolves the clock once per call)
+
+      @note Peptide shuffle seeds use the unmodified amino-acid sequence, not precursor IDs or input order.
+      Time-based seeds are not guaranteed to be unique between calls.
+
     */
     void generateDecoys(const OpenMS::TargetedExperiment& exp,
                         OpenMS::TargetedExperiment& dec,
@@ -101,7 +123,8 @@ public:
                         const std::vector<size_t>& fragment_charges,
                         const bool enable_specific_losses,
                         const bool enable_unspecific_losses,
-                        const int round_decPow = -4) const;
+                        const int round_decPow = -4,
+                        const Int shuffle_seed = 1) const;
 
     /**
       @brief Generate decoys from a LightTargetedExperiment (memory-efficient version)
@@ -124,6 +147,10 @@ public:
       @param[in] enable_specific_losses Enable specific neutral losses
       @param[in] enable_unspecific_losses Enable unspecific neutral losses
       @param[in] round_decPow Round product m/z values to decimal power
+      @param[in] shuffle_seed Base seed for subset selection and sequence-derived peptide shuffles (default 1 for reproducibility, -1 resolves the clock once per call)
+
+      @note Peptide shuffle seeds use the unmodified amino-acid sequence, not precursor IDs or input order.
+      Time-based seeds are not guaranteed to be unique between calls.
 
     */
     void generateDecoysLight(const OpenSwath::LightTargetedExperiment& exp,
@@ -141,7 +168,8 @@ public:
                              const std::vector<size_t>& fragment_charges,
                              const bool enable_specific_losses,
                              const bool enable_unspecific_losses,
-                             const int round_decPow = -4) const;
+                             const int round_decPow = -4,
+                             const Int shuffle_seed = 1) const;
 
     /**
        @brief Switch the final Amino Acid of a tryptic peptide.

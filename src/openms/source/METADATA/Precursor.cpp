@@ -7,6 +7,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/METADATA/Precursor.h>
+#include <OpenMS/CONCEPT/EnumHelpers.h>
 #include <OpenMS/CONCEPT/Exception.h>
 
 #include <algorithm>
@@ -139,42 +140,22 @@ namespace OpenMS
 
   StringList Precursor::getAllNamesOfActivationMethods()
   {
-    StringList am;
-    am.reserve(static_cast<size_t>(ActivationMethod::SIZE_OF_ACTIVATIONMETHOD));
-    for (size_t i = 0; i < static_cast<size_t>(ActivationMethod::SIZE_OF_ACTIVATIONMETHOD); ++i)
-    {
-      am.push_back(NamesOfActivationMethod[i]);
-    }
-    return am;
+    return Helpers::enumNames(NamesOfActivationMethod, ActivationMethod::SIZE_OF_ACTIVATIONMETHOD);
   }
 
   StringList Precursor::getAllShortNamesOfActivationMethods()
   {
-    StringList am;
-    am.reserve(static_cast<size_t>(ActivationMethod::SIZE_OF_ACTIVATIONMETHOD));
-    for (size_t i = 0; i < static_cast<size_t>(ActivationMethod::SIZE_OF_ACTIVATIONMETHOD); ++i)
-    {
-      am.push_back(NamesOfActivationMethodShort[i]);
-    }
-    return am;
+    return Helpers::enumNames(NamesOfActivationMethodShort, ActivationMethod::SIZE_OF_ACTIVATIONMETHOD);
   }
 
   const std::string& Precursor::activationMethodToString(ActivationMethod m)
   {
-    if (m == ActivationMethod::SIZE_OF_ACTIVATIONMETHOD)
-    {
-      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Value not allowed", "SIZE_OF_ACTIVATIONMETHOD");
-    }
-    return NamesOfActivationMethod[static_cast<size_t>(m)];
+    return Helpers::enumToName(NamesOfActivationMethod, m, ActivationMethod::SIZE_OF_ACTIVATIONMETHOD, "SIZE_OF_ACTIVATIONMETHOD", OPENMS_PRETTY_FUNCTION);
   }
 
   const std::string& Precursor::activationMethodToShortString(ActivationMethod m)
   {
-    if (m == ActivationMethod::SIZE_OF_ACTIVATIONMETHOD)
-    {
-      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Value not allowed", "SIZE_OF_ACTIVATIONMETHOD");
-    }
-    return NamesOfActivationMethodShort[static_cast<size_t>(m)];
+    return Helpers::enumToName(NamesOfActivationMethodShort, m, ActivationMethod::SIZE_OF_ACTIVATIONMETHOD, "SIZE_OF_ACTIVATIONMETHOD", OPENMS_PRETTY_FUNCTION);
   }
 
   Precursor::ActivationMethod Precursor::toActivationMethod(const std::string& name)

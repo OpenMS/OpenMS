@@ -14,6 +14,7 @@
 
 #include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/METADATA/ProteinRunReferences.h>
 #include <fstream>
 
 using namespace std;
@@ -43,6 +44,10 @@ namespace OpenMS
     {
       throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "invalid file extension, expected '" + FileTypes::typeToName(FileTypes::CONSENSUSXML) + "'");
     }
+
+    // every peptide identification needs its protein identification run, and the proteins of its peptide evidences need
+    // to be protein hits of that run (they are referenced there): fail before the file is opened (one pass for both)
+    ProteinRunReferences::checkProteinAccessions(consensus_map);
 
     if (!consensus_map.isMapConsistent(&getGlobalLogWarn()))
     {

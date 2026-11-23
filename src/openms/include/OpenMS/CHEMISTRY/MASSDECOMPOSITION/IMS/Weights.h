@@ -118,9 +118,12 @@ public:
 
         @param[in] i An index to access weights.
         @return An integer weight.
+
+        @throws Exception::IndexOverflow if @p i >= @ref size.
       */
       weight_type getWeight(size_type i) const
       {
+        checkIndex_(i);
         return weights_[i];
       }
 
@@ -149,10 +152,13 @@ public:
         @param[in] i An index to access weights.
         @return An integer weight.
 
+        @throws Exception::IndexOverflow if @p i >= @ref size.
+
         @see getWeight(size_type i)
       */
       weight_type operator[](size_type i) const
       {
+        checkIndex_(i);
         return weights_[i];
       }
 
@@ -160,9 +166,12 @@ public:
         Gets a last weight.
 
         @return a last weight.
+
+        @throws Exception::IndexOverflow if the set of weights is empty.
       */
       weight_type back() const
       {
+        checkIndex_(0);
         return weights_.back();
       }
 
@@ -171,9 +180,12 @@ public:
 
         @param[in] i An index to access alphabet masses.
         @return A double alphabet mass.
+
+        @throws Exception::IndexOverflow if @p i >= @ref size.
       */
       alphabet_mass_type getAlphabetMass(size_type i) const
       {
+        checkIndex_(i);
         return alphabet_masses_[i];
       }
 
@@ -199,6 +211,8 @@ public:
 
         @param[in] index1 First index to swap.
         @param[in] index2 Second index to swap.
+
+        @throws Exception::IndexOverflow if @p index1 or @p index2 >= @ref size.
       */
       void swap(size_type index1, size_type index2);
 
@@ -235,6 +249,18 @@ public:
       */
       alphabet_mass_type getMaxRoundingError() const;
 private:
+      /// Throws Exception::IndexOverflow if @p i is not a valid index.
+      /// The check is inline so the accessors stay cheap; only the throw is out of line.
+      void checkIndex_(size_type i) const
+      {
+        if (i >= weights_.size())
+        {
+          throwIndexOverflow_(i);
+        }
+      }
+
+      [[noreturn]] void throwIndexOverflow_(size_type i) const;
+
       /**
         Container to store original (double) alphabet masses.
       */

@@ -4,7 +4,8 @@
 ## Install via Conda
 
 ```{warning}
-At this time, we do not provide a conda package for our GUI tools. This means if you want to install e.g., TOPPView
+At this time, we do not provide a conda package for our GUI tools (TOPPView, TOPPAS, INIFileEditor from
+[OpenMS-TOPP-GUI](https://github.com/OpenMS/OpenMS-TOPP-GUI)). This means if you want to install e.g., TOPPView
 for use in for example one of our tutorials, please refer to a different installation method below.
 ```
 
@@ -16,7 +17,7 @@ obtain release versions (`bioconda` channel) and nightly versions (`openms` chan
 
 2. We recommend to create a new environment with one of the supported python version versions:
    ```bash
-    conda create -n openms python=3.10
+    conda create -n openms python=3.11
    ```
 
 2. Add some channels to find dependencies:

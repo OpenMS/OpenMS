@@ -20,10 +20,6 @@
 
 #include <OpenMS/PROCESSING/CENTROIDING/PeakPickerHiRes.h>
 
-#ifdef WITH_CRAWDAD
-#include <CrawdadWrapper.h>
-#endif
-
 namespace OpenMS
 {
 
@@ -36,6 +32,13 @@ namespace OpenMS
   These candidates are then expanded and a right/left border of the peak is
   searched.
   Additionally, overlapping peaks can be removed.
+
+  The picked chromatogram's FloatDataArrays report, per peak (indexed via the
+  FLOATINDICES enum): "FWHM", "IntegratedIntensity", "leftWidth", "rightWidth",
+  and "SN" (the apex signal-to-noise ratio, as estimated by the internal
+  SignalToNoiseEstimatorMedian). The "SN" array is only populated with real
+  values if the 'report_sn' parameter is enabled or 'signal_to_noise' > 0;
+  otherwise it is filled with -1 for every peak.
 
   */
 
@@ -54,7 +57,7 @@ public:
     //@}
 
 	/// indices into FloatDataArrays of resulting picked chromatograms
-	enum FLOATINDICES { IDX_FWHM = 0, IDX_ABUNDANCE = 1, IDX_LEFTBORDER = 2, IDX_RIGHTBORDER = 3, SIZE_OF_FLOATINDICES };
+	enum FLOATINDICES { IDX_FWHM = 0, IDX_ABUNDANCE = 1, IDX_LEFTBORDER = 2, IDX_RIGHTBORDER = 3, IDX_SN = 4, SIZE_OF_FLOATINDICES };
 
     /**
       @brief Finds peaks in a single chromatogram and annotates left/right borders
@@ -76,8 +79,6 @@ public:
     void pickChromatogram(const MSChromatogram& chromatogram, MSChromatogram& picked_chrom, MSChromatogram& smoothed_chrom);
 
 protected:
-
-    void pickChromatogramCrawdad_(const MSChromatogram& chromatogram, MSChromatogram& picked_chrom);
 
     void pickChromatogram_(const MSChromatogram& chromatogram, MSChromatogram& picked_chrom);
 
@@ -132,6 +133,9 @@ protected:
     UInt sn_bin_count_;
     /// Whether to write out log messages of the SN estimator
     bool write_sn_log_messages_;
+    /// Whether to report the apex signal-to-noise ratio of each picked peak (forces
+    /// initialization of the S/N estimator even if 'signal_to_noise' is 0)
+    bool report_sn_;
     /// Peak picker method
     std::string method_;
 
@@ -141,6 +145,8 @@ protected:
     std::vector<int> left_width_;
     /// Temporary vector to hold the peak right widths
     std::vector<int> right_width_;
+    /// Temporary vector to hold the apex signal-to-noise ratios
+    std::vector<double> apex_sn_;
 
     PeakPickerHiRes pp_;
     SavitzkyGolayFilter sgolay_;

@@ -1,0 +1,222 @@
+// Copyright (c) 2002-present, OpenMS Inc. -- EKU Tuebingen, ETH Zurich, and FU Berlin
+// SPDX-License-Identifier: BSD-3-Clause
+//
+// --------------------------------------------------------------------------
+// $Maintainer: Chris Bielow $
+// $Authors: Chris Bielow $
+// --------------------------------------------------------------------------
+
+#include <OpenMS/APPLICATIONS/ToolHandler.h>
+
+#include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/FORMAT/CsvFile.h>
+#include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/openms_data_path.h>
+#include <OpenMS/config.h>
+
+#include <algorithm>
+#include <filesystem>
+#include <set>
+
+namespace OpenMS
+{
+  const ToolListType& ToolHandler::getTOPPToolListRef()
+  {
+    // Immediately evaluated lambda so the registry is parsed exactly once, thread-safely
+    // (same pattern as File::resolveOpenMSDataPath_). TOPPBase consults the registry
+    // several times while a tool starts up, and TOPPAS once per palette entry.
+    static const ToolListType tools = loadRegistry_();
+    return tools;
+  }
+
+  ToolListType ToolHandler::getTOPPToolList()
+  {
+    return getTOPPToolListRef();
+  }
+
+  ToolListType ToolHandler::loadRegistry_()
+  {
+    ToolListType tools_map;
+    // which file registered a name, so a collision can name both sides
+    std::map<std::string, std::string> registered_by;
+
+    for (const std::string& file : getToolRegistryFiles_())
+    {
+      CsvFile registry;
+      try
+      {
+        registry.load(file, '\t', false);
+      }
+      catch (Exception::BaseException& e)
+      {
+        // A single unreadable registry file must not cost us every other tool: report it and
+        // carry on. If this leaves the registry empty, TOPPBase says so when a tool starts.
+        OPENMS_LOG_ERROR << "Cannot read the tool registry file '" << file << "': " << e.what()
+                         << "\nThe tools it registers will not be known to this process." << std::endl;
+        continue;
+      }
+
+      for (Size row = 0; row < registry.rowCount(); ++row)
+      {
+        StringList fields;
+        // '#' comment lines and, with them, the header are dropped by CsvFile itself. The
+        // return value only says whether the line held a separator at all, which a blank line
+        // and a line missing its category have in common; the fields tell the two apart, being
+        // empty for the blank line and the whole line for the malformed one.
+        registry.getRow(row, fields);
+        if (fields.empty())
+        {
+          continue; // blank line
+        }
+        // A row is '<name>\t<category>' plus an optional third field holding the tool's
+        // '-type' sub-modes, ';' separated. Reported rather than guessed at: a row that does
+        // not say what category a tool belongs to is a mistake in the file, not a default.
+        if (fields.size() < 2 || fields[0].empty() || fields[1].empty())
+        {
+          OPENMS_LOG_ERROR << "The tool registry file '" << file << "' has a malformed entry in line " << (row + 1)
+                           << " (expected '<tool name><TAB><category>'); ignoring it." << std::endl;
+          continue;
+        }
+
+        Internal::ToolDescription td;
+        td.name = fields[0];
+        td.category = fields[1];
+        if (fields.size() > 2 && !fields[2].empty())
+        {
+          StringUtils::split(fields[2], ';', td.types);
+        }
+
+        auto [it, inserted] = tools_map.emplace(td.name, td);
+        if (!inserted)
+        {
+          throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                        "Duplicate tool name error: '" + td.name + "' is registered both by '" +
+                                          registered_by[td.name] + "' and by '" + file +
+                                          "'. Every tool name may be registered only once.",
+                                        td.name);
+        }
+        registered_by[td.name] = file;
+      }
+    }
+
+    return tools_map;
+  }
+
+  StringList ToolHandler::getTypes(const std::string& toolname)
+  {
+    const ToolListType& tools = getTOPPToolListRef();
+    auto it = tools.find(toolname);
+    if (it != tools.end())
+    {
+      return it->second.types;
+    }
+    // Deliberately not an error: a tool that is not in the registry still has to be able to
+    // describe itself (TOPPBase::handleWriteCommands_ asks for the types to write one
+    // CTD/CWL per type), and a tool without registered types has exactly one description.
+    return {};
+  }
+
+  std::string ToolHandler::getToolRegistryPath()
+  {
+    return File::getOpenMSDataPath() + "/TOOLS";
+  }
+
+  StringList ToolHandler::getToolRegistryFiles_()
+  {
+    auto holdsRegistry = [](const std::string& dir) {
+      StringList files;
+      File::fileList(dir, "*.tsv", files, false);
+      return !files.empty();
+    };
+
+    // The registry of OpenMS' own tools is generated by the build (cmake/topp_tool_macros.cmake)
+    // and installed into share/OpenMS/TOOLS. The first of these that actually holds a registry
+    // wins; a second one would hold the same tools and reading both would be a duplicate-name
+    // error for every tool. Asked by content rather than by existence, so an empty TOOLS
+    // directory -- what checking out a branch that predates the registry leaves behind -- does
+    // not shadow the others.
+    StringList candidates;
+    //  - where the shared data of this installation is, which is the normal case;
+    candidates.push_back(getToolRegistryPath());
+    //  - next to the executable, for an installed tool whose shared data resolved elsewhere.
+    //    File::getOpenMSDataPath() prefers the compiled-in source directory over the
+    //    executable's own ../share/OpenMS, so on the machine OpenMS was built on an installed
+    //    tool is pointed at the source tree, which carries no registry (it is generated, not
+    //    checked in). Without this it would find no registry at all once the build tree is
+    //    gone, although its own installation has one;
+#if defined(__APPLE__)
+    candidates.push_back(File::getExecutablePath() + "../../../share/OpenMS/TOOLS"); // inside an app bundle
+#endif
+    candidates.push_back(File::getExecutablePath() + "../share/OpenMS/TOOLS");
+    //  - and the build tree, for running from a build that was never installed.
+    candidates.push_back(OPENMS_BUILD_TOOL_REGISTRY_PATH);
+
+    std::string registry = candidates.front();
+    for (const std::string& candidate : candidates)
+    {
+      if (holdsRegistry(candidate))
+      {
+        registry = candidate;
+        break;
+      }
+    }
+
+    StringList paths;
+    // the registry directory itself
+    paths.push_back(registry);
+    // OS-specific path, for a tool that only exists on one platform
+#ifdef OPENMS_WINDOWSPLATFORM
+    paths.push_back(registry + "/WINDOWS");
+#else
+    paths.push_back(registry + "/LINUX");
+#endif
+    // additional environment. OPENMS_TTD_INTERNAL_PATH is the name earlier releases used;
+    // still read so a site-local setup pointing at it keeps working.
+    for (const char* var : {"OPENMS_TOOL_REGISTRY_PATH", "OPENMS_TTD_INTERNAL_PATH"})
+    {
+      if (const char* value = getenv(var); value != nullptr)
+      {
+        paths.push_back(std::string(value));
+      }
+    }
+
+    StringList all_files;
+    // A file must not be read twice: loadRegistry_() treats a second registration of a name as
+    // a fatal collision, so a search path that repeats (both environment variables set, or one
+    // of them pointing at the share directory that is already searched) would stop every tool
+    // from starting. Compared canonically, so two spellings of one directory count as one.
+    std::set<std::filesystem::path> seen;
+    for (const auto& p : paths)
+    {
+      StringList files;
+      File::fileList(p, "*.tsv", files, true);
+      for (const std::string& file : files)
+      {
+        std::error_code ec;
+        std::filesystem::path key = std::filesystem::weakly_canonical(std::filesystem::path(file), ec);
+        if (ec)
+        {
+          key = std::filesystem::path(file);
+        }
+        if (!seen.insert(key).second)
+        {
+          continue;
+        }
+        all_files.push_back(file);
+      }
+    }
+    return all_files;
+  }
+
+  std::string ToolHandler::getCategory(const std::string& toolname)
+  {
+    const ToolListType& tools = getTOPPToolListRef();
+    auto it = tools.find(toolname);
+    if (it != tools.end())
+    {
+      return it->second.category;
+    }
+    return std::string();
+  }
+
+} // namespace

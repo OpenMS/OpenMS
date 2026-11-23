@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?xml-stylesheet type="text/xsl" href="https://www.openms.de/xml-stylesheet/IdXML.xsl" ?>
 <IdXML version="1.5" xsi:noNamespaceSchemaLocation="https://www.openms.de/xml-schema/IdXML_1_5.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-	<SearchParameters id="SP_0" db="/home/rostlab/annieha/Feb_9_target_decoys/target_decoy.fasta" db_version="" taxonomy="" mass_type="monoisotopic" charges="" enzyme="unspecific cleavage" missed_cleavages="2" precursor_peak_tolerance="50" precursor_peak_tolerance_ppm="true" peak_mass_tolerance="0.25" peak_mass_tolerance_ppm="false" >
+	<SearchParameters id="SP_0" db="/home/rostlab/annieha/Feb_9_target_decoys/target_decoy.fasta" db_version="" taxonomy="" mass_type="monoisotopic" charges="" enzyme="formic_acid" missed_cleavages="2" precursor_peak_tolerance="50" precursor_peak_tolerance_ppm="true" peak_mass_tolerance="0.25" peak_mass_tolerance_ppm="false" >
 		<FixedModification name="Carbamidomethyl (C)" />
 		<VariableModification name="Oxidation (M)" />
 				<UserParam name="EnzymeTermSpecificity" type="string" value="full" />
@@ -47,7 +47,7 @@
 			<UserParam type="stringList" name="spectra_data" value="[/home/rostlab/annieha/ConvertedRaw_Nina/LakeTroutChromiumsearched/ctl/rep1/1.mzML]"/>
 		</ProteinIdentification>
 		<PeptideIdentification score_type="expect" higher_score_better="false" significance_threshold="0.0" MZ="354.990447531899974" RT="75.0" spectrum_reference="scan=7" >
-			<PeptideHit score="0.0" sequence="QRM(Oxidation)ADVKKVAADM(Oxidation)EEEKD" charge="6" aa_before="D X X X X X" aa_after="R X X X X X" protein_refs="PH_0 PH_1 PH_2 PH_3 PH_4 PH_5" >
+			<PeptideHit score="0.0" sequence="QRM(Oxidation)ADVKKVAADM(Oxidation)EEEKD" charge="6" aa_before="D D D D D D" aa_after="R R R R R R" protein_refs="PH_0 PH_1 PH_2 PH_3 PH_4 PH_5" >
 				<UserParam type="string" name="MS:1002258" value="20"/>
 				<UserParam type="string" name="MS:1002259" value="170"/>
 				<UserParam type="string" name="num_matched_peptides" value="29030"/>
@@ -69,7 +69,7 @@
 				<UserParam type="float" name="_ar_0_subscore_nmc" value="0.0"/>
 				<UserParam type="float" name="_ar_0_subscore_ntt" value="0.0"/>
 			</PeptideHit>
-			<PeptideHit score="27.899999999999999" sequence="QRM(Oxidation)ADVKQVAADM(Oxidation)EEEKD" charge="6" aa_before="D X X X X" aa_after="R X X X X" protein_refs="PH_6 PH_7 PH_8 PH_9 PH_10" >
+			<PeptideHit score="27.899999999999999" sequence="QRM(Oxidation)ADVKQVAADM(Oxidation)EEEKD" charge="6" aa_before="D D D D D" aa_after="R R R R R" protein_refs="PH_6 PH_7 PH_8 PH_9 PH_10" >
 				<UserParam type="string" name="MS:1002258" value="20"/>
 				<UserParam type="string" name="MS:1002259" value="170"/>
 				<UserParam type="string" name="num_matched_peptides" value="29030"/>

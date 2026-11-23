@@ -22,6 +22,18 @@ cd src/pyOpenMS && pip wheel . --no-build-isolation
 
 ## Wrapping New C++ Classes
 
+**Ownership rule first** (see `OWNERSHIP.md`): every getter, `__getitem__`,
+and iterator returns an owned copy — never bind a getter with
+`rv_policy::reference_internal`. Zero-copy aliasing access is opt-in only,
+under the `_view`/`_views`/`_struct` names (`spectrum_view(i)`,
+`spectrum_views()`, `iter_spectrum_views()`, `data_view()`, `peaks_struct()`);
+the `get_` prefix is reserved for copies. Caster-handled types (arithmetic,
+`std::string`, vectors) are copied into new independent Python objects
+regardless of the C++ return type — the aliasing hazard exists only for
+bound classes. Return scalars and strings by value so the signature states
+the contract; vector returns may stay `const&` (the list caster copies
+anyway, and by-value would copy twice).
+
 ### 1. Choose the binding file
 
 Pick `bindings/bind_<domain>.cpp` based on the C++ header path:
@@ -158,7 +170,7 @@ All modules use `NB_DOMAIN "pyopenms"` to share type information.
 
 ## Type Handling
 
-- nanobind type casters auto-convert `OpenMS::String` ↔ Python `str`
+- nanobind type casters auto-convert `std::string` ↔ Python `str` (`bytes` is accepted as input too; `bindings/type_casters/std_string_bytes_caster.h`)
 - `PeptideIdentificationList` required (not Python list) for `setPeptideIdentifications()`
 - `AASequence.fromString()`: valid amino acids only (A-Z except B, J, O, U, X, Z)
 - `DPosition<1>` accepts `float`, `DPosition<2>` accepts `tuple`

@@ -14,6 +14,16 @@
 
 namespace OpenMS
 {
+  /// @brief Enum for pKa scales used in isoelectric point calculation
+  enum class ProteomicsPkaScale
+  {
+    LEHNINGER = 0,  ///< Lehninger (Nelson & Cox) scale
+    EMBOSS = 1,     ///< EMBOSS scale (used by pepstats)
+    SILLERO = 2,    ///< Sillero & Ribeiro scale
+    BJELLQVIST = 3, ///< Bjellqvist scale with N-terminal-residue-dependent pKa values
+    SIZE_OF_PROTEOMICS_PKA_SCALES
+  };
+
   /**
   @ingroup Chemistry
 
@@ -44,17 +54,6 @@ namespace OpenMS
   - Sillero A, Ribeiro JM. Isoelectric points of proteins... Anal Biochem. 1989;179:319-325.
   - Bjellqvist B et al. Isoelectric focusing in immobilized pH gradients... Electrophoresis 1993;14:1023-1031.
   */
-
-  /// @brief Enum for pKa scales used in isoelectric point calculation
-  enum class ProteomicsPkaScale
-  {
-    LEHNINGER = 0,  ///< Lehninger (Nelson & Cox) scale
-    EMBOSS = 1,     ///< EMBOSS scale (used by pepstats)
-    SILLERO = 2,    ///< Sillero & Ribeiro scale
-    BJELLQVIST = 3, ///< Bjellqvist scale with N-terminal-residue-dependent pKa values
-    SIZE_OF_PROTEOMICS_PKA_SCALES
-  };
-
   class OPENMS_DLLAPI IsoelectricPoint
   {
 

@@ -22,7 +22,7 @@ template <>
 struct type_caster<std::string> {
     NB_TYPE_CASTER(std::string, const_name("str"))
 
-    bool from_python(handle src, uint8_t flags, cleanup_list* cleanup) noexcept {
+    bool from_python(handle src, uint32_t flags, cleanup_list* cleanup) noexcept {
         if (src.is_none()) {
             return false;
         }

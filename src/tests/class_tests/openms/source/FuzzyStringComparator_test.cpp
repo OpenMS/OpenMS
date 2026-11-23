@@ -433,6 +433,58 @@ END_SECTION
 
 //------------------------------------------------------------
 
+START_SECTION(([EXTRA] non-finite numbers are compared by category, not by arithmetic))
+{
+  // Every comparison against NaN is false, so the absolute-difference and ratio tests could not
+  // reject one: 'absdiff > absdiff_max_', 'ratio < 0', 'ratio < 1' and finally
+  // 'ratio > ratio_max_' - the sole gate to reportFailure_ - were all false and the pair was
+  // accepted. A value that regressed to NaN was therefore invisible to every file comparison in
+  // the suite, whatever the other file held. Infinities are ordered and were handled correctly
+  // against finite numbers, but +inf against -inf produced a NaN ratio and fell through the same
+  // way.
+  const auto equal = [](const std::string& lhs, const std::string& rhs)
+  {
+    std::ostringstream log;
+    FuzzyStringComparator fsc;
+    fsc.setLogDestination(log);
+    fsc.setAcceptableRelative(1.01);
+    fsc.setAcceptableAbsolute(0.01);
+    return fsc.compareStrings(lhs, rhs);
+  };
+
+  // The same non-finite value on both sides is equal. A reference file may legitimately contain
+  // 'nan', and two NaNs never reach the '==' fast path because NaN != NaN.
+  TEST_TRUE(equal("x nan", "x nan"))
+  TEST_TRUE(equal("x inf", "x inf"))
+  TEST_TRUE(equal("x -inf", "x -inf"))
+
+  // NaN against anything else must be reported. The second of these is the direction a real
+  // regression travels: the tool emits NaN where the reference holds a legitimate number.
+  TEST_FALSE(equal("x nan", "x 5.0"))
+  TEST_FALSE(equal("x 5.0", "x nan"))
+  TEST_FALSE(equal("x nan", "x inf"))
+  TEST_FALSE(equal("x nan", "x -inf"))
+  TEST_FALSE(equal("x nan", "x 0.0"))
+
+  // Opposite infinities are not the same value.
+  TEST_FALSE(equal("x inf", "x -inf"))
+  TEST_FALSE(equal("x -inf", "x inf"))
+
+  // Unchanged: an infinity against a finite number was already reported, by the ratio test for
+  // +inf and by the sign test for -inf, and keeps that path.
+  TEST_FALSE(equal("x inf", "x 5.0"))
+  TEST_FALSE(equal("x -inf", "x 5.0"))
+
+  // Unchanged: ordinary numbers still obey the configured tolerances, and a NaN elsewhere on the
+  // line does not make the rest of it permissive.
+  TEST_TRUE(equal("x 1.000 nan", "x 1.001 nan"))
+  TEST_FALSE(equal("x 1.0 nan", "x 2.0 nan"))
+  TEST_FALSE(equal("x nan", "x abc"))
+}
+END_SECTION
+
+//------------------------------------------------------------
+
 // START_SECTION(void reportFailure_( char const * const message ) const throw(Failure))
 // {
 // 	// Tested in compare...() methods

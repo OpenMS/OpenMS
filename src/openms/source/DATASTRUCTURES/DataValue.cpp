@@ -451,7 +451,7 @@ namespace OpenMS
   //----------------------------------------------------------------------------
   DataValue::operator long double() const
   {
-    if (value_type_ == EMPTY_VALUE)
+    if (value_type_ != DOUBLE_VALUE && value_type_ != INT_VALUE)
     {
       throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
         "Could not convert DataValue of type '" + NamesOfDataType[value_type_] + "' to long double");
@@ -465,7 +465,7 @@ namespace OpenMS
 
   DataValue::operator double() const
   {
-    if (value_type_ == EMPTY_VALUE)
+    if (value_type_ != DOUBLE_VALUE && value_type_ != INT_VALUE)
     {
       throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
         "Could not convert DataValue of type '" + NamesOfDataType[value_type_] + "' to double");
@@ -479,7 +479,7 @@ namespace OpenMS
 
   DataValue::operator float() const
   {
-    if (value_type_ == EMPTY_VALUE)
+    if (value_type_ != DOUBLE_VALUE && value_type_ != INT_VALUE)
     {
       throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
         "Could not convert DataValue of type '" + NamesOfDataType[value_type_] + "' to float");
@@ -702,13 +702,23 @@ namespace OpenMS
   // Convert DataValues to String
   std::string DataValue::toString(bool full_precision) const
   {
-    std::stringstream ss;
     switch (value_type_)
     {
       case DataValue::EMPTY_VALUE: 
-        break;
+        return std::string();
       case DataValue::STRING_VALUE: 
         return *(data_.str_);
+      case DataValue::INT_VALUE: 
+        return StringUtils::toStr(data_.ssize_);
+      case DataValue::DOUBLE_VALUE: 
+        return StringUtils::toStr(data_.dou_, full_precision);
+      default:
+        break;
+    }
+    // only the lists are written through a stream (constructing one costs more than formatting a number)
+    std::stringstream ss;
+    switch (value_type_)
+    {
       case DataValue::STRING_LIST: ss << *(data_.str_list_); 
         break;
       case DataValue::INT_LIST: ss << *(data_.int_list_); 
@@ -723,11 +733,6 @@ namespace OpenMS
           ss << VecLowPrecision<double>(*(data_.dou_list_));
         }
         break;
-
-      case DataValue::INT_VALUE: 
-        return StringUtils::toStr(data_.ssize_);
-      case DataValue::DOUBLE_VALUE: 
-        return StringUtils::toStr(data_.dou_, full_precision);
 
       default:
         throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 

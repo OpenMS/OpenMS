@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- UniPEFF fixture: features annotated on an isoform (<location sequence="...">) are
+     written to that isoform's entry, in the isoform's coordinates.
+     Canonical P55555 is 30 aa:
+        1-10  MSEQCKTLDA
+       11-20  PGRSTWEVQL
+       21-30  KDNACYLRGE
+     P55555-2 (VSP_1: A10 -> ASCHSK) is 35 aa:
+        1-10  MSEQCKTLDA
+       11-20  SCHSKPGRST
+       21-30  WEVQLKDNAC
+       31-35  YLRGE
+     Features:
+       canonical  Phosphoserine 14 (S)                     -> canonical entry
+       P55555-1   Phosphothreonine 15 (T; displayed isoform = canonical sequence)
+                                                           -> canonical entry
+       P55555-2   Phosphoserine 11 (S; canonical 11 is P)  -> isoform entry
+       P55555-2   disulfide bond 12-30 (C, C; canonical G, E)
+                                                           -> isoform entry, labeled
+       P55555-2   variant R33Q (past the canonical end)    -> isoform entry
+       P55555-2   sequence conflict 13 (never written, not counted)
+       P55555-3   Phosphothreonine 7 (external isoform)    -> not applied
+       P55555-4   Phosphoserine 2 (dangling ref, not reconstructed)
+                                                           -> not applied
+     Summary: 3 features written to isoform entries, 2 not applied. With
+     -omit_isoforms, P55555-2 is not written either: 5 not applied. -->
+<uniprot>
+  <entry dataset="Swiss-Prot" version="4">
+    <accession>P55555</accession>
+    <name>ISOF_HUMAN</name>
+    <protein>
+      <recommendedName>
+        <fullName>Isoform feature test protein</fullName>
+      </recommendedName>
+    </protein>
+    <gene>
+      <name type="primary">ISOF</name>
+    </gene>
+    <organism>
+      <name type="scientific">Homo sapiens</name>
+      <dbReference type="NCBI Taxonomy" id="9606"/>
+    </organism>
+    <comment type="alternative products">
+      <event type="alternative splicing"/>
+      <isoform>
+        <id>P55555-1</id>
+        <name>1</name>
+        <sequence type="displayed"/>
+      </isoform>
+      <isoform>
+        <id>P55555-2</id>
+        <name>2</name>
+        <sequence type="described" ref="VSP_1"/>
+      </isoform>
+      <isoform>
+        <id>P55555-3</id>
+        <name>3</name>
+        <sequence type="external"/>
+      </isoform>
+      <isoform>
+        <id>P55555-4</id>
+        <name>4</name>
+        <sequence type="described" ref="VSP_MISSING"/>
+      </isoform>
+    </comment>
+    <proteinExistence type="evidence at protein level"/>
+    <feature type="modified residue" description="Phosphoserine">
+      <location>
+        <position position="14"/>
+      </location>
+    </feature>
+    <feature type="modified residue" description="Phosphothreonine">
+      <location sequence="P55555-1">
+        <position position="15"/>
+      </location>
+    </feature>
+    <feature type="modified residue" description="Phosphoserine">
+      <location sequence="P55555-2">
+        <position position="11"/>
+      </location>
+    </feature>
+    <feature type="disulfide bond">
+      <location sequence="P55555-2">
+        <begin position="12"/>
+        <end position="30"/>
+      </location>
+    </feature>
+    <feature type="sequence variant" description="In dbSNP.">
+      <original>R</original>
+      <variation>Q</variation>
+      <location sequence="P55555-2">
+        <position position="33"/>
+      </location>
+    </feature>
+    <feature type="sequence conflict" description="In Ref. 1; AAA00001.">
+      <original>H</original>
+      <variation>Y</variation>
+      <location sequence="P55555-2">
+        <position position="13"/>
+      </location>
+    </feature>
+    <feature type="modified residue" description="Phosphothreonine">
+      <location sequence="P55555-3">
+        <position position="7"/>
+      </location>
+    </feature>
+    <feature type="modified residue" description="Phosphoserine">
+      <location sequence="P55555-4">
+        <position position="2"/>
+      </location>
+    </feature>
+    <feature type="splice variant" id="VSP_1" description="In isoform 2.">
+      <original>A</original>
+      <variation>ASCHSK</variation>
+      <location>
+        <position position="10"/>
+      </location>
+    </feature>
+    <sequence length="30" mass="3400" version="1">MSEQCKTLDAPGRSTWEVQLKDNACYLRGE</sequence>
+  </entry>
+</uniprot>

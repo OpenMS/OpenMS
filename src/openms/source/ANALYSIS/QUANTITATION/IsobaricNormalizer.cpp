@@ -58,7 +58,7 @@ namespace OpenMS
   void IsobaricNormalizer::buildVectorIndex_(const ConsensusMap& consensus_map)
   {
     // clear old values
-    ref_map_id_ = 0;
+    ref_vec_idx_ = 0;
     map_to_vec_index_.clear();
 
     Size index = 0;
@@ -70,7 +70,9 @@ namespace OpenMS
       //  which all have that reference channel name.
       if (file_it->second.getMetaValue("channel_name") == reference_channel_name_)
       {
-        ref_map_id_ = file_it->first;
+        // the vector index, not the map index: they differ if the map indices do not start at 0
+        // (e.g. the channels of a later file of a multi-file experiment)
+        ref_vec_idx_ = index;
       }
       map_to_vec_index_[file_it->first] = index;
       ++index;
@@ -108,8 +110,8 @@ namespace OpenMS
   void IsobaricNormalizer::computeNormalizationFactors_(std::vector<Peak2D::IntensityType>& normalization_factors)
   {
     // ensure that the ref_(ratios|intensities) are sorted
-    std::sort(peptide_ratios_[ref_map_id_].begin(), peptide_ratios_[ref_map_id_].end());
-    std::sort(peptide_intensities_[ref_map_id_].begin(), peptide_intensities_[ref_map_id_].end());
+    std::sort(peptide_ratios_[ref_vec_idx_].begin(), peptide_ratios_[ref_vec_idx_].end());
+    std::sort(peptide_intensities_[ref_vec_idx_].begin(), peptide_intensities_[ref_vec_idx_].end());
 
     // reporting
     Peak2D::IntensityType max_deviation_from_control = 0;
@@ -120,18 +122,37 @@ namespace OpenMS
       // this is solely for readability reasons, the compiler should optimize this anyway
       const Size vec_idx = it_map->second;
 
+      // no ratio at all (e.g. the reference channel is empty in every feature): nothing to normalize by
+      if (peptide_ratios_[vec_idx].empty())
+      {
+        OPENMS_LOG_WARN << "IsobaricNormalizer:  map-id " << (it_map->first) << " has no intensity ratio to the reference channel and is not normalized." << std::endl;
+        normalization_factors[vec_idx] = 1.0;
+        continue;
+      }
+
       // sort vector (partial_sort might improve performance here)
       std::sort(peptide_ratios_[vec_idx].begin(), peptide_ratios_[vec_idx].end());
 
       // save median as first element
       normalization_factors[vec_idx] = peptide_ratios_[vec_idx][peptide_ratios_[vec_idx].size() / 2];
 
+      // A median ratio of 0 (the channel has no signal in most features) or of the stand-in for x/0 (the
+      // reference channel has no signal in most features, see collectRatios_) is nothing to normalize by
+      // either: dividing by it would turn the intensities of the channel into NaN, infinity or (almost) 0.
+      if (normalization_factors[vec_idx] == 0 || normalization_factors[vec_idx] == std::numeric_limits<Peak2D::IntensityType>::max())
+      {
+        OPENMS_LOG_WARN << "IsobaricNormalizer:  map-id " << (it_map->first) << " has no usable median intensity ratio to the reference channel"
+                        << " (the channel or the reference channel lacks signal in most features) and is not normalized." << std::endl;
+        normalization_factors[vec_idx] = 1.0;
+        continue;
+      }
+
       // sort control (intensities)
       std::sort(peptide_intensities_[vec_idx].begin(), peptide_intensities_[vec_idx].end());
 
       // find MEDIAN of control-method (intensities) for each channel
       peptide_intensities_[vec_idx][0] = peptide_intensities_[vec_idx][peptide_intensities_[vec_idx].size() / 2] /
-                                         peptide_intensities_[ref_map_id_][peptide_intensities_[ref_map_id_].size() / 2];
+                                         peptide_intensities_[ref_vec_idx_][peptide_intensities_[ref_vec_idx_].size() / 2];
 
       OPENMS_LOG_INFO << "IsobaricNormalizer:  map-id " << (it_map->first) << " has factor " << (normalization_factors[vec_idx]) << " (control: " << (peptide_intensities_[vec_idx][0]) << ")" << std::endl;
 
@@ -201,26 +222,21 @@ namespace OpenMS
         continue;
       }
 
-      // now adjust the ratios
-      ConsensusFeature cf = consensus_map[i];
-      cf.clear(); // delete its handles
+      // now adjust the ratios, in place: the intensity does not take part in the order of the handles, and
+      // copying the whole feature (with its peptide identifications) would be expensive
       for (ConsensusFeature::HandleSetType::iterator it_elements = consensus_map[i].begin();
            it_elements != consensus_map[i].end();
            ++it_elements)
       {
-        FeatureHandle hd = *it_elements;
         if (it_elements == ref_it)
         {
-          hd.setIntensity(1);
+          it_elements->asMutable().setIntensity(1);
         }
         else // divide current intensity by normalization factor (which was stored at position 0)
         {
-          hd.setIntensity(hd.getIntensity() / normalization_factors[map_to_vec_index_[it_elements->getMapIndex()]]);
+          it_elements->asMutable().setIntensity(it_elements->getIntensity() / normalization_factors[map_to_vec_index_[it_elements->getMapIndex()]]);
         }
-        cf.insert(hd);
       }
-      // replace consensusFeature with updated intensity
-      consensus_map[i] = cf;
     } // ! adjust ratios
   }
 

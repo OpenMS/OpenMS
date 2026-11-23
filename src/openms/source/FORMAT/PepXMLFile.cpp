@@ -6,24 +6,78 @@
 // $Authors: Chris Bielow, Hendrik Weisser $
 // --------------------------------------------------------------------------
 
+#include <boost/regex.hpp>
 #include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/CHEMISTRY/Residue.h>
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/FORMAT/PepXMLFile.h>
+#include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
 
 #include <OpenMS/CHEMISTRY/ElementDB.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/CHEMISTRY/ResidueDB.h>
 #include <OpenMS/CHEMISTRY/ProteaseDB.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/METADATA/ProteinRunReferences.h>
 
+#include <algorithm>
 #include <fstream>
+#include <initializer_list>
 
 using namespace std;
 
 namespace OpenMS
 {
+  namespace
+  {
+    /// "'a', 'b', ..." for error messages (only the first few names are listed)
+    std::string quotedList(const std::vector<std::string>& names)
+    {
+      if (names.empty()) return "none";
+      const Size max_listed = 10;
+      std::vector<std::string> listed(names.begin(), names.begin() + std::min(names.size(), max_listed));
+      std::string result = "'" + ListUtils::concatenate(listed, "', '") + "'";
+      if (names.size() > max_listed) result += ", ... (" + StringUtils::toStr(names.size()) + " in total)";
+      return result;
+    }
+
+    /// Can terminal modification @p mod be at a terminus whose residue is @p residue ('?' for unknown)?
+    /// Modifications of a particular terminal residue (e.g. 'Gln->pyro-Glu (N-term Q)') can only be there.
+    bool fitsTerminalResidue(const ResidueModification& mod, char residue)
+    {
+      const char origin = mod.getOrigin();
+      return origin == 'X' || origin == '\0' || residue == '?' || origin == residue;
+    }
+
+    /// Is a peptide with @p evidences at a protein N-terminus (@p n_term) or C-terminus? 1: yes (according to some
+    /// evidence), 0: no (all evidences give the neighbouring residue), -1: unknown.
+    /// A preceding 'M' counts as unknown: it may be the initiator methionine, which search engines (e.g. MSFragger)
+    /// and OpenMS' PeptideIndexer report as the preceding residue of a protein N-terminal peptide after its removal.
+    int atProteinTerminus(const std::vector<PeptideEvidence>& evidences, bool n_term)
+    {
+      bool unknown = evidences.empty();
+      for (const PeptideEvidence& pe : evidences)
+      {
+        const char aa = n_term ? pe.getAABefore() : pe.getAAAfter();
+        if (aa == '-' || aa == (n_term ? PeptideEvidence::N_TERMINAL_AA : PeptideEvidence::C_TERMINAL_AA))
+        {
+          return 1;
+        }
+        unknown = unknown || aa == PeptideEvidence::UNKNOWN_AA || (n_term && aa == 'M');
+      }
+      return unknown ? -1 : 0;
+    }
+
+    /// Is @p mod a protein-terminal modification?
+    bool isProteinTerminal(const ResidueModification& mod)
+    {
+      return mod.getTermSpecificity() == ResidueModification::PROTEIN_N_TERM ||
+             mod.getTermSpecificity() == ResidueModification::PROTEIN_C_TERM;
+    }
+  }
 
   std::string PepXMLFile::AminoAcidModification::toUnimodLikeString() const
   {
@@ -310,7 +364,7 @@ namespace OpenMS
         // r will be nullptr if not found. The next line handles it.
         const Residue* r = ResidueDB::getInstance()->getResidue(aminoacid_[0]);
         //TODO check if it is better to create from mass or massdiff
-        registered_mod_ = ResidueModification::createUnknownFromMassString(StringUtils::toStr(massdiff_),
+        registered_mod_ = ResidueModification::createUnknownFromMassString(ResidueModification::getDiffMonoMassString(massdiff_),
                                                                                  massdiff_,
                                                                                  true,
                                                                                  term_spec_,
@@ -350,6 +404,9 @@ namespace OpenMS
 
   void PepXMLFile::store(const std::string& filename, std::vector<ProteinIdentification>& protein_ids, PeptideIdentificationList& peptide_ids, const std::string& mz_file, const std::string& mz_name, bool peptideprophet_analyzed, double rt_tolerance)
   {
+    // every peptide identification needs its protein identification run: fail before the file is opened
+    ProteinRunReferences::check(protein_ids, peptide_ids);
+
     ofstream f(filename.c_str());
     if (!f)
     {
@@ -414,12 +471,17 @@ namespace OpenMS
 
     f << R"(<?xml version="1.0" encoding="UTF-8"?>)" << "\n";
     f << R"(<msms_pipeline_analysis date="2007-12-05T17:49:46" xmlns="http://regis-web.systemsbiology.net/pepXML" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://sashimi.sourceforge.net/schema_revision/pepXML/pepXML_v117.xsd" summary_xml=".xml">)" << "\n";
-    f << "<msms_run_summary base_name=\"" << base_name << R"(" raw_data_type="raw" raw_data=".)" << raw_data << "\" search_engine=\"" << search_engine_name << "\">" << "\n";
+    // 'search_engine' belongs to 'search_summary' below; 'msms_run_summary' has no such attribute
+    f << "<msms_run_summary base_name=\"" << base_name << R"(" raw_data_type="raw" raw_data=".)" << raw_data << "\">" << "\n";
     std::string enzyme_name = search_params.digestion_enzyme.getName();
     f << "\t<sample_enzyme name=\"";
     f << StringUtils::toLower(enzyme_name) << "\">" << "\n";
-    f << "\t\t<specificity cut=\"";
-    if (!search_params.digestion_enzyme.getRegEx().empty())
+    std::string cut, no_cut;
+    // 'unspecific cleavage' cuts after every residue (RegEx "(?<=[A-Z])"); the regex parsing
+    // below would read that as a single-residue rule cutting only after alanine ('A', the first
+    // of the two unrelated letters in the character class), which is schema-valid but wrong.
+    const bool unspecific_cleavage = (enzyme_name == "unspecific cleavage");
+    if (!unspecific_cleavage && !search_params.digestion_enzyme.getRegEx().empty())
     {
       vector<std::string> sub_regex;
       StringUtils::split(search_params.digestion_enzyme.getRegEx(), ")", sub_regex);
@@ -427,14 +489,25 @@ namespace OpenMS
       static const boost::regex e("(.*?)([A-Z]+)(.*?)");
       if (boost::regex_match(sub_regex[0], results, e))
       {
-        f << results[2];
+        cut = results[2];
       }
-      if (StringUtils::hasSubstring(sub_regex[1], "!P"))
+      if (sub_regex.size() > 1 && StringUtils::hasSubstring(sub_regex[1], "!P"))
       {
-        f << "\" no_cut=\"P";
+        no_cut = "P";
       }
     }
-    f << R"(" sense="C"/>)" << "\n";
+    // an enzyme without cleavage rules (e.g. the default 'unknown_enzyme', or 'unspecific
+    // cleavage', which has no single cleavage residue to express as 'cut') has nothing to cut
+    // after; pepXML allows a 'sample_enzyme' without 'specificity', but not an empty 'cut'
+    if (!cut.empty())
+    {
+      f << "\t\t<specificity cut=\"" << cut << "\"";
+      if (!no_cut.empty())
+      {
+        f << " no_cut=\"" << no_cut << "\"";
+      }
+      f << R"( sense="C"/>)" << "\n";
+    }
     f << "\t</sample_enzyme>" << "\n";
 
     f << "\t<search_summary base_name=\"" << base_name;
@@ -461,34 +534,37 @@ namespace OpenMS
     f << "\t\t<search_database local_path=\"" << search_params.db << R"(" type="AA"/>)" << "\n";
 
 
-    // register modifications
-    set<std::string> aa_mods;
-    set<std::string> n_term_mods, c_term_mods;
-    for (PeptideIdentificationList::const_iterator it = peptide_ids.begin();
-         it != peptide_ids.end(); ++it)
+    // register modifications: those of all peptide hits (all of them are written, not only the best ones),
+    // by full ID; the declarations below give their masses and tell fixed from variable ones
+    std::map<std::string, const ResidueModification*> aa_mods, n_term_mods, c_term_mods;
+    // the modifications found at the sites of each kind ("" for an unmodified site), see 'variableFlag' below
+    std::map<char, std::set<std::string>> residue_site_mods;
+    std::set<std::string> n_term_site_mods, c_term_site_mods;
+    for (const PeptideIdentification& pep : peptide_ids)
     {
-      if (!it->getHits().empty())
+      for (const PeptideHit& hit : pep.getHits())
       {
-        PeptideHit h = *it->getHits().begin();
-
-        if (h.getSequence().isModified())
+        const AASequence& seq = hit.getSequence();
+        if (seq.hasNTerminalModification())
         {
-          const AASequence& p = h.getSequence();
-          if (p.hasNTerminalModification())
+          n_term_mods[seq.getNTerminalModification()->getFullId()] = seq.getNTerminalModification();
+        }
+        n_term_site_mods.insert(seq.hasNTerminalModification() ? seq.getNTerminalModification()->getFullId() : "");
+        if (seq.hasCTerminalModification())
+        {
+          c_term_mods[seq.getCTerminalModification()->getFullId()] = seq.getCTerminalModification();
+        }
+        c_term_site_mods.insert(seq.hasCTerminalModification() ? seq.getCTerminalModification()->getFullId() : "");
+        for (Size i = 0; i != seq.size(); ++i)
+        {
+          const std::string& code = seq[i].getOneLetterCode();
+          if (seq[i].isModified())
           {
-            n_term_mods.insert(p.getNTerminalModification()->getFullId());
+            aa_mods[seq[i].getModification()->getFullId()] = seq[i].getModification();
           }
-          if (p.hasCTerminalModification())
+          if (!code.empty())
           {
-            c_term_mods.insert(p.getCTerminalModification()->getFullId());
-          }
-
-          for (Size i = 0; i != p.size(); ++i)
-          {
-            if (p[i].isModified())
-            {
-              aa_mods.insert(p[i].getModification()->getFullId());
-            }
+            residue_site_mods[code[0]].insert(seq[i].isModified() ? seq[i].getModification()->getFullId() : "");
           }
         }
       }
@@ -496,11 +572,31 @@ namespace OpenMS
 
     // write modifications definitions
     // <aminoacid_modification aminoacid="C" massdiff="+58.01" mass="161.014664" variable="Y" binary="N" description="Carboxymethyl (C)"/>
-    for (set<std::string>::const_iterator it = aa_mods.begin();
-         it != aa_mods.end(); ++it)
+    // The "variable" attribute tells fixed (static, "N") from variable ("Y") modifications (issue #2096).
+    // "N" states that only the modified form of a site occurs in the file, and readers (PepXMLFile::load,
+    // LuciPHOr2) put such a modification on every site that a hit leaves unmodified, or take a site that
+    // carries another modification for one with the fixed one (LuciPHOr2). A modification is therefore
+    // written as fixed only if the search parameters list it as fixed AND it is the only modification found
+    // at its sites ('site_mods': all residues of its origin, or all N- or C-termini, in all hits). This
+    // fails e.g. for hits of a further search run that did not use the modification (only the first run's
+    // search parameters are written). All other modifications are variable, also those that the search
+    // parameters do not list at all.
+    auto variableFlag = [this, &search_params](const std::string& mod_full_id, const std::set<std::string>& site_mods)
     {
-      const ResidueModification* mod = ModificationsDB::getInstance()->getModification(*it, "", ResidueModification::ANYWHERE);
+      if (!ListUtils::contains(search_params.fixed_modifications, mod_full_id))
+      {
+        return "Y";
+      }
+      if (site_mods.size() != 1)
+      {
+        warning(STORE, "Fixed modification '" + mod_full_id + "' is missing at some of its sites in the peptide hits (they are unmodified or carry another modification); it is written as a variable modification.");
+        return "Y";
+      }
+      return "N";
+    };
 
+    for (const auto& [full_id, mod] : aa_mods)
+    {
       // compute mass of modified residue
       EmpiricalFormula ef = ResidueDB::getInstance()->getResidue(mod->getOrigin())->getFormula(Residue::Internal);
       ef += mod->getDiffFormula();
@@ -509,28 +605,31 @@ namespace OpenMS
         << "<aminoacid_modification aminoacid=\"" << mod->getOrigin()
         << "\" massdiff=\"" << precisionWrapper(mod->getDiffMonoMass()) << "\" mass=\""
         << precisionWrapper(ef.getMonoWeight())
-        << R"(" variable="Y" binary="N" description=")" << *it << "\"/>"
+        << "\" variable=\"" << variableFlag(full_id, residue_site_mods[mod->getOrigin()])
+        << R"(" binary="N" description=")" << full_id << "\"/>"
         << "\n";
     }
 
-    for (set<std::string>::const_iterator it = n_term_mods.begin(); it != n_term_mods.end(); ++it)
+    // "mass" is the mass of the modified terminus, as "mod_nterm_mass"/"mod_cterm_mass" of the hits below;
+    // "protein_terminus" tells modifications that can only be at a protein terminus
+    for (const auto& [full_id, mod] : n_term_mods)
     {
-      const ResidueModification* mod = ModificationsDB::getInstance()->getModification(*it, "", ResidueModification::N_TERM);
       f << "\t\t"
-        << R"(<terminal_modification terminus="n" massdiff=")"
-        << precisionWrapper(mod->getDiffMonoMass()) << "\" mass=\"" << precisionWrapper(mod->getMonoMass())
-        << R"(" variable="Y" description=")" << *it
-        << R"(" protein_terminus=""/>)" << "\n";
+        << R"(<terminal_modification terminus="n" massdiff=")" << precisionWrapper(mod->getDiffMonoMass())
+        << "\" mass=\"" << precisionWrapper(Residue::getInternalToNTerm().getMonoWeight() + mod->getDiffMonoMass())
+        << "\" variable=\"" << variableFlag(full_id, n_term_site_mods) << R"(" description=")" << full_id
+        << "\" protein_terminus=\"" << (mod->getTermSpecificity() == ResidueModification::PROTEIN_N_TERM ? "n" : "")
+        << "\"/>" << "\n";
     }
 
-    for (set<std::string>::const_iterator it = c_term_mods.begin(); it != c_term_mods.end(); ++it)
+    for (const auto& [full_id, mod] : c_term_mods)
     {
-      const ResidueModification* mod = ModificationsDB::getInstance()->getModification(*it, "", ResidueModification::C_TERM);
       f << "\t\t"
-        << R"(<terminal_modification terminus="c" massdiff=")"
-        << precisionWrapper(mod->getDiffMonoMass()) << "\" mass=\"" << precisionWrapper(mod->getMonoMass())
-        << R"(" variable="Y" description=")" << *it
-        << R"(" protein_terminus=""/>)" << "\n";
+        << R"(<terminal_modification terminus="c" massdiff=")" << precisionWrapper(mod->getDiffMonoMass())
+        << "\" mass=\"" << precisionWrapper(Residue::getInternalToCTerm().getMonoWeight() + mod->getDiffMonoMass())
+        << "\" variable=\"" << variableFlag(full_id, c_term_site_mods) << R"(" description=")" << full_id
+        << "\" protein_terminus=\"" << (mod->getTermSpecificity() == ResidueModification::PROTEIN_C_TERM ? "c" : "")
+        << "\"/>" << "\n";
     }
 
     f << "\t</search_summary>" << "\n";
@@ -538,6 +637,22 @@ namespace OpenMS
     {
       f << "\t<analysis_timestamp analysis=\"peptideprophet\" time=\"2007-12-05T17:49:52\" id=\"1\"/>" << "\n";
     }
+
+    // Writes a "search_score" with the value of the first of 'keys' that is set (and not empty) as meta value of 'hit'.
+    // Writes nothing if there is none, as an empty "value" attribute cannot be read back (issue #10570).
+    auto writeScoreFromMetaValue = [&f](const PeptideHit& hit, const std::string& name, std::initializer_list<const char*> keys)
+    {
+      for (const char* key : keys)
+      {
+        const std::string value = hit.getMetaValue(key).toString(); // empty if 'key' is not set
+        if (!value.empty())
+        {
+          f << "\t\t\t<search_score" << " name=\"" << name << "\" value=\"" << value << "\"" << "/>\n";
+          return true;
+        }
+      }
+      return false;
+    };
 
     // Scan index and scan number will be reconstructed if no spectrum lookup is possible to retrieve the values.
     // The scan index is generally zero-based and the scan number generally one-based.
@@ -818,20 +933,24 @@ namespace OpenMS
                 f << h.getMetaValue("XTandem_score") << "\"" << "/>\n";
               }
             }
-            f << "\t\t\t<search_score" << R"( name="expect" value=")" << h.getMetaValue("E-Value") << "\"" << "/>\n";
+            // "MS:1001330" is set when reading pepXML, "E-Value" when reading X! Tandem XML (e.g. via idXML)
+            if (!writeScoreFromMetaValue(h, "expect", {"MS:1001330", "E-Value"}) && pep.getScoreType() == "expect")
+            {
+              f << "\t\t\t<search_score" << R"( name="expect" value=")" << h.getScore() << "\"" << "/>\n";
+            }
           }
           else if (search_engine_name == "Comet")
           {
-            f << "\t\t\t<search_score" << R"( name="xcorr" value=")" << h.getMetaValue("MS:1002252") << "\"" << "/>\n"; // name: Comet:xcorr
-            f << "\t\t\t<search_score" << R"( name="deltacn" value=")" << h.getMetaValue("MS:1002253") << "\"" << "/>\n"; // name: Comet:deltacn
-            f << "\t\t\t<search_score" << R"( name="deltacnstar" value=")" << h.getMetaValue("MS:1002254") << "\"" << "/>\n"; // name: Comet:deltacnstar
-            f << "\t\t\t<search_score" << R"( name="spscore" value=")" << h.getMetaValue("MS:1002255") << "\"" << "/>\n"; // name: Comet:spscore
-            f << "\t\t\t<search_score" << R"( name="sprank" value=")" << h.getMetaValue("MS:1002256") << "\"" << "/>\n"; // name: Comet:sprank
-            f << "\t\t\t<search_score" << R"( name="expect" value=")" << h.getMetaValue("MS:1002257") << "\"" << "/>\n"; // name: Comet:expect
+            writeScoreFromMetaValue(h, "xcorr", {"MS:1002252"}); // name: Comet:xcorr
+            writeScoreFromMetaValue(h, "deltacn", {"MS:1002253"}); // name: Comet:deltacn
+            writeScoreFromMetaValue(h, "deltacnstar", {"MS:1002254"}); // name: Comet:deltacnstar
+            writeScoreFromMetaValue(h, "spscore", {"MS:1002255"}); // name: Comet:spscore
+            writeScoreFromMetaValue(h, "sprank", {"MS:1002256"}); // name: Comet:sprank
+            writeScoreFromMetaValue(h, "expect", {"MS:1002257"}); // name: Comet:expect
           }
           else if (search_engine_name == "MASCOT")
           {
-            f << "\t\t\t<search_score" << R"( name="expect" value=")" << h.getMetaValue("EValue") << "\"" << "/>\n";
+            writeScoreFromMetaValue(h, "expect", {"MS:1001172", "EValue"}); // name: Mascot:expectation value
             f << "\t\t\t<search_score" << R"( name="ionscore" value=")" << h.getScore() << "\"" << "/>\n";
           }
           else if (search_engine_name == "OMSSA")
@@ -962,6 +1081,25 @@ namespace OpenMS
     }
   }
 
+  bool PepXMLFile::isExperimentOfInterest_(std::string base_name)
+  {
+    StringUtils::substitute(base_name, '\\', '/'); // same separators as in "exp_name_"
+    if (base_name.empty()) return false;
+    if (std::find(base_names_.begin(), base_names_.end(), base_name) == base_names_.end())
+    {
+      base_names_.push_back(base_name);
+    }
+    // only whole path components may match, otherwise e.g. "LN1" would select both "L_LN1" and "H_LN1":
+    if (!StringUtils::hasSuffix(base_name, exp_name_)) return false;
+    const Size start = base_name.size() - exp_name_.size();
+    if (start > 0 && base_name[start - 1] != '/') return false;
+    if (std::find(matched_base_names_.begin(), matched_base_names_.end(), base_name) == matched_base_names_.end())
+    {
+      matched_base_names_.push_back(base_name);
+    }
+    return true;
+  }
+
   void PepXMLFile::setParseUnknownScores(bool parse_unknown_scores)
   {
     this->parse_unknown_scores_ = parse_unknown_scores;
@@ -985,6 +1123,7 @@ namespace OpenMS
     exp_name_ = "";
     prot_id_ = "";
     charge_ = 0;
+    lookup_ = nullptr; // a previous call may have thrown before resetting it
     peptides.clear();
     peptides_ = &peptides;
     proteins.clear();
@@ -997,20 +1136,29 @@ namespace OpenMS
     if (!experiment_name.empty())
     {
       exp_name_ = FileHandler::stripExtension(experiment_name);
+      // TPP writes "base_name" with '/' even on Windows, while users give native paths with '\'
+      StringUtils::substitute(exp_name_, '\\', '/');
       lookup_ = &lookup;
     }
 
     analysis_summary_ = false;
     wrong_experiment_ = false;
-    // without experiment name, don't care about these two:
-    seen_experiment_ = exp_name_.empty();
+    base_names_.clear();
+    matched_base_names_.clear();
+    // without experiment name, don't care about this:
     checked_base_name_ = exp_name_.empty();
 
     parse_(filename, this);
 
-    if (!seen_experiment_)
+    if (!exp_name_.empty() && matched_base_names_.empty())
     {
-      fatalError(LOAD, "Found no experiment with name '" + experiment_name + "'");
+      fatalError(LOAD, "Found no experiment with name '" + experiment_name + "'. It has to match the end of a run's 'base_name', "
+                 "e.g. its file name (IDFileConverter: 'mz_name'). 'base_name's in this file: " + quotedList(base_names_));
+    }
+    if (matched_base_names_.size() > 1) // e.g. equally named spectra files in different folders
+    {
+      fatalError(LOAD, "Experiment name '" + experiment_name + "' matches runs with different 'base_name's: " + quotedList(matched_base_names_) +
+                 ". Give more of the path to select one of them (IDFileConverter: 'mz_name').");
     }
     // clean up duplicate ProteinHits in each ProteinIdentification separately:
     // (can't use "sort" and "unique" because no "op<" defined for ProteinHit)
@@ -1098,8 +1246,7 @@ namespace OpenMS
       {
         if (!base_name.empty())
         {
-          wrong_experiment_ = !StringUtils::hasSuffix(base_name, exp_name_);
-          seen_experiment_ = seen_experiment_ || !wrong_experiment_;
+          wrong_experiment_ = !isExperimentOfInterest_(base_name);
           checked_base_name_ = true;
         }
         else // really shouldn't happen, but does for Mascot export to pepXML
@@ -1131,6 +1278,7 @@ namespace OpenMS
       protein.setDateTime(date_);
       prot_id_ = "unknown_" + date_.getDate();
       enzyme_ = "unknown_enzyme";
+      params_.digestion_enzyme = DigestionEnzymeProtein();
       // "prot_id_" will be overwritten if elem. "search_summary" is present
       protein.setIdentifier(prot_id_);
       // Record the spectra file as the run's primary MS run path now, so pepXML files
@@ -1176,7 +1324,7 @@ namespace OpenMS
         {
           peptide_hit_.setMetaValue("MS:1001330", value); // name: X\!Tandem:expect
         }
-        else if (search_engine_ == "Mascot")
+        else if (search_engine_ == "Mascot" || search_engine_ == "MASCOT") // "MASCOT": written by TPP and by PepXMLFile::store
         {
           peptide_hit_.setMetaValue("MS:1001172", value); // name: Mascot:expectation value
         }
@@ -1537,110 +1685,79 @@ namespace OpenMS
     }
     else if (element == "modification_info") // parent: "search_hit" (in "search result")
     {
-      // Has N-Term Modification
-      double mod_nterm_mass;
-      if (optionalAttributeAsDouble_(mod_nterm_mass, attributes, "mod_nterm_mass")) // this specifies a terminal modification
+      // terminal modifications, given as the mass of the modified terminus
+      for (const bool n_term : {true, false})
       {
-        // look up the modification in the search_summary by mass
-        bool found = false;
-        for (const AminoAcidModification& it : variable_modifications_)
+        double terminus_mass;
+        if (!optionalAttributeAsDouble_(terminus_mass, attributes, n_term ? "mod_nterm_mass" : "mod_cterm_mass"))
         {
-          if ((fabs(mod_nterm_mass - it.getMass()) < mod_tol_) && it.getTerminus() == "n")
-          {
-            current_modifications_.emplace_back(it.getRegisteredMod(), Size(-1)); // position not needed for terminus
-            found = true;
-            break; // only one modification should match, so we can stop the loop here
-          }
+          continue;
         }
-        if (!found)
+        const std::string terminus = n_term ? "n" : "c";
+        const char residue = current_sequence_.empty() ? '?' : (n_term ? current_sequence_.front() : current_sequence_.back());
+
+        // look up the modification in the search_summary by mass (variable ones first); it has to fit the terminal
+        // residue. Of a peptide-terminal and a protein-terminal declaration with the same mass (e.g. 'Amidated (C-term)'
+        // and 'Amidated (Protein C-term)'), the one that fits the protein terminus evidence of the hit is taken.
+        const bool protein_terminus = (atProteinTerminus(peptide_hit_.getPeptideEvidences(), n_term) == 1);
+        const AminoAcidModification* header_mod = nullptr; // first match, replaced by the first one of the right kind
+        const AminoAcidModification* other_residue_mod = nullptr; // first match with the mass that does not fit the residue
+        bool right_kind = false;
+        for (const vector<AminoAcidModification>* header_mods : {&variable_modifications_, &fixed_modifications_})
         {
-          for (const AminoAcidModification& it : fixed_modifications_)
+          for (const AminoAcidModification& m : *header_mods)
           {
-            if ((fabs(mod_nterm_mass - it.getMass()) < mod_tol_) && it.getTerminus() == "n")
+            if (right_kind || (fabs(terminus_mass - m.getMass()) >= mod_tol_) || m.getTerminus() != terminus)
             {
-              current_modifications_.emplace_back(it.getRegisteredMod(), Size(-1)); // position not needed for terminus
-              found = true;
-              break; // only one modification should match, so we can stop the loop here
+              continue;
+            }
+            if (!fitsTerminalResidue(*m.getRegisteredMod(), residue))
+            {
+              if (other_residue_mod == nullptr) other_residue_mod = &m;
+              continue;
+            }
+            right_kind = (isProteinTerminal(*m.getRegisteredMod()) == protein_terminus);
+            if (header_mod == nullptr || right_kind)
+            {
+              header_mod = &m;
             }
           }
         }
-
-        if (!found)
+        if (header_mod != nullptr)
         {
-          // It was not registered in the pepXML header. Search it in DB by massdiff = mod_nterm_mass - orig_nterm_mass.
-          std::vector<const ResidueModification*> mods;
-          try
-          {
-            ModificationsDB::getInstance()->searchModificationsByDiffMonoMass(mods, mod_nterm_mass - Residue::getInternalToNTerm().getMonoWeight(), mod_tol_, "", ResidueModification::N_TERM);
-          }
-          catch(...)
-          {
-            ModificationsDB::getInstance()->searchModificationsByDiffMonoMass(mods, mod_nterm_mass - Residue::getInternalToNTerm().getMonoWeight(), mod_tol_, "", ResidueModification::PROTEIN_N_TERM);
-          }
-
-          if (!mods.empty())
-          {
-            current_modifications_.emplace_back(mods[0], Size(-1)); // -1, because position does not matter
-          }
-          else
-          {
-            error(LOAD,std::string("Cannot find N-terminal modification with mass " + StringUtils::toStr(mod_nterm_mass) + "."));
-          }
-          //TODO we should create and register a mod here
-        }
-      }
-
-      // Has C-Term Modification
-      double mod_cterm_mass;
-      if (optionalAttributeAsDouble_(mod_cterm_mass, attributes, "mod_cterm_mass")) // this specifies a terminal modification
-      {
-        // look up the modification in the search_summary by mass
-        bool found = false;
-        for (const AminoAcidModification& amino : variable_modifications_)
-        {
-          if ((fabs(mod_cterm_mass - amino.getMass()) < mod_tol_) && amino.getTerminus() == "c")
-          {
-            current_modifications_.emplace_back(amino.getRegisteredMod(), Size(-1)); // position not needed for terminus
-            found = true;
-            break; // only one modification should match, so we can stop the loop here
-          }
-        }
-        if (!found)
-        {
-          for (const AminoAcidModification& amino : fixed_modifications_)
-          {
-            if ((fabs(mod_cterm_mass - amino.getMass()) < mod_tol_) && amino.getTerminus() == "c")
-            {
-              current_modifications_.emplace_back(amino.getRegisteredMod(), Size(-1)); // position not needed for terminus
-              found = true;
-              break; // only one modification should match, so we can stop the loop here
-            }
-          }
+          current_modifications_.emplace_back(header_mod->getRegisteredMod(), Size(-1)); // position not needed for terminus
+          continue;
         }
 
-        if (!found)
+        // It was not registered in the pepXML header. Search it in DB by its mass difference to the unmodified
+        // terminus, among the modifications of this terminus that fit its residue, and then of the protein terminus.
+        const double diff_mass = terminus_mass - (n_term ? Residue::getInternalToNTerm() : Residue::getInternalToCTerm()).getMonoWeight();
+        std::vector<const ResidueModification*> mods;
+        ModificationsDB::getInstance()->searchModificationsByDiffMonoMass(mods, diff_mass, mod_tol_, std::string(1, residue),
+                                                                          n_term ? ResidueModification::N_TERM : ResidueModification::C_TERM);
+        if (mods.empty())
         {
-          // It was not registered in the pepXML header. Search it in DB.
-          std::vector<const ResidueModification*> mods;
-          try
-          {
-            ModificationsDB::getInstance()->searchModificationsByDiffMonoMass(mods, mod_cterm_mass - Residue::getInternalToCTerm().getMonoWeight(), mod_tol_, "", ResidueModification::C_TERM);
-          }
-          catch(...)
-          {
-            ModificationsDB::getInstance()->searchModificationsByDiffMonoMass(mods, mod_cterm_mass - Residue::getInternalToCTerm().getMonoWeight(), mod_tol_, "", ResidueModification::PROTEIN_C_TERM);
-          }
-
-          if (!mods.empty())
-          {
-            current_modifications_.emplace_back(mods[0], Size(-1)); // -1, because position does not matter
-          }
-          else
-          {
-            error(LOAD,std::string("Cannot find N-terminal modification with mass " + StringUtils::toStr(mod_nterm_mass) + "."));
-          }
-          //TODO we should create and register a mod here
+          ModificationsDB::getInstance()->searchModificationsByDiffMonoMass(mods, diff_mass, mod_tol_, std::string(1, residue),
+                                                                            n_term ? ResidueModification::PROTEIN_N_TERM : ResidueModification::PROTEIN_C_TERM);
         }
+        if (!mods.empty())
+        {
+          current_modifications_.emplace_back(mods[0], Size(-1)); // -1, because position does not matter
+        }
+        else if (other_residue_mod != nullptr)
+        {
+          // keep the mass: take the declaration with this mass, although it is meant for another terminal residue
+          const ResidueModification* mod = other_residue_mod->getRegisteredMod();
+          warning(LOAD, std::string("The ") + (n_term ? "N" : "C") + "-terminal modification with mass " + StringUtils::toStr(terminus_mass) +
+                        " of " + current_sequence_ + " fits no modification of its terminal residue; using '" + mod->getFullId() +
+                        "' from the search_summary.");
+          current_modifications_.emplace_back(mod, Size(-1));
+        }
+        else
+        {
+          error(LOAD, std::string("Cannot find ") + (n_term ? "N" : "C") + "-terminal modification with mass " + StringUtils::toStr(terminus_mass) + ".");
+        }
+        //TODO we should create and register a mod here
       }
     }
     else if (element == "alternative_protein") // parent: "search_hit"
@@ -1648,6 +1765,16 @@ namespace OpenMS
       std::string protein = attributeAsString_(attributes, "protein");
       PeptideEvidence pe;
       pe.setProteinAccession(protein);
+      // the residues around the peptide in this protein (used e.g. to tell whether the peptide is at a protein terminus)
+      std::string prev_aa, next_aa;
+      if (optionalAttributeAsString_(prev_aa, attributes, "peptide_prev_aa") && !prev_aa.empty())
+      {
+        pe.setAABefore(prev_aa[0]);
+      }
+      if (optionalAttributeAsString_(next_aa, attributes, "peptide_next_aa") && !next_aa.empty())
+      {
+        pe.setAAAfter(next_aa[0]);
+      }
 
       ProteinHit hit;
       hit.setAccession(protein);
@@ -1745,8 +1872,8 @@ namespace OpenMS
               warning(LOAD,"Modification '" + StringUtils::toStr(modification_mass) + "' of residue " + std::string(origin) + " at position "
               + StringUtils::toStr(modification_position) + " in '" + current_sequence_ + "' not registered in pepXML header nor uniquely defined in DB." +
               " Using " + mods[0]->getFullId());
-              current_modifications_.emplace_back(mods[0], modification_position - 1);
             }
+            current_modifications_.emplace_back(mods[0], modification_position - 1);
           }
           else
           {
@@ -1834,11 +1961,7 @@ namespace OpenMS
       optionalAttributeAsString_(current_base_name_, attributes, "base_name");
       if (!checked_base_name_) // work-around for files exported by Mascot
       {
-        if (StringUtils::hasSuffix(current_base_name_, exp_name_))
-        {
-          seen_experiment_ = true;
-        }
-        else // wrong experiment after all - roll back changes that were made
+        if (!isExperimentOfInterest_(current_base_name_)) // wrong experiment after all - roll back changes that were made
         {
           proteins_->pop_back();
           current_proteins_.clear();
@@ -1849,8 +1972,16 @@ namespace OpenMS
 
       fixed_modifications_.clear();
       variable_modifications_.clear();
+      const auto digestion_enzyme = params_.digestion_enzyme;
       params_ = ProteinIdentification::SearchParameters();
-      params_.digestion_enzyme = *(ProteaseDB::getInstance()->getEnzyme(enzyme_));
+      if (ProteaseDB::getInstance()->hasEnzyme(enzyme_))
+      {
+        params_.digestion_enzyme = *(ProteaseDB::getInstance()->getEnzyme(enzyme_));
+      }
+      else
+      {
+        params_.digestion_enzyme = digestion_enzyme;
+      }
       std::string mass_type = attributeAsString_(attributes, "precursor_mass_type");
       if (mass_type == "monoisotopic")
       {
@@ -1940,34 +2071,51 @@ namespace OpenMS
 
       if (enzyme_ == "stricttrypsin") enzyme_ = "Trypsin/P"; // MSFragger synonyme
 
-      if (ProteaseDB::getInstance()->hasEnzyme(StringUtils::toLower(enzyme_)))
+      if (ProteaseDB::getInstance()->hasEnzyme(enzyme_))
       {
         params_.digestion_enzyme = *(ProteaseDB::getInstance()->getEnzyme(enzyme_));
+      }
+      else
+      {
+        params_.digestion_enzyme = DigestionEnzymeProtein();
       }
     }
     else if (element == "specificity" && params_.digestion_enzyme.getName() == "unknown_enzyme") // parent: "sample_enzyme"
     { // special case: search parameter that occurs *before* "search_summary"!
       std::string cut_before = attributeAsString_(attributes, "cut");
-      std::string no_cut_after = attributeAsString_(attributes, "no_cut");
+      std::string no_cut_after;
+      optionalAttributeAsString_(no_cut_after, attributes, "no_cut");
       std::string sense = attributeAsString_(attributes, "sense");
-      params_.digestion_enzyme = DigestionEnzymeProtein(DigestionEnzyme(
-          "user-defined," + enzyme_ + "," + cut_before + "," + no_cut_after + "," + sense,
-          cut_before, no_cut_after, sense));
+      if (cut_before.empty())
+      {
+        // No cleavage information (OpenMS writes an empty cut for "unknown_enzyme"): keep "unknown_enzyme",
+        // which code checking for a missing enzyme expects, instead of a "user-defined" name that grows
+        // with every pepXML write/read pass.
+        params_.digestion_enzyme = DigestionEnzymeProtein();
+      }
+      else
+      {
+        const std::string enzyme_name = "user-defined," + enzyme_ + "," + cut_before + "," + no_cut_after + "," + sense;
+        params_.digestion_enzyme = DigestionEnzymeProtein(DigestionEnzyme(
+            enzyme_name, cut_before, no_cut_after, sense));
+      }
     }
     else if (element == "enzymatic_search_constraint") // parent: "search_summary"
     {
-      //TODO we should not overwrite the enzyme here! Luckily in most files it is the same
-      // enzyme as in sample_enzyme or something useless like "default".
       ///<enzymatic_search_constraint enzyme="nonspecific" max_num_internal_cleavages="1" min_number_termini="2"/>
-      enzyme_ = attributeAsString_(attributes, "enzyme");    
+      // The search parameters describe the search, so a known enzyme of the search constraint takes precedence over
+      // "sample_enzyme" (e.g. Comet: sample_enzyme "nonspecific", search constraint "Formic_Acid"). An unknown name
+      // (e.g. "default" from MSFragger) keeps the enzyme of "sample_enzyme".
+      enzyme_ = attributeAsString_(attributes, "enzyme");
       if (enzyme_ == "stricttrypsin") enzyme_ = "Trypsin/P"; // MSFragger synonyme
 
       if (ProteaseDB::getInstance()->hasEnzyme(enzyme_))
       {
-        DigestionEnzymeProtein enzyme_to_set = *(ProteaseDB::getInstance()->getEnzyme(StringUtils::toLower(enzyme_)));
+        DigestionEnzymeProtein enzyme_to_set = *(ProteaseDB::getInstance()->getEnzyme(enzyme_));
         if (params_.digestion_enzyme.getName() != "unknown_enzyme" && enzyme_to_set != params_.digestion_enzyme)
         {
-          error(LOAD, "More than one enzyme found. This is currently not supported. Proceeding with last encountered only.");
+          error(LOAD, "Enzyme '" + enzyme_to_set.getName() + "' of 'enzymatic_search_constraint' differs from enzyme '"
+                      + params_.digestion_enzyme.getName() + "' (e.g. of 'sample_enzyme'). Using '" + enzyme_to_set.getName() + "'.");
         }
         params_.digestion_enzyme = enzyme_to_set;
       }
@@ -2073,9 +2221,8 @@ namespace OpenMS
       //TODO one might argue that mods from XML attributes are better specified and should be preferred
 
       // Modifications explicitly annotated at the current search_hit take preference over
-      // implicit fixed mods
-      //TODO use peptide_hit_.getPeptideEvidences().back().getAAAfter()/Before() to see if Protein term is applicable at all
-      // But: Leave it out for now since I bet there is software out there, not adhering to the specification
+      // implicit fixed mods. Explicitly annotated protein-terminal modifications are kept whatever the evidences
+      // say about the protein terminus, since some software does not fill "peptide_prev_aa"/"peptide_next_aa" correctly.
       for (const auto& mod : current_modifications_)
       {
         if (mod.first->getTermSpecificity() == ResidueModification::N_TERM ||
@@ -2121,26 +2268,36 @@ namespace OpenMS
       // Now apply implicit fixed modifications at positions where there is no modification yet.
       for (const auto& mod : fixed_modifications_)
       {
-        if (mod.getRegisteredMod()->getTermSpecificity() == ResidueModification::N_TERM ||
-            mod.getRegisteredMod()->getTermSpecificity() == ResidueModification::PROTEIN_N_TERM)
+        const ResidueModification* fixed_mod = mod.getRegisteredMod();
+        const ResidueModification::TermSpecificity term_spec = fixed_mod->getTermSpecificity();
+        const bool n_term = (term_spec == ResidueModification::N_TERM || term_spec == ResidueModification::PROTEIN_N_TERM);
+        if (n_term || term_spec == ResidueModification::C_TERM || term_spec == ResidueModification::PROTEIN_C_TERM)
         {
-          if (!temp_aa_sequence.hasNTerminalModification())
+          // a modification of a particular terminal residue (e.g. 'Gln->pyro-Glu (N-term Q)') only applies to peptides
+          // with it, and a protein-terminal one not to peptides that the evidences place away from that protein terminus
+          // (it does apply if the evidences do not tell)
+          if (current_sequence_.empty() ||
+              !fitsTerminalResidue(*fixed_mod, n_term ? current_sequence_.front() : current_sequence_.back()) ||
+              (isProteinTerminal(*fixed_mod) && atProteinTerminus(peptide_hit_.getPeptideEvidences(), n_term) == 0))
           {
-            temp_aa_sequence.setNTerminalModification(mod.getRegisteredMod());
+            continue;
           }
-        }
-        else if (mod.getRegisteredMod()->getTermSpecificity() == ResidueModification::C_TERM ||
-            mod.getRegisteredMod()->getTermSpecificity() == ResidueModification::PROTEIN_N_TERM)
-        {
-          if (!temp_aa_sequence.hasCTerminalModification())
+          const ResidueModification* present = n_term ? temp_aa_sequence.getNTerminalModification() : temp_aa_sequence.getCTerminalModification();
+          if (present == nullptr)
           {
-            temp_aa_sequence.setCTerminalModification(mod.getRegisteredMod());
+            if (n_term)
+            {
+              temp_aa_sequence.setNTerminalModification(fixed_mod);
+            }
+            else
+            {
+              temp_aa_sequence.setCTerminalModification(fixed_mod);
+            }
           }
-          else
+          else if (present->getFullId() != fixed_mod->getFullId())
           {
-            warning(LOAD, "Trying to add a fixed C-term modification from the search_summary to an already"
-                          " annotated and modified N-terminus of " + current_sequence_
-                          + " ... skipping.");
+            warning(LOAD, std::string("The ") + (n_term ? "N" : "C") + "-terminus of " + current_sequence_ + " carries '" + present->getFullId() +
+                          "', so the fixed modification '" + fixed_mod->getFullId() + "' from the search_summary is not added.");
           }
         }
         else // go through the sequence and look for unmodified residues that match:
@@ -2183,6 +2340,36 @@ namespace OpenMS
 
       current_proteins_.back()->setSearchParameters(params_);
       search_summary_ = false;
+
+      // A hit gives a terminal modification only as the mass of the modified terminus. Of a peptide-terminal and a
+      // protein-terminal declaration with the same mass (e.g. 'Amidated (C-term)' and 'Amidated (Protein C-term)'),
+      // hits at a protein terminus get the protein-terminal one (see "modification_info"), even if the software that
+      // wrote the file meant the other one. Point that out once per search:
+      std::vector<const AminoAcidModification*> terminal_mods;
+      for (const vector<AminoAcidModification>* header_mods : {&variable_modifications_, &fixed_modifications_})
+      {
+        for (const AminoAcidModification& m : *header_mods)
+        {
+          if (!m.getTerminus().empty()) terminal_mods.push_back(&m);
+        }
+      }
+      for (const AminoAcidModification* peptide_term : terminal_mods)
+      {
+        const ResidueModification& peptide_mod = *peptide_term->getRegisteredMod();
+        if (isProteinTerminal(peptide_mod)) continue;
+        for (const AminoAcidModification* protein_term : terminal_mods)
+        {
+          const ResidueModification& protein_mod = *protein_term->getRegisteredMod();
+          if (isProteinTerminal(protein_mod) && protein_term->getTerminus() == peptide_term->getTerminus() &&
+              fabs(protein_term->getMass() - peptide_term->getMass()) < mod_tol_ &&
+              (fitsTerminalResidue(protein_mod, peptide_mod.getOrigin()) || fitsTerminalResidue(peptide_mod, protein_mod.getOrigin())))
+          {
+            warning(LOAD, "The search_summary declares '" + peptide_mod.getFullId() + "' and '" + protein_mod.getFullId() +
+                          "' with the same mass, which pepXML cannot tell apart in the hits. Hits at a protein terminus are read with '" +
+                          protein_mod.getFullId() + "'.");
+          }
+        }
+      }
     }
   }
 

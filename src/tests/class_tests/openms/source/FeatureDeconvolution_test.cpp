@@ -6,6 +6,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/ClassTest.h>
+#include <OpenMS/TestFileValidation.h>
 #include <OpenMS/test_config.h>
 #include <map>
 
@@ -214,6 +215,9 @@ END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
+/// check the temporary files written above against their XML schema (types without a validator are skipped)
+VALIDATE_TMP_FILES
+
 END_TEST
 
 

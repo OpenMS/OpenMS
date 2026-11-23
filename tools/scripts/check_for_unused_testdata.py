@@ -90,6 +90,6 @@ def filter_tracked_files(file_list):
 if __name__ == "__main__":
     # file names in test data will be checked for existance in source file
     test_data_directory = '../../src/tests/topp'
-    source_files_to_check = [ '../../src/tests/topp/CMakeLists.txt',  '../../src/tests/class_tests/openms/source/*.cpp']
+    source_files_to_check = [ '../../src/tests/topp/CMakeLists.txt',  '../../src/tests/class_tests/openms/source/*.cpp', '../../src/tests/class_tests/openms_cli/source/*.cpp']
     main(test_data_directory, source_files_to_check)
 

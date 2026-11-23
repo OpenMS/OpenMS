@@ -6,6 +6,7 @@
 // $Authors: Hendrik Weisser, Timo Sachsenberg $
 // --------------------------------------------------------------------------
 
+#include "../DATASTRUCTURES/RegularExpressionInternal.h"
 #include <OpenMS/METADATA/SpectrumNativeIDParser.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CONCEPT/Exception.h>
@@ -17,6 +18,7 @@ using namespace std;
 
 namespace OpenMS
 {
+  using Internal::RegularExpressionAccess;
   bool SpectrumNativeIDParser::isNativeID(const std::string& id)
   {
     return StringUtils::hasPrefix(id, "scan=") || StringUtils::hasPrefix(id, "scanId=") || StringUtils::hasPrefix(id, "scanID=")
@@ -35,6 +37,12 @@ namespace OpenMS
     //   scanStart=, scanEnd=, merged=) are used by OpenMS DDA/DIA PASEF
     //   and pwiz combined mode; the regex targets the "scan=<int>" token
     //   which remains the most meaningful scan-number proxy.
+    // "frame=NUMBER" without a scan= token, e.g. Bruker TDF MS1 frames or
+    //   diaTracer pseudo-DDA spectra: the frame number identifies the spectrum.
+    //   "scan=" is searched without a leading space on purpose: PercolatorInfile::getScanIdentifier()
+    //   removes the whitespace ("frame=10scan=42") before it asks for the regex.
+    if (StringUtils::hasPrefix(id, "frame=") && !StringUtils::hasSubstring(id, "scan=")) return std::string(R"(frame=(?<GROUP>\d+))");
+
     if (StringUtils::hasPrefix(id, "scan=")
      || StringUtils::hasPrefix(id, "controllerType=")
      || StringUtils::hasPrefix(id, "function=")
@@ -58,12 +66,12 @@ namespace OpenMS
   }
 
   Int SpectrumNativeIDParser::extractScanNumber(const std::string& native_id,
-                                        const boost::regex& scan_regexp,
+                                        const RegularExpression& scan_regexp,
                                         bool no_error)
   {
     vector<string> matches;
-    boost::sregex_token_iterator current_begin(native_id.begin(), native_id.end(), scan_regexp, 1);
-    boost::sregex_token_iterator current_end(native_id.end(), native_id.end(), scan_regexp, 1);
+    boost::sregex_token_iterator current_begin(native_id.begin(), native_id.end(), RegularExpressionAccess::get(scan_regexp), 1);
+    boost::sregex_token_iterator current_end(native_id.end(), native_id.end(), RegularExpressionAccess::get(scan_regexp), 1);
     matches.insert(matches.end(), current_begin, current_end);
     if (!matches.empty())
     {

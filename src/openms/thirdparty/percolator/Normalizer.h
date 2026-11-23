@@ -16,12 +16,13 @@
  *******************************************************************************/
 #ifndef NORMALIZER_H_
 #define NORMALIZER_H_
-
+#include <memory>
 #include <set>
 #include <vector>
 #include <iostream>
 
 namespace OpenMS { namespace Internal { namespace Percolator {
+
 
 using namespace std;
 
@@ -31,9 +32,7 @@ class Normalizer {
   virtual void setSet(vector<double*>& /* featuresV */,
                       vector<double*>& /* rtFeaturesV */, size_t /* numFeatures */,
                       size_t /* numRetentionFeatures*/ ) {}
-  virtual void updateSet(vector<double*>& /* featuresV */, size_t /* offset */,
-                         size_t /* numFeatures */) {}
-  
+
   void normalizeSet(vector<double*>& featuresV,
                     vector<double*>& rtFeaturesV);
   void normalizeSet(vector<double*>& featuresV,
@@ -50,12 +49,8 @@ class Normalizer {
   static void endScoreNormalizeWeights(const std::vector<double>& in, 
     std::vector<double>& out, double subScore, double scale);
 
-  static Normalizer* getNormalizer();
-  static void resetNormalizer() {
-    delete theNormalizer;
-    theNormalizer = NULL;
-  }
-  static void setType(int type);
+  // creates a normalizer of the given type (UNI, STDV or NONORM)
+  static std::unique_ptr<Normalizer> create(int type);
   const static int UNI = 0;
   const static int STDV = 1;
   const static int NONORM = 2;
@@ -71,10 +66,10 @@ class Normalizer {
     numFeatures = nf;
   }
   double* getSub() {
-    return &sub[0];
+    return sub.data();
   }
   double* getDiv() {
-    return &div[0];
+    return div.data();
   }
   size_t* getNumRetFeatures() {
     return &numRetentionFeatures;
@@ -104,9 +99,13 @@ class Normalizer {
   vector<double> GetVDiv() const { return div; }
  protected:
   Normalizer();
-  static Normalizer* theNormalizer;
-  static int subclass_type;
-  size_t numFeatures, numRetentionFeatures;
+  // Throws if sub or div of a feature in [begin, end) is not finite, e.g.
+  // when the values of a feature are so large that their sum or the sum of
+  // their squared deviations overflows. Every normalised value of such a
+  // feature would be NaN or 0.
+  void checkFactorsFinite(size_t begin, size_t end, const char* subName,
+                          const char* divName) const;
+  size_t numFeatures = 0, numRetentionFeatures = 0;
   vector<double> sub;
   vector<double> div;
 };

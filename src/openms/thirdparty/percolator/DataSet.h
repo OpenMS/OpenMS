@@ -17,8 +17,8 @@
 #ifndef DATASET_H_
 #define DATASET_H_
 
-
 #include <string>
+#include <string_view>
 #include <cassert>
 #include <cctype>
 #include <iostream>
@@ -32,25 +32,41 @@
 #include <random>
 
 #include "Scores.h"
-#include "ResultHolder.h"
 #include "Globals.h"
 #include "PSMDescription.h"
+#include "PsmStore.h"
+#include "TabReader.h"
 #include "FeatureNames.h"
 #include "FeatureMemoryPool.h"
 
 namespace OpenMS { namespace Internal { namespace Percolator {
+
+
 
 // Optional columns in tab delimited input
 enum OptionalField {
   SCANNR, EXPMASS, CALCMASS, RETTIME, DELTAMASS, FILENAME
 };
 
+// The fields of a PSM line before its features, see DataSet::readPsmHeader
+struct PsmHeader {
+  // the scan number, the experimental mass and the line number
+  PSMDescription psm;
+  std::string_view id;  // a view into the line
+  int label = 0;
+  // the starts of the fields that DataSet::readPsmBody parses, if present
+  const char* calcMassField = NULL;
+  const char* retentionTimeField = NULL;
+  bool hasFileName = false;
+  std::string_view fileName;
+};
+
 class DataSet {
  public:
   DataSet();
   virtual ~DataSet();
-  
-  void initFeatureTables(const unsigned int numFeatures);
+  DataSet(const DataSet&) = delete;
+  DataSet& operator=(const DataSet&) = delete;
   
   void inline setLabel(LabelType l) { label_ = l; }
   LabelType inline getLabel() const { return label_; }
@@ -66,28 +82,54 @@ class DataSet {
   
   bool writeTabData(std::ofstream& out);
   
-  void print_10features();
-  void print_features();
 
   void fillScores(std::vector<ScoreHolder>& scores);
   void fillFeatures(std::vector<double*>& features);
+  void clearFeaturePointers();
   
-  void readPsm(const std::string& line, const unsigned int lineNr,
-               const std::vector<OptionalField>& optionalFields, 
-               FeatureMemoryPool& featurePool, std::string decoyPrefix);
+  // Reads a PSM line into a new PSM of the store, without checking the
+  // fields before the features, which SetHandler::getScanId does. For the
+  // lines that the fast path below refuses.
   static LabelType readPsm(const std::string& line, const unsigned int lineNr,
     const std::vector<OptionalField>& optionalFields, bool readProteins,
-    PSMDescription*& myPsm, FeatureMemoryPool& featurePool, std::string decoyPrefix);
+    PSMDescription*& myPsm, FeatureMemoryPool& featurePool,
+    PsmStore& psmStore, const std::string& decoyPrefix);
+
+  // A fast path for readPsm that reads the fields before the features only
+  // once; see DataSet.cpp. Both return false if the line has to be read with
+  // SetHandler::getScanId and readPsm instead.
+  static bool readPsmHeader(TabReader& reader, const unsigned int lineNr,
+    const std::vector<OptionalField>& optionalFields, PsmHeader& header);
+  static bool readPsmBody(TabReader& reader, PsmHeader& header,
+    bool readProteins, PSMDescription*& myPsm, LabelType& label,
+    FeatureMemoryPool& featurePool, PsmStore& psmStore,
+    const std::string& decoyPrefix);
   
   void registerPsm(PSMDescription* myPsm);
+
+  // lets the warnings that are printed once per run be printed again
+  static void resetWarnings() {
+    decoyWarningTripped_ = false;
+    flankWarningTripped_ = false;
+  }
   
  protected:   
   
-  std::vector<PSMDescription*> psms_;
-  LabelType label_;
+  std::vector<PSMDescription*> psms_;  // in input order, owned by a PsmStore
+  LabelType label_ = LabelType::UNDEFINED;
   
+  static void checkUnflankedPeptide(std::string_view peptide,
+                                    std::string_view psmId,
+                                    unsigned int lineNr);
+
   static FeatureNames featureNames_;
   static bool decoyWarningTripped_;
+  static bool flankWarningTripped_;
+
+  static void readFeaturesAndProteins(TabReader& reader, LabelType label,
+    bool readProteins, PSMDescription& psm, std::string_view id,
+    PSMDescription*& myPsm, FeatureMemoryPool& featurePool,
+    PsmStore& psmStore, const std::string& decoyPrefix);
 };
 
 }}}  // namespace OpenMS::Internal::Percolator

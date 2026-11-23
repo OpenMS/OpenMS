@@ -3,7 +3,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
-// $Authors: Aditya Sarna $
+// $Authors: Aditya Sarna, Patrick Boschmann $
 // --------------------------------------------------------------------------
 
 #pragma once
@@ -24,6 +24,7 @@ namespace OpenMS
 
   class MSImagingGeometry; // OpenMS/IMAGING/MSImagingGeometry.h — included in the .cpp
   class IonImage;          // OpenMS/IMAGING/IonImage.h — included in the .cpp
+  class ExperimentalSettings; // OpenMS/METADATA/ExperimentalSettings.h — included in the .cpp
 
   /**
     @brief Random-access, on-disc reader for imzML mass spectrometry imaging datasets.
@@ -48,10 +49,21 @@ namespace OpenMS
 
     @b Design.
     The PIMPL idiom hides all implementation details (IBD FILE*, index vector,
-    coordinate map) so that this header has no dependency on expat, Xerces, or
+    coordinate map) so that this header has no dependency on parser implementations or
     the native @p imzml:: parser library.  The index is built by running
     @p ImzMLFile::loadSpectraIndex() during @p open() — no peak arrays
-    are decoded until @p getSpectrum() is called.
+    are decoded until @p getSpectrum() is called. Unless opened with @p skip_metadata,
+    the same parse keeps every spectrum's metadata (without peaks) in memory, as
+    @p OnDiscMSExperiment does for mzML, so @p getSpectrum() returns the
+    metadata the in-memory @p ImzMLFile::load gives (RT = -1 and
+    @p imzml:scan_start_time, see @p ImzMLFile).
+
+    @note @p getSpectrum() returns m/z, intensity, and any indexed auxiliary
+    external arrays (e.g. @c MS:1003006 ion mobility) as @c FloatDataArray
+    entries — the same contract as in-memory @p ImzMLFile::load — so viewers
+    can call @c containsIMData() / rasterize without a separate code path.
+    Auxiliary arrays whose length differs from the peak count, or which declare no
+    supported binary data type, are skipped with a warning in both loaders.
 
     @note This class is not thread-safe.  If concurrent reads are needed,
     construct one instance per thread.
@@ -82,26 +94,35 @@ namespace OpenMS
       The .ibd path is inferred from @p imzml_path unless @p ibd_path is
       provided explicitly.  No peak data is read — peak arrays are decoded lazily
       per getSpectrum() call. The 2D pixel geometry (see getGeometry()) is built
-      eagerly here from the parsed index (an in-memory pass, no .ibd reads), so a
-      structurally broken coordinate grid is rejected at open() rather than later.
+      eagerly here from the parsed index (an in-memory pass, no .ibd reads), so any
+      problem with the coordinate grid is reported at open() rather than on the first
+      pixel query.
 
       A UUID-header mismatch between the .ibd and the XML's IMS:1000080, an out-of-grid
-      pixel, or a <1 coordinate are reported as warnings (the dataset still loads); only
-      duplicate pixel coordinates are a hard error.
+      pixel, a <1 coordinate, or a duplicate pixel coordinate are reported as warnings
+      (the dataset still loads; of duplicates, only the first spectrum per pixel enters
+      the geometry).
 
-      @param imzml_path  Path to the .imzML file.
-      @param ibd_path    Optional override for the .ibd path.
+      @param imzml_path     Path to the .imzML file.
+      @param ibd_path       Optional override for the .ibd path.
+      @param skip_metadata  Keep no spectrum metadata (as @p OnDiscMSExperiment::openFile):
+                            @p getSpectrum() then returns only peaks, auxiliary arrays and
+                            @p imzml:x/y/z, with IM peak type UNKNOWN (the declared type
+                            is metadata), and @p getExperimentalSettings() is empty.
+                            Saves the memory of one peak-less spectrum per pixel once
+                            @p open() returns (the metadata is still parsed, and released
+                            at its end, so the peak memory of @p open() is unchanged).
       @throws Exception::FileNotFound if either file cannot be opened.
       @throws Exception::ParseError   on malformed XML.
-      @throws Exception::InvalidValue if the dataset has duplicate pixel coordinates.
     */
-    void open(const std::string& imzml_path, const std::string& ibd_path = "");
+    void open(const std::string& imzml_path, const std::string& ibd_path = "", bool skip_metadata = false);
 
     /**
       @brief Close the companion .ibd file and release on-disc resources.
 
       After @p close(), @p isOpen() returns @c false and spectrum decode calls fail
-      until @p open() is invoked again.
+      until @p open() is invoked again. The index, spectrum metadata, settings and
+      geometry are released, so @p getNrSpectra() returns 0.
     */
     void close() noexcept;
 
@@ -134,13 +155,18 @@ namespace OpenMS
     /**
       @brief Decode and return spectrum @p i from the .ibd file.
 
-      The returned MSSpectrum contains peak arrays decoded from the .ibd file
-      and pixel coordinates as MetaValues (@p imzml:x, @p imzml:y, @p imzml:z).
-      mzML scan metadata (RT, MS level, etc.) is not loaded in on-disc mode.
+      The returned MSSpectrum contains peak arrays decoded from the .ibd file and
+      native ID, MS level, polarity, scan and instrument settings, and MetaValues
+      including the pixel coordinates (@p imzml:x, @p imzml:y, @p imzml:z)
+      and @p imzml:scan_start_time.
 
       @param i  0-based spectrum index.
       @throws Exception::IndexOverflow if @p i >= getNrSpectra().
       @throws Exception::FileNotFound  if the .ibd is not open.
+      @throws Exception::ParseError    if m/z, intensity, or auxiliary arrays are
+                                       compressed (@c MS:1000572 other than
+                                       @c MS:1000576), or if m/z and intensity
+                                       array lengths mismatch.
     */
     MSSpectrum getSpectrum(std::size_t i) const;
 
@@ -173,10 +199,12 @@ namespace OpenMS
              intensities inside [mz - dm, mz + dm], with dm = mz * tolerance_ppm * 1e-6.
 
       This is the on-disc counterpart of @p MSImagingExperiment::extractIonImage:
-      it walks the shared 2D geometry and decodes each pixel's spectrum from the
-      .ibd on demand (one fseek + fread per pixel), so the full dataset never needs
-      to be held in memory. This makes it suitable for visualizing single-mass ion
-      images of large datasets.
+      it walks the shared 2D geometry and decodes each pixel's peaks from the
+      .ibd on demand, so the full dataset never needs to be held in memory. This
+      makes it suitable for visualizing single-mass ion images of large datasets.
+      Only m/z and intensity are decoded — auxiliary arrays do not contribute to
+      the summed intensity, so a compressed auxiliary array is not reported here
+      (unlike getSpectrum()).
 
       Pixels absent from the geometry stay invalid in the returned image. Pixels with
       a spectrum but no peaks in the window are marked valid with intensity 0. The
@@ -214,6 +242,13 @@ namespace OpenMS
     const ImzMLMeta& getImzMLMeta() const noexcept;
 
     /**
+      @brief Dataset-level settings parsed during open(): instrument, sample, source
+      files, data processing, and the @p imzml:* MetaValues — the ExperimentalSettings
+      of @p MSImagingExperiment::getMSExperiment() after an in-memory load.
+    */
+    const ExperimentalSettings& getExperimentalSettings() const;
+
+    /**
       @brief The standard 2D imaging geometry (pixel grid + (x,y)->spectrum map).
 
       Returns the shared @p MSImagingGeometry abstraction (the same type populated
@@ -221,7 +256,7 @@ namespace OpenMS
       access expose pixel coordinates the same way. Coordinates are @b 0-based;
       imzML's 1-based coordinates are normalized here, and only the z == 1 plane is
       represented. Built during open() from the parsed index (no IBD reads); this is
-      a const, O(1) accessor (any duplicate/invalid-coordinate error already surfaced
+      a const, O(1) accessor (any duplicate/invalid-coordinate warning already surfaced
       at open()).
     */
     const MSImagingGeometry& getGeometry() const;

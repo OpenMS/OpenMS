@@ -66,6 +66,8 @@ class TestPeptideAndProteinQuant(unittest.TestCase):
         # From C++ test: pep_data.accessions.size() == 1
         accessions = aaaaa_data.accessions
         self.assertEqual(len(accessions), 1)
+        self.assertIsInstance(aaaaa_data.fraction_group_abundances, dict)
+        self.assertGreater(len(aaaaa_data.fraction_group_abundances), 0)
 
         # Check specific peptide CCCCC
         self.assertIn("CCCCC", peptide_by_seq)
@@ -108,6 +110,10 @@ class TestPeptideAndProteinQuant(unittest.TestCase):
         self.assertIsNotNone(protein0_data)
         # From C++ test: prot_data.psm_count == 6
         self.assertEqual(protein0_data.psm_count, 6)
+        self.assertIsInstance(protein0_data.peptide_fraction_group_abundances, dict)
+        self.assertGreater(len(protein0_data.peptide_fraction_group_abundances), 0)
+        self.assertIsInstance(protein0_data.fraction_group_abundances, dict)
+        self.assertGreater(len(protein0_data.fraction_group_abundances), 0)
 
         # Check specific protein Protein1
         self.assertIn("Protein1", protein_results)

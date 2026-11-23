@@ -37,21 +37,42 @@ NB_MODULE(_pyopenms_ml, m) {
         .def("__copy__", [](const OpenMS::Math::BilinearInterpolation<double, double>& self) { return OpenMS::Math::BilinearInterpolation<double, double>(self); })
         .def("__deepcopy__", [](const OpenMS::Math::BilinearInterpolation<double, double>& self, nb::dict) { return OpenMS::Math::BilinearInterpolation<double, double>(self); }, "memo"_a)
         .def("value", [](OpenMS::Math::BilinearInterpolation<double, double>& self, double arg_pos_0, double arg_pos_1) { return self.value(arg_pos_0, arg_pos_1); }, "arg_pos_0"_a, "arg_pos_1"_a)
-        .def("addValue", [](OpenMS::Math::BilinearInterpolation<double, double>& self, double arg_pos_0, double arg_pos_1, double arg_value) { self.addValue(arg_pos_0, arg_pos_1, arg_value); }, "arg_pos_0"_a, "arg_pos_1"_a, "arg_value"_a)
+        .def("addValue", [](OpenMS::Math::BilinearInterpolation<double, double>& self, double arg_pos_0, double arg_pos_1, double arg_value) { self.addValue(arg_pos_0, arg_pos_1, arg_value); }, "arg_pos_0"_a, "arg_pos_1"_a, "arg_value"_a, 
+            R"doc(
+Performs bilinear resampling.  The arg_value is split up and added to the data points around arg_pos.  ("forward resampling")
+)doc")
         .def("getData", [](OpenMS::Math::BilinearInterpolation<double, double>& self) { return self.getData(); })
-        .def("setData", [](OpenMS::Math::BilinearInterpolation<double, double>& self, OpenMS::Matrix<double> data) { self.setData(data); }, "data"_a)
+        .def("setData", [](OpenMS::Math::BilinearInterpolation<double, double>& self, OpenMS::Matrix<double> data) { self.setData(data); }, "data"_a, "Assigns data to the internal random access container storing the data. SourceContainer must be assignable to ContainerType")
         .def("empty", [](OpenMS::Math::BilinearInterpolation<double, double>& self) { return self.empty(); })
-        .def("key2index_0", [](OpenMS::Math::BilinearInterpolation<double, double>& self, double pos) { return self.key2index_0(pos); }, "pos"_a)
-        .def("index2key_0", [](OpenMS::Math::BilinearInterpolation<double, double>& self, double pos) { return self.index2key_0(pos); }, "pos"_a)
-        .def("key2index_1", [](OpenMS::Math::BilinearInterpolation<double, double>& self, double pos) { return self.key2index_1(pos); }, "pos"_a)
-        .def("index2key_1", [](OpenMS::Math::BilinearInterpolation<double, double>& self, double pos) { return self.index2key_1(pos); }, "pos"_a)
+        .def("key2index_0", [](OpenMS::Math::BilinearInterpolation<double, double>& self, double pos) { return self.key2index_0(pos); }, "pos"_a, 
+            R"doc(
+The transformation from "outside" to "inside" coordinates
+)doc")
+        .def("index2key_0", [](OpenMS::Math::BilinearInterpolation<double, double>& self, double pos) { return self.index2key_0(pos); }, "pos"_a, 
+            R"doc(
+The transformation from "inside" to "outside" coordinates
+)doc")
+        .def("key2index_1", [](OpenMS::Math::BilinearInterpolation<double, double>& self, double pos) { return self.key2index_1(pos); }, "pos"_a, 
+            R"doc(
+The transformation from "outside" to "inside" coordinates
+)doc")
+        .def("index2key_1", [](OpenMS::Math::BilinearInterpolation<double, double>& self, double pos) { return self.index2key_1(pos); }, "pos"_a, 
+            R"doc(
+The transformation from "inside" to "outside" coordinates
+)doc")
         .def("getScale_0", [](OpenMS::Math::BilinearInterpolation<double, double>& self) { return self.getScale_0(); })
         .def("setScale_0", [](OpenMS::Math::BilinearInterpolation<double, double>& self, double & scale) { self.setScale_0(scale); }, "scale"_a)
         .def("getScale_1", [](OpenMS::Math::BilinearInterpolation<double, double>& self) { return self.getScale_1(); })
         .def("setScale_1", [](OpenMS::Math::BilinearInterpolation<double, double>& self, double & scale) { self.setScale_1(scale); }, "scale"_a)
-        .def("getOffset_0", [](OpenMS::Math::BilinearInterpolation<double, double>& self) { return self.getOffset_0(); })
+        .def("getOffset_0", [](OpenMS::Math::BilinearInterpolation<double, double>& self) { return self.getOffset_0(); }, 
+            R"doc(
+Accessor.  "Offset" is the point (in "outside" units) which corresponds to "Data(0,0)"
+)doc")
         .def("setOffset_0", [](OpenMS::Math::BilinearInterpolation<double, double>& self, double & offset) { self.setOffset_0(offset); }, "offset"_a)
-        .def("getOffset_1", [](OpenMS::Math::BilinearInterpolation<double, double>& self) { return self.getOffset_1(); })
+        .def("getOffset_1", [](OpenMS::Math::BilinearInterpolation<double, double>& self) { return self.getOffset_1(); }, 
+            R"doc(
+Accessor.  "Offset" is the point (in "outside" units) which corresponds to "Data(0,0)"
+)doc")
         .def("setOffset_1", [](OpenMS::Math::BilinearInterpolation<double, double>& self, double & offset) { self.setOffset_1(offset); }, "offset"_a)
         .def("setMapping_0", [](OpenMS::Math::BilinearInterpolation<double, double>& self, double & scale, double & inside, double & outside) { self.setMapping_0(scale, inside, outside); }, "scale"_a, "inside"_a, "outside"_a)
         .def("setMapping_0", [](OpenMS::Math::BilinearInterpolation<double, double>& self, double & inside_low, double & outside_low, double & inside_high, double & outside_high) { self.setMapping_0(inside_low, outside_low, inside_high, outside_high); }, "inside_low"_a, "outside_low"_a, "inside_high"_a, "outside_high"_a)
@@ -61,10 +82,22 @@ NB_MODULE(_pyopenms_ml, m) {
         .def("getInsideReferencePoint_1", [](OpenMS::Math::BilinearInterpolation<double, double>& self) { return self.getInsideReferencePoint_1(); })
         .def("getOutsideReferencePoint_0", [](OpenMS::Math::BilinearInterpolation<double, double>& self) { return self.getOutsideReferencePoint_0(); })
         .def("getOutsideReferencePoint_1", [](OpenMS::Math::BilinearInterpolation<double, double>& self) { return self.getOutsideReferencePoint_1(); })
-        .def("supportMin_0", [](OpenMS::Math::BilinearInterpolation<double, double>& self) { return self.supportMin_0(); })
-        .def("supportMin_1", [](OpenMS::Math::BilinearInterpolation<double, double>& self) { return self.supportMin_1(); })
-        .def("supportMax_0", [](OpenMS::Math::BilinearInterpolation<double, double>& self) { return self.supportMax_0(); })
-        .def("supportMax_1", [](OpenMS::Math::BilinearInterpolation<double, double>& self) { return self.supportMax_1(); })
+        .def("supportMin_0", [](OpenMS::Math::BilinearInterpolation<double, double>& self) { return self.supportMin_0(); }, 
+            R"doc(
+Lower boundary of the support, in "outside" coordinates
+)doc")
+        .def("supportMin_1", [](OpenMS::Math::BilinearInterpolation<double, double>& self) { return self.supportMin_1(); }, 
+            R"doc(
+Lower boundary of the support, in "outside" coordinates
+)doc")
+        .def("supportMax_0", [](OpenMS::Math::BilinearInterpolation<double, double>& self) { return self.supportMax_0(); }, 
+            R"doc(
+Upper boundary of the support, in "outside" coordinates
+)doc")
+        .def("supportMax_1", [](OpenMS::Math::BilinearInterpolation<double, double>& self) { return self.supportMax_1(); }, 
+            R"doc(
+Upper boundary of the support, in "outside" coordinates
+)doc")
         ;
 
 
@@ -73,11 +106,13 @@ NB_MODULE(_pyopenms_ml, m) {
     // -----------------------------------------------------------------------
     nb::class_<OpenMS::ClusteringGrid>(m, "ClusteringGrid", 
         R"doc(
-data structure to store 2D data to be clustered * e.g. (m/z,
-retention time) coordinates from multiplex filtering * * @see
-LocalClustering
+Data structure to store 2D data to be clustered,
+e.g. (m/z, retention time) coordinates from multiplex filtering
+
+See also: LocalClustering
 )doc")
         .def(nb::init<std::vector<double>, std::vector<double>>())
+        .def(nb::init<const OpenMS::ClusteringGrid &>())
         .def("getGridSpacingX", [](const OpenMS::ClusteringGrid& self) { return self.getGridSpacingX(); })
         .def("getGridSpacingY", [](const OpenMS::ClusteringGrid& self) { return self.getGridSpacingY(); })
         .def("addCluster", [](OpenMS::ClusteringGrid& self, const std::pair<int, int>& cell_index, const int& cluster_index) { return self.addCluster(cell_index, cluster_index); }, "cell_index"_a, "cluster_index"_a, "Adds a cluster to this grid cell")
@@ -94,11 +129,12 @@ LocalClustering
     nb::class_<OpenMS::GridBasedCluster>(m, "GridBasedCluster", "basic data structure for clustering")
         .def(nb::init<OpenMS::DPosition<2>, OpenMS::DBoundingBox<2>, std::vector<int>, int, std::vector<int>>())
         .def(nb::init<OpenMS::DPosition<2>, OpenMS::DBoundingBox<2>, std::vector<int>>())
-        .def("getCentre", [](const OpenMS::GridBasedCluster& self) -> const OpenMS::DPosition<2> & { return self.getCentre(); }, nb::rv_policy::reference_internal, "Returns cluster centre")
-        .def("getBoundingBox", [](const OpenMS::GridBasedCluster& self) -> const OpenMS::DBoundingBox<2> & { return self.getBoundingBox(); }, nb::rv_policy::reference_internal, "Returns bounding box")
-        .def("getPoints", [](const OpenMS::GridBasedCluster& self) -> const std::vector<int> & { return self.getPoints(); }, nb::rv_policy::reference_internal, "Returns indices of points in cluster")
+        .def(nb::init<const OpenMS::GridBasedCluster &>())
+        .def("getCentre", [](const OpenMS::GridBasedCluster& self) -> OpenMS::DPosition<2> { return self.getCentre(); }, "Returns cluster centre")
+        .def("getBoundingBox", [](const OpenMS::GridBasedCluster& self) -> OpenMS::DBoundingBox<2> { return self.getBoundingBox(); }, "Returns bounding box")
+        .def("getPoints", [](const OpenMS::GridBasedCluster& self) -> const std::vector<int> & { return self.getPoints(); }, "Returns indices of points in cluster")
         .def("getPropertyA", [](const OpenMS::GridBasedCluster& self) { return self.getPropertyA(); }, "Returns property A")
-        .def("getPropertiesB", [](const OpenMS::GridBasedCluster& self) -> const std::vector<int> & { return self.getPropertiesB(); }, nb::rv_policy::reference_internal, "Returns properties B of all points")
+        .def("getPropertiesB", [](const OpenMS::GridBasedCluster& self) -> const std::vector<int> & { return self.getPropertiesB(); }, "Returns properties B of all points")
         ;
 
     // -----------------------------------------------------------------------
@@ -114,7 +150,7 @@ LocalClustering
         .def("addValue", [](OpenMS::Math::LinearInterpolation<double, double>& self, double pos, double value) { self.addValue(pos, value); }, "pos"_a, "value"_a, "Adds a value at the given position")
         .def("derivative", [](const OpenMS::Math::LinearInterpolation<double, double>& self, double pos) { return self.derivative(pos); }, "pos"_a, "Returns the derivative at position")
         .def("empty", [](const OpenMS::Math::LinearInterpolation<double, double>& self) { return self.empty(); }, "Returns true if the data is empty")
-        .def("getData", [](OpenMS::Math::LinearInterpolation<double, double>& self) -> std::vector<double>& { return self.getData(); }, nb::rv_policy::reference_internal, "Returns the data vector")
+        .def("getData", [](OpenMS::Math::LinearInterpolation<double, double>& self) -> std::vector<double>& { return self.getData(); }, "Returns the data vector")
         .def("setData", [](OpenMS::Math::LinearInterpolation<double, double>& self, const std::vector<double>& data) { self.setData(data); }, "data"_a, "Sets the data")
         .def("getScale", [](const OpenMS::Math::LinearInterpolation<double, double>& self) { return self.getScale(); }, "Returns the scale")
         .def("setScale", [](OpenMS::Math::LinearInterpolation<double, double>& self, double scale) { self.setScale(scale); }, "scale"_a, "Sets the scale")

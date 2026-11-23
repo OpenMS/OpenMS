@@ -87,7 +87,7 @@ class TOPPMRMMapper
 public:
 
   TOPPMRMMapper() :
-    TOPPBase("MRMMapper", "MRMMapper maps measured chromatograms (mzML) and the transitions used (TraML)", true)
+    TOPPBase("MRMMapper", "MRMMapper maps measured chromatograms (mzML) and the transitions used (TraML)")
   {
   }
 

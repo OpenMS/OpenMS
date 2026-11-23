@@ -31,8 +31,16 @@ jobs:
           (cd doc/pyopenms/docs && make html)
 
       # Lint and formatting checks:
+      # Keep `version` pinned. An unpinned action installs the latest ruff, and a
+      # ruff release can change both the default rule set and the formatter
+      # style -- which is what turned this job red with no commit in between
+      # (#9899). doc/pyopenms/ruff.toml pins the lint rules, this pins the
+      # formatter. Bump both deliberately, in a PR that touches doc/**, so that
+      # this workflow actually runs on it.
       - uses: astral-sh/ruff-action@v3
-        with: {src: "doc/pyopenms"}
+        with:
+          src: "doc/pyopenms"
+          version: "0.16.2"
       - run: ruff format --check --diff doc/pyopenms
 
       # Not running because there are a *lot* of broken links.

@@ -22,6 +22,7 @@
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 #include <algorithm>
+#include <array>
 #include <iterator> // std::size
 
 namespace OpenMS
@@ -212,6 +213,80 @@ namespace OpenMS
       ++contributing_channel;
     }
     return channel_frequency;
+  }
+
+  Matrix<double> IsobaricQuantitationMethod::stringListToIsotopeCorrectionMatrixSplit_(const std::vector<std::string>& nondeuterated,
+                                                                                       const std::vector<std::string>& deuterated) const
+  {
+    // The single-parameter layout of OpenMS 3.6.0 (one 14-column row per channel), e.g. from an old INI file
+    if (nondeuterated.size() == getNumberOfChannels())
+    {
+      return stringListToIsotopeCorrectionMatrix_(nondeuterated);
+    }
+
+    // Positions in the 14-column layout that the eight non-deuterated values map onto.
+    //  8-col order: <-2C13>/<-N15-C13>/<-C13>/<-N15>/<+N15>/<+C13>/<+N15+C13>/<+2C13>
+    // 14-col order: <-C13-H2>/<-2C13>/<-N15-H2>/<-C13-N15>/<-H2>/<-C13>/<-N15>/<+N15>/<+C13>/<+H2>/<+N15+C13>/<+N15+H2>/<+2C13>/<+C13+H2>
+    // The six remaining positions are the 2H (deuterium) offsets, which are 'NA' for non-deuterated reagents.
+    static const std::array<Size, 8> non_deut_to_full = {{1, 3, 5, 6, 7, 8, 10, 12}};
+    const Size full_columns = 14;
+
+    const IsobaricChannelList& channels = getChannelInformation();
+
+    // count how many deuterated / non-deuterated channels this method expects
+    Size n_deut = 0;
+    for (const auto& ch : channels)
+    {
+      if (ch.name.find('D') != std::string::npos) { ++n_deut; }
+    }
+    const Size n_nondeut = getNumberOfChannels() - n_deut;
+
+    if (nondeuterated.size() != n_nondeut)
+    {
+      throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, std::string("IsobaricQuantitationMethod: Expected ") + n_nondeut + " non-deuterated correction matrix entries (or " + getNumberOfChannels() + " entries for the complete matrix) but got " + nondeuterated.size() + ".");
+    }
+    if (deuterated.size() != n_deut)
+    {
+      throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, std::string("IsobaricQuantitationMethod: Expected ") + n_deut + " deuterated correction matrix entries but got " + deuterated.size() + ".");
+    }
+
+    // interleave both inputs into one 14-column row per channel, in channel order
+    std::vector<std::string> full;
+    full.reserve(getNumberOfChannels());
+    Size i_nondeut = 0;
+    Size i_deut = 0;
+    for (const auto& ch : channels)
+    {
+      if (ch.name.find('D') != std::string::npos)
+      {
+        // deuterated channel: already provided in the 14-column layout
+        full.push_back(deuterated[i_deut++]);
+        continue;
+      }
+
+      // non-deuterated channel: expand the 8-column row into the 14-column layout
+      std::vector<std::string> values;
+      StringUtils::split(nondeuterated[i_nondeut++], '/', values);
+      if (values.size() != non_deut_to_full.size())
+      {
+        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, std::string("Non-deuterated correction entry for channel '") + ch.name + "' must contain " + non_deut_to_full.size() + " values, but has " + values.size() + "!", StringUtils::toStr(values.size()));
+      }
+      std::vector<std::string> row(full_columns, "NA");
+      for (Size k = 0; k < non_deut_to_full.size(); ++k)
+      {
+        StringUtils::trim(values[k]);
+        row[non_deut_to_full[k]] = values[k];
+      }
+      std::string joined;
+      for (Size k = 0; k < full_columns; ++k)
+      {
+        if (k != 0) { joined += "/"; }
+        joined += row[k];
+      }
+      full.push_back(joined);
+    }
+
+    return stringListToIsotopeCorrectionMatrix_(full);
   }
 
 } // namespace

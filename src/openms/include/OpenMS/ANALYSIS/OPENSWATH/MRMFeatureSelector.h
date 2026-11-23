@@ -296,7 +296,7 @@ public:
       Uses @c LPWrapper with @c LPWrapper::MIN objective sense. For each transition,
       registers one variable per candidate feature (binary or continuous, per
       @c parameters.variable_type) scored by @c computeScore_, and adds a
-      @c DOUBLE_BOUNDED constraint with both bounds equal to @c 1.0 (i.e. exactly one
+      @c FIXED constraint with both bounds equal to @c 1.0 (i.e. exactly one
       feature must be picked per transition). After solving, every column whose value
       is @c >= @c parameters.optimal_threshold contributes its name to @p result.
       @p result is cleared on entry.

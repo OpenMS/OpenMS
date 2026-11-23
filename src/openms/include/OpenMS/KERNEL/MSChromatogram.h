@@ -12,6 +12,7 @@
 #include <OpenMS/METADATA/MetaInfoDescription.h>
 #include <OpenMS/KERNEL/RangeManager.h>
 #include <OpenMS/KERNEL/ChromatogramPeak.h>
+#include <OpenMS/KERNEL/PeakContainerSort.h>
 #include <OpenMS/METADATA/DataArrays.h>
 
 #include <algorithm>
@@ -243,10 +244,9 @@ public:
       // Validate up front, before running the (possibly data-array-indexing) predicate, so a
       // mis-sized array throws instead of being read out of bounds during the sort.
       checkDataArraySizes_();
-      std::vector<Size> indices(this->size());
-      std::iota(indices.begin(), indices.end(), 0);
-      std::stable_sort(indices.begin(), indices.end(), lambda);
-      select(indices);
+      // The sorted indices are a permutation of [0, size): in range and duplicate-free by
+      // construction, so the unchecked path is safe and skips the redundant bounds re-scan.
+      selectUnchecked(Internal::stableSortedIndices(this->size(), lambda));
     }
 
     ///@}
@@ -426,13 +426,14 @@ public:
     /**
       @brief Subset the chromatogram by selecting only indices in @p indices, in that order
 
-      @param[in] indices Indices to keep. The order is retained.
+      Every index is bounds-checked before anything is modified, so an out-of-range index is rejected
+      with the chromatogram left unchanged. This is the safe, default entry point. Callers whose indices
+      are in range by construction can use selectUnchecked() to skip the check.
+
+      @param[in] indices Indices to keep, in the retained order. Must all be < size(); see
+                 selectUnchecked() for the duplicate-index restriction that applies to both overloads.
       @return Reference to this MSChromatogram
 
-      @note DataArrays must have the same size as the chromatogram. If not, an exception is thrown.
-      @note This method is useful for filtering chromatograms while properly maintaining DataArrays.
-      @note Indices and data array sizes are fully validated before anything is modified, so a
-            rejected call leaves the chromatogram unchanged.
       @note Cached ranges are NOT recomputed. A permutation preserves them, but selecting a
             subset can leave them too wide -- call updateRanges() if you need them exact.
 
@@ -440,6 +441,23 @@ public:
                  array's size differs from the number of peaks.
     */
     MSChromatogram& select(const std::vector<Size>& indices);
+
+    /**
+      @brief Like select(), but without the per-index range check.
+
+      For hot paths whose indices are in range by construction (e.g. a sort permutation). The data-array
+      size consistency is still checked, as it is cheap and guards a separate out-of-bounds.
+
+      @note @p indices must be duplicate-free. Repeating an index is undefined behaviour: entries are
+            moved, so a second reference would read a moved-from value. A debug build asserts uniqueness
+            via OPENMS_PRECONDITION; release builds do not pay for the check.
+
+      @param[in] indices Indices to keep, in the retained order. Every index must be < size() and unique.
+      @return Reference to this MSChromatogram
+
+      @exception Exception::Precondition if a non-empty data array's size differs from the number of peaks.
+    */
+    MSChromatogram& selectUnchecked(const std::vector<Size>& indices);
 
     ///@}
 

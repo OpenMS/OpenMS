@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<msms_pipeline_analysis date="2007-12-05T17:49:46" xmlns="http://regis-web.systemsbiology.net/pepXML">
+  <msms_run_summary base_name="case_test" raw_data_type="raw" raw_data=".mzML" search_engine="X! Tandem">
+    <sample_enzyme name="tRyPsIn">
+      <specificity cut="KR" no_cut="P" sense="C"/>
+    </sample_enzyme>
+    <search_summary base_name="case_test" search_engine="X! Tandem" precursor_mass_type="monoisotopic" fragment_mass_type="monoisotopic" search_id="1"/>
+  </msms_run_summary>
+</msms_pipeline_analysis>

@@ -17,6 +17,7 @@
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/KERNEL/MSChromatogram.h>
+#include <OpenMS/KERNEL/Mobilogram.h>
 
 START_TEST(GaussFilter<D>, "$Id$")
 
@@ -175,4 +176,43 @@ END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
+
+START_SECTION(([EXTRA] void filter(Mobilogram& mobilogram)))
+{
+  // same positions and intensities as spectrum, chromatogram and mobilogram: all three overloads smooth them the same way
+  MSSpectrum spectrum;
+  MSChromatogram chromatogram;
+  Mobilogram mobilogram;
+  for (Size i = 0; i < 21; ++i)
+  {
+    const double pos = 1.0 + 0.01 * i;
+    const float intensity = float(100.0 * std::exp(-0.5 * std::pow((pos - 1.1) / 0.03, 2)) + (i % 4));
+    spectrum.push_back(Peak1D(pos, intensity));
+    chromatogram.push_back(ChromatogramPeak(pos, intensity));
+    mobilogram.push_back(MobilityPeak1D(pos, intensity));
+  }
+  GaussFilter gauss;
+  Param param = gauss.getParameters();
+  param.setValue("gaussian_width", 0.05);
+  gauss.setParameters(param);
+  gauss.filter(spectrum);
+  gauss.filter(chromatogram);
+  gauss.filter(mobilogram);
+  TEST_EQUAL(mobilogram.size(), 21)
+  TEST_EQUAL(chromatogram.size(), 21)
+  for (Size i = 0; i < mobilogram.size(); ++i)
+  {
+    TEST_REAL_SIMILAR(mobilogram[i].getMobility(), chromatogram[i].getRT())
+    TEST_REAL_SIMILAR(mobilogram[i].getIntensity(), chromatogram[i].getIntensity())
+    TEST_REAL_SIMILAR(mobilogram[i].getIntensity(), spectrum[i].getIntensity())
+  }
+  TEST_NOT_EQUAL(mobilogram[10].getIntensity(), 100.0f + 2.0f) // smoothed
+
+  // a ppm width is rejected for mobilograms, as for chromatograms
+  param.setValue("use_ppm_tolerance", "true");
+  gauss.setParameters(param);
+  TEST_EXCEPTION(Exception::IllegalArgument, gauss.filter(mobilogram))
+}
+END_SECTION
+
 END_TEST

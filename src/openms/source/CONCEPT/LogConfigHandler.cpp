@@ -28,12 +28,14 @@ namespace OpenMS
 
   LogConfigHandler::LogConfigHandler()
   {
-    // add default configuration
+    // add default configuration: the initial destinations of the global streams (see LogStream.cpp), and
+    // std::cout for debug output, which setLogLevel("DEBUG") enables
     fatal_streams_.insert("cerr");
     error_streams_.insert("cerr");
+    warn_streams_.insert("cerr");
 
-    warn_streams_.insert("cout");
     info_streams_.insert("cout");
+    debug_streams_.insert("cout");
   }
 
   LogConfigHandler::LogConfigHandler(const LogConfigHandler & other)

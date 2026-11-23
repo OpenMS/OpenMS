@@ -101,19 +101,9 @@ namespace OpenMS
     }
   }
 
-  SimpleTSGXLMS::SimpleTSGXLMS(const SimpleTSGXLMS & rhs) :
-    DefaultParamHandler(rhs)
-  {
-  }
+  SimpleTSGXLMS::SimpleTSGXLMS(const SimpleTSGXLMS& rhs) = default;
 
-  SimpleTSGXLMS & SimpleTSGXLMS::operator=(const SimpleTSGXLMS & rhs)
-  {
-    if (this != &rhs)
-    {
-      DefaultParamHandler::operator=(rhs);
-    }
-    return *this;
-  }
+  SimpleTSGXLMS& SimpleTSGXLMS::operator=(const SimpleTSGXLMS& rhs) = default;
 
   SimpleTSGXLMS::~SimpleTSGXLMS() = default;
 
@@ -237,7 +227,7 @@ namespace OpenMS
 
         if (add_losses_)
         {
-          addLosses_(spectrum, pos, charge, backward_losses[i]);
+          addLosses_(spectrum, mono_weight, charge, backward_losses[i]);
         }
         spectrum.emplace_back(pos, charge);
 

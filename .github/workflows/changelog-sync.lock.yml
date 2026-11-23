@@ -21,15 +21,15 @@
 #
 # For more information: https://github.github.com/gh-aw/introduction/overview/
 #
-# Nightly workflow to identify noteworthy recent code changes that should be reflected in the changelog and open a pull request with the necessary updates.
+# Weekly workflow to identify noteworthy recent code changes that should be reflected in the changelog and open a pull request with the necessary updates.
 #
-# gh-aw-metadata: {"schema_version":"v1","frontmatter_hash":"2ae8951872954d66d06e93b32ff238378d9fc96f8597d232bfbbe4bfa387cc1b","compiler_version":"v0.53.0"}
+# gh-aw-metadata: {"schema_version":"v1","frontmatter_hash":"75680ba6afb4c1d1133d75226a0942c359e6c19c22b6f60a73b83cdecf58e5fa","compiler_version":"v0.53.0"}
 
 name: "Changelog Sync Agent"
 "on":
   schedule:
-  - cron: "19 2 * * *"
-    # Friendly format: daily (scattered)
+  - cron: "19 18 * * 5"
+    # Friendly format: weekly (scattered)
   workflow_dispatch:
 
 permissions: {}
@@ -318,7 +318,7 @@ jobs:
           mkdir -p /tmp/gh-aw/safeoutputs
           mkdir -p /tmp/gh-aw/mcp-logs/safeoutputs
           cat > /opt/gh-aw/safeoutputs/config.json << 'GH_AW_SAFE_OUTPUTS_CONFIG_EOF'
-          {"create_pull_request":{"max":1,"title_prefix":"[changelog-sync] "},"missing_data":{},"missing_tool":{},"noop":{"max":1}}
+          {"create_pull_request":{"base_branch":"develop","max":1,"title_prefix":"[changelog-sync] "},"missing_data":{},"missing_tool":{},"noop":{"max":1}}
           GH_AW_SAFE_OUTPUTS_CONFIG_EOF
           cat > /opt/gh-aw/safeoutputs/tools.json << 'GH_AW_SAFE_OUTPUTS_TOOLS_EOF'
           [
@@ -841,7 +841,7 @@ jobs:
         uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8
         env:
           WORKFLOW_NAME: "Changelog Sync Agent"
-          WORKFLOW_DESCRIPTION: "Nightly workflow to identify noteworthy recent code changes that should be reflected in the changelog and open a pull request with the necessary updates."
+          WORKFLOW_DESCRIPTION: "Weekly workflow to identify noteworthy recent code changes that should be reflected in the changelog and open a pull request with the necessary updates."
           HAS_PATCH: ${{ steps.collect_output.outputs.has_patch }}
         with:
           script: |
@@ -1089,7 +1089,7 @@ jobs:
         if: ((!cancelled()) && (needs.agent.result != 'skipped')) && (contains(needs.agent.outputs.output_types, 'create_pull_request'))
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
-          ref: ${{ github.base_ref || github.event.pull_request.base.ref || github.ref_name || github.event.repository.default_branch }}
+          ref: develop
           token: ${{ secrets.GH_AW_GITHUB_TOKEN || secrets.GITHUB_TOKEN }}
           persist-credentials: false
           fetch-depth: 1
@@ -1131,3 +1131,4 @@ jobs:
           name: safe-output-items
           path: /tmp/safe-output-items.jsonl
           if-no-files-found: warn
+

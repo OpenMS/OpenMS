@@ -9,6 +9,10 @@
 #include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/test_config.h>
 
+#include <OpenMS/CONCEPT/Exception.h>
+
+#include <limits>
+
 ///////////////////////////
 #include <OpenMS/PROCESSING/NOISEESTIMATION/SignalToNoiseEstimatorMedianRapid.h>
 ///////////////////////////
@@ -119,6 +123,98 @@ START_SECTION( (NoiseEstimator estimateNoise(std::vector<double>& mz_array, std:
     TEST_REAL_SIMILAR(e.get_noise_even(550), 4.909  ) // numpy.median( int[33:] )
   }
 
+  // Empty windows: a gap in the m/z array leaves a window without any data point.
+  // computeMedian_ returns 0 for such a window, which triggers the imputed
+  // fallback value (mean + 3*stdev)/60 computed over the *whole* intensity array.
+  {
+    // m/z 200..290 and 400..490 are populated, so the window [300, 400) is empty.
+    static const double arr_mz[] =
+    {
+      200, 210, 220, 230, 240, 250, 260, 270, 280, 290,
+      400, 410, 420, 430, 440, 450, 460, 470, 480, 490
+    };
+    static const double arr_int[] =
+    {
+      5, 3, 7, 9, 1, 4, 6, 8, 2, 10,
+      5, 3, 7, 9, 1, 4, 6, 8, 2, 10
+    };
+    std::vector<double> mz_gap (arr_mz, arr_mz + sizeof(arr_mz) / sizeof(arr_mz[0]) );
+    std::vector<double> int_gap (arr_int, arr_int + sizeof(arr_int) / sizeof(arr_int[0]) );
+
+    // mean = 5.5, stdev = 2.8722813233, fallback = (5.5 + 3*2.8722813233)/60
+    SignalToNoiseEstimatorMedianRapid sne(100);
+    SignalToNoiseEstimatorMedianRapid::NoiseEstimator e = sne.estimateNoise(mz_gap, int_gap);
+    TEST_REAL_SIMILAR(e.get_noise_even(250), 5.5)           // median of the first block
+    TEST_REAL_SIMILAR(e.get_noise_even(350), 0.23528073283) // empty window -> imputed fallback
+    TEST_REAL_SIMILAR(e.get_noise_even(450), 5.5)           // median of the second block
+    TEST_REAL_SIMILAR(e.get_noise_odd(350), 5.0)
+    TEST_REAL_SIMILAR(e.get_noise_value(350), (0.23528073283 + 5.0) / 2.0)
+  }
+
+  // All intensities zero: every median is 0, so the fallback is imputed - but the
+  // fallback itself evaluates to 0 here. Guards against a fallback cache that uses
+  // the value (instead of a flag) as its "already computed" sentinel, and against a
+  // division by zero in clients, since get_noise_value clamps to 1.0.
+  {
+    std::vector<double> mz_zero, int_zero;
+    for (size_t i = 0; i < 20; ++i)
+    {
+      mz_zero.push_back(200.0 + 10.0 * i);
+      int_zero.push_back(0.0);
+    }
+
+    SignalToNoiseEstimatorMedianRapid sne(100);
+    SignalToNoiseEstimatorMedianRapid::NoiseEstimator e = sne.estimateNoise(mz_zero, int_zero);
+    TEST_REAL_SIMILAR(e.get_noise_even(250), 0.0)
+    TEST_REAL_SIMILAR(e.get_noise_value(250), 1.0)
+  }
+
+  // Invalid input arrays throw instead of reading out of bounds
+  {
+    SignalToNoiseEstimatorMedianRapid sne(100);
+    std::vector<double> empty;
+    TEST_EXCEPTION(Exception::InvalidParameter, sne.estimateNoise(empty, empty))
+    std::vector<double> shorter(intensity.begin(), intensity.end() - 1);
+    TEST_EXCEPTION(Exception::InvalidParameter, sne.estimateNoise(mz, shorter))
+  }
+
+}
+END_SECTION
+
+START_SECTION([EXTRA] NoiseEstimator::get_noise_even/get_noise_odd bounds checks)
+{
+  // m/z 200..590 with window length 100: 4 even windows starting at 200,
+  // 5 odd windows starting at 150
+  std::vector<double> mz, intensity;
+  for (size_t i = 0; i < 40; ++i)
+  {
+    mz.push_back(200.0 + 10.0 * i);
+    intensity.push_back(1.0 + i);
+  }
+  SignalToNoiseEstimatorMedianRapid sne(100);
+  SignalToNoiseEstimatorMedianRapid::NoiseEstimator e = sne.estimateNoise(mz, intensity);
+  TEST_EQUAL(e.result_windows_even.size(), 4)
+  TEST_EQUAL(e.result_windows_odd.size(), 5)
+
+  // the whole input range is valid
+  TEST_REAL_SIMILAR(e.get_noise_even(200), e.result_windows_even[0])
+  TEST_REAL_SIMILAR(e.get_noise_even(590), e.result_windows_even[3])
+  TEST_REAL_SIMILAR(e.get_noise_odd(200), e.result_windows_odd[0])
+  TEST_REAL_SIMILAR(e.get_noise_odd(590), e.result_windows_odd[4])
+  // positions up to one window before the start truncate to window 0, as before
+  TEST_REAL_SIMILAR(e.get_noise_even(150), e.result_windows_even[0])
+
+  // outside the windows
+  TEST_EXCEPTION(Exception::IndexUnderflow, e.get_noise_even(100))
+  TEST_EXCEPTION(Exception::IndexUnderflow, e.get_noise_odd(50))
+  TEST_EXCEPTION(Exception::IndexOverflow, e.get_noise_even(600))
+  TEST_EXCEPTION(Exception::IndexOverflow, e.get_noise_odd(650))
+  TEST_EXCEPTION(Exception::IndexOverflow, e.get_noise_value(1e300))
+  TEST_EXCEPTION(Exception::IndexUnderflow, e.get_noise_value(std::numeric_limits<double>::quiet_NaN()))
+
+  // an estimator without windows
+  SignalToNoiseEstimatorMedianRapid::NoiseEstimator empty_estimator(0, 200, 100);
+  TEST_EXCEPTION(Exception::IndexOverflow, empty_estimator.get_noise_even(200))
 }
 END_SECTION
 

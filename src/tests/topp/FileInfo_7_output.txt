@@ -53,14 +53,14 @@ Intensities of consensus features:
   variance:       171639
 
 Qualities of consensus features:
-  num. of values: 10
-  mean:           0.39
-  minimum:        0
-  lower quartile: 0
-  median:         0.2
-  upper quartile: 0.75
+  num. of values: 5
+  mean:           0.78
+  minimum:        0.4
+  lower quartile: 0.45
+  median:         0.5
+  upper quartile: 1.25
   maximum:        1.5
-  variance:       0.265444
+  variance:       0.217
 
 Retention time differences ("element - center", weight 1 per element):
   num. of values: 10

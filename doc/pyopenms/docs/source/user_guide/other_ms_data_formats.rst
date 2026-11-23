@@ -62,9 +62,7 @@ You can load (storing is not supported) identification data from a TPP `protXML`
 
     gh = gh = "https://raw.githubusercontent.com/OpenMS/OpenMS/develop/doc/pyopenms"
     urlretrieve(gh + "/src/data/ProtXMLFile_input_1.protXML", "test.protXML")
-    protein_ids = oms.ProteinIdentification()
-    peptide_ids = oms.PeptideIdentification()
-    oms.ProtXMLFile().load("test.protXML", protein_ids, peptide_ids)
+    protein_ids, peptide_ids = oms.ProtXMLFile().load("test.protXML")
     # storing protein XML file is not yet supported
 ..    ProtXMLFile().store("test.out.protXML", protein_ids, peptide_ids, "doc_id_42")
 

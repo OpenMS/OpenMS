@@ -13,8 +13,10 @@
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
+#include <OpenMS/FORMAT/ModificationDefinitionIO.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/METADATA/DataProcessing.h>
+#include <OpenMS/METADATA/ProteinRunReferences.h>
 
 #include <fstream>
 #include <map>
@@ -60,6 +62,7 @@ namespace OpenMS::Internal
     prot_hit_ = ProteinHit();
     pep_hit_ = PeptideHit();
     proteinid_to_accession_.clear();
+    proteinid_to_run_.clear();
     accession_to_id_.clear();
     identifier_id_.clear();
     id_identifier_.clear();
@@ -107,6 +110,7 @@ namespace OpenMS::Internal
 
     // write identification runs
     Size prot_count = 0;
+    const auto definitions = ModificationDefinitionIO::collect(feature_map);
     for (Size i = 0; i < feature_map.getProteinIdentifications().size(); ++i)
     {
       const ProteinIdentification& current_prot_id = feature_map.getProteinIdentifications()[i];
@@ -118,7 +122,11 @@ namespace OpenMS::Internal
       os << "search_engine_version=\"" << writeXMLEscape(current_prot_id.getSearchEngineVersion()) << "\">\n";
 
       //write search parameters
-      const ProteinIdentification::SearchParameters& search_param = current_prot_id.getSearchParameters();
+      ProteinIdentification::SearchParameters search_param = current_prot_id.getSearchParameters();
+      if (const auto d = definitions.find(current_prot_id.getIdentifier()); d != definitions.end())
+      {
+        ModificationDefinitionIO::attach(search_param, d->second);
+      }
       os << "\t\t<SearchParameters "
          << "db=\"" << writeXMLEscape(search_param.db) << "\" "
          << "db_version=\"" << writeXMLEscape(search_param.db_version) << "\" "
@@ -168,13 +176,14 @@ namespace OpenMS::Internal
       os << " significance_threshold=\"" << current_prot_id.getSignificanceThreshold() << "\">\n";
 
       // write protein hits
+      auto& run_accessions = accession_to_id_[current_prot_id.getIdentifier()];
       for (Size j = 0; j < current_prot_id.getHits().size(); ++j)
       {
         os << "\t\t\t<ProteinHit";
 
         // prot_count
         os << " id=\"PH_" << prot_count << "\"";
-        accession_to_id_[current_prot_id.getIdentifier() + "_" + current_prot_id.getHits()[j].getAccession()] = prot_count;
+        run_accessions[current_prot_id.getHits()[j].getAccession()] = prot_count;
         ++prot_count;
 
         os << " accession=\"" << writeXMLEscape(current_prot_id.getHits()[j].getAccession()) << "\"";
@@ -543,15 +552,17 @@ namespace OpenMS::Internal
 
       //insert id and accession to map
       proteinid_to_accession_[attributeAsString_(attributes, "id")] = accession;
+      proteinid_to_run_[attributeAsString_(attributes, "id")] = prot_id_.getIdentifier();
     }
     else if (tag == "PeptideIdentification" || tag == "UnassignedPeptideIdentification")
     {
       std::string id = attributeAsString_(attributes, "identification_run_ref");
-      if (!id_identifier_.contains(id))
+      const auto run = id_identifier_.find(id);
+      if (run == id_identifier_.end())
       {
-        warning(LOAD,std::string("Peptide identification without ProteinIdentification found (id: '") + id + "')!");
+        fatalError(LOAD, ProteinRunReferences::missingRunMessage(id) + " (identification_run_ref)");
       }
-      pep_id_.setIdentifier(id_identifier_[id]);
+      pep_id_.setIdentifier(run->second);
 
       pep_id_.setScoreType(attributeAsString_(attributes, "score_type"));
 
@@ -614,6 +625,11 @@ namespace OpenMS::Internal
           std::map<std::string, std::string>::const_iterator it2 = proteinid_to_accession_.find(*it);
           if (it2 != proteinid_to_accession_.end())
           {
+            // a peptide hit references the protein hits of its peptide identification's run (no other run's)
+            if (proteinid_to_run_[*it] != pep_id_.getIdentifier())
+            {
+              fatalError(LOAD, std::string("Invalid protein reference '") + *it + "': protein " + it2->second + " is no protein hit of the peptide identification's run");
+            }
             PeptideEvidence pe;
             pe.setProteinAccession(it2->second);
             peptide_evidences_.push_back(pe);
@@ -786,12 +802,15 @@ namespace OpenMS::Internal
     }
     else if (tag == "IdentificationRun")
     {
+      // older files may contain an empty file list, which names no files
+      prot_id_.removeEmptyPrimaryMSRunPaths();
       map_->getProteinIdentifications().push_back(prot_id_);
       prot_id_ = ProteinIdentification();
       last_meta_  = nullptr;
     }
     else if (tag == "SearchParameters")
     {
+      ModificationDefinitionIO::registerFrom(search_param_); // before any peptide sequence is parsed
       prot_id_.setSearchParameters(search_param_);
       search_param_ = ProteinIdentification::SearchParameters();
     }
@@ -954,9 +973,10 @@ namespace OpenMS::Internal
 
     if (!identifier_id_.contains(id.getIdentifier()))
     {
-      warning(STORE,std::string("Omitting peptide identification because of missing ProteinIdentification with identifier '") + id.getIdentifier() + "' while writing '" + filename + "'!");
-      return;
+      throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, ProteinRunReferences::missingRunMessage(id.getIdentifier()) + " (while writing '" + filename + "')");
     }
+    // the protein hits of the run, the only ones its peptide hits may reference (registered with the run)
+    const auto& run_proteins = accession_to_id_.at(id.getIdentifier());
     os << indent << "<" << tag_name << " ";
     os << "identification_run_ref=\"" << identifier_id_[id.getIdentifier()] << "\" ";
     os << "score_type=\"" << writeXMLEscape(id.getScoreType()) << "\" ";
@@ -1006,8 +1026,15 @@ namespace OpenMS::Internal
         // empty accessions are not written out (legacy code)
         if (!protein_accession.empty())
         {
+          const auto protein = run_proteins.find(protein_accession);
+          if (protein == run_proteins.end())
+          {
+            // a reference to no protein hit cannot be read back (see ProteinRunReferences::checkProteinAccessions())
+            throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+              "No accession " + protein_accession + " found in run '" + id.getIdentifier() + "' (while writing '" + filename + "')");
+          }
           accs += "PH_";
-          accs +=StringUtils::toStr(accession_to_id_[id.getIdentifier() + "_" + protein_accession]);
+          accs += StringUtils::toStr(protein->second);
         }
       }
 

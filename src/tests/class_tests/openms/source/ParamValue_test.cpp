@@ -414,18 +414,33 @@ START_TEST(ParamValue, "$Id$")
                 ParamValue d(5.4L);
                 long double k = d;
                 TEST_REAL_SIMILAR(k,5.4L)
+                TEST_EXCEPTION(Exception::ConversionError, (long double)ParamValue())
+                TEST_EXCEPTION(Exception::ConversionError, (long double)ParamValue("5.4"))
+                TEST_EXCEPTION(Exception::ConversionError, (long double)ParamValue(std::vector<double>{5.4}))
+                TEST_EXCEPTION(Exception::ConversionError, (long double)ParamValue(std::vector<int>{5}))
+                TEST_EXCEPTION(Exception::ConversionError, (long double)ParamValue(std::vector<std::string>{"5.4"}))
         END_SECTION
 
         START_SECTION((operator double() const))
                 ParamValue d(5.4);
                 double k = d;
                 TEST_REAL_SIMILAR(k,5.4)
+                TEST_EXCEPTION(Exception::ConversionError, (double)ParamValue())
+                TEST_EXCEPTION(Exception::ConversionError, (double)ParamValue("5.4"))
+                TEST_EXCEPTION(Exception::ConversionError, (double)ParamValue(std::vector<double>{5.4}))
+                TEST_EXCEPTION(Exception::ConversionError, (double)ParamValue(std::vector<int>{5}))
+                TEST_EXCEPTION(Exception::ConversionError, (double)ParamValue(std::vector<std::string>{"5.4"}))
         END_SECTION
 
         START_SECTION((operator float() const))
                 ParamValue d(5.4f);
                 float k = d;
                 TEST_REAL_SIMILAR(k,5.4f)
+                TEST_EXCEPTION(Exception::ConversionError, (float)ParamValue())
+                TEST_EXCEPTION(Exception::ConversionError, (float)ParamValue("5.4"))
+                TEST_EXCEPTION(Exception::ConversionError, (float)ParamValue(std::vector<double>{5.4}))
+                TEST_EXCEPTION(Exception::ConversionError, (float)ParamValue(std::vector<int>{5}))
+                TEST_EXCEPTION(Exception::ConversionError, (float)ParamValue(std::vector<std::string>{"5.4"}))
         END_SECTION
 
         START_SECTION((operator int() const ))

@@ -15,7 +15,9 @@
 #include <OpenMS/DATASTRUCTURES/Matrix.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
-#include <boost/dynamic_bitset.hpp>
+#include <memory>
+#include <optional>
+#include <utility>
 #include <iostream>
 
 namespace OpenMS
@@ -129,6 +131,34 @@ namespace OpenMS
   protected:
     void updateMembers_() override;
 
+    /// Neutral apex-mass intervals used to restrict candidate construction.
+    using MassRanges = std::vector<std::pair<double, double>>;
+
+    /// Read-only construction settings; spectrum peaks and candidate bins remain private.
+    struct CandidateSelectionContext
+    {
+      const PrecalculatedAveragine& averagine; ///< Configured averagine.
+      double tolerance; ///< Relative m/z tolerance.
+      double isotope_distance; ///< Isotope spacing in Da.
+      double max_mass; ///< Current maximum neutral mass.
+      int min_charge; ///< Minimum charge magnitude.
+      int max_charge; ///< Current maximum charge magnitude.
+      bool positive; ///< Ionization mode.
+    };
+
+    /** @brief Optionally restrict construction, without protecting candidates from filtering.
+      The default returns nullopt for ordinary full-spectrum deconvolution.
+      An override returning initial intervals is called again with scored seed
+      groups to refine those intervals. Seed bins remain included. All passes
+      use the complete spectrum and the ordinary shared construction/scoring.
+      @param[in] context Read-only construction settings.
+      @param[in] evidence Null for the initial pass; scored seed groups for refinement.
+      @param[in] valid Indices of seed groups passing the shared scoring step.
+      @return Candidate mass intervals, or nullopt to retain all candidate bins.
+    */
+    virtual std::optional<MassRanges> selectCandidateMassRanges_(const CandidateSelectionContext& context,
+      const DeconvolvedSpectrum* evidence, const std::vector<Size>& valid) const;
+
   private:
     /// FLASHDeconv parameters
 
@@ -171,15 +201,33 @@ namespace OpenMS
     /// precalculated averagine distributions for fast averagine generation
     FLASHHelperClasses::PrecalculatedAveragine avg_;
 
-    /// mass bins that are targeted for FLASHIda global targeting mode
-    boost::dynamic_bitset<> target_mass_bins_;
+    /// Value-semantic holder for the implementation's bitsets.
+    struct OPENMS_DLLAPI Bitsets
+    {
+      struct Impl;
+      std::unique_ptr<Impl> impl;
+      Bitsets();
+      Bitsets(const Bitsets& other);
+      Bitsets(Bitsets&& other) noexcept;
+      Bitsets& operator=(const Bitsets& other);
+      Bitsets& operator=(Bitsets&& other) noexcept;
+      ~Bitsets();
+    };
+    Bitsets bitsets_;
+
+    /// Restrict mass bins using merged apex-mass intervals.
+    void restrictCandidateMassBins_(std::vector<std::pair<double, double>> intervals);
+
+    /// Refine and score groups independently, returning valid indices in construction order.
+    std::vector<Size> scorePeakGroups_();
+
+    /// monoisotopic masses that are targeted for FLASHIda global targeting mode
     std::vector<double> target_mono_masses_;
 
     /// mass bins that are excluded for FLASHIda global targeting mode
     std::vector<double> excluded_masses_;
 
-    /// mass bins that are previously deconvolved and excluded for decoy mass generation
-    boost::dynamic_bitset<> excluded_mass_bins_for_decoy_runs_;
+    /// previously deconvolved masses excluded for decoy mass generation
     std::vector<double> excluded_peak_masses_for_decoy_runs_;
     std::vector<double> excluded_masses_for_decoy_runs_;
 
@@ -187,11 +235,6 @@ namespace OpenMS
     std::vector<LogMzPeak> log_mz_peaks_;
     /// selected_peak_groups_ stores the deconvolved mass peak groups
     DeconvolvedSpectrum deconvolved_spectrum_;
-    /// binned_log_masses_ stores the selected bins for this spectrum + overlapped spectrum (previous a few spectra).
-    boost::dynamic_bitset<> binned_log_masses_;
-    /// binned_log_mz_peaks_ stores the binned log mz peaks
-    boost::dynamic_bitset<> binned_log_mz_peaks_;
-
     /// This stores the "universal pattern"
     std::vector<double> universal_pattern_;
     /// This stores the patterns for harmonic reduction
@@ -304,4 +347,4 @@ namespace OpenMS
 
     bool isPeakGroupInExcludedMassForDecoyRuns_(const PeakGroup& peak_group, double tol, int offset = 0) const;
   };
-} // namespace OpenMS
+  } // namespace OpenMS

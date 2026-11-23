@@ -10,6 +10,7 @@
 #include <OpenMS/test_config.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/KERNEL/Peak2D.h>
+#include <OpenMS/KERNEL/FeatureMap.h>
 
 ///////////////////////////
 #include <OpenMS/DATASTRUCTURES/ConstRefVector.h>
@@ -30,6 +31,20 @@ typedef std::vector< Peak1D > PeakArrayType;
 typedef std::vector< Peak2D > PeakArray2DType;
 
 START_TEST(ConstRefVector, "$Id$")
+
+START_SECTION((FeatureMap references and iterators))
+  FeatureMap features;
+  Feature feature;
+  feature.setIntensity(42.0f);
+  features.push_back(feature);
+  ConstRefVector<FeatureMap> references(features);
+  TEST_EQUAL(references.size(), 1)
+  ConstRefVector<FeatureMap>::Iterator iterator = references.begin();
+  TEST_REAL_SIMILAR(iterator->getIntensity(), 42.0)
+  const ConstRefVector<FeatureMap>& const_references = references;
+  ConstRefVector<FeatureMap>::ConstIterator const_iterator = const_references.begin();
+  TEST_EQUAL(&*const_iterator, &features[0])
+END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
@@ -1051,4 +1066,3 @@ END_TEST
 #ifdef __clang__
   #pragma clang diagnostic pop
 #endif
-

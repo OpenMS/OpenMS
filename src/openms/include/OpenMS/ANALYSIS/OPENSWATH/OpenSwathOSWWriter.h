@@ -115,11 +115,14 @@ namespace OpenMS
         Text
       };
 
+      /// Payload. Text is rare (only values that are neither numeric nor NULL) and is held
+      /// out of line, so that a cell takes 16 bytes instead of 40: a scored feature fills several
+      /// hundred cells, and millions of them are queued for the writer.
       union Storage
       {
         Int64 int_value;
         double double_value;
-        std::string text_value;
+        std::string* text_value; ///< owned by the OSWValue while type == Type::Text
 
         Storage();
         ~Storage();
@@ -222,6 +225,27 @@ namespace OpenMS
 
     /// Set the current run id used when prepareLine generates FEATURE entries.
     void setRunId(const UInt64 run_id);
+
+    /**
+     * @brief Count FEATURE rows belonging to a run in the active OSW output.
+     *
+     * The query is serialized with OSW writes and executed inside libOpenMS so
+     * the private SQLite implementation does not cross the public library boundary.
+     *
+     * @param[in] run_id Run identifier to query.
+     * @return Number of FEATURE rows associated with @p run_id, or zero for an inactive writer.
+     */
+    UInt64 countFeaturesForRun(const UInt64 run_id) const;
+
+    /**
+     * @brief Remove all OSW rows belonging to a run.
+     *
+     * FEATURE child rows, FEATURE rows, and the RUN row are removed in one
+     * transaction. The operation is serialized with normal OSW writes.
+     *
+     * @param[in] run_id Run identifier to remove.
+     */
+    void clearRunData(const UInt64 run_id);
 
     /**
      * @brief Prepare scores for SQLite insertion

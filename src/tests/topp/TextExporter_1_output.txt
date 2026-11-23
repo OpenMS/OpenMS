@@ -6,7 +6,7 @@
 RUN	Mascot_2006-03-09T11:31:52_5233264595117471314		higher-score-better	2006-03-09T11:31:52		db=, db_version=, taxonomy=, charges=, mass_type=monoisotopic, fixed_modifications=, variable_modifications=, enzyme=unknown_enzyme, missed_cleavages=0, peak_mass_tolerance=0.0, precursor_mass_tolerance=0.0
 PROTEIN	0.0	0	ABCDE		-1.0	
 PROTEIN	0.0	0	FGHIJ		-1.0	
-UNASSIGNEDPEPTIDE	-1	-1	4324.432999999999993	0	F	23	X	Y		Mascot_2006-03-09T11:31:52_5233264595117471314	FGHIJ		
+UNASSIGNEDPEPTIDE	-1	-1	4324.432999999999993	0	F	23	X	Y	bla	Mascot_2006-03-09T11:31:52_5233264595117471314	FGHIJ		
 FEATURE	5.0	500.0	100.0	1	0.0	1.0	1.0	1.0	-1	-1
 FEATURE	20.0	600.0	100.0	1	0.0	1.0	1.0	1.0	-1	-1
 FEATURE	11.0	558.0	100.0	1	0.0	2.0	1.0	1.0	10.0	12.0

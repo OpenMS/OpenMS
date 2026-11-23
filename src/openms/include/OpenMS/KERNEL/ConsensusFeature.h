@@ -104,7 +104,7 @@ public:
       Ratio& operator=(const Ratio& rhs) = default;
 
       // @TODO: members are public, names shouldn't end in underscores
-      double ratio_value_;
+      double ratio_value_ = 0.0;
       std::string denominator_ref_;
       std::string numerator_ref_;
       std::vector<std::string> description_;

@@ -10,7 +10,6 @@ set(OpenMS_percolator_sources
   FeatureNames.cpp
   Globals.cpp
   IsotonicPEP.cpp
-  Logger.cpp
   LogisticRegression.cpp
   MassHandler.cpp
   MonotoneRegressor.cpp
@@ -18,14 +17,11 @@ set(OpenMS_percolator_sources
   NoNormalizer.cpp
   Normalizer.cpp
   Numerical.cpp
-  PackedMatrix.cpp
   PackedVector.cpp
   PosteriorEstimator.cpp
   PSMDescription.cpp
   PseudoRandom.cpp
-  ResultHolder.cpp
   SanityCheck.cpp
-  ScoreHolder.cpp
   Scores.cpp
   Set.cpp
   SetHandler.cpp
@@ -41,6 +37,17 @@ set(OpenMS_percolator_sources
   # sync-from-upstream.sh runs. See UPSTREAM.md for provenance.
   ssl.cpp
   tron.cpp
+
+  # OpenMS-local: kernels of ssl.cpp's TRON function object for the x86-64
+  # baseline, compiled for SSE2 and for AVX2 (chosen at run time); see
+  # tron_kernels.h. Empty translation units on other architectures.
+  tron_kernels_sse2.cpp
+  tron_kernels_avx2.cpp
+
+  # OpenMS-local: the Newton (explicit Hessian, exact line search) and LDA solvers
+  # that the cross-validation can use instead of TRON (Percolator parameter
+  # 'solver'); see newton_svm.h. Not in whitelist.txt.
+  newton_svm.cpp
 
   # OpenMS-local addition: reservoir-sampling helper derived from
   # SetHandler::readPSMs, required by the in-process Percolator wrapper

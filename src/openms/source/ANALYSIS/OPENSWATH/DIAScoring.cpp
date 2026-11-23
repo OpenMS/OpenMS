@@ -7,6 +7,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/OPENSWATH/DIAScoring.h>
+#include <OpenMS/CONCEPT/HashUtils.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/MRMFeatureAccessOpenMS.h>
 
 #include <OpenMS/CONCEPT/Constants.h>
@@ -38,11 +39,6 @@ namespace OpenMS
 {
   namespace
   {
-    void hashCombine(std::size_t& seed, std::size_t value)
-    {
-      seed ^= value + 0x9e3779b9 + (seed << 6) + (seed >> 2);
-    }
-
     struct DIAScoringPool
     {
       std::vector<double> isotopes_int;
@@ -143,7 +139,7 @@ namespace OpenMS
       std::size_t operator()(const AveragineIsotopeDistributionKey& key) const
       {
         std::size_t seed = std::hash<double>{}(key.neutral_mass);
-        hashCombine(seed, std::hash<int>{}(key.nr_isotopes));
+        hash_combine(seed, std::hash<int>{}(key.nr_isotopes));
         return seed;
       }
     };
@@ -164,8 +160,7 @@ namespace OpenMS
         isotope_cache.clear();
       }
 
-      CoarseIsotopePatternGenerator solver(nr_isotopes);
-      return isotope_cache.emplace(key, solver.estimateFromPeptideWeight(neutral_mass)).first->second;
+      return isotope_cache.emplace(key, DIAHelpers::averagineIsotopeDistribution(neutral_mass, nr_isotopes)).first->second;
     }
   }
 
@@ -543,8 +538,25 @@ namespace OpenMS
   double DIAScoring::scoreIsotopePattern_(const std::vector<double>& isotopes_int,
                                           const EmpiricalFormula& empf) const
   {
-    return scoreIsotopePattern_(isotopes_int,
-                                empf.getIsotopeDistribution(CoarseIsotopePatternGenerator(dia_nr_isotopes_ + 1)));
+    // The peak groups of a precursor are scored one after the other: keep the isotope distribution
+    // of the last formula.
+    struct FormulaIsotopeDistribution
+    {
+      EmpiricalFormula formula;
+      Size nr_isotopes = 0;
+      bool valid = false;
+      IsotopeDistribution distribution;
+    };
+    static thread_local FormulaIsotopeDistribution cache;
+    const Size nr_isotopes = static_cast<Size>(dia_nr_isotopes_ + 1);
+    if (!cache.valid || cache.nr_isotopes != nr_isotopes || !(cache.formula == empf))
+    {
+      cache.distribution = empf.getIsotopeDistribution(CoarseIsotopePatternGenerator(nr_isotopes));
+      cache.formula = empf;
+      cache.nr_isotopes = nr_isotopes;
+      cache.valid = true;
+    }
+    return scoreIsotopePattern_(isotopes_int, cache.distribution);
   }
 
   double DIAScoring::scoreIsotopePattern_(const std::vector<double>& isotopes_int,

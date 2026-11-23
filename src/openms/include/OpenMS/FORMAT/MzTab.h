@@ -444,6 +444,10 @@ public:
   typedef std::vector<MzTabOligonucleotideSectionRow> MzTabOligonucleotideSectionRows;
   typedef std::vector<MzTabOSMSectionRow> MzTabOSMSectionRows;
 
+  namespace Internal
+  {
+    struct MzTabStreamHelper; ///< implementation details shared by MzTab::IDMzTabStream and MzTab::CMMzTabStream
+  }
 
   /**
       @brief Data model of MzTab files.
@@ -453,6 +457,8 @@ public:
  */
   class OPENMS_DLLAPI MzTab : public MzTabBase
   {
+    friend struct Internal::MzTabStreamHelper;
+
   public:
     /// Default constructor
     MzTab() = default;
@@ -617,6 +623,8 @@ public:
          bool nextPEPRow(MzTabPeptideSectionRow& row);
          bool nextPSMRow(MzTabPSMSectionRow& row);
        private:
+         friend struct Internal::MzTabStreamHelper;
+
          std::set<std::string> protein_hit_user_value_keys_;
          std::set<std::string> peptide_id_user_value_keys_;
          std::set<std::string> peptide_hit_user_value_keys_;
@@ -686,6 +694,8 @@ public:
          bool nextPSMRow(MzTabPSMSectionRow& row);
 
        private:
+         friend struct Internal::MzTabStreamHelper;
+
          const ConsensusMap& consensus_map_;
          std::set<std::string> protein_hit_user_value_keys_;
          std::set<std::string> consensus_feature_user_value_keys_;
@@ -700,6 +710,9 @@ public:
          std::map<Size, std::vector<std::vector<std::pair<std::string, std::string>>>> run_to_search_engines_settings_;
          std::map<std::pair<size_t,size_t>,size_t> map_id_run_fileidx_2_msfileidx_;
          std::map<std::pair< std::string, unsigned >, unsigned> path_label_to_assay_;
+         std::vector<std::pair<UInt, UInt>> assay_keys_;
+         std::vector<Size> assay_to_study_variable_;
+         std::vector<std::vector<Size>> study_variable_to_assays_;
 
          std::vector<const ProteinIdentification*> prot_ids_;
          std::vector<const PeptideIdentification*> peptide_ids_;
@@ -713,6 +726,7 @@ public:
          bool export_empty_pep_ids_;
          bool export_all_psms_;
          size_t quant_study_variables_ = 0;
+         size_t n_assays_ = 0;
          size_t n_study_variables_ = 0;
          size_t PRT_STATE_ = 0;
          size_t prt_run_id_ = 0; // current (protein) identification run
@@ -755,6 +769,7 @@ public:
       const ConsensusFeature& c, 
       const ConsensusMap& consensus_map,
       const StringList& ms_runs,
+      const Size n_assays,
       const Size n_study_variables,
       const std::set<std::string>& consensus_feature_user_value_keys,
       const std::set<std::string>& peptide_identifications_user_value_keys,
@@ -762,6 +777,8 @@ public:
       const std::map<std::string, size_t>& idrun_2_run_index,
       const std::map<std::pair<size_t,size_t>,size_t>& map_run_fileidx_2_msfileidx,
       const std::map< std::pair< std::string, unsigned >, unsigned>& path_label_to_assay,
+      const std::vector<Size>& assay_to_study_variable,
+      const std::vector<std::vector<Size>>& study_variable_to_assays,
       const std::vector<std::string>& fixed_mods,
       bool export_subfeatures);
 

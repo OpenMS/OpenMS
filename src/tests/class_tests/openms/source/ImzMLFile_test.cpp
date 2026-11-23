@@ -3,7 +3,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
-// $Authors: Aditya Sarna $
+// $Authors: Aditya Sarna, Patrick Boschmann $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/ClassTest.h>
@@ -11,6 +11,9 @@
 
 #include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <OpenMS/FORMAT/ImzMLFile.h>
+#include <OpenMS/FORMAT/MzMLFile.h>
+#include <OpenMS/IONMOBILITY/IMDataConverter.h>
+#include <OpenMS/IONMOBILITY/IMTypes.h>
 #include <OpenMS/KERNEL/OnDiscImzMLExperiment.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
@@ -24,6 +27,8 @@
 #include <OpenMS/DATASTRUCTURES/DRange.h>
 
 #include <fstream>
+#include <iterator>
+#include <limits>
 #include <cstdio>
 #include <sstream>
 
@@ -191,6 +196,170 @@ namespace
     xml << "    </spectrumList>\n"
         << "  </run>\n"
         << "</mzML>\n";
+  }
+
+  /// Insert a compression cvParam into the mzArray and intensityArray groups.
+  bool injectCompressionOnMzIntGroups_(const std::string& imzml_path,
+                                       const std::string& accession,
+                                       const std::string& name)
+  {
+    std::ifstream in(imzml_path.c_str());
+    std::string content((std::istreambuf_iterator<char>(in)), std::istreambuf_iterator<char>());
+    in.close();
+    const std::string line = "\t\t\t<cvParam cvRef=\"MS\" accession=\"" + accession + "\" name=\"" + name + "\"/>\n";
+    auto inject = [&](const std::string& id) -> bool {
+      const std::string open = "<referenceableParamGroup id=\"" + id + "\">";
+      const std::string::size_type start = content.find(open);
+      if (start == std::string::npos)
+      {
+        return false;
+      }
+      const std::string::size_type end = content.find("</referenceableParamGroup>", start);
+      if (end == std::string::npos)
+      {
+        return false;
+      }
+      content.insert(end, line);
+      return true;
+    };
+    if (!inject("intensityArray") || !inject("mzArray"))
+    {
+      return false;
+    }
+    std::ofstream out(imzml_path.c_str(), std::ios::trunc);
+    out << content;
+    return out.good();
+  }
+
+  /// Insert MS:1000574 into the mzArray and intensityArray referenceableParamGroups
+  /// of a stored imzML so loaders see zlib-compressed external m/z / intensity.
+  bool injectZlibCompressionOnMzIntGroups_(const std::string& imzml_path)
+  {
+    return injectCompressionOnMzIntGroups_(imzml_path, "MS:1000574", "zlib compression");
+  }
+
+  bool mutateNamedBinaryDataArray_(const std::string& imzml_path,
+                                   const std::string& accession,
+                                   const std::string& from,
+                                   const std::string& to)
+  {
+    std::ifstream in(imzml_path.c_str());
+    std::string content((std::istreambuf_iterator<char>(in)), std::istreambuf_iterator<char>());
+    in.close();
+    const std::string::size_type acc_pos = content.find(accession);
+    if (acc_pos == std::string::npos)
+    {
+      return false;
+    }
+    const std::string::size_type bda_start = content.rfind("<binaryDataArray", acc_pos);
+    const std::string::size_type bda_end = content.find("</binaryDataArray>", acc_pos);
+    if (bda_start == std::string::npos || bda_end == std::string::npos)
+    {
+      return false;
+    }
+    std::string block = content.substr(bda_start, bda_end - bda_start);
+    const std::string::size_type at = block.find(from);
+    if (at == std::string::npos)
+    {
+      return false;
+    }
+    block.replace(at, from.size(), to);
+    content.replace(bda_start, bda_end - bda_start, block);
+    std::ofstream out(imzml_path.c_str(), std::ios::trunc);
+    out << content;
+    return out.good();
+  }
+
+  bool setNamedAuxImsLength_(const std::string& imzml_path, const std::string& accession, const std::string& new_len)
+  {
+    std::ifstream in(imzml_path.c_str());
+    std::string content((std::istreambuf_iterator<char>(in)), std::istreambuf_iterator<char>());
+    in.close();
+    const std::string::size_type acc_pos = content.find(accession);
+    if (acc_pos == std::string::npos)
+    {
+      return false;
+    }
+    const std::string::size_type bda_start = content.rfind("<binaryDataArray", acc_pos);
+    const std::string::size_type bda_end = content.find("</binaryDataArray>", acc_pos);
+    if (bda_start == std::string::npos || bda_end == std::string::npos)
+    {
+      return false;
+    }
+    std::string block = content.substr(bda_start, bda_end - bda_start);
+    const std::string::size_type len_acc = block.find("accession=\"IMS:1000103\"");
+    if (len_acc == std::string::npos)
+    {
+      return false;
+    }
+    const std::string::size_type value_pos = block.find("value=\"", len_acc);
+    const std::string::size_type value_end = (value_pos == std::string::npos) ? std::string::npos : block.find('"', value_pos + 7);
+    if (value_pos == std::string::npos || value_end == std::string::npos)
+    {
+      return false;
+    }
+    block.replace(value_pos, value_end - value_pos, "value=\"" + new_len);
+    content.replace(bda_start, bda_end - bda_start, block);
+    std::ofstream out(imzml_path.c_str(), std::ios::trunc);
+    out << content;
+    return out.good();
+  }
+
+  /// Mark the binaryDataArray that carries @p accession as zlib-compressed with
+  /// IMS:1000103 length 0, so OnDisc must reject it even though there is no payload.
+  bool makeNamedAuxCompressedAndEmpty_(const std::string& imzml_path, const std::string& accession)
+  {
+    std::ifstream in(imzml_path.c_str());
+    std::string content((std::istreambuf_iterator<char>(in)), std::istreambuf_iterator<char>());
+    in.close();
+    const std::string::size_type acc_pos = content.find(accession);
+    if (acc_pos == std::string::npos)
+    {
+      return false;
+    }
+    const std::string::size_type bda_start = content.rfind("<binaryDataArray", acc_pos);
+    const std::string::size_type bda_end = content.find("</binaryDataArray>", acc_pos);
+    if (bda_start == std::string::npos || bda_end == std::string::npos)
+    {
+      return false;
+    }
+    std::string block = content.substr(bda_start, bda_end - bda_start);
+    const std::string no_comp = "accession=\"MS:1000576\" name=\"no compression\"";
+    const std::string zlib = "accession=\"MS:1000574\" name=\"zlib compression\"";
+    const std::string::size_type nc = block.find(no_comp);
+    if (nc == std::string::npos)
+    {
+      return false;
+    }
+    block.replace(nc, no_comp.size(), zlib);
+
+    const std::string::size_type len_acc = block.find("accession=\"IMS:1000103\"");
+    if (len_acc == std::string::npos)
+    {
+      return false;
+    }
+    const std::string::size_type value_pos = block.find("value=\"", len_acc);
+    const std::string::size_type value_end = (value_pos == std::string::npos) ? std::string::npos : block.find('"', value_pos + 7);
+    if (value_pos == std::string::npos || value_end == std::string::npos)
+    {
+      return false;
+    }
+    block.replace(value_pos, value_end - value_pos, "value=\"0");
+    content.replace(bda_start, bda_end - bda_start, block);
+    std::ofstream out(imzml_path.c_str(), std::ios::trunc);
+    out << content;
+    return out.good();
+  }
+
+  std::string ibdPathFor_(const std::string& imzml_path)
+  {
+    std::string lower = imzml_path;
+    StringUtils::toLower(lower);
+    if (StringUtils::hasSuffix(lower, ".imzml"))
+    {
+      return imzml_path.substr(0, imzml_path.size() - 6) + ".ibd";
+    }
+    return imzml_path + ".ibd";
   }
 } // namespace
 
@@ -423,7 +592,8 @@ START_SECTION(dataset metadata mirrored on MSExperiment after load)
 
     ImzMLMeta meta;
     std::vector<ImzMLSpectrumIndex> index;
-    ImzMLFile().loadSpectraIndex(imzml_path, meta, index);
+    MSExperiment index_spectra;
+    ImzMLFile().loadSpectraIndex(imzml_path, meta, index, index_spectra);
     checkMatchesIndexMeta_(exp, meta);
     TEST_EQUAL(index.size(), exp.getNrSpectra())
 
@@ -452,7 +622,8 @@ START_SECTION(dataset metadata mirrored on MSExperiment after load)
 
     ImzMLMeta meta;
     std::vector<ImzMLSpectrumIndex> index;
-    ImzMLFile().loadSpectraIndex(imzml_processed_path, meta, index);
+    MSExperiment index_spectra;
+    ImzMLFile().loadSpectraIndex(imzml_processed_path, meta, index, index_spectra);
     checkMatchesIndexMeta_(exp, meta);
     TEST_EQUAL(index.size(), exp.getNrSpectra())
 
@@ -498,6 +669,12 @@ START_SECTION(void buildImagingGeometry(const MSExperiment& exp, MSImagingGeomet
   {
     TEST_EQUAL(geom.getSpectrumIndex(0, 0), 0)
   }
+
+  // only pixel size x known: x is kept, y stays unknown
+  exp.removeMetaValue("imzml:pixel_size_y");
+  ImzMLFile::buildImagingGeometry(exp, geom);
+  TEST_REAL_SIMILAR(geom.getPixelSizeX(), 100.0)
+  TEST_REAL_SIMILAR(geom.getPixelSizeY(), -1.0)
 }
 END_SECTION
 
@@ -578,7 +755,7 @@ START_SECTION(void store(const std::string& filename, const MSImagingExperiment&
 
   MSImagingGeometry geom;
   geom.setDimensions(2, 2);
-  geom.setPixelSize(25.0, 25.0, "micrometer");
+  geom.setPixelSize(25.0, 30.0, "nanometer"); // non-default unit must round-trip via unitAccession
   geom.addPixel(0, 0, 0);
   geom.addPixel(1, 0, 1);
   geom.addPixel(0, 1, 2);
@@ -592,6 +769,25 @@ START_SECTION(void store(const std::string& filename, const MSImagingExperiment&
   NEW_TMP_FILE_EXT(tmp_imzml, ".imzML");
   ImzMLFile().store(tmp_imzml, img); // must NOT throw despite missing imzml:x/y MetaValues
 
+  // rewrite the stored file with the unit of one pixel size cvParam replaced (both are written in nanometer)
+  std::string stored;
+  {
+    std::ifstream in(tmp_imzml.c_str());
+    stored.assign(std::istreambuf_iterator<char>(in), std::istreambuf_iterator<char>());
+  }
+  auto storeWithUnit = [&](const std::string& pixel_size_acc, const std::string& unit_attrs)
+  {
+    std::string content = stored;
+    const std::string nm_attrs = "unitAccession=\"UO:0000018\" unitName=\"nanometer\"";
+    const std::string::size_type pos = content.find(nm_attrs, content.find("accession=\"" + pixel_size_acc + "\""));
+    TEST_NOT_EQUAL(pos, std::string::npos)
+    if (pos != std::string::npos) { content.replace(pos, nm_attrs.size(), unit_attrs); }
+    std::ofstream out(tmp_imzml.c_str(), std::ios::trunc);
+    out << content;
+  };
+
+  // x and y in different units: y (read after x) is converted into the unit of x
+  storeWithUnit("IMS:1000047", "unitAccession=\"UO:0000017\" unitName=\"micrometer\"");
   MSImagingExperiment reloaded;
   ImzMLFile().load(tmp_imzml, reloaded);
   TEST_EQUAL(reloaded.getMSExperiment().getNrSpectra(), 4)
@@ -600,6 +796,52 @@ START_SECTION(void store(const std::string& filename, const MSImagingExperiment&
   TEST_EQUAL(reloaded.getGeometry().getHeight(), 2)
   TEST_EQUAL(reloaded.getGeometry().hasPixel(0, 0), true)
   TEST_EQUAL(reloaded.getGeometry().hasPixel(1, 1), true)
+  TEST_REAL_SIMILAR(reloaded.getGeometry().getPixelSizeX(), 25.0)
+  TEST_REAL_SIMILAR(reloaded.getGeometry().getPixelSizeY(), 30000.0) // 30 micrometer
+  TEST_EQUAL(reloaded.getGeometry().getPixelSizeUnit(), "nanometer")
+
+  // unsupported unit: pixel size x is left unknown, y is kept
+  storeWithUnit("IMS:1000046", "unitAccession=\"UO:0000010\" unitName=\"second\"");
+  MSImagingExperiment reloaded_unknown;
+  ImzMLFile().load(tmp_imzml, reloaded_unknown);
+  TEST_REAL_SIMILAR(reloaded_unknown.getGeometry().getPixelSizeX(), -1.0)
+  TEST_REAL_SIMILAR(reloaded_unknown.getGeometry().getPixelSizeY(), 30.0)
+  TEST_EQUAL(reloaded_unknown.getGeometry().getPixelSizeUnit(), "nanometer")
+
+  // pixel size y given in an unsupported unit stays unknown; x is only used for y if IMS:1000047 is absent
+  storeWithUnit("IMS:1000047", "unitAccession=\"UO:0000010\" unitName=\"second\"");
+  ImzMLMeta meta_unknown_y;
+  std::vector<ImzMLSpectrumIndex> index_unknown_y;
+  MSExperiment index_spectra_unknown_y;
+  ImzMLFile().loadSpectraIndex(tmp_imzml, meta_unknown_y, index_unknown_y, index_spectra_unknown_y);
+  TEST_REAL_SIMILAR(meta_unknown_y.pixel_size_x, 25.0)
+  TEST_REAL_SIMILAR(meta_unknown_y.pixel_size_y, -1.0)
+  MSImagingExperiment reloaded_unknown_y;
+  ImzMLFile().load(tmp_imzml, reloaded_unknown_y);
+  TEST_REAL_SIMILAR(reloaded_unknown_y.getGeometry().getPixelSizeX(), 25.0)
+  TEST_REAL_SIMILAR(reloaded_unknown_y.getGeometry().getPixelSizeY(), -1.0)
+
+  // storing x only: imzML cannot mark y as unknown, so readers use x for y (warned on store)
+  std::string tmp_x_only;
+  NEW_TMP_FILE_EXT(tmp_x_only, ".imzML");
+  ImzMLFile().store(tmp_x_only, reloaded_unknown_y);
+  MSImagingExperiment reloaded_x_only;
+  ImzMLFile().load(tmp_x_only, reloaded_x_only);
+  TEST_REAL_SIMILAR(reloaded_x_only.getGeometry().getPixelSizeX(), 25.0)
+  TEST_REAL_SIMILAR(reloaded_x_only.getGeometry().getPixelSizeY(), 25.0)
+
+  // unknown geometry pixel size: pixel size MetaValues copied from the previous load are not written
+  MSImagingGeometry geom_unknown = reloaded.getGeometry();
+  geom_unknown.setPixelSize(-1, -1, "unknown");
+  reloaded.setGeometry(geom_unknown);
+  std::string tmp_stale;
+  NEW_TMP_FILE_EXT(tmp_stale, ".imzML");
+  ImzMLFile().store(tmp_stale, reloaded);
+  MSImagingExperiment reloaded_stale;
+  ImzMLFile().load(tmp_stale, reloaded_stale);
+  TEST_REAL_SIMILAR(reloaded_stale.getGeometry().getPixelSizeX(), -1.0)
+  TEST_REAL_SIMILAR(reloaded_stale.getGeometry().getPixelSizeY(), -1.0)
+  TEST_EQUAL(reloaded_stale.getMSExperiment().metaValueExists("imzml:pixel_size_x"), false)
 }
 END_SECTION
 
@@ -622,6 +864,131 @@ START_SECTION(void store round-trip processed imzML)
     TEST_REAL_SIMILAR(reloaded[0][0].getMZ(), original[0][0].getMZ())
   }
   TEST_EQUAL(reloaded.getMetaValue("imzml:imaging_mode"), "processed")
+}
+END_SECTION
+
+
+START_SECTION(void store round-trip FloatDataArray ion mobility and non-standard)
+{
+  // PSI MS:1003006 ion mobility plus a free-text MS:1000786 array.
+  MSExperiment original;
+  MSSpectrum s = makePixelSpectrum_(1, 1, 100.0, 10.0f);
+  s.push_back(Peak1D(200.0, 20.0f));
+
+  MSSpectrum::FloatDataArray im;
+  im.setName("mean inverse reduced ion mobility array");
+  im.push_back(0.85f);
+  im.push_back(1.15f);
+  s.getFloatDataArrays().push_back(im);
+
+  MSSpectrum::FloatDataArray custom;
+  custom.setName("my custom SNR");
+  custom.push_back(3.0f);
+  custom.push_back(4.5f);
+  s.getFloatDataArrays().push_back(custom);
+
+  original.addSpectrum(s);
+  original.setMetaValue("imzml:imaging_mode", "processed");
+
+  ImzMLFile f;
+  std::string tmp_imzml;
+  NEW_TMP_FILE_EXT(tmp_imzml, ".imzML");
+  f.store(tmp_imzml, original);
+
+  // Writer must emit the ontology accession for IM and MS:1000786 for the custom name.
+  {
+    std::ifstream xml(tmp_imzml.c_str());
+    std::string content((std::istreambuf_iterator<char>(xml)), std::istreambuf_iterator<char>());
+    TEST_TRUE(content.find("MS:1003006") != std::string::npos)
+    TEST_TRUE(content.find("mean inverse reduced ion mobility array") != std::string::npos)
+    TEST_TRUE(content.find("MS:1002814") != std::string::npos) // 1/K0 unit on IM array
+    TEST_TRUE(content.find("MS:1000786") != std::string::npos)
+    TEST_TRUE(content.find("my custom SNR") != std::string::npos)
+    TEST_TRUE(content.find("binaryDataArrayList count=\"4\"") != std::string::npos)
+  }
+
+  MSExperiment reloaded = loadImzMLExperiment_(tmp_imzml);
+  TEST_EQUAL(reloaded.getNrSpectra(), 1)
+  TEST_EQUAL(reloaded[0].size(), 2)
+  TEST_EQUAL(reloaded[0].getFloatDataArrays().size(), 2)
+
+  const auto& fda = reloaded[0].getFloatDataArrays();
+  Size im_idx = fda.size();
+  Size custom_idx = fda.size();
+  for (Size i = 0; i < fda.size(); ++i)
+  {
+    if (fda[i].getName() == "mean inverse reduced ion mobility array")
+    {
+      im_idx = i;
+    }
+    if (fda[i].getName() == "my custom SNR")
+    {
+      custom_idx = i;
+    }
+  }
+  TEST_NOT_EQUAL(im_idx, fda.size())
+  TEST_NOT_EQUAL(custom_idx, fda.size())
+  TEST_EQUAL(fda[im_idx].size(), 2)
+  TEST_REAL_SIMILAR(fda[im_idx][0], 0.85)
+  TEST_REAL_SIMILAR(fda[im_idx][1], 1.15)
+  TEST_EQUAL(fda[custom_idx].size(), 2)
+  TEST_REAL_SIMILAR(fda[custom_idx][0], 3.0)
+  TEST_REAL_SIMILAR(fda[custom_idx][1], 4.5)
+
+  // Viewer contract: containsIMData() + IM_PROFILE + correct 1/K0 unit for the PSI IM array.
+  TEST_TRUE(reloaded[0].containsIMData())
+  TEST_TRUE(reloaded[0].getIMPeakType() == IMPeakType::IM_PROFILE)
+  DriftTimeUnit im_unit = DriftTimeUnit::NONE;
+  TEST_TRUE(IMDataConverter::getIMUnit(fda[im_idx], im_unit))
+  TEST_TRUE(im_unit == DriftTimeUnit::VSSC)
+  TEST_TRUE(fda[im_idx].metaValueExists("unit_accession"))
+  TEST_EQUAL(OpenMS::StringConversions::toString(fda[im_idx].getMetaValue("unit_accession")), std::string("MS:1002814"))
+
+  // On-disc path must expose the same IM + custom FloatDataArrays (index + lazy decode).
+  OnDiscImzMLExperiment od;
+  od.open(tmp_imzml);
+  TEST_EQUAL(od.getNrSpectra(), 1)
+  TEST_EQUAL(od.getIndex(0).aux.size(), 2)
+  TEST_FALSE(od.getIndex(0).mz_compressed)
+  TEST_FALSE(od.getIndex(0).int_compressed)
+  MSSpectrum od_spec = od.getSpectrum(0);
+  TEST_TRUE(od_spec.containsIMData())
+  TEST_TRUE(od_spec.getIMPeakType() == IMPeakType::IM_PROFILE)
+  TEST_EQUAL(od_spec.getFloatDataArrays().size(), 2)
+  const auto& od_fda = od_spec.getFloatDataArrays();
+  Size od_im_idx = od_fda.size();
+  Size od_custom_idx = od_fda.size();
+  for (Size i = 0; i < od_fda.size(); ++i)
+  {
+    if (od_fda[i].getName() == "mean inverse reduced ion mobility array")
+    {
+      od_im_idx = i;
+    }
+    if (od_fda[i].getName() == "my custom SNR")
+    {
+      od_custom_idx = i;
+    }
+  }
+  TEST_NOT_EQUAL(od_im_idx, od_fda.size())
+  TEST_NOT_EQUAL(od_custom_idx, od_fda.size())
+  TEST_EQUAL(od_fda[od_im_idx].size(), 2)
+  TEST_REAL_SIMILAR(od_fda[od_im_idx][0], 0.85)
+  TEST_REAL_SIMILAR(od_fda[od_im_idx][1], 1.15)
+  TEST_EQUAL(od_fda[od_custom_idx].size(), 2)
+  TEST_REAL_SIMILAR(od_fda[od_custom_idx][0], 3.0)
+  TEST_REAL_SIMILAR(od_fda[od_custom_idx][1], 4.5)
+  TEST_TRUE(od_fda[od_im_idx].metaValueExists("unit_accession"))
+  TEST_EQUAL(OpenMS::StringConversions::toString(od_fda[od_im_idx].getMetaValue("unit_accession")), std::string("MS:1002814"))
+  bool found_im_unit = false;
+  for (const auto& a : od.getIndex(0).aux)
+  {
+    if (a.name == "mean inverse reduced ion mobility array")
+    {
+      TEST_EQUAL(a.unit_accession, std::string("MS:1002814"))
+      found_im_unit = true;
+    }
+  }
+  TEST_TRUE(found_im_unit)
 }
 END_SECTION
 
@@ -656,8 +1023,10 @@ START_SECTION(void store rejects missing pixel coordinates)
 END_SECTION
 
 
-START_SECTION(void store rejects duplicate pixel coordinates)
+START_SECTION(void store tolerates duplicate pixel coordinates by default)
 {
+  // The reader accepts duplicate coordinates by default, so the writer must too:
+  // a dataset that loads has to be storable again without an unswitchable error.
   MSExperiment exp;
   exp.addSpectrum(makePixelSpectrum_(1, 1, 100.0, 1000.0));
   exp.addSpectrum(makePixelSpectrum_(1, 1, 101.0, 900.0));
@@ -665,7 +1034,46 @@ START_SECTION(void store rejects duplicate pixel coordinates)
   ImzMLFile f;
   std::string tmp_imzml;
   NEW_TMP_FILE_EXT(tmp_imzml, ".imzML");
-  TEST_EXCEPTION(Exception::InvalidValue, f.store(tmp_imzml, exp))
+  f.store(tmp_imzml, exp);
+
+  // Both spectra are written out; only the first claims the shared pixel on re-read.
+  MSImagingExperiment img;
+  f.load(tmp_imzml, img);
+  TEST_EQUAL(img.getMSExperiment().getNrSpectra(), 2u)
+  TEST_EQUAL(img.getGeometry().getNumberOfPixels(), 1u)
+  TEST_EQUAL(img.getGeometry().getSpectrumIndex(0, 0), 0u)
+
+  // The imaging overload must round-trip the same dataset: the duplicate spectrum is not
+  // in the geometry, but it is still written out with its coordinates.
+  std::string tmp_imzml2;
+  NEW_TMP_FILE_EXT(tmp_imzml2, ".imzML");
+  f.store(tmp_imzml2, img);
+
+  MSImagingExperiment img2;
+  f.load(tmp_imzml2, img2);
+  TEST_EQUAL(img2.getMSExperiment().getNrSpectra(), 2u)
+  TEST_EQUAL(img2.getGeometry().getNumberOfPixels(), 1u)
+  for (Size i = 0; i < 2; ++i)
+  {
+    const MSSpectrum& s = img2.getMSExperiment()[i];
+    TEST_EQUAL(s.metaValueExists("imzml:x"), true)
+    TEST_EQUAL(s.metaValueExists("imzml:y"), true)
+    TEST_EQUAL((Int)s.getMetaValue("imzml:x"), 1)
+    TEST_EQUAL((Int)s.getMetaValue("imzml:y"), 1)
+  }
+
+  // NEW_TMP_FILE_EXT only tracks the .imzML, so drop both companion .ibd files.
+  for (const std::string& written : {tmp_imzml, tmp_imzml2})
+  {
+    std::string ibd_path = written;
+    std::string lower = written;
+    StringUtils::toLower(lower);
+    if (StringUtils::hasSuffix(lower, ".imzml"))
+    {
+      ibd_path = written.substr(0, written.size() - 6) + ".ibd";
+    }
+    remove(ibd_path.c_str());
+  }
 }
 END_SECTION
 
@@ -685,14 +1093,116 @@ START_SECTION(void store rejects incompatible continuous mode)
 END_SECTION
 
 
-START_SECTION(void buildImagingGeometry rejects duplicate pixels)
+START_SECTION(void buildImagingGeometry tolerates duplicate pixels by default)
 {
+  // Must agree with the loaders: an experiment that loaded fine cannot fail here.
   MSExperiment exp;
   exp.addSpectrum(makePixelSpectrum_(1, 1, 100.0, 1000.0));
   exp.addSpectrum(makePixelSpectrum_(1, 1, 101.0, 900.0));
+  exp.addSpectrum(makePixelSpectrum_(2, 1, 102.0, 800.0));
 
   MSImagingGeometry geom;
-  TEST_EXCEPTION(Exception::InvalidValue, ImzMLFile::buildImagingGeometry(exp, geom))
+  ImzMLFile::buildImagingGeometry(exp, geom);
+  TEST_EQUAL(geom.getNumberOfPixels(), 2u)
+  TEST_EQUAL(geom.getSpectrumIndex(0, 0), 0u) // first spectrum keeps the shared pixel
+  TEST_EQUAL(geom.getSpectrumIndex(1, 0), 2u)
+}
+END_SECTION
+
+
+START_SECTION(void load and OnDisc reject zlib-compressed external m/z and intensity)
+{
+  MSExperiment exp;
+  exp.addSpectrum(makePixelSpectrum_(1, 1, 100.0, 1000.0));
+
+  ImzMLFile f;
+  std::string tmp_imzml;
+  NEW_TMP_FILE_EXT(tmp_imzml, ".imzML");
+  f.store(tmp_imzml, exp);
+  TEST_TRUE(injectZlibCompressionOnMzIntGroups_(tmp_imzml))
+
+  MSImagingExperiment img;
+  TEST_EXCEPTION(Exception::ParseError, f.load(tmp_imzml, img))
+
+  OnDiscImzMLExperiment od;
+  od.open(tmp_imzml);
+  TEST_TRUE(od.getIndex(0).mz_compressed)
+  TEST_TRUE(od.getIndex(0).int_compressed)
+  TEST_EXCEPTION(Exception::ParseError, od.getSpectrum(0))
+  od.close();
+
+  remove(ibdPathFor_(tmp_imzml).c_str());
+}
+END_SECTION
+
+
+START_SECTION(void store writes a single allowed unit for PSI-MS aux arrays)
+{
+  MSExperiment original;
+  MSSpectrum s = makePixelSpectrum_(1, 1, 100.0, 10.0f);
+
+  MSSpectrum::FloatDataArray pressure;
+  pressure.setName("pressure array");
+  pressure.push_back(101325.0f);
+  s.getFloatDataArrays().push_back(pressure);
+
+  // Two allowed units (ms and s): writer must not pick one arbitrarily.
+  MSSpectrum::FloatDataArray raw_im;
+  raw_im.setName("raw ion mobility array");
+  raw_im.push_back(12.5f);
+  s.getFloatDataArrays().push_back(raw_im);
+
+  original.addSpectrum(s);
+
+  ImzMLFile f;
+  std::string tmp_imzml;
+  NEW_TMP_FILE_EXT(tmp_imzml, ".imzML");
+  f.store(tmp_imzml, original);
+
+  std::ifstream xml(tmp_imzml.c_str());
+  std::string content((std::istreambuf_iterator<char>(xml)), std::istreambuf_iterator<char>());
+  TEST_TRUE(content.find("MS:1000821") != std::string::npos)
+  TEST_TRUE(content.find("pressure array") != std::string::npos)
+  TEST_TRUE(content.find("unitAccession=\"UO:0000110\"") != std::string::npos)
+  TEST_TRUE(content.find("unitName=\"pascal\"") != std::string::npos)
+  TEST_TRUE(content.find("unitCvRef=\"UO\"") != std::string::npos)
+
+  const std::string::size_type raw_pos = content.find("MS:1003007");
+  TEST_NOT_EQUAL(raw_pos, std::string::npos)
+  const std::string::size_type tag_start = content.rfind("<cvParam", raw_pos);
+  const std::string::size_type tag_end = content.find("/>", raw_pos);
+  TEST_NOT_EQUAL(tag_start, std::string::npos)
+  TEST_NOT_EQUAL(tag_end, std::string::npos)
+  const std::string raw_tag = content.substr(tag_start, tag_end - tag_start);
+  TEST_TRUE(raw_tag.find("unitAccession") == std::string::npos)
+}
+END_SECTION
+
+
+START_SECTION(OnDiscImzMLExperiment rejects compressed zero-length aux arrays)
+{
+  MSExperiment exp;
+  MSSpectrum s = makePixelSpectrum_(1, 1, 100.0, 10.0f);
+  MSSpectrum::FloatDataArray im;
+  im.setName("mean inverse reduced ion mobility array");
+  im.push_back(0.85f);
+  s.getFloatDataArrays().push_back(im);
+  exp.addSpectrum(s);
+
+  ImzMLFile f;
+  std::string tmp_imzml;
+  NEW_TMP_FILE_EXT(tmp_imzml, ".imzML");
+  f.store(tmp_imzml, exp);
+  TEST_TRUE(makeNamedAuxCompressedAndEmpty_(tmp_imzml, "MS:1003006"))
+
+  OnDiscImzMLExperiment od;
+  od.open(tmp_imzml);
+  TEST_EQUAL(od.getIndex(0).aux.size(), 1)
+  TEST_TRUE(od.getIndex(0).aux[0].compressed)
+  TEST_EQUAL(od.getIndex(0).aux[0].length, 0)
+  TEST_EXCEPTION(Exception::ParseError, od.getSpectrum(0))
+  od.close();
+  remove(ibdPathFor_(tmp_imzml).c_str());
 }
 END_SECTION
 
@@ -719,16 +1229,46 @@ START_SECTION(void load rejects spectrum missing pixel coordinates)
 END_SECTION
 
 
-START_SECTION(OnDiscImzMLExperiment rejects duplicate pixel coordinates)
+START_SECTION(void load tolerates duplicate pixel coordinates by default)
 {
   std::string tmp_imzml;
   NEW_TMP_FILE_EXT(tmp_imzml, ".imzML");
   writeDuplicatePixelImzML_(tmp_imzml);
 
-  // The imaging geometry is built during open(), so a duplicate-coordinate dataset
-  // is rejected there (fail-fast) rather than on the first coordinate query.
+  ImzMLFile f;
+  MSImagingExperiment img;
+  f.load(tmp_imzml, img);
+
+  // Both spectra are loaded and reachable by index, but the shared pixel (1,1) maps to
+  // the first of them only.
+  TEST_EQUAL(img.getMSExperiment().getNrSpectra(), 2u)
+  TEST_EQUAL(img.getGeometry().getNumberOfPixels(), 1u)
+  TEST_EQUAL(img.getGeometry().getSpectrumIndex(0, 0), 0u)
+
+  std::string ibd_path = tmp_imzml;
+  std::string lower = tmp_imzml;
+  StringUtils::toLower(lower);
+  if (StringUtils::hasSuffix(lower, ".imzml"))
+  {
+    ibd_path = tmp_imzml.substr(0, tmp_imzml.size() - 6) + ".ibd";
+  }
+  remove(ibd_path.c_str());
+}
+END_SECTION
+
+
+START_SECTION(OnDiscImzMLExperiment tolerates duplicate pixel coordinates by default)
+{
+  std::string tmp_imzml;
+  NEW_TMP_FILE_EXT(tmp_imzml, ".imzML");
+  writeDuplicatePixelImzML_(tmp_imzml);
+
   OnDiscImzMLExperiment od;
-  TEST_EXCEPTION(Exception::InvalidValue, od.open(tmp_imzml))
+  od.open(tmp_imzml);
+
+  TEST_EQUAL(od.size(), 2u)
+  TEST_EQUAL(od.getGeometry().getNumberOfPixels(), 1u)
+  TEST_EQUAL(od.getGeometry().getSpectrumIndex(0, 0), 0u)
 
   std::string ibd_path = tmp_imzml;
   std::string lower = tmp_imzml;
@@ -788,7 +1328,8 @@ START_SECTION(void store honors PeakFileOptions binary precision)
 
   ImzMLMeta meta;
   std::vector<ImzMLSpectrumIndex> index;
-  ImzMLFile().loadSpectraIndex(tmp_imzml, meta, index);
+  MSExperiment index_spectra;
+  ImzMLFile().loadSpectraIndex(tmp_imzml, meta, index, index_spectra);
   TEST_EQUAL(index.empty(), false)
   TEST_EQUAL(index[0].mz_type, ImzMLSpectrumIndex::DataType::FLOAT64)
   TEST_EQUAL(index[0].int_type, ImzMLSpectrumIndex::DataType::FLOAT64)
@@ -810,7 +1351,7 @@ START_SECTION(void store metadata round-trip)
   original.setInstrument(inst);
   if (!original.empty())
   {
-    original[0].setRT(12.34);
+    original[0].setMetaValue("imzml:scan_start_time", 12.34);
     original[0].setMSLevel(1);
   }
 
@@ -829,7 +1370,9 @@ START_SECTION(void store metadata round-trip)
   TEST_REAL_SIMILAR(static_cast<double>(reloaded.getMetaValue("imzml:max_dim_y")), 300.0)
   if (!reloaded.empty())
   {
-    TEST_REAL_SIMILAR(reloaded[0].getRT(), 12.34)
+    // the stored scan start time comes back as imzml:scan_start_time, RT stays unset
+    TEST_REAL_SIMILAR(reloaded[0].getRT(), -1.0)
+    TEST_REAL_SIMILAR(static_cast<double>(reloaded[0].getMetaValue("imzml:scan_start_time")), 12.34)
     TEST_EQUAL(reloaded[0].getMSLevel(), 1)
   }
 }
@@ -882,6 +1425,737 @@ START_SECTION(IonImage extractIonImage(double mz, double tolerance_ppm, Size reg
 
   // Unknown region id must throw.
   TEST_EXCEPTION(Exception::ElementNotFound, od.extractIonImage(mz, tol_ppm, 99))
+}
+END_SECTION
+
+
+START_SECTION(void load sorts external peaks when getSortSpectraByMZ is true)
+{
+  MSSpectrum s;
+  s.setMetaValue("imzml:x", 1);
+  s.setMetaValue("imzml:y", 1);
+  s.setMetaValue("imzml:z", 1);
+  s.push_back(Peak1D(131.0, 1310.0f));
+  s.push_back(Peak1D(121.0, 1210.0f));
+  MSSpectrum::FloatDataArray im;
+  im.setName("mean inverse reduced ion mobility array");
+  im.push_back(1.31f);
+  im.push_back(1.21f);
+  s.getFloatDataArrays().push_back(im);
+  MSExperiment original;
+  original.addSpectrum(s);
+  original.setMetaValue("imzml:imaging_mode", "processed");
+
+  ImzMLFile f;
+  PeakFileOptions store_opts;
+  store_opts.setSortSpectraByMZ(false);
+  f.setOptions(store_opts);
+  std::string tmp_imzml;
+  NEW_TMP_FILE_EXT(tmp_imzml, ".imzML");
+  f.store(tmp_imzml, original);
+
+  MSImagingExperiment img;
+  ImzMLFile loader;
+  loader.load(tmp_imzml, img);
+  const MSSpectrum& mem = img.getMSExperiment()[0];
+  TEST_TRUE(mem.isSorted())
+  TEST_REAL_SIMILAR(mem[0].getMZ(), 121.0)
+  TEST_REAL_SIMILAR(mem[1].getMZ(), 131.0)
+  TEST_EQUAL(mem.getFloatDataArrays().size(), 1)
+  TEST_REAL_SIMILAR(mem.getFloatDataArrays()[0][0], 1.21)
+  TEST_REAL_SIMILAR(mem.getFloatDataArrays()[0][1], 1.31)
+
+  OnDiscImzMLExperiment od;
+  od.open(tmp_imzml);
+  const MSSpectrum disc = od.getSpectrum(0);
+  TEST_TRUE(disc.isSorted())
+  TEST_REAL_SIMILAR(disc[0].getMZ(), 121.0)
+  TEST_REAL_SIMILAR(disc[1].getMZ(), 131.0)
+
+  const IonImage mem_img = img.extractIonImage(131.0, 10.0);
+  const IonImage disc_img = od.extractIonImage(131.0, 10.0);
+  TEST_REAL_SIMILAR(mem_img.getIntensity(0, 0), 1310.0)
+  TEST_REAL_SIMILAR(disc_img.getIntensity(0, 0), 1310.0)
+  od.close();
+  remove(ibdPathFor_(tmp_imzml).c_str());
+}
+END_SECTION
+
+
+START_SECTION(void load and OnDisc reject numpress-compressed external m/z)
+{
+  MSExperiment exp;
+  exp.addSpectrum(makePixelSpectrum_(1, 1, 100.0, 1000.0f));
+  ImzMLFile f;
+  std::string tmp_imzml;
+  NEW_TMP_FILE_EXT(tmp_imzml, ".imzML");
+  f.store(tmp_imzml, exp);
+  TEST_TRUE(injectCompressionOnMzIntGroups_(tmp_imzml, "MS:1002312", "MS-Numpress linear prediction compression"))
+
+  MSImagingExperiment img;
+  TEST_EXCEPTION(Exception::ParseError, f.load(tmp_imzml, img))
+
+  OnDiscImzMLExperiment od;
+  od.open(tmp_imzml);
+  TEST_TRUE(od.getIndex(0).mz_compressed)
+  TEST_EXCEPTION(Exception::ParseError, od.getSpectrum(0))
+  od.close();
+  remove(ibdPathFor_(tmp_imzml).c_str());
+}
+END_SECTION
+
+
+START_SECTION(void load skips one bad aux length and still returns all spectra)
+{
+  MSExperiment original;
+  for (Int x = 1; x <= 4; ++x)
+  {
+    MSSpectrum s = makePixelSpectrum_(x, 1, 100.0 + x, 10.0f * x);
+    MSSpectrum::FloatDataArray im;
+    im.setName("mean inverse reduced ion mobility array");
+    im.push_back(0.8f + 0.01f * x);
+    s.getFloatDataArrays().push_back(im);
+    original.addSpectrum(s);
+  }
+  original.setMetaValue("imzml:imaging_mode", "processed");
+
+  ImzMLFile f;
+  std::string tmp_imzml;
+  NEW_TMP_FILE_EXT(tmp_imzml, ".imzML");
+  f.store(tmp_imzml, original);
+  TEST_TRUE(setNamedAuxImsLength_(tmp_imzml, "MS:1003006", "999999"))
+
+  MSExperiment mem = loadImzMLExperiment_(tmp_imzml);
+  TEST_EQUAL(mem.getNrSpectra(), 4)
+  TEST_FALSE(mem[0].containsIMData())
+  TEST_EQUAL(mem[0].getFloatDataArrays().size(), 0)
+  TEST_TRUE(mem[1].containsIMData())
+  TEST_TRUE(mem[2].containsIMData())
+  TEST_TRUE(mem[3].containsIMData())
+
+  OnDiscImzMLExperiment od;
+  od.open(tmp_imzml);
+  TEST_EQUAL(od.getNrSpectra(), 4)
+  TEST_FALSE(od.getSpectrum(0).containsIMData())
+  TEST_TRUE(od.getSpectrum(1).containsIMData())
+  od.close();
+  remove(ibdPathFor_(tmp_imzml).c_str());
+}
+END_SECTION
+
+
+START_SECTION(void load and OnDisc drop zero-length aux without a ghost IM array)
+{
+  MSExperiment original;
+  MSSpectrum s = makePixelSpectrum_(1, 1, 100.0, 10.0f);
+  MSSpectrum::FloatDataArray im;
+  im.setName("mean inverse reduced ion mobility array");
+  im.push_back(0.85f);
+  s.getFloatDataArrays().push_back(im);
+  original.addSpectrum(s);
+  original.setMetaValue("imzml:imaging_mode", "processed");
+
+  ImzMLFile f;
+  std::string tmp_imzml;
+  NEW_TMP_FILE_EXT(tmp_imzml, ".imzML");
+  f.store(tmp_imzml, original);
+  TEST_TRUE(setNamedAuxImsLength_(tmp_imzml, "MS:1003006", "0"))
+
+  MSExperiment mem = loadImzMLExperiment_(tmp_imzml);
+  TEST_EQUAL(mem[0].getFloatDataArrays().size(), 0)
+  TEST_FALSE(mem[0].containsIMData())
+  TEST_TRUE(mem[0].getIMPeakType() == IMPeakType::UNKNOWN)
+
+  OnDiscImzMLExperiment od;
+  od.open(tmp_imzml);
+  const MSSpectrum disc = od.getSpectrum(0);
+  TEST_EQUAL(disc.getFloatDataArrays().size(), 0)
+  TEST_FALSE(disc.containsIMData())
+  TEST_TRUE(disc.getIMPeakType() == IMPeakType::UNKNOWN)
+  od.close();
+  remove(ibdPathFor_(tmp_imzml).c_str());
+}
+END_SECTION
+
+
+START_SECTION(void store skips unnamed FloatDataArray)
+{
+  MSExperiment original;
+  MSSpectrum s = makePixelSpectrum_(1, 1, 100.0, 10.0f);
+  MSSpectrum::FloatDataArray unnamed;
+  unnamed.push_back(1.0f);
+  s.getFloatDataArrays().push_back(unnamed);
+  original.addSpectrum(s);
+
+  ImzMLFile f;
+  std::string tmp_imzml;
+  NEW_TMP_FILE_EXT(tmp_imzml, ".imzML");
+  f.store(tmp_imzml, original);
+
+  std::ifstream xml(tmp_imzml.c_str());
+  std::string content((std::istreambuf_iterator<char>(xml)), std::istreambuf_iterator<char>());
+  TEST_TRUE(content.find("binaryDataArrayList count=\"2\"") != std::string::npos)
+  TEST_TRUE(content.find("MS:1000786") == std::string::npos)
+
+  MSExperiment mem = loadImzMLExperiment_(tmp_imzml);
+  TEST_EQUAL(mem[0].getFloatDataArrays().size(), 0)
+  OnDiscImzMLExperiment od;
+  od.open(tmp_imzml);
+  TEST_EQUAL(od.getIndex(0).aux.size(), 0)
+  od.close();
+  remove(ibdPathFor_(tmp_imzml).c_str());
+}
+END_SECTION
+
+
+START_SECTION(void load drops phantom IntegerDataArray for integer-typed aux)
+{
+  MSExperiment original;
+  MSSpectrum s = makePixelSpectrum_(1, 1, 100.0, 10.0f);
+  MSSpectrum::FloatDataArray im;
+  im.setName("mean inverse reduced ion mobility array");
+  im.push_back(0.85f);
+  s.getFloatDataArrays().push_back(im);
+  original.addSpectrum(s);
+  original.setMetaValue("imzml:imaging_mode", "processed");
+
+  ImzMLFile f;
+  std::string tmp_imzml;
+  NEW_TMP_FILE_EXT(tmp_imzml, ".imzML");
+  f.store(tmp_imzml, original);
+  TEST_TRUE(mutateNamedBinaryDataArray_(tmp_imzml, "MS:1003006",
+                                        "accession=\"MS:1000521\" name=\"32-bit float\"",
+                                        "accession=\"MS:1000519\" name=\"32-bit integer\""))
+
+  MSExperiment mem = loadImzMLExperiment_(tmp_imzml);
+  TEST_EQUAL(mem[0].getIntegerDataArrays().size(), 0)
+  TEST_EQUAL(mem[0].getFloatDataArrays().size(), 1)
+  OnDiscImzMLExperiment od;
+  od.open(tmp_imzml);
+  TEST_EQUAL(od.getSpectrum(0).getIntegerDataArrays().size(), 0)
+  TEST_EQUAL(od.getSpectrum(0).getFloatDataArrays().size(), 1)
+  od.close();
+  remove(ibdPathFor_(tmp_imzml).c_str());
+}
+END_SECTION
+
+
+START_SECTION(void load and OnDisc drop inline aux when peaks are external)
+{
+  MSExperiment original;
+  MSSpectrum s = makePixelSpectrum_(1, 1, 100.0, 10.0f);
+  MSSpectrum::FloatDataArray im;
+  im.setName("mean inverse reduced ion mobility array");
+  im.push_back(0.85f);
+  s.getFloatDataArrays().push_back(im);
+  original.addSpectrum(s);
+  original.setMetaValue("imzml:imaging_mode", "processed");
+
+  ImzMLFile f;
+  std::string tmp_imzml;
+  NEW_TMP_FILE_EXT(tmp_imzml, ".imzML");
+  f.store(tmp_imzml, original);
+  TEST_TRUE(mutateNamedBinaryDataArray_(tmp_imzml, "MS:1003006",
+                                        "accession=\"IMS:1000101\"",
+                                        "accession=\"IMS:1000000\""))
+
+  MSExperiment mem = loadImzMLExperiment_(tmp_imzml);
+  TEST_EQUAL(mem[0].getFloatDataArrays().size(), 0)
+  TEST_FALSE(mem[0].containsIMData())
+  OnDiscImzMLExperiment od;
+  od.open(tmp_imzml);
+  TEST_EQUAL(od.getIndex(0).aux.size(), 0)
+  TEST_EQUAL(od.getSpectrum(0).getFloatDataArrays().size(), 0)
+  od.close();
+  remove(ibdPathFor_(tmp_imzml).c_str());
+}
+END_SECTION
+
+
+START_SECTION(void store writes MS:1000576 on mz and intensity referenceableParamGroups)
+{
+  MSExperiment original;
+  original.addSpectrum(makePixelSpectrum_(1, 1, 100.0, 10.0f));
+  ImzMLFile f;
+  std::string tmp_imzml;
+  NEW_TMP_FILE_EXT(tmp_imzml, ".imzML");
+  f.store(tmp_imzml, original);
+
+  std::ifstream xml(tmp_imzml.c_str());
+  std::string content((std::istreambuf_iterator<char>(xml)), std::istreambuf_iterator<char>());
+  auto group_has_no_compression = [&](const std::string& id) {
+    const std::string open = "<referenceableParamGroup id=\"" + id + "\">";
+    const std::string::size_type start = content.find(open);
+    const std::string::size_type end = content.find("</referenceableParamGroup>", start);
+    if (start == std::string::npos || end == std::string::npos)
+    {
+      return false;
+    }
+    const std::string group = content.substr(start, end - start);
+    return group.find("MS:1000576") != std::string::npos;
+  };
+  TEST_TRUE(group_has_no_compression("mzArray"))
+  TEST_TRUE(group_has_no_compression("intensityArray"))
+  remove(ibdPathFor_(tmp_imzml).c_str());
+}
+END_SECTION
+
+
+START_SECTION(void store skips FloatDataArrays named after the peak arrays)
+{
+  // "m/z array" / "intensity array" resolve to MS:1000514 / MS:1000515, so writing them
+  // as aux arrays would overwrite the real peak metadata on read (last cvParam wins).
+  MSExperiment original;
+  MSSpectrum s = makePixelSpectrum_(1, 1, 100.0, 10.0f);
+  s.push_back(Peak1D(200.0, 20.0f));
+
+  MSSpectrum::FloatDataArray shadow_mz;
+  shadow_mz.setName("m/z array");
+  shadow_mz.push_back(999.0f);
+  shadow_mz.push_back(998.0f);
+  s.getFloatDataArrays().push_back(shadow_mz);
+
+  MSSpectrum::FloatDataArray shadow_int;
+  shadow_int.setName("intensity array");
+  shadow_int.push_back(1.0f);
+  shadow_int.push_back(2.0f);
+  s.getFloatDataArrays().push_back(shadow_int);
+
+  original.addSpectrum(s);
+  original.setMetaValue("imzml:imaging_mode", "processed");
+
+  ImzMLFile f;
+  std::string tmp_imzml;
+  NEW_TMP_FILE_EXT(tmp_imzml, ".imzML");
+  f.store(tmp_imzml, original);
+
+  std::ifstream xml(tmp_imzml.c_str());
+  std::string content((std::istreambuf_iterator<char>(xml)), std::istreambuf_iterator<char>());
+  TEST_TRUE(content.find("binaryDataArrayList count=\"2\"") != std::string::npos)
+
+  MSExperiment mem = loadImzMLExperiment_(tmp_imzml);
+  TEST_EQUAL(mem.getNrSpectra(), 1)
+  TEST_EQUAL(mem[0].size(), 2)
+  TEST_REAL_SIMILAR(mem[0][0].getMZ(), 100.0)
+  TEST_REAL_SIMILAR(mem[0][1].getMZ(), 200.0)
+  TEST_REAL_SIMILAR(mem[0][0].getIntensity(), 10.0)
+  TEST_REAL_SIMILAR(mem[0][1].getIntensity(), 20.0)
+  TEST_EQUAL(mem[0].getFloatDataArrays().size(), 0)
+
+  OnDiscImzMLExperiment od;
+  od.open(tmp_imzml);
+  TEST_EQUAL(od.getIndex(0).aux.size(), 0)
+  const MSSpectrum disc = od.getSpectrum(0);
+  TEST_EQUAL(disc.size(), 2)
+  TEST_REAL_SIMILAR(disc[0].getMZ(), 100.0)
+  TEST_REAL_SIMILAR(disc[1].getMZ(), 200.0)
+  od.close();
+  remove(ibdPathFor_(tmp_imzml).c_str());
+}
+END_SECTION
+
+
+START_SECTION(void store drops integer and string data arrays)
+{
+  // imzML has no external representation for per-peak integer/string arrays, so they
+  // are dropped (with a warning) instead of failing the store. FloatDataArrays on the
+  // same spectrum must still round-trip.
+  MSExperiment original;
+  MSSpectrum s = makePixelSpectrum_(1, 1, 100.0, 10.0f);
+  MSSpectrum::FloatDataArray im;
+  im.setName("mean inverse reduced ion mobility array");
+  im.push_back(0.85f);
+  s.getFloatDataArrays().push_back(im);
+  MSSpectrum::IntegerDataArray charges;
+  charges.setName("charge array");
+  charges.push_back(2);
+  s.getIntegerDataArrays().push_back(charges);
+  MSSpectrum::StringDataArray labels;
+  labels.setName("annotation array");
+  labels.push_back("peak0");
+  s.getStringDataArrays().push_back(labels);
+  original.addSpectrum(s);
+  original.setMetaValue("imzml:imaging_mode", "processed");
+
+  ImzMLFile f;
+  std::string tmp_imzml;
+  NEW_TMP_FILE_EXT(tmp_imzml, ".imzML");
+  f.store(tmp_imzml, original);
+
+  MSExperiment mem = loadImzMLExperiment_(tmp_imzml);
+  TEST_EQUAL(mem[0].size(), 1)
+  TEST_REAL_SIMILAR(mem[0][0].getMZ(), 100.0)
+  TEST_EQUAL(mem[0].getIntegerDataArrays().size(), 0)
+  TEST_EQUAL(mem[0].getStringDataArrays().size(), 0)
+  TEST_EQUAL(mem[0].getFloatDataArrays().size(), 1)
+  TEST_EQUAL(mem[0].getFloatDataArrays()[0].getName(), "mean inverse reduced ion mobility array")
+  TEST_REAL_SIMILAR(mem[0].getFloatDataArrays()[0][0], 0.85)
+
+  OnDiscImzMLExperiment od;
+  od.open(tmp_imzml);
+  const MSSpectrum disc = od.getSpectrum(0);
+  TEST_EQUAL(disc.getIntegerDataArrays().size(), 0)
+  TEST_EQUAL(disc.getStringDataArrays().size(), 0)
+  TEST_EQUAL(disc.getFloatDataArrays().size(), 1)
+  od.close();
+  remove(ibdPathFor_(tmp_imzml).c_str());
+}
+END_SECTION
+
+
+START_SECTION(void load and OnDisc skip aux array without a supported binary data type)
+{
+  MSExperiment original;
+  MSSpectrum s = makePixelSpectrum_(1, 1, 100.0, 10.0f);
+  MSSpectrum::FloatDataArray im;
+  im.setName("mean inverse reduced ion mobility array");
+  im.push_back(0.85f);
+  s.getFloatDataArrays().push_back(im);
+  original.addSpectrum(s);
+  original.setMetaValue("imzml:imaging_mode", "processed");
+
+  ImzMLFile f;
+  std::string tmp_imzml;
+  NEW_TMP_FILE_EXT(tmp_imzml, ".imzML");
+  f.store(tmp_imzml, original);
+  // MS:1000520 (obsolete '16-bit float') is not a type either loader can decode
+  TEST_TRUE(mutateNamedBinaryDataArray_(tmp_imzml, "MS:1003006",
+                                        "accession=\"MS:1000521\" name=\"32-bit float\"",
+                                        "accession=\"MS:1000520\" name=\"16-bit float\""))
+
+  // One undecodable aux array must not abort the load: peaks still come through.
+  MSExperiment mem = loadImzMLExperiment_(tmp_imzml);
+  TEST_EQUAL(mem.getNrSpectra(), 1)
+  TEST_EQUAL(mem[0].size(), 1)
+  TEST_REAL_SIMILAR(mem[0][0].getMZ(), 100.0)
+  TEST_EQUAL(mem[0].getFloatDataArrays().size(), 0)
+  TEST_FALSE(mem[0].containsIMData())
+
+  OnDiscImzMLExperiment od;
+  od.open(tmp_imzml);
+  TEST_EQUAL(od.getIndex(0).aux.size(), 1)
+  TEST_TRUE(od.getIndex(0).aux[0].type == ImzMLSpectrumIndex::DataType::UNKNOWN)
+  const MSSpectrum disc = od.getSpectrum(0);
+  TEST_EQUAL(disc.size(), 1)
+  TEST_EQUAL(disc.getFloatDataArrays().size(), 0)
+  TEST_FALSE(disc.containsIMData())
+  od.close();
+  remove(ibdPathFor_(tmp_imzml).c_str());
+}
+END_SECTION
+
+START_SECTION(Malformed imzML reports parser errors on full and index-only reads)
+{
+  MSExperiment exp;
+  exp.addSpectrum(makePixelSpectrum_(1, 1, 100.0, 1000.0));
+  ImzMLFile file;
+  std::string filename;
+  NEW_TMP_FILE_EXT(filename, ".imzML")
+  file.store(filename, exp);
+  std::string xml;
+  { std::ifstream input(filename, std::ios::binary); xml.assign(std::istreambuf_iterator<char>(input), {}); }
+  const auto close = xml.rfind("</mzML>");
+  TEST_TRUE(close != std::string::npos)
+  if (close != std::string::npos)
+  {
+    xml.replace(close, 7, "</broken>");
+    { std::ofstream output(filename, std::ios::binary); output << xml; }
+    MSImagingExperiment image;
+    TEST_EXCEPTION(Exception::ParseError, file.load(filename, image))
+    ImzMLMeta meta;
+    std::vector<ImzMLSpectrumIndex> index;
+    MSExperiment index_spectra;
+    TEST_EXCEPTION(Exception::ParseError, file.loadSpectraIndex(filename, meta, index, index_spectra))
+  }
+  remove(ibdPathFor_(filename).c_str());
+}
+END_SECTION
+START_SECTION(Namespace-invalid imzML is rejected on full and index-only reads)
+{
+  MSExperiment exp;
+  exp.addSpectrum(makePixelSpectrum_(1, 1, 100.0, 1000.0));
+  ImzMLFile file;
+  std::string filename;
+  NEW_TMP_FILE_EXT(filename, ".imzML")
+  file.store(filename, exp);
+  std::string original;
+  { std::ifstream input(filename, std::ios::binary); original.assign(std::istreambuf_iterator<char>(input), {}); }
+  const auto root = original.find("<mzML");
+  TEST_TRUE(root != std::string::npos)
+  if (root != std::string::npos)
+  {
+    for (const std::string attributes : {
+        " ghost:flag='1'",
+        " xmlns:a='urn:same' xmlns:b='urn:same' a:value='1' b:value='2'",
+        " xmlns:xml='urn:wrong'"})
+    {
+      std::string xml = original;
+      xml.insert(root + 5, attributes);
+      { std::ofstream output(filename, std::ios::binary); output << xml; }
+      MSImagingExperiment image;
+      TEST_EXCEPTION(Exception::ParseError, file.load(filename, image))
+      ImzMLMeta meta;
+      std::vector<ImzMLSpectrumIndex> index;
+      MSExperiment index_spectra;
+      TEST_EXCEPTION(Exception::ParseError, file.loadSpectraIndex(filename, meta, index, index_spectra))
+    }
+  }
+  remove(ibdPathFor_(filename).c_str());
+}
+END_SECTION
+START_SECTION([EXTRA] in-memory and on-disc and metadata-only loads give the same spectrum metadata with RT -1)
+{
+  // four pixels: scan start times 12.34 s / 13.5 s / none / -1 s, MS level 1, ion mobility
+  // on the second (declared centroided below) and the fourth (profile, nothing declared)
+  MSExperiment original;
+  for (Int x = 1; x <= 4; ++x)
+  {
+    MSSpectrum s = makePixelSpectrum_(x, 1, 100.0 + x, 10.0f * x);
+    s.push_back(Peak1D(200.0 + x, 20.0f));
+    s.setMSLevel(1);
+    if (x == 2 || x == 4)
+    {
+      MSSpectrum::FloatDataArray im;
+      im.setName("mean inverse reduced ion mobility array");
+      im.push_back(0.85f);
+      im.push_back(1.15f);
+      s.getFloatDataArrays().push_back(im);
+    }
+    original.addSpectrum(s);
+  }
+  original[0].setMetaValue("imzml:scan_start_time", 12.34);
+  original[1].setMetaValue("imzml:scan_start_time", 13.5);
+  original[1].setRT(99.0); // an RT the caller sets is written and wins over the MetaValue
+  original[3].setMetaValue("imzml:scan_start_time", -0.5); // negative: no time, not written
+  original.setMetaValue("imzml:imaging_mode", "processed");
+
+  std::string tmp_imzml;
+  NEW_TMP_FILE_EXT(tmp_imzml, ".imzML");
+  ImzMLFile().store(tmp_imzml, original);
+
+  // the writer omits "scan start time" for the pixel without one, and cannot write the
+  // IM peak type: declare the ion mobility pixel (x = 2) IM centroided (MS:1003441) by hand.
+  // Also add a userParam to the m/z array of pixel x = 1, which loads as a spectrum MetaValue.
+  {
+    std::ifstream in(tmp_imzml.c_str());
+    std::string xml((std::istreambuf_iterator<char>(in)), std::istreambuf_iterator<char>());
+    in.close();
+    Size n_sst = 0;
+    for (Size p = xml.find("accession=\"MS:1000016\""); p != std::string::npos; p = xml.find("accession=\"MS:1000016\"", p + 1))
+    {
+      ++n_sst;
+    }
+    TEST_EQUAL(n_sst, 2)
+    const Size px = xml.find("accession=\"IMS:1000050\" name=\"position x\" value=\"2\"");
+    const Size level = xml.find("accession=\"MS:1000511\"", xml.rfind("<spectrum ", px));
+    const Size eol = xml.find('\n', level) + 1;
+    xml.insert(eol, "\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1003441\" name=\"ion mobility centroid frame\"/>\n");
+    const Size px1 = xml.find("accession=\"IMS:1000050\" name=\"position x\" value=\"1\"");
+    // a per-pixel peak summary: metadata like any other, kept on every load path
+    const Size level1 = xml.find("accession=\"MS:1000511\"", xml.rfind("<spectrum ", px1));
+    xml.insert(xml.find('\n', level1) + 1, "\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000285\" name=\"total ion current\" value=\"30.0\"/>\n");
+    const Size mz_array = xml.find("ref=\"mzArray\"", xml.find("<binaryDataArray ", px1));
+    const Size mz_eol = xml.find('\n', mz_array) + 1;
+    xml.insert(mz_eol, "\t\t\t\t\t\t<userParam name=\"mz_array_note\" type=\"xsd:string\" value=\"calibrated\"/>\n");
+    // ... and to the ion mobility array of pixel x = 4, which stays on that FloatDataArray
+    const Size px4 = xml.find("accession=\"IMS:1000050\" name=\"position x\" value=\"4\"");
+    const Size im_array = xml.find("accession=\"MS:1003006\"", px4);
+    const Size im_eol = xml.find('\n', im_array) + 1;
+    xml.insert(im_eol, "\t\t\t\t\t<userParam name=\"im_array_note\" type=\"xsd:string\" value=\"tims\"/>\n");
+    // the -1 placeholder that OpenMS <= 3.6 wrote for a pixel without a time
+    const Size px4_line = xml.rfind('\n', xml.find("accession=\"IMS:1000050\" name=\"position x\" value=\"4\"")) + 1;
+    xml.insert(px4_line, "\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000016\" name=\"scan start time\" value=\"-1\" "
+                         "unitAccession=\"UO:0000010\" unitName=\"second\" unitCvRef=\"UO\"/>\n");
+    std::ofstream out(tmp_imzml.c_str());
+    out << xml;
+  }
+
+  // in-memory: RT unset, scan start time kept as MetaValue (seconds)
+  MSExperiment ram = loadImzMLExperiment_(tmp_imzml);
+  TEST_EQUAL(ram.getNrSpectra(), 4)
+  for (Size i = 0; i < ram.getNrSpectra(); ++i)
+  {
+    TEST_REAL_SIMILAR(ram[i].getRT(), -1.0)
+  }
+  TEST_REAL_SIMILAR(static_cast<double>(ram[0].getMetaValue("imzml:scan_start_time")), 12.34)
+  TEST_REAL_SIMILAR(static_cast<double>(ram[1].getMetaValue("imzml:scan_start_time")), 99.0)
+  TEST_FALSE(ram[2].metaValueExists("imzml:scan_start_time"))
+  TEST_FALSE(ram[3].metaValueExists("imzml:scan_start_time")) // the negative placeholder is no time
+  TEST_EQUAL(ram[0].getMetaValue("mz_array_note"), "calibrated")
+  TEST_REAL_SIMILAR(static_cast<double>(ram[0].getMetaValue("total ion current")), 30.0)
+  TEST_TRUE(ram[1].containsIMData())
+  TEST_TRUE(ram[1].getIMPeakType() == IMPeakType::IM_CENTROIDED)
+  TEST_TRUE(ram[3].containsIMData())
+  TEST_TRUE(ram[3].getIMPeakType() == IMPeakType::IM_PROFILE)
+  TEST_EQUAL(ram[3].getFloatDataArrays().size(), 1)
+  TEST_EQUAL(ram[3].getFloatDataArrays()[0].getMetaValue("im_array_note"), "tims")
+  TEST_TRUE(ram[0].getIMPeakType() == IMPeakType::UNKNOWN)
+
+  // on-disc: every spectrum and the dataset settings equal the in-memory load
+  OnDiscImzMLExperiment od;
+  od.open(tmp_imzml);
+  TEST_EQUAL(od.getNrSpectra(), ram.getNrSpectra())
+  for (Size i = 0; i < ram.getNrSpectra(); ++i)
+  {
+    // MSSpectrum::operator== ignores the IM peak type and IM format: compare them explicitly
+    const MSSpectrum od_spec = od.getSpectrum(i);
+    TEST_TRUE(od_spec == ram[i])
+    TEST_TRUE(od_spec.getIMPeakType() == ram[i].getIMPeakType())
+    TEST_TRUE(od_spec.getIMFormat() == ram[i].getIMFormat())
+    TEST_TRUE(od_spec.getFloatDataArrays() == ram[i].getFloatDataArrays()) // incl. the array metadata
+  }
+  TEST_TRUE(od.getExperimentalSettings() == static_cast<const ExperimentalSettings&>(ram))
+  od.close(); // releases the .ibd (and all parsed state) before the files are removed
+  TEST_EQUAL(od.getNrSpectra(), 0)
+
+  // skip_metadata keeps no spectrum metadata: peaks, arrays and coordinates only
+  OnDiscImzMLExperiment od_skip;
+  od_skip.open(tmp_imzml, "", true);
+  TEST_EQUAL(od_skip.getNrSpectra(), ram.getNrSpectra())
+  const MSSpectrum skip0 = od_skip.getSpectrum(0);
+  TEST_EQUAL(skip0.size(), ram[0].size())
+  TEST_REAL_SIMILAR(skip0[0].getMZ(), ram[0][0].getMZ())
+  TEST_EQUAL(static_cast<Int>(skip0.getMetaValue("imzml:x")), 1)
+  TEST_FALSE(skip0.metaValueExists("mz_array_note"))
+  TEST_TRUE(od_skip.getSpectrum(3).containsIMData())
+  // the declared IM peak type is metadata: UNKNOWN, not a guessed IM_PROFILE, for the
+  // IM-centroided pixel
+  const MSSpectrum skip1 = od_skip.getSpectrum(1);
+  TEST_TRUE(skip1.containsIMData())
+  TEST_TRUE(skip1.getIMPeakType() == IMPeakType::UNKNOWN)
+  TEST_TRUE(od_skip.getExperimentalSettings() == ExperimentalSettings())
+  od_skip.close();
+
+  // metadata only: same spectra and settings, without peaks or .ibd reads; data arrays are
+  // empty but keep their metadata
+  PeakFileOptions opts;
+  opts.setMetadataOnly(true);
+  ImzMLFile md_file;
+  md_file.setOptions(opts);
+  MSImagingExperiment md;
+  md_file.load(tmp_imzml, md);
+  TEST_EQUAL(md.getNumberOfSpectra(), ram.getNrSpectra())
+  TEST_EQUAL(md.getGeometry().getNumberOfPixels(), 4)
+  for (Size i = 0; i < ram.getNrSpectra(); ++i)
+  {
+    MSSpectrum m = md.getMSExperiment()[i];
+    TEST_TRUE(m.empty())
+    for (const auto& a : m.getFloatDataArrays())
+    {
+      TEST_TRUE(a.empty())
+    }
+    ImzMLSpectrumRules::pruneEmptyDataArrays(m);
+    MSSpectrum ref = ram[i];
+    ref.clear(false);                 // drop peaks and arrays, keep metadata (incl. the IM peak type)
+    TEST_TRUE(m == ref)
+    TEST_TRUE(m.getIMPeakType() == ref.getIMPeakType())
+  }
+  TEST_TRUE(static_cast<const ExperimentalSettings&>(md.getMSExperiment()) == static_cast<const ExperimentalSettings&>(ram))
+  // the ion mobility array of pixel x = 4 is there, empty, with its metadata
+  TEST_EQUAL(md.getMSExperiment()[3].getFloatDataArrays().size(), 1)
+  TEST_EQUAL(md.getMSExperiment()[3].getFloatDataArrays()[0].getName(), ram[3].getFloatDataArrays()[0].getName())
+  TEST_EQUAL(md.getMSExperiment()[3].getFloatDataArrays()[0].getMetaValue("im_array_note"), "tims")
+
+  // setFillData(false) is metadata only as well
+  PeakFileOptions no_fill_opts;
+  no_fill_opts.setFillData(false);
+  ImzMLFile no_fill_file;
+  no_fill_file.setOptions(no_fill_opts);
+  MSImagingExperiment no_fill;
+  no_fill_file.load(tmp_imzml, no_fill);
+  TEST_EQUAL(no_fill.getNumberOfSpectra(), 4)
+  TEST_TRUE(no_fill.getMSExperiment()[0].empty())
+
+  // loadSpectraIndex ignores a metadata-only setting instead of returning nothing; its
+  // spectra equal the in-memory load apart from peaks and with empty data arrays
+  ImzMLMeta idx_meta;
+  std::vector<ImzMLSpectrumIndex> idx;
+  MSExperiment idx_spectra;
+  md_file.loadSpectraIndex(tmp_imzml, idx_meta, idx, idx_spectra);
+  TEST_EQUAL(idx.size(), 4)
+  TEST_EQUAL(idx_spectra.getNrSpectra(), 4)
+  TEST_EQUAL(idx[3].aux.size(), 1)
+  for (Size i = 0; i < ram.getNrSpectra(); ++i)
+  {
+    MSSpectrum idx_spec = idx_spectra[i];
+    TEST_TRUE(idx_spec.empty())
+    for (const auto& a : idx_spec.getFloatDataArrays())
+    {
+      TEST_TRUE(a.empty())
+    }
+    ImzMLSpectrumRules::pruneEmptyDataArrays(idx_spec);
+    MSSpectrum ref = ram[i];
+    ref.clear(false);
+    TEST_TRUE(idx_spec == ref)
+    TEST_TRUE(idx_spec.getIMPeakType() == ref.getIMPeakType())
+  }
+
+  // store-time RT filter uses the scan start time of loaded spectra (RT is -1 after a load)
+  // and, like the load filter, keeps the pixels without a time
+  ImzMLFile rt_file;
+  PeakFileOptions rt_opts;
+  rt_opts.setRTRange(DRange<1>(10.0, 13.0));
+  rt_file.setOptions(rt_opts);
+  std::string tmp_rt;
+  NEW_TMP_FILE_EXT(tmp_rt, ".imzML");
+  rt_file.store(tmp_rt, ram);
+  MSExperiment rt_kept = loadImzMLExperiment_(tmp_rt);
+  TEST_EQUAL(rt_kept.getNrSpectra(), 3)
+  TEST_REAL_SIMILAR(static_cast<double>(rt_kept[0].getMetaValue("imzml:scan_start_time")), 12.34)
+  TEST_FALSE(rt_kept[1].metaValueExists("imzml:scan_start_time"))
+  TEST_FALSE(rt_kept[2].metaValueExists("imzml:scan_start_time"))
+  remove(tmp_rt.c_str());
+  remove(ibdPathFor_(tmp_rt).c_str());
+
+  // a non-numeric imzml:scan_start_time counts as no time instead of making store throw
+  MSExperiment string_time = ram;
+  string_time[0].setMetaValue("imzml:scan_start_time", "12.3");
+  std::string tmp_str;
+  NEW_TMP_FILE_EXT(tmp_str, ".imzML");
+  ImzMLFile().store(tmp_str, string_time);
+  MSExperiment string_time_loaded = loadImzMLExperiment_(tmp_str);
+  TEST_EQUAL(string_time_loaded.getNrSpectra(), 4)
+  TEST_FALSE(string_time_loaded[0].metaValueExists("imzml:scan_start_time"))
+  remove(tmp_str.c_str());
+  remove(ibdPathFor_(tmp_str).c_str());
+
+  // a non-finite imzml:scan_start_time counts as no time instead of writing 'inf'
+  MSExperiment inf_time = ram;
+  inf_time[0].setMetaValue("imzml:scan_start_time", std::numeric_limits<double>::infinity());
+  std::string tmp_inf;
+  NEW_TMP_FILE_EXT(tmp_inf, ".imzML");
+  ImzMLFile().store(tmp_inf, inf_time);
+  MSExperiment inf_time_loaded = loadImzMLExperiment_(tmp_inf);
+  TEST_EQUAL(inf_time_loaded.getNrSpectra(), 4)
+  TEST_FALSE(inf_time_loaded[0].metaValueExists("imzml:scan_start_time"))
+  remove(tmp_inf.c_str());
+  remove(ibdPathFor_(tmp_inf).c_str());
+
+  // export to mzML writes the scan start time, not RT -1
+  std::string tmp_mzml;
+  NEW_TMP_FILE_EXT(tmp_mzml, ".mzML");
+  MzMLFile().store(tmp_mzml, ram);
+  MSExperiment mzml;
+  MzMLFile().load(tmp_mzml, mzml);
+  TEST_EQUAL(mzml.getNrSpectra(), 4)
+  TEST_REAL_SIMILAR(mzml[0].getRT(), 12.34)
+  TEST_REAL_SIMILAR(mzml[1].getRT(), 99.0)
+  TEST_REAL_SIMILAR(mzml[2].getRT(), -1.0)
+  TEST_REAL_SIMILAR(mzml[3].getRT(), -1.0)
+  for (Size i = 0; i < mzml.getNrSpectra(); ++i)
+  { // written as MS:1000016 only, not also as a userParam
+    TEST_FALSE(mzml[i].metaValueExists("imzml:scan_start_time"))
+  }
+  remove(tmp_mzml.c_str());
+
+  // metadata only does not need the .ibd
+  remove(ibdPathFor_(tmp_imzml).c_str());
+  MSImagingExperiment md_no_ibd;
+  md_file.load(tmp_imzml, md_no_ibd);
+  TEST_EQUAL(md_no_ibd.getNumberOfSpectra(), 4)
+  TEST_TRUE(md_no_ibd.getMSExperiment()[0] == md.getMSExperiment()[0])
+
+  remove(tmp_imzml.c_str());
 }
 END_SECTION
 

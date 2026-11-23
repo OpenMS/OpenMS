@@ -7,10 +7,13 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/HANDLERS/ImzMLWriter.h>
+#include "../Sha1Helpers.h"
 
 #include <OpenMS/CONCEPT/Exception.h>
+#include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CONCEPT/VersionInfo.h>
 #include <OpenMS/DATASTRUCTURES/DRange.h>
+#include <OpenMS/FORMAT/ControlledVocabulary.h>
 #include <OpenMS/FORMAT/HANDLERS/ImzMLHandlerHelper.h>
 #include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
 #include <OpenMS/FORMAT/OPTIONS/PeakFileOptions.h>
@@ -26,6 +29,7 @@
 #include <iomanip>
 #include <random>
 #include <sstream>
+#include <unordered_map>
 #include <unordered_set>
 #include <vector>
 
@@ -46,6 +50,18 @@ namespace
     uint32_t z {1};
   };
 
+  struct AuxArrayWritePlan
+  {
+    std::string accession; ///< MS CV accession (or MS:1000786 for non-standard)
+    std::string cv_name;   ///< CV term name written to XML
+    std::string array_name; ///< Original FloatDataArray::getName() (value for MS:1000786)
+    std::string unit_attrs; ///< Optional unitAccession/unitName/unitCvRef attributes
+    bool non_standard {false};
+    uint64_t offset {0};
+    uint64_t count {0};
+    uint64_t encoded {0};
+  };
+
   struct SpectrumWritePlan
   {
     PixelCoord pixel;
@@ -56,7 +72,76 @@ namespace
     uint64_t int_count {0};
     uint64_t int_encoded {0};
     bool share_mz {false};
+    std::vector<AuxArrayWritePlan> aux;
   };
+
+  /// PSI-MS identity of a FloatDataArray name, as written to the imzML XML.
+  struct ResolvedArrayCv
+  {
+    std::string accession;  ///< MS CV accession (or MS:1000786 for non-standard)
+    std::string cv_name;    ///< CV term name written to XML
+    std::string unit_attrs; ///< Optional unitAccession/unitName/unitCvRef attributes
+    bool non_standard {false};
+  };
+
+  /// Keyed by FloatDataArray name: the same names repeat for every spectrum, while
+  /// resolving one walks the whole MS:1000513 subtree.
+  using ArrayCvCache = std::unordered_map<std::string, ResolvedArrayCv>;
+
+  /// Map a FloatDataArray name to a PSI-MS binary-array CV term (same strategy as MzMLHandler).
+  const ResolvedArrayCv& resolveFloatArrayCv_(const std::string& array_name, ArrayCvCache& cache)
+  {
+    const auto cached = cache.find(array_name);
+    if (cached != cache.end())
+    {
+      return cached->second;
+    }
+
+    const ControlledVocabulary& cv = ControlledVocabulary::getPSIMSCV();
+    ControlledVocabulary::CVTerm match;
+    auto searcher = [&match, &array_name, &cv](const std::string& child_id) {
+      const ControlledVocabulary::CVTerm& current = cv.getTerm(child_id);
+      if (current.name == array_name)
+      {
+        match = current;
+        return true;
+      }
+      return false;
+    };
+    cv.iterateAllChildren("MS:1000513", searcher);
+
+    ResolvedArrayCv resolved;
+    if (!match.id.empty())
+    {
+      resolved.accession = match.id;
+      resolved.cv_name = match.name;
+      // Write a unit only when the CV term allows exactly one. Several allowed
+      // units (e.g. raw ion mobility array) are left unset rather than guessed.
+      if (match.units.size() == 1)
+      {
+        const std::string unit_id = *match.units.begin();
+        if (cv.exists(unit_id))
+        {
+          const ControlledVocabulary::CVTerm& unit_term = cv.getTerm(unit_id);
+          resolved.unit_attrs = "unitCvRef=\"" + StringUtils::prefix(unit_id, 2)
+                                + "\" unitAccession=\"" + unit_id
+                                + "\" unitName=\"" + XMLHandler::writeXMLEscape(unit_term.name) + "\"";
+        }
+      }
+    }
+    else
+    {
+      resolved.accession = "MS:1000786";
+      resolved.cv_name = "non-standard data array";
+      resolved.non_standard = true;
+    }
+    return cache.emplace(array_name, std::move(resolved)).first->second;
+  }
+
+  std::vector<float> floatDataArrayAsFloat_(const OpenMS::DataArrays::FloatDataArray& fda)
+  {
+    return std::vector<float>(fda.begin(), fda.end());
+  }
 
   std::string inferIbdPath_(const std::string& imzml_path)
   {
@@ -81,6 +166,9 @@ namespace
     return p;
   }
 
+  /// Validate the per-spectrum imzML pixel MetaValues. Duplicate coordinates are written
+  /// out with a warning, mirroring what the reader accepts (a file that loads must be
+  /// storable again).
   void validatePixelMetadataForStore_(const MSExperiment& exp)
   {
     struct PixelKey
@@ -108,6 +196,12 @@ namespace
 
     std::unordered_set<PixelKey, PixelKeyHash> seen;
     seen.reserve(exp.size());
+    // Cap what we retain: a file where every spectrum shares one pixel must not make the
+    // tracking (or the log line) grow with the dataset.
+    const Size max_listed = 20;
+    Size duplicate_count = 0;
+    std::vector<Size> duplicate_spectra; // first few spectrum indices reusing an earlier pixel
+    duplicate_spectra.reserve(max_listed);
 
     for (Size i = 0; i < exp.size(); ++i)
     {
@@ -144,11 +238,103 @@ namespace
                           static_cast<uint32_t>(z_imz)};
       if (!seen.emplace(key).second)
       {
-        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                      "Duplicate pixel coordinate",
-                                      "(" + OpenMS::StringConversions::toString(x_imz) + "," + OpenMS::StringConversions::toString(y_imz) + "," + OpenMS::StringConversions::toString(z_imz) + ") at spectrum " + OpenMS::StringConversions::toString(i));
+        ++duplicate_count;
+        if (duplicate_spectra.size() < max_listed)
+        {
+          duplicate_spectra.push_back(i);
+        }
       }
     }
+
+    if (duplicate_count > 0)
+    {
+      const Size listed = duplicate_spectra.size();
+      std::string indices;
+      for (Size k = 0; k < listed; ++k)
+      {
+        if (k > 0)
+        {
+          indices += ", ";
+        }
+        const MSSpectrum& spec = exp[duplicate_spectra[k]];
+        indices += OpenMS::StringConversions::toString(duplicate_spectra[k])
+                   + " (x=" + spec.getMetaValue("imzml:x").toString()
+                   + ",y=" + spec.getMetaValue("imzml:y").toString() + ")";
+      }
+      if (listed < duplicate_count)
+      {
+        indices += ", ... and " + OpenMS::StringConversions::toString(duplicate_count - listed) + " more";
+      }
+      OPENMS_LOG_WARN << "imzML: " << duplicate_count << " of " << exp.size()
+                      << " spectra reuse a pixel coordinate already taken by an earlier spectrum. "
+                      << "They are written out as-is, but readers will map only the first spectrum "
+                      << "per pixel into the imaging geometry. Affected spectra: "
+                      << indices << "." << std::endl; // std::endl: OPENMS_LOG_* only distributes a line on flush
+    }
+  }
+
+  /// imzML carries per-peak data only as FloatDataArrays (written as external .ibd
+  /// arrays), so Integer/StringDataArrays — e.g. a "charge array" carried over from
+  /// mzML — have no representation and are dropped. Warn once per store, not once per
+  /// pixel, and cap the listing so the line cannot grow with the dataset.
+  void warnOnDroppedDataArrays_(const MSExperiment& exp)
+  {
+    const Size max_listed = 20;
+    std::vector<std::string> names;
+    bool more_names = false;
+    Size dropped = 0;
+
+    auto collect = [&](const auto& arrays) {
+      for (const auto& array : arrays)
+      {
+        if (array.empty())
+        {
+          continue;
+        }
+        ++dropped;
+        if (std::find(names.begin(), names.end(), array.getName()) != names.end())
+        {
+          continue;
+        }
+        if (names.size() < max_listed)
+        {
+          names.push_back(array.getName());
+        }
+        else
+        {
+          more_names = true;
+        }
+      }
+    };
+
+    for (const MSSpectrum& spec : exp.getSpectra())
+    {
+      collect(spec.getIntegerDataArrays());
+      collect(spec.getStringDataArrays());
+    }
+
+    if (dropped == 0)
+    {
+      return;
+    }
+
+    std::string listed;
+    for (Size k = 0; k < names.size(); ++k)
+    {
+      if (k > 0)
+      {
+        listed += ", ";
+      }
+      listed += "'" + names[k] + "'";
+    }
+    if (more_names)
+    {
+      listed += ", ...";
+    }
+    OPENMS_LOG_WARN << "imzML stores per-peak data only as FloatDataArrays: dropping "
+                    << dropped << " integer/string data array(s) across " << exp.size()
+                    << " spectra. Affected array names: " << listed
+                    << "." << std::endl; // std::endl: OPENMS_LOG_* only distributes a line on flush
   }
 
   ImzMLMeta extractMeta_(const MSExperiment& exp)
@@ -206,6 +392,34 @@ namespace
     {
       meta.polarity = exp.getMetaValue("imzml:polarity").toString();
     }
+    if (exp.metaValueExists("imzml:pixel_size_unit"))
+    {
+      meta.pixel_size_unit = exp.getMetaValue("imzml:pixel_size_unit").toString();
+    }
+    else if (meta.pixel_size_x > 0 || meta.pixel_size_y > 0)
+    {
+      OPENMS_LOG_WARN << "imzML: pixel size without imzml:pixel_size_unit; assuming micrometer." << std::endl;
+      meta.pixel_size_unit = "micrometer";
+    }
+    // IMS:1000046/47 need a UO length unit; drop a pixel size whose unit cannot be written
+    const ControlledVocabulary& cv = ControlledVocabulary::getPSIMSCV();
+    if (!cv.hasTermWithName(meta.pixel_size_unit)
+        || !lengthUnitExponent(cv.getTermByName(meta.pixel_size_unit).id))
+    {
+      if (meta.pixel_size_x > 0 || meta.pixel_size_y > 0)
+      {
+        OPENMS_LOG_WARN << "imzML: pixel size unit '" << meta.pixel_size_unit
+                        << "' is not a supported length unit; pixel size not written." << std::endl;
+      }
+      meta.pixel_size_x = -1;
+      meta.pixel_size_y = -1;
+      meta.pixel_size_unit = "unknown";
+    }
+    if (meta.pixel_size_x > 0 && meta.pixel_size_y <= 0)
+    {
+      OPENMS_LOG_WARN << "imzML: pixel size y is unknown; only pixel size x is written, which readers "
+                         "also use for y (IMS:1000046)." << std::endl;
+    }
     return meta;
   }
 
@@ -238,7 +452,11 @@ namespace
       const auto& rt_range = options.getRTRange();
       exp.getSpectra().erase(
         std::remove_if(exp.getSpectra().begin(), exp.getSpectra().end(),
-                       [&rt_range](const MSSpectrum& s) { return !rt_range.encloses(DPosition<1>(s.getRT())); }),
+                       [&rt_range](const MSSpectrum& s) {
+                         // like the load filter (MzMLHandler), keep spectra without a scan start time
+                         const double t = ImzMLSpectrumRules::scanStartTime(s);
+                         return t >= 0.0 && !rt_range.encloses(DPosition<1>(t));
+                       }),
         exp.getSpectra().end());
     }
 
@@ -313,6 +531,61 @@ namespace
     return use_32_bit ? 4ULL : 8ULL;
   }
 
+  void appendAndWriteFloatDataArrays_(FILE* ibd,
+                                      const MSSpectrum& spec,
+                                      SpectrumWritePlan& plan,
+                                      uint64_t& offset,
+                                      const std::string& ibd_path,
+                                      ArrayCvCache& cv_cache)
+  {
+    plan.aux.clear();
+    plan.aux.reserve(spec.getFloatDataArrays().size());
+    for (const auto& fda : spec.getFloatDataArrays())
+    {
+      if (fda.empty())
+      {
+        continue;
+      }
+      if (fda.getName().empty())
+      {
+        OPENMS_LOG_WARN << "Skipping unnamed FloatDataArray on imzML export\n";
+        continue;
+      }
+      // Per-peak contract: aux length must match peak count (including both empty).
+      if (fda.size() != spec.size())
+      {
+        OPENMS_LOG_WARN << "Skipping FloatDataArray '" << fda.getName()
+                        << "' on imzML export: length " << fda.size()
+                        << " != spectrum peak count " << spec.size() << "\n";
+        continue;
+      }
+      const ResolvedArrayCv& resolved = resolveFloatArrayCv_(fda.getName(), cv_cache);
+      // MS:1000514 / MS:1000515 are children of MS:1000513, so an array named after the
+      // peak CV terms resolves to their accession. Written out, it becomes a second
+      // m/z (or intensity) binaryDataArray whose offset and type replace the real peak
+      // metadata on read (last cvParam wins), silently corrupting the spectrum.
+      if (resolved.accession == "MS:1000514" || resolved.accession == "MS:1000515")
+      {
+        OPENMS_LOG_WARN << "Skipping FloatDataArray '" << fda.getName()
+                        << "' on imzML export: the name is reserved for the peak arrays\n";
+        continue;
+      }
+      AuxArrayWritePlan aux;
+      aux.array_name = fda.getName();
+      aux.accession = resolved.accession;
+      aux.cv_name = resolved.cv_name;
+      aux.unit_attrs = resolved.unit_attrs;
+      aux.non_standard = resolved.non_standard;
+      aux.offset = offset;
+      aux.count = fda.size();
+      aux.encoded = aux.count * 4ULL; // FloatDataArray is always float32 on write
+      const std::vector<float> values = floatDataArrayAsFloat_(fda);
+      ImzMLBinaryIO::writeFloat32Array(ibd, values.data(), values.size(), ibd_path);
+      offset += aux.encoded;
+      plan.aux.push_back(std::move(aux));
+    }
+  }
+
   void writeMzArray_(FILE* ibd,
                      const std::vector<double>& mz,
                      const bool mz_32_bit,
@@ -346,11 +619,6 @@ namespace
       }
       ImzMLBinaryIO::writeFloat64Array(ibd, tmp.data(), tmp.size(), ibd_path);
     }
-  }
-
-  uint32_t sha1LeftRotate_(uint32_t value, uint32_t bits)
-  {
-    return (value << bits) | (value >> (32 - bits));
   }
 
   bool uuidStringToBytes_(const std::string& uuid, unsigned char out[16])
@@ -439,13 +707,19 @@ namespace
     {
       meta.max_count_z = 1;
     }
+    if (meta.pixel_size_x <= 0 && meta.pixel_size_y <= 0)
+    {
+      return;
+    }
+    // max dimension (IMS:1000044/45) is in micrometer; extractMeta_ guarantees a supported pixel size unit
+    const double to_um = std::pow(10.0, *lengthUnitExponent(ControlledVocabulary::getPSIMSCV().getTermByName(meta.pixel_size_unit).id) + 6);
     if (meta.pixel_size_x > 0 && meta.max_count_x > 0)
     {
-      meta.max_dim_x = meta.pixel_size_x * meta.max_count_x;
+      meta.max_dim_x = meta.pixel_size_x * meta.max_count_x * to_um;
     }
     if (meta.pixel_size_y > 0 && meta.max_count_y > 0)
     {
-      meta.max_dim_y = meta.pixel_size_y * meta.max_count_y;
+      meta.max_dim_y = meta.pixel_size_y * meta.max_count_y * to_um;
     }
   }
 
@@ -697,113 +971,6 @@ namespace
     return md5DigestToHex_(a0, b0, c0, d0);
   }
 
-  std::string sha1DigestToHex_(const uint32_t digest[5])
-  {
-    std::ostringstream oss;
-    oss << std::hex << std::setfill('0');
-    for (int i = 0; i < 5; ++i)
-    {
-      oss << std::setw(8) << digest[i];
-    }
-    return oss.str();
-  }
-
-  std::string sha1Hex_(const std::string& file_path)
-  {
-    std::ifstream in(file_path.c_str(), std::ios::binary);
-    if (!in)
-    {
-      return "";
-    }
-
-    uint32_t h[5] = {0x67452301, 0xEFCDAB89, 0x98BADCFE, 0x10325476, 0xC3D2E1F0};
-    uint64_t total_bytes = 0;
-    uint8_t block[64] {};
-    size_t block_len = 0;
-    char read_buf[64 * 1024];
-
-    auto processBlock = [&](const uint8_t chunk[64]) {
-      uint32_t w[80];
-      for (int i = 0; i < 16; ++i)
-      {
-        w[i] = (uint32_t(chunk[i * 4]) << 24) | (uint32_t(chunk[i * 4 + 1]) << 16)
-               | (uint32_t(chunk[i * 4 + 2]) << 8) | uint32_t(chunk[i * 4 + 3]);
-      }
-      for (int i = 16; i < 80; ++i)
-      {
-        w[i] = sha1LeftRotate_(w[i - 3] ^ w[i - 8] ^ w[i - 14] ^ w[i - 16], 1);
-      }
-
-      uint32_t a = h[0], b = h[1], c = h[2], d = h[3], e = h[4];
-      for (int i = 0; i < 80; ++i)
-      {
-        uint32_t f = 0;
-        uint32_t k = 0;
-        if (i < 20)      { f = (b & c) | (~b & d);           k = 0x5A827999; }
-        else if (i < 40) { f = b ^ c ^ d;                    k = 0x6ED9EBA1; }
-        else if (i < 60) { f = (b & c) | (b & d) | (c & d); k = 0x8F1BBCDC; }
-        else              { f = b ^ c ^ d;                    k = 0xCA62C1D6; }
-        const uint32_t temp = sha1LeftRotate_(a, 5) + f + e + k + w[i];
-        e = d;
-        d = c;
-        c = sha1LeftRotate_(b, 30);
-        b = a;
-        a = temp;
-      }
-      h[0] += a;
-      h[1] += b;
-      h[2] += c;
-      h[3] += d;
-      h[4] += e;
-    };
-
-    auto consumeBytes = [&](const uint8_t* data, size_t len) {
-      size_t idx = 0;
-      while (idx < len)
-      {
-        const size_t take = std::min(len - idx, 64 - block_len);
-        std::memcpy(block + block_len, data + idx, take);
-        block_len += take;
-        idx += take;
-        if (block_len == 64)
-        {
-          processBlock(block);
-          block_len = 0;
-        }
-      }
-    };
-
-    while (in.read(read_buf, sizeof(read_buf)) || in.gcount() > 0)
-    {
-      const size_t chunk = static_cast<size_t>(in.gcount());
-      total_bytes += chunk;
-      consumeBytes(reinterpret_cast<const uint8_t*>(read_buf), chunk);
-    }
-
-    const uint64_t orig_bits = total_bytes * 8;
-    block[block_len++] = 0x80;
-    if (block_len > 56)
-    {
-      while (block_len < 64)
-      {
-        block[block_len++] = 0;
-      }
-      processBlock(block);
-      block_len = 0;
-    }
-    while (block_len < 56)
-    {
-      block[block_len++] = 0;
-    }
-    for (int i = 7; i >= 0; --i)
-    {
-      block[block_len++] = static_cast<uint8_t>((orig_bits >> (8 * i)) & 0xff);
-    }
-    processBlock(block);
-
-    return sha1DigestToHex_(h);
-  }
-
   void writeCvParam_(std::ostream& os,
                      const std::string& cv_ref,
                      const std::string& accession,
@@ -898,6 +1065,40 @@ namespace
     os << pad << "</binaryDataArray>\n";
   }
 
+  /// Write an auxiliary FloatDataArray (e.g. ion mobility) as an external binaryDataArray.
+  /// Uses inline CV terms (no referenceableParamGroup) so arbitrary array names round-trip.
+  void writeExternalAuxBinaryArray_(std::ostream& os,
+                                    const AuxArrayWritePlan& aux,
+                                    int indent)
+  {
+    const std::string pad(indent, '\t');
+    os << pad << "<binaryDataArray encodedLength=\"0\">\n";
+    os << pad << "\t";
+    writeCvParam_(os, "MS", "MS:1000576", "no compression");
+    os << "\n" << pad << "\t";
+    writeCvParam_(os, "MS", "MS:1000521", "32-bit float");
+    os << "\n" << pad << "\t";
+    writeCvParam_(os, "IMS", "IMS:1000101", "external data", "true");
+    os << "\n" << pad << "\t";
+    if (aux.non_standard)
+    {
+      writeCvParam_(os, "MS", aux.accession, aux.cv_name, aux.array_name, aux.unit_attrs);
+    }
+    else
+    {
+      writeCvParam_(os, "MS", aux.accession, aux.cv_name, "", aux.unit_attrs);
+    }
+    os << "\n" << pad << "\t";
+    writeCvParam_(os, "IMS", "IMS:1000102", "external offset", OpenMS::StringConversions::toString(aux.offset));
+    os << "\n" << pad << "\t";
+    writeCvParam_(os, "IMS", "IMS:1000103", "external array length", OpenMS::StringConversions::toString(aux.count));
+    os << "\n" << pad << "\t";
+    writeCvParam_(os, "IMS", "IMS:1000104", "external encoded length", OpenMS::StringConversions::toString(aux.encoded));
+    os << "\n";
+    os << pad << "\t<binary/>\n";
+    os << pad << "</binaryDataArray>\n";
+  }
+
   void writeImzMLXml_(const std::string& imzml_path,
                       const MSExperiment& exp,
                       const ImzMLMeta& meta,
@@ -974,6 +1175,8 @@ namespace
     os << "\n\t\t\t";
     writeCvParam_(os, "MS", mz_precision_acc, mz_precision_name);
     os << "\n\t\t\t";
+    writeCvParam_(os, "MS", "MS:1000576", "no compression");
+    os << "\n\t\t\t";
     writeCvParam_(os, "IMS", "IMS:1000101", "external data", "true");
     os << "\n";
     os << "\t\t</referenceableParamGroup>\n";
@@ -982,6 +1185,8 @@ namespace
     writeCvParam_(os, "MS", "MS:1000515", "intensity array");
     os << "\n\t\t\t";
     writeCvParam_(os, "MS", int_precision_acc, int_precision_name);
+    os << "\n\t\t\t";
+    writeCvParam_(os, "MS", "MS:1000576", "no compression");
     os << "\n\t\t\t";
     writeCvParam_(os, "IMS", "IMS:1000101", "external data", "true");
     os << "\n";
@@ -996,6 +1201,14 @@ namespace
     os << "\t</softwareList>\n";
     os << "\t<scanSettingsList count=\"1\">\n";
     os << "\t\t<scanSettings id=\"scanSettings1\">\n";
+    // pixel size keeps its own unit; extractMeta_ guarantees a supported length unit when a pixel size is set
+    std::string length_unit_attrs;
+    if (meta.pixel_size_x > 0 || meta.pixel_size_y > 0)
+    {
+      const ControlledVocabulary::CVTerm& length_unit = ControlledVocabulary::getPSIMSCV().getTermByName(meta.pixel_size_unit);
+      length_unit_attrs = "unitCvRef=\"UO\" unitAccession=\"" + length_unit.id
+                          + "\" unitName=\"" + XMLHandler::writeXMLEscape(length_unit.name) + "\"";
+    }
     if (meta.max_count_x > 0)
     {
       os << "\t\t\t";
@@ -1008,32 +1221,32 @@ namespace
       writeCvParam_(os, "IMS", "IMS:1000043", "max count of pixels y", OpenMS::StringConversions::toString(meta.max_count_y));
       os << "\n";
     }
-    if (meta.max_dim_x > 0)
+    if (std::llround(meta.max_dim_x) > 0) // nonNegativeInteger micrometer; a sub-micrometer extent is not written
     {
       os << "\t\t\t";
-      writeCvParam_(os, "IMS", "IMS:1000044", "max dimension x", OpenMS::StringConversions::toString(meta.max_dim_x),
+      writeCvParam_(os, "IMS", "IMS:1000044", "max dimension x", OpenMS::StringConversions::toString(std::llround(meta.max_dim_x)),
                     "unitCvRef=\"UO\" unitAccession=\"UO:0000017\" unitName=\"micrometer\"");
       os << "\n";
     }
-    if (meta.max_dim_y > 0)
+    if (std::llround(meta.max_dim_y) > 0) // nonNegativeInteger micrometer; a sub-micrometer extent is not written
     {
       os << "\t\t\t";
-      writeCvParam_(os, "IMS", "IMS:1000045", "max dimension y", OpenMS::StringConversions::toString(meta.max_dim_y),
+      writeCvParam_(os, "IMS", "IMS:1000045", "max dimension y", OpenMS::StringConversions::toString(std::llround(meta.max_dim_y)),
                     "unitCvRef=\"UO\" unitAccession=\"UO:0000017\" unitName=\"micrometer\"");
       os << "\n";
     }
     if (meta.pixel_size_x > 0)
     {
       os << "\t\t\t";
-      writeCvParam_(os, "IMS", "IMS:1000046", "pixel size x", OpenMS::StringConversions::toString(meta.pixel_size_x),
-                    "unitCvRef=\"UO\" unitAccession=\"UO:0000017\" unitName=\"micrometer\"");
+      writeCvParam_(os, "IMS", "IMS:1000046", "pixel size (x)", OpenMS::StringConversions::toString(meta.pixel_size_x),
+                    length_unit_attrs);
       os << "\n";
     }
     if (meta.pixel_size_y > 0)
     {
       os << "\t\t\t";
       writeCvParam_(os, "IMS", "IMS:1000047", "pixel size y", OpenMS::StringConversions::toString(meta.pixel_size_y),
-                    "unitCvRef=\"UO\" unitAccession=\"UO:0000017\" unitName=\"micrometer\"");
+                    length_unit_attrs);
       os << "\n";
     }
     writeImsGeometryCvParams_(os, meta);
@@ -1085,10 +1298,15 @@ namespace
       writeCvParam_(os, "MS", "MS:1000795", "no combination");
       os << "\n";
       os << "\t\t\t\t\t<scan instrumentConfigurationRef=\"IC1\">\n";
+      const double scan_start_time = ImzMLSpectrumRules::scanStartTime(spec);
+      if (scan_start_time >= 0.0) // no time: omit the cvParam
+      {
+        os << "\t\t\t\t\t\t";
+        writeCvParam_(os, "MS", "MS:1000016", "scan start time", OpenMS::StringConversions::toString(scan_start_time),
+                      "unitAccession=\"UO:0000010\" unitName=\"second\" unitCvRef=\"UO\"");
+        os << "\n";
+      }
       os << "\t\t\t\t\t\t";
-      writeCvParam_(os, "MS", "MS:1000016", "scan start time", OpenMS::StringConversions::toString(spec.getRT()),
-                    "unitAccession=\"UO:0000010\" unitName=\"second\" unitCvRef=\"UO\"");
-      os << "\n\t\t\t\t\t\t";
       writeCvParam_(os, "IMS", "IMS:1000050", "position x", OpenMS::StringConversions::toString(plan.pixel.x));
       os << "\n\t\t\t\t\t\t";
       writeCvParam_(os, "IMS", "IMS:1000051", "position y", OpenMS::StringConversions::toString(plan.pixel.y));
@@ -1097,9 +1315,13 @@ namespace
       os << "\n";
       os << "\t\t\t\t\t</scan>\n";
       os << "\t\t\t\t</scanList>\n";
-      os << "\t\t\t\t<binaryDataArrayList count=\"2\">\n";
+      os << "\t\t\t\t<binaryDataArrayList count=\"" << (2 + plan.aux.size()) << "\">\n";
       writeExternalBinaryArray_(os, "mzArray", plan.mz_offset, plan.mz_count, plan.mz_encoded, 4);
       writeExternalBinaryArray_(os, "intensityArray", plan.int_offset, plan.int_count, plan.int_encoded, 4);
+      for (const auto& aux : plan.aux)
+      {
+        writeExternalAuxBinaryArray_(os, aux, 4);
+      }
       os << "\t\t\t\t</binaryDataArrayList>\n";
       os << "\t\t\t</spectrum>\n";
     }
@@ -1126,6 +1348,7 @@ void ImzMLWriter::store(const std::string& imzml_path,
   }
 
   validatePixelMetadataForStore_(work);
+  warnOnDroppedDataArrays_(work);
 
   ImzMLMeta meta = extractMeta_(work);
   const bool continuous = isContinuousMode_(work, meta);
@@ -1164,6 +1387,7 @@ void ImzMLWriter::store(const std::string& imzml_path,
     ensureUuidBytes_(meta, uuid_bytes);
     writeIbdUuidHeader_(ibd.get(), uuid_bytes, ibd_path);
 
+    ArrayCvCache cv_cache;
     if (continuous)
     {
       Size ref = 0;
@@ -1194,6 +1418,7 @@ void ImzMLWriter::store(const std::string& imzml_path,
         const std::vector<float> intensities = intensitiesAsFloat_(work[i]);
         writeIntArray_(ibd.get(), intensities, int_32_bit, ibd_path);
         current += plans[i].int_encoded;
+        appendAndWriteFloatDataArrays_(ibd.get(), work[i], plans[i], current, ibd_path, cv_cache);
       }
     }
     else
@@ -1214,6 +1439,7 @@ void ImzMLWriter::store(const std::string& imzml_path,
         writeMzArray_(ibd.get(), mzAsDouble_(work[i]), mz_32_bit, ibd_path);
         const std::vector<float> intensities = intensitiesAsFloat_(work[i]);
         writeIntArray_(ibd.get(), intensities, int_32_bit, ibd_path);
+        appendAndWriteFloatDataArrays_(ibd.get(), work[i], plans[i], offset, ibd_path, cv_cache);
       }
     }
 
@@ -1227,7 +1453,7 @@ void ImzMLWriter::store(const std::string& imzml_path,
   logger.setProgress(work.size() + 1);
 
   const std::string ibd_md5 = md5Hex_(ibd_path);
-  const std::string ibd_sha1 = sha1Hex_(ibd_path);
+  const std::string ibd_sha1 = sha1FileHex(ibd_path);
   writeImzMLXml_(imzml_path, work, meta, plans, ibd_md5, ibd_sha1, instrument_model, continuous,
                  mz_32_bit, int_32_bit);
   logger.endProgress();

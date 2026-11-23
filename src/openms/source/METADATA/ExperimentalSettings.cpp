@@ -23,6 +23,7 @@ namespace OpenMS
            source_files_ == rhs.source_files_ &&
            contacts_ == rhs.contacts_ &&
            instrument_ == rhs.instrument_ &&
+           instrument_configurations_ == rhs.instrument_configurations_ &&
            hplc_ == rhs.hplc_ &&
            datetime_ == rhs.datetime_ &&
            comment_ == rhs.comment_ &&
@@ -94,6 +95,21 @@ namespace OpenMS
   void ExperimentalSettings::setInstrument(const Instrument & instrument)
   {
     instrument_ = instrument;
+  }
+
+  const std::map<std::string, Instrument>& ExperimentalSettings::getInstrumentConfigurations() const
+  {
+    return instrument_configurations_;
+  }
+
+  std::map<std::string, Instrument>& ExperimentalSettings::getInstrumentConfigurations()
+  {
+    return instrument_configurations_;
+  }
+
+  void ExperimentalSettings::setInstrumentConfigurations(const std::map<std::string, Instrument>& configurations)
+  {
+    instrument_configurations_ = configurations;
   }
 
   const DateTime & ExperimentalSettings::getDateTime() const

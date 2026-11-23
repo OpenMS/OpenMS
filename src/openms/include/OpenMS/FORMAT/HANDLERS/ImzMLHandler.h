@@ -29,13 +29,13 @@ namespace Internal
   class ImzMLInterceptConsumer; // defined in ImzMLHandler.cpp
 
   /**
-    @brief SAX2 handler for imzML 1.1.0 files, extending OpenMS MzMLHandler.
+    @brief XML event handler for imzML 1.1.0 files, extending OpenMS MzMLHandler.
 
     @ingroup FileIO
 
     imzML (HUPO-PSI v1.1.0) stores MSI data across two files:
     - @c .imzML  — mzML 1.1.0 XML with IMS ontology CV extensions
-    - @c .ibd    — raw binary companion (m/z and intensity arrays)
+    - @c .ibd    — raw binary companion (m/z, intensity, and optional auxiliary arrays)
 
     This handler extends @p MzMLHandler so that all standard mzML metadata
     (instrument, data processing, scan settings, RT, MS level) is parsed by the
@@ -70,7 +70,7 @@ namespace Internal
       @brief Construct an ImzMLHandler.
 
       @param exp       PeakMap that receives @p ExperimentalSettings from MzMLHandler.
-      @param filename  Path to the .imzML file (for error messages and Xerces URI).
+      @param filename  Path to the .imzML file (for error messages and the parser source URI).
       @param logger    ProgressLogger inherited from the owning @p ImzMLFile.
     */
     ImzMLHandler(PeakMap&              exp,
@@ -86,7 +86,7 @@ namespace Internal
       @brief Open the companion .ibd file for random-access binary reads.
 
       Must be called before @p parse_() when peak data is needed.
-      When loading metadata only (no IBD), skip this call.
+      When loading metadata only (no .ibd reads, see @p connectDecodeConsumer), skip this call.
 
       @param ibd_path  Absolute path to the .ibd file.
 
@@ -100,6 +100,9 @@ namespace Internal
     /// Non-const access for ImzMLFile to set the .ibd path before parse.
     ImzMLMeta&       getImzMLMeta()       noexcept { return meta_; }
 
+    /// True if the file has a pixel size y (IMS:1000047), even if its value or unit was rejected.
+    bool hasPixelSizeY() const noexcept { return pixel_size_y_given_; }
+
     /// Per-spectrum binary index built during parse (one entry per spectrum).
     const std::vector<ImzMLSpectrumIndex>& getIndex() const noexcept { return index_; }
 
@@ -107,14 +110,16 @@ namespace Internal
       @brief Wire @p ImzMLInterceptConsumer between MzMLHandler and an optional downstream consumer.
 
       Decodes .ibd peak data when spectra are delivered. When @p append_spectra_to_map
-      is @c true, decoded spectra are also appended to the bound @p PeakMap.
+      is @c true, decoded spectra are also appended to the bound @p PeakMap. Without
+      @p decode_ibd, nothing is read from the .ibd and the data arrays stay empty, with
+      their metadata.
     */
     void connectDecodeConsumer(Interfaces::IMSDataConsumer* downstream,
                                bool append_spectra_to_map,
                                bool decode_ibd = true);
 
     // ------------------------------------------------------------------
-    // SAX2 overrides (MzMLHandler is called through for MS:* terms)
+    // XML event callbacks (MzMLHandler is called through for MS:* terms)
     // ------------------------------------------------------------------
 
     void onStartElement(const char16_t* qname, const XMLAttributes& attrs) override;
@@ -126,7 +131,8 @@ namespace Internal
     // ------------------------------------------------------------------
     // IMS CV dispatch
     // ------------------------------------------------------------------
-    void handleIMSCvParam_(const std::string& acc, const std::string& val);
+    void handleIMSCvParam_(const std::string& acc, const std::string& name, const std::string& val,
+                           const std::string& unit_accession = "");
     void applyRefGroup_   (const std::string& id);
 
     // ------------------------------------------------------------------
@@ -140,6 +146,16 @@ namespace Internal
       bool     is_ext { false };  ///< IMS:1000101 — external (in .ibd)
       uint64_t offset { 0 };     ///< IMS:1000102 — byte offset
       uint64_t count  { 0 };     ///< IMS:1000103 — element count
+      uint64_t encoded_bytes { 0 }; ///< IMS:1000104 — stored byte length (required for zlib)
+      /// True for any child of MS:1000572 other than MS:1000576 (zlib, numpress, …).
+      bool     compressed { false };
+      /// PSI-MS accession of the array type (child of MS:1000513, or MS:1000786).
+      std::string accession;
+      /// Ontology / free-text array name matching MzMLHandler FloatDataArray naming:
+      /// CV term name for MS:1000513 children, @c value for MS:1000786.
+      std::string name;
+      /// unitAccession on the array-identity cvParam (copied to FloatDataArray as unit_accession).
+      std::string unit_accession;
 
       void reset() noexcept { *this = ArrayMeta{}; }
     };
@@ -152,6 +168,12 @@ namespace Internal
       uint32_t  x {0}, y {0}, z {1};
       ArrayMeta mz_meta;
       ArrayMeta int_meta;
+      /// Auxiliary external arrays (ion mobility, SNR, …) in document order.
+      std::vector<ArrayMeta> aux_meta;
+      /// Non-external aux arrays seen while peaks come from the .ibd (warned and dropped).
+      std::vector<std::string> inline_aux_names;
+      /// A scan start time (MS:1000016) was parsed (MzMLHandler::rt_set_ at the spectrum end).
+      bool has_scan_start_time {false};
     };
 
     // ------------------------------------------------------------------
@@ -169,17 +191,27 @@ namespace Internal
     ArrayMeta  cur_array_;
     ArrayMeta  cur_mz_meta_;
     ArrayMeta  cur_int_meta_;
+    std::vector<ArrayMeta> cur_aux_metas_;
+    std::vector<std::string> cur_inline_aux_names_;
 
     std::vector<SpecIMS>             spec_ims_;  ///< IMS state per spectrum (document order)
     std::vector<ImzMLSpectrumIndex>  index_;     ///< Full index for OnDiscImzMLExperiment
 
-    using CvPair = std::pair<std::string, std::string>;
-    std::unordered_map<std::string, std::vector<CvPair>> ref_groups_;
+    /// A cvParam captured inside a referenceableParamGroup.
+    struct CvEntry
+    {
+      std::string accession;
+      std::string name;
+      std::string value;
+      std::string unit_accession;
+    };
+    std::unordered_map<std::string, std::vector<CvEntry>> ref_groups_;
     std::string cur_ref_id_;
     bool   in_ref_group_ { false };
     bool   decode_ibd_ { true };
     bool   cur_x_seen_ { false };
     bool   cur_y_seen_ { false };
+    bool   pixel_size_y_given_ { false };
 
     std::unique_ptr<ImzMLInterceptConsumer> decode_bridge_;
   };

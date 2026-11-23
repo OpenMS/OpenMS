@@ -1,0 +1,5 @@
+file	level	class	q_value	accepted	entrapment	lower_bound_fdp	combined_fdp	paired_fdp	entrapment_target_not_accepted	entrapment_above_target	te_ratio
+EntrapmentEvaluator_2_input.idXML	psm	all	0.005	6	3	0.5	1	NA	NA	NA	1
+EntrapmentEvaluator_2_input.idXML	psm	all	0.01	9	3	0.3333	0.6667	NA	NA	NA	1
+EntrapmentEvaluator_2_input.idXML	peptide	all	0.005	6	3	0.5	1	0.8333	2	0	1
+EntrapmentEvaluator_2_input.idXML	peptide	all	0.01	9	3	0.3333	0.6667	0.6667	1	1	1

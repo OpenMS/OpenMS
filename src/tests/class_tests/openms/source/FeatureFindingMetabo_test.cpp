@@ -7,6 +7,8 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/ClassTest.h>
+#include <OpenMS/TestFileValidation.h>
+#include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/CONCEPT/FuzzyStringComparator.h>
 #include <OpenMS/test_config.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
@@ -19,8 +21,93 @@
 #include <OpenMS/FEATUREFINDER/FeatureFindingMetabo.h>
 ///////////////////////////
 
+#include <cmath>
+
 using namespace OpenMS;
 using namespace std;
+
+namespace
+{
+  /// A mass trace with a Gaussian elution profile, sampled once per second and
+  /// prepared the way ElutionPeakDetection hands traces to FeatureFindingMetabo.
+  MassTrace makeGaussianTrace(double mz, double apex_rt, double height, double sigma, const std::string& label, double mz_sd = 0.001)
+  {
+    std::vector<Peak2D> peaks;
+    std::vector<double> intensities;
+    for (int i = -10; i <= 10; ++i)
+    {
+      Peak2D p;
+      p.setRT(apex_rt + i);
+      p.setMZ(mz);
+      p.setIntensity(height * std::exp(-0.5 * i * i / (sigma * sigma)));
+      peaks.push_back(p);
+      intensities.push_back(p.getIntensity());
+    }
+    MassTrace mt(peaks);
+    mt.setLabel(label);
+    mt.updateWeightedMeanRT();
+    mt.updateWeightedMeanMZ();
+    mt.setCentroidSD(mz_sd);
+    mt.setSmoothedIntensities(intensities);
+    mt.estimateFWHM(true);
+    return mt;
+  }
+
+  /// Assemble the given traces (FeatureFindingMetabo sorts its input, hence the copy).
+  FeatureMap assemble(std::vector<MassTrace> traces, const Param& changed_params)
+  {
+    FeatureFindingMetabo ffm;
+    Param p = ffm.getParameters();
+    for (Param::ParamIterator it = changed_params.begin(); it != changed_params.end(); ++it)
+    {
+      p.setValue(it.getName(), it->value);
+    }
+    ffm.setParameters(p);
+    FeatureMap fm;
+    std::vector<std::vector<MSChromatogram>> chromatograms;
+    ffm.run(traces, fm, chromatograms);
+    return fm;
+  }
+
+  /// Run the mass trace pipeline with the settings of the FeatureFinderMetabo TOPP tool.
+  FeatureMap runPipeline(const std::string& mzml_file, const Param& changed_ffm_params)
+  {
+    PeakMap exp;
+    MzMLFile().load(mzml_file, exp);
+    exp.sortSpectra(true);
+
+    MassTraceDetection mtd;
+    Param p = mtd.getParameters();
+    p.setValue("noise_threshold_int", 10.0);
+    p.setValue("chrom_peak_snr", 3.0);
+    mtd.setParameters(p);
+    std::vector<MassTrace> traces, split_traces;
+    mtd.run(exp, traces);
+
+    ElutionPeakDetection epd;
+    p = epd.getParameters();
+    p.setValue("chrom_peak_snr", 3.0);
+    p.setValue("chrom_fwhm", 5.0);
+    p.setValue("width_filtering", "fixed");
+    epd.setParameters(p);
+    epd.detectPeaks(traces, split_traces);
+
+    return assemble(split_traces, changed_ffm_params);
+  }
+
+  /// The feature whose monoisotopic trace has the given m/z (or nullptr).
+  const Feature* findFeature(const FeatureMap& fm, double mz, double mz_tolerance = 0.01)
+  {
+    for (const Feature& f : fm)
+    {
+      if (std::fabs(f.getMZ() - mz) <= mz_tolerance)
+      {
+        return &f;
+      }
+    }
+    return nullptr;
+  }
+}
 
 START_TEST(FeatureFindingMetabo, "$Id$")
 
@@ -77,15 +164,68 @@ START_SECTION((void run(std::vector< MassTrace > &, FeatureMap &, chromatograms 
   p.setValue("mz_scoring_13C", "true");
   test_ffm.setParameters(p);
   test_ffm.run(splitted_mt, test_fm, chromatograms);
-  TEST_EQUAL(test_fm.size(), 84);
+  // ElutionPeakDetection no longer extrapolates its smoothing to the ends of a mass trace (#2777), which
+  // changes two traces, in this and the next two runs alike (see also the historic section below):
+  // - the trace at m/z 213.1534 is kept and becomes a feature of its own (+1);
+  // - the trace at m/z 219.0997 is removed, so the feature at m/z 217.0985 has two traces instead of three:
+  //   its intensity rises to its last point (the flank of a larger peak at m/z 219.103), and only the
+  //   extrapolated end had given it an apex inside the trace.
+  TEST_EQUAL(test_fm.size(), 80);
 
   // run with default settings (from paper using charge+isotope# dependent distances)
   p.setValue("report_convex_hulls", "true");
   p.setValue("mz_scoring_13C", "false");
   test_ffm.setParameters(p);
   test_ffm.run(splitted_mt, test_fm, chromatograms);
-  TEST_EQUAL(test_fm.size(), 81);
+  // one feature more than with 'mz_scoring_trace_uncertainty' = "spread": the pair at m/z 177.0575
+  // and 178.0538 (spacing 0.9963, 5.6 mDa off the expected one) is no longer assembled
+  // (and one more for the trace at m/z 213.1534, see above)
+  TEST_EQUAL(test_fm.size(), 78);
   // --> this gives less features, i.e. more isotope clusters (but the input data is simulated and highly weird -- should be replaced at some point)
+
+  //todo the new isotope m/z scoring should produce similar results, but still has to be tested.
+  p.setValue("mz_scoring_by_elements", "true");
+  test_ffm.setParameters(p);
+  test_ffm.run(splitted_mt, test_fm, chromatograms);
+  // one feature less than with "spread": the simulated traces have an m/z spread of only 0.1 ppm, so
+  // 'mz_scoring_min_ppm' widens the tolerance, and two pairs at m/z 171.07 and 173.08 join (the
+  // element window for the second isotope reaches 2.0126, two 2H; their spacing is 2.0129)
+  // (and one more for the trace at m/z 213.1534, see above)
+  TEST_EQUAL(test_fm.size(), 75);
+  // --> this gives less features, i.e. more isotope clusters (but the input data is simulated and highly weird -- should be replaced at some point)
+}
+END_SECTION
+
+START_SECTION(([EXTRA] run with historic settings))
+{
+  // The behavior before issue #1942: the RT overlap measured against the longer trace,
+  // missing isotope traces counted as zero intensity, and the spread of the peaks as
+  // m/z uncertainty of a trace.
+  FeatureFindingMetabo test_ffm;
+  Param p = test_ffm.getParameters();
+  p.setValue("isotope_rt_overlap_reference", "longer");
+  p.setValue("isotope_filtering_missing_traces", "zero");
+  p.setValue("mz_scoring_trace_uncertainty", "spread");
+
+  // C13 isotope distance
+  p.setValue("mz_scoring_13C", "true");
+  test_ffm.setParameters(p);
+  test_ffm.run(splitted_mt, test_fm, chromatograms);
+  // one feature less than before the MassTrace::estimateFWHM right-flank fix (#10052): the RT
+  // co-elution score divides the FWHM-border overlap by the trace FWHM, so a corrected FWHM moves
+  // hypotheses across 'min_isotope_rt_overlap' and one more trace pair is assembled as isotopes
+  // ... and one feature more since ElutionPeakDetection no longer extrapolates its smoothing to the ends of a
+  // mass trace (#2777): the trace at m/z 213.1534 starts just before its apex (third point), the extrapolated
+  // fit put the smoothed maximum on its first point, and a trace with the apex on its first point has no FWHM
+  // and is removed by the width filter.
+  TEST_EQUAL(test_fm.size(), 84);
+
+  // charge+isotope# dependent distances (from paper)
+  p.setValue("report_convex_hulls", "true");
+  p.setValue("mz_scoring_13C", "false");
+  test_ffm.setParameters(p);
+  test_ffm.run(splitted_mt, test_fm, chromatograms);
+  TEST_EQUAL(test_fm.size(), 81);
 
   // test annotation of input
   std::string tmp_file;
@@ -93,13 +233,10 @@ START_SECTION((void run(std::vector< MassTrace > &, FeatureMap &, chromatograms 
   FeatureXMLFile().store(tmp_file, test_fm);
   TEST_EQUAL(fsc.compareFiles(tmp_file, OPENMS_GET_TEST_DATA_PATH("FeatureFindingMetabo_output1.featureXML")), true);
 
-  //todo the new isotope m/z scoring should produce similar results, but still has to be tested.
-  p.setValue("report_convex_hulls", "true");
   p.setValue("mz_scoring_by_elements", "true");
   test_ffm.setParameters(p);
   test_ffm.run(splitted_mt, test_fm, chromatograms);
   TEST_EQUAL(test_fm.size(), 80);
-  // --> this gives less features, i.e. more isotope clusters (but the input data is simulated and highly weird -- should be replaced at some point)
 }
 END_SECTION
 
@@ -175,8 +312,240 @@ START_SECTION(([EXTRA] run with ion mobility data))
 }
 END_SECTION
 
+START_SECTION(([EXTRA] defaults))
+{
+  Param p = FeatureFindingMetabo().getParameters();
+  TEST_EQUAL(p.getValue("isotope_rt_overlap_reference"), "shorter")
+  TEST_EQUAL(p.getValue("isotope_filtering_missing_traces"), "unknown")
+  TEST_EQUAL(p.getValue("mz_scoring_trace_uncertainty"), "standard_error")
+  TEST_REAL_SIMILAR(double(p.getValue("mz_scoring_min_ppm")), 2.0)
+}
+END_SECTION
+
+START_SECTION(([EXTRA] isotope_rt_overlap_reference))
+{
+  // An isotope trace of low intensity is shorter than the monoisotopic trace, because
+  // only its most intense part exceeds the noise: the two overlap in 4 s here, which
+  // is all of the isotope trace (FWHM 3.5 s), but less than half of the monoisotopic
+  // trace (FWHM 9.4 s).
+  std::vector<MassTrace> traces;
+  traces.push_back(makeGaussianTrace(300.1, 100.0, 1.0e5, 4.0, "mono"));
+  traces.push_back(makeGaussianTrace(301.102, 100.0, 2.0e4, 1.5, "iso1"));
+
+  FeatureMap fm = assemble(traces, Param());
+  TEST_EQUAL(fm.size(), 1)
+  TEST_EQUAL(fm[0].getCharge(), 1)
+  TEST_EQUAL(fm[0].getMetaValue(Constants::UserParam::NUM_OF_MASSTRACES), 2)
+  TEST_REAL_SIMILAR(fm[0].getMZ(), 300.1)
+
+  Param longer;
+  longer.setValue("isotope_rt_overlap_reference", "longer");
+  fm = assemble(traces, longer);
+  TEST_EQUAL(fm.size(), 2)
+  TEST_EQUAL(fm[0].getCharge(), 0)
+  TEST_EQUAL(fm[1].getCharge(), 0)
+
+  // the apex of the longer trace has to lie within the shorter trace
+  traces[1] = makeGaussianTrace(301.102, 105.0, 2.0e4, 1.5, "iso1");
+  fm = assemble(traces, Param());
+  TEST_EQUAL(fm.size(), 2)
+}
+END_SECTION
+
+START_SECTION(([EXTRA] isotope_filtering_missing_traces))
+{
+  // A molecule of 850 Da whose second and third isotopic trace are below the
+  // detection limit. The first isotopic trace has 70% of the monoisotopic intensity,
+  // which is common at this mass (about 60 carbon atoms).
+  std::vector<MassTrace> traces;
+  traces.push_back(makeGaussianTrace(850.5, 100.0, 1.0e5, 3.0, "mono"));
+  traces.push_back(makeGaussianTrace(851.502, 100.0, 0.7e5, 3.0, "iso1"));
+
+  // unknown intensity of the missing traces: accepted
+  FeatureMap fm = assemble(traces, Param());
+  TEST_EQUAL(fm.size(), 1)
+  TEST_EQUAL(fm[0].getCharge(), 1)
+  TEST_EQUAL(fm[0].getMetaValue(Constants::UserParam::NUM_OF_MASSTRACES), 2)
+  TEST_EQUAL(fm[0].getMetaValue("legal_isotope_pattern"), 1)
+
+  // missing traces counted as zero intensity: the model rejects the pattern
+  Param zero;
+  zero.setValue("isotope_filtering_missing_traces", "zero");
+  fm = assemble(traces, zero);
+  TEST_EQUAL(fm.size(), 2)
+  TEST_EQUAL(fm[0].getCharge(), 0)
+  TEST_EQUAL(fm[1].getCharge(), 0)
+
+  // a first isotopic trace that fits the mass on its own is accepted either way
+  traces[1] = makeGaussianTrace(851.502, 100.0, 0.45e5, 3.0, "iso1");
+  TEST_EQUAL(assemble(traces, Param()).size(), 1)
+  TEST_EQUAL(assemble(traces, zero).size(), 1)
+
+  // a first isotopic trace that is more intense than the monoisotopic trace is
+  // impossible at this mass, whatever the intensity of the missing traces is
+  traces[1] = makeGaussianTrace(851.502, 100.0, 1.3e5, 3.0, "iso1");
+  TEST_EQUAL(assemble(traces, Param()).size(), 2)
+  TEST_EQUAL(assemble(traces, zero).size(), 2)
+
+  // the setting does not apply without a metabolite isotope model
+  Param none = zero;
+  none.setValue("isotope_filtering_model", "none");
+  TEST_EQUAL(assemble(traces, none).size(), 1)
+}
+END_SECTION
+
+START_SECTION(([EXTRA] isotope_filtering_missing_traces: only the third isotopic trace is missing))
+{
+  // Three detected traces of an 850 Da molecule: M+1 at 45% and M+2 at 70% of M (e.g. two
+  // chlorine atoms). With M+3 counted as zero, the 5% RMS model rejects the pattern, and only
+  // M and M+1 are assembled; with M+3 unknown (at most as intense as M+1), all three are.
+  std::vector<MassTrace> traces;
+  traces.push_back(makeGaussianTrace(850.5, 100.0, 1.0e5, 3.0, "mono"));
+  traces.push_back(makeGaussianTrace(851.502, 100.0, 0.45e5, 3.0, "iso1"));
+  traces.push_back(makeGaussianTrace(852.503, 100.0, 0.7e5, 3.0, "iso2"));
+  Param zero;
+  zero.setValue("isotope_filtering_missing_traces", "zero");
+
+  FeatureMap fm = assemble(traces, Param());
+  const Feature* f = findFeature(fm, 850.5);
+  TEST_NOT_EQUAL(f, nullptr)
+  ABORT_IF(f == nullptr)
+  TEST_EQUAL(f->getCharge(), 1)
+  TEST_EQUAL(f->getMetaValue(Constants::UserParam::NUM_OF_MASSTRACES), 3)
+
+  fm = assemble(traces, zero);
+  f = findFeature(fm, 850.5);
+  TEST_NOT_EQUAL(f, nullptr)
+  ABORT_IF(f == nullptr)
+  TEST_EQUAL(f->getCharge(), 1)
+  TEST_EQUAL(f->getMetaValue(Constants::UserParam::NUM_OF_MASSTRACES), 2)
+
+  // an M+2 more intense than M is impossible at this mass, whatever M+3 is
+  traces[2] = makeGaussianTrace(852.503, 100.0, 1.1e5, 3.0, "iso2");
+  fm = assemble(traces, Param());
+  f = findFeature(fm, 850.5);
+  TEST_NOT_EQUAL(f, nullptr)
+  ABORT_IF(f == nullptr)
+  TEST_EQUAL(f->getMetaValue(Constants::UserParam::NUM_OF_MASSTRACES), 2)
+}
+END_SECTION
+
+START_SECTION(([EXTRA] mz_scoring_trace_uncertainty and mz_scoring_min_ppm))
+{
+  // Two co-eluting traces of 21 peaks whose peaks spread by 10 mDa around the centroid,
+  // 15 mDa off the expected isotope spacing. The spread itself lets the pair pass (about
+  // one standard deviation); the standard error of the centroids (about 3 mDa, the spread
+  // divided by the square root of the effective number of peaks) does not.
+  const double expected_spacing = 1.000857 + 0.001091; // Kenar et al., first isotope, charge 1
+  std::vector<MassTrace> traces;
+  traces.push_back(makeGaussianTrace(300.1, 100.0, 1.0e5, 3.0, "mono", 0.01));
+  traces.push_back(makeGaussianTrace(300.1 + expected_spacing + 0.015, 100.0, 2.0e4, 3.0, "iso1", 0.01));
+
+  FeatureMap fm = assemble(traces, Param());
+  TEST_EQUAL(fm.size(), 2)
+
+  Param spread;
+  spread.setValue("mz_scoring_trace_uncertainty", "spread");
+  fm = assemble(traces, spread);
+  TEST_EQUAL(fm.size(), 1)
+  TEST_EQUAL(fm[0].getCharge(), 1)
+
+  // a minimum uncertainty of 10 ppm (3 mDa per trace) widens the tolerance enough
+  Param min_ppm;
+  min_ppm.setValue("mz_scoring_min_ppm", 10.0);
+  fm = assemble(traces, min_ppm);
+  TEST_EQUAL(fm.size(), 1)
+  TEST_EQUAL(fm[0].getCharge(), 1)
+
+  // The standard error divides by the effective number of peaks, (sum w)^2 / sum w^2 (about 10.6
+  // for these Gaussian traces), not by the number of peaks (21). At 11 mDa off and without the
+  // minimum, the tolerance (3 sigma) is 13.5 mDa with the effective number and 9.9 mDa with 21.
+  traces[1] = makeGaussianTrace(300.1 + expected_spacing + 0.011, 100.0, 2.0e4, 3.0, "iso1", 0.01);
+  Param no_min;
+  no_min.setValue("mz_scoring_min_ppm", 0.0);
+  no_min.setValue("isotope_filtering_model", "none");
+  fm = assemble(traces, no_min);
+  TEST_EQUAL(fm.size(), 1)
+  TEST_EQUAL(fm[0].getCharge(), 1)
+}
+END_SECTION
+
+START_SECTION(([EXTRA] isotope traces of low intensity (issue #1942)))
+{
+  // Excerpts (m/z 518-529, RT 160-240 s) of two runs of the same study, taken from
+  // issue #1942: a doubly charged ion at m/z 523.286 elutes at 200 s with isotope
+  // traces at m/z 523.786 and 524.288. Its traces are 3 to 5 scans wide.
+  const std::string low = OPENMS_GET_TEST_DATA_PATH("FeatureFindingMetabo_issue1942_low.mzML");
+  const std::string high = OPENMS_GET_TEST_DATA_PATH("FeatureFindingMetabo_issue1942_high.mzML");
+
+  Param longer, zero, historic;
+  longer.setValue("isotope_rt_overlap_reference", "longer");
+  zero.setValue("isotope_filtering_missing_traces", "zero");
+  historic.setValue("isotope_rt_overlap_reference", "longer");
+  historic.setValue("isotope_filtering_missing_traces", "zero");
+  historic.setValue("mz_scoring_trace_uncertainty", "spread");
+
+  // the ion is found in both runs
+  FeatureMap fm = runPipeline(low, Param());
+  const Feature* f = findFeature(fm, 523.286);
+  TEST_NOT_EQUAL(f, nullptr)
+  ABORT_IF(f == nullptr)
+  TEST_EQUAL(f->getCharge(), 2)
+  TEST_EQUAL(f->getMetaValue(Constants::UserParam::NUM_OF_MASSTRACES), 3)
+
+  fm = runPipeline(high, Param());
+  f = findFeature(fm, 523.286);
+  TEST_NOT_EQUAL(f, nullptr)
+  ABORT_IF(f == nullptr)
+  TEST_EQUAL(f->getCharge(), 2)
+  // The trace at m/z 524.288 also holds a co-eluting ion that starts there (with a second trace at m/z
+  // 524.792). Before #2777, the smoothing set an undershoot at the first point of the traces at m/z
+  // 523.786 and 524.288 to zero; with the FWHMs of the unclamped traces, 524.288 is assembled as the third
+  // isotope trace of this ion, as in the run of low intensity, instead of with 524.792.
+  TEST_EQUAL(f->getMetaValue(Constants::UserParam::NUM_OF_MASSTRACES), 3)
+
+  // the historic settings leave the monoisotopic trace on its own in both runs
+  fm = runPipeline(low, historic);
+  f = findFeature(fm, 523.286);
+  TEST_NOT_EQUAL(f, nullptr)
+  ABORT_IF(f == nullptr)
+  TEST_EQUAL(f->getCharge(), 0)
+
+  fm = runPipeline(high, historic);
+  f = findFeature(fm, 523.286);
+  TEST_NOT_EQUAL(f, nullptr)
+  ABORT_IF(f == nullptr)
+  TEST_EQUAL(f->getCharge(), 0)
+
+  // run of low intensity: measuring the RT overlap against the shorter trace suffices
+  fm = runPipeline(low, zero);
+  f = findFeature(fm, 523.286);
+  TEST_NOT_EQUAL(f, nullptr)
+  ABORT_IF(f == nullptr)
+  TEST_EQUAL(f->getCharge(), 2)
+
+  // run of high intensity: needs both settings. With missing traces counted as zero, the ion is not
+  // assembled with charge 2. Since the trace at m/z 524.288 no longer goes with 524.792 (see above), the
+  // monoisotopic trace pairs with it (spacing 1.003) as an ion of charge 1.
+  fm = runPipeline(high, zero);
+  f = findFeature(fm, 523.286);
+  TEST_NOT_EQUAL(f, nullptr)
+  ABORT_IF(f == nullptr)
+  TEST_EQUAL(f->getCharge(), 1)
+
+  fm = runPipeline(high, longer);
+  f = findFeature(fm, 523.286);
+  TEST_NOT_EQUAL(f, nullptr)
+  ABORT_IF(f == nullptr)
+  TEST_EQUAL(f->getCharge(), 0)
+}
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
+/// check the temporary files written above against their XML schema (types without a validator are skipped)
+VALIDATE_TMP_FILES
+
 END_TEST
 
 

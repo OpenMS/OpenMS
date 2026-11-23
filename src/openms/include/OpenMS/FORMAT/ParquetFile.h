@@ -10,13 +10,9 @@
 
 #include <OpenMS/config.h>
 #include <OpenMS/CONCEPT/Types.h>
-#include <OpenMS/DATASTRUCTURES/StringUtils.h>
-#include <OpenMS/SYSTEM/File.h>
 
 #include <arrow/api.h>
-#include <arrow/io/file.h>
-#include <parquet/arrow/writer.h>
-#include <parquet/arrow/reader.h>
+#include <arrow/io/interfaces.h>
 
 #include <memory>
 #include <string>
@@ -251,9 +247,9 @@ namespace OpenMS
     /**
       @brief Escape a string for safe embedding into JSON values.
 
-      Mirrors the ad-hoc jsonEscape_ implementations used in several
-      Parquet-writing sources so callers can reuse a single canonical
-      implementation.
+      The single JSON escaper of the Parquet-writing sources (OpenSWATH run metadata, the
+      FeatureMap/ConsensusMap/ProteinIdentification Arrow I/O). Control characters are written as
+      \\u00XX escapes.
     */
     static std::string jsonEscape(const std::string& input);
 

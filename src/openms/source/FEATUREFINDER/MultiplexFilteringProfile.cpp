@@ -57,7 +57,7 @@ namespace OpenMS
         }
       }
       
-      boundaries_.push_back(boundaries_temp);
+      boundaries_.push_back(std::move(boundaries_temp));
     }
     
     if (exp_profile.size() != exp_centroided.size())
@@ -83,6 +83,8 @@ namespace OpenMS
     }
     
     // spline interpolate the profile data
+    // (reserved: SplineInterpolatedPeaks is copied, not moved, when the vector grows)
+    exp_spline_profile_.reserve(exp_profile.size());
     for (const auto& spectrum : exp_profile)
     {
       exp_spline_profile_.emplace_back(spectrum);
@@ -108,12 +110,15 @@ namespace OpenMS
     
     // construct navigators for all spline spectra
     std::vector<SplineInterpolatedPeaks::Navigator> navigators;
+    navigators.reserve(exp_spline_profile_.size());
     for (SplineInterpolatedPeaks& spl : exp_spline_profile_)
     {
-      SplineInterpolatedPeaks::Navigator nav = spl.getNavigator();
-      navigators.push_back(nav);
+      navigators.push_back(spl.getNavigator());
     }
-    
+    // A navigator remembers the spline package it used last. The peaks of a spectrum are filtered on several threads
+    // (filterSpectrum_()), so these navigators are only copied, and every peak evaluates the splines through copies of
+    // its own. (The results do not depend on that state.)
+
     // loop over all patterns
     for (unsigned pattern_idx = 0; pattern_idx < patterns_.size(); ++pattern_idx)
     {
@@ -147,28 +152,42 @@ namespace OpenMS
         MSExperiment::ConstIterator it_rt_picked_band_end = exp_centroided_white_.RTEnd(rt + rt_band_/2);
         
         // loop over mz
-        #pragma omp parallel for
-        for (SignedSize s = 0; s < (SignedSize) it_rt.size(); s++)
+        filterSpectrum_(idx_rt, pattern_idx, [&](SignedSize s, std::vector<BlacklistEntry>* blacklist_reads) -> std::optional<MultiplexFilteredPeak>
         {
           double mz = it_rt[s].getMZ();
-          MultiplexFilteredPeak peak(mz, rt, exp_centroided_mapping_[idx_rt][s], idx_rt);
+          MultiplexFilteredPeak peak(mz, rt, exp_centroided_mapping_[idx_rt].at(s), idx_rt);
           
-          if (!(filterPeakPositions_(mz, exp_centroided_white_.begin(), it_rt_picked_band_begin, it_rt_picked_band_end, pattern, peak)))
+          if (!(filterPeakPositions_(mz, exp_centroided_white_.begin(), it_rt_picked_band_begin, it_rt_picked_band_end, pattern, peak, blacklist_reads)))
           {
-            continue;
+            return std::nullopt;
           }
           
-          size_t mz_idx = exp_centroided_mapping_[idx_rt][s];
+          size_t mz_idx = exp_centroided_mapping_[idx_rt].at(s);
           double peak_min = boundaries_[idx_rt][mz_idx].mz_min;
           double peak_max = boundaries_[idx_rt][mz_idx].mz_max;
           
           //double rt_peak = peak.getRT();
           double mz_peak = peak.getMZ();
 
-          const std::multimap<size_t, MultiplexSatelliteCentroided >& satellites = peak.getSatellites();
+          // the satellites (in their order in the peak), each with a navigator through the splines of its spectrum
+          struct SatelliteSpline
+          {
+            size_t mass_trace; // index of the mass trace within the multiplet
+            double rt;
+            double mz;
+            SplineInterpolatedPeaks::Navigator navigator;
+          };
+          std::vector<SatelliteSpline> satellite_splines;
+          satellite_splines.reserve(peak.size());
+          for (const auto& [mass_trace, satellite] : peak.getSatellites())
+          {
+            const MSSpectrum& spectrum_satellite = exp_centroided_[satellite.getRTidx()];
+            satellite_splines.push_back({mass_trace, spectrum_satellite.getRT(), spectrum_satellite[satellite.getMZidx()].getMZ(), navigators[satellite.getRTidx()]});
+          }
+          SplineInterpolatedPeaks::Navigator navigator = navigators[idx_rt];
           
           // Arrangement of peaks looks promising. Now scan through the spline fitted profile data around the peak i.e. from peak boundary to peak boundary.
-          for (double mz_profile = peak_min; mz_profile < peak_max; mz_profile = navigators[idx_rt].getNextPos(mz_profile))
+          for (double mz_profile = peak_min; mz_profile < peak_max; mz_profile = navigator.getNextPos(mz_profile))
           {
             // determine m/z shift relative to the centroided peak at which the profile data will be sampled
             double mz_shift = mz_profile - mz_peak;
@@ -176,26 +195,13 @@ namespace OpenMS
             std::multimap<size_t, MultiplexSatelliteProfile > satellites_profile;
 
             // construct the set of spline-interpolated satellites for this specific mz_profile
-            for (const auto &satellite_it : satellites)
+            for (SatelliteSpline& satellite : satellite_splines)
             {
-              // find indices of the peak
-              size_t rt_idx = (satellite_it.second).getRTidx();
-              size_t mz_idx = (satellite_it.second).getMZidx();
-              
-              // find peak itself
-              MSExperiment::ConstIterator it_rt = exp_centroided_.begin();
-              std::advance(it_rt, rt_idx);
-              MSSpectrum::ConstIterator it_mz = it_rt->begin();
-              std::advance(it_mz, mz_idx);
-              
-              double rt_satellite = it_rt->getRT();
-              double mz_satellite = it_mz->getMZ();
-              
               // determine m/z and corresponding intensity
-              double mz = mz_satellite + mz_shift;
-              double intensity = navigators[rt_idx].eval(mz);
+              double mz = satellite.mz + mz_shift;
+              double intensity = satellite.navigator.eval(mz);
               
-              satellites_profile.insert(std::make_pair(satellite_it.first, MultiplexSatelliteProfile(rt_satellite, mz, intensity)));
+              satellites_profile.insert(std::make_pair(satellite.mass_trace, MultiplexSatelliteProfile(satellite.rt, mz, intensity)));
             }
             
             if (!(filterAveragineModel_(pattern, peak, satellites_profile)))
@@ -223,14 +229,10 @@ namespace OpenMS
           // If some satellite data points passed all filters, we can add the peak to the filter result.
           if (peak.sizeProfile() > 0)
           {
-            #pragma omp critical
-            {
-              result.addPeak(peak);
-              blacklistPeak_(peak, pattern_idx);
-            };
+            return peak;
           }
-          
-        }
+          return std::nullopt;
+        }, result);
         
       }
  
@@ -242,7 +244,7 @@ namespace OpenMS
 #endif
       
       // add results of this pattern to list
-      filter_results.push_back(result);
+      filter_results.push_back(std::move(result));
     }
     
 #ifdef DEBUG_FFMULTIPLEX
@@ -265,24 +267,7 @@ namespace OpenMS
     // construct averagine distribution
     // Note that the peptide(s) are very close in mass. We therefore calculate the averagine distribution only once (for the lightest peptide).
     double mass = peak.getMZ() * pattern.getCharge();
-    CoarseIsotopePatternGenerator solver(isotopes_per_peptide_max_);
-    IsotopeDistribution distribution;
-    if (averagine_type_ == "peptide")
-    {
-      distribution = solver.estimateFromPeptideWeight(mass);
-    }
-    else if (averagine_type_ == "RNA")
-    {
-      distribution = solver.estimateFromRNAWeight(mass);
-    }
-    else if (averagine_type_ == "DNA")
-    {
-      distribution = solver.estimateFromDNAWeight(mass);
-    }
-    else
-    {
-      throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Invalid averagine type.");
-    }   
+    const IsotopeDistribution& distribution = averagineDistribution_(mass);
     
     // loop over peptides
     for (size_t peptide = 0; peptide < pattern.getMassShiftCount(); ++peptide)

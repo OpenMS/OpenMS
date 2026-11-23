@@ -11,13 +11,15 @@ ChromatogramTools.h
 ConsensusFeature.h
 ConversionHelper.h
 ConsensusMap.h
-ConversionHelper.h
 DimMapper.h
 DPeak.h
 Feature.h
 FeatureHandle.h
 FeatureMap.h
+FeatureUniqueIds.h
+IMSExperimentRandomAccess.h
 MassTrace.h
+MassTraceStatistics.h
 MobilityPeak1D.h
 MobilityPeak2D.h
 Mobilogram.h
@@ -30,7 +32,9 @@ OnDiscMSExperiment.h
 OnDiscImzMLExperiment.h
 Peak1D.h
 Peak2D.h
+PeakContainerSort.h
 PeakIndex.h
+PeakTypeEstimator.h
 RangeManager.h
 RangeUtils.h
 RichPeak2D.h
@@ -50,4 +54,3 @@ endforeach(i)
 source_group("Header Files\\OpenMS\\KERNEL" FILES ${sources_h})
 
 set(OpenMS_sources_h ${OpenMS_sources_h} ${sources_h})
-

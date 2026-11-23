@@ -67,7 +67,7 @@ We can create an object of type :py:class:`~.ProteinIdentification`  and populat
   protein_hit.setAccession("sp|MyAccession")
   protein_hit.setSequence("PEPTIDERDLQMTQSPSSLSVSVGDRPEPTIDE")
   protein_hit.setScore(1.0)
-  protein_hit.setMetaValue("target_decoy", b"target")  # its a target protein
+  protein_hit.setMetaValue("target_decoy", "target")  # its a target protein
 
   protein_id.setHits([protein_hit])
 
@@ -132,8 +132,8 @@ corresponding :py:class:`~.PeptideHit` objects:
 
   ev = oms.PeptideEvidence()
   ev.setProteinAccession("sp|MyAccession")
-  ev.setAABefore(b"R")
-  ev.setAAAfter(b"P")
+  ev.setAABefore("R")
+  ev.setAAAfter("P")
   ev.setStart(123)  # start and end position in the protein
   ev.setEnd(141)
   peptide_hit.setPeptideEvidences([ev])

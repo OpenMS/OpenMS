@@ -15,6 +15,7 @@
 #include <algorithm>
 #include <cmath>
 #include <fstream>
+#include <iterator>
 #include <numeric>
 #include <unordered_map>
 #include <unordered_set>
@@ -24,18 +25,74 @@
 namespace OpenMS
 {
 
+  namespace
+  {
+    /// The entry of a table that is ordered by mass (the key) whose mass is nearest to @p mass,
+    /// or table.end() for an empty table. Of two equally distant entries the lower one is returned.
+    template <typename Table>
+    typename Table::const_iterator nearestEntry_(const Table& table, double mass)
+    {
+      const auto upper = table.lower_bound(mass); // the lowest entry that is not below the mass
+      if (upper == table.begin())
+      {
+        return upper; // nothing below (table.end() if the table is empty)
+      }
+      const auto lower = std::prev(upper);
+      if (upper == table.end() || std::abs(lower->first - mass) <= std::abs(upper->first - mass))
+      {
+        return lower;
+      }
+      return upper;
+    }
+
+    /// The entries of a table that is ordered by mass (the key) that name a cluster of mass @p mass:
+    /// the nearest entry if it is within @p tolerance, and all entries within @p tolerance whose distance to
+    /// @p mass is at most @p ambiguity_tolerance larger than that of the nearest one (these cannot be told apart).
+    /// In order of mass. Empty if no entry is within @p tolerance.
+    template <typename Table>
+    std::vector<typename Table::const_iterator> namingEntries_(const Table& table, double mass, double tolerance, double ambiguity_tolerance)
+    {
+      std::vector<typename Table::const_iterator> entries;
+      const auto nearest = nearestEntry_(table, mass);
+      if (nearest == table.end() || std::abs(nearest->first - mass) > tolerance)
+      {
+        return entries;
+      }
+
+      const double reach = std::min(tolerance, std::abs(nearest->first - mass) + ambiguity_tolerance);
+      constexpr double epsilon = 1e-8; // guard band when seeding a lookup at a window border
+      for (auto it = table.lower_bound(mass - reach - epsilon); it != table.end() && it->first <= mass + reach + epsilon; ++it)
+      {
+        if (std::abs(it->first - mass) <= reach)
+        {
+          entries.push_back(it);
+        }
+      }
+      return entries;
+    }
+
+    /// The names of the entries joined with "//" ("A//B")
+    template <typename Entries>
+    std::string joinedNames_(const Entries& entries)
+    {
+      std::string joined;
+      for (const auto& entry : entries)
+      {
+        if (!joined.empty())
+        {
+          joined += "//";
+        }
+        joined += entry->second;
+      }
+      return joined;
+    }
+  } // namespace
+
   std::pair<OpenSearchModificationAnalysis::DeltaMassHistogram, OpenSearchModificationAnalysis::DeltaMassToChargeCount>
   OpenSearchModificationAnalysis::analyzeDeltaMassPatterns(const PeptideIdentificationList& peptide_ids, 
                                                           bool use_smoothing, 
                                                           bool /*debug*/) const
   {
-    // Constants
-    constexpr double deltamass_tolerance = 0.0005;
-
-    // Lambda to round values to the specified tolerance
-    auto roundToTolerance = [](double value) {
-      return std::round(value / deltamass_tolerance) * deltamass_tolerance;
-    };
 
     // Data structures to store histogram and charge states
     DeltaMassHistogram histogram(FuzzyDoubleComparator(1e-9));
@@ -48,19 +105,19 @@ namespace OpenMS
       const auto& hits = peptide_id.getHits();
       for (const auto& hit : hits)
       {
-        // Retrieve delta mass and charge
-        if (!hit.metaValueExists("DeltaMass"))
+        // Retrieve delta mass and charge (of the target hits)
+        if (!hit.metaValueExists("DeltaMass") || hit.isDecoy())
           continue;
-          
+
         double delta_mass = (double)hit.getMetaValue("DeltaMass");
         int charge = hit.getCharge();
 
         // Ignore delta masses close to zero
-        if (std::abs(delta_mass) <= DELTA_MASS_ZERO_THRESHOLD_)
+        if (isUnmodified(delta_mass))
           continue;
 
         // Round delta mass to bin similar values
-        double rounded_mass = roundToTolerance(delta_mass);
+        double rounded_mass = static_cast<double>(deltaMassBin_(delta_mass)) * DELTA_MASS_BIN_WIDTH_;
 
         // Update histogram count
         histogram[rounded_mass] += 1.0;
@@ -125,13 +182,25 @@ namespace OpenMS
       }
     }
 
-    // Generate combinations of modifications
-    std::map<double, std::string, FuzzyDoubleComparator> combo_modifications(FuzzyDoubleComparator(1e-9));
-    for (auto it1 = mass_to_modification.begin(); it1 != mass_to_modification.end(); ++it1)
+    // Names of the single modifications, in the order in which they are combined below
+    std::vector<std::string> single_mod_names;
+    single_mod_names.reserve(mass_to_modification.size());
+    for (const auto& mod_entry : mass_to_modification)
     {
-      for (auto it2 = it1; it2 != mass_to_modification.end(); ++it2)
+      single_mod_names.push_back(mod_entry.second);
+    }
+
+    // Generate combinations of modifications. Only the pair of indices into
+    // single_mod_names is stored; the combined name is assembled on demand for an actual
+    // match, since almost none of the ~n^2/2 combinations is ever looked up.
+    std::map<double, std::pair<UInt32, UInt32>, FuzzyDoubleComparator> combo_modifications(FuzzyDoubleComparator(1e-9));
+    UInt32 index1 = 0;
+    for (auto it1 = mass_to_modification.begin(); it1 != mass_to_modification.end(); ++it1, ++index1)
+    {
+      UInt32 index2 = index1;
+      for (auto it2 = it1; it2 != mass_to_modification.end(); ++it2, ++index2)
       {
-        combo_modifications[it1->first + it2->first] = it1->second + "++" + it2->second;
+        combo_modifications[it1->first + it2->first] = {index1, index2};
       }
     }
 
@@ -161,91 +230,80 @@ namespace OpenMS
     const double effective_tol = precursor_mass_tolerance_unit_ppm
       ? MAX_MOD_MAPPING_TOL_
       : std::min(precursor_mass_tolerance, MAX_MOD_MAPPING_TOL_);
-    const double epsilon = 1e-8;
 
     // Map delta masses to modifications
     for (const auto& hist_entry : delta_mass_histogram)
     {
       double cluster_mass = hist_entry.first;
       double count = hist_entry.second;
-      double lower_bound = cluster_mass - effective_tol;
-      double upper_bound = cluster_mass + effective_tol;
 
-      // Search for modifications within bounds
       bool mapping_found = false;
       std::string mod_name;
       double mod_mass = 0.0;
 
-      // Search in single modifications
-      auto it_lower = mass_to_modification.lower_bound(lower_bound - epsilon);
-      bool found_lower = false;
-      if (it_lower != mass_to_modification.end() &&
-          std::abs(it_lower->first - cluster_mass) <= effective_tol)
+      // Search in single modifications. The cluster is named after the modification nearest to its mass; the other
+      // modifications within the tolerance are not named, as they are less likely to be what was observed. Only if
+      // several are about equally close (within MOD_MAPPING_AMBIGUITY_TOL_ of the distance of the nearest one),
+      // the data cannot tell them apart, and the cluster is named after all of them ("A//B").
+      const auto candidates = namingEntries_(mass_to_modification, cluster_mass, effective_tol, MOD_MAPPING_AMBIGUITY_TOL_);
+      if (!candidates.empty())
       {
-        found_lower = true;
-      }
-
-      auto it_upper = mass_to_modification.upper_bound(upper_bound + epsilon);
-      bool found_upper = false;
-      if (it_upper != mass_to_modification.begin())
-      {
-        --it_upper;
-        if (std::abs(it_upper->first - cluster_mass) <= effective_tol)
+        // Remember what was found: it explains clusters at higher masses (the +1 isotope variant) and
+        // is what the peptide hits are annotated with. Only the modifications that name the cluster qualify.
+        for (const auto& candidate : candidates)
         {
-          found_upper = true;
+          histogram_found[candidate->first] = candidate->second;
         }
-      }
 
-      // Compare results from lower_bound and upper_bound
-      if (found_lower && found_upper)
-      {
-        if (it_lower->first == it_upper->first && it_lower->second == it_upper->second)
+        if (candidates.size() == 1)
         {
-          mod_name = it_lower->second;
-          mod_mass = it_lower->first;
-          histogram_found[mod_mass] = mod_name;
-          mapping_found = true;
+          mod_name = candidates.front()->second;
+          mod_mass = candidates.front()->first;
         }
         else
         {
-          mod_name = it_lower->second + "//" + it_upper->second;
+          mod_name = joinedNames_(candidates);
           mod_mass = cluster_mass;
-          histogram_found[it_lower->first] = it_lower->second;
-          histogram_found[it_upper->first] = it_upper->second;
-          mapping_found = true;
         }
+        mapping_found = true;
       }
       else
       {
-        // Check if modification can be explained by known modifications
-        for (const auto& hit : histogram_found)
+        // Check if modification can be explained by known modifications. Only entries within the tolerance of
+        // cluster_mass (direct match) or of cluster_mass - 1.0 (+1 isotope variant) qualify, and then the nearest one.
+        // effective_tol is capped at MAX_MOD_MAPPING_TOL_, so that the two windows are disjoint and the order of
+        // the checks does not matter.
+        const auto isotope_hit = nearestEntry_(histogram_found, cluster_mass - 1.0);
+        if (isotope_hit != histogram_found.end() &&
+            std::abs((isotope_hit->first + 1.0) - cluster_mass) < effective_tol)
         {
-          if (std::abs(hit.first - cluster_mass) < effective_tol)
+          // Explained by a +1 isotope variant
+          std::string temp_mod_name = isotope_hit->second + "+1Da";
+          addOrUpdateModification(temp_mod_name, isotope_hit->first + 1.0, count, charge_histogram.at(cluster_mass));
+          histogram_found[isotope_hit->first + 1.0] = temp_mod_name;
+          mapping_found = true;
+        }
+
+        if (!mapping_found)
+        {
+          const auto found_hit = nearestEntry_(histogram_found, cluster_mass);
+          if (found_hit != histogram_found.end() &&
+              std::abs(found_hit->first - cluster_mass) < effective_tol)
           {
-            addOrUpdateModification(hit.second, hit.first, count, charge_histogram.at(cluster_mass));
+            addOrUpdateModification(found_hit->second, found_hit->first, count, charge_histogram.at(cluster_mass));
             mapping_found = true;
-            break;
-          }
-          // Check if modification can be explained by a +1 isotope variant
-          else if (std::abs((hit.first + 1.0) - cluster_mass) < effective_tol)
-          {
-            std::string temp_mod_name = hit.second + "+1Da";
-            addOrUpdateModification(temp_mod_name, hit.first + 1.0, count, charge_histogram.at(cluster_mass));
-            histogram_found[hit.first + 1.0] = temp_mod_name;
-            mapping_found = true;
-            break;
           }
         }
 
-        // Search in combination modifications
+        // Search in combination modifications: the nearest one, whether above or below the cluster mass
         if (!mapping_found)
         {
-          auto it = combo_modifications.lower_bound(cluster_mass - epsilon);
-          if (it != combo_modifications.end() && 
-              std::abs(it->first - cluster_mass) <= effective_tol)
+          const auto combo = nearestEntry_(combo_modifications, cluster_mass);
+          if (combo != combo_modifications.end() &&
+              std::abs(combo->first - cluster_mass) <= effective_tol)
           {
-            mod_name = it->second;
-            mod_mass = it->first;
+            mod_name = single_mod_names[combo->second.first] + "++" + single_mod_names[combo->second.second];
+            mod_mass = combo->first;
             mapping_found = true;
           }
         }
@@ -307,17 +365,15 @@ namespace OpenMS
         }
 
         bool found = false;
-        // Check with error tolerance if already present in histogram
-        for (const auto& entry : histogram_found)
+        // Check with error tolerance if already present in histogram: the entry nearest to delta_mass
+        // is the one, if it is within effective_tol.
+        const auto entry = nearestEntry_(histogram_found, delta_mass);
+        if (entry != histogram_found.end() && std::abs(delta_mass - entry->first) < effective_tol)
         {
-          if (std::abs(delta_mass - entry.first) < effective_tol)
-          {
-            ptm = entry.second;
-            found = true;
-            break;
-          }
+          ptm = entry->second;
+          found = true;
         }
-        
+
         // Otherwise assign unknown
         if (!found)
         {
@@ -386,18 +442,20 @@ namespace OpenMS
     const size_t n = deltas.size();
     std::vector<double> smoothed_counts(n, 0.0);
 
-    // Perform Gaussian smoothing
+    // Perform Gaussian smoothing. deltas is ascending (extracted from the ordered
+    // histogram), so the points within 3 standard deviations form a contiguous
+    // range located by binary search — an open-search histogram has 1e4-1e5 bins
+    // and a full O(n^2) scan would dominate the analysis.
+    const double cutoff = 3.0 * sigma;
     for (size_t i = 0; i < n; ++i)
     {
       double weight_sum = 0.0;
 
-      for (size_t j = 0; j < n; ++j)
+      const size_t j_begin = std::lower_bound(deltas.begin(), deltas.end(), deltas[i] - cutoff) - deltas.begin();
+      const size_t j_end = std::upper_bound(deltas.begin(), deltas.end(), deltas[i] + cutoff) - deltas.begin();
+      for (size_t j = j_begin; j < j_end; ++j)
       {
         double mz_diff = deltas[i] - deltas[j];
-
-        // Ignore points beyond 3 standard deviations
-        if (std::abs(mz_diff) > 3.0 * sigma)
-          continue;
 
         double weight = gaussian_(mz_diff, sigma);
         smoothed_counts[i] += weight * counts[j];
@@ -563,7 +621,6 @@ namespace OpenMS
                                                               bool precursor_mass_tolerance_unit_ppm) const
   {
     DeltaMassStatistics stats;
-    constexpr double min_mass_for_ppm = 0.1; // Minimum mass to avoid division issues with ppm
 
     // Effective tolerance for modification mass matching (capped for open search)
     const double mod_tol = precursor_mass_tolerance_unit_ppm
@@ -573,26 +630,40 @@ namespace OpenMS
     // Build modification lookup
     auto mod_lookup = buildModificationMassLookup_();
 
-    // Count total PSMs
+    // Count the target PSMs (decoys only counted) and, in the same pass, collect the (histogram bin, sequence) of each
+    // modified target hit, for the unique peptide counts of the bins below.
+    std::vector<std::pair<Int64, std::string>> bin_sequences;
     for (const auto& peptide_id : peptide_ids)
     {
       for (const auto& hit : peptide_id.getHits())
       {
+        if (hit.isDecoy())
+        {
+          stats.decoy_psms++;
+          continue;
+        }
         stats.total_psms++;
         if (hit.metaValueExists("DeltaMass"))
         {
           double delta_mass = (double)hit.getMetaValue("DeltaMass");
-          if (std::abs(delta_mass) <= DELTA_MASS_ZERO_THRESHOLD_)
+          if (isUnmodified(delta_mass))
           {
-            stats.unmodified_psms++;
+            stats.unmodified_psms++; // (in no bin of the histogram)
           }
           else
           {
             stats.modified_psms++;
+            bin_sequences.emplace_back(deltaMassBin_(delta_mass), hit.getSequence().toString());
           }
         }
       }
     }
+    // The distinct sequences per bin
+    std::sort(bin_sequences.begin(), bin_sequences.end());
+    bin_sequences.erase(std::unique(bin_sequences.begin(), bin_sequences.end()), bin_sequences.end());
+    std::unordered_map<Int64, int> unique_peptides_of_bin;
+    for (const auto& [bin, sequence] : bin_sequences) { ++unique_peptides_of_bin[bin]; }
+    bin_sequences = {};
 
     // Collect delta masses for median calculation
     std::vector<double> all_delta_masses;
@@ -618,28 +689,19 @@ namespace OpenMS
         entry.percentage = (static_cast<double>(entry.count) / stats.modified_psms) * 100.0;
       }
 
-      // Compute tolerance in Da based on unit
-      double tolerance_da = precursor_mass_tolerance;
-      if (precursor_mass_tolerance_unit_ppm)
-      {
-        // For ppm, tolerance depends on the mass being compared
-        // Use the delta_mass as reference, with a minimum to avoid issues near zero
-        double reference_mass = std::max(min_mass_for_ppm, std::abs(delta_mass));
-        tolerance_da = reference_mass * precursor_mass_tolerance * 1e-6;
-      }
+      // Count the unique peptides of the PSMs of the entry: those whose delta mass falls into its histogram bin, as
+      // they are counted in 'count' (with a smoothed histogram, those of the bin of its maximum). Not those within the
+      // precursor mass tolerance: in an open search that is the whole open window, i.e. nearly all PSMs.
+      const auto unique = unique_peptides_of_bin.find(deltaMassBin_(delta_mass));
+      if (unique != unique_peptides_of_bin.end()) { entry.unique_peptides = unique->second; }
 
-      // Count unique peptides
-      entry.unique_peptides = countUniquePeptides_(peptide_ids, delta_mass, tolerance_da);
-
-      // Try to map to known modification
-      for (const auto& [mod_mass, mod_name] : mod_lookup)
+      // Try to map to known modification, named as in mapDeltaMassesToModifications(): after the nearest
+      // one within mod_tol, or after all of them ("A//B") if several are about equally close
+      const auto mod_candidates = namingEntries_(mod_lookup, delta_mass, mod_tol, MOD_MAPPING_AMBIGUITY_TOL_);
+      if (!mod_candidates.empty())
       {
-        if (std::abs(mod_mass - delta_mass) <= mod_tol)
-        {
-          entry.mapped_modification = mod_name;
-          entry.is_known_modification = true;
-          break;
-        }
+        entry.mapped_modification = joinedNames_(mod_candidates);
+        entry.is_known_modification = true;
       }
 
       // Collect for statistics
@@ -701,7 +763,7 @@ namespace OpenMS
     {
       for (const auto& hit : peptide_id.getHits())
       {
-        if (!hit.metaValueExists("PTM"))
+        if (!hit.metaValueExists("PTM") || hit.isDecoy()) // (of the target hits)
           continue;
 
         std::string ptm_name = StringUtils::toStr(hit.getMetaValue("PTM"));
@@ -842,9 +904,11 @@ namespace OpenMS
 
     // Write header
     output_stream << "# Delta Mass Statistics Table\n";
+    output_stream << "# Counts of the target PSMs (the decoy PSMs are left out)\n";
     output_stream << "# Total PSMs: " << stats.total_psms << "\n";
     output_stream << "# Modified PSMs: " << stats.modified_psms << "\n";
     output_stream << "# Unmodified PSMs: " << stats.unmodified_psms << "\n";
+    output_stream << "# Decoy PSMs: " << stats.decoy_psms << "\n";
     output_stream << "# Mean Delta Mass: " << stats.mean_delta_mass << "\n";
     output_stream << "# Median Delta Mass: " << stats.median_delta_mass << "\n";
     output_stream << "#\n";

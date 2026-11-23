@@ -14,6 +14,8 @@
 
 #include <set>
 #include <map>
+#include <string_view>
+#include <unordered_map>
 
 namespace OpenMS
 {
@@ -97,6 +99,18 @@ public:
 
     /// Constructor
     ControlledVocabulary();
+
+    /// Copy constructor
+    ControlledVocabulary(const ControlledVocabulary& rhs);
+
+    /// Move constructor
+    ControlledVocabulary(ControlledVocabulary&& rhs) noexcept;
+
+    /// Assignment operator
+    ControlledVocabulary& operator=(const ControlledVocabulary& rhs);
+
+    /// Move assignment operator
+    ControlledVocabulary& operator=(ControlledVocabulary&& rhs) noexcept;
 
     ///Destructor
     virtual ~ControlledVocabulary();
@@ -236,9 +250,17 @@ protected:
     */
     bool checkName_(const std::string& id, const std::string& name, bool ignore_case = true) const;
 
+    /// Term by id, or nullptr if unknown
+    const CVTerm* findTerm_(std::string_view id) const;
+
+    /// Rebuilds index_ from terms_
+    void rebuildIndex_();
+
     /// Map from ID to CVTerm
-    // note: unordered_map would be faster (5% for loading mzML), but order differs across platforms
+    // note: an unordered_map would iterate in a platform-dependent order; index_ provides the fast lookups
     std::map<std::string, CVTerm> terms_;
+    /// Hash index into terms_ for lookups by id (map nodes are stable); rebuilt whenever terms_ changes
+    std::unordered_map<std::string_view, const CVTerm*> index_;
     /// Map from name to id
     std::map<std::string, std::string> namesToIds_;
     /// Name set in the load method

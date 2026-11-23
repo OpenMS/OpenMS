@@ -7,10 +7,13 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/ClassTest.h>
+#include <OpenMS/DATASTRUCTURES/DataValue.h>
 #include <OpenMS/test_config.h>
 
 ///////////////////////////
 #include <OpenMS/FORMAT/ConsensusMapArrowIO.h>
+#include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/SYSTEM/SystemSettings.h>
 ///////////////////////////
 
 #include <OpenMS/config.h>
@@ -18,6 +21,15 @@
 #include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/KERNEL/ConsensusFeature.h>
 #include <OpenMS/KERNEL/FeatureHandle.h>
+#include <OpenMS/CHEMISTRY/AASequence.h>
+#include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
+#include <OpenMS/CHEMISTRY/ModificationsDB.h>
+#include <OpenMS/CHEMISTRY/ResidueModification.h>
+#include <OpenMS/CONCEPT/Constants.h>
+#include <OpenMS/DATASTRUCTURES/DateTime.h>
+
+#include <fstream>
+#include <sstream>
 #include <OpenMS/DATASTRUCTURES/DateTime.h>
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/METADATA/DataProcessing.h>
@@ -29,9 +41,67 @@
 #include <OpenMS/CHEMISTRY/ProteaseDB.h>
 
 #include <arrow/api.h>
+#include <arrow/io/file.h>
+#include <parquet/arrow/reader.h>
+#include <parquet/arrow/writer.h>
+#include <parquet/properties.h>
 
 using namespace OpenMS;
 using namespace std;
+
+namespace
+{
+  // registers a tool-defined modification; ModificationsDB is process-wide, so every section uses its own name
+  const ResidueModification* defineMod4b(const std::string& id, char origin, const std::string& formula)
+  {
+    ResidueModification d;
+    d.setId(id);
+    d.setOrigin(origin);
+    d.setTermSpecificity(ResidueModification::ANYWHERE);
+    d.setFullId();
+    d.setDiffFormula(EmpiricalFormula(formula));
+    d.setDiffMonoMass(EmpiricalFormula(formula).getMonoWeight());
+    return ModificationsDB::getInstance()->registerDefinition(d);
+  }
+
+  // a definition record for a name that is NOT registered in this process
+  std::string freshRecord4b(const std::string& id, char origin, const std::string& formula)
+  {
+    ResidueModification d;
+    d.setId(id);
+    d.setOrigin(origin);
+    d.setTermSpecificity(ResidueModification::ANYWHERE);
+    d.setFullId();
+    d.setDiffFormula(EmpiricalFormula(formula));
+    d.setDiffMonoMass(EmpiricalFormula(formula).getMonoWeight());
+    return d.toDefinitionString();
+  }
+
+  std::string slurp4b(const std::string& path)
+  {
+    std::ifstream in(path);
+    std::stringstream ss;
+    ss << in.rdbuf();
+    return ss.str();
+  }
+
+  bool fileContains4b(const std::string& path, const std::string& needle)
+  {
+    return slurp4b(path).find(needle) != std::string::npos;
+  }
+
+  // first occurrence only; returns false when @p from is absent
+  bool replaceInFile4b(const std::string& path, const std::string& from, const std::string& to)
+  {
+    std::string s = slurp4b(path);
+    const std::size_t pos = s.find(from);
+    if (pos == std::string::npos) return false;
+    s.replace(pos, from.size(), to);
+    std::ofstream out(path);
+    out << s;
+    return true;
+  }
+}
 
 START_TEST(ConsensusMapArrowIO, "$Id$")
 
@@ -914,6 +984,8 @@ START_SECTION(exportToParquet / importFromParquet - ConsensusMap-level list-type
   cmap.setMetaValue("spectra_data_like", DataValue(StringList{"sample_A.mzML", "sample_B.mzML"}));
   cmap.setMetaValue("scan_counts", DataValue(IntList{100, 200, 300}));
   cmap.setMetaValue("rt_offsets", DataValue(DoubleList{1.5, -0.5}));
+  // doubles that 15 decimals do not represent come back as the same doubles
+  cmap.setMetaValue("exact_offsets", DataValue(DoubleList{0.30000000000000004, -3.6414734172058556}));
 
   ConsensusFeature cf;
   cf.setRT(100.0);
@@ -921,6 +993,7 @@ START_SECTION(exportToParquet / importFromParquet - ConsensusMap-level list-type
   cf.setIntensity(1000.0f);
   cf.setCharge(2);
   cf.setUniqueId(9999);
+  cf.setMetaValue("exact_double", 7.3296492739417545);
   cmap.push_back(cf);
 
   ProteinIdentification prot_id;
@@ -956,6 +1029,41 @@ START_SECTION(exportToParquet / importFromParquet - ConsensusMap-level list-type
   TEST_EQUAL(out_dl.size(), 2)
   TEST_REAL_SIMILAR(out_dl[0], 1.5)
   TEST_REAL_SIMILAR(out_dl[1], -0.5)
+
+  TEST_EQUAL(imported.getMetaValue("exact_offsets").toDoubleList() == DoubleList({0.30000000000000004, -3.6414734172058556}), true)
+  TEST_EQUAL(imported.size(), 1)
+  TEST_EQUAL(double(imported[0].getMetaValue("exact_double")) == 7.3296492739417545, true)
+}
+END_SECTION
+
+
+START_SECTION(([EXTRA] a failed write leaves no partial .parquet behind))
+{
+  ConsensusMap cmap;
+  ConsensusFeature cf;
+  cf.setRT(100.0);
+  cf.setMZ(500.0);
+  cf.setIntensity(1000.0f);
+  cmap.push_back(cf);
+
+  const std::string dir = SystemSettings::getTempDirectory() + "/" + File::getUniqueName() + "_cmio";
+  TEST_TRUE(File::makeDir(dir))
+
+  TEST_TRUE(ConsensusMapArrowIO::exportToParquet(cmap, dir))
+  TEST_TRUE(File::exists(dir + "/consensus_features.parquet"))
+  File::remove(dir + "/consensus_features.parquet");
+
+  // arrow::io::FileOutputStream::Open creates and truncates the file before the table is written,
+  // so a failure afterwards leaves a fragment with no Parquet footer, which a reader reports as
+  // corrupt. A row group size of 0 is refused by Parquet for a non-empty table, which reaches
+  // that failure deterministically on every platform. This is the FIRST file of the collection,
+  // so nothing else has been written yet - collection-level atomicity is a separate concern.
+  ParquetWriteConfig no_row_group;
+  no_row_group.row_group_size = 0;
+  TEST_FALSE(ConsensusMapArrowIO::exportToParquet(cmap, dir, no_row_group))
+  TEST_FALSE(File::exists(dir + "/consensus_features.parquet"))
+
+  File::removeDirRecursively(dir);
 }
 END_SECTION
 
@@ -981,6 +1089,163 @@ START_SECTION(exportToParquet - duplicate ProteinIdentification identifiers thro
 
   TEST_EXCEPTION(Exception::InvalidValue,
                  ConsensusMapArrowIO::exportToParquet(cmap, tmp_dir))
+}
+END_SECTION
+
+START_SECTION([EXTRA] exportToParquet / importFromParquet - tool-defined modifications travel with their definitions)
+{
+  TEST_TRUE(defineMod4b("TestCMap:Assigned", 'K', "C2H2O") != nullptr)
+  TEST_TRUE(defineMod4b("TestCMap:Unassigned", 'R', "CH2") != nullptr)
+  ConsensusMap map;
+  map.ensureUniqueId();
+  map.getColumnHeaders()[0].filename = "file0.mzML";
+  map.getColumnHeaders()[0].size = 1;
+  ProteinIdentification prot;
+  prot.setIdentifier("run4b");
+  prot.setDateTime(DateTime::now());
+  map.getProteinIdentifications().push_back(prot);
+
+  ConsensusFeature f;
+  f.setRT(100.0);
+  f.setMZ(500.0);
+  f.setIntensity(1000.0);
+  f.ensureUniqueId();
+  f.insert(FeatureHandle(0, f));
+  PeptideIdentification pa;
+  pa.setIdentifier("run4b");
+  PeptideHit ha;
+  ha.setSequence(AASequence::fromString("PEPK(TestCMap:Assigned)IDE"));
+  pa.insertHit(ha);
+  f.getPeptideIdentifications().push_back(pa);
+  map.push_back(f);
+
+  PeptideIdentification pu;
+  pu.setIdentifier("run4b");
+  PeptideHit hu;
+  hu.setSequence(AASequence::fromString("PEPR(TestCMap:Unassigned)IDE"));
+  pu.insertHit(hu);
+  map.getUnassignedPeptideIdentifications().push_back(pu);
+
+  std::string dir;
+  NEW_TMP_FILE(dir) dir += ".cmd";
+  TEST_TRUE(ConsensusMapArrowIO::exportToParquet(map, dir))
+  ConsensusMap in;
+  TEST_TRUE(ConsensusMapArrowIO::importFromParquet(dir, in))
+  TEST_EQUAL(in.size(), 1)
+  TEST_EQUAL(in.getUnassignedPeptideIdentifications().size(), 1)
+  if (in.size() == 1 && !in[0].getPeptideIdentifications().empty() && !in[0].getPeptideIdentifications()[0].getHits().empty())
+  {
+    TEST_EQUAL(in[0].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "PEPK(TestCMap:Assigned)IDE")
+  }
+  if (in.getUnassignedPeptideIdentifications().size() == 1 && !in.getUnassignedPeptideIdentifications()[0].getHits().empty())
+  {
+    TEST_EQUAL(in.getUnassignedPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "PEPR(TestCMap:Unassigned)IDE")
+  }
+  if (in.getProteinIdentifications().size() == 1)
+  {
+    const auto& sp = in.getProteinIdentifications()[0].getSearchParameters();
+    TEST_TRUE(sp.metaValueExists(Constants::UserParam::MODIFICATION_DEFINITIONS))
+    if (sp.metaValueExists(Constants::UserParam::MODIFICATION_DEFINITIONS))
+    {
+      const std::string v = sp.getMetaValue(Constants::UserParam::MODIFICATION_DEFINITIONS).toString();
+      TEST_TRUE(v.find("TestCMap:Assigned") != std::string::npos)
+      TEST_TRUE(v.find("TestCMap:Unassigned") != std::string::npos)
+    }
+  }
+  File::removeDirRecursively(dir);
+}
+END_SECTION
+
+START_SECTION([EXTRA] importFromParquet - definitions are registered from search_params.parquet)
+{
+  const ModificationsDB* db = ModificationsDB::getInstance();
+  TEST_FALSE(db->hasDefinedModification("TestCMap:Fresh"))
+  ConsensusMap map;
+  map.ensureUniqueId();
+  map.getColumnHeaders()[0].filename = "file0.mzML";
+  map.getColumnHeaders()[0].size = 1;
+  ProteinIdentification prot;
+  prot.setIdentifier("run4b_fresh");
+  prot.setDateTime(DateTime::now());
+  ProteinIdentification::SearchParameters sp;
+  sp.setMetaValue(Constants::UserParam::MODIFICATION_DEFINITIONS, freshRecord4b("TestCMap:Fresh", 'K', "C2H2O"));
+  prot.setSearchParameters(sp);
+  map.getProteinIdentifications().push_back(prot);
+
+  std::string dir;
+  NEW_TMP_FILE(dir) dir += ".cmd";
+  TEST_TRUE(ConsensusMapArrowIO::exportToParquet(map, dir))
+  TEST_FALSE(db->hasDefinedModification("TestCMap:Fresh")) // exporting registers nothing
+  ConsensusMap in;
+  TEST_TRUE(ConsensusMapArrowIO::importFromParquet(dir, in))
+  TEST_TRUE(db->hasDefinedModification("TestCMap:Fresh"))
+  File::removeDirRecursively(dir);
+}
+END_SECTION
+
+START_SECTION([EXTRA] importFromParquet - column header JSON with unexpected value types)
+{
+  // "size" is a number and "metavalues" an array when OpenMS writes them. Other values must be
+  // skipped: no std::invalid_argument from std::stoull, and the fields and column headers after
+  // them are still read.
+  ConsensusMap cmap;
+  ConsensusFeature cf;
+  cf.setRT(100.0);
+  cf.setMZ(500.0);
+  cf.setUniqueId(5);
+  cmap.push_back(cf);
+  ProteinIdentification prot_id;
+  prot_id.setIdentifier("run_1");
+  cmap.setProteinIdentifications({prot_id});
+  ConsensusMap::ColumnHeader ch;
+  ch.filename = "a.mzML";
+  ch.size = 1;
+  cmap.getColumnHeaders()[0] = ch;
+  ch.filename = "b.mzML";
+  cmap.getColumnHeaders()[1] = ch;
+
+  std::string tmp_dir;
+  NEW_TMP_FILE(tmp_dir)
+  tmp_dir += ".cmd";
+  TEST_EQUAL(ConsensusMapArrowIO::exportToParquet(cmap, tmp_dir), true)
+
+  const std::string features_file = tmp_dir + "/consensus_features.parquet";
+  std::shared_ptr<arrow::Table> table;
+  {
+    auto infile = arrow::io::ReadableFile::Open(features_file).ValueOrDie();
+    auto reader = parquet::arrow::OpenFile(infile, arrow::default_memory_pool()).ValueOrDie();
+    TEST_EQUAL(reader->ReadTable(&table).ok(), true)
+  }
+  // headers that cannot be placed are dropped: a negative or fractional map_index (no longer
+  // UINT64_MAX or 1), and a missing one (no longer stored as header 0, replacing the real one)
+  const std::string column_headers =
+    std::string("[{\"map_index\":0,\"filename\":\"a.mzML\",\"size\":null,\"metavalues\":null,\"label\":\"L0\"},")
+    + "{\"map_index\":-1,\"filename\":\"neg.mzML\"},"
+    + "{\"map_index\":1.5,\"filename\":\"frac.mzML\"},"
+    + "{\"filename\":\"no_index.mzML\"},"
+    + "{\"map_index\":1,\"filename\":\"b.mzML\",\"label\":\"L1\",\"size\":-3,\"unique_id\":-1,\"metavalues\":[]}]";
+  auto md = table->schema()->metadata() ? table->schema()->metadata()->Copy() : std::make_shared<arrow::KeyValueMetadata>();
+  TEST_EQUAL(md->Set("column_headers", column_headers).ok(), true)
+  table = table->ReplaceSchemaMetadata(md);
+  {
+    auto outfile = arrow::io::FileOutputStream::Open(features_file).ValueOrDie();
+    auto arrow_props = parquet::ArrowWriterProperties::Builder().store_schema()->build();
+    TEST_EQUAL(parquet::arrow::WriteTable(*table, arrow::default_memory_pool(), outfile, 1024,
+                                          parquet::default_writer_properties(), arrow_props).ok(), true)
+    TEST_EQUAL(outfile->Close().ok(), true)
+  }
+
+  ConsensusMap imported;
+  TEST_EQUAL(ConsensusMapArrowIO::importFromParquet(tmp_dir, imported), true)
+  const ConsensusMap::ColumnHeaders& headers = imported.getColumnHeaders();
+  TEST_EQUAL(headers.size(), 2)
+  ABORT_IF(headers.size() != 2)
+  TEST_EQUAL(headers.at(0).filename, "a.mzML")
+  TEST_EQUAL(headers.at(0).label, "L0")
+  TEST_EQUAL(headers.at(1).filename, "b.mzML")
+  TEST_EQUAL(headers.at(1).label, "L1")
+  TEST_EQUAL(headers.at(1).size, 0)      // "size":-3 skipped
+  TEST_EQUAL(headers.at(1).unique_id, 0) // "unique_id":-1 skipped
 }
 END_SECTION
 

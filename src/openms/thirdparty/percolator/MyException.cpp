@@ -17,9 +17,12 @@ limitations under the License.
 
 #include "MyException.h"
 
+#include <iostream>
+
 namespace OpenMS { namespace Internal { namespace Percolator {
 
-MyException::MyException(const string& ss)  : msg(ss)
+
+MyException::MyException(const string& ss)  : msg(ss) 
 {
   
 }
@@ -39,8 +42,24 @@ MyException::~MyException() throw()
 
 const char* MyException::what() const throw()
 {
-  return msg.c_str();
+  return msg.c_str(); 
+}
+
+void closeOutputFile(std::ofstream& out, const std::string& fileName) {
+  out.close();
+  if (out.fail()) {
+    throw MyException("ERROR: Could not write the file " + fileName +
+                      ". Check that the disk is not full and that the file "
+                      "is writable.\n");
+  }
+}
+
+void flushStandardOutput() {
+  std::cout.flush();
+  if (std::cout.fail()) {
+    throw MyException("ERROR: Could not write the results to standard "
+                      "output.\n");
+  }
 }
 
 }}}  // namespace OpenMS::Internal::Percolator
-

@@ -134,11 +134,11 @@
 				<cvParam cvRef="MS" accession="MS:1000511" name="ms level" value="1" />
 				<cvParam cvRef="MS" accession="MS:1000294" name="mass spectrum" />
 				<cvParam cvRef="MS" accession="MS:1000130" name="positive scan" />
-				<userParam name="filter string" type="xsd:string" value="lorem &amp; &quot;impsum&quot; &lt;&gt; "/>
 				<scanList count="1">
 					<cvParam cvRef="MS" accession="MS:1000795" name="no combination" />
 					<scan >
 						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="2.05613" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
+						<cvParam cvRef="MS" accession="MS:1000512" name="filter string" value="lorem &amp; &quot;impsum&quot; &lt;&gt; "/>
 					</scan>
 				</scanList>
 				<binaryDataArrayList count="2">
@@ -724,16 +724,6 @@
 		<chromatogramList count="1" defaultDataProcessingRef="dp_sp_0">
 			<chromatogram id="TIC description &amp; &quot;impsum&quot; &lt;&gt;" index="0" defaultArrayLength="0">
 				<cvParam cvRef="MS" accession="MS:1000235" name="total ion current chromatogram" />
-					<precursor>
-						<activation>
-							<cvParam cvRef="MS" accession="MS:1000044" name="dissociation method" />
-						</activation>
-					</precursor>
-					<product>
-						<isolationWindow>
-							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="0" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-						</isolationWindow>
-					</product>
 				<binaryDataArrayList count="2">
 					<binaryDataArray encodedLength="0">
 						<cvParam cvRef="MS" accession="MS:1000595" name="time array" unitAccession="UO:0000010" unitName="second" unitCvRef="MS" />
@@ -756,29 +746,29 @@
 	<index name="spectrum">
 		<offset idRef="scan=1 and &amp; &quot;impsum&quot; &lt;&gt;">6972</offset>
 		<offset idRef="scan=2">13535</offset>
-		<offset idRef="scan=3">19972</offset>
-		<offset idRef="scan=4">26276</offset>
-		<offset idRef="scan=5">32292</offset>
-		<offset idRef="scan=6">38180</offset>
-		<offset idRef="scan=7">43984</offset>
-		<offset idRef="scan=8">50016</offset>
-		<offset idRef="scan=9">55712</offset>
-		<offset idRef="scan=10">61439</offset>
-		<offset idRef="scan=11">67600</offset>
-		<offset idRef="scan=12">79186</offset>
-		<offset idRef="scan=13">95841</offset>
-		<offset idRef="scan=14">99247</offset>
-		<offset idRef="scan=15">117535</offset>
-		<offset idRef="scan=16">120877</offset>
-		<offset idRef="scan=17">124476</offset>
-		<offset idRef="scan=18">127835</offset>
-		<offset idRef="scan=19">143949</offset>
-		<offset idRef="scan=20">147886</offset>
+		<offset idRef="scan=3">19988</offset>
+		<offset idRef="scan=4">26292</offset>
+		<offset idRef="scan=5">32308</offset>
+		<offset idRef="scan=6">38196</offset>
+		<offset idRef="scan=7">44000</offset>
+		<offset idRef="scan=8">50032</offset>
+		<offset idRef="scan=9">55728</offset>
+		<offset idRef="scan=10">61455</offset>
+		<offset idRef="scan=11">67616</offset>
+		<offset idRef="scan=12">79202</offset>
+		<offset idRef="scan=13">95857</offset>
+		<offset idRef="scan=14">99263</offset>
+		<offset idRef="scan=15">117551</offset>
+		<offset idRef="scan=16">120893</offset>
+		<offset idRef="scan=17">124492</offset>
+		<offset idRef="scan=18">127851</offset>
+		<offset idRef="scan=19">143965</offset>
+		<offset idRef="scan=20">147902</offset>
 	</index>
 	<index name="chromatogram">
-		<offset idRef="TIC description &amp; &quot;impsum&quot; &lt;&gt;">151792</offset>
+		<offset idRef="TIC description &amp; &quot;impsum&quot; &lt;&gt;">151808</offset>
 	</index>
 </indexList>
-<indexListOffset>153244</indexListOffset>
+<indexListOffset>152871</indexListOffset>
 <fileChecksum>0</fileChecksum>
 </indexedmzML>

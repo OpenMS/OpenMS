@@ -8,6 +8,9 @@
 
 #include <OpenMS/FEATUREFINDER/MultiplexDeltaMasses.h>
 #include <OpenMS/FEATUREFINDER/MultiplexDeltaMassesGenerator.h>
+#include <OpenMS/CHEMISTRY/ElementDB.h>
+#include <OpenMS/CHEMISTRY/ModificationsDB.h>
+#include <OpenMS/CHEMISTRY/ResidueModification.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/LogStream.h>
@@ -15,10 +18,14 @@
 #include <boost/algorithm/string/classification.hpp>
 #include <boost/algorithm/string/replace.hpp>
 #include <boost/algorithm/string/split.hpp>
+#include <algorithm>
+#include <initializer_list>
+#include <set>
 #include <iostream>
 #include <ostream>
 #include <sstream>
 #include <utility>
+#include <vector>
 
 using namespace std;
 
@@ -353,6 +360,29 @@ namespace OpenMS
 
   }
 
+  namespace
+  {
+    /**
+      @brief The knock-out pattern of @p complete that keeps only the peptides at @p positions (ascending).
+
+      Its mass shifts are relative to its own lightest peptide. The filtering searches every pattern
+      starting from the monoisotopic peak of its first peptide, so keeping the shift of an absent lighter
+      peptide (e.g. medium and heavy of a triplet without light) would only find the pattern next to a
+      peak at that absent position. The label sets keep naming the channels.
+    */
+    MultiplexDeltaMasses knockoutPattern(const MultiplexDeltaMasses& complete, std::initializer_list<size_t> positions)
+    {
+      const std::vector<MultiplexDeltaMasses::DeltaMass>& masses = complete.getDeltaMasses();
+      const double anchor = masses[*positions.begin()].delta_mass;
+      MultiplexDeltaMasses pattern;
+      for (const size_t position : positions)
+      {
+        pattern.getDeltaMasses().emplace_back(masses[position].delta_mass - anchor, masses[position].label_set);
+      }
+      return pattern;
+    }
+  }
+
   void MultiplexDeltaMassesGenerator::generateKnockoutDeltaMasses()
   {
     if (delta_masses_list_.empty())
@@ -378,21 +408,12 @@ namespace OpenMS
     {
       for (unsigned i = 0; i < m; ++i)
       {
+        const MultiplexDeltaMasses complete = delta_masses_list_[i]; // a copy: the list grows below
+
         // add doublets
-        MultiplexDeltaMasses doublet1;
-        doublet1.getDeltaMasses().push_back(delta_masses_list_[i].getDeltaMasses()[0]);
-        doublet1.getDeltaMasses().push_back(delta_masses_list_[i].getDeltaMasses()[1]);
-        delta_masses_list_.push_back(doublet1);
-
-        MultiplexDeltaMasses doublet2;
-        doublet2.getDeltaMasses().push_back(delta_masses_list_[i].getDeltaMasses()[1]);
-        doublet2.getDeltaMasses().push_back(delta_masses_list_[i].getDeltaMasses()[2]);
-        delta_masses_list_.push_back(doublet2);
-
-        MultiplexDeltaMasses doublet3;
-        doublet3.getDeltaMasses().push_back(delta_masses_list_[i].getDeltaMasses()[0]);
-        doublet3.getDeltaMasses().push_back(delta_masses_list_[i].getDeltaMasses()[2]);
-        delta_masses_list_.push_back(doublet3);
+        delta_masses_list_.push_back(knockoutPattern(complete, {0, 1}));
+        delta_masses_list_.push_back(knockoutPattern(complete, {1, 2}));
+        delta_masses_list_.push_back(knockoutPattern(complete, {0, 2}));
       }
 
       // add singlets
@@ -404,63 +425,21 @@ namespace OpenMS
     {
       for (unsigned i = 0; i < m; ++i)
       {
+        const MultiplexDeltaMasses complete = delta_masses_list_[i]; // a copy: the list grows below
+
         // add triplets
-        MultiplexDeltaMasses triplet1;
-        triplet1.getDeltaMasses().push_back(delta_masses_list_[i].getDeltaMasses()[1]);
-        triplet1.getDeltaMasses().push_back(delta_masses_list_[i].getDeltaMasses()[2]);
-        triplet1.getDeltaMasses().push_back(delta_masses_list_[i].getDeltaMasses()[3]);
-        delta_masses_list_.push_back(triplet1);
-
-        MultiplexDeltaMasses triplet2;
-        triplet2.getDeltaMasses().push_back(delta_masses_list_[i].getDeltaMasses()[0]);
-        triplet2.getDeltaMasses().push_back(delta_masses_list_[i].getDeltaMasses()[2]);
-        triplet2.getDeltaMasses().push_back(delta_masses_list_[i].getDeltaMasses()[3]);
-        delta_masses_list_.push_back(triplet2);
-
-        // Knockout combination previously forgotten. Will be un-commented in final FFM/MultiplexResolver version.
-        /*MultiplexDeltaMasses triplet3;
-        triplet3.getDeltaMasses().push_back(delta_masses_list_[i].getDeltaMasses()[0]);
-        triplet3.getDeltaMasses().push_back(delta_masses_list_[i].getDeltaMasses()[1]);
-        triplet3.getDeltaMasses().push_back(delta_masses_list_[i].getDeltaMasses()[3]);
-        delta_masses_list_.push_back(triplet3);*/
-
-        MultiplexDeltaMasses triplet4;
-        triplet4.getDeltaMasses().push_back(delta_masses_list_[i].getDeltaMasses()[0]);
-        triplet4.getDeltaMasses().push_back(delta_masses_list_[i].getDeltaMasses()[1]);
-        triplet4.getDeltaMasses().push_back(delta_masses_list_[i].getDeltaMasses()[2]);
-        delta_masses_list_.push_back(triplet4);
-
+        delta_masses_list_.push_back(knockoutPattern(complete, {1, 2, 3}));
+        delta_masses_list_.push_back(knockoutPattern(complete, {0, 2, 3}));
+        delta_masses_list_.push_back(knockoutPattern(complete, {0, 1, 3}));
+        delta_masses_list_.push_back(knockoutPattern(complete, {0, 1, 2}));
 
         // add doublets
-        MultiplexDeltaMasses doublet1;
-        doublet1.getDeltaMasses().push_back(delta_masses_list_[i].getDeltaMasses()[0]);
-        doublet1.getDeltaMasses().push_back(delta_masses_list_[i].getDeltaMasses()[1]);
-        delta_masses_list_.push_back(doublet1);
-
-        MultiplexDeltaMasses doublet2;
-        doublet2.getDeltaMasses().push_back(delta_masses_list_[i].getDeltaMasses()[0]);
-        doublet2.getDeltaMasses().push_back(delta_masses_list_[i].getDeltaMasses()[2]);
-        delta_masses_list_.push_back(doublet2);
-
-        MultiplexDeltaMasses doublet3;
-        doublet3.getDeltaMasses().push_back(delta_masses_list_[i].getDeltaMasses()[0]);
-        doublet3.getDeltaMasses().push_back(delta_masses_list_[i].getDeltaMasses()[3]);
-        delta_masses_list_.push_back(doublet3);
-
-        MultiplexDeltaMasses doublet4;
-        doublet4.getDeltaMasses().push_back(delta_masses_list_[i].getDeltaMasses()[1]);
-        doublet4.getDeltaMasses().push_back(delta_masses_list_[i].getDeltaMasses()[2]);
-        delta_masses_list_.push_back(doublet4);
-
-        MultiplexDeltaMasses doublet5;
-        doublet5.getDeltaMasses().push_back(delta_masses_list_[i].getDeltaMasses()[1]);
-        doublet5.getDeltaMasses().push_back(delta_masses_list_[i].getDeltaMasses()[3]);
-        delta_masses_list_.push_back(doublet5);
-
-        MultiplexDeltaMasses doublet6;
-        doublet6.getDeltaMasses().push_back(delta_masses_list_[i].getDeltaMasses()[2]);
-        doublet6.getDeltaMasses().push_back(delta_masses_list_[i].getDeltaMasses()[3]);
-        delta_masses_list_.push_back(doublet6);
+        delta_masses_list_.push_back(knockoutPattern(complete, {0, 1}));
+        delta_masses_list_.push_back(knockoutPattern(complete, {0, 2}));
+        delta_masses_list_.push_back(knockoutPattern(complete, {0, 3}));
+        delta_masses_list_.push_back(knockoutPattern(complete, {1, 2}));
+        delta_masses_list_.push_back(knockoutPattern(complete, {1, 3}));
+        delta_masses_list_.push_back(knockoutPattern(complete, {2, 3}));
       }
 
       // add singlets
@@ -550,6 +529,30 @@ namespace OpenMS
   std::string MultiplexDeltaMassesGenerator::getLabelLong(const std::string& label)
   {
     return label_short_long_[label];
+  }
+
+  unsigned MultiplexDeltaMassesGenerator::getDeuteriumCount(const std::string& label) const
+  {
+    const auto it = std::find_if(label_master_list_.begin(), label_master_list_.end(), [&](const Label& l) { return l.short_name == label; });
+    if (it == label_master_list_.end()) { return 0; }
+    // a label can be defined for several residues (e.g. Label:2H(4)), all of the same composition
+    std::set<const ResidueModification*> modifications;
+    try
+    {
+      ModificationsDB::getInstance()->searchModifications(modifications, it->long_name);
+    }
+    catch (const Exception::BaseException&)
+    {
+      return 0;
+    }
+    if (modifications.empty()) { return 0; }
+    const SignedSize deuterium = (*modifications.begin())->getDiffFormula().getNumberOf(ElementDB::getInstance()->getElement("(2)H"));
+    return deuterium > 0 ? static_cast<unsigned>(deuterium) : 0;
+  }
+
+  bool MultiplexDeltaMassesGenerator::isChemicalLabel(const std::string& label)
+  {
+    return StringUtils::hasPrefix(label, "Dimethyl") || StringUtils::hasPrefix(label, "ICPL");
   }
 
   MultiplexDeltaMasses::LabelSet MultiplexDeltaMassesGenerator::extractLabelSet(const AASequence& sequence)

@@ -29,7 +29,6 @@
 //MISSING:
 // - more than one selected ion per precursor (warning if more than one)
 // - scanWindowList for each acquisition separately (currently for the whole spectrum only)
-// - instrumentConfigurationRef attribute for scan (why should the instrument change between scans? - warning if used)
 // - scanSettingsRef attribute for instrumentConfiguration tag (currently no information there because of missing mapping file entry - warning if used)
 
 // xs:id/xs:idref prefix list
@@ -122,6 +121,15 @@ public:
       /// Docu in base class XMLHandler::characters
       void onCharacters(const char16_t* chars, Size length) override;
 
+      /// Consume ASCII character data directly; preserve derived UTF-16 overrides.
+      bool tryOnCharactersUTF8(const char* chars, Size length) override;
+
+      /// Handle the opening tag by its UTF-8 name; preserve derived UTF-16 overrides.
+      bool tryOnStartElementUTF8(std::string_view qname, const XMLAttributes& attributes) override;
+
+      /// Handle the closing tag by its UTF-8 name; preserve derived UTF-16 overrides.
+      bool tryOnEndElementUTF8(std::string_view qname) override;
+
       /// Docu in base class XMLHandler::writeTo
       void writeTo(std::ostream& os) override;
 
@@ -148,6 +156,10 @@ public:
 
       /// Get the spectra and chromatogram counts of a file
       void getCounts(Size& spectra_counts, Size& chromatogram_counts);
+
+      /// The number of \<spectrum\> elements read when loading all data (LD_ALLDATA), including those the options
+      /// skipped (MS level, RT or precursor m/z range)
+      Size getSpectraRead() const;
 
       /**@name IMSDataConsumer setter
          @anchor consumer_a
@@ -196,6 +208,22 @@ protected:
           Will populate all spectra on the current work stack with data (using
           multiple threads if available) and append them to the result.
       */
+      /// Assigns a required attribute to @p value (reusing its capacity); fatal error if absent
+      void requiredAttributeAsString_(std::string& value, const XMLAttributes& attributes, const char16_t* name) const;
+
+      /// Reused attribute buffers for cvParam/userParam elements (avoids allocating per element)
+      struct ParamBuffers_
+      {
+        std::string accession, name, value, unit_accession, type;
+      };
+      ParamBuffers_ param_buffers_;
+
+      /// Shared implementation of onStartElement() and tryOnStartElementUTF8()
+      void startElement_(std::string_view tag_name, const XMLAttributes& attributes);
+
+      /// Shared implementation of onEndElement() and tryOnEndElementUTF8()
+      void endElement_(std::string_view tag_name);
+
       void populateSpectraWithData_();
 
       /**
@@ -340,6 +368,10 @@ protected:
       /// Helper method that writes a software
       void writeSoftware_(std::ostream& os, const std::string& id, const Software& software, const Internal::MzMLValidator& validator);
 
+      /// Write one instrument configuration, including its components.
+      void writeInstrument_(std::ostream& os, const std::string& id, const Instrument& instrument,
+                            const std::string& software_id, const Internal::MzMLValidator& validator);
+
       /// Helper method that writes a source file
       void writeSourceFile_(std::ostream& os, const std::string& id, const SourceFile& software, const Internal::MzMLValidator& validator);
 
@@ -388,7 +420,9 @@ protected:
       bool in_spectrum_list_{ false };
       /// Flag that indicates whether this spectrum should be skipped (e.g. due to options)
       bool skip_spectrum_{ false };
-      /// Flag that indicates whether this chromatogram should be skipped (e.g. due to options)
+      /// Number of \<spectrum\> elements read, including skipped ones (see getSpectraRead())
+      Size spectra_read_{ 0 };
+      /// Flag that indicates whether the parser is inside a chromatogram being skipped
       bool skip_chromatogram_{ false };
       /// Remember whether the RT of the spectrum was set or not
       bool rt_set_{ false };
@@ -404,6 +438,7 @@ protected:
       std::map<std::string, Software> software_;
       /// The data processing list: id => Instrument
       std::map<std::string, Instrument> instruments_;
+      std::string default_instrument_configuration_ref_;
       /// CV terms-path-combinations that have been checked in validateCV_()
       mutable std::map<std::pair<std::string, std::string>, bool> cached_terms_;
       /// The data processing list: id => Instrument

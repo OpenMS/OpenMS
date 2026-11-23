@@ -158,13 +158,21 @@ START_SECTION((static Size chooseInnerBatchSize(Size total_compounds, Size activ
   TEST_EQUAL(Scheduler::chooseInnerBatchSize(1000, 1, 4, 50000, opts), 1000)   // user capped at total
 
   // auto (user <= 0): target_jobs = max(active, threads*jobs_per_thread); batch =
-  // ceil(total/target_jobs), clamped to [min,max], then capped at total.
+  // ceil(total/target_jobs), clamped to [min,max], then capped at total. The min floor only
+  // applies while it leaves threads*jobs_per_thread jobs.
   // total=60000, threads=4 -> target_jobs=12 -> ceil=5000 (within [2000,10000])
   TEST_EQUAL(Scheduler::chooseInnerBatchSize(60000, 1, 4, -1, opts), 5000)
   // total=1000000 -> ceil=83334 -> clamped down to max 10000
   TEST_EQUAL(Scheduler::chooseInnerBatchSize(1000000, 1, 4, -1, opts), 10000)
-  // total=1000 -> ceil=84 -> clamped up to min 2000 -> then capped at total 1000
-  TEST_EQUAL(Scheduler::chooseInnerBatchSize(1000, 1, 4, -1, opts), 1000)
+  // total=1000 -> ceil=84; the min 2000 would give a single job for 4 threads, so it is
+  // lowered to ceil(1000/12)=84
+  TEST_EQUAL(Scheduler::chooseInnerBatchSize(1000, 1, 4, -1, opts), 84)
+  // a single SWATH of 2000 compounds on 4 threads: 12 jobs of 167, not one of 2000
+  TEST_EQUAL(Scheduler::chooseInnerBatchSize(2000, 1, 4, -1, opts), 167)
+  // 30 SWATHs of 2000 compounds on 4 threads: enough jobs at the min floor -> 2000
+  TEST_EQUAL(Scheduler::chooseInnerBatchSize(60000, 30, 4, -1, opts), 2000)
+  // a single thread gains nothing from smaller batches: the min floor applies -> one job of 1000
+  TEST_EQUAL(Scheduler::chooseInnerBatchSize(1000, 1, 1, -1, opts), 1000)
   // active_swaths dominates: target_jobs = max(50, 12) = 50 -> ceil(200000/50)=4000
   TEST_EQUAL(Scheduler::chooseInnerBatchSize(200000, 50, 4, -1, opts), 4000)
   // zero threads / zero active are treated as 1: target_jobs = max(1, 1*3)=3 ->

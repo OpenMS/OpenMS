@@ -166,6 +166,24 @@ struct OPENMS_DLLAPI ParquetWriteConfig
   /// Data page size in bytes (default: 1MB)
   /// Affects granularity of reads within a row group
   int64_t data_page_size = 1024 * 1024;
+
+  /// QPX tables (with QPX schema metadata): allow optional columns after the view's own, which QPX readers ignore
+  /// (each view column is still checked in place); false: the table must have the view's columns exactly
+  bool qpx_extra_columns = false;
+
+  /// Top-level columns whose values are written without dictionary encoding (all their leaves): columns of
+  /// mostly distinct values, e.g. peak m/z, which with small row groups would each get a dictionary page
+  std::vector<std::string> plain_columns;
+
+  /// Threads of one write (default 1: as before, serial). More than one: the QPX value validation checks the rows
+  /// in parallel (OpenMP), and the row groups are encoded column by column in parallel on a thread pool of this size
+  /// owned by the write (not Arrow's global CPU pool). The file is the same: one row group per @p row_group_size
+  /// rows, the same encodings and compression; only its uuid and creation_date differ between two writes.
+  int threads = 1;
+
+  /// The table passed the QPX value validation already (ArrowIOHelpers::validateQPXTable() of the same table): the
+  /// write does not check it again. For a table written twice, e.g. as a run's file and as the merged file of one run.
+  bool validated = false;
 };
 
 

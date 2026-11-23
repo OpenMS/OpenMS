@@ -534,7 +534,7 @@ is_a: MS:1000264 ! ion trap
 
 [Term]
 id: MS:1000079
-name: fourier transform ion cyclotron resonance mass spectrometer
+name: fourier transform ion cyclotron resonance
 def: "A mass spectrometer based on the principle of ion cyclotron resonance in which an ion in a magnetic field moves in a circular orbit at a frequency characteristic of its m/z value. Ions are coherently excited to a larger radius orbit using a pulse of radio frequency energy and their image charge is detected on receiver plates as a time domain signal. Fourier transformation of the time domain signal results in a frequency domain signal which is converted to a mass spectrum based in the inverse relationship between frequency and m/z." [PSI:MS]
 synonym: "FT_ICR" EXACT []
 is_a: MS:1000443 ! mass analyzer type
@@ -1860,7 +1860,7 @@ is_a: MS:1000406 ! surface ionization
 
 [Term]
 id: MS:1000280
-name: suface ionization
+name: surface ionization
 def: "The ionization of a neutral species when it interacts with a solid surface with an appropriate work function and temperature. OBSOLETE as redudant replace by  MS:1000406 surface ionization" [PSI:MS]
 synonym: "SI" EXACT []
 is_obsolete: true

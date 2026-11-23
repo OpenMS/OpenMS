@@ -38,7 +38,7 @@ class TOPPNewTool :
 {
 public:
   TOPPNewTool() :
-    TOPPBase("NewTool", "Template for Tool creation", false)
+    TOPPBase("NewTool", "Template for Tool creation", {}, false)
   {
 
   }

@@ -6,6 +6,7 @@
 // $Authors: Hannes Roest $
 // --------------------------------------------------------------------------
 
+#include <OpenMS/CONCEPT/CheckedCast.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/ANALYSIS/TARGETED/TargetedExperiment.h>
 #include <OpenMS/CONCEPT/Types.h>
@@ -336,7 +337,7 @@ class TOPPOpenSwathFeatureXMLToTSV
 public:
 
   TOPPOpenSwathFeatureXMLToTSV() :
-    TOPPBase("OpenSwathFeatureXMLToTSV", "Converts a featureXML to a mProphet tsv.", true)
+    TOPPBase("OpenSwathFeatureXMLToTSV", "Converts a featureXML to a mProphet tsv.")
   {
   }
 
@@ -415,11 +416,9 @@ protected:
     }
     FeatureMap feature_map;
     // feature_file.load() resets the locale to the user's (Don't know where, maybe QT or Xerces)
-    // Somehow even our variable OpenMS::Internal::OpenMS_locale is overwritten
-    // Create copy here and reset it later. TODO this needs to be fixed more thouroughly.
-    std::string locale_before =std::string(OpenMS::Internal::OpenMS_locale);
+    // Reset it to "C" afterwards. TODO this needs to be fixed more thoroughly.
     FileHandler().loadFeatures(file_list[0], feature_map, {FileTypes::FEATUREXML}, log_type_);
-    setlocale(LC_ALL, locale_before.c_str());
+    setlocale(LC_ALL, "C");
     if (feature_map.getIdentifier().empty())
     {
       feature_map.setIdentifier("run0");
@@ -475,11 +474,11 @@ protected:
 
       if (best_scoring.empty())
       {
-        write_out_body(os, feature_map, transition_exp, meta_value_names, boost::numeric_cast<int>(i), short_format, filename);
+        write_out_body(os, feature_map, transition_exp, meta_value_names, checkedCast<int>(i), short_format, filename);
       }
       else
       {
-        write_out_body_best_score(os, feature_map, transition_exp, meta_value_names, boost::numeric_cast<int>(i), short_format, best_scoring, filename);
+        write_out_body_best_score(os, feature_map, transition_exp, meta_value_names, checkedCast<int>(i), short_format, best_scoring, filename);
       }
     }
 

@@ -28,7 +28,7 @@ namespace OpenMS
     @brief A class to decode input strings that contain an mzML chromatogram or
     spectrum tag.
 
-    It uses xercesc to parse a string containing either a exactly one mzML
+    It uses libxml2 to parse a string containing either a exactly one mzML
     spectrum or chromatogram (from \<chromatogram\> to \</chromatogram\> or
     \<spectrum\> to \</spectrum\> tag). It returns the data contained in the
     binaryDataArray for Intensity / mass-to-charge or Intensity / time.
@@ -65,13 +65,13 @@ namespace OpenMS
     /**
       @brief Convert a single DOMNode of type binaryDataArray to BinaryData object.
 
-      This function will extract the data from a xerces DOMNode which points to
+      This function will extract the data from a libxml2 node which points to
       a binaryDataArray tag and store the result as a BinaryData object. The
       result will be appended to the data vector.
 
-      @param[in] indexListNode Opaque pointer to a Xerces @c DOMNode of type
+      @param[in] indexListNode Opaque pointer to a libxml2 @c xmlNode of type
                  binaryDataArray (typed as @c void* so this public header stays
-                 Xerces-free; recovered internally in the .cpp).
+                 independent of parser headers; recovered internally in the .cpp).
       @param[in] data Binary data extracted from the string
     */
     void handleBinaryDataArray_(void* indexListNode, std::vector<BinaryData>& data);

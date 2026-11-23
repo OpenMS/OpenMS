@@ -194,6 +194,8 @@ namespace OpenMS
         OPENMS_LOG_WARN << "annotateSpectra(): No precursor MZ found. Setting spectrum_mz to 0.\n";
       }
       const double spectrum_mz = precursors.empty() ? 0.0 : precursors.front().getMZ();
+      // In ppm mode the tolerance is relative to the precursor m/z
+      const double mz_tolerance = mz_unit_is_Da_ ? mz_tolerance_ : Math::ppmToMass(mz_tolerance_, spectrum_mz);
 
       // Lambda to check the mz/rt thresholds
       auto checkRtAndMzTol = [](const double& spectrum_mz, const double& spectrum_rt, 
@@ -251,12 +253,12 @@ namespace OpenMS
           // iterate through the subordinate level
           for (const auto& subordinate : feature.getSubordinates())
           {
-            construct_feature(subordinate, mz_tolerance_, rt_window_);
+            construct_feature(subordinate, mz_tolerance, rt_window_);
           }
         }
         else
         {
-          construct_feature(feature, mz_tolerance_, rt_window_);
+          construct_feature(feature, mz_tolerance, rt_window_);
         }
       }
     }
@@ -367,7 +369,8 @@ namespace OpenMS
         OPENMS_LOG_WARN << "annotateSpectra(): No precursor MZ found. Setting spectrum_mz to 0.\n";
       }
       const double spectrum_mz = precursors.empty() ? 0.0 : precursors.front().getMZ();
-      const double mz_tolerance = mz_unit_is_Da_ ? mz_tolerance_ : mz_tolerance_ / 1e6;
+      // In ppm mode the tolerance is relative to the precursor m/z
+      const double mz_tolerance = mz_unit_is_Da_ ? mz_tolerance_ : Math::ppmToMass(mz_tolerance_, spectrum_mz);
 
       // When spectrum_mz is 0, the mz check on transitions is inhibited
       const double mz_left_lim = spectrum_mz ? spectrum_mz - mz_tolerance : std::numeric_limits<double>::min();
@@ -459,9 +462,10 @@ namespace OpenMS
 
     // Build indices of peaks to keep (properly handles all DataArrays via select())
     std::vector<Size> indices_to_keep;
-    const double fwhm_threshold = mz_unit_is_Da_ ? fwhm_threshold_ : fwhm_threshold_ / 1e6;
     for (Size i = 0; i < picked_spectrum.size(); ++i)
     {
+      // In ppm mode the threshold is relative to the peak's m/z
+      const double fwhm_threshold = mz_unit_is_Da_ ? fwhm_threshold_ : Math::ppmToMass(fwhm_threshold_, picked_spectrum[i].getMZ());
       if (picked_spectrum[i].getIntensity() >= peak_height_min_ &&
           picked_spectrum[i].getIntensity() <= peak_height_max_ &&
           picked_spectrum.getFloatDataArrays()[0][i] >= fwhm_threshold)

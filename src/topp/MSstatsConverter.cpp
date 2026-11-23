@@ -191,7 +191,11 @@ protected:
     static const std::string param_remove_shared_peptides;
 
 private:
-    static void fatalErrorIf_(const bool error_condition, const std::string &message, const int exit_code)
+    /// Throws @p exit_code as an ExitCodes, not an int. main_ catches `const ExitCodes&`, and
+    /// exception matching does not convert an int to an enum -- with an int the throw escaped
+    /// main_, and TOPPBase has no catch-all, so the process terminated instead of returning the
+    /// exit code.
+    static void fatalErrorIf_(const bool error_condition, const std::string &message, const ExitCodes exit_code)
     {
       if (error_condition)
       {

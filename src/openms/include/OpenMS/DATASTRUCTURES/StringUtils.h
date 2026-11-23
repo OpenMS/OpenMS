@@ -21,7 +21,6 @@
 #include <cstdio>
 #include <cstring>
 #include <limits>
-#include <ranges>
 #include <sstream>
 #include <string>
 #include <string_view>
@@ -179,9 +178,12 @@ namespace OpenMS
     /// Overloads for std::string iterators (converts to const char* internally)
     inline bool extractDouble(std::string::const_iterator& begin, const std::string::const_iterator& end, double& target)
     {
+      if (begin == end) return false; // also avoids dereferencing begin below
       const char* const p_start = &(*begin);
       const char* p = p_start;
-      const char* e = &(*end);
+      // compute the end pointer from the range length -- dereferencing the
+      // past-the-end iterator is UB and asserts under debug iterators
+      const char* const e = p_start + (end - begin);
       bool ok = StringUtilsHelper::extractDouble(p, e, target);
       begin += (p - p_start); // advance iterator by number of consumed chars (MSVC iterators cannot be built from a raw pointer)
       return ok;
@@ -189,31 +191,40 @@ namespace OpenMS
 
     inline bool extractDouble(std::string::iterator& begin, const std::string::iterator& end, double& target)
     {
+      if (begin == end) return false; // also avoids dereferencing begin below
       const char* const p_start = &(*begin);
       const char* p = p_start;
-      const char* e = &(*end);
+      // compute the end pointer from the range length -- dereferencing the
+      // past-the-end iterator is UB and asserts under debug iterators
+      const char* const e = p_start + (end - begin);
       bool ok = StringUtilsHelper::extractDouble(p, e, target);
-      begin += (p - p_start);
+      begin += (p - p_start); // advance iterator by number of consumed chars (MSVC iterators cannot be built from a raw pointer)
       return ok;
     }
 
     inline bool extractInt(std::string::const_iterator& begin, const std::string::const_iterator& end, int& target)
     {
+      if (begin == end) return false; // also avoids dereferencing begin below
       const char* const p_start = &(*begin);
       const char* p = p_start;
-      const char* e = &(*end);
+      // compute the end pointer from the range length -- dereferencing the
+      // past-the-end iterator is UB and asserts under debug iterators
+      const char* const e = p_start + (end - begin);
       bool ok = StringUtilsHelper::extractInt(p, e, target);
-      begin += (p - p_start);
+      begin += (p - p_start); // advance iterator by number of consumed chars (MSVC iterators cannot be built from a raw pointer)
       return ok;
     }
 
     inline bool extractInt(std::string::iterator& begin, const std::string::iterator& end, int& target)
     {
+      if (begin == end) return false; // also avoids dereferencing begin below
       const char* const p_start = &(*begin);
       const char* p = p_start;
-      const char* e = &(*end);
+      // compute the end pointer from the range length -- dereferencing the
+      // past-the-end iterator is UB and asserts under debug iterators
+      const char* const e = p_start + (end - begin);
       bool ok = StringUtilsHelper::extractInt(p, e, target);
-      begin += (p - p_start);
+      begin += (p - p_start); // advance iterator by number of consumed chars (MSVC iterators cannot be built from a raw pointer)
       return ok;
     }
 
@@ -226,20 +237,20 @@ namespace OpenMS
     OPENMS_DLLAPI const char* skipWhitespace(const char* p, const char* p_end);
 
     /// Returns count of leading whitespace characters in @p data
-    inline int skipWhitespace(const std::string_view& data)
+    inline size_t skipWhitespace(const std::string_view& data)
     {
       auto pos = skipWhitespace(data.data(), data.data() + data.size());
-      return static_cast<int>(pos - data.data());
+      return static_cast<size_t>(pos - data.data());
     }
 
     /// Returns pointer to first whitespace character in [p, p_end), or p_end
     OPENMS_DLLAPI const char* skipNonWhitespace(const char* p, const char* p_end);
 
     /// Returns count of leading non-whitespace characters in @p data
-    inline int skipNonWhitespace(const std::string_view& data)
+    inline size_t skipNonWhitespace(const std::string_view& data)
     {
       auto pos = skipNonWhitespace(data.data(), data.data() + data.size());
-      return static_cast<int>(pos - data.data());
+      return static_cast<size_t>(pos - data.data());
     }
 
 
@@ -511,7 +522,7 @@ namespace OpenMS
     inline std::string& removeWhitespaces(std::string& s)
     {
       // skip unmodified prefix
-      int start = skipNonWhitespace(std::string_view(s.data(), s.size()));
+      const size_t start = skipNonWhitespace(std::string_view(s.data(), s.size()));
       auto it     = s.cbegin() + start;
       auto dest   = s.begin()  + start;
       auto it_end = s.cend();
@@ -772,9 +783,12 @@ namespace OpenMS
       instead of the iterator form
       @code std::string s; s = StringUtils::concatenate(container, ", "); @endcode
 
-      Constraining @p Container to a range keeps this from competing with the iterator overloads.
+      Constraining @p Container to types with begin()/end() keeps this from competing with the
+      iterator overloads. (A requires-expression instead of std::ranges::range: this header is
+      included by nearly every translation unit, and the ranges header is expensive to parse.)
     */
-    template <std::ranges::range Container>
+    template <typename Container>
+      requires requires(const Container& c) { c.begin(); c.end(); }
     inline std::string concatenate(const Container& container, const std::string& glue = "")
     {
       return concatenate(container.begin(), container.end(), glue);

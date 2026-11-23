@@ -26,6 +26,7 @@
 #include <OpenMS/METADATA/ProteinIdentification.h>
 
 #include <OpenMS/MATH/MathFunctions.h>
+#include <OpenMS/MATH/StatisticFunctions.h>
 
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/CONCEPT/LogStream.h>
@@ -35,8 +36,10 @@
 
 #include <OpenMS/PROCESSING/FEATURE/FeatureOverlapFilter.h>
 
+#include <set>
 #include <vector>
 #include <numeric>
+#include <optional>
 #include <fstream>
 #include <algorithm>
 #include <random>
@@ -54,13 +57,13 @@ namespace OpenMS
   {
     defaults_.setValue("candidates_out", "", "Optional output file: Feature candidates (before filtering and model fitting).", {"output file"});
 
-    defaults_.setValue("extract:mz_window", 10.0, "m/z window size for chromatogram extraction (unit: ppm if 1 or greater, else Da/Th)");
+    defaults_.setValue("extract:mz_window", 10.0, "m/z window size for chromatogram extraction (unit: ppm if 1 or greater, else Da/Th). This is the full width of the window: the signal within +/- half of it around the target m/z is extracted.");
     defaults_.setMinFloat("extract:mz_window", 0.0);
 
     defaults_.setValue(
       "extract:rt_window",
-      0.0,
-      "RT window size (in sec.) for chromatogram extraction. If 0, this parameter is computed as 'detect:peak_width' * 4.",
+      240.0,
+      "RT window size (in sec.) for chromatogram extraction: a feature is searched within +/- half of it around the target RT. If 0, this parameter is computed as 'detect:peak_width' * 4.",
       vector<string>{"advanced"});
     defaults_.setMinFloat("extract:rt_window", 0.0);
 
@@ -83,7 +86,7 @@ namespace OpenMS
 
     defaults_.setSectionDescription("extract", "Parameters for ion chromatogram extraction");
 
-    defaults_.setValue("detect:peak_width", 60.0, "Expected elution peak width in seconds, for smoothing (Gauss filter). Also determines the RT extraction window, unless set explicitly via 'extract:rt_window'.");
+    defaults_.setValue("detect:peak_width", 20.0, "Expected elution peak width in seconds, for smoothing (Gauss filter). Also determines the RT extraction window if 'extract:rt_window' is set to 0. About twice the width (FWHM) of the elution peaks in the data is a suitable value: if it is much larger, neighboring peaks can be merged and targets can be missed.");
     defaults_.setMinFloat("detect:peak_width", 0.0);
     defaults_.setValue(
       "detect:min_peak_width", 
@@ -169,6 +172,33 @@ namespace OpenMS
     FeatureMap& features,
     const std::string& spectra_file)
   {
+    // RT windows that are narrower than the expected elution peaks: 'extract:rt_window' (if a target uses it), and the
+    // 'RetentionTimeRange' of targets that have their own
+    Size n_default_window = 0, n_own_narrow_window = 0;
+    for (const auto& c : metaboIdentTable)
+    {
+      const vector<double>& ranges = c.getRTRanges();
+      for (Size i = 0; i < c.getRTs().size(); ++i)
+      {
+        // as in addTargetToLibrary_(): no value or 0 stands for 'extract:rt_window', a single value is used for all RTs
+        const double range = (ranges.size() == 1) ? ranges[0] : ((i < ranges.size()) ? ranges[i] : 0.0);
+        if (range == 0.0) ++n_default_window;
+        else if (range < peak_width_) ++n_own_narrow_window;
+      }
+    }
+    const char* narrow_window_effect = " s). The extracted chromatograms are shorter than the expected elution peaks "
+                                       "(and than the width they are smoothed with), so features may be missed or cut off.";
+    if ((n_default_window > 0) && (rt_window_ < peak_width_))
+    {
+      OPENMS_LOG_WARN << "Warning: 'extract:rt_window' (" << rt_window_ << " s) is smaller than 'detect:peak_width' ("
+                      << peak_width_ << narrow_window_effect << endl;
+    }
+    if (n_own_narrow_window > 0)
+    {
+      OPENMS_LOG_WARN << "Warning: the 'RetentionTimeRange' of " << n_own_narrow_window
+                      << " target(s) is smaller than 'detect:peak_width' (" << peak_width_ << narrow_window_effect << endl;
+    }
+
     // Check for FAIMS data
     auto faims_groups = IMDataConverter::splitByFAIMSCV(std::move(ms_data_));
     const bool has_faims = faims_groups.size() > 1 || !std::isnan(faims_groups[0].first);
@@ -178,6 +208,8 @@ namespace OpenMS
       // Non-FAIMS data: restore ms_data_ and run directly
       ms_data_ = std::move(faims_groups[0].second);
       runSingleGroup_(metaboIdentTable, features, spectra_file);
+      warnIfPeakWidthTooLarge_(features);
+      warnIfRTWindowTooNarrow_();
       return;
     }
 
@@ -190,8 +222,12 @@ namespace OpenMS
     library_.clear(true);
     trafo_ = TransformationDescription();
     n_shared_ = 0;
-    bool first_group = true;
+    // targets without features in a group, by PeptideRef (in order): kept below if no group found them
+    std::vector<PeptideIdentification> missing_targets;
+    std::set<std::string> missing_refs;
 
+    std::vector<double> group_scan_intervals;
+    n_rt_deviations_ = n_near_window_edge_ = n_near_own_window_edge_ = 0;
     for (auto& [group_cv, faims_group] : faims_groups)
     {
       OPENMS_LOG_INFO << "Processing FAIMS CV group: " << group_cv << " V ("
@@ -200,35 +236,44 @@ namespace OpenMS
       // Create algorithm instance for this group (use same parameters)
       FeatureFinderAlgorithmMetaboIdent ff_group;
       ff_group.setParameters(this->getParameters());
-      ff_group.setMSData(std::move(faims_group));
+      ff_group.setFromMS1Data(std::move(faims_group));
 
       FeatureMap features_cv;
       ff_group.runSingleGroup_(metaboIdentTable, features_cv, spectra_file);
+
+      // the same transitions are extracted at every CV: make the chromatogram native ids (and the references of the
+      // subordinates to them) unique per CV
+      const std::string cv_suffix = "_CV" + StringUtils::toStr(group_cv);
 
       // Annotate features with FAIMS CV and add to combined results
       for (auto& feat : features_cv)
       {
         feat.setMetaValue(Constants::UserParam::FAIMS_CV, group_cv);
+        for (Feature& sub : feat.getSubordinates())
+        {
+          if (sub.metaValueExists("native_id")) sub.setMetaValue("native_id", StringUtils::toStr(sub.getMetaValue("native_id")) + cv_suffix);
+        }
         features.push_back(feat);
       }
 
-      // Copy ProteinIdentifications from first group
-      if (first_group)
+      // Copy ProteinIdentifications (the run "id" of the unassigned peptide identifications, which a group only has if
+      // it has targets without features) from the first group that has them
+      if (features.getProteinIdentifications().empty())
       {
         features.setProteinIdentifications(features_cv.getProteinIdentifications());
       }
 
-      // Copy UnassignedPeptideIdentifications with FAIMS annotation
+      // Targets without features at this CV (unassigned "identifications")
       for (auto& pep_id : features_cv.getUnassignedPeptideIdentifications())
       {
-        pep_id.setMetaValue(Constants::UserParam::FAIMS_CV, group_cv);
-        features.getUnassignedPeptideIdentifications().push_back(std::move(pep_id));
+        if (missing_refs.insert(StringUtils::toStr(pep_id.getMetaValue("PeptideRef"))).second) missing_targets.push_back(std::move(pep_id));
       }
 
       // Combine chromatograms
       for (auto& chrom : ff_group.getChromatograms().getChromatograms())
       {
         chrom.setMetaValue(Constants::UserParam::FAIMS_CV, group_cv);
+        chrom.setNativeID(chrom.getNativeID() + cv_suffix);
         chrom_data_.addChromatogram(std::move(chrom));
       }
 
@@ -241,13 +286,39 @@ namespace OpenMS
       trafo_.setDataPoints(points);
 
       n_shared_ += ff_group.getNShared();
-      first_group = false;
+      group_scan_intervals.push_back(ff_group.scan_interval_);
+      n_rt_deviations_ += ff_group.n_rt_deviations_;
+      n_near_window_edge_ += ff_group.n_near_window_edge_;
+      n_near_own_window_edge_ += ff_group.n_near_own_window_edge_;
+    }
+    // each CV group is processed with its own spectra, i.e. its own (longer) scan interval
+    scan_interval_ = Math::median(group_scan_intervals.begin(), group_scan_intervals.end());
+
+    // Targets without features are those without a feature at any CV (as without FAIMS, once each)
+    std::set<std::string> found_refs;
+    for (const Feature& feat : features)
+    {
+      found_refs.insert(StringUtils::toStr(feat.getMetaValue("PeptideRef")));
+      if (feat.metaValueExists("alt_PeptideRef"))
+      {
+        StringList alt_refs = feat.getMetaValue("alt_PeptideRef");
+        found_refs.insert(alt_refs.begin(), alt_refs.end());
+      }
+    }
+    for (auto& pep_id : missing_targets)
+    {
+      if (!found_refs.contains(StringUtils::toStr(pep_id.getMetaValue("PeptideRef"))))
+      {
+        features.getUnassignedPeptideIdentifications().push_back(std::move(pep_id));
+      }
     }
 
     // Warn about library output for FAIMS data
     OPENMS_LOG_WARN << "Warning: Library output is not available for multi-FAIMS data. "
                     << "Each FAIMS CV group has its own assay library." << endl;
     OPENMS_LOG_INFO << "Combined " << features.size() << " features from all FAIMS CV groups." << endl;
+    warnIfPeakWidthTooLarge_(features);
+    warnIfRTWindowTooNarrow_();
 
     // Optionally merge features from different FAIMS CV groups that represent the same analyte
     if (param_.getValue("faims:merge_features").toBool())
@@ -272,11 +343,24 @@ namespace OpenMS
   {
     // if proper mzML is annotated in MS data use this as reference. Otherwise, overwrite with spectra_file information.
     features.setPrimaryMSRunPath({spectra_file}, ms_data_);
+    n_rt_deviations_ = n_near_window_edge_ = n_near_own_window_edge_ = 0;
 
     if (ms_data_.empty())
     {
       OPENMS_LOG_WARN << "Warning: No MS1 scans in:" << spectra_file << endl;
       return;
+    }
+
+    // median time between MS1 spectra (sorted by RT in prepareMSData_()), for the peak width warning
+    if (ms_data_.size() > 1)
+    {
+      vector<double> intervals;
+      intervals.reserve(ms_data_.size() - 1);
+      for (Size i = 1; i < ms_data_.size(); ++i)
+      {
+        intervals.push_back(ms_data_[i].getRT() - ms_data_[i - 1].getRT());
+      }
+      scan_interval_ = Math::median(intervals.begin(), intervals.end());
     }
 
     for (const auto& c : metaboIdentTable)
@@ -400,9 +484,16 @@ namespace OpenMS
               << " chromatogram(s)." << endl;
 
     OPENMS_LOG_INFO << "Detecting chromatographic peaks..." << endl;
-    Logger::LogSinkGuard log_guard(getGlobalLogInfo(), cout); // suppress status output from OpenSWATH (exception-safe)
-    feat_finder_.pickExperiment(chrom_data_, features, library_,
-                                TransformationDescription(), ms_data_);
+    {
+      // suppress status output from OpenSWATH, unless in debug mode:
+      std::optional<Logger::LogSinkGuard> log_guard; // RAII: re-inserts cout on scope exit (exception-safe)
+      if (debug_level_ < 1)
+      {
+        log_guard.emplace(getThreadLocalLogInfo(), cout);
+      }
+      feat_finder_.pickExperiment(chrom_data_, features, library_,
+                                  TransformationDescription(), ms_data_);
+    }
     OPENMS_LOG_INFO << "Found " << features.size()
                     << " feature candidates in total." << endl;
     ms_data_.reset(); // not needed anymore, free up the memory
@@ -444,39 +535,41 @@ namespace OpenMS
         size_t best_intensity = cluster_representative.getIntensity();
         size_t overlap_intensity = overlap.getIntensity();
 
-        if (overlap_intensity != best_intensity) return true; // early out: features are different
-
-        // this part will nearly never be called (e.g., only completely identicial features)
-        // so it is ok to perform some slow operations like querying meta values 
-        double best_rt_delta = std::abs(double(cluster_representative.getMetaValue("rt_deviation")));
-        double overlap_rt_delta = std::abs(double(overlap.getMetaValue("rt_deviation")));
-
-        if (overlap_rt_delta == best_rt_delta)
+        // only features with the same intensity can be the same feature
+        if (overlap_intensity == best_intensity)
         {
-          double best_RT = cluster_representative.getRT();
-          double overlap_RT = overlap.getRT();
-          double best_MZ = cluster_representative.getMZ();
-          double overlap_MZ = overlap.getMZ();
+          // this part will nearly never be called (e.g., only completely identicial features)
+          // so it is ok to perform some slow operations like querying meta values 
+          double best_rt_delta = std::abs(double(cluster_representative.getMetaValue("rt_deviation")));
+          double overlap_rt_delta = std::abs(double(overlap.getMetaValue("rt_deviation")));
 
-          // are the features the same? (@TODO: use "Math::approximatelyEqual"?)
-          if ((overlap_MZ == best_MZ) && (overlap_RT == best_RT))
+          if (overlap_rt_delta == best_rt_delta)
           {
-            // update annotations:
-            // @TODO: also adjust "formula" and "expected_rt"?
-            std::string label = StringUtils::toStr(cluster_representative.getMetaValue("label"));            
-            label += "/" + StringUtils::toStr(overlap.getMetaValue("label"));
-            cluster_representative.setMetaValue("label", label);
-            StringList alt_refs;
-            if (cluster_representative.metaValueExists("alt_PeptideRef"))
+            double best_RT = cluster_representative.getRT();
+            double overlap_RT = overlap.getRT();
+            double best_MZ = cluster_representative.getMZ();
+            double overlap_MZ = overlap.getMZ();
+
+            // are the features the same? (@TODO: use "Math::approximatelyEqual"?)
+            if ((overlap_MZ == best_MZ) && (overlap_RT == best_RT))
             {
-              alt_refs = cluster_representative.getMetaValue("alt_PeptideRef").toStringList();
+              // update annotations:
+              // @TODO: also adjust "formula" and "expected_rt"?
+              std::string label = StringUtils::toStr(cluster_representative.getMetaValue("label"));            
+              label += "/" + StringUtils::toStr(overlap.getMetaValue("label"));
+              cluster_representative.setMetaValue("label", label);
+              StringList alt_refs;
+              if (cluster_representative.metaValueExists("alt_PeptideRef"))
+              {
+                alt_refs = cluster_representative.getMetaValue("alt_PeptideRef").toStringList();
+              }
+              alt_refs.push_back(overlap.getMetaValue("PeptideRef"));
+              cluster_representative.setMetaValue("alt_PeptideRef", alt_refs);
             }
-            alt_refs.push_back(overlap.getMetaValue("PeptideRef"));
-            cluster_representative.setMetaValue("alt_PeptideRef", alt_refs);
           }
         }
 
-        // annotate which features were removed because of overlap with the representative feature
+        // annotate which features were removed because of overlap with the representative feature (all of them)
         std::string ref =StringUtils::toStr(overlap.getMetaValue("PeptideRef")) + " (RT " +
           StringUtils::toStr(float(overlap.getRT())) + ")";
 
@@ -487,16 +580,26 @@ namespace OpenMS
         return true;
       };
 
+    const Size n_before_overlap_filter = features.size();
     FeatureOverlapFilter::filter(features, FeatureComparator, FeatureOverlapCallback, CHECK_TRACES_FOR_OVERLAP);
     std::stable_sort(features.begin(), features.end(), feature_compare_); // sort by ref and rt
+    if (features.size() < n_before_overlap_filter)
+    {
+      OPENMS_LOG_INFO << features.size() << " features left after resolving overlaps ("
+                      << (n_before_overlap_filter - features.size())
+                      << " removed or merged with an identical feature; see meta values 'overlap_removed' and 'alt_PeptideRef')."
+                      << endl;
+    }
+
+    // also reports the targets without a feature (all of them, if no feature is left)
+    n_shared_ = addTargetAnnotations_(features);
 
     if (features.empty())
     {
-      OPENMS_LOG_INFO << "No features left after filtering." << endl;
+      OPENMS_LOG_INFO << "No features left after filtering. If features were expected, look at the extracted chromatograms "
+                      << "and check 'extract:mz_window', 'extract:rt_window' and 'detect:peak_width'." << endl;
       return;
-    }    
-
-    n_shared_ = addTargetAnnotations_(features);
+    }
 
     if (elution_model_ != "none")
     {
@@ -506,7 +609,22 @@ namespace OpenMS
       emf_params.setValue("asymmetric",
                           (elution_model_ == "asymmetric") ? "true" : "false");
       emf.setParameters(emf_params);
+      StringList ms_run_paths;
+      features.getPrimaryMSRunPath(ms_run_paths);
+      const Size n_before_model_fit = features.size();
       emf.fitElutionModels(features);
+      if (features.empty())
+      {
+        // without any valid elution model the fitter clears the map, including its meta data: restore it,
+        // and report all targets as not found
+        OPENMS_LOG_WARN << "Warning: no valid elution model could be fitted, so all " << n_before_model_fit
+                        << " feature(s) were removed. Features without elution models are reported with 'model:type' 'none'. "
+                        << "If features were expected, look at the extracted chromatograms and check 'extract:mz_window', "
+                        << "'extract:rt_window' and 'detect:peak_width'." << endl;
+        features.setPrimaryMSRunPath(ms_run_paths);
+        n_shared_ = addTargetAnnotations_(features);
+        return;
+      }
     }
     else if (!candidates_out_.empty()) // hulls not needed, remove them
     {
@@ -519,6 +637,7 @@ namespace OpenMS
       }
     }
 
+    countRTDeviations_(features);
     extractTransformations_(features);
   }
 
@@ -714,10 +833,12 @@ namespace OpenMS
         }
 
         double rt_tol = rt_ranges[i] / 2.0;
-        if (rt_tol == 0)
+        const bool own_rt_range = (rt_tol != 0);
+        if (!own_rt_range)
         {
           rt_tol = rt_window_ / 2.0;
         }
+        target_rt_tols_[target.id] = {rt_tol, own_rt_range};
         // store beginning and end of RT region:
         target.rts.clear();
         addTargetRT_(target, rts[i] - rt_tol);
@@ -844,7 +965,12 @@ namespace OpenMS
       if (ref != previous_ref) // new assay
       {
         previous_ref = ref;
-        best_rt_dist = rt_window_;
+        // A candidate anywhere in the RT window of its target is eligible (the closest one is kept), so the distance
+        // to beat starts at the full window of that target: 'extract:rt_window', or its own 'RetentionTimeRange'.
+        // (With 'extract:rt_window' for all targets, candidates of a target with a 'RetentionTimeRange' of more than
+        // twice that value were dropped if they were further away than 'extract:rt_window'.)
+        auto tol = target_rt_tols_.find(ref);
+        best_rt_dist = (tol != target_rt_tols_.end()) ? 2.0 * tol->second.first : rt_window_;
         best_it = it;
       }
       double target_rt = target_rts_[ref];
@@ -884,6 +1010,93 @@ namespace OpenMS
     }
     features.erase(remove_if(features.begin(), features.end(),
                              feature_filter_), features.end());
+  }
+
+  void FeatureFinderAlgorithmMetaboIdent::countRTDeviations_(const FeatureMap& features)
+  {
+    for (const Feature& feat : features)
+    {
+      if (!feat.metaValueExists("rt_deviation")) continue;
+      auto pos = target_rt_tols_.find(StringUtils::toStr(feat.getMetaValue("PeptideRef")));
+      if ((pos == target_rt_tols_.end()) || (pos->second.first <= 0.0)) continue;
+      ++n_rt_deviations_;
+      if (std::abs(double(feat.getMetaValue("rt_deviation"))) > 0.75 * pos->second.first)
+      {
+        ++n_near_window_edge_;
+        if (pos->second.second) ++n_near_own_window_edge_;
+      }
+    }
+  }
+
+  void FeatureFinderAlgorithmMetaboIdent::warnIfRTWindowTooNarrow_() const
+  {
+    // On the data measured for this check (12 MetaboLights studies, 'detect:peak_width' 20 s and the RT window that
+    // follows from it), at most 13 % of the features of a run were in the outer quarter of their RT window (mostly
+    // less than 1 %); a systematic RT offset of the targets moves most of them there. No minimum number of features
+    // overall: with a larger offset the features drop out of the window, and few are left to count.
+    if ((n_near_window_edge_ < 3) || (n_near_window_edge_ * 4 <= n_rt_deviations_)) return;
+    OPENMS_LOG_WARN << "Warning: " << n_near_window_edge_ << " of " << n_rt_deviations_ << " features are near the edge of "
+                    << "the RT window of their target (more than three quarters of half the window away from the target "
+                    << "RT). The RT window is probably too narrow for the RT deviations of the targets: targets that "
+                    << "elute outside of it are not found. Consider ";
+    if (n_near_own_window_edge_ < n_near_window_edge_) // targets that use 'extract:rt_window'
+    {
+      OPENMS_LOG_WARN << "a larger 'extract:rt_window' (" << rt_window_ << " s)";
+    }
+    if (n_near_own_window_edge_ > 0) // targets with their own window, which 'extract:rt_window' does not change
+    {
+      OPENMS_LOG_WARN << ((n_near_own_window_edge_ < n_near_window_edge_) ? " and " : "") << "a larger 'RetentionTimeRange' "
+                      << "for the targets that have their own (" << n_near_own_window_edge_ << " of these features)";
+    }
+    OPENMS_LOG_WARN << ", or aligning the RTs of the targets to the data." << endl;
+  }
+
+  void FeatureFinderAlgorithmMetaboIdent::warnIfPeakWidthTooLarge_(const FeatureMap& features) const
+  {
+    // The elution models are fitted to the unsmoothed mass traces between the feature borders, so their widths are
+    // close to those of the elution peaks in the data, largely independent of 'detect:peak_width'. (With few data
+    // points per peak they shrink somewhat with it, as the borders move in.)
+    vector<double> fwhms;
+    for (const Feature& feat : features)
+    {
+      if (feat.metaValueExists("model_FWHM") && (feat.getMetaValue("model_status") == "0 (valid)"))
+      {
+        fwhms.push_back(feat.getMetaValue("model_FWHM"));
+      }
+    }
+    if (fwhms.empty()) return; // no elution models ('model:type' is 'none'), or no valid ones
+
+    // The chromatograms are smoothed with a Gaussian of standard deviation 'detect:peak_width' / 8 (see
+    // GaussFilterAlgorithm) before the peaks are picked. The suggested value is twice the FWHM of the peaks, but at
+    // least eight times the time between two MS1 spectra: with few spectra per peak, a kernel narrower than that
+    // interval hardly smooths, and peaks get lost. The warning is given above twice the suggested value (for the
+    // FWHM: a kernel about 1.2 times as wide as the peaks), so it does not come back after the suggestion is followed
+    // unless the median width is about halved - the model widths shrink somewhat at a smaller peak width, as the
+    // feature borders move in, and with few targets the models are often those of noise features of absent targets.
+    const double median_fwhm = Math::median(fwhms.begin(), fwhms.end());
+    const double shown_fwhm = Math::roundDecimal(median_fwhm, -1);
+    const double min_width = 8.0 * scan_interval_;
+    const bool by_scans = (min_width > 2.0 * shown_fwhm);
+    const double suggested_width = by_scans ? min_width : 2.0 * shown_fwhm;
+    if (peak_width_ <= 2.0 * suggested_width) return;
+
+    OPENMS_LOG_WARN << "Warning: 'detect:peak_width' (" << peak_width_ << " s) is much larger than the elution peaks of the "
+                    << "detected features (median width (FWHM): " << shown_fwhm << " s, from "
+                    << fwhms.size() << " elution model(s)). The chromatograms are smoothed with this width before peaks "
+                    << "are picked: neighboring peaks at the m/z of a target can be merged into one feature, and the "
+                    << "wider features of targets that are close to each other are more often removed as overlapping "
+                    << "(targets go missing or get the intensity of a neighbor). Consider a 'detect:peak_width' of about "
+                    << Math::roundDecimal(suggested_width, (suggested_width >= 10.0) ? 0 : -1)
+                    << (by_scans ? " s (eight times the median time between MS1 spectra, " : " s (twice the median width).")
+                    << (by_scans ? StringUtils::toStr(Math::roundDecimal(scan_interval_, -2)) + " s: a smaller value hardly smooths)." : "");
+    if (double(param_.getValue("extract:rt_window")) == 0.0)
+    {
+      // the RT window follows 'detect:peak_width', and would no longer cover the RT deviations of the targets
+      OPENMS_LOG_WARN << " In that case, also set 'extract:rt_window' (e.g. to the current " << rt_window_
+                      << " s): otherwise it becomes four times 'detect:peak_width', which may be too narrow for the "
+                      << "RT deviations of the targets.";
+    }
+    OPENMS_LOG_WARN << endl;
   }
 
   /// Create a string of identifying information for a compound
@@ -959,23 +1172,20 @@ namespace OpenMS
     trafo_.setDataPoints(points);
   }
 
-  void FeatureFinderAlgorithmMetaboIdent::setMSData(const PeakMap& m)
-  { 
-    ms_data_ = m; 
-    
-    vector<MSSpectrum>& specs = ms_data_.getSpectra();
-
-    // keep only MS1
-    specs.erase(
-      std::remove_if(specs.begin(), specs.end(),
-        [](const MSSpectrum & s) { return s.getMSLevel() != 1; }),
-      specs.end());
+  void FeatureFinderAlgorithmMetaboIdent::setFromMS1Data(const PeakMap& m)
+  {
+    ms_data_ = m;
+    prepareMSData_();
   }
 
-  void FeatureFinderAlgorithmMetaboIdent::setMSData(PeakMap&& m)
+  void FeatureFinderAlgorithmMetaboIdent::setFromMS1Data(PeakMap&& m)
   {
     ms_data_ = std::move(m);
+    prepareMSData_();
+  }
 
+  void FeatureFinderAlgorithmMetaboIdent::prepareMSData_()
+  {
     vector<MSSpectrum>& specs = ms_data_.getSpectra();
 
     // keep only MS1
@@ -983,6 +1193,14 @@ namespace OpenMS
       std::remove_if(specs.begin(), specs.end(),
         [](const MSSpectrum & s) { return s.getMSLevel() != 1; }),
       specs.end());
+
+    // The chromatograms are extracted in the order of the spectra, and the peak picking requires them sorted by RT.
+    // Spectra can be out of order, e.g. in Waters files that store a second MS1 function (lock mass) after the first.
+    if (!ms_data_.isSorted(true))
+    {
+      OPENMS_LOG_INFO << "Sorting the MS1 spectra by retention time (and their peaks by m/z)." << endl;
+      ms_data_.sortSpectra(true);
+    }
   }
 
 }

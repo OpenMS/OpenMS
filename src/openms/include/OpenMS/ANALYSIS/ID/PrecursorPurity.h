@@ -72,6 +72,15 @@ namespace OpenMS
     static PurityScores computePrecursorPurity(const PeakSpectrum& ms1, const Precursor& pre, const double precursor_mass_tolerance, const bool precursor_mass_tolerance_unit_ppm);
 
     /**
+      @brief The centre of the isolation window of @p precursor
+
+      The isolation window offsets are relative to the isolation window target m/z. The mzML reader keeps that target as
+      the meta value "isolation window target m/z" when it differs from the selected ion m/z (which getMZ() returns then,
+      see PeakFileOptions::getPrecursorMZSelectedIon()). Returns getMZ() without that meta value.
+    */
+    static double isolationWindowCenter(const Precursor& precursor);
+
+    /**
      * @brief Computes a simple purity score aggregate for all Precursors (and their windows) of spectrum at @p ms2_spec_idx in the precursor spectrum at @p precursor_spec_idx
      * 
      * Extracts with fuzzy boundaries around expected isotopes where it only considers 50% of the intensity of the peak as belonging to the target.
@@ -81,7 +90,7 @@ namespace OpenMS
      * @param[in] precursor_spec_idx index for the precursor spectrum to extract the intensities from
      * @param[in] exp the MSExperiment holding the spectra to look them up
      * @param[in] max_precursor_isotope_deviation the maximum allowed deviation for the precursor isotopes in ppm
-     * @return std::vector<double> precursor intensity vs. total intensity for every precursor window in @p ms2_spec_idx
+     * @return std::vector<double> precursor intensity vs. total intensity in the isolation window (only peaks inside it count; 0 if it holds no signal) for every precursor window in @p ms2_spec_idx
      */
     static std::vector<double> computeSingleScanPrecursorPurities(int ms2_spec_idx, int precursor_spec_idx, const MSExperiment & exp, double max_precursor_isotope_deviation);
     
@@ -95,6 +104,7 @@ namespace OpenMS
      *
      * @note If @p next_ms1_spec_idx is out of range, does not refer to an MS1 spectrum, or the RT denominator is zero/invalid,
      *       the function will fall back to returning the early scan purity (from @p precursor_spec_idx) without interpolation.
+     *       If only one of the two survey scans holds signal in a precursor's isolation window, that scan's purity is returned.
      *
      * @param[in] ms2_spec_idx index for the spectrum holding the precursor information
      * @param[in] precursor_spec_idx index for the precursor spectrum to extract the intensities from

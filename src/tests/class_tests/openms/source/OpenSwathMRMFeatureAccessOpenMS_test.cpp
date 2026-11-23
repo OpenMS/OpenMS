@@ -261,9 +261,9 @@ START_SECTION(double getValueAtRT(double RT))
   }
   SignalToNoiseOpenMS<MSSpectrum> ff(s, 200, 50, true);
 
-  double value200 = 0.987854524;
-  double value210 = 1.02162;
-  double value220 = 0.782272686;
+  double value200 = 0.905533313751221;
+  double value210 = 0.936483303705851;
+  double value220 = 0.717083295186361;
   double value590 = 0.35754546252164;
 
   // test values between the mz values

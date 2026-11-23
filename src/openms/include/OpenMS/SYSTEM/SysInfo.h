@@ -11,6 +11,8 @@
 #include <OpenMS/config.h>
 #include <OpenMS/DATASTRUCTURES/StringUtils.h>
 
+#include <vector>
+
 namespace OpenMS
 {
 
@@ -57,6 +59,50 @@ namespace OpenMS
       ///
       /// `@return` The process ID of the current process
       static Int64 getProcessId();
+
+      /**
+        @brief The number of physical cores the process may run on (at least 1).
+
+        Counts cores, not their hardware threads (SMT), which std::thread::hardware_concurrency() and
+        omp_get_num_procs() count. On Linux: the cores of the CPUs in the affinity mask of the calling thread (taskset,
+        cpusets), or of @p cpus if given (e.g. the CPUs of the OpenMP places, if the OpenMP runtime has bound the
+        calling thread already), at most the CPU quota of the cgroup of the process and of those above it as far as
+        visible (cgroup v2 cpu.max, rounded up). On macOS: hw.physicalcpu. On Windows: the cores of the processors in
+        the affinity mask of the process, in the processor group of the calling thread. Falls back to the hardware
+        threads where this cannot be found out.
+
+        @param cpus Linux only: the logical CPUs (numbers as in /sys/devices/system/cpu) to count the cores of instead
+                    of those of the affinity mask
+      */
+      static UInt getAvailablePhysicalCores(const std::vector<int>& cpus = {});
+
+      /**
+        @brief The OpenMP threads for the parallel regions that the calling thread starts
+
+        omp_get_max_threads(), unless a number was set for this thread with setOmpThreadsOfThisThread(): a helper
+        thread of a tool sets its share there when the OpenMP runtime keeps one number of threads for the whole
+        process (MSVC's vcomp: omp_set_num_threads() by any thread sets it for every thread), where it must not call
+        omp_set_num_threads(). Library code that sizes a team itself (e.g. with a num_threads clause) reads this instead
+        of omp_get_max_threads(). Without OpenMP: 1.
+      */
+      static int ompThreadsOfThisThread();
+
+      /**
+        @brief Sets the OpenMP threads that ompThreadsOfThisThread() reports for the calling thread (0: omp_get_max_threads() again)
+      */
+      static void setOmpThreadsOfThisThread(int threads);
+
+      /**
+        @brief Whether the OpenMP runtime keeps one process-wide number of threads
+
+        With MSVC's OpenMP 2.0 runtime (vcomp) omp_set_num_threads() by any thread sets the number for every thread;
+        the OpenMP 3.0 runtimes (libgomp, LLVM's libomp, also MSVC's /openmp:llvm) keep one per thread. Code that runs
+        OpenMP on helper threads must not call omp_set_num_threads() there on such a runtime (it would change the
+        number of the main thread too); it sets its share with setOmpThreadsOfThisThread() instead.
+        Probed once, on the first call: a thread sets another number and the caller checks its own, then sets it back.
+        Without OpenMP: false.
+      */
+      static bool ompThreadCountIsGlobal();
       /**
         @brief A convenience class to report either absolute or delta (between two timepoints) RAM usage
 

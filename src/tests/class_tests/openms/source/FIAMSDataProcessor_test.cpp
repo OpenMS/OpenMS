@@ -7,6 +7,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/ClassTest.h>
+#include <OpenMS/SYSTEM/TempFiles.h>
 #include <OpenMS/test_config.h>
 
 ///////////////////////////
@@ -45,7 +46,7 @@ END_SECTION
 
 std::string filename = "SerumTest";
 
-File::TempDir temp_dir;
+TempDir temp_dir;
 
 FIAMSDataProcessor fia_processor;
 Param p;

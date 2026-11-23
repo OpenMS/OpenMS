@@ -3,7 +3,7 @@
 // 
 // --------------------------------------------------------------------------
 // $Maintainer: Mathias Walzer $
-// $Authors: Mathias Walzer $
+// $Authors: Mathias Walzer, Samuel Wein $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/ClassTest.h>
@@ -25,6 +25,51 @@ START_TEST(SpectrumAnnotator, "$Id$")
 
 SpectrumAnnotator* ptr = nullptr;
 SpectrumAnnotator* null_ptr = nullptr;
+START_SECTION((static Size computeLongestIonSeries(const std::vector<bool>& matched_positions, Size max_missing)))
+{
+  TEST_EQUAL(SpectrumAnnotator::computeLongestIonSeries({}), 0)
+  TEST_EQUAL(SpectrumAnnotator::computeLongestIonSeries({false, false}), 0)
+  TEST_EQUAL(SpectrumAnnotator::computeLongestIonSeries({false, true, true, false, true}), 2)
+  TEST_EQUAL(SpectrumAnnotator::computeLongestIonSeries({true, false, true, false, true}), 1)
+  TEST_EQUAL(SpectrumAnnotator::computeLongestIonSeries({true, false, true, false, true}, 1), 3)
+  TEST_EQUAL(SpectrumAnnotator::computeLongestIonSeries({true, false, false, true, true}, 1), 2)
+  TEST_EQUAL(SpectrumAnnotator::computeLongestIonSeries({true, false, false, true, true}, 2), 3)
+  TEST_EQUAL(SpectrumAnnotator::computeLongestIonSeries({false, false, true, false, false}, 2), 1)
+  // Alternative peak/charge matches at one ordinal still count only once.
+  const std::vector<Size> duplicated {1, 1, 3, 3, 4, 8};
+  TEST_EQUAL(SpectrumAnnotator::computeLongestIonSeries(duplicated.begin(), duplicated.end(), 1, [](Size ordinal) { return ordinal; }), 3)
+  // Exhaustively compare the shared counter with an independent ordinal-path oracle.
+  for (unsigned mask = 0; mask < 256; ++mask)
+  {
+    std::vector<bool> present(8, false);
+    std::vector<Size> positions;
+    for (Size i = 0; i < present.size(); ++i)
+    {
+      present[i] = (mask & (1u << i)) != 0;
+      if (present[i]) { positions.push_back(i); }
+    }
+    for (Size gap = 0; gap <= 2; ++gap)
+    {
+      Size expected = 0;
+      for (Size first = 0; first < positions.size(); ++first)
+      {
+        for (Size past = first + 1; past <= positions.size(); ++past)
+        {
+          bool connected = true;
+          for (Size i = first + 1; i < past; ++i)
+          {
+            connected = connected && positions[i] - positions[i - 1] <= gap + 1;
+          }
+          if (connected) { expected = std::max(expected, past - first); }
+        }
+      }
+      TEST_EQUAL(SpectrumAnnotator::computeLongestIonSeries(present, gap), expected)
+      TEST_EQUAL(SpectrumAnnotator::computeLongestIonSeries(positions.begin(), positions.end(), gap, [](Size ordinal) { return ordinal; }), expected)
+    }
+  }
+}
+END_SECTION
+
 START_SECTION(SpectrumAnnotator())
 {
 	ptr = new SpectrumAnnotator();
@@ -208,6 +253,44 @@ START_SECTION((void SpectrumAnnotator::addPeakAnnotationsToPeptideHit(PeptideHit
   
   TEST_EQUAL(annotated_count, 11)  // 11 matched peaks
   TEST_EQUAL(unannotated_count, 2) // 2 unmatched peaks
+END_SECTION
+
+START_SECTION((SpectrumAnnotator(const SpectrumAnnotator& source)))
+{
+  // getParameters() cannot see the members updateMembers_() caches, so check that a
+  // copy honours the source's configuration: 'max_series' off means no max_series_* .
+  SpectrumAnnotator configured;
+  Param p(configured.getParameters());
+  p.setValue("max_series", "false");
+  configured.setParameters(p);
+  SpectrumAnnotator configured_copy(configured);
+
+  PeptideIdentification pi_copy;
+  pi_copy.setHits(std::vector<PeptideHit>(1, hit));
+  configured_copy.addIonMatchStatistics(pi_copy, spec, tg, sa);
+  ABORT_IF(pi_copy.getHits().empty())
+  TEST_EQUAL(pi_copy.getHits()[0].metaValueExists("peak_number"), true)      // annotation ran
+  TEST_EQUAL(pi_copy.getHits()[0].metaValueExists("max_series_type"), false) // but max_series was off
+}
+END_SECTION
+
+START_SECTION((SpectrumAnnotator& operator=(const SpectrumAnnotator& source)))
+{
+  // same for assignment
+  SpectrumAnnotator configured;
+  Param p(configured.getParameters());
+  p.setValue("max_series", "false");
+  configured.setParameters(p);
+  SpectrumAnnotator assigned;
+  assigned = configured;
+
+  PeptideIdentification pi_assigned;
+  pi_assigned.setHits(std::vector<PeptideHit>(1, hit));
+  assigned.addIonMatchStatistics(pi_assigned, spec, tg, sa);
+  ABORT_IF(pi_assigned.getHits().empty())
+  TEST_EQUAL(pi_assigned.getHits()[0].metaValueExists("peak_number"), true)
+  TEST_EQUAL(pi_assigned.getHits()[0].metaValueExists("max_series_type"), false)
+}
 END_SECTION
 
 /////////////////////////////////////////////////////////////

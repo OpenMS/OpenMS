@@ -64,7 +64,7 @@ namespace OpenMS
     @code
       // Obtain swath_map with boundaries first
       std::vector<int> indices = sql_mass_reader.readSpectraForWindow(swath_map);
-      OpenMS::Internal::MzMLSqliteHandler handler(file);
+      OpenMS::Internal::MzMLSqliteHandler handler(file, 0); // the run ID is only used when writing
       OpenSwath::SpectrumAccessPtr sptr(new OpenMS::SpectrumAccessSqMass(handler, indices));
       swath_maps[k].sptr = sptr;
     @endcode
@@ -167,8 +167,14 @@ public:
     /**
       @brief Indices into the visible view of spectra whose RT lies within an absolute window.
 
+      A @p deltaRT of zero returns only the first spectrum at or after @p RT (or no spectrum
+      if there is none); @c getMultipleSpectra relies on this first-at-or-after behaviour.
+
       @param[in] RT      Centre of the RT window (same units as the underlying spectra).
-      @param[in] deltaRT Half-width of the RT window; matches spectra in @f$[RT - \mathrm{deltaRT}, RT + \mathrm{deltaRT}]@f$.
+      @param[in] deltaRT Half-width of the RT window. A positive value matches spectra in
+                         @f$[RT - \mathrm{deltaRT}, RT + \mathrm{deltaRT}]@f$; zero matches
+                         only the first spectrum at or after @p RT (spectra are assumed to
+                         be stored in RT order).
       @return Indices into the visible view (already remapped through the subset, if any).
       @note Aborts via @c OPENMS_PRECONDITION if @p deltaRT is negative.
     */

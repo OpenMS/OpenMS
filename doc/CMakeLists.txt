@@ -8,7 +8,6 @@
 
 
 project("OpenMS_doc")
-cmake_minimum_required(VERSION 3.15 FATAL_ERROR)
 
 #------------------------------------------------------------------------------
 # helper macro
@@ -43,8 +42,6 @@ if(ENABLE_DOCS)
   #------------------------------------------------------------------------------
   # doc programs
   #------------------------------------------------------------------------------
-  # TODO switch to target based linking and avoid re-searching Qt.
-  # At least reuse the COMPONENT variables
   set(OpenMS_doc_executables)
   include(doxygen/parameters/executables.cmake)
 
@@ -56,14 +53,7 @@ if(ENABLE_DOCS)
   # build doc executables
   foreach(i ${OpenMS_doc_executables})
     add_executable(${i} EXCLUDE_FROM_ALL doxygen/parameters/${i}.cpp)
-    
-    # let the doc progs decide how to handle a missing OpenMS_GUI library
-    if(WITH_GUI)
-      set_target_properties(${i} PROPERTIES COMPILE_DEFINITIONS "WITH_GUI=1")
-      target_link_libraries(${i} OpenMS OpenMS_GUI)
-    else()
-      target_link_libraries(${i} OpenMS)
-    endif()
+    target_link_libraries(${i} OpenMS OpenMS_CLI)
   endforeach(i)
 
   # collection target
@@ -71,10 +61,6 @@ if(ENABLE_DOCS)
   add_dependencies(doc_progs ${OpenMS_doc_executables})
   if(TARGET TOPP)
     add_dependencies(doc_progs TOPP)
-  endif()
-
-  if(WITH_GUI)
-    add_dependencies(doc_progs GUI)
   endif()
 
   #------------------------------------------------------------------------------
@@ -100,33 +86,42 @@ if(ENABLE_DOCS)
     set(DOXYGEN_MIN_REQUIRED "1.8.13")
 
     ## NOTE: keep the all-caps DOXYGEN_VERSION here. The mixed-case Doxygen_VERSION only exists in
-    ## CMake >= 4.2, while OpenMS still supports CMake 3.21; on older CMake it would be empty, making
+    ## CMake >= 4.2; on older CMake it would be empty, making
     ## this version check always fire and dropping the version argument passed to Doxygen_Warning_test
     ## below. DOXYGEN_VERSION is set across the whole supported range (3.9 .. 4.2+).
     if (DOXYGEN_VERSION VERSION_LESS DOXYGEN_MIN_REQUIRED )
       message(STATUS "Warning: Doxygen ( vers. installed = ${DOXYGEN_VERSION} < ${DOXYGEN_MIN_REQUIRED}) does not correctly process \\include commands in developer's installation instructions. This will make them incomplete. Upgrade Doxygen to fix.")
     endif()
 
-    ## DOT (Graphviz) is an optional component. When present, substitute the full path to the dot
-    ## executable into the Doxyfile and enable HAVE_DOT; otherwise leave DOT_PATH empty (avoids
-    ## `warning: the dot tool could not be found ...` in doxygen-error.log) and set HAVE_DOT=NO.
-    ## Note: HAVE_DOT must be the literal YES/NO that doxygen expects, not the CMake TRUE/FALSE of
-    ## Doxygen_dot_FOUND, hence the explicit mapping below.
+    ## DOT (Graphviz) is an optional component and only used by the opt-in 'doc_dot' target.
+    ## The main documentation (doc, doc_class_only, doc_noclass, doc_minimal) never runs dot:
+    ## Doxyfile.in sets HAVE_DOT = NO literally, and class inheritance diagrams are drawn by
+    ## doxygen's built-in generator. When dot is present, its full path is still substituted into
+    ## DOT_PATH (inherited by Doxyfile_dot); otherwise DOT_PATH is left empty, which avoids
+    ## `warning: the dot tool could not be found ...` in doxygen-error.log.
     if (TARGET Doxygen::dot)
       get_target_property(CF_DOXYGEN_DOT_EXECUTABLE Doxygen::dot IMPORTED_LOCATION)
-      set(DOXYGEN_HAVE_DOT "YES")
     else()
       set(CF_DOXYGEN_DOT_EXECUTABLE "")
-      set(DOXYGEN_HAVE_DOT "NO")
     endif()
-      
-    
+
+    ## Conditional documentation, for doxygen's @if <label> ... @endif. WITH_WNETALIGN marks what
+    ## only a build with the WNet alignment can document: FeatureLinkerWNet and the parameter
+    ## documentation of FeatureGroupingAlgorithmWNet, which DefaultParamHandlerDocumenter only
+    ## writes when the WNet alignment is built. Without it the pages are still generated, just
+    ## without that section, so references to them still resolve.
+    ## (The GUI tools and their documentation live in the OpenMS-TOPP-GUI repository.)
+    set(_doxygen_enabled_sections "")
+    if (WITH_WNETALIGN)
+      list(APPEND _doxygen_enabled_sections "WITH_WNETALIGN")
+    endif()
+    list(JOIN _doxygen_enabled_sections " " CF_DOXYGEN_ENABLED_SECTIONS)
+
     #------------------------------------------------------------------------------
     # configure doxygen configuration files
     configure_file(${PROJECT_SOURCE_DIR}/doxygen/Doxyfile.in ${PROJECT_BINARY_DIR}/doxygen/Doxyfile)
     configure_file(${PROJECT_SOURCE_DIR}/doxygen/Doxyfile_dot.in ${PROJECT_BINARY_DIR}/doxygen/Doxyfile_dot)
     configure_file(${PROJECT_SOURCE_DIR}/doxygen/Doxyfile_noclass.in ${PROJECT_BINARY_DIR}/doxygen/Doxyfile_noclass)
-    configure_file(${PROJECT_SOURCE_DIR}/doxygen/Doxyfile_xml.in ${PROJECT_BINARY_DIR}/doxygen/Doxyfile_xml)
 
     #------------------------------------------------------------------------------
     # doc paths (bin path, topp documenter, defaultparamhandler documenter)
@@ -172,8 +167,8 @@ if(ENABLE_DOCS)
                       COMMAND ${CMAKE_COMMAND} -E echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
                       COMMAND ${CMAKE_COMMAND} -E echo "Creating the algorithm parameter and TOPP parameter documentation"
                       COMMAND ${CMAKE_COMMAND} -E echo ""
-                      COMMAND ${CMAKE_COMMAND} -E echo "Note: A functioning OpenMS/TOPP installation and a running X-server (Unix) is required for this step!"
-                      COMMAND ${CMAKE_COMMAND} -E echo "      Windows only: OpenMS and Open_GUI.dll's need to be accessible by the Documenter executables in"
+                      COMMAND ${CMAKE_COMMAND} -E echo "Note: A functioning OpenMS/TOPP installation is required for this step!"
+                      COMMAND ${CMAKE_COMMAND} -E echo "      Windows only: the OpenMS DLLs need to be accessible by the Documenter executables in"
                       COMMAND ${CMAKE_COMMAND} -E echo "      doxygen/parameters/. If the automatic CMake post build copy step did not work, try to add them"
                       COMMAND ${CMAKE_COMMAND} -E echo "      to your Path variable."
                       COMMAND ${CMAKE_COMMAND} -E echo "      If this step fails, use the target 'doc_minimal'."
@@ -195,8 +190,8 @@ if(ENABLE_DOCS)
                       COMMAND ${CMAKE_COMMAND} -E echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
                       COMMAND ${CMAKE_COMMAND} -E echo "Creating the algorithm parameter and TOPP parameter documentation"
                       COMMAND ${CMAKE_COMMAND} -E echo ""
-                      COMMAND ${CMAKE_COMMAND} -E echo "Note: A functioning OpenMS/TOPP installation and a running X-server (Unix) is required for this step!"
-                      COMMAND ${CMAKE_COMMAND} -E echo "      Windows only: OpenMS and Open_GUI.dll's need to be accessible by the Documenter executables in"
+                      COMMAND ${CMAKE_COMMAND} -E echo "Note: A functioning OpenMS/TOPP installation is required for this step!"
+                      COMMAND ${CMAKE_COMMAND} -E echo "      Windows only: the OpenMS DLLs need to be accessible by the Documenter executables in"
                       COMMAND ${CMAKE_COMMAND} -E echo "      doxygen/parameters/. If the automatic CMake post build copy step did not work, try to add them"
                       COMMAND ${CMAKE_COMMAND} -E echo "      to your Path variable."
                       COMMAND ${CMAKE_COMMAND} -E echo "      If this step fails, use the target 'doc_minimal'."
@@ -257,22 +252,6 @@ if(ENABLE_DOCS)
                       VERBATIM)
 
     #------------------------------------------------------------------------------
-    # doc_xml target
-    add_custom_target(doc_xml
-                      COMMAND ${CMAKE_COMMAND} -E echo ""
-                      COMMAND ${CMAKE_COMMAND} -E echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
-                      COMMAND ${CMAKE_COMMAND} -E echo "Creating XML documentation"
-                      COMMAND ${CMAKE_COMMAND} -E echo ""
-                      COMMAND ${CMAKE_COMMAND} -E remove_directory xml_output
-                      COMMAND ${CMAKE_COMMAND} -E chdir ${PROJECT_BINARY_DIR} $<TARGET_FILE:Doxygen::doxygen> doxygen/Doxyfile_xml
-                      COMMAND ${CMAKE_COMMAND} -E echo ""
-                      COMMAND ${CMAKE_COMMAND} -E echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
-                      COMMAND ${CMAKE_COMMAND} -E echo "The XML documentation has been successfully created."
-                      COMMAND ${CMAKE_COMMAND} -E echo ""
-                      COMMENT "Build the doxygen documentation"
-                      VERBATIM)
-
-    #------------------------------------------------------------------------------
     # doc_noclass target
     add_custom_target(doc_noclass
                       COMMAND ${CMAKE_COMMAND} -E echo ""
@@ -280,6 +259,8 @@ if(ENABLE_DOCS)
                       COMMAND ${CMAKE_COMMAND} -E echo "Creating html documentation without class documentation"
                       COMMAND ${CMAKE_COMMAND} -E echo ""
                       COMMAND ${CMAKE_COMMAND} -E remove_directory html
+                      ## the tag file of an earlier full documentation would point into class pages this one lacks
+                      COMMAND ${CMAKE_COMMAND} -E rm -f ${PROJECT_BINARY_DIR}/OpenMS.tag
                       COMMAND ${CMAKE_COMMAND} -E chdir ${PROJECT_BINARY_DIR} $<TARGET_FILE:Doxygen::doxygen> doxygen/Doxyfile_noclass
                       COMMAND ${CMAKE_COMMAND} -E copy ${PROJECT_SOURCE_DIR}/index.html index.html
                       COMMAND ${CMAKE_COMMAND} -E echo ""
@@ -299,6 +280,8 @@ if(ENABLE_DOCS)
                       COMMAND ${CMAKE_COMMAND} -E echo "Creating html documentation without class/TOPP documentation"
                       COMMAND ${CMAKE_COMMAND} -E echo ""
                       COMMAND ${CMAKE_COMMAND} -E remove_directory html
+                      ## the tag file of an earlier full documentation would point into class pages this one lacks
+                      COMMAND ${CMAKE_COMMAND} -E rm -f ${PROJECT_BINARY_DIR}/OpenMS.tag
                       COMMAND ${CMAKE_COMMAND} -E chdir ${PROJECT_BINARY_DIR} $<TARGET_FILE:Doxygen::doxygen> doxygen/Doxyfile_noclass
                       COMMAND ${CMAKE_COMMAND} -E copy ${PROJECT_SOURCE_DIR}/index.html index.html
                       COMMAND ${CMAKE_COMMAND} -E echo ""
@@ -319,7 +302,8 @@ if(ENABLE_DOCS)
 
     if (TARGET Doxygen::dot)
       #------------------------------------------------------------------------------
-      # doc_dot target
+      # doc_dot target: opt-in documentation with all dot (Graphviz) graphs (include,
+      # included-by, collaboration, directory, graphical hierarchy); not part of ALL
       add_custom_target(doc_dot
                         COMMAND ${CMAKE_COMMAND} -E echo ""
                         COMMAND ${CMAKE_COMMAND} -E echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
@@ -337,7 +321,7 @@ if(ENABLE_DOCS)
                         VERBATIM)
       add_dependencies(doc_dot doc_param_internal)
     else()
-      message(STATUS "DOT not found. Disabling target 'doc_dot'!")
+      message(STATUS "DOT (Graphviz) not found. Disabling the optional target 'doc_dot' (documentation with all dot graphs). The other documentation targets do not need it.")
     endif()
 
     #------------------------------------------------------------------------------
@@ -356,6 +340,16 @@ if(ENABLE_DOCS)
       REGEX ".*\\/\\..*" EXCLUDE ## Exclude hidden files in subdirectories
       REGEX ".*\\.map\$" EXCLUDE ## Exclude temporary map files
       REGEX ".*\\.md5\$" EXCLUDE ## Exclude temporary md5 files
+    )
+    # doxygen tag file of this documentation (GENERATE_TAGFILE in Doxyfile.in); other projects
+    # (e.g. OpenMS-TOPP-GUI) link to the OpenMS documentation with it (doxygen TAGFILES). Only
+    # the full documentation (doc, doc_class_only) writes it; doc_noclass and doc_minimal remove
+    # it, so it is installed only with the class documentation it refers to.
+    install(FILES ${PROJECT_BINARY_DIR}/OpenMS.tag
+      DESTINATION ${INSTALL_DOC_DIR}
+      COMPONENT doc
+      OPTIONAL
+      PERMISSIONS OWNER_WRITE OWNER_READ GROUP_READ WORLD_READ
     )
     # TODO would be cool to somehow have documentation optional
     #install_file(${PROJECT_BINARY_DIR}/index.html ${INSTALL_DOC_DIR} doc)

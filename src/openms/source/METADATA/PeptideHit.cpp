@@ -459,28 +459,44 @@ namespace OpenMS
     return true;
   }
 
-  void PeptideHit::PeakAnnotation::writePeakAnnotationsString_(std::string& annotation_string, std::vector<PeptideHit::PeakAnnotation> annotations)
+  void PeptideHit::PeakAnnotation::writePeakAnnotationsString_(std::string& annotation_string, const std::vector<PeptideHit::PeakAnnotation>& annotations)
   {
     if (annotations.empty()) { return; }
 
-    // sort by mz, charge, ...
-    stable_sort(annotations.begin(), annotations.end());
+    // sort by mz, charge, ... (the annotations in a stable sort of pointers: no copy of the annotations)
+    std::vector<const PeptideHit::PeakAnnotation*> sorted;
+    sorted.reserve(annotations.size());
+    for (const auto& a : annotations) { sorted.push_back(&a); }
+    std::stable_sort(sorted.begin(), sorted.end(), [](const PeptideHit::PeakAnnotation* a, const PeptideHit::PeakAnnotation* b) { return *a < *b; });
 
-    std::string val;
-    for (auto& a : annotations)
+    // "mz,intensity,charge,annotation[,theoretical_mz]" per peak, separated by '|'; the annotation quoted as StringUtils::quote()
+    // does (backslash and quote escaped). Formatted into a string of its own (@p annotation_string may be one of the
+    // annotations), then appended.
+    std::string out;
+    for (Size k = 0; k < sorted.size(); ++k)
     {
+      const PeptideHit::PeakAnnotation& a = *sorted[k];
+      if (k > 0) { out += '|'; }
+      StringUtils::appendToStr(a.mz, out);
+      out += ',';
+      StringUtils::appendToStr(a.intensity, out);
+      out += ',';
+      StringUtils::appendToStr(a.charge, out);
+      out += ",\"";
+      for (const char c : a.annotation)
       {
-        std::string ann = std::string(a.annotation);
-        StringUtils::quote(ann);
-        annotation_string += StringUtils::toStr(a.mz) + "," + StringUtils::toStr(a.intensity) + "," +
-                             StringUtils::toStr(a.charge) + "," + ann;
-        if (a.theoretical_mz.has_value())
-        {
-          annotation_string += "," + StringUtils::toStr(*a.theoretical_mz);
-        }
+        if (c == '\\') { out += "\\\\"; }
+        else if (c == '"') { out += "\\\""; }
+        else { out += c; }
       }
-      if (&a != &annotations.back()) { annotation_string += "|"; }
+      out += '"';
+      if (a.theoretical_mz.has_value())
+      {
+        out += ',';
+        StringUtils::appendToStr(*a.theoretical_mz, out);
+      }
     }
+    annotation_string += out;
   }
 
 } // namespace OpenMS

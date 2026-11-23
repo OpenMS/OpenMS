@@ -7,19 +7,37 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/ClassTest.h>
+#include <OpenMS/DATASTRUCTURES/DataValue.h>
+#include <OpenMS/TestFileValidation.h>
 #include <OpenMS/test_config.h>
 
 ///////////////////////////
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
+#include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/METADATA/PeptideEvidence.h>
+#include <OpenMS/METADATA/ProteinHit.h>
+#include <OpenMS/SYSTEM/SystemSettings.h>
+#include <iterator>
 ///////////////////////////
 
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/FORMAT/TextFile.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
+#include <OpenMS/CHEMISTRY/AASequence.h>
+#include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
+#include <OpenMS/CHEMISTRY/ModificationsDB.h>
+#include <OpenMS/CHEMISTRY/ResidueModification.h>
+#include <OpenMS/CONCEPT/Constants.h>
+#include <OpenMS/DATASTRUCTURES/DateTime.h>
+#include <fstream>
+#include <sstream>
+#include <OpenMS/KERNEL/FeatureHandle.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -29,6 +47,60 @@ DRange<1> makeRange(double a, double b)
 {
   DPosition<1> pa(a), pb(b);
   return DRange<1>(pa, pb);
+}
+
+namespace
+{
+  // registers a tool-defined modification; ModificationsDB is process-wide, so every section uses its own name
+  const ResidueModification* defineMod4b(const std::string& id, char origin, const std::string& formula)
+  {
+    ResidueModification d;
+    d.setId(id);
+    d.setOrigin(origin);
+    d.setTermSpecificity(ResidueModification::ANYWHERE);
+    d.setFullId();
+    d.setDiffFormula(EmpiricalFormula(formula));
+    d.setDiffMonoMass(EmpiricalFormula(formula).getMonoWeight());
+    return ModificationsDB::getInstance()->registerDefinition(d);
+  }
+
+  // a definition record for a name that is NOT registered in this process
+  std::string freshRecord4b(const std::string& id, char origin, const std::string& formula)
+  {
+    ResidueModification d;
+    d.setId(id);
+    d.setOrigin(origin);
+    d.setTermSpecificity(ResidueModification::ANYWHERE);
+    d.setFullId();
+    d.setDiffFormula(EmpiricalFormula(formula));
+    d.setDiffMonoMass(EmpiricalFormula(formula).getMonoWeight());
+    return d.toDefinitionString();
+  }
+
+  std::string slurp4b(const std::string& path)
+  {
+    std::ifstream in(path);
+    std::stringstream ss;
+    ss << in.rdbuf();
+    return ss.str();
+  }
+
+  bool fileContains4b(const std::string& path, const std::string& needle)
+  {
+    return slurp4b(path).find(needle) != std::string::npos;
+  }
+
+  // first occurrence only; returns false when @p from is absent
+  bool replaceInFile4b(const std::string& path, const std::string& from, const std::string& to)
+  {
+    std::string s = slurp4b(path);
+    const std::size_t pos = s.find(from);
+    if (pos == std::string::npos) return false;
+    s.replace(pos, from.size(), to);
+    std::ofstream out(path);
+    out << s;
+    return true;
+  }
 }
 
 START_TEST(ConsensusXMLFile, "$Id$")
@@ -261,6 +333,530 @@ START_SECTION([EXTRA] Compressed file writing - bzip2 round-trip)
   TEST_EQUAL(map_bz2.getColumnHeaders().size(), map.getColumnHeaders().size())
 END_SECTION
 
+START_SECTION([EXTRA] Protein group quantities round-trip)
+{
+  ConsensusXMLFile f;
+  ConsensusMap map;
+  f.load(OPENMS_GET_TEST_DATA_PATH("ConsensusXMLFile_1.consensusXML"), map);
+
+  // attach quantities the way PeptideAndProteinQuant::annotateQuantificationsToProteins() does
+  ProteinIdentification& prot = map.getProteinIdentifications()[0];
+  ProteinIdentification::ProteinGroup group;
+  for (const ProteinHit& hit : prot.getHits()) { group.accessions.push_back(hit.getAccession()); }
+  TEST_NOT_EQUAL(group.accessions.size(), 0)
+  group.probability = 0.75;
+
+  group.getFloatDataArrays().resize(4);
+  group.getStringDataArrays().resize(2);
+  group.getIntegerDataArrays().resize(4);
+  group.getFloatDataArrays()[0].setName("psm_count");
+  group.getFloatDataArrays()[1].setName("distinct_peptides");
+  group.getFloatDataArrays()[2].setName("file_channel_level_abundance");
+  group.getFloatDataArrays()[2].assign({10.0f, 20.0f, 30.0f, 40.0f});
+  group.getFloatDataArrays()[3].setName("fraction_group_level_abundance");
+  group.getFloatDataArrays()[3].assign({1.5f, 2.5f});
+  group.getStringDataArrays()[0].setName("file_channel_level_filename");
+  group.getStringDataArrays()[0].assign({"fileA", "fileA", "fileB", "fileB"});
+  group.getStringDataArrays()[1].setName("file_level_filename");
+  group.getIntegerDataArrays()[0].setName("file_channel_level_channel");
+  group.getIntegerDataArrays()[0].assign({1, 2, 1, 2});
+  group.getIntegerDataArrays()[1].setName("file_level_psm_count");
+  group.getIntegerDataArrays()[2].setName("fraction_group_level_fraction_group");
+  group.getIntegerDataArrays()[2].assign({1, 2});
+  group.getIntegerDataArrays()[3].setName("fraction_group_level_label");
+  group.getIntegerDataArrays()[3].assign({1, 1});
+
+  prot.insertIndistinguishableProteins(group);
+
+  std::string tmp_filename;
+  NEW_TMP_FILE(tmp_filename);
+  f.store(tmp_filename, map);
+
+  ConsensusMap loaded;
+  f.load(tmp_filename, loaded);
+
+  TEST_EQUAL(loaded.getProteinIdentifications()[0].getIndistinguishableProteins().size(), 1)
+  const ProteinIdentification::ProteinGroup& rt = loaded.getProteinIdentifications()[0].getIndistinguishableProteins()[0];
+
+  // The assay-only layout is restored without inventing a legacy sample array.
+  TEST_EQUAL(rt.getFloatDataArrays().size(), 4)
+  TEST_EQUAL(rt.getStringDataArrays().size(), 2)
+  TEST_EQUAL(rt.getIntegerDataArrays().size(), 4)
+  TEST_EQUAL(rt.getFloatDataArrays()[2].getName(), "file_channel_level_abundance")
+  TEST_EQUAL(rt.getFloatDataArrays()[3].getName(), "fraction_group_level_abundance")
+  TEST_EQUAL(rt.getStringDataArrays()[0].getName(), "file_channel_level_filename")
+  TEST_EQUAL(rt.getIntegerDataArrays()[0].getName(), "file_channel_level_channel")
+
+  TEST_EQUAL(rt.getFloatDataArrays()[2].size(), 4)
+  TEST_REAL_SIMILAR(rt.getFloatDataArrays()[2][0], 10.0)
+  TEST_REAL_SIMILAR(rt.getFloatDataArrays()[2][3], 40.0)
+  TEST_EQUAL(rt.getFloatDataArrays()[3].size(), 2)
+  TEST_REAL_SIMILAR(rt.getFloatDataArrays()[3][0], 1.5)
+  TEST_REAL_SIMILAR(rt.getFloatDataArrays()[3][1], 2.5)
+  TEST_EQUAL(rt.getStringDataArrays()[0].size(), 4)
+  TEST_EQUAL(rt.getStringDataArrays()[0][0], "fileA")
+  TEST_EQUAL(rt.getStringDataArrays()[0][3], "fileB")
+  TEST_EQUAL(rt.getIntegerDataArrays()[0].size(), 4)
+  TEST_EQUAL(rt.getIntegerDataArrays()[0][0], 1)
+  TEST_EQUAL(rt.getIntegerDataArrays()[0][3], 2)
+
+  // All-zero count arrays are not written and no longer borrow a length from sample abundances.
+  TEST_TRUE(rt.getFloatDataArrays()[0].empty())
+  TEST_TRUE(rt.getFloatDataArrays()[1].empty())
+
+  // no leftovers of the encoding on the ProteinIdentification
+  std::vector<std::string> keys;
+  loaded.getProteinIdentifications()[0].getKeys(keys);
+  for (const std::string& key : keys)
+  {
+    TEST_FALSE(StringUtils::hasSubstring(key, "_abundances"))
+    TEST_FALSE(StringUtils::hasSubstring(key, "_quantified_proteins"))
+  }
+
+  // and the file is still schema-valid
+  TEST_TRUE(f.isValid(tmp_filename, std::cerr))
+
+  // storing again must be stable
+  std::string tmp_filename2;
+  NEW_TMP_FILE(tmp_filename2);
+  f.store(tmp_filename2, loaded);
+  ConsensusMap loaded2;
+  f.load(tmp_filename2, loaded2);
+  TEST_TRUE(loaded2.getProteinIdentifications()[0].getIndistinguishableProteins()[0] == rt)
+}
+END_SECTION
+
+START_SECTION([EXTRA] Quantities whose owner no longer matches the group are discarded)
+{
+  // Each quantified group records which proteins its quantities were computed for, so that a tool
+  // which filters or renumbers groups without knowing about the quantity params cannot cause them to
+  // be silently adopted by a different protein.
+  //
+  // The recorded value must be ACCESSIONS. The obvious alternative - the "PH_<n>" references the group
+  // itself is stored with - does not work: those are positional indices into the protein hit list,
+  // reassigned on every store, so dropping a leading hit shifts the PH_ numbers and the group indices
+  // by the same amount and a stale entry still compares equal.
+  ConsensusXMLFile f;
+  ConsensusMap map;
+  f.load(OPENMS_GET_TEST_DATA_PATH("ConsensusXMLFile_1.consensusXML"), map);
+
+  ProteinIdentification& prot = map.getProteinIdentifications()[0];
+  TEST_EQUAL(prot.getHits().size(), 2)
+  const std::string quantified_accession = prot.getHits()[0].getAccession();
+
+  ProteinIdentification::ProteinGroup g;
+  g.accessions.push_back(quantified_accession);
+  g.probability = 0.9;
+  g.getFloatDataArrays().resize(1);
+  g.getFloatDataArrays()[0].setName("abundances");
+  g.getFloatDataArrays()[0].assign({11.0f, 22.0f});
+  prot.insertIndistinguishableProteins(g);
+
+  std::string tmp_filename;
+  NEW_TMP_FILE(tmp_filename);
+  f.store(tmp_filename, map);
+
+  // the ownership record holds the accession, not a positional PH_ reference
+  TextFile stored;
+  stored.load(tmp_filename);
+  std::string guard_line;
+  for (const std::string& line : stored)
+  {
+    if (StringUtils::hasSubstring(line, "_quantified_proteins")) { guard_line = line; }
+  }
+  TEST_EQUAL(guard_line.empty(), false)
+  TEST_EQUAL(StringUtils::hasSubstring(guard_line, quantified_accession), true)
+  TEST_EQUAL(StringUtils::hasSubstring(guard_line, "PH_"), false)
+
+  // rewrite it to name a different protein, as a renumbering would effectively do
+  TextFile rewritten;
+  for (const std::string& line : stored)
+  {
+    std::string out = line;
+    if (StringUtils::hasSubstring(out, "_quantified_proteins"))
+    {
+      StringUtils::substitute(out, quantified_accession, "SOME_OTHER_PROTEIN");
+    }
+    rewritten.addLine(out);
+  }
+  std::string tampered;
+  NEW_TMP_FILE(tampered);
+  rewritten.store(tampered);
+
+  ConsensusMap loaded;
+  f.load(tampered, loaded);
+  const auto& groups = loaded.getProteinIdentifications()[0].getIndistinguishableProteins();
+  TEST_EQUAL(groups.size(), 1)
+  TEST_EQUAL(groups[0].accessions[0], quantified_accession)
+
+  // the quantities belong to a different protein now, so they must be dropped, not handed over
+  bool has_abundances = false;
+  for (const auto& fda : groups[0].getFloatDataArrays())
+  {
+    if (fda.getName() == "abundances" && !fda.empty()) { has_abundances = true; }
+  }
+  TEST_EQUAL(has_abundances, false)
+
+  // and nothing of the discarded block may linger as a stray UserParam
+  std::vector<std::string> keys;
+  loaded.getProteinIdentifications()[0].getKeys(keys);
+  for (const std::string& key : keys)
+  {
+    TEST_EQUAL(StringUtils::hasSubstring(key, "indistinguishable_proteins_0_"), false)
+  }
+}
+END_SECTION
+
+START_SECTION([EXTRA] Legacy all-zero sample abundances keep their length across a round-trip)
+{
+  // Preserve the shape of old consensusXML annotations even though sample abundances no longer
+  // identify a quantified group. This compatibility path must not invent assay arrays.
+  ConsensusXMLFile f;
+  ConsensusMap map;
+  f.load(OPENMS_GET_TEST_DATA_PATH("ConsensusXMLFile_1.consensusXML"), map);
+
+  ProteinIdentification& prot = map.getProteinIdentifications()[0];
+  ProteinIdentification::ProteinGroup group;
+  for (const ProteinHit& hit : prot.getHits()) { group.accessions.push_back(hit.getAccession()); }
+  group.probability = 0.5;
+  group.getFloatDataArrays().resize(4);
+  group.getStringDataArrays().resize(2);
+  group.getIntegerDataArrays().resize(2);
+  group.getFloatDataArrays()[0].setName("abundances");
+  group.getFloatDataArrays()[0].assign(3, 0.0f); // quantified everywhere as zero
+  group.getFloatDataArrays()[1].setName("psm_count");
+  group.getFloatDataArrays()[1].resize(3);
+  group.getFloatDataArrays()[2].setName("distinct_peptides");
+  group.getFloatDataArrays()[2].resize(3);
+  group.getFloatDataArrays()[3].setName("file_channel_level_abundance");
+  group.getFloatDataArrays()[3].assign(3, 0.0f);
+  group.getStringDataArrays()[0].setName("file_channel_level_filename");
+  group.getStringDataArrays()[0].assign({"fA", "fB", "fC"});
+  group.getStringDataArrays()[1].setName("file_level_filename");
+  group.getIntegerDataArrays()[0].setName("file_channel_level_channel");
+  group.getIntegerDataArrays()[0].assign({1, 1, 1});
+  group.getIntegerDataArrays()[1].setName("file_level_psm_count");
+  prot.insertIndistinguishableProteins(group);
+
+  std::string tmp_filename;
+  NEW_TMP_FILE(tmp_filename);
+  f.store(tmp_filename, map);
+  ConsensusMap loaded;
+  f.load(tmp_filename, loaded);
+
+  const ProteinIdentification::ProteinGroup& rt = loaded.getProteinIdentifications()[0].getIndistinguishableProteins().back();
+  TEST_EQUAL(rt.getFloatDataArrays()[0].getName(), "abundances")
+  TEST_EQUAL(rt.getFloatDataArrays()[0].size(), 3)
+  TEST_EQUAL(rt.getFloatDataArrays()[1].size(), 3)
+  TEST_EQUAL(rt.getFloatDataArrays()[2].size(), 3)
+  TEST_EQUAL(rt.getFloatDataArrays()[3].size(), 3)
+  TEST_REAL_SIMILAR(rt.getFloatDataArrays()[0][0], 0.0)
+}
+END_SECTION
+
+START_SECTION([EXTRA] Protein groups without quantities are written unchanged)
+{
+  // Groups that carry no data arrays - everything outside ProteomicsLFQ/IsobaricWorkflow - must not
+  // gain any output, otherwise every reference file with protein groups would change.
+  ConsensusXMLFile f;
+  ConsensusMap map;
+  f.load(OPENMS_GET_TEST_DATA_PATH("ConsensusXMLFile_1.consensusXML"), map);
+
+  ProteinIdentification& prot = map.getProteinIdentifications()[0];
+  ProteinIdentification::ProteinGroup group;
+  for (const ProteinHit& hit : prot.getHits()) { group.accessions.push_back(hit.getAccession()); }
+  group.probability = 0.5;
+  prot.insertIndistinguishableProteins(group);
+
+  std::string tmp_filename;
+  NEW_TMP_FILE(tmp_filename);
+  f.store(tmp_filename, map);
+
+  // nothing beyond the plain "indistinguishable_proteins_0" entry may be emitted for this group
+  // (the fixture carries unrelated list-typed UserParams, so only the group prefix can be checked)
+  TextFile stored;
+  stored.load(tmp_filename);
+  Size quant_lines = 0;
+  for (const std::string& line : stored)
+  {
+    if (StringUtils::hasSubstring(line, "indistinguishable_proteins_0_")) { ++quant_lines; }
+  }
+  TEST_EQUAL(quant_lines, 0)
+
+  ConsensusMap loaded;
+  f.load(tmp_filename, loaded);
+  TEST_EQUAL(loaded.getProteinIdentifications()[0].getIndistinguishableProteins().size(), 1)
+  TEST_EQUAL(loaded.getProteinIdentifications()[0].getIndistinguishableProteins()[0].getFloatDataArrays().empty(), true)
+}
+END_SECTION
+
+START_SECTION([EXTRA] store/load - tool-defined modifications on assigned and unassigned identifications travel with their definitions)
+{
+  TEST_TRUE(defineMod4b("TestCXML:Assigned", 'K', "C2H2O") != nullptr)
+  TEST_TRUE(defineMod4b("TestCXML:Unassigned", 'R', "CH2") != nullptr)
+  ConsensusMap map;
+  map.ensureUniqueId();
+  map.getColumnHeaders()[0].filename = "file0.mzML";
+  map.getColumnHeaders()[0].size = 1;
+  ProteinIdentification prot;
+  prot.setIdentifier("run4b");
+  prot.setDateTime(DateTime::now());
+  map.getProteinIdentifications().push_back(prot);
+
+  ConsensusFeature f;
+  f.setRT(100.0);
+  f.setMZ(500.0);
+  f.setIntensity(1000.0);
+  f.ensureUniqueId();
+  f.insert(FeatureHandle(0, f));
+  PeptideIdentification pa;
+  pa.setIdentifier("run4b");
+  PeptideHit ha;
+  ha.setSequence(AASequence::fromString("PEPK(TestCXML:Assigned)IDE"));
+  pa.insertHit(ha);
+  f.getPeptideIdentifications().push_back(pa);
+  map.push_back(f);
+
+  PeptideIdentification pu;
+  pu.setIdentifier("run4b");
+  PeptideHit hu;
+  hu.setSequence(AASequence::fromString("PEPR(TestCXML:Unassigned)IDE"));
+  pu.insertHit(hu);
+  map.getUnassignedPeptideIdentifications().push_back(pu);
+
+  std::string tmp_filename;
+  NEW_TMP_FILE(tmp_filename)
+  ConsensusXMLFile().store(tmp_filename, map);
+  TEST_TRUE(fileContains4b(tmp_filename, "name=\"modification_definitions\""))
+  TEST_TRUE(fileContains4b(tmp_filename, "1|TestCXML:Assigned|TestCXML:Assigned (K)|"))
+  TEST_TRUE(fileContains4b(tmp_filename, "1|TestCXML:Unassigned|TestCXML:Unassigned (R)|"))
+
+  ConsensusMap in;
+  ConsensusXMLFile().load(tmp_filename, in);
+  TEST_EQUAL(in.size(), 1)
+  TEST_EQUAL(in.getUnassignedPeptideIdentifications().size(), 1)
+  if (in.size() == 1 && !in[0].getPeptideIdentifications().empty() && !in[0].getPeptideIdentifications()[0].getHits().empty())
+  {
+    TEST_EQUAL(in[0].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "PEPK(TestCXML:Assigned)IDE")
+  }
+  if (in.getUnassignedPeptideIdentifications().size() == 1 && !in.getUnassignedPeptideIdentifications()[0].getHits().empty())
+  {
+    TEST_EQUAL(in.getUnassignedPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "PEPR(TestCXML:Unassigned)IDE")
+  }
+}
+END_SECTION
+
+START_SECTION([EXTRA] load - definitions are registered before the sequences are parsed)
+{
+  const ModificationsDB* db = ModificationsDB::getInstance();
+  TEST_FALSE(db->hasDefinedModification("TestCXML:Fresh"))
+  ConsensusMap map;
+  map.ensureUniqueId();
+  map.getColumnHeaders()[0].filename = "file0.mzML";
+  map.getColumnHeaders()[0].size = 1;
+  ProteinIdentification prot;
+  prot.setIdentifier("run4b_fresh");
+  prot.setDateTime(DateTime::now());
+  ProteinIdentification::SearchParameters sp;
+  sp.setMetaValue(Constants::UserParam::MODIFICATION_DEFINITIONS, freshRecord4b("TestCXML:Fresh", 'K', "C2H2O"));
+  prot.setSearchParameters(sp);
+  map.getProteinIdentifications().push_back(prot);
+  ConsensusFeature f;
+  f.setRT(100.0);
+  f.setMZ(500.0);
+  f.setIntensity(1000.0);
+  f.ensureUniqueId();
+  f.insert(FeatureHandle(0, f));
+  PeptideIdentification pep;
+  pep.setIdentifier("run4b_fresh");
+  PeptideHit hit;
+  hit.setSequence(AASequence::fromString("PEPTKIDE"));
+  pep.insertHit(hit);
+  f.getPeptideIdentifications().push_back(pep);
+  map.push_back(f);
+
+  std::string tmp_filename;
+  NEW_TMP_FILE(tmp_filename)
+  ConsensusXMLFile().store(tmp_filename, map);
+  TEST_FALSE(db->hasDefinedModification("TestCXML:Fresh")) // storing registers nothing
+  // a hit using the not-yet-registered name, as a file from another process would carry it
+  TEST_TRUE(replaceInFile4b(tmp_filename, "sequence=\"PEPTKIDE\"", "sequence=\"PEPTK(TestCXML:Fresh)IDE\""))
+
+  ConsensusMap in;
+  ConsensusXMLFile().load(tmp_filename, in);
+  TEST_TRUE(db->hasDefinedModification("TestCXML:Fresh"))
+  if (in.size() == 1 && !in[0].getPeptideIdentifications().empty() && !in[0].getPeptideIdentifications()[0].getHits().empty())
+  {
+    TEST_EQUAL(in[0].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "PEPTK(TestCXML:Fresh)IDE")
+  }
+}
+END_SECTION
+
+START_SECTION([EXTRA] store/load - every peptide identification needs its protein identification run)
+{
+  const std::string message = "Peptide identification has no matching protein run: 'other'. Every peptide identification "
+                              "needs the protein identification run (search run) with its identifier, which may have no protein hits.";
+  ConsensusMap map;
+  ProteinIdentification run; // no protein hits, e.g. a de novo or peptidomics search
+  run.setIdentifier("search");
+  run.setDateTime(DateTime::now());
+  map.setProteinIdentifications({run});
+  ConsensusFeature feature;
+  feature.setRT(100.0);
+  feature.setMZ(500.0);
+  feature.insert(FeatureHandle(0, Peak2D({100.0, 500.0}, 1000.0f), 1));
+  map.getColumnHeaders()[0].filename = "file.mzML";
+  PeptideIdentification peptide;
+  peptide.setIdentifier("search");
+  PeptideHit hit;
+  hit.setSequence(AASequence::fromString("PEPTIDE"));
+  peptide.insertHit(hit);
+  feature.getPeptideIdentifications().push_back(peptide);
+  map.push_back(feature);
+  map.getUnassignedPeptideIdentifications().push_back(peptide);
+  map.ensureUniqueId();
+  map[0].setUniqueId(1);
+
+  // not omitted: storing fails before the file is opened
+  for (int assigned = 0; assigned < 2; ++assigned)
+  {
+    ConsensusMap bad = map;
+    (assigned ? bad[0].getPeptideIdentifications() : bad.getUnassignedPeptideIdentifications())[0].setIdentifier("other");
+    std::string bad_file;
+    NEW_TMP_FILE_EXT(bad_file, ".consensusXML")
+    TEST_EXCEPTION_WITH_MESSAGE(Exception::InvalidParameter, ConsensusXMLFile().store(bad_file, bad), message)
+    TEST_FALSE(File::exists(bad_file))
+  }
+
+  // a protein that is no protein hit of the run cannot be referenced (it was written as "PH_0", i.e. another protein)
+  {
+    ConsensusMap bad = map;
+    bad.getUnassignedPeptideIdentifications()[0].getHits()[0].addPeptideEvidence(PeptideEvidence("PROT_X", 0, 6, '-', '-'));
+    std::string bad_file;
+    NEW_TMP_FILE_EXT(bad_file, ".consensusXML")
+    TEST_EXCEPTION(Exception::ElementNotFound, ConsensusXMLFile().store(bad_file, bad))
+    TEST_FALSE(File::exists(bad_file))
+  }
+
+  // a file whose peptide identification references an unknown identification run cannot be loaded
+  std::string file;
+  NEW_TMP_FILE_EXT(file, ".consensusXML")
+  ConsensusXMLFile().store(file, map);
+  ConsensusMap in;
+  ConsensusXMLFile().load(file, in);
+  TEST_EQUAL(in.getUnassignedPeptideIdentifications().size(), 1)
+  TEST_EQUAL(in.getUnassignedPeptideIdentifications()[0].getIdentifier(), in.getProteinIdentifications()[0].getIdentifier())
+  std::string content;
+  {
+    std::ifstream is(file);
+    content.assign(std::istreambuf_iterator<char>(is), std::istreambuf_iterator<char>());
+  }
+  const std::string ref = "identification_run_ref=\"PI_0\"";
+  const Size pos = content.rfind(ref); // the unassigned peptide identification
+  TEST_NOT_EQUAL(pos, std::string::npos)
+  content.replace(pos, ref.size(), "identification_run_ref=\"PI_7\"");
+  // (not a NEW_TMP_FILE: it does not validate against the schema, which is the point)
+  const std::string dangling = SystemSettings::getTempDirectory() + "/" + File::getUniqueName() + ".consensusXML";
+  {
+    std::ofstream os(dangling);
+    os << content;
+  }
+  TEST_EXCEPTION(Exception::ParseError, ConsensusXMLFile().load(dangling, in))
+  File::remove(dangling);
+
+  // a peptide hit may only reference the protein hits of its run (a reference to another run's protein, as written
+  // for unknown accessions by former versions, cannot be loaded)
+  {
+    ConsensusMap two_runs = map;
+    ProteinIdentification other;
+    other.setIdentifier("other");
+    other.setDateTime(DateTime::now());
+    other.insertHit(ProteinHit(0.0, 1, "PROT_B", ""));
+    two_runs.getProteinIdentifications()[0].insertHit(ProteinHit(0.0, 1, "PROT_A", ""));
+    two_runs.getProteinIdentifications().push_back(other);
+    two_runs.getUnassignedPeptideIdentifications()[0].getHits()[0].addPeptideEvidence(PeptideEvidence("PROT_A", 0, 6, '-', '-'));
+    std::string two_runs_file;
+    NEW_TMP_FILE_EXT(two_runs_file, ".consensusXML")
+    ConsensusXMLFile().store(two_runs_file, two_runs);
+    ConsensusMap two_runs_in;
+    ConsensusXMLFile().load(two_runs_file, two_runs_in);
+    TEST_EQUAL(two_runs_in.getUnassignedPeptideIdentifications()[0].getHits()[0].getPeptideEvidences()[0].getProteinAccession(), "PROT_A")
+    std::string text;
+    {
+      std::ifstream is(two_runs_file);
+      text.assign(std::istreambuf_iterator<char>(is), std::istreambuf_iterator<char>());
+    }
+    const Size ref_pos = text.find("protein_refs=\"PH_0\""); // PROT_A of the first run
+    TEST_NOT_EQUAL(ref_pos, std::string::npos)
+    text.replace(ref_pos, std::string("protein_refs=\"PH_0\"").size(), "protein_refs=\"PH_1\""); // PROT_B of the other run
+    const std::string cross_run = SystemSettings::getTempDirectory() + "/" + File::getUniqueName() + ".consensusXML";
+    {
+      std::ofstream os(cross_run);
+      os << text;
+    }
+    TEST_EXCEPTION(Exception::ParseError, ConsensusXMLFile().load(cross_run, two_runs_in))
+    File::remove(cross_run);
+  }
+
+  // the protein hits of runs "A" and "A_B" are distinct, also for accessions "B_C" and "C" (both pairs were looked
+  // up as "A_B_C" when writing, so a peptide hit referenced the protein of the other run)
+  {
+    ConsensusMap runs = map;
+    runs.getUnassignedPeptideIdentifications().clear();
+    for (const auto& [identifier, accession] : std::vector<std::pair<std::string, std::string>>{{"A", "B_C"}, {"A_B", "C"}})
+    {
+      ProteinIdentification protein_run;
+      protein_run.setIdentifier(identifier);
+      protein_run.setDateTime(DateTime::now());
+      protein_run.insertHit(ProteinHit(0.0, 1, accession, ""));
+      runs.getProteinIdentifications().push_back(protein_run);
+      PeptideIdentification run_peptide = peptide;
+      run_peptide.setIdentifier(identifier);
+      run_peptide.getHits()[0].addPeptideEvidence(PeptideEvidence(accession, 0, 6, '-', '-'));
+      runs.getUnassignedPeptideIdentifications().push_back(run_peptide);
+    }
+    std::string runs_file;
+    NEW_TMP_FILE_EXT(runs_file, ".consensusXML")
+    ConsensusXMLFile().store(runs_file, runs);
+    ConsensusMap runs_in;
+    ConsensusXMLFile().load(runs_file, runs_in);
+    ABORT_IF(runs_in.getUnassignedPeptideIdentifications().size() != 2 || runs_in.getProteinIdentifications().size() != 3)
+    for (Size i = 0; i < 2; ++i) // (run identifiers are made unique on load)
+    {
+      const PeptideIdentification& run_peptide = runs_in.getUnassignedPeptideIdentifications()[i];
+      const ProteinIdentification& protein_run = runs_in.getProteinIdentifications()[i + 1];
+      TEST_EQUAL(run_peptide.getIdentifier(), protein_run.getIdentifier())
+      TEST_EQUAL(run_peptide.getHits()[0].getPeptideEvidences()[0].getProteinAccession(), protein_run.getHits()[0].getAccession())
+    }
+    TEST_EQUAL(runs_in.getProteinIdentifications()[1].getHits()[0].getAccession(), "B_C")
+    TEST_EQUAL(runs_in.getProteinIdentifications()[2].getHits()[0].getAccession(), "C")
+  }
+}
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
+/// check the temporary files written above against their XML schema (types without a validator are skipped)
+VALIDATE_TMP_FILES
+
+START_SECTION([EXTRA] load - an empty file list ('spectra_data') is not stored)
+{
+  // older versions wrote one for runs without files
+  ConsensusMap map;
+  ProteinIdentification run;
+  run.setIdentifier("run");
+  run.setMetaValue("spectra_data", StringList());
+  run.setMetaValue("spectra_data_raw", StringList());
+  map.getProteinIdentifications().push_back(run);
+  std::string file;
+  NEW_TMP_FILE_EXT(file, ".consensusXML")
+  ConsensusXMLFile().store(file, map);
+  ConsensusMap loaded;
+  ConsensusXMLFile().load(file, loaded);
+  TEST_EQUAL(loaded.getProteinIdentifications().size(), 1)
+  TEST_EQUAL(loaded.getProteinIdentifications()[0].metaValueExists("spectra_data"), false)
+  TEST_EQUAL(loaded.getProteinIdentifications()[0].metaValueExists("spectra_data_raw"), false)
+}
+END_SECTION
+
 END_TEST

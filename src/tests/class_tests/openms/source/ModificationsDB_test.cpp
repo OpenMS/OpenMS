@@ -11,7 +11,12 @@
 
 ///////////////////////////
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
+#include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/CHEMISTRY/AASequence.h>
+#include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
+#include <OpenMS/CHEMISTRY/ResidueModification.h>
 #include <limits>
+#include <sstream>
 #include <algorithm>
 ///////////////////////////
 
@@ -209,6 +214,38 @@ START_SECTION((void searchModificationsByDiffMonoMass(std::vector<std::string>& 
   ptr->searchModificationsByDiffMonoMass(mods, 0.98, 1.0, "Q");
   TEST_EQUAL(mods.empty(), false)
   TEST_EQUAL(mods[0], "Deamidated (Q)")
+
+  // Modifications without a mass difference (PSI-MOD "residue" terms such as
+  // 'MOD:00026 L-threonine residue') cannot explain a mass shift and must not be reported
+  // for one, no matter how large the tolerance is (issue #10029).
+  std::vector<const ResidueModification*> mod_ptrs;
+  ptr->searchModificationsByDiffMonoMass(mod_ptrs, -0.5, 1.0, "T");
+  bool found_zero_diff = false;
+  for (const ResidueModification* m : mod_ptrs)
+  {
+    if (m->getDiffMonoMass() == 0.0) found_zero_diff = true;
+  }
+  TEST_EQUAL(found_zero_diff, false)
+  // ... they are still found when a zero mass difference is what was asked for
+  ptr->searchModificationsByDiffMonoMass(mods, 0.0, 0.001, "T");
+  TEST_EQUAL(find(mods.begin(), mods.end(), "L-threonine residue (T)") != mods.end(), true)
+}
+END_SECTION
+
+START_SECTION((const ResidueModification* getBestModificationByDiffMonoMass(double mass, double max_error, const std::string& residue, ResidueModification::TermSpecificity term_spec) const))
+{
+  TEST_EQUAL(ptr->getBestModificationByDiffMonoMass(15.994915, 0.001, "M", ResidueModification::ANYWHERE)->getFullId(), "Oxidation (M)")
+
+  // A modification with a mass difference of zero minimizes |diff mass - mass| for every small
+  // mass difference and used to be returned as the best match for it (issue #10029).
+  const ResidueModification* best = ptr->getBestModificationByDiffMonoMass(-0.5, 1.0, "T", ResidueModification::ANYWHERE);
+  TEST_EQUAL(best != nullptr && best->getDiffMonoMass() == 0.0, false)
+  TEST_EQUAL(ptr->getBestModificationByDiffMonoMass(0.001, 0.005, "T", ResidueModification::ANYWHERE) == nullptr, true)
+
+  // ... but a zero mass difference is still matched when explicitly searched for
+  best = ptr->getBestModificationByDiffMonoMass(0.0, 0.001, "T", ResidueModification::ANYWHERE);
+  TEST_EQUAL(best == nullptr, false)
+  TEST_REAL_SIMILAR(best->getDiffMonoMass(), 0.0)
 }
 END_SECTION
 
@@ -229,6 +266,23 @@ START_SECTION((const ResidueModification& getModification(const std::string& mod
   TEST_EXCEPTION(Exception::InvalidValue, ptr->getModification("MISSING"));
   TEST_EXCEPTION(Exception::InvalidValue, ptr->getModification("MISSING", "", ResidueModification::N_TERM));
   TEST_EXCEPTION(Exception::InvalidValue, ptr->getModification("MISSING", "", ResidueModification::C_TERM));
+}
+END_SECTION
+
+START_SECTION([EXTRA] diff formula of a UniMod entry matches its diff mono mass)
+{
+  // ICAT-D (UNIMOD:13) and ICAT-D:2H(8) (UNIMOD:12) are the only unimod.xml entries with <Ignore>
+  // blocks. Their <element> children used to be folded into the modification's own formula, leaving
+  // it ~2250 Da heavier than the delta mass that getDiffMonoMass() reports.
+  // See https://github.com/OpenMS/OpenMS/issues/10030
+  for (const std::string& acc : {std::string("UNIMOD:12"), std::string("UNIMOD:13")})
+  {
+    const ResidueModification* mod = ptr->getModification(acc);
+    TEST_REAL_SIMILAR(mod->getDiffFormula().getMonoWeight(), mod->getDiffMonoMass());
+  }
+
+  TEST_REAL_SIMILAR(ptr->getModification("UNIMOD:12")->getDiffMonoMass(), 450.275205);
+  TEST_REAL_SIMILAR(ptr->getModification("UNIMOD:13")->getDiffMonoMass(), 442.224991);
 }
 END_SECTION
 
@@ -320,6 +374,113 @@ START_SECTION([EXTRA] multithreaded example)
   TEST_EQUAL(test, nr_iterations*1.0)
 
  }
+END_SECTION
+
+START_SECTION([EXTRA] registerDefinition - same name is the same modification and re-registration is idempotent)
+{
+  const ModificationsDB* db = ModificationsDB::getInstance();
+  ResidueModification d;
+  d.setId("TestDef:Idem");
+  d.setOrigin('K');
+  d.setTermSpecificity(ResidueModification::ANYWHERE);
+  d.setFullId();
+  d.setDiffFormula(EmpiricalFormula("C2H2O"));
+  d.setDiffMonoMass(EmpiricalFormula("C2H2O").getMonoWeight());
+
+  const Size before = db->getNumberOfModifications();
+  const ResidueModification* first = db->registerDefinition(d);
+  TEST_TRUE(first != nullptr)
+  TEST_EQUAL(db->getNumberOfModifications(), before + 1)
+  if (first != nullptr)
+  {
+    TEST_EQUAL(first->getProvenance(), ResidueModification::DEFINED)
+  }
+
+  // re-registration must be silent (no "already exists" from addModification's duplicate path)
+  std::ostringstream captured;
+  OPENMS_LOG_WARN.insert(captured);
+  const ResidueModification* second = db->registerDefinition(d);
+  OPENMS_LOG_WARN.remove(captured);
+  TEST_TRUE(first == second)
+  TEST_EQUAL(db->getNumberOfModifications(), before + 1)
+  TEST_TRUE(captured.str().find("already exists") == std::string::npos)
+  TEST_TRUE(captured.str().find("disagrees") == std::string::npos)
+
+  TEST_TRUE(db->hasDefinedModification("TestDef:Idem"))
+  TEST_TRUE(db->hasDefinedModification("TestDef:Idem (K)"))
+  TEST_FALSE(db->hasDefinedModification("Oxidation"))
+  TEST_FALSE(db->hasDefinedModification("Oxidation (M)"))
+  TEST_FALSE(db->hasDefinedModification("TestDef:NeverRegistered"))
+
+  // the same FullId with different chemistry keeps the first definition
+  ResidueModification conflict(d);
+  conflict.setDiffFormula(EmpiricalFormula("C3H2O"));
+  conflict.setDiffMonoMass(EmpiricalFormula("C3H2O").getMonoWeight());
+  std::ostringstream conflict_log;
+  OPENMS_LOG_WARN.insert(conflict_log);
+  const ResidueModification* kept = db->registerDefinition(conflict);
+  OPENMS_LOG_WARN.remove(conflict_log);
+  TEST_TRUE(kept == first)
+  TEST_TRUE(conflict_log.str().find("disagrees") != std::string::npos) // ... but a real conflict is loud
+  if (kept != nullptr)
+  {
+    TEST_EQUAL(kept->getDiffFormula().toString(), EmpiricalFormula("C2H2O").toString())
+  }
+  TEST_EQUAL(db->getNumberOfModifications(), before + 1)
+
+  // the same formula with a different mono mass is a conflict too: the mono mass is what a residue weighs
+  ResidueModification mass_conflict(d);
+  mass_conflict.setDiffMonoMass(d.getDiffMonoMass() + 0.001);
+  std::ostringstream mass_log;
+  OPENMS_LOG_WARN.insert(mass_log);
+  const ResidueModification* kept_mass = db->registerDefinition(mass_conflict);
+  OPENMS_LOG_WARN.remove(mass_log);
+  TEST_TRUE(kept_mass == first)
+  TEST_TRUE(mass_log.str().find("disagrees") != std::string::npos)
+  TEST_EQUAL(db->getNumberOfModifications(), before + 1)
+
+  ResidueModification nameless;
+  TEST_EXCEPTION(Exception::MissingInformation, db->registerDefinition(nameless))
+}
+END_SECTION
+
+START_SECTION([EXTRA] registerDefinition - one name on two residues is two entries that resolve at their own site)
+{
+  const ModificationsDB* db = ModificationsDB::getInstance();
+  const double delta = EmpiricalFormula("C2H2O").getMonoWeight();
+  const Size before = db->getNumberOfModifications();
+  for (const char origin : {'K', 'Y'})
+  {
+    ResidueModification d;
+    d.setId("TestDef:TwoSites");
+    d.setOrigin(origin);
+    d.setTermSpecificity(ResidueModification::ANYWHERE);
+    d.setFullId();
+    d.setDiffFormula(EmpiricalFormula("C2H2O"));
+    d.setDiffMonoMass(delta);
+    TEST_TRUE(db->registerDefinition(d) != nullptr)
+  }
+  TEST_EQUAL(db->getNumberOfModifications(), before + 2)
+
+  const ResidueModification* on_k = db->getModification("TestDef:TwoSites", "K", ResidueModification::ANYWHERE);
+  const ResidueModification* on_y = db->getModification("TestDef:TwoSites", "Y", ResidueModification::ANYWHERE);
+  TEST_TRUE(on_k != nullptr)
+  TEST_TRUE(on_y != nullptr)
+  TEST_TRUE(on_k != on_y)
+  if (on_k != nullptr && on_y != nullptr)
+  {
+    TEST_EQUAL(on_k->getOrigin(), 'K')
+    TEST_EQUAL(on_y->getOrigin(), 'Y')
+    TEST_EQUAL(on_k->getFullId(), "TestDef:TwoSites (K)")
+    TEST_EQUAL(on_y->getFullId(), "TestDef:TwoSites (Y)")
+  }
+
+  // The sequence round trip that catches the origin-'X' trap: the residue letter must survive.
+  AASequence seq = AASequence::fromString("PEPTK(TestDef:TwoSites)IDY(TestDef:TwoSites)E");
+  TEST_EQUAL(seq.toString(), "PEPTK(TestDef:TwoSites)IDY(TestDef:TwoSites)E")
+  TEST_TRUE(AASequence::fromString(seq.toString()) == seq)
+  TEST_REAL_SIMILAR(seq.getMonoWeight(), AASequence::fromString("PEPTKIDYE").getMonoWeight() + 2.0 * delta)
+}
 END_SECTION
 
 /////////////////////////////////////////////////////////////

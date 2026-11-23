@@ -414,6 +414,20 @@ START_SECTION([EXTRA](template< typename IteratorType1, typename IteratorType2 >
 
   result = Math::rankCorrelationCoefficient(numbers4.begin(), numbers4.end(), numbers4.rbegin(), numbers4.rend());
   TEST_REAL_SIMILAR(result, -1.0);
+
+  // exact values: callers compare against cutoffs (e.g. 'peptide_similarity' 0.5 and 'averagine_similarity' 0.4 in
+  // MultiplexFiltering), so a correlation of exactly 0.5 must not come out as 0.49999999999999989
+  std::vector<double> three_a = {3.0, 2.0, 1.0};
+  std::vector<double> three_b = {3.0, 1.0, 2.0};
+  std::vector<double> three_c = {2.0, 3.0, 1.0};
+  TEST_EQUAL(Math::rankCorrelationCoefficient(three_a.begin(), three_a.end(), three_b.begin(), three_b.end()) == 0.5, true);
+  TEST_EQUAL(Math::rankCorrelationCoefficient(three_a.begin(), three_a.end(), three_c.begin(), three_c.end()) == 0.5, true);
+  TEST_EQUAL(Math::rankCorrelationCoefficient(three_a.begin(), three_a.end(), three_a.begin(), three_a.end()) == 1.0, true);
+  TEST_EQUAL(Math::rankCorrelationCoefficient(three_a.begin(), three_a.end(), three_a.rbegin(), three_a.rend()) == -1.0, true);
+  // 1 - 6 * 6 / (4 * 15) = 0.4
+  std::vector<double> four_a = {1.0, 2.0, 3.0, 4.0};
+  std::vector<double> four_b = {2.0, 3.0, 1.0, 4.0};
+  TEST_EQUAL(Math::rankCorrelationCoefficient(four_a.begin(), four_a.end(), four_b.begin(), four_b.end()) == 0.4, true);
 }
 END_SECTION
 

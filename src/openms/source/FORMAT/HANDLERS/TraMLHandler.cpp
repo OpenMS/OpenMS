@@ -698,7 +698,7 @@ namespace OpenMS::Internal
           }
           if (it->theoretical_mass > 0.0)
           {
-            os << R"(      <cvParam cvRef="MS" accession="MS:1001117" name="theoretical mass" value=")" << 
+            os << R"(      <cvParam cvRef="MS" accession="MS:1001117" name="theoretical neutral mass" value=")" <<
             it->theoretical_mass << "\" unitCvRef=\"UO\" unitAccession=\"UO:0000221\" unitName=\"dalton\"/>\n";
           }
           if (!it->molecular_formula.empty())
@@ -1025,6 +1025,15 @@ namespace OpenMS::Internal
             case Residue::ZIon:
               os << "            <cvParam cvRef=\"MS\" accession=\"MS:1001230\" name=\"frag: z ion\"/>\n";
               break;
+            case Residue::DIon:
+              os << "            <cvParam cvRef=\"MS\" accession=\"MS:1001236\" name=\"frag: d ion\"/>\n";
+              break;
+            case Residue::VIon:
+              os << "            <cvParam cvRef=\"MS\" accession=\"MS:1001237\" name=\"frag: v ion\"/>\n";
+              break;
+            case Residue::WIon:
+              os << "            <cvParam cvRef=\"MS\" accession=\"MS:1001238\" name=\"frag: w ion\"/>\n";
+              break;
             case Residue::Precursor:
               os << "            <cvParam cvRef=\"MS\" accession=\"MS:1001523\" name=\"frag: precursor ion\"/>\n";
               break;
@@ -1122,17 +1131,18 @@ namespace OpenMS::Internal
         {
           warning(LOAD,std::string("Name of CV term not correct: '") + term.id + " - " + parsed_name + "' should be '" + correct_name + "'");
         }
-        if (term.obsolete)
+        // values used in wrong places and wrong value types (only warnings: the term is kept)
         {
-          warning(LOAD,std::string("Obsolete CV term '") + accession + " - " + cv_.getTerm(accession).name + "' used in tag '" + parent_tag + "'.");
-          //values used in wrong places and wrong value types
           std::string value = cv_term.getValue().toString();
           if (!value.empty())
           {
             if (term.xref_type == ControlledVocabulary::CVTerm::XRefType::NONE)
             {
-              //Quality CV does not state value type :(
-              if (!StringUtils::hasPrefix(accession, "PATO:"))
+              // The CV states no value type for some terms that carry a value in TraML: terms with units
+              // (e.g. product ion intensity, product ion m/z delta) and the RT standards whose value is
+              // the RT (read below). The Quality CV does not state value types at all :(
+              const bool value_expected = !term.units.empty() || accession == "MS:1002005" || accession == "MS:1000902";
+              if (!value_expected && !StringUtils::hasPrefix(accession, "PATO:"))
               {
                 warning(LOAD,std::string("The CV term '") + accession + " - " + cv_.getTerm(accession).name + "' used in tag '" + parent_tag + "' must not have a value. The value is '" + value + "'.");
               }
@@ -1158,7 +1168,6 @@ namespace OpenMS::Internal
                 catch (Exception::ConversionError&)
                 {
                   warning(LOAD,std::string("The CV term '") + accession + " - " + cv_.getTerm(accession).name + "' used in tag '" + parent_tag + "' must have an integer value. The value is '" + value + "'.");
-                  return;
                 }
                 break;
 
@@ -1171,7 +1180,6 @@ namespace OpenMS::Internal
                 catch (Exception::ConversionError&)
                 {
                   warning(LOAD,std::string("The CV term '") + accession + " - " + cv_.getTerm(accession).name + "' used in tag '" + parent_tag + "' must have a floating-point value. The value is '" + value + "'.");
-                  return;
                 }
                 break;
 
@@ -1185,7 +1193,26 @@ namespace OpenMS::Internal
                 catch (Exception::ParseError&)
                 {
                   warning(LOAD,std::string("The CV term '") + accession + " - " + cv_.getTerm(accession).name + "' used in tag '" + parent_tag + "' must be a valid date. The value is '" + value + "'.");
-                  return;
+                }
+                break;
+
+              // boolean value => xsd:boolean allows 'true', 'false', '1' and '0' (like SemanticValidator)
+              case ControlledVocabulary::CVTerm::XRefType::XSD_BOOLEAN:
+                {
+                  std::string lowered = StringUtils::toLowered(value);
+                  StringUtils::trim(lowered);
+                  if (lowered != "true" && lowered != "false" && lowered != "1" && lowered != "0")
+                  {
+                    warning(LOAD,std::string("The CV term '") + accession + " - " + cv_.getTerm(accession).name + "' used in tag '" + parent_tag + "' must have a boolean value (true/false/1/0). The value is '" + value + "'.");
+                  }
+                }
+                break;
+
+              // URI => at least a scheme separator is needed (like SemanticValidator)
+              case ControlledVocabulary::CVTerm::XRefType::XSD_ANYURI:
+                if (!StringUtils::has(value, ':'))
+                {
+                  warning(LOAD,std::string("The CV term '") + accession + " - " + cv_.getTerm(accession).name + "' used in tag '" + parent_tag + "' must have a URI value. The value is '" + value + "'.");
                 }
                 break;
 
@@ -1199,7 +1226,6 @@ namespace OpenMS::Internal
           else if (term.xref_type != ControlledVocabulary::CVTerm::XRefType::NONE && term.xref_type != ControlledVocabulary::CVTerm::XRefType::XSD_STRING)
           {
             warning(LOAD,std::string("The CV term '") + accession + " - " + cv_.getTerm(accession).name + "' used in tag '" + parent_tag + "' should have a numerical value. The value is '" + value + "'.");
-            return;
           }
         }
       }
@@ -1433,6 +1459,18 @@ namespace OpenMS::Internal
         else if (cv_term.getAccession() == "MS:1001230")
         {
           actual_interpretation_.iontype = TargetedExperiment::IonType::ZIon;
+        }
+        else if (cv_term.getAccession() == "MS:1001236")
+        {
+          actual_interpretation_.iontype = TargetedExperiment::IonType::DIon;
+        }
+        else if (cv_term.getAccession() == "MS:1001237")
+        {
+          actual_interpretation_.iontype = TargetedExperiment::IonType::VIon;
+        }
+        else if (cv_term.getAccession() == "MS:1001238")
+        {
+          actual_interpretation_.iontype = TargetedExperiment::IonType::WIon;
         }
         else if (cv_term.getAccession() == "MS:1001523")
         {
@@ -1730,7 +1768,7 @@ namespace OpenMS::Internal
           os << std::string(2 * indent, ' ') << "<cvParam cvRef=\"" << cit.getCVIdentifierRef() << "\" accession=\"" << cit.getAccession() << "\" name=\"" << cit.getName() << "\"";
           if (cit.hasValue() && !cit.getValue().isEmpty() && !cit.getValue().toString().empty())
           {
-            os << " value=\"" << cit.getValue().toString() << "\"";
+            os << " value=\"" << writeXMLEscape(cit.getValue().toString()) << "\"";
           }
 
           if (cit.hasUnit())

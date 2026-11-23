@@ -12,18 +12,53 @@
 
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
-#include <OpenMS/PROCESSING/RESAMPLING/LinearResamplerAlign.h>
+#include <OpenMS/MATH/MISC/LinearResampling.h>
 #include <OpenMS/KERNEL/ChromatogramPeak.h>
 #include <OpenMS/KERNEL/Peak1D.h>
-#include <OpenMS/SYSTEM/File.h>
 
 #include <algorithm>
+#include <cmath>
+#include <exception>
 #include <limits>
+#include <numeric>
 #include <unordered_set>
 
 #ifdef _OPENMP
 #include <omp.h>
 #endif
+
+namespace
+{
+  /// Reorders @p data so that afterwards data[i] holds the element that was at order[i].
+  /// The permutation is applied cycle by cycle, so only one element is held aside at a time.
+  template <typename ContainerType>
+  void applyPermutation(ContainerType& data, const std::vector<OpenMS::Size>& order)
+  {
+    std::vector<bool> done(data.size(), false);
+    for (OpenMS::Size i = 0; i < data.size(); ++i)
+    {
+      if (done[i] || order[i] == i)
+      {
+        done[i] = true;
+        continue;
+      }
+      auto hole = std::move(data[i]);
+      OpenMS::Size pos = i;
+      while (true)
+      {
+        const OpenMS::Size from = order[pos];
+        done[pos] = true;
+        if (from == i) // the cycle is closed
+        {
+          data[pos] = std::move(hole);
+          break;
+        }
+        data[pos] = std::move(data[from]);
+        pos = from;
+      }
+    }
+  }
+} // namespace
 
 namespace OpenMS
 {
@@ -685,20 +720,87 @@ namespace OpenMS
       return;
     }
 
-    // Update spectrum ranges
-    for (Base::iterator it = spectra_.begin(); it != spectra_.end(); ++it)
-    {      
-      // Update ranges for the spectrum itself
-      it->updateRanges();
-      
+    // Update spectrum ranges. The ranges of the spectra themselves (a pass over every peak) are updated in parallel for
+    // many spectra (0.35 s on one thread for the 107 million peaks of 250,000 timsTOF spectra), then added to the range
+    // managers in spectrum order, as on one thread. If the update of a spectrum throws, the state is that of one thread
+    // as well: the spectra before it added, the later ones with their ranges from before, the exception rethrown.
+    const auto add_spectrum = [this](const SpectrumType& spectrum)
+    {
       // Update spectrum range manager with this spectrum's ranges
       // Add to both general ranges and MS level-specific ranges
-      spectrum_ranges_.extendUnsafe(*it);
-      spectrum_ranges_.extendRT(it->getRT()); // RT is not part of the range of an individual spectrum
-      
-      spectrum_ranges_.extendUnsafe(*it, it->getMSLevel());
-      spectrum_ranges_.extendRT(it->getRT(), it->getMSLevel()); // RT is not part of the range of an individual spectrum
-      
+      spectrum_ranges_.extendUnsafe(spectrum);
+      spectrum_ranges_.extendRT(spectrum.getRT()); // RT is not part of the range of an individual spectrum
+
+      spectrum_ranges_.extendUnsafe(spectrum, spectrum.getMSLevel());
+      spectrum_ranges_.extendRT(spectrum.getRT(), spectrum.getMSLevel()); // RT is not part of the range of an individual spectrum
+    };
+    bool updated_in_parallel = false;
+#ifdef _OPENMP
+    const SignedSize num_spectra = static_cast<SignedSize>(spectra_.size());
+    if (num_spectra >= 4096 && omp_get_max_threads() > 1 && !omp_in_parallel())
+    {
+      std::vector<SpectrumType::RangeManagerType> before;
+      std::vector<std::exception_ptr> errors;
+      try
+      {
+        before.reserve(spectra_.size());
+        errors.resize(spectra_.size());
+        updated_in_parallel = true;
+      }
+      catch (const std::bad_alloc&)
+      {
+        // on one thread below
+      }
+      if (updated_in_parallel)
+      {
+        for (const SpectrumType& spectrum : spectra_) before.push_back(spectrum); // reserved: no allocation
+#pragma omp parallel for schedule(dynamic, 256)
+        for (SignedSize i = 0; i < num_spectra; ++i)
+        {
+          try
+          {
+            spectra_[i].updateRanges();
+          }
+          catch (...)
+          {
+            errors[i] = std::current_exception();
+          }
+        }
+        const auto restore_after = [&](const SignedSize i)
+        {
+          for (SignedSize j = i + 1; j < num_spectra; ++j)
+          {
+            static_cast<SpectrumType::RangeManagerType&>(spectra_[j]) = before[j];
+          }
+        };
+        for (SignedSize i = 0; i < num_spectra; ++i)
+        {
+          if (errors[i])
+          {
+            restore_after(i);
+            std::rethrow_exception(errors[i]);
+          }
+          try
+          {
+            add_spectrum(spectra_[i]);
+          }
+          catch (...)
+          {
+            restore_after(i);
+            throw;
+          }
+        }
+      }
+    }
+#endif
+    if (!updated_in_parallel)
+    {
+      for (Base::iterator it = spectra_.begin(); it != spectra_.end(); ++it)
+      {
+        // Update ranges for the spectrum itself
+        it->updateRanges();
+        add_spectrum(*it);
+      }
     }
 
     // Update chromatogram ranges
@@ -791,7 +893,27 @@ namespace OpenMS
   */
   void MSExperiment::sortSpectra(bool sort_mz)
   {
-    std::sort(spectra_.begin(), spectra_.end(), SpectrumType::RTLess());
+    // std::sort gives no guarantee for spectra with equal retention time, so every map that has
+    // ties - an ion mobility frame, a FAIMS split, Bruker TIMS data - came out in an order that
+    // depends on the standard library, and consumers that walk the spectra in order (e.g.
+    // MassTraceDetection) saw them shuffled (#10054, #10051). Sorting a permutation of indices
+    // and applying it keeps tied spectra in their input order. It is also faster than sorting the
+    // spectra themselves, which moves an MSSpectrum (752 bytes on Linux/g++) per swap: measured on
+    // 200k spectra with 2000 distinct retention times, 0.14 s against 0.35 s for std::sort and
+    // 0.69 s for std::stable_sort, and without the O(n) buffer of std::stable_sort.
+    // The retention times are read into an array first: the sort then compares them as SpectrumType::RTLess does (the
+    // same comparisons, so the same order, NaN included) without reading two spectra per comparison (0.15 s for the
+    // 250,000 spectra of a timsTOF run, 752 bytes apart, against 0.02 s).
+    std::vector<double> rts(spectra_.size());
+    for (Size i = 0; i < spectra_.size(); ++i) rts[i] = spectra_[i].getRT();
+    std::vector<Size> order(spectra_.size());
+    std::iota(order.begin(), order.end(), 0);
+    std::sort(order.begin(), order.end(), [&rts](Size a, Size b) {
+      if (rts[a] < rts[b]) return true;
+      if (rts[b] < rts[a]) return false;
+      return a < b; // equal retention time: keep the input order
+    });
+    applyPermutation(spectra_, order);
 
     if (sort_mz)
     {
@@ -972,12 +1094,23 @@ namespace OpenMS
     }
 
     // if no precursor annotation was found or it did not have a spectrum reference,
-    // just
+    // just take the closest preceding spectrum of the level above. With FAIMS, that spectrum must have been
+    // acquired at the same compensation voltage: the scans of the other voltages hold other ions.
+    const bool faims = iterator->getDriftTimeUnit() == DriftTimeUnit::FAIMS_COMPENSATION_VOLTAGE;
+    const double cv = iterator->getDriftTime();
     do
     {
       --iterator;
       if (ms_level - iterator->getMSLevel() == 1)
       {
+        // A survey scan of another CV is skipped (same tolerance as IsobaricChannelExtractor and IsobaricWorkflow use for
+        // "same CV"). One without a CV is accepted: some converters annotate the CV on MS2 spectra only, and requiring it
+        // on the survey scans would leave such files without any precursor spectrum.
+        if (faims && iterator->getDriftTimeUnit() == DriftTimeUnit::FAIMS_COMPENSATION_VOLTAGE
+            && std::fabs(iterator->getDriftTime() - cv) >= 0.01)
+        {
+          continue;
+        }
         return iterator;
       }
     } while (iterator != spectra_.begin());
@@ -1259,11 +1392,7 @@ namespace OpenMS
     }
     if (rt_bin_size > 0)
     {
-      LinearResamplerAlign lra;
-      Param param = lra.getParameters();
-      param.setValue("spacing", rt_bin_size);
-      lra.setParameters(param);
-      lra.raster(TIC);
+      Internal::LinearResampling(rt_bin_size).raster(TIC);
     }
     return TIC;
   }
@@ -1387,4 +1516,3 @@ namespace OpenMS
     return os;
   }
 } //namespace OpenMS
-

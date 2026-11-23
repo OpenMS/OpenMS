@@ -7,6 +7,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/METADATA/SpectrumSettings.h>
+#include <OpenMS/CONCEPT/EnumHelpers.h>
 
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/Helpers.h>
@@ -216,34 +217,17 @@ namespace OpenMS
 
   StringList SpectrumSettings::getAllNamesOfSpectrumType()
   {
-    StringList names;
-    names.reserve(static_cast<size_t>(SpectrumType::SIZE_OF_SPECTRUMTYPE));
-    for (size_t i = 0; i < static_cast<size_t>(SpectrumType::SIZE_OF_SPECTRUMTYPE); ++i)
-    {
-      names.push_back(NamesOfSpectrumType[i]);
-    }
-    return names;
+    return Helpers::enumNames(NamesOfSpectrumType, SpectrumType::SIZE_OF_SPECTRUMTYPE);
   }
 
   const std::string& SpectrumSettings::spectrumTypeToString(SpectrumType type)
   {
-    if (type == SpectrumType::SIZE_OF_SPECTRUMTYPE)
-    {
-      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Value not allowed", "SIZE_OF_SPECTRUMTYPE");
-    }
-    return NamesOfSpectrumType[static_cast<size_t>(type)];
+    return Helpers::enumToName(NamesOfSpectrumType, type, SpectrumType::SIZE_OF_SPECTRUMTYPE, "SIZE_OF_SPECTRUMTYPE", OPENMS_PRETTY_FUNCTION);
   }
 
   SpectrumSettings::SpectrumType SpectrumSettings::toSpectrumType(const std::string& name)
   {
-    auto first = &NamesOfSpectrumType[0];
-    auto last = &NamesOfSpectrumType[static_cast<size_t>(SpectrumType::SIZE_OF_SPECTRUMTYPE)];
-    const auto it = std::find(first, last, name);
-    if (it == last)
-    {
-      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Value unknown", name);
-    }
-    return static_cast<SpectrumType>(it - first);
+    return Helpers::enumFromName(NamesOfSpectrumType, SpectrumType::SIZE_OF_SPECTRUMTYPE, name, "Value unknown", OPENMS_PRETTY_FUNCTION);
   }
 
 }

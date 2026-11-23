@@ -13,6 +13,7 @@
 
 ///////////////////////////
 #include <OpenMS/ANALYSIS/MAPMATCHING/QTClusterFinder.h>
+#include <OpenMS/DATASTRUCTURES/DPosition.h>
 ///////////////////////////
 
 #include <OpenMS/KERNEL/Feature.h>

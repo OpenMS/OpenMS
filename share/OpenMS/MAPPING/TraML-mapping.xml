@@ -50,7 +50,7 @@
         <!-- peptide -->
         <CvMappingRule id="peptide_may" cvElementPath="/TraML/CompoundList/Peptide/cvParam/@accession" requirementLevel="MAY" scopePath="/TraML/CompoundList/Peptide" cvTermsCombinationLogic="OR">
             <CvTerm termAccession="MS:1000863" useTerm="true" termName="predicted pI" isRepeatable="false" allowChildren="false" cvIdentifierRef="MS"></CvTerm>
-            <CvTerm termAccession="MS:1001117" useTerm="true" termName="theoretical mass" isRepeatable="false" allowChildren="false" cvIdentifierRef="MS"></CvTerm>
+            <CvTerm termAccession="MS:1001117" useTerm="true" termName="theoretical neutral mass" isRepeatable="false" allowChildren="false" cvIdentifierRef="MS"></CvTerm>
             <CvTerm termAccession="MS:1000890" useTerm="false" termName="peptide labeling state" isRepeatable="true" allowChildren="true" cvIdentifierRef="MS"></CvTerm>
             <CvTerm termAccession="MS:1000893" useTerm="true" termName="peptide group label" isRepeatable="false" allowChildren="false" cvIdentifierRef="MS"></CvTerm>
         </CvMappingRule>
@@ -70,7 +70,7 @@
         <!-- compound -->
         <CvMappingRule id="compound_may" cvElementPath="/TraML/CompoundList/Compound/cvParam/@accession" requirementLevel="MAY" scopePath="/TraML/CompoundList/Compound" cvTermsCombinationLogic="OR">
             <CvTerm termAccession="MS:1000863" useTerm="true" termName="predicted pI" isRepeatable="false" allowChildren="false" cvIdentifierRef="MS"></CvTerm>
-            <CvTerm termAccession="MS:1001117" useTerm="true" termName="theoretical mass" isRepeatable="false" allowChildren="false" cvIdentifierRef="MS"></CvTerm>
+            <CvTerm termAccession="MS:1001117" useTerm="true" termName="theoretical neutral mass" isRepeatable="false" allowChildren="false" cvIdentifierRef="MS"></CvTerm>
             <CvTerm termAccession="MS:1000864" useTerm="false" termName="chemical compound formula" isRepeatable="true" allowChildren="true" cvIdentifierRef="MS"></CvTerm>
         </CvMappingRule>
 

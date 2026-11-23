@@ -60,7 +60,7 @@ namespace OpenMS
            << "  or use an absolute path+filename pointing to Python.\n"
            << "  The current SYSTEM PATH is: '" << path << "'.\n\n";
 #ifdef __APPLE__
-        ss << "  On MacOSX, application bundles change the system PATH; Open your executable (e.g. KNIME/TOPPAS/TOPPView) from within the bundle (e.g. ./TOPPAS.app/Contents/MacOS/TOPPAS) to preserve the system PATH or use an absolute path to Python!\n";
+        ss << "  On MacOSX, application bundles change the system PATH; Open your executable (e.g. TOPPAS/TOPPView) from within the bundle (e.g. ./TOPPAS.app/Contents/MacOS/TOPPAS) to preserve the system PATH or use an absolute path to Python!\n";
 #endif
       }
       error_msg = ss.str();

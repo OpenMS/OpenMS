@@ -300,6 +300,8 @@ START_SECTION(static void removeBetaPeptideHits(PeptideIdentificationList & pept
   for (const auto& id : peptide_ids)
   {
     TEST_EQUAL(id.getHits().size(), 1)
+    // the new identifications keep their protein identification run
+    TEST_EQUAL(id.getIdentifier(), protein_ids[0].getIdentifier())
   }
 
   // a few example values

@@ -7,6 +7,8 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/ArrowSchemaRegistry.h>
+
+#include <set>
 #include <arrow/api.h>
 #include <sstream>
 
@@ -47,9 +49,9 @@ namespace OpenMS
       int actual_n = actual_schema->num_fields();
       int expected_n = expected_schema->num_fields();
 
-      if (mode == Mode::Strict)
+      if (mode == Mode::Strict || mode == Mode::Extensible)
       {
-        if (actual_n != expected_n)
+        if (actual_n < expected_n || (mode == Mode::Strict && actual_n != expected_n))
         {
           result.valid = false;
           result.errors.push_back("Field count mismatch: got " + std::to_string(actual_n) +
@@ -83,12 +85,23 @@ namespace OpenMS
           }
         }
 
-        // Check for extra fields beyond expected count
+        // Check for extra fields beyond expected count (Extensible: allowed after the expected ones, under names of
+        // their own: neither an expected field's nor another extra field's)
+        std::set<std::string> names;
+        for (int i = 0; i < expected_n; ++i) { names.insert(expected_schema->field(i)->name()); }
         for (int i = expected_n; i < actual_n; ++i)
         {
-          result.valid = false;
-          result.errors.push_back("Unexpected field '" + actual_schema->field(i)->name() +
-            "' not in expected schema");
+          const std::string& name = actual_schema->field(i)->name();
+          if (mode == Mode::Strict)
+          {
+            result.valid = false;
+            result.errors.push_back("Unexpected field '" + name + "' not in expected schema");
+          }
+          else if (!names.insert(name).second)
+          {
+            result.valid = false;
+            result.errors.push_back("Duplicate field '" + name + "' at index " + std::to_string(i));
+          }
         }
 
         // Check for missing fields beyond actual count
@@ -466,6 +479,8 @@ namespace OpenMS
   std::shared_ptr<arrow::Schema> QPXPSMSchema::schema()
   {
     return arrow::schema({
+      // The primary key comes first, as it does in the spec's own schema listing.
+      arrow::field(PSM_ID, arrow::int64(), /*nullable=*/false),
       arrow::field(SEQUENCE, arrow::utf8(), /*nullable=*/false),
       arrow::field(PEPTIDOFORM, arrow::utf8(), /*nullable=*/false),
       arrow::field(MODIFICATIONS, modificationsType()),
@@ -490,17 +505,21 @@ namespace OpenMS
       arrow::field(CHARGE_ARRAY, arrow::list(arrow::int32())),
       arrow::field(ION_TYPE_ARRAY, arrow::list(arrow::utf8())),
       arrow::field(ION_MOBILITY_ARRAY, arrow::list(arrow::float32())),
+      // Optional cross-reference. Null is a legitimate value, not missing data: a PSM that was
+      // never assigned to a feature (an unassigned identification, or any psm-only producer such
+      // as ProSE) genuinely maps to no feature.
+      arrow::field(FEATURE_ID, arrow::int64()),
     });
   }
 
   // -- QPXPgSchema (quantms Parquet eXchange format, protein group table) --
 
-  std::shared_ptr<arrow::DataType> QPXPgSchema::intensitiesType()
+  std::shared_ptr<arrow::DataType> QPXPgSchema::groupedRunsType()
   {
-    return arrow::list(arrow::struct_({
-      arrow::field("label", arrow::utf8(), /*nullable=*/false),
-      arrow::field("intensity", arrow::float32(), /*nullable=*/false)
-    }));
+    // list<utf8> with the default (nullable) element field, matching pg_accessions and what
+    // arrow::ListBuilder over a StringBuilder produces -- a non-nullable element field would
+    // build a type the builders never emit and fail Table::Validate().
+    return arrow::list(arrow::utf8());
   }
 
   std::shared_ptr<arrow::DataType> QPXPgSchema::additionalIntensitiesType()
@@ -552,16 +571,18 @@ namespace OpenMS
   std::shared_ptr<arrow::Schema> QPXPgSchema::schema()
   {
     return arrow::schema({
+      arrow::field(PG_ID, arrow::int64(), /*nullable=*/false),
       arrow::field(PG_ACCESSIONS, arrow::list(arrow::utf8()), /*nullable=*/false),
       arrow::field(PG_NAMES, arrow::list(arrow::utf8())),
       arrow::field(GG_ACCESSIONS, arrow::list(arrow::utf8())),
       arrow::field(GG_NAMES, arrow::list(arrow::utf8())),
       arrow::field(GG_QVALUE, arrow::float64()),
       arrow::field(ANCHOR_PROTEIN, arrow::utf8(), /*nullable=*/false),
-      arrow::field(RUN_FILE_NAME, arrow::utf8(), /*nullable=*/false),
+      arrow::field(GROUPED_RUNS, groupedRunsType(), /*nullable=*/false),
       arrow::field(GLOBAL_QVALUE, arrow::float64()),
       arrow::field(PG_QVALUE, arrow::float64()),
-      arrow::field(INTENSITIES, intensitiesType()),
+      arrow::field(LABEL, arrow::utf8()),
+      arrow::field(INTENSITY, arrow::float32()),
       arrow::field(ADDITIONAL_INTENSITIES, additionalIntensitiesType()),
       arrow::field(IS_DECOY, arrow::boolean(), /*nullable=*/false),
       arrow::field(CONTAMINANT, arrow::boolean()),
@@ -636,6 +657,7 @@ namespace OpenMS
   std::shared_ptr<arrow::Schema> QPXFeatureSchema::schema()
   {
     return arrow::schema({
+      arrow::field(FEATURE_ID, arrow::int64(), /*nullable=*/false),
       arrow::field(SEQUENCE, arrow::utf8(), /*nullable=*/false),
       arrow::field(PEPTIDOFORM, arrow::utf8(), /*nullable=*/false),
       arrow::field(MODIFICATIONS, modificationsType()),
@@ -656,7 +678,9 @@ namespace OpenMS
       arrow::field(INTENSITIES, intensitiesType()),
       arrow::field(ADDITIONAL_INTENSITIES, additionalIntensitiesType()),
       arrow::field(PG_ACCESSIONS, pgAccessionsType()),
-      arrow::field(ANCHOR_PROTEIN, arrow::utf8(), /*nullable=*/false),
+      // nullable since bigbio/qpx#212 (de novo workflows): "Representative protein; null when
+      // no protein mapping was performed". Still `required: true` -- the column must exist.
+      arrow::field(ANCHOR_PROTEIN, arrow::utf8()),
       arrow::field(UNIQUE, arrow::boolean()),
       arrow::field(PG_GLOBAL_QVALUE, arrow::float64()),
       arrow::field(PG_POSITIONS, pgPositionsType()),
@@ -667,6 +691,9 @@ namespace OpenMS
       arrow::field(ID_RUN_FILE_NAME, arrow::utf8()),
       arrow::field(RT_START, arrow::float32()),
       arrow::field(RT_STOP, arrow::float32()),
+      // Optional cross-reference: the PSMs this feature was quantified from. Null for an
+      // unidentified feature, which has no identifications to point at.
+      arrow::field(PSM_IDS, arrow::list(arrow::int64())),
     });
   }
 

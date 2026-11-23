@@ -32,9 +32,9 @@ START_SECTION((MSImagingGeometry()))
   TEST_EQUAL(ptr->getWidth(), 0u)
   TEST_EQUAL(ptr->getHeight(), 0u)
   TEST_EQUAL(ptr->getNumberOfPixels(), 0u)
-  TEST_REAL_SIMILAR(ptr->getPixelSizeX(), 1.0)
-  TEST_REAL_SIMILAR(ptr->getPixelSizeY(), 1.0)
-  TEST_EQUAL(ptr->getPixelSizeUnit(), "micrometer")
+  TEST_REAL_SIMILAR(ptr->getPixelSizeX(), -1.0)
+  TEST_REAL_SIMILAR(ptr->getPixelSizeY(), -1.0)
+  TEST_EQUAL(ptr->getPixelSizeUnit(), "unknown")
 }
 END_SECTION
 
@@ -133,7 +133,7 @@ START_SECTION((void clear()))
 {
   MSImagingGeometry g;
   g.setDimensions(4, 4);
-  g.setPixelSize(10, 10);
+  g.setPixelSize(10, 10, "micrometer");
   g.addPixel(0, 0, 1);
   g.addPixel(1, 1, 2);
   g.clear();
@@ -141,8 +141,9 @@ START_SECTION((void clear()))
   TEST_EQUAL(g.getHeight(), 0u)
   TEST_EQUAL(g.getNumberOfPixels(), 0u)
   TEST_EQUAL(g.hasPixel(0, 0), false)
-  TEST_REAL_SIMILAR(g.getPixelSizeX(), 1.0)
-  TEST_EQUAL(g.getPixelSizeUnit(), "micrometer")
+  TEST_REAL_SIMILAR(g.getPixelSizeX(), -1.0)
+  TEST_REAL_SIMILAR(g.getPixelSizeY(), -1.0)
+  TEST_EQUAL(g.getPixelSizeUnit(), "unknown")
 }
 END_SECTION
 

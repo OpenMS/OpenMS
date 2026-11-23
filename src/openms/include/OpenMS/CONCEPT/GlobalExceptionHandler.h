@@ -21,6 +21,10 @@ namespace OpenMS
 /**
   @brief OpenMS global exception handler
 
+  The last exception constructed is recorded per thread (the fields below are thread-local), so
+  exceptions thrown at the same time on several threads do not write the same state. terminate()
+  reports the entry of the thread it runs on, i.e. the one whose exception was not caught.
+
   @ingroup Exceptions
 */
     class OPENMS_DLLAPI GlobalExceptionHandler
@@ -109,7 +113,7 @@ protected:
 
         @note To avoid problems when accessing uninitialised static
         members we replaced them with static functions returning
-        references to the members.
+        references to the members. Each member is thread-local.
        */
       //@{
 

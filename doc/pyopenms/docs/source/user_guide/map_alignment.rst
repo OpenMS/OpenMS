@@ -16,7 +16,9 @@ Different map alignment algorithms are available in pyOpenMS:
 
 - :py:class:`~.MapAlignmentAlgorithmPoseClustering`
 - :py:class:`~.MapAlignmentAlgorithmIdentification`
-- :py:class:`~.MapAlignmentAlgorithmKD`
+
+The KD-tree based alignment of OpenMS is not exposed as a separate aligner: :py:class:`~.FeatureGroupingAlgorithmKD`
+warps the retention times internally (parameter ``warp:enabled``) before it links the features (see the next chapter).
 
 If you want to apply a custom RT mapping, you can use:
 
@@ -50,12 +52,7 @@ Here is a summary table:
       - any [#footnote1]_
       - yes
       - optional
-    * - :py:class:`~.MapAlignmentAlgorithmKD`
-      - feature maps
-      - any [#footnote1]_
-      - yes
-      - not supported/needed
-    
+
 .. [#footnote1] Valid models are "linear","b_spline","lowess" or "interpolated"
   
 You should pick the algorithm which does not overfit your data and maximizes the number of complete consensus features during a later `feature linking <feature_linking.html>`_ stage.
@@ -96,7 +93,6 @@ Selecting a Reference Map
 
 Some alignment algorithms in pyOpenMS require to set a reference, e.g. :py:class:`~.MapAlignmentAlgorithmPoseClustering`.
 For others, it is optional, e.g., :py:class:`~.MapAlignmentAlgorithmIdentification`.
-Finally, :py:class:`~.MapAlignmentAlgorithmKD` is reference-free by definition.
 
 For :py:class:`~.MapAlignmentAlgorithmPoseClustering` we could pick the :term:`feature map` with the largest number of features as a reference,
 to provide the maximum number of reference points.
@@ -139,8 +135,7 @@ Now, let's run an algorithm. Since the interfaces of the aligners differ slightl
     
     # perform alignment and transformation of feature maps to the reference map (exclude reference map)
     for feature_map in feature_maps_to_align:
-        trafo = oms.TransformationDescription()
-        aligner.align(feature_map, trafo)
+        trafo = aligner.align(feature_map)
         transformer = oms.MapAlignmentTransformer()
         transformer.transformRetentionTimes(
             feature_map, trafo, True
@@ -154,8 +149,8 @@ In contrast to :py:class:`~.MapAlignmentAlgorithmPoseClustering`, which always f
     :linenos:
         
     aligner = oms.MapAlignmentAlgorithmIdentification()
-    ## we could set a reference map; but we don't. Instead, we rely on the algorithm to use an internal average of all maps
-    ref_index = -1   # -1 means 'take the median' for this algorithm
+    ## we could set a reference map; but we don't. Instead, we rely on the algorithm to pick one
+    ref_index = -1   # -1: parameter "auto_reference" decides - by default the map that shares the most identified sequences with the others
 
     ## let's change some default parameters of MapAlignmentAlgorithmIdentification, just to see how it's done:
     p = aligner.getParameters()

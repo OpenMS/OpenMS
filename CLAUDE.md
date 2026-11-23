@@ -6,10 +6,18 @@
 
 ## Build Gotchas
 
-- **contrib is a git submodule**: run `git submodule update --init contrib` (or clone with `--recurse-submodules`) before building if you need the vendored third-party libraries.
-- **Boost on macOS**: Use `-DBOOST_USE_STATIC_LIBS=OFF` (upstream Boost issue with transitive deps)
+- **vcpkg is a git submodule**: run `git submodule update --init vcpkg` (or clone with `--recurse-submodules`), then configure with a preset, e.g. `cmake --preset linux-x64-release -B OpenMS-build` (`cmake --list-presets` lists them). The presets set `OPENMS_USE_VCPKG=ON` and vcpkg builds the dependencies from `vcpkg.json`; the first configure takes a while.
 - **CMAKE_PREFIX_PATH**: Use `;` separator with `-D` flag, `:` with env var on Unix
 - **delocate-wheel `-L`**: Destination subdir inside wheel, NOT library search path. Use `delocate-wheel --require-archs {delocate_archs} -w {dest_dir} -v {wheel}`
+
+## AI Policy
+
+Follow the [OpenMS AI Policy](https://openms.de/ai-policy/) (summary in `AGENTS.md` → "AI Contribution Policy"):
+
+- The human contributor is accountable: they must understand, review and test every change you make, so keep changes small, explained and checked.
+- Commits with substantial AI work carry a `Co-authored-by:` trailer; lighter AI use gets an `Assisted-by:` trailer.
+- In PRs, tick the AI disclosure box of the template and state the design intent and rationale for significant changes.
+- Never act as the sole or final judge of a contribution or of a person's standing in the community.
 
 ## Guidelines
 
@@ -17,7 +25,9 @@
 - Never dismiss a test failure as "acceptable behavior" or "pre-existing/unrelated" without explicit user confirmation. Always investigate fully before concluding a failure is not actionable.
 - When asked to fix something, prefer using existing APIs/utilities in the codebase over heuristic approaches. Search for existing helper functions, conversion utilities, or detection APIs before implementing custom logic.
 - Before implementing non-trivial changes, first explore the codebase for existing patterns and utilities, then explain the planned approach before writing code.
+- Keep PR descriptions up to date with the current state of the PR: when pushing further changes, update the description and remove outdated statements, numbers or TODOs instead of only appending.
 - For multi-file changes or unfamiliar areas, use plan mode or explore the relevant code first. Do not dive into implementation without understanding the existing architecture.
+- Do not add `CHANGELOG` entries in PRs. They are generated automatically once per week by a GitHub Action (`.github/workflows/changelog-sync.md`) that opens a `[changelog-sync]` PR from the merged changes.
 
 ## pyOpenMS
 

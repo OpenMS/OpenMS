@@ -15,15 +15,11 @@ You can run OpenMS TOPP tools from the command line using your custom scripts, o
 workflow systems designed to make workflow creation and maintenance more fun, find out more in :ref:`workflows`.
 
 .. list-table::
-   :widths: 20 20 20 20 20
+   :widths: 25 25 25 25
    :class: borderless only-light
    :align: center
 
-   * - .. image:: /_images/introduction/KNIMELogoTM.svg
-         :target: ../getting-started/knime-get-started.html
-         :width: 90%
-
-     - .. image:: /_images/introduction/nextflow2014_no-bg.png
+   * - .. image:: /_images/introduction/nextflow2014_no-bg.png
          :target: ../getting-started/nextflow-get-started.html
          :width: 90%
 
@@ -41,15 +37,11 @@ workflow systems designed to make workflow creation and maintenance more fun, fi
 
 
 .. list-table::
-   :widths: 20 20 20 20 20
+   :widths: 25 25 25 25
    :class: borderless only-dark
    :align: center
 
-   * - .. image:: /_images/introduction/KNIMELogoTM_white.svg
-         :target: ../getting-started/knime-get-started.html
-         :width: 90%
-
-     - .. image:: /_images/introduction/nextflow2014_no-bg-bright.png
+   * - .. image:: /_images/introduction/nextflow2014_no-bg-bright.png
          :target: ../getting-started/nextflow-get-started.html
          :width: 90%
 
@@ -69,6 +61,10 @@ Graphical and Command-Line Tools
 --------------------------------
 For instructions on how to install the OpenMS graphical and command-line tools, choose your operating system
 from the items below.
+
+The graphical tools (TOPPView, TOPPAS, INIFileEditor) are developed in the separate
+`OpenMS-TOPP-GUI <https://github.com/OpenMS/OpenMS-TOPP-GUI>`_ repository and come with their own installer. Install
+OpenMS first and then the GUI installer of the **same version** on top of it; the pages below describe both steps.
 
 
 .. grid::

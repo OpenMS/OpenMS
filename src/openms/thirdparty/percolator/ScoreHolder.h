@@ -17,13 +17,11 @@
 #ifndef SCORE_HOLDER_H_
 #define SCORE_HOLDER_H_
 
-
 #include "LabelType.h"
 #include "PSMDescription.h"
 
 namespace OpenMS { namespace Internal { namespace Percolator {
-using namespace std;
-class Scores;  // forward declaration
+
 
 /*
  * ScoreHolder is a class that provides a way to assign score value to a
@@ -36,7 +34,7 @@ class Scores;  // forward declaration
  */
 class ScoreHolder {
  public:
-  double score, q, pep, p;
+  double score, q, pep;
   PSMDescription* pPSM;
   LabelType label;
 
@@ -44,12 +42,10 @@ class ScoreHolder {
       : score(0.0),
         q(0.0),
         pep(0.0),
-        p(0.0),
-        label(LabelType::UNDEFINED),
-        pPSM(NULL) {}
+        pPSM(NULL),
+        label(LabelType::UNDEFINED) {}
   ScoreHolder(const double s, const LabelType l, PSMDescription* psm = NULL)
-      : score(s), q(0.0), pep(0.0), p(0.0), label(l), pPSM(psm) {}
-  virtual ~ScoreHolder() {}
+      : score(s), q(0.0), pep(0.0), pPSM(psm), label(l) {}
 
   std::pair<double, bool> toPair() const {
     return pair<double, bool>(score, isTarget());
@@ -60,27 +56,40 @@ class ScoreHolder {
   }
   inline bool isDecoy() const { return label == LabelType::DECOY; }
   inline PSMDescription* getPSM() const { return pPSM; }
-  void printPSM(ostream& os, bool printDecoys, bool printExpMass);
-  void printPepXML(ostream& os, map<char, float>& aaWeight, int index);
-  void printPeptide(ostream& os,
-                    bool printDecoys,
-                    bool printExpMass,
-                    Scores& fullset);
-  std::string getCharge(std::string id);
 };
-struct lessThanBaseName {
-  inline bool operator()(const ScoreHolder& struct1,
-                         const ScoreHolder& struct2) {
-    std::string id1 = struct1.pPSM->getId();
-    std::string id2 = struct2.pPSM->getId();
-    return (id1 < id2);
-  }
-};
-bool operator>(const ScoreHolder& one, const ScoreHolder& other);
-bool operator<(const ScoreHolder& one, const ScoreHolder& other);
+
+/* Orders by score, then scan, experimental mass, label, spectrum file and
+   PSM id. The comparators of all sorts are total orders, so that the result
+   does not depend on the sorting algorithm; parallelSort (ParallelSort.h)
+   relies on this to give the same order on any number of threads. Inlined
+   because they are the comparators of the large sorts. */
+// Last tie-break of the orders below: the PSM id, then the input line, so
+// that duplicated input rows also sort the same way on any number of threads.
+inline int compareIdAndLine(const PSMDescription& x, const PSMDescription& y) {
+  int idCmp = x.getId().compare(y.getId());
+  if (idCmp != 0) return idCmp;
+  return (x.getLineNr() > y.getLineNr()) - (x.getLineNr() < y.getLineNr());
+}
+
+inline bool operator>(const ScoreHolder& one, const ScoreHolder& other) {
+  if (one.score != other.score) return one.score > other.score;
+  if (one.pPSM->scan != other.pPSM->scan)
+    return one.pPSM->scan > other.pPSM->scan;
+  if (one.pPSM->expMass != other.pPSM->expMass)
+    return one.pPSM->expMass > other.pPSM->expMass;
+  if (one.label != other.label) return one.label > other.label;
+  if (one.pPSM->specFileNr != other.pPSM->specFileNr)
+    return one.pPSM->specFileNr > other.pPSM->specFileNr;
+  return compareIdAndLine(*one.pPSM, *other.pPSM) > 0;
+}
+
+// the same order read from the other side, also for NaN scores and masses
+inline bool operator<(const ScoreHolder& one, const ScoreHolder& other) {
+  return other > one;
+}
 
 struct lexicOrderProb {
-  static int compStrIt(const std::string& sv1, const std::string& sv2) {
+  static int compStrIt(std::string_view sv1, std::string_view sv2) {
     auto it1 = sv1.begin(), end1 = sv1.end();
     auto it2 = sv2.begin(), end2 = sv2.end();
 
@@ -98,15 +107,12 @@ struct lexicOrderProb {
   }
 
   bool operator()(const ScoreHolder& x, const ScoreHolder& y) const {
-    const std::string& fullSeqX = x.pPSM->getFullPeptideSequence();
-    const std::string& fullSeqY = y.pPSM->getFullPeptideSequence();
-
-    std::string peptSeqX = fullSeqX.substr(2, fullSeqX.size() - 4);
-    std::string peptSeqY = fullSeqY.substr(2, fullSeqY.size() - 4);
-
-    int peptCmp = compStrIt(peptSeqX, peptSeqY);
-    return ((peptCmp == 1) || ((peptCmp == 0) && (x.label > y.label)) ||
-            ((peptCmp == 0) && (x.label == y.label) && (x.score > y.score)));
+    int peptCmp = compStrIt(x.pPSM->getPeptideSequenceView(),
+                            y.pPSM->getPeptideSequenceView());
+    if (peptCmp != 0) return peptCmp == 1;
+    if (x.label != y.label) return x.label > y.label;
+    if (x.score != y.score) return x.score > y.score;
+    return compareIdAndLine(*x.pPSM, *y.pPSM) < 0;
   }
 };
 
@@ -134,7 +140,12 @@ struct OrderScanHash {
                     (fast_uint_hash(x.pPSM->scan) << 1);
     size_t hash_y = fast_uint_hash(y.pPSM->specFileNr) ^
                     (fast_uint_hash(y.pPSM->scan) << 1);
-    return hash_x < hash_y;
+    if (hash_x != hash_y) return hash_x < hash_y;
+    if (x.pPSM->specFileNr != y.pPSM->specFileNr)
+      return x.pPSM->specFileNr < y.pPSM->specFileNr;
+    if (x.pPSM->scan != y.pPSM->scan) return x.pPSM->scan < y.pPSM->scan;
+    if (x.label != y.label) return x.label > y.label;
+    return compareIdAndLine(*x.pPSM, *y.pPSM) < 0;
   }
 };
 
@@ -146,21 +157,10 @@ struct OrderScanMassCharge {
       return x.pPSM->scan < y.pPSM->scan;
     if (x.pPSM->expMass != y.pPSM->expMass)
       return x.pPSM->expMass < y.pPSM->expMass;
-    return x.score > y.score;
-  }
-};
-
-struct OrderScanMassLabelCharge {
-  bool operator()(const ScoreHolder& x, const ScoreHolder& y) const {
-    if (x.pPSM->specFileNr != y.pPSM->specFileNr)
-      return x.pPSM->specFileNr < y.pPSM->specFileNr;
-    if (x.pPSM->scan != y.pPSM->scan)
-      return x.pPSM->scan < y.pPSM->scan;
-    if (x.pPSM->expMass != y.pPSM->expMass)
-      return x.pPSM->expMass < y.pPSM->expMass;
-    if (x.label != y.label)
-      return x.label > y.label;
-    return x.score > y.score;
+    if (x.score != y.score) return x.score > y.score;
+    // a decoy wins a tie in target-decoy competition
+    if (x.label != y.label) return x.label < y.label;
+    return compareIdAndLine(*x.pPSM, *y.pPSM) < 0;
   }
 };
 
@@ -170,7 +170,10 @@ struct OrderScanLabel {
       return x.pPSM->specFileNr < y.pPSM->specFileNr;
     if (x.pPSM->scan != y.pPSM->scan)
       return x.pPSM->scan < y.pPSM->scan;
-    return x.label > y.label;
+    if (x.label != y.label) return x.label > y.label;
+    // the best-scoring PSM of a spectrum first
+    if (x.score != y.score) return x.score > y.score;
+    return compareIdAndLine(*x.pPSM, *y.pPSM) < 0;
   }
 };
 
@@ -178,14 +181,6 @@ struct UniqueScanMassCharge {
   bool operator()(const ScoreHolder& x, const ScoreHolder& y) const {
     return (x.pPSM->specFileNr == y.pPSM->specFileNr) &&
            (x.pPSM->scan == y.pPSM->scan) &&
-           (x.pPSM->expMass == y.pPSM->expMass);
-  }
-};
-
-struct UniqueScanMassLabelCharge {
-  bool operator()(const ScoreHolder& x, const ScoreHolder& y) const {
-    return (x.pPSM->specFileNr == y.pPSM->specFileNr) &&
-           (x.pPSM->scan == y.pPSM->scan) && (x.label == y.label) &&
            (x.pPSM->expMass == y.pPSM->expMass);
   }
 };

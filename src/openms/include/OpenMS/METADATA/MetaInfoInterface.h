@@ -107,6 +107,9 @@ public:
     /// Returns if the MetaInfo is empty
     bool isMetaEmpty() const;
 
+    /// Reserves room for @p n meta values (no value is added; isMetaEmpty() stays true until one is set)
+    void reserveMetaValues(Size n);
+
     /// Removes all meta values
     void clearMetaInfo();
 

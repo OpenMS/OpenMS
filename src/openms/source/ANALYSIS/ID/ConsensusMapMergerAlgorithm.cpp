@@ -269,12 +269,14 @@ namespace OpenMS
         old_merge_idx = (Size)(Int)pid.getMetaValue(Constants::UserParam::ID_MERGE_INDEX);
       }
 
+      // The offsets are keyed by the original run, so look them up before the PSM moves to the new run.
+      const std::string old_run_id = pid.getIdentifier();
       for (const auto& run_to_put : runs_to_put)
       {
         const ProteinIdentification& new_prot_id_run = new_prot_ids[run_to_put];
         pid.setIdentifier(new_prot_id_run.getIdentifier());
         pid.setMetaValue(Constants::UserParam::ID_MERGE_INDEX,
-            old_merge_idx + oldrunid_newrunidx_pair2newmergeidx_offset[{pid.getIdentifier(), run_to_put}]);
+            old_merge_idx + oldrunid_newrunidx_pair2newmergeidx_offset.at({old_run_id, run_to_put}));
       }
     };
 
@@ -285,6 +287,18 @@ namespace OpenMS
   //merge proteins across fractions and replicates
   void ConsensusMapMergerAlgorithm::mergeAllIDRuns(ConsensusMap& cmap) const
   {
+    // The merged run takes its search settings from the first run, and callers index the
+    // single run left afterwards: without any run, both would read past the end.
+    if (cmap.getProteinIdentifications().empty())
+    {
+      throw Exception::MissingInformation(
+          __FILE__,
+          __LINE__,
+          OPENMS_PRETTY_FUNCTION,
+          "The ConsensusMap has no protein identification runs to merge. An upstream step may have "
+          "dropped them, or the input carries no identifications.");
+    }
+
     if (cmap.getProteinIdentifications().size() == 1)
       return;
 

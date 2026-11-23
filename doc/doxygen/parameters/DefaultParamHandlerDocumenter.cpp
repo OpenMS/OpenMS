@@ -6,19 +6,14 @@
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
+#include <OpenMS/config.h> // for WITH_WNETALIGN
+
 #include <OpenMS/ANALYSIS/DECHARGING/FeatureDeconvolution.h>
 #include <OpenMS/ANALYSIS/DECHARGING/MetaboliteFeatureDeconvolution.h>
 #include <OpenMS/ANALYSIS/ID/AScore.h>
 #include <OpenMS/ANALYSIS/ID/AccurateMassSearchEngine.h>
 #include <OpenMS/ANALYSIS/ID/BasicProteinInferenceAlgorithm.h>
 #include <OpenMS/ANALYSIS/ID/BayesianProteinInferenceAlgorithm.h>
-#include <OpenMS/ANALYSIS/ID/ConsensusIDAlgorithm.h>
-#include <OpenMS/ANALYSIS/ID/ConsensusIDAlgorithmAverage.h>
-#include <OpenMS/ANALYSIS/ID/ConsensusIDAlgorithmBest.h>
-#include <OpenMS/ANALYSIS/ID/ConsensusIDAlgorithmPEPIons.h>
-#include <OpenMS/ANALYSIS/ID/ConsensusIDAlgorithmPEPMatrix.h>
-#include <OpenMS/ANALYSIS/ID/ConsensusIDAlgorithmRanks.h>
-#include <OpenMS/ANALYSIS/ID/ConsensusIDAlgorithmWorst.h>
 #include <OpenMS/ANALYSIS/ID/FIAMSDataProcessor.h>
 #include <OpenMS/ANALYSIS/ID/FalseDiscoveryRate.h>
 #include <OpenMS/ANALYSIS/ID/IDDecoyProbability.h>
@@ -30,7 +25,10 @@
 #include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmLabeled.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmQT.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmUnlabeled.h>
+// only part of libOpenMS when the WNet alignment is built
+#ifdef WITH_WNETALIGN
 #include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmWNet.h>
+#endif
 #include <OpenMS/ANALYSIS/MAPMATCHING/LabeledPairFinder.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmIdentification.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmPoseClustering.h>
@@ -124,24 +122,12 @@
 #include <OpenMS/FEATUREFINDER/IsotopeModel.h>
 #include <OpenMS/FEATUREFINDER/MaxLikeliFitter1D.h>
 #include <OpenMS/FEATUREFINDER/MultiplexDeltaMassesGenerator.h>
+#include <OpenMS/FEATUREFINDER/MultiplexResolverAlgorithm.h>
 #include <OpenMS/FEATUREFINDER/TraceFitter.h>
 #include <OpenMS/PROCESSING/CENTROIDING/PeakPickerHiRes.h>
 #include <OpenMS/PROCESSING/CENTROIDING/PeakPickerIterative.h>
 
 #include <OpenMS/DATASTRUCTURES/StringUtils.h>
-
-// those are only added if GUI is enabled
-#ifdef WITH_GUI
-#include <QApplication>
-
-#include <OpenMS/VISUAL/PlotCanvas.h>
-#include <OpenMS/VISUAL/Plot1DCanvas.h>
-#include <OpenMS/VISUAL/Plot2DCanvas.h>
-#include <OpenMS/VISUAL/Plot3DCanvas.h>
-#include <OpenMS/VISUAL/SpectraIDViewTab.h>
-#include <OpenMS/VISUAL/APPLICATIONS/TOPPASBase.h>
-#include <OpenMS/VISUAL/APPLICATIONS/TOPPViewBase.h>
-#endif
 
 
 #include <fstream>
@@ -330,7 +316,7 @@ void writeParameters(const std::string& class_name, const Param& param, bool tab
 //**********************************************************************************
 //Main method - add your class here
 //**********************************************************************************
-int main(int argc, char** argv)
+int main()
 {
   //////////////////////////////////
   // Simple cases
@@ -346,12 +332,6 @@ int main(int argc, char** argv)
   DOCME(BinnedSpectralContrastAngle);
   DOCME(BinnedSumAgreeingIntensities);
 
-  DOCME(ConsensusIDAlgorithmAverage);
-  DOCME(ConsensusIDAlgorithmBest);
-  DOCME(ConsensusIDAlgorithmPEPIons);
-  DOCME(ConsensusIDAlgorithmPEPMatrix);
-  DOCME(ConsensusIDAlgorithmRanks);
-  DOCME(ConsensusIDAlgorithmWorst);
   DOCME(DBSuitability);
   DOCME(DiaPrescore);
   DOCME(DIAScoring);
@@ -371,7 +351,9 @@ int main(int argc, char** argv)
   DOCME(FeatureGroupingAlgorithmQT);
   DOCME(FeatureGroupingAlgorithmKD);
   DOCME(FeatureGroupingAlgorithmUnlabeled);
+#ifdef WITH_WNETALIGN
   DOCME(FeatureGroupingAlgorithmWNet);
+#endif
   DOCME(PipEchoAlgorithm);
   DOCME(MapAlignmentAlgorithmIdentification);
   DOCME(MapAlignmentAlgorithmTreeGuided);
@@ -404,6 +386,7 @@ int main(int argc, char** argv)
   DOCME(MRMFeatureFinderScoring);
   DOCME(MRMTransitionGroupPicker);
   DOCME(MultiplexDeltaMassesGenerator);
+  DOCME(MultiplexResolverAlgorithm);
   DOCME(NucleicAcidSpectrumGenerator);
   DOCME(NLargest);
   DOCME(Normalizer);
@@ -450,10 +433,6 @@ int main(int argc, char** argv)
   // More complicated cases
   //////////////////////////////////
 
-  // ConsensusIDAlgorithm...: abstract base classes, get param. from subclass:
-  DOCME2(ConsensusIDAlgorithm, (ConsensusIDAlgorithmBest()));
-  DOCME2(ConsensusIDAlgorithmIdentity, (ConsensusIDAlgorithmBest()));
-  DOCME2(ConsensusIDAlgorithmSimilarity, (ConsensusIDAlgorithmBest()));
   DOCME2(FeatureFinderAlgorithmPicked, (FeatureFinderAlgorithmPicked()));
   DOCME2(SignalToNoiseEstimatorMeanIterative, SignalToNoiseEstimatorMeanIterative<>());
   DOCME2(SignalToNoiseEstimatorMedian, SignalToNoiseEstimatorMedian<>());
@@ -466,23 +445,6 @@ int main(int argc, char** argv)
   DOCME2(IsobaricChannelExtractor, (IsobaricChannelExtractor(&itraq4)))
   DOCME2(IsobaricQuantifier, (IsobaricQuantifier(&itraq4)))
   DOCME2(PosteriorErrorProbabilityModel, Math::PosteriorErrorProbabilityModel());
-  
-
-  // handle GUI documentation separately
-#ifdef WITH_GUI
-  // some classes require a QApplication
-  QApplication app(argc, argv);
-
-  DOCME(TOPPASBase);
-
-  DOCME2(TOPPViewBase, TOPPViewBase(TOPPViewBase::TOOL_SCAN::SKIP_SCAN));
-  DOCME2(PlotCanvas, Plot1DCanvas(Param()));
-  DOCME2(Plot1DCanvas, Plot1DCanvas(Param()));
-  DOCME2(Plot2DCanvas, Plot2DCanvas(Param()));
-  DOCME2(Plot3DCanvas, Plot3DCanvas(Param()));
-  DOCME2(SpectraIDViewTab, SpectraIDViewTab(Param()));
-
-#endif
 
   return 0;
 }

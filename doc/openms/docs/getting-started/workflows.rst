@@ -12,33 +12,6 @@ workflow systems designed to make workflow creation and maintenance more fun:
 .. grid:: 2
     :gutter: 2
 
-    .. grid-item-card:: KNIME
-        :img-top: /_images/introduction/KNIMELogoTM.svg
-        :link: /getting-started/knime-get-started
-        :link-type: doc
-        :columns: 12
-        :class-card: only-light
-        :class-img-top: halfwidth
-
-        Free, open source, desktop app. An analytics platform with workflow editor and a nice drag-and-drop user interface.
-        Very interactive and has built-in nodes for related tasks like working with chemical structures, databases, machine learning, scripting. Distributed computing is best achieved with a KNIME server (License required) which also allows user management
-        and a web interface to interact with workflows. In KNIME you can easily construct your own workflows or just download our
-        ready-made creations for the most common analysis tasks.
-
-    .. grid-item-card:: KNIME
-        :img-top: /_images/introduction/KNIMELogoTM_white.svg
-        :link: /getting-started/knime-get-started
-        :link-type: doc
-        :columns: 12
-        :class-card: only-dark
-        :class-img-top: halfwidth
-
-        Free, open source, desktop app. An analytics platform with workflow editor and a nice drag-and-drop user interface.
-        Very interactive and has built-in nodes for related tasks like working with chemical structures, databases, machine learning, scripting. Distributed computing is best achieved with a KNIME server (License required) which also allows user management
-        and a web interface to interact with workflows. In KNIME you can easily construct your own workflows or just download our
-        ready-made creations for the most common analysis tasks.
-
-
     .. grid-item-card:: Nextflow
         :img-top: /_images/introduction/nextflow2014_no-bg.png
         :link: /getting-started/nextflow-get-started
@@ -125,7 +98,6 @@ workflow systems designed to make workflow creation and maintenance more fun:
     :maxdepth: 1
     :hidden:
 
-    /getting-started/knime-get-started.md
     /getting-started/nextflow-get-started.md
     /getting-started/galaxy-get-started.md
     /getting-started/toppas-get-started.md

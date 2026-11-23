@@ -26,12 +26,10 @@ author = 'OpenMS Team'
 # built documents.
 #
 # The short major.minor.patch version.
-version = '3.5.0'
-# Short version for the latest supported KNIME
-knime_version = '5.5.0'
+version = '3.6.0'
 
 # The full version, including alpha/beta/rc tags.
-release = '3.5.0'
+release = '3.6.0'
 
 # -- General configuration ---------------------------------------------------
 
@@ -91,8 +89,8 @@ source_suffix = ['.rst', '.md']
 # directories to ignore when looking for source files.
 # This pattern also affects html_static_path and html_extra_path.
 exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store',
-    'openms-applications-and-tools/installation/installation-with-conda.md', # just a snippet to be included
-    'openms-applications-and-tools/installation/run-in-container.md', # just a snippet to be included 
+    'about/installation/installation-with-conda.md', # just a snippet to be included
+    'about/installation/run-in-container.md', # just a snippet to be included 
 ]
 
 # -- Options for HTML output -------------------------------------------------
@@ -145,7 +143,6 @@ pathicon = 'fa fa-folder-open'
 variables_to_export = [
     "project",
     "version",
-    "knime_version"
 ]
 myst_substitutions = {}
 for v in variables_to_export:

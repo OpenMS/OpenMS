@@ -142,7 +142,7 @@ public:
       @param[out] numeric_filenames If false, deduce output files using basenames of origin annotations. Throws an exception if they are not unique. If true, assemble output files based on numerical IDs only.
       @param[in] split_ident_runs Split identification runs into different files.
     */
-    // Autowrap compatible wrapper for rip(RipFileMap,...)
+    // Vector-based variant of rip(RipFileMap&, ...), used by the pyOpenMS bindings
     void rip(
             std::vector<RipFileIdentifier>& rfis,
             std::vector<RipFileContent>& rfcs,

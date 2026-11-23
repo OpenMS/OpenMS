@@ -132,7 +132,10 @@ public:
     /**
       @brief Return the revision number from revision control system, e.g. git.
 
-      On released versions of OpenMS, the result is "exported".
+      This is the abbreviated commit hash, taken from the git checkout or, in a source tree made by
+      git archive (such as the source tarball of a release), from its .git_archival.txt. Without
+      either, the result is "exported"; built with GIT_TRACKING=OFF, it is "disabled" unless the
+      build passes it explicitly.
       The result can be possibly be "" on some platforms, which means that
       revision info is unavailable.  You should check for both cases in your
       code.
@@ -145,7 +148,9 @@ public:
     /**
       @brief Return the branch name from revision control system, e.g. git.
 
-      On released versions of OpenMS the result is "exported".
+      A release, built from its tag or from its source tarball, gives the tag, e.g. v3.6.0. A source
+      tree without git information, or a git archive of an untagged commit, gives "exported"; a
+      build with GIT_TRACKING=OFF gives "disabled" unless the build passes it explicitly.
       The result can be possibly be "" on some platforms, which means that
       revision info is unavailable.  You should check for both cases in your
       code.

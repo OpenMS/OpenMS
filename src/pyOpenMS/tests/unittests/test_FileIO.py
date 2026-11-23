@@ -1,3 +1,4 @@
+import pytest
 import unittest
 import os
 
@@ -123,3 +124,50 @@ class TestIndexedMzMLFile(unittest.TestCase):
 if __name__ == '__main__':
     unittest.main()
 
+
+
+def test_reference_metadata_defaults_and_explicit_values(tmp_path):
+    """bedRMod reference headers default to NA and reject line breaks."""
+    output = tmp_path / "rna.bed"
+    data = pyopenms.IdentificationData()
+    writer = pyopenms.BedRModFile()
+    writer.store(str(output), data)
+    text = output.read_text()
+    assert pyopenms.FileHandler.getTypeByContent(str(output)) == pyopenms.FileType.BEDRMOD
+    assert pyopenms.FileTypes.nameToType("bedrmod") == pyopenms.FileType.BEDRMOD
+    assert "#organism=NA\n" in text
+    assert "#assembly=NA\n" in text
+    assert "#sequencing_platform=NA\n" in text
+    assert "#basecalling=NA\n" in text
+    assert pyopenms.FileHandler.getTypeByFileName("ordinary.bed") == pyopenms.FileType.UNKNOWN
+    assert pyopenms.FileHandler.getTypeByFileName("rna.bedrmod") == pyopenms.FileType.BEDRMOD
+    pyopenms.BedRModFile(writer).store(str(output), data, "", {
+        "organism": "10090", "assembly": "GRCm39",
+        "annotation_source": "custom", "annotation_version": "1",
+        "sequencing_platform": "custom-MS", "basecalling": "custom-producer",
+    })
+    text = output.read_text()
+    assert "#organism=10090\n" in text
+    assert "#assembly=GRCm39\n" in text
+    assert "#annotation_source=custom\n" in text
+    assert "#annotation_version=1\n" in text
+    assert "#sequencing_platform=custom-MS\n" in text
+    assert "#basecalling=custom-producer\n" in text
+    with pytest.raises(Exception):
+        writer.store(str(output), data, "", {"organism": "bad\nheader"})
+
+
+def test_oms_roundtrip_for_bedrmod_export(tmp_path):
+    """OMS identification data can be exported through the Python writer."""
+    data = pyopenms.IdentificationData()
+    assert data.empty()
+    database = str(tmp_path / "empty.oms")
+    pyopenms.OMSFile().store(database, data)
+    loaded = pyopenms.IdentificationData()
+    pyopenms.OMSFile().load(database, loaded)
+    assert loaded.empty()
+    copied = pyopenms.IdentificationData(loaded)
+    copied.clear()
+    output = tmp_path / "roundtrip.bed"
+    pyopenms.BedRModFile().store(str(output), copied)
+    assert "#organism=NA\n" in output.read_text()

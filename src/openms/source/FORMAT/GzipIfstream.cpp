@@ -12,6 +12,10 @@
 #include <OpenMS/SYSTEM/File.h>
 #include <cstdlib>
 
+// The header only forward-declares zlib's opaque gzFile_s so that zlib stays a
+// private dependency; the zlib API lives here.
+#include <zlib.h>
+
 using namespace std;
 
 namespace OpenMS

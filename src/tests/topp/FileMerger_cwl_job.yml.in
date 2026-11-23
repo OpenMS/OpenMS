@@ -1,0 +1,10 @@
+# Configured from FileMerger_cwl_job.yml.in -- do not edit the generated file.
+# Job for the generated FileMerger.cwl: an input file list, which a CWL runner hands to the tool
+# as an array of File objects inside cwl_inputs.json (see issue #10121).
+in:
+  - {class: File, path: @DATA_DIR_TOPP@/FileMerger_1_input1.dta2d}
+  - {class: File, path: @DATA_DIR_TOPP@/FileMerger_1_input2.dta}
+  - {class: File, path: @DATA_DIR_TOPP@/FileMerger_1_input3.dta2d}
+out: FileMerger_cwl_roundtrip.mzML
+raw__rt_custom: [1.0, 2.0, 3.0]
+test: true

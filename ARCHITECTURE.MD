@@ -10,7 +10,7 @@ OpenMS is an open‐source software framework dedicated to mass spectrometry dat
 - **Performance & Scalability:** Written in modern C++ and optimized for parallel processing, OpenMS is designed to handle large datasets efficiently.
 - **Portability:** OpenMS runs natively on Windows, Linux, and macOS.
 - **Robustness & Reliability:** Extensive error handling, automated unit and integration tests, and continuous integration (e.g., via CDASH) ensure high-quality, reproducible analyses.
-- **User-Centric Design:** With a suite of command-line tools (TOPP), graphical interfaces (TOPPView, TOPPAS), and Python bindings (pyOpenMS), OpenMS caters to both developers and end users.
+- **User-Centric Design:** With a suite of command-line tools (TOPP), graphical interfaces (TOPPView, TOPPAS; in the separate repository OpenMS-TOPP-GUI), and Python bindings (pyOpenMS), OpenMS caters to both developers and end users.
 
 ## Components
 
@@ -47,12 +47,10 @@ TOPP consists of comprehensive suite of command-line tools built on top of the O
 
 ### 3. User Interfaces
 - **Graphical Tools:**  
-  - **TOPPView:** A dedicated viewer for raw spectra, chromatograms, and identification results.
-  - Raw data visualization
-  - Spectrum and chromatogram viewing
-  - 2D/3D data representation 
-  - Identification result visualization
-  - Interactive data analysis
+  - The Qt-based GUI library (`OpenMS_GUI`) and the graphical tools (TOPPView, TOPPAS, INIFileEditor,
+    plus the GUI-based TOPP tools ExecutePipeline and ImageCreator) live in the separate repository
+    [OpenMS-TOPP-GUI](https://github.com/OpenMS/OpenMS-TOPP-GUI). It is built against an installed OpenMS of
+    the same version and installed into the same prefix; this repository has no Qt dependency.
 
 ### 4. Scripting
 - **Scripting & API: pyOpenMS**
@@ -116,7 +114,7 @@ flowchart TD
     G --> D
     G --> E
     
-    H[GUI Applications] --> B
+    H["GUI Applications (OpenMS-TOPP-GUI)"] --> B
     H --> C
     H --> D
 ```
@@ -148,9 +146,10 @@ The OpenMS architecture is designed for extensibility at multiple levels:
 
 ### Workflow Customization
 - Users can combine OpenMS tools with custom scripts (e.g., via pyOpenMS)
-- Support for workflow systems like KNIME and Galaxy
+- Support for workflow systems like Nextflow and Galaxy
 - Parameter files (INI format) for tool configuration and chaining
-- TOPPAS workflow editor for visual pipeline construction
+- TOPPAS workflow editor for visual pipeline construction (OpenMS-TOPP-GUI); its workflows run on the
+  command line with ExecutePipeline
 
 ### Python Extensions
 - Development of new algorithms in Python using pyOpenMS
@@ -216,11 +215,6 @@ OpenMS employs a comprehensive testing strategy with tests organized in differen
 - Tests individual classes and functions for correctness
 - Follows a structured naming convention (e.g., `ClassNameTest.cpp` tests the `ClassName` class)
 
-### GUI Tests
-- Located in `src/tests/class_tests/openms_gui/`
-- Tests specifically for graphical components
-- Includes tests for visualization tools and user interfaces
-
 ### TOPP Tests
 - Located in `src/tests/topp/`
 - Tests for The OpenMS Pipeline Tools
@@ -271,12 +265,11 @@ The OpenMS codebase follows a structured organization:
 ```
 OpenMS/
 ├── cmake/                   # CMake build system files and modules
-├── contrib/                 # Third-party dependencies
 ├── doc/                     # Documentation files
 ├── share/                   # Shared resources
 ├── src/                     # Source code
 │   ├── openms/              # Core OpenMS library
-│   ├── openms_gui/          # GUI components
+│   ├── openms_cli/          # TOPP tool framework (TOPPBase, ToolHandler, ...)
 │   ├── openswathalgo/       # OpenSWATH algorithms
 │   ├── pyOpenMS/            # Python bindings
 │   │   ├── bindings/        # nanobind C++ binding files (bind_*.cpp)
@@ -285,11 +278,24 @@ OpenMS/
 │   ├── tests/               # C++ tests
 │   │   ├── class_tests/     # Unit tests for classes
 │   │   │   ├── openms/      # Tests for core library
-│   │   │   └── openms_gui/  # Tests for GUI components
+│   │   │   └── openms_cli/  # Tests for the TOPP tool framework
 │   │   └── topp/            # Tests for TOPP tools
 │   └── topp/                # TOPP tools implementation
-└── tools/                   # Development tools and scripts
+├── tools/                   # Development tools and scripts
+├── vcpkg/                   # vcpkg package manager (git submodule)
+├── vcpkg-overlays/          # vcpkg overlay ports and triplets
+├── CMakePresets.json        # CMake presets (configure with vcpkg per platform and build type)
+├── vcpkg.json               # vcpkg manifest: third-party dependencies and optional features
+└── vcpkg-configuration.json # vcpkg registry baseline and overlay locations
 ```
+
+Third-party dependencies are obtained through vcpkg in manifest mode. `vcpkg.json` lists the required
+libraries and, as manifest features, the optional ones that go with a `WITH_*` or `USE_EXTERNAL_*` CMake
+option. `vcpkg-overlays/ports` holds ports that are missing from the vcpkg registry or need patches, and
+`vcpkg-overlays/triplets` the custom triplets. The presets in `CMakePresets.json` set `OPENMS_USE_VCPKG=ON`,
+select the vcpkg toolchain and a triplet per platform and build type, and build into `build/<preset>/`.
+CMake finds the libraries in `cmake/cmake_findExternalLibs.cmake`, which also works against system
+packages when vcpkg is not used. OpenMS does not use Qt (the GUI is in OpenMS-TOPP-GUI).
 
 ## Contributing
 

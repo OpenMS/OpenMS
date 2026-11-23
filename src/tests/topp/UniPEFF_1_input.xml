@@ -22,9 +22,11 @@
       <dbReference type="NCBI Taxonomy" id="9606"/>
     </organism>
     <proteinExistence type="evidence at protein level"/>
-    <!-- Isoforms: the alternative-products comment and the splice-variant (VAR_SEQ) feature MUST be
-         ignored (isoform expansion is not implemented). The isoform <sequence> has no length attr,
-         so it must not be mistaken for the canonical sequence, and P12345-2 must never be emitted. -->
+    <!-- Isoforms: the "displayed" isoform is the canonical sequence and must not be re-emitted;
+         the "described" isoform P12345-2 is reconstructed from VSP_001 (replace VYEVVLR at 55-61
+         with X -> 94 aa) and emitted as its own PEFF entry right after P12345. The isoform
+         <sequence> element carries no length attr and no content, so it must not be mistaken
+         for the canonical sequence. -->
     <comment type="alternative products">
       <event type="alternative splicing"/>
       <isoform>
@@ -42,8 +44,8 @@
       <original>VYEVVLR</original>
       <variation>X</variation>
       <location>
-        <begin position="56"/>
-        <end position="62"/>
+        <begin position="55"/>
+        <end position="61"/>
       </location>
     </feature>
     <feature type="initiator methionine">

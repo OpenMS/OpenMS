@@ -276,12 +276,12 @@ def test_keep_policy_reproduces_legacy_behaviour(cls, noun, call, kind):
 def test_clear_does_not_free_an_aliasing_input_array(cls, noun):
     """The incoming intensities may be a zero-copy view *into* the array "clear" is about to drop.
 
-    ``FloatDataArray.get_data_view()`` is zero-copy and ``getFloatDataArrays()`` hands out the
+    ``FloatDataArray.data_view()`` is zero-copy and ``getFloatDataArrays()`` hands out the
     container's own arrays, so dropping them before the peaks are written would leave set_peaks()
     filling from released memory. The drop therefore happens after the fill.
     """
     container = _make(cls, 64, "float", n_array=64)
-    aliased = _arrays(container, "float")[0].get_data_view()[:8]
+    aliased = _arrays(container, "float")[0].data_view()[:8]
     expected = np.array(aliased, dtype=np.float32)   # detached copy of what must be stored
 
     container.set_peaks(_peaks(8)[0], aliased, metadata="clear")

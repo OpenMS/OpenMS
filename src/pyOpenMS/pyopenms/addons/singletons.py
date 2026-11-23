@@ -28,6 +28,9 @@ def make_singleton_callable(original_cls):
             return repr(original_cls)
 
     wrapper = CallableSingleton()
+    # lets introspection tools (the API documentation) reach the wrapped class; not
+    # __wrapped__, which inspect.signature() would follow to the nanobind class
+    wrapper._singleton_class = original_cls
     return wrapper
 
 

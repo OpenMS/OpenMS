@@ -127,7 +127,7 @@ public:
       @param[out] annotation_string Serialized annotations
       @param[in] annotations Peak annotations to serialize
     */
-    static void writePeakAnnotationsString_(std::string& annotation_string, std::vector<PeptideHit::PeakAnnotation> annotations);
+    static void writePeakAnnotationsString_(std::string& annotation_string, const std::vector<PeptideHit::PeakAnnotation>& annotations);
 
   };
 

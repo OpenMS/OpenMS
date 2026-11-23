@@ -10,6 +10,11 @@
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SpectrumAccessSqMass.h>
 
 #include <algorithm>    // std::lower_bound, std::upper_bound, std::sort
+#include <exception>
+
+#ifdef _OPENMP
+#include <omp.h>
+#endif
 
 namespace OpenMS
 {
@@ -24,10 +29,61 @@ namespace OpenMS
     }
     else
     {
-      for (Size i = 0; i < origin.getNrSpectra(); ++i)
+      const Size nr_spectra = origin.getNrSpectra();
+      int nr_threads = 1;
+#ifdef _OPENMP
+      // Called from a single thread (e.g. a SWATH workflow that loads one SWATH at a time), read
+      // ranges of the spectra in parallel, each through its own light clone of the access (reading
+      // and transforming a spectrum is the expensive part, and a clone is safe to use in parallel).
+      constexpr Size min_spectra_per_thread = 64;
+      if (omp_in_parallel() == 0)
       {
-        spectra_.push_back( origin.getSpectrumById(i) );
-        spectra_meta_.push_back( origin.getSpectrumMetaById(i) );
+        nr_threads = static_cast<int>(std::min<Size>(static_cast<Size>(omp_get_max_threads()), nr_spectra / min_spectra_per_thread));
+      }
+#endif
+      if (nr_threads <= 1)
+      {
+        for (Size i = 0; i < nr_spectra; ++i)
+        {
+          spectra_.push_back( origin.getSpectrumById(i) );
+          spectra_meta_.push_back( origin.getSpectrumMetaById(i) );
+        }
+      }
+      else
+      {
+        spectra_.resize(nr_spectra);
+        spectra_meta_.resize(nr_spectra);
+        std::exception_ptr read_exception;
+#ifdef _OPENMP
+#pragma omp parallel for schedule(static, 1) num_threads(nr_threads)
+#endif
+        for (int thread = 0; thread < nr_threads; ++thread)
+        {
+          try
+          {
+            OpenSwath::SpectrumAccessPtr clone = origin.lightClone();
+            const Size begin = nr_spectra * thread / nr_threads;
+            const Size end = nr_spectra * (thread + 1) / nr_threads;
+            for (Size i = begin; i < end; ++i)
+            {
+              spectra_[i] = clone->getSpectrumById(i);
+              spectra_meta_[i] = clone->getSpectrumMetaById(i);
+            }
+          }
+          catch (...)
+          {
+#ifdef _OPENMP
+#pragma omp critical (spectrum_access_in_memory_exception)
+#endif
+            {
+              if (read_exception == nullptr) read_exception = std::current_exception();
+            }
+          }
+        }
+        if (read_exception != nullptr)
+        {
+          std::rethrow_exception(read_exception);
+        }
       }
       for (Size i = 0; i < origin.getNrChromatograms(); ++i)
       {

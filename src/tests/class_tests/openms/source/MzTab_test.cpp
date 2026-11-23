@@ -7,6 +7,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/ClassTest.h>
+#include <OpenMS/DATASTRUCTURES/DataValue.h>
 #include <OpenMS/test_config.h>
 
 ///////////////////////////
@@ -17,6 +18,45 @@
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/METADATA/PeptideHit.h>
 #include <OpenMS/METADATA/PeptideIdentificationList.h>
+#include <OpenMS/KERNEL/FeatureHandle.h>
+#include <OpenMS/KERNEL/ConsensusMap.h>
+
+using namespace OpenMS;
+using namespace std;
+
+// Builds a label-free consensus map with one feature per map and a PSM of run "run_0" on that feature;
+// @p run_files is the primary MS run path of run_0 (left unset when empty).
+static ConsensusMap consensusMapForMzTabExport(const vector<string>& map_files, const StringList& run_files)
+{
+  ConsensusMap consensus_map;
+  consensus_map.setExperimentType("label-free");
+  ConsensusMap::ColumnHeaders headers;
+  ConsensusFeature feature;
+  for (Size i = 0; i < map_files.size(); ++i)
+  {
+    ConsensusMap::ColumnHeader header;
+    header.filename = map_files[i];
+    header.label = "";
+    headers[i] = header;
+    feature.insert(FeatureHandle(i, Peak2D({10.0 + i, 500.0}, 1.0), i + 1));
+  }
+  consensus_map.setColumnHeaders(headers);
+
+  PeptideIdentification pep;
+  pep.setIdentifier("run_0");
+  pep.setRT(10.0);
+  pep.setMZ(500.0);
+  pep.setSpectrumReference("scan=1");
+  pep.setHits({PeptideHit(1.0, 1, 2, AASequence::fromString("PEPTIDE"))});
+  feature.getPeptideIdentifications().push_back(pep);
+  consensus_map.push_back(feature);
+
+  ProteinIdentification protein_id;
+  protein_id.setIdentifier("run_0");
+  if (!run_files.empty()) protein_id.setPrimaryMSRunPath(run_files);
+  consensus_map.setProteinIdentifications({protein_id});
+  return consensus_map;
+}
 
 START_TEST(MzTab, "$Id$")
 
@@ -190,6 +230,46 @@ START_SECTION([EXTRA] exportIdentificationsToMzTab terminates with export_all_ps
 }
 END_SECTION
 
+START_SECTION([EXTRA] exportIdentificationsToMzTab with a file listed by two runs)
+{
+  // Run A lists a.mzML; run B lists a.mzML and b.mzML. a.mzML must keep one ms_run, and b.mzML must get
+  // the next ms_run with its own location (it used to inherit the location of the repeated a.mzML).
+  ProteinIdentification run_a, run_b;
+  run_a.setIdentifier("A");
+  run_a.setPrimaryMSRunPath(StringList{"a.mzML"});
+  run_b.setIdentifier("B");
+  run_b.setPrimaryMSRunPath(StringList{"a.mzML", "b.mzML"});
+  std::vector<ProteinIdentification> prot_ids{run_a, run_b};
+
+  PeptideIdentificationList pep_ids;
+  const auto add_psm = [&](const std::string& run, Int merge_index, const std::string& reference, const std::string& sequence) {
+    PeptideIdentification pep;
+    pep.setIdentifier(run);
+    pep.setRT(100.0);
+    pep.setMZ(500.0);
+    pep.setSpectrumReference(reference);
+    if (merge_index >= 0) pep.setMetaValue(Constants::UserParam::ID_MERGE_INDEX, merge_index);
+    pep.setHits({PeptideHit(1.0, 1, 2, AASequence::fromString(sequence))});
+    pep_ids.push_back(pep);
+  };
+  add_psm("A", -1, "scan=1", "PEPTIDE");
+  add_psm("B", 0, "scan=2", "PEPTIDEK");
+  add_psm("B", 1, "scan=3", "PEPTIDER");
+
+  MzTab mztab = MzTab::exportIdentificationsToMzTab(prot_ids, pep_ids, "test.idXML", false);
+  const auto& ms_runs = mztab.getMetaData().ms_run;
+  TEST_EQUAL(ms_runs.size(), 2)
+  TEST_EQUAL(ms_runs.at(1).location.get(), "file://a.mzML")
+  TEST_EQUAL(ms_runs.at(2).location.get(), "file://b.mzML")
+  std::map<std::string, Size> ms_run_of_sequence;
+  for (const auto& row : mztab.getPSMSectionRows())
+    ms_run_of_sequence[row.sequence.get()] = row.spectra_ref.getMSFile();
+  TEST_EQUAL(ms_run_of_sequence["PEPTIDE"], 1)
+  TEST_EQUAL(ms_run_of_sequence["PEPTIDEK"], 1)
+  TEST_EQUAL(ms_run_of_sequence["PEPTIDER"], 2)
+}
+END_SECTION
+
 START_SECTION([EXTRA] MzTabBoolean setNull / isNull polarity)
 {
   // regression: setNull(true) must make the cell null, setNull(false) must make it not-null (the branches were inverted).
@@ -203,6 +283,256 @@ START_SECTION([EXTRA] MzTabBoolean setNull / isNull polarity)
 }
 END_SECTION
 
+START_SECTION([EXTRA] consensus-map assays use fraction-group/label grain and samples are study variables)
+{
+  ConsensusMap consensus_map;
+  consensus_map.setExperimentType("label-free");
+
+  // One sample owns two fraction groups. The first assay has two measured fractions.
+  const vector<string> paths{"sample_f1.mzML", "sample_f2.mzML", "sample_replicate.mzML"};
+  ConsensusMap::ColumnHeaders headers;
+  for (Size i = 0; i < paths.size(); ++i)
+  {
+    ConsensusMap::ColumnHeader header;
+    header.filename = paths[i];
+    header.label = "label-free";
+    header.setMetaValue("fraction_group", i < 2 ? 1 : 2);
+    header.setMetaValue("fraction", i < 2 ? i + 1 : 1);
+    header.setMetaValue("sample_name", "sample_A");
+    headers[i] = header;
+  }
+  consensus_map.setColumnHeaders(headers);
+
+  ConsensusFeature feature;
+  feature.insert(FeatureHandle(0, Peak2D({10.0, 500.0}, 2.0), 1));
+  feature.insert(FeatureHandle(1, Peak2D({11.0, 500.0}, 3.0), 2));
+  feature.insert(FeatureHandle(2, Peak2D({12.0, 500.0}, 7.0), 3));
+  consensus_map.push_back(feature);
+
+  ProteinIdentification protein_id;
+  protein_id.setIdentifier("run_0");
+  protein_id.setPrimaryMSRunPath(paths);
+  ProteinHit protein_hit;
+  protein_hit.setAccession("P1");
+  protein_id.setHits({protein_hit});
+
+  ProteinIdentification::ProteinGroup group;
+  group.accessions = {"P1"};
+  // The assay arrays themselves are the quantified-group gate; no legacy sample array is needed.
+  group.getFloatDataArrays().resize(1);
+  group.getFloatDataArrays()[0].setName("fraction_group_level_abundance");
+  // Reverse the key order to verify matching through the parallel arrays, not by position.
+  group.getFloatDataArrays()[0].push_back(20.0f);
+  group.getFloatDataArrays()[0].push_back(10.0f);
+  group.getIntegerDataArrays().resize(2);
+  group.getIntegerDataArrays()[0].setName("fraction_group_level_fraction_group");
+  group.getIntegerDataArrays()[0].push_back(2);
+  group.getIntegerDataArrays()[0].push_back(1);
+  group.getIntegerDataArrays()[1].setName("fraction_group_level_label");
+  group.getIntegerDataArrays()[1].push_back(1);
+  group.getIntegerDataArrays()[1].push_back(1);
+  protein_id.insertIndistinguishableProteins(group);
+  consensus_map.setProteinIdentifications({protein_id});
+
+  const MzTab mz_tab = MzTab::exportConsensusMapToMzTab(
+    consensus_map,
+    "test.consensusXML",
+    /* first_run_inference_only */ false,
+    /* export_unidentified_features */ true,
+    /* export_unassigned_ids */ false,
+    /* export_subfeatures */ false);
+
+  const MzTabMetaData& meta = mz_tab.getMetaData();
+  TEST_EQUAL(meta.assay.size(), 2)
+  if (meta.assay.size() == 2)
+  {
+    TEST_EQUAL(meta.assay.at(1).ms_run_ref.size(), 2)
+    TEST_EQUAL(meta.assay.at(1).ms_run_ref[0], 1)
+    TEST_EQUAL(meta.assay.at(1).ms_run_ref[1], 2)
+    TEST_EQUAL(meta.assay.at(2).ms_run_ref.size(), 1)
+    TEST_EQUAL(meta.assay.at(2).ms_run_ref[0], 3)
+  }
+  TEST_EQUAL(meta.study_variable.size(), 1)
+  TEST_EQUAL(meta.study_variable.at(1).assay_refs.size(), 2)
+  if (meta.study_variable.at(1).assay_refs.size() == 2)
+  {
+    TEST_EQUAL(meta.study_variable.at(1).assay_refs[0], 1)
+    TEST_EQUAL(meta.study_variable.at(1).assay_refs[1], 2)
+  }
+
+  const MzTabProteinSectionRow& protein_row = mz_tab.getProteinSectionRows().back();
+  TEST_EQUAL(protein_row.protein_abundance_assay.size(), 2)
+  if (protein_row.protein_abundance_assay.size() == 2)
+  {
+    TEST_REAL_SIMILAR(protein_row.protein_abundance_assay.at(1).get(), 10.0)
+    TEST_REAL_SIMILAR(protein_row.protein_abundance_assay.at(2).get(), 20.0)
+  }
+  TEST_TRUE(protein_row.protein_abundance_study_variable.at(1).isNull())
+
+  const MzTabPeptideSectionRow& peptide_row = mz_tab.getPeptideSectionRows().front();
+  TEST_EQUAL(peptide_row.peptide_abundance_assay.size(), 2)
+  if (peptide_row.peptide_abundance_assay.size() == 2)
+  {
+    TEST_REAL_SIMILAR(peptide_row.peptide_abundance_assay.at(1).get(), 5.0)
+    TEST_REAL_SIMILAR(peptide_row.peptide_abundance_assay.at(2).get(), 7.0)
+  }
+  TEST_TRUE(peptide_row.peptide_abundance_study_variable.at(1).isNull())
+}
+END_SECTION
+
+START_SECTION([EXTRA] consensus-map export fails on maps with the same MS file and channel (#5357))
+{
+  // Three maps named after the same file used to be merged silently into one assay.
+  ConsensusMap same_file = consensusMapForMzTabExport({"same.mzML", "same.mzML", "same.mzML"},
+                                                      {"same.mzML"});
+  TEST_EXCEPTION_WITH_MESSAGE(Exception::InvalidParameter,
+    MzTab::exportConsensusMapToMzTab(same_file, "test.consensusXML", false, true, false, false),
+    "Cannot export to mzTab: maps 0, 1, 2 of the consensus map have the same MS file 'same.mzML' and channel 1, "
+    "so they cannot be told apart and would be merged into one assay. Each map needs its own MS file name "
+    "(the 'name' of the <map> element in consensusXML), or, for labeled data, its own 'channel_id'. The file name "
+    "is taken from the primary MS run path of the input feature map, so make sure the feature maps reference "
+    "their mzML files before linking.")
+
+  // Distinct files export one assay per map.
+  ConsensusMap distinct_files = consensusMapForMzTabExport({"a.mzML", "b.mzML"}, {"a.mzML"});
+  MzTab mz_tab = MzTab::exportConsensusMapToMzTab(distinct_files, "test.consensusXML", false, true, false, false);
+  TEST_EQUAL(mz_tab.getMetaData().assay.size(), 2)
+
+  // Assays are keyed by the resolved channel (ColumnHeader::getLabelAsUInt), not by the label text.
+  // Labeled maps of one file without a channel_id all fall back to channel 1, whatever their labels say.
+  ConsensusMap no_channel_ids = consensusMapForMzTabExport({"same.mzML", "same.mzML"}, {"same.mzML"});
+  no_channel_ids.setExperimentType("labeled_MS1");
+  no_channel_ids.getColumnHeaders()[0].label = "light";
+  no_channel_ids.getColumnHeaders()[1].label = "heavy";
+  TEST_EXCEPTION_WITH_MESSAGE(Exception::InvalidParameter,
+    MzTab::exportConsensusMapToMzTab(no_channel_ids, "test.consensusXML", false, true, false, false),
+    "Cannot export to mzTab: maps 0, 1 of the consensus map have the same MS file 'same.mzML' and channel 1, "
+    "so they cannot be told apart and would be merged into one assay. Each map needs its own MS file name "
+    "(the 'name' of the <map> element in consensusXML), or, for labeled data, its own 'channel_id'. The file name "
+    "is taken from the primary MS run path of the input feature map, so make sure the feature maps reference "
+    "their mzML files before linking.")
+
+  // Maps of one file with the same label text but different channel_ids are different assays.
+  ConsensusMap channel_ids = consensusMapForMzTabExport({"same.mzML", "same.mzML"}, {"same.mzML"});
+  channel_ids.setExperimentType("labeled_MS1");
+  channel_ids.getColumnHeaders()[0].setMetaValue("channel_id", 0);
+  channel_ids.getColumnHeaders()[1].setMetaValue("channel_id", 1);
+  MzTab labeled = MzTab::exportConsensusMapToMzTab(channel_ids, "test.consensusXML", false, true, false, false);
+  TEST_EQUAL(labeled.getMetaData().assay.size(), 2)
+}
+END_SECTION
+
+START_SECTION([EXTRA] consensus-map export names the ID run that has no primary MS run path)
+{
+  ConsensusMap no_run_path = consensusMapForMzTabExport({"a.mzML", "b.mzML"}, {});
+  TEST_EXCEPTION_WITH_MESSAGE(Exception::MissingInformation,
+    MzTab::exportConsensusMapToMzTab(no_run_path, "test.consensusXML", false, true, false, false),
+    "PSM scan=1 belongs to identification run 'run_0', which has no primary MS run path ('spectra_data'), "
+    "so it cannot be assigned to an MS file of the consensus map. Annotate the identification runs with "
+    "their mzML files before mapping and linking.")
+
+  // A run without a path after an annotated one: its placeholder index equals the first file's ms_run,
+  // so the PSM must not be credited to that file.
+  ConsensusMap second_run_no_path = consensusMapForMzTabExport({"a.mzML", "b.mzML"}, {"a.mzML", "b.mzML"});
+  ProteinIdentification unannotated_run;
+  unannotated_run.setIdentifier("run_1");
+  second_run_no_path.getProteinIdentifications().push_back(unannotated_run);
+  second_run_no_path[0].getPeptideIdentifications()[0].setIdentifier("run_1");
+  TEST_EXCEPTION_WITH_MESSAGE(Exception::MissingInformation,
+    MzTab::exportConsensusMapToMzTab(second_run_no_path, "test.consensusXML", false, true, false, false),
+    "PSM scan=1 belongs to identification run 'run_1', which has no primary MS run path ('spectra_data'), "
+    "so it cannot be assigned to an MS file of the consensus map. Annotate the identification runs with "
+    "their mzML files before mapping and linking.")
+}
+END_SECTION
+
+START_SECTION([EXTRA] MzTabParameter round-trips a name with a comma not followed by a space)
+{
+  // fromCellString splits on every unquoted comma, so toCellString must quote
+  // any comma, not only one followed by a space.
+  MzTabParameter param;
+  param.setCVLabel("MS");
+  param.setAccession("MS:1001460");
+  param.setName("N,N-dimethyl");
+  param.setValue("");
+  std::string cell = param.toCellString();
+
+  MzTabParameter round_tripped;
+  round_tripped.fromCellString(cell);
+  TEST_EQUAL(round_tripped.getName(), "N,N-dimethyl")
+}
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
+START_SECTION([EXTRA] exportIdentificationsToMzTab with first_run_inference_only and PSMs of the first run)
+{
+  // With first_run_inference_only, the first run is skipped when search engines are mapped to runs. A PSM
+  // that still refers to it used to dereference the begin() of an empty search engine list.
+  ProteinIdentification inference, search;
+  inference.setIdentifier("inference");
+  inference.setSearchEngine("Fido");
+  inference.setPrimaryMSRunPath(StringList{"file.mzML"});
+  search.setIdentifier("search");
+  search.setSearchEngine("Comet");
+  search.setPrimaryMSRunPath(StringList{"file.mzML"});
+  std::vector<ProteinIdentification> prot_ids{inference, search};
+
+  PeptideIdentificationList pep_ids;
+  for (const std::string run : {"inference", "search"})
+  {
+    PeptideIdentification pep;
+    pep.setIdentifier(run);
+    pep.setRT(100.0);
+    pep.setMZ(500.0);
+    pep.setSpectrumReference("scan=1");
+    pep.setHits({PeptideHit(1.0, 1, 2, AASequence::fromString("PEPTIDE"))});
+    pep_ids.push_back(pep);
+  }
+
+  MzTab mztab = MzTab::exportIdentificationsToMzTab(prot_ids, pep_ids, "test.idXML", true);
+  TEST_EQUAL(mztab.getPSMSectionRows().size(), 2)
+}
+END_SECTION
+
+START_SECTION([EXTRA] exportConsensusMapToMzTab with a peptide identification without hits)
+{
+  // A consensus feature can carry unidentified spectra (peptide identifications without hits). The PEP row
+  // used to read the first hit of the first peptide identification, which had none.
+  ConsensusMap consensus_map;
+  ConsensusMap::ColumnHeaders headers;
+  ConsensusMap::ColumnHeader header;
+  header.filename = "a.mzML";
+  header.label = "label-free";
+  headers[0] = header;
+  consensus_map.setColumnHeaders(headers);
+
+  ProteinIdentification protein_id;
+  protein_id.setIdentifier("run_0");
+  protein_id.setPrimaryMSRunPath(StringList{"a.mzML"});
+  consensus_map.setProteinIdentifications({protein_id});
+
+  ConsensusFeature feature;
+  feature.insert(FeatureHandle(0, Peak2D({10.0, 500.0}, 2.0), 1));
+  PeptideIdentification unidentified;
+  unidentified.setIdentifier("run_0");
+  unidentified.setRT(10.0);
+  unidentified.setMZ(500.0);
+  PeptideIdentification identified = unidentified;
+  identified.setHits({PeptideHit(1.0, 1, 2, AASequence::fromString("PEPTIDE"))});
+  feature.getPeptideIdentifications().push_back(unidentified);
+  feature.getPeptideIdentifications().push_back(identified);
+  consensus_map.push_back(feature);
+
+  const MzTab mz_tab = MzTab::exportConsensusMapToMzTab(
+    consensus_map, "test.consensusXML",
+    /* first_run_inference_only */ false,
+    /* export_unidentified_features */ true,
+    /* export_unassigned_ids */ false,
+    /* export_subfeatures */ false);
+  ABORT_IF(mz_tab.getPeptideSectionRows().size() != 1)
+  TEST_EQUAL(mz_tab.getPeptideSectionRows()[0].sequence.toCellString(), "PEPTIDE")
+}
+END_SECTION
+
 END_TEST

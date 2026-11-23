@@ -25,7 +25,6 @@
 
 #include <vector>
 #include <memory>
-#include <boost/make_shared.hpp>
 
 //logging
 #include <OpenMS/CONCEPT/LogStream.h>
@@ -72,6 +71,22 @@ namespace OpenMS
     bool apply_im_peak_picking_; ///< whether to apply peak picking on ion mobilograms
 
   public:
+
+    /**
+      @brief Which of the enabled scores calculateChromatographicScores() and calculateDIAScores() compute
+
+      RANKING computes the scores that rank the peak groups of a transition group by their SWATH prescore
+      (OpenSwath_Scores::calculate_swath_lda_prescore()), REMAINDER the others: the MI scores, the MS1
+      cross-correlation scores, the DIA dot product and Manhattan scores and the MS1 DIA scores (including the
+      MS1 ion mobility scores). Together they compute the same as ALL, so that only the peak groups that are
+      reported need the remaining scores.
+    */
+    enum class ScoreSubset
+    {
+      ALL,
+      RANKING,
+      REMAINDER
+    };
 
     /// Constructor
     OpenSwathScoring();
@@ -122,6 +137,7 @@ namespace OpenMS
      * @param[in] normalized_library_intensity The weights to be used for each transition (e.g. normalized library intensities)
      * @param[in] signal_noise_estimators The signal-to-noise estimators for each transition
      * @param[out] scores The object to store the result
+     * @param[in] subset Which of the scores to compute (see ScoreSubset)
      *
     */
     void calculateChromatographicScores(OpenSwath::IMRMFeature* imrmfeature,
@@ -129,7 +145,8 @@ namespace OpenMS
                                         const std::vector<std::string>& precursor_ids,
                                         const std::vector<double>& normalized_library_intensity,
                                         std::vector<OpenSwath::ISignalToNoisePtr>& signal_noise_estimators,
-                                        OpenSwath_Scores & scores) const;
+                                        OpenSwath_Scores & scores,
+                                        ScoreSubset subset = ScoreSubset::ALL) const;
 
     /** @brief Score identification transitions against detection transitions of a single peakgroup
      * in a chromatogram using only chromatographic properties.
@@ -193,6 +210,7 @@ namespace OpenMS
      * @param[in] range_im drift time lower and upper bounds
      * @param[in] mobilogram_consumer Optional consumer to write out extracted ion mobilograms
      * @param[in] feature_id Optional feature id of the retention time apex that the extract ion mobilogram corresponds to
+     * @param[in] subset Which of the scores to compute (see ScoreSubset); @p mzerror_ppm is only filled by ALL and RANKING
      *
     */
   void calculateDIAScores(OpenSwath::IMRMFeature* imrmfeature,
@@ -207,7 +225,8 @@ namespace OpenMS
               const double drift_target,
               const RangeMobility& range_im,
               MobilogramParquetConsumer* mobilogram_consumer = nullptr,
-              Int64 feature_id = -1);
+              Int64 feature_id = -1,
+              ScoreSubset subset = ScoreSubset::ALL);
 
     /** @brief Score a single chromatographic feature using the precursor map.
      *
@@ -262,8 +281,13 @@ namespace OpenMS
      * This function will fetch a vector of spectrum pointers to be used in DIA analysis.
      * If nr_spectra_to_add == 1, then a vector of length 1 will be returned
      *
-     *   - Case \#1: "simple" addition selected - Array of length "nr_spectra_to_add" returned corresponding with "nr_spectra_to_add" spectra
+     *   - Case \#1: "simple" addition selected - Array of up to "nr_spectra_to_add" spectra returned (one more for an even "nr_spectra_to_add")
      *   - Case \#2: "resampling addition selected - Array of length 1 of the resampled spectrum returned
+     *
+     * These sequence lengths apply when "swath_maps" holds a single map. If it holds
+     * more than one map (SONAR-style data), the per-map results are concatenated into
+     * a single spectrum in both cases, so at most one spectrum is returned regardless
+     * of "nr_spectra_to_add".
      *
      * For case \#2 result is
      * all spectra summed up (add) with the intensities of multiple spectra a single
@@ -301,7 +325,7 @@ namespace OpenMS
      * This function will fetch a SpectrumSequence to be used in DIA analysis.
      * If nr_spectra_to_add == 1, then a vector of length 1 will be returned.
      * Spectra are prepared differently based on the condition
-     * Case #1: "simple" addition selected - Array of length "nr_spectra_to_add" returned corresponding with "nr_spectra_to_add" spectra
+     * Case #1: "simple" addition selected - Array of up to "nr_spectra_to_add" spectra returned (one more for an even "nr_spectra_to_add")
      * Case #2: "resampling addition selected - Array of length 1 of the resampled spectrum returned
      *
      * For case #2 result is

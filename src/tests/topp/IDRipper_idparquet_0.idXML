@@ -9,7 +9,6 @@
 			</ProteinHit>
 			<ProteinHit id="PH_1" accession="APRTT" score="40.0" sequence="" >
 			</ProteinHit>
-			<UserParam type="stringList" name="spectra_data" value="[]"/>
 		</ProteinIdentification>
 		<PeptideIdentification score_type="Mascot" higher_score_better="true" significance_threshold="0.0" MZ="623.580000000000041" RT="-1.0" >
 			<PeptideHit score="40.5" sequence="APRTPEPTIDER" charge="2" protein_refs="PH_0" >

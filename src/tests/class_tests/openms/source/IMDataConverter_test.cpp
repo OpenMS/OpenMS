@@ -89,6 +89,12 @@ START_SECTION(static void setIMUnit(DataArrays::FloatDataArray& fda, const Drift
 	IMDataConverter::setIMUnit(fda, DriftTimeUnit::VSSC);
   TEST_EQUAL(IMDataConverter::getIMUnit(fda, unit), true)
   TEST_EQUAL(DriftTimeUnit::VSSC == unit, true)
+
+  // Official PSI name for imzML/mzML (MS:1003006) must map to 1/K0 (VSSC),
+  // not milliseconds (regression: UserParam prefix used to force ms).
+  fda.setName("mean inverse reduced ion mobility array");
+  TEST_EQUAL(IMDataConverter::getIMUnit(fda, unit), true)
+  TEST_EQUAL(DriftTimeUnit::VSSC == unit, true)
 END_SECTION
 
 START_SECTION(static bool getIMUnit(const DataArrays::FloatDataArray& fda, DriftTimeUnit& unit))
@@ -259,6 +265,44 @@ START_SECTION((std::vector<std::pair<double, MSExperiment>> splitByFAIMSCV retur
   auto bins = IMDataConverter::splitByFAIMSCV(std::move(exp_nonfaims));
   TEST_EQUAL(bins.size(), 1)
   TEST_EQUAL(bins[0].second.size(), 1)
+}
+END_SECTION
+
+START_SECTION((std::vector<std::pair<double, MSExperiment>> splitByFAIMSCV returns groups with updated ranges))
+{
+  // FeatureFinderAlgorithmPicked reads spectrumRanges().byMSLevel(1) of each group
+  auto make = [](UInt level, double rt, double cv, std::vector<double> mzs)
+  {
+    MSSpectrum s;
+    s.setMSLevel(level);
+    s.setRT(rt);
+    if (cv != 0.0)
+    {
+      s.setDriftTimeUnit(DriftTimeUnit::FAIMS_COMPENSATION_VOLTAGE);
+      s.setDriftTime(cv);
+    }
+    for (double mz : mzs) s.push_back(Peak1D(mz, 100.0));
+    return s;
+  };
+  PeakMap exp;
+  exp.addSpectrum(make(1, 10.0, -55.0, {400.0, 500.0}));
+  exp.addSpectrum(make(2, 11.0, 0.0, {300.0}));
+  exp.addSpectrum(make(1, 20.0, -45.0, {600.0, 700.0}));
+  exp.addSpectrum(make(1, 30.0, -55.0, {450.0}));
+  exp.updateRanges();
+
+  auto bins = IMDataConverter::splitByFAIMSCV(std::move(exp));
+  TEST_EQUAL(bins.size(), 2)
+  const auto& r55 = bins[0].second.spectrumRanges().byMSLevel(1);
+  TEST_REAL_SIMILAR(r55.getMinRT(), 10.0)
+  TEST_REAL_SIMILAR(r55.getMaxRT(), 30.0)
+  TEST_REAL_SIMILAR(r55.getMinMZ(), 400.0)
+  TEST_REAL_SIMILAR(r55.getMaxMZ(), 500.0)
+  const auto& r45 = bins[1].second.spectrumRanges().byMSLevel(1);
+  TEST_REAL_SIMILAR(r45.getMinRT(), 20.0)
+  TEST_REAL_SIMILAR(r45.getMaxRT(), 20.0)
+  TEST_REAL_SIMILAR(r45.getMinMZ(), 600.0)
+  TEST_REAL_SIMILAR(r45.getMaxMZ(), 700.0)
 }
 END_SECTION
 

@@ -92,6 +92,22 @@ START_SECTION(bool hasElement(unsigned int atomic_number) const)
   TEST_EQUAL(e_ptr->hasElement(6), true)
 END_SECTION
 
+START_SECTION([EXTRA] iridium has its own isotopes)
+{
+  // natural iridium: 191Ir 190.960591 u (37.23 %), 193Ir 192.962924 u (62.77 %)
+  const Element* ir = e_ptr->getElement("Ir");
+  TEST_EQUAL(ir->getAtomicNumber(), 77)
+  const IsotopeDistribution& iso = ir->getIsotopeDistribution();
+  TEST_EQUAL(iso.size(), 2)
+  TEST_REAL_SIMILAR(iso[0].getMZ(), 190.960591)
+  TEST_REAL_SIMILAR(iso[0].getIntensity(), 0.3723)
+  TEST_REAL_SIMILAR(iso[1].getMZ(), 192.962924)
+  TEST_REAL_SIMILAR(iso[1].getIntensity(), 0.6277)
+  TEST_REAL_SIMILAR(ir->getMonoWeight(), 192.962924) // most abundant isotope
+  TEST_REAL_SIMILAR(ir->getAverageWeight(), 192.2174554) // 0.3723 * 190.960591 + 0.6277 * 192.962924
+}
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST

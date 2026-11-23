@@ -8,6 +8,7 @@
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/SYSTEM/TempFiles.h>
 #include <iostream>
 
 using namespace OpenMS;
@@ -72,7 +73,7 @@ int main()
 
   // Store the spectra to a mzML file with:
   FileHandler fh;
-  auto tmp_filename = File::getTemporaryFile();
+  auto tmp_filename = TempFiles::getTemporaryFile();
   fh.storeExperiment(tmp_filename, exp, {FileTypes::MZML});
 
   // And load it with

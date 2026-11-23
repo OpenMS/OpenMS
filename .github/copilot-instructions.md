@@ -1,5 +1,9 @@
 # GitHub Copilot Instructions for OpenMS
 
+## AI Policy
+
+Follow the [OpenMS AI Policy](https://openms.de/ai-policy/) (summary in `AGENTS.md` → "AI Contribution Policy"). The human contributor is accountable and must understand, review and test every change. Commits with substantial AI work carry a `Co-authored-by:` trailer, lighter AI use an `Assisted-by:` trailer, and the PR's AI disclosure section must be filled in.
+
 ## Important Build Instructions
 
 **DO NOT attempt to build OpenMS unless asked to do so** - The build process is extremely resource-intensive and costly. Building OpenMS requires significant computational resources and time.
@@ -13,10 +17,10 @@ OpenMS is an open-source software C++ library for LC-MS data management and anal
 - **Core C++ library** with modern C++20 standards
 - **Python bindings** (pyOpenMS) for rapid algorithm development
 - **150+ command-line tools** (TOPP Tools) for MS data processing
-- **Visualization tools** (TOPPView) for 1D, 2D, and 3D data
+- **Visualization tools** (TOPPView) for 1D, 2D, and 3D data, developed in the separate repository OpenMS/OpenMS-TOPP-GUI
 - **Support for major file formats** (mzML, mzXML, mzIdentML, pepXML, mzTab)
 - **Comprehensive quantitation support** (label-free, SILAC, iTRAQ, TMT, SRM, SWATH)
-- **Integration with workflow systems** (KNIME, Galaxy, nextflow)
+- **Integration with workflow systems** (Galaxy, nextflow)
 
 ### Architecture Components
 
@@ -31,15 +35,14 @@ OpenMS is an open-source software C++ library for LC-MS data management and anal
    - Tools for identification, quantification, and data processing
 
 3. **User Interfaces**
-   - TOPPView for data visualization
-   - TOPPAS for workflow creation
+   - TOPPView, TOPPAS and the Qt GUI library live in OpenMS/OpenMS-TOPP-GUI (this repository has no Qt dependency)
    - pyOpenMS for Python scripting
 
 4. **pyOpenMS**
    - Hand-maintained nanobind C++ bindings (no code generation)
    - 13 domain-based modules compiled in parallel
    - Pure Python addon system for DataFrame export and convenience methods
-   - Custom type casters for OpenMS::String, DataValue, ParamValue, DPosition
+   - Custom type casters for std::string, DataValue, ParamValue, DPosition
    - Integration with scientific Python ecosystem (numpy, pandas, pyarrow)
    - Located in `src/pyOpenMS/`; see `src/pyOpenMS/CLAUDE.md` for detailed binding guide
 
@@ -89,7 +92,6 @@ OpenMS/
 │   ├── openms/                  # Core library
 │   │   ├── include/OpenMS/      # Header files
 │   │   └── source/              # Implementation files
-│   ├── openms_gui/              # GUI components
 │   ├── pyOpenMS/                # Python bindings
 │   │   ├── bindings/            # Hand-maintained nanobind C++ binding files
 │   │   │   ├── bind_kernel.cpp  # KERNEL/ classes
@@ -121,7 +123,7 @@ OpenMS/
 
 ## Testing Infrastructure
 
-- **Class tests**: Unit tests in `src/tests/class_tests/openms/source/`
+- **Class tests**: Unit tests in `src/tests/class_tests/openms/source/` (TOPP tool framework: `src/tests/class_tests/openms_cli/source/`)
 - **TOPP tests**: Integration tests in `src/tests/topp/`
 - **Python tests**: pyOpenMS tests in `src/pyOpenMS/tests/`
 - Test naming convention: `ClassName_test.cpp` for C++ class `ClassName`

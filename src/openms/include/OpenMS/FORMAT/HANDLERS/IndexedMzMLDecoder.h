@@ -71,7 +71,8 @@ namespace OpenMS
 
       @return A positive integer containing the content of the indexListOffset
       tag, returns -1 in case of failure no tag was found (you can re-try with
-      a larger buffersize but most likely its not an indexed mzML). Using -1 is
+      a larger buffersize but most likely its not an indexed mzML). Nothing is
+      printed then: callers that need an index report its absence themselves. Using -1 is
       what the reference docu recommends: http://en.cppreference.com/w/cpp/io/streamoff
 
       @throw FileNotFound is thrown if file cannot be found

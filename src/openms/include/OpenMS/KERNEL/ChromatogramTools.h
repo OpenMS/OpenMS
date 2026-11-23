@@ -134,6 +134,8 @@ public:
               SpectrumType dummy = *it;
               dummy.clear(false);
               dummy.push_back((*it)[peak_idx]);
+              // the chromatograms of one spectrum would share its native ID otherwise (mzML requires unique ids)
+              dummy.setNativeID(it->getNativeID() + " product=" + StringUtils::toStr((*it)[peak_idx].getMZ()));
               chroms[it->getPrecursors().begin()->getMZ()][(*it)[peak_idx].getMZ()].push_back(dummy);
             }
           }
@@ -148,7 +150,8 @@ public:
               chr_p.setIntensity(p.getIntensity());
               if (!chroms_xic.contains(mz))
               {
-                // new chromatogram
+                // new chromatogram; the native ID must be unique (mzML requires it) and the m/z is the key here
+                chroms_xic[mz].setNativeID("XIC mz=" + StringUtils::toStr(mz));
                 chroms_xic[mz].getPrecursor().setMZ(mz);
                 // chroms_xic[mz].setProduct(prod); // probably no product
                 chroms_xic[mz].setInstrumentSettings(it->getInstrumentSettings());

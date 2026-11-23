@@ -343,7 +343,7 @@ def test_msspectrum_drift_time_no_im():
 
     assert not spec.containsIMData()
     assert spec.get_drift_time_array() is None
-    assert spec.get_drift_time_array_view() is None
+    assert spec.drift_time_array_view() is None
     assert spec.get_drift_time_array_unit() is None
 
 
@@ -397,8 +397,8 @@ def test_float_data_array_get_data():
     assert fda[0] == pytest.approx(1.0, abs=0.1)
 
 
-def test_float_data_array_get_data_view():
-    """Test FloatDataArray get_data_view method (memory view - fast, unsafe)."""
+def test_float_data_array_data_view():
+    """Test FloatDataArray data_view method (memory view - fast, unsafe)."""
     from pyopenms import FloatDataArray
 
     fda = FloatDataArray()
@@ -407,7 +407,7 @@ def test_float_data_array_get_data_view():
     fda.push_back(3.0)
 
     # Get a view (fast but unsafe)
-    data_view = fda.get_data_view()
+    data_view = fda.data_view()
     assert len(data_view) == 3
     assert data_view[0] == pytest.approx(1.0, abs=0.1)
     assert data_view[1] == pytest.approx(2.0, abs=0.1)
@@ -427,7 +427,7 @@ def test_float_data_array_empty():
     data_copy = fda.get_data()
     assert len(data_copy) == 0
 
-    data_view = fda.get_data_view()
+    data_view = fda.data_view()
     assert isinstance(data_view, np.ndarray)
     assert len(data_view) == 0
 

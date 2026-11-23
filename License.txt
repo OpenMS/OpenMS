@@ -36,22 +36,17 @@ DAMAGE.
 The source code of OpenMS is available via our homepage
 http://www.OpenMS.de
 
-OpenMS depends on third party libraries which are listed below.
-The source code of these libraries is available from their
-website or can be obtained via a "contrib" package, which
-specifically configures these libraries for OpenMS and is
-available on our website.
+Third-party software. The OpenMS installers and the pyOpenMS
+wheels contain third-party software, each part under its own
+license. THIRD-PARTY-NOTICES.txt in the share/OpenMS folder of
+an installation (pyopenms/share/OpenMS in a pyOpenMS wheel)
+lists that software and gives its license, copyright and
+notice texts. The files themselves are in share/OpenMS/LICENSES
+and in the tool folders under share/OpenMS/THIRDPARTY.
 
-The respective license files for the contrib libraries
-can be found in the "contrib" package root directory or online
-(see below).
-
-
-
----------------------   CMake Modules:  ------------------------
-
-GetGitRevisionDescription and findCppCheck:
-  - URL and source code:
-  https://github.com/rpavlik/cmake-modules
-  - License
-  http://www.boost.org/LICENSE_1_0.txt
+The OpenMS source code contains third-party code too, each part
+with its license file: the libraries in src/openms/extern and
+src/openms/thirdparty, and the CMake modules
+GetGitRevisionDescription and findCppCheck
+(https://github.com/rpavlik/cmake-modules, Boost Software
+License 1.0, http://www.boost.org/LICENSE_1_0.txt).

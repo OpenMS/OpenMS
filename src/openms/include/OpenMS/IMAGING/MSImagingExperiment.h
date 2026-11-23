@@ -25,6 +25,12 @@ namespace OpenMS
 
   A 3D / serial-section experiment is modeled as a collection of
   MSImagingExperiment objects, one per section.
+
+  Acquisition time: spectra are pixels, not chromatographic scans, so their RT is -1.
+  A pixel's acquisition (scan start) time, if known, is the spectrum MetaValue
+  @p imzml:scan_start_time in seconds. ImzMLFile and BrukerTimsImagingFile load it
+  this way; ImzMLFile::store and MzMLFile::store write it as @c scan start time
+  (see ImzMLSpectrumRules::scanStartTime).
 */
 class OPENMS_DLLAPI MSImagingExperiment final
 {

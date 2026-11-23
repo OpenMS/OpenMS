@@ -11,7 +11,7 @@ cpack_add_install_type(full DISPLAY_NAME "Full")
 cpack_add_install_type(minimal DISPLAY_NAME "Minimal")
 
 ## TODO group some components like "OpenMS_header", "OpenSWATH_header", "thirdparty_headers"...
-## TODO do components more fine-grained, so you can install only OpenSwath parts, or only TOPPView but not TOPPAS, etc
+## TODO do components more fine-grained, so you can install only OpenSwath parts, etc
 cpack_add_component(share
                 DISPLAY_NAME "OpenMS shared files"
                 DESCRIPTION "OpenMS shared files"
@@ -19,12 +19,27 @@ cpack_add_component(share
                 )
 cpack_add_component(library
                 DISPLAY_NAME "Libraries"
-                DESCRIPTION "Libraries"
+                DESCRIPTION "The OpenMS core libraries"
                 INSTALL_TYPES recommended full minimal
                 )
-cpack_add_component(applications
+## the layers above the core library (see cmake/install_macros.cmake)
+cpack_add_component(library_cli
+                DISPLAY_NAME "TOPP tool framework library"
+                DESCRIPTION "The TOPP tool framework library (OpenMS_CLI), needed by the TOPP tools"
+                DEPENDS library
+                INSTALL_TYPES recommended full minimal
+                )
+## Every TOPP tool links the TOPP tool framework, so the binaries do not start
+## without the CLI layer. Selecting the binaries without their libraries installs
+## tools that fail at startup with a loader error for libOpenMS_CLI.
+## Capitalized to match the name install_tool() registers (cmake/install_macros.cmake).
+## CPack folds the name to upper case for the CPACK_COMPONENT_<NAME>_* metadata below,
+## but compares it verbatim when selecting what to install, so the two must agree.
+## TOPPView, TOPPAS and the other GUI applications are packaged by OpenMS-TOPP-GUI.
+cpack_add_component(Applications
                 DISPLAY_NAME "OpenMS binaries"
-                DESCRIPTION "OpenMS binaries including TOPP tools, TOPPView and TOPPAS."
+                DESCRIPTION "The TOPP tools."
+                DEPENDS library_cli
                 INSTALL_TYPES recommended full minimal
                 )
 cpack_add_component(doc

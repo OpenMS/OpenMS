@@ -10,22 +10,10 @@
 
 #include <string>
 #include <OpenMS/DATASTRUCTURES/Param.h>
+#include <OpenMS/DATASTRUCTURES/ToolInfo.h>
 
 namespace OpenMS
 {
-
-  /**
-   @brief A struct to pass information about the tool as one parameter
-   */
-  struct ToolInfo
-  {
-    std::string version_;
-    std::string name_;
-    std::string docurl_;
-    std::string category_;
-    std::string description_;
-    std::vector<std::string> citations_;
-  };
 
   /**
   @brief Serializes a Param class in paramCTD file format.

@@ -1,0 +1,13 @@
+file	level	class	q_value	accepted	entrapment	lower_bound_fdp	combined_fdp	paired_fdp	entrapment_target_not_accepted	entrapment_above_target	te_ratio
+EntrapmentEvaluator_1_input.idXML	psm	all	0.01	4	1	0.25	0.5	NA	NA	NA	1
+EntrapmentEvaluator_1_input.idXML	psm	phospho	0.01	1	0	0	0	NA	NA	NA	1
+EntrapmentEvaluator_1_input.idXML	psm	unmodified	0.01	3	1	0.3333	0.6667	NA	NA	NA	1
+EntrapmentEvaluator_1_input.idXML	psm	all	0.05	5	2	0.4	0.8	NA	NA	NA	1
+EntrapmentEvaluator_1_input.idXML	psm	phospho	0.05	2	1	0.5	1	NA	NA	NA	1
+EntrapmentEvaluator_1_input.idXML	psm	unmodified	0.05	3	1	0.3333	0.6667	NA	NA	NA	1
+EntrapmentEvaluator_1_input.idXML	peptide	all	0.01	3	1	0.3333	0.6667	NA	NA	NA	1
+EntrapmentEvaluator_1_input.idXML	peptide	phospho	0.01	1	0	0	0	NA	NA	NA	1
+EntrapmentEvaluator_1_input.idXML	peptide	unmodified	0.01	2	1	0.5	1	NA	NA	NA	1
+EntrapmentEvaluator_1_input.idXML	peptide	all	0.05	4	2	0.5	1	NA	NA	NA	1
+EntrapmentEvaluator_1_input.idXML	peptide	phospho	0.05	2	1	0.5	1	NA	NA	NA	1
+EntrapmentEvaluator_1_input.idXML	peptide	unmodified	0.05	2	1	0.5	1	NA	NA	NA	1

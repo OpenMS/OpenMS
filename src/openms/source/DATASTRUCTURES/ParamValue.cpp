@@ -383,9 +383,9 @@ namespace OpenMS
   //----------------------------------------------------------------------------
   ParamValue::operator long double() const
   {
-    if (value_type_ == EMPTY_VALUE)
+    if (value_type_ != DOUBLE_VALUE && value_type_ != INT_VALUE)
     {
-      throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Could not convert ParamValue::EMPTY to long double");
+      throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Could not convert non-numeric ParamValue to long double");
     }
     else if (value_type_ == INT_VALUE)
     {
@@ -396,9 +396,9 @@ namespace OpenMS
 
   ParamValue::operator double() const
   {
-    if (value_type_ == EMPTY_VALUE)
+    if (value_type_ != DOUBLE_VALUE && value_type_ != INT_VALUE)
     {
-      throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Could not convert ParamValue::EMPTY to double");
+      throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Could not convert non-numeric ParamValue to double");
     }
     else if (value_type_ == INT_VALUE)
     {
@@ -409,9 +409,9 @@ namespace OpenMS
 
   ParamValue::operator float() const
   {
-    if (value_type_ == EMPTY_VALUE)
+    if (value_type_ != DOUBLE_VALUE && value_type_ != INT_VALUE)
     {
-      throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Could not convert ParamValue::EMPTY to float");
+      throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Could not convert non-numeric ParamValue to float");
     }
     else if (value_type_ == INT_VALUE)
     {

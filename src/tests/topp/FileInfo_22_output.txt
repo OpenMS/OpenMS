@@ -1,0 +1,22 @@
+
+-- General information --
+
+File name: C:/dev/openms/src/tests/topp/FileInfo_22_input.idXML
+File type: idXML
+Search Engine(s):
+  TestEngine (version: 2.5)
+Number of:
+  runs:                       1
+  protein hits:               2
+  non-redundant protein hits: 2
+  (only hits that differ in the accession)
+
+  matched spectra:    1
+  peptide sequences:  1
+  PSMs / spectrum (ignoring unidentified spectra):    1
+  peptide hits:               1 (avg. length: 8)
+  modified top-hits:          0/1 (0.0%)
+  non-redundant peptide hits: 1
+  (only hits that differ in sequence and/or modifications)
+
+

@@ -1,0 +1,34 @@
+diff --git a/onnxruntime/core/common/cpuid_info.cc b/onnxruntime/core/common/cpuid_info.cc
+index 6c66047b..84779505 100644
+--- a/onnxruntime/core/common/cpuid_info.cc
++++ b/onnxruntime/core/common/cpuid_info.cc
+@@ -160,7 +160,13 @@ void CPUIDInfo::X86Init() {
+         if (check_intel.is_intel) {
+ #ifdef __linux__
+ #if !defined(__ANDROID__)
+-          has_tpause_ = __builtin_cpu_supports("waitpkg") != 0;
++          #if defined(__clang__)
++          //clang does not recognized "waitpkg" as a valid feature string so treating it
++          // as unsupported
++            has_tpause_ = false;
++          #else
++            has_tpause_ = __builtin_cpu_supports("waitpkg") != 0;
++          #endif
+ #endif
+ #else
+           has_tpause_ = (data[2] & (1 << 5)) != 0;
+diff --git a/onnxruntime/core/common/spin_pause.cc b/onnxruntime/core/common/spin_pause.cc
+index 329f3f12..87ee4525 100644
+--- a/onnxruntime/core/common/spin_pause.cc
++++ b/onnxruntime/core/common/spin_pause.cc
+@@ -34,7 +34,9 @@ void SpinPause() {
+   if (has_tpause) {
+ #if defined(_WIN32)
+     _tpause(0x0, __rdtsc() + tpause_spin_delay_cycles);
+-#elif defined(__linux__)
++#elif defined(__linux__) && !defined(__clang__)
++    // clang's __builtin_ia32_tpause() expects 3 args instead of gcc's
++    // 2 args, so just fall back to _mm_pause() for clang.
+     __builtin_ia32_tpause(0x0, __rdtsc() + tpause_spin_delay_cycles);
+ #else
+     _mm_pause();

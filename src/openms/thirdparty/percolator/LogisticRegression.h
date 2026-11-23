@@ -18,13 +18,13 @@
 #ifndef LOGISTICREGRESSION_H_
 #define LOGISTICREGRESSION_H_
 
-
 #include <vector>
 
 #include "BaseSpline.h"
 #include "Array.h"
 
 namespace OpenMS { namespace Internal { namespace Percolator {
+
 
 class LogisticRegression : public BaseSpline {
   public:
@@ -33,17 +33,26 @@ class LogisticRegression : public BaseSpline {
     void predict(const std::vector<double>& x, std::vector<double>& predict) {
       return BaseSpline::predict(x, predict);
     }
+    // The knots are the scores xx after the transform of BaseSpline::setData;
+    // equal knots are merged, and a warning is printed if some are nearly
+    // equal (see countNearTies).
     void setData(const std::vector<double>& xx, const std::vector<double>& yy,
-                 const std::vector<double>& mm) {
-      BaseSpline::setData(xx);
-      y = yy;
-      m = mm;
-    }
+                 const std::vector<double>& mm);
   protected:
+    // Merges adjacent equal knots (ascending, after the transform of
+    // setData), with their y and m summed, unless fewer than 4 knots would
+    // remain.
+    static void mergeEqualKnots(std::vector<double>& xx,
+                                std::vector<double>& yy,
+                                std::vector<double>& mm);
+    // The number of pairs of neighbouring knots (ascending) that are less
+    // than 1e-9 times the median of the gaps around them apart: up to 5 gaps
+    // ending at the lower knot and up to 5 starting at the upper one (of an
+    // even number of gaps the larger of the two in the middle).
+    static std::size_t countNearTies(const std::vector<double>& xx);
     virtual void calcPZW();
     virtual void initg();
     virtual void limitg();
-    virtual void limitgamma();
     std::vector<double> y, m;
     static const double gRange;
     Array<double> p;

@@ -9,11 +9,189 @@
 #include <OpenMS/CONCEPT/ClassTest.h>
 
 #include <OpenMS/ANALYSIS/ID/IDConflictResolverAlgorithm.h>
+#include <OpenMS/CONCEPT/Constants.h>
 
 using namespace OpenMS;
 using namespace std;
 
+// One identification of one spectrum. Hits are deliberately not sorted by the helper:
+// reduceToOnePerSpectrum() reads hits.front() as stored, exactly like the exporters do.
+static PeptideIdentification makePepID_(const std::string& reference,
+                                        const std::string& sequence,
+                                        int charge,
+                                        double score,
+                                        bool higher_better = false)
+{
+  PeptideIdentification id;
+  if (!reference.empty()) { id.setSpectrumReference(reference); }
+  id.setScoreType("Posterior Error Probability");
+  id.setHigherScoreBetter(higher_better);
+  if (!sequence.empty())
+  {
+    PeptideHit hit;
+    hit.setSequence(AASequence::fromString(sequence));
+    hit.setCharge(charge);
+    hit.setScore(score);
+    id.insertHit(hit);
+  }
+  return id;
+}
+
 START_TEST(IDConflictResolverAlgorithm, "$Id$")
+
+START_SECTION((static void resolve(FeatureMap& features, bool keep_matching = false)))
+{
+  // The best identification of a feature is never one without hits, whichever direction is better: with lower
+  // scores better, an identification without hits used to win (and keep_matching then read its first hit).
+  for (const bool higher_better : {false, true})
+  {
+    for (const bool keep_matching : {false, true})
+    {
+      FeatureMap map;
+      Feature feature;
+      feature.setUniqueId(7);
+      PeptideIdentificationList ids;
+      ids.push_back(makePepID_("scan=1", "", 2, 0.0, higher_better)); // no hits
+      ids.push_back(makePepID_("scan=2", "PEPTIDEK", 2, 0.25, higher_better));
+      ids.push_back(makePepID_("scan=3", "PEPTIDER", 2, 0.75, higher_better));
+      ids.push_back(makePepID_("scan=4", "", 2, 0.0, higher_better)); // no hits
+      feature.setPeptideIdentifications(ids);
+      map.push_back(feature);
+      IDConflictResolverAlgorithm::resolve(map, keep_matching);
+      const auto& kept = map[0].getPeptideIdentifications();
+      ABORT_IF(kept.empty() || kept[0].getHits().empty())
+      TEST_EQUAL(kept[0].getHits()[0].getSequence().toString(), higher_better ? "PEPTIDER" : "PEPTIDEK")
+    }
+  }
+}
+END_SECTION
+
+START_SECTION((resolve with keep_matching and only hitless identifications))
+{
+  // Exercise both public map overloads, including an empty list and one or several hitless IDs.
+  const auto check_hitless = [](auto map, auto feature, bool higher_better, Size num_ids)
+  {
+    feature.setUniqueId(7);
+    PeptideIdentificationList ids;
+    for (Size i = 0; i < num_ids; ++i)
+    {
+      auto id = makePepID_("scan=" + StringUtils::toStr(i + 1), "", 2, 0.0, higher_better);
+      id.setMetaValue("test_metadata", "preserve me");
+      ids.push_back(id);
+    }
+    feature.setPeptideIdentifications(ids);
+    map.push_back(feature);
+
+    auto unassigned = makePepID_("scan=unassigned", "PEPTIDEK", 2, 0.5, higher_better);
+    // resolve() annotates pre-existing unassigned IDs as "not mapped" in either mode.
+    unassigned.setMetaValue("feature_id", "not mapped");
+    map.getUnassignedPeptideIdentifications().push_back(unassigned);
+    const auto unassigned_before = map.getUnassignedPeptideIdentifications();
+
+    IDConflictResolverAlgorithm::resolve(map, true);
+
+    TEST_EQUAL(map.size(), 1)
+    TEST_TRUE(map[0].getPeptideIdentifications() == ids)
+    TEST_TRUE(map.getUnassignedPeptideIdentifications() == unassigned_before)
+  };
+
+  for (const bool higher_better : {false, true})
+  {
+    for (const Size num_ids : {Size(0), Size(1), Size(3)})
+    {
+      check_hitless(FeatureMap{}, Feature{}, higher_better, num_ids);
+      check_hitless(ConsensusMap{}, ConsensusFeature{}, higher_better, num_ids);
+    }
+  }
+}
+END_SECTION
+
+START_SECTION((static void annotateTransfers(ConsensusMap& features)))
+{
+  const std::string& key = Constants::UserParam::MBR_TRANSFER_MAP_INDICES;
+
+  // a feature of one run, identified as 'sequence' (none if empty)
+  UInt64 next_uid = 1;
+  const auto make_feature = [&next_uid](const std::string& sequence, double score)
+  {
+    Feature f;
+    f.setUniqueId(next_uid++);
+    f.setRT(100.0);
+    f.setMZ(500.0);
+    if (!sequence.empty())
+    {
+      f.setPeptideIdentifications({makePepID_("scan=" + StringUtils::toStr(next_uid), sequence, 2, score)});
+    }
+    return f;
+  };
+  // group the features of runs 0, 1, 2, ... as a feature linker does (annotates "map_index" of the IDs)
+  const auto link = [](const std::vector<Feature>& features)
+  {
+    ConsensusFeature cf;
+    for (Size map_index = 0; map_index < features.size(); ++map_index)
+    {
+      cf.insert(map_index, features[map_index]);
+    }
+    return cf;
+  };
+
+  ConsensusMap map;
+  for (Size i = 0; i < 3; ++i) { map.getColumnHeaders()[i].filename = "run" + StringUtils::toStr(i); }
+  // 0: unidentified feature of run 1 linked to identified ones -> transferred to run 1
+  map.push_back(link({make_feature("PEPTIDEK", 0.1), make_feature("", 0.0), make_feature("PEPTIDEK", 0.2)}));
+  // 1: run 1 identified as a different (worse) peptide, run 2 unidentified -> transferred to runs 1 and 2
+  map.push_back(link({make_feature("PEPTIDEK", 0.1), make_feature("PEPTIDER", 0.5), make_feature("", 0.0)}));
+  // 2: identified in every run -> no transfer
+  map.push_back(link({make_feature("PEPTIDEK", 0.1), make_feature("PEPTIDEK", 0.2), make_feature("PEPTIDEK", 0.3)}));
+  // 3: not identified at all -> no transfer
+  map.push_back(link({make_feature("", 0.0), make_feature("", 0.0)}));
+  // 4: annotated by the linker already (e.g. PIP-ECHO) -> kept as it is
+  ConsensusFeature annotated = link({make_feature("PEPTIDEK", 0.1), make_feature("", 0.0), make_feature("", 0.0)});
+  annotated.setMetaValue(key, IntList{2});
+  map.push_back(annotated);
+  // 5: an identification without "map_index" -> the identified runs are unknown, no transfer
+  ConsensusFeature unknown_runs;
+  unknown_runs.insert(0, make_feature("", 0.0), 0);
+  unknown_runs.insert(1, make_feature("", 0.0), 1);
+  unknown_runs.setPeptideIdentifications({makePepID_("scan=99", "PEPTIDEK", 2, 0.1)});
+  map.push_back(unknown_runs);
+
+  // 6: identified in runs 0 and 1, but the hits of run 1 get filtered out below -> transferred to run 1
+  map.push_back(link({make_feature("PEPTIDEK", 0.1), make_feature("PEPTIDEK", 0.6)}));
+  // 7: all hits filtered out -> no identification left, no transfer
+  map.push_back(link({make_feature("PEPTIDEK", 0.7), make_feature("", 0.0)}));
+
+  map.applyMemberFunction(&UniqueIdInterface::setUniqueId);
+  IDConflictResolverAlgorithm::resolve(map, true);
+  // e.g. FDR filtering after the conflict resolution: keeps the identifications, removes their hits
+  for (ConsensusFeature& cf : map)
+  {
+    for (PeptideIdentification& pep : cf.getPeptideIdentifications())
+    {
+      if (!pep.getHits().empty() && pep.getHits()[0].getScore() > 0.5) { pep.setHits({}); }
+    }
+  }
+  IDConflictResolverAlgorithm::annotateTransfers(map);
+
+  ABORT_IF(map.size() != 8)
+  TEST_EQUAL(map[0].metaValueExists(key), true)
+  TEST_EQUAL(map[0].getMetaValue(key) == DataValue(IntList{1}), true)
+  TEST_EQUAL(map[1].metaValueExists(key), true)
+  TEST_EQUAL(map[1].getMetaValue(key) == DataValue(IntList{1, 2}), true)
+  TEST_EQUAL(map[2].metaValueExists(key), false)
+  TEST_EQUAL(map[3].metaValueExists(key), false)
+  TEST_EQUAL(map[4].getMetaValue(key) == DataValue(IntList{2}), true)
+  TEST_EQUAL(map[5].metaValueExists(key), false)
+  TEST_EQUAL(map[6].metaValueExists(key), true)
+  TEST_EQUAL(map[6].getMetaValue(key) == DataValue(IntList{1}), true)
+  TEST_EQUAL(map[7].metaValueExists(key), false)
+  // the linker's own transfer annotations are not touched, no q-values are made up
+  for (const ConsensusFeature& cf : map)
+  {
+    TEST_EQUAL(cf.metaValueExists(Constants::UserParam::MBR_TRANSFER_QVALUES), false)
+  }
+}
+END_SECTION
 
 START_SECTION(resolveBetweenFeatures())
 {
@@ -182,6 +360,126 @@ START_SECTION(resolveAllHitRankAggregation())
 
   // The other 2 IDs should have been moved to unassigned
   TEST_EQUAL(cmap.getUnassignedPeptideIdentifications().size(), 2)
+}
+END_SECTION
+
+/////////////////////////////////////////////////////////////
+// reduceToOnePerSpectrum
+/////////////////////////////////////////////////////////////
+
+START_SECTION((static UnresolvedIdentifications reduceToOnePerSpectrum(PeptideIdentificationList& ids)))
+{
+  const std::string ref = "controllerType=0 controllerNumber=1 scan=2075";
+
+  // (1) Two identifications of one spectrum agreeing on peptidoform and charge: the
+  // better-scoring one survives. Lower is better here.
+  {
+    PeptideIdentificationList ids;
+    ids.push_back(makePepID_(ref, "PEPTIDEK", 2, 0.9));
+    ids.push_back(makePepID_(ref, "PEPTIDEK", 2, 0.1));
+    auto report = IDConflictResolverAlgorithm::reduceToOnePerSpectrum(ids);
+    TEST_EQUAL(report.removed, 1)
+    TEST_EQUAL(ids.size(), 1)
+    TEST_REAL_SIMILAR(ids[0].getHits()[0].getScore(), 0.1)
+    TEST_EQUAL(report.multiply_identified_spectra, 0)
+    TEST_FALSE(report.example.empty())
+  }
+
+  // (2) Same, but higher-is-better. Getting the direction backwards is the easiest way to
+  // discard the good identification, and PercolatorAdapter emits both directions.
+  {
+    PeptideIdentificationList ids;
+    ids.push_back(makePepID_(ref, "PEPTIDEK", 2, 0.1, true));
+    ids.push_back(makePepID_(ref, "PEPTIDEK", 2, 0.9, true));
+    auto report = IDConflictResolverAlgorithm::reduceToOnePerSpectrum(ids);
+    TEST_EQUAL(report.removed, 1)
+    TEST_EQUAL(ids.size(), 1)
+    TEST_REAL_SIMILAR(ids[0].getHits()[0].getScore(), 0.9)
+  }
+
+  // (3) Chimeric spectrum: one spectrum, two different peptidoforms. Both are quantifiable,
+  // so both must survive. This is the section that pins the design decision.
+  {
+    PeptideIdentificationList ids;
+    ids.push_back(makePepID_(ref, "PEPTIDEK", 2, 0.1));
+    ids.push_back(makePepID_(ref, "ANOTHERPEPTIDER", 2, 0.2));
+    auto report = IDConflictResolverAlgorithm::reduceToOnePerSpectrum(ids);
+    TEST_EQUAL(report.removed, 0)
+    TEST_EQUAL(ids.size(), 2)
+    TEST_EQUAL(report.multiply_identified_spectra, 1)
+    TEST_TRUE(report.example.empty())
+  }
+
+  // Same peptidoform but a different charge is likewise two measurements.
+  {
+    PeptideIdentificationList ids;
+    ids.push_back(makePepID_(ref, "PEPTIDEK", 2, 0.1));
+    ids.push_back(makePepID_(ref, "PEPTIDEK", 3, 0.2));
+    auto report = IDConflictResolverAlgorithm::reduceToOnePerSpectrum(ids);
+    TEST_EQUAL(report.removed, 0)
+    TEST_EQUAL(ids.size(), 2)
+  }
+
+  // (4) No spectrum reference: nothing tells them apart, so leave them alone and say so.
+  {
+    PeptideIdentificationList ids;
+    ids.push_back(makePepID_("", "PEPTIDEK", 2, 0.1));
+    ids.push_back(makePepID_("", "PEPTIDEK", 2, 0.9));
+    auto report = IDConflictResolverAlgorithm::reduceToOnePerSpectrum(ids);
+    TEST_EQUAL(report.removed, 0)
+    TEST_EQUAL(ids.size(), 2)
+    TEST_EQUAL(report.without_spectrum_reference, 2)
+  }
+
+  // (5) An identification without hits is untouched and moves no counter.
+  {
+    PeptideIdentificationList ids;
+    ids.push_back(makePepID_(ref, "", 0, 0.0));
+    ids.push_back(makePepID_(ref, "PEPTIDEK", 2, 0.1));
+    auto report = IDConflictResolverAlgorithm::reduceToOnePerSpectrum(ids);
+    TEST_EQUAL(report.removed, 0)
+    TEST_EQUAL(ids.size(), 2)
+    TEST_EQUAL(report.without_spectrum_reference, 0)
+    TEST_EQUAL(report.multiply_identified_spectra, 0)
+  }
+
+  // (6) A group that disagrees on the score direction has no defined "best", so it is left
+  // alone rather than reduced by a coin flip.
+  {
+    PeptideIdentificationList ids;
+    ids.push_back(makePepID_(ref, "PEPTIDEK", 2, 0.1, false));
+    ids.push_back(makePepID_(ref, "PEPTIDEK", 2, 0.9, true));
+    auto report = IDConflictResolverAlgorithm::reduceToOnePerSpectrum(ids);
+    TEST_EQUAL(report.removed, 0)
+    TEST_EQUAL(ids.size(), 2)
+    TEST_EQUAL(report.inconsistent_score_direction, 1)
+    // ...and it must NOT also be reported as a chimeric spectrum: the group is one peptidoform
+    // that could not be reduced, not two peptidoforms.
+    TEST_EQUAL(report.multiply_identified_spectra, 0)
+  }
+
+  // (7) Different spectra are never merged, and survivors keep their input order.
+  {
+    PeptideIdentificationList ids;
+    ids.push_back(makePepID_("controllerType=0 controllerNumber=1 scan=1", "AAAK", 2, 0.5));
+    ids.push_back(makePepID_(ref, "PEPTIDEK", 2, 0.9));
+    ids.push_back(makePepID_(ref, "PEPTIDEK", 2, 0.1));
+    ids.push_back(makePepID_("controllerType=0 controllerNumber=1 scan=9", "CCCK", 2, 0.5));
+    auto report = IDConflictResolverAlgorithm::reduceToOnePerSpectrum(ids);
+    TEST_EQUAL(report.removed, 1)
+    TEST_EQUAL(ids.size(), 3)
+    TEST_EQUAL(ids[0].getHits()[0].getSequence().toString(), "AAAK")
+    TEST_REAL_SIMILAR(ids[1].getHits()[0].getScore(), 0.1)
+    TEST_EQUAL(ids[2].getHits()[0].getSequence().toString(), "CCCK")
+  }
+
+  // (8) An empty list is not a special case.
+  {
+    PeptideIdentificationList ids;
+    auto report = IDConflictResolverAlgorithm::reduceToOnePerSpectrum(ids);
+    TEST_EQUAL(report.removed, 0)
+    TEST_TRUE(ids.empty())
+  }
 }
 END_SECTION
 

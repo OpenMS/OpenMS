@@ -6,6 +6,9 @@
 // $Authors: George Rosenberger $
 // --------------------------------------------------------------------------
 
+#include <boost/random/mersenne_twister.hpp>
+#include <boost/random/uniform_int.hpp>
+#include <boost/random/variate_generator.hpp>
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMAssay.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
@@ -125,8 +128,7 @@ namespace OpenMS
     return (product_mz >= swath.first && product_mz <= swath.second);
   }
 
-  std::string MRMAssay::getRandomSequence_(size_t sequence_size, boost::variate_generator<boost::mt19937&, boost::uniform_int<> >
-                                           pseudoRNG)
+  std::string MRMAssay::getRandomSequence_(size_t sequence_size, const std::function<int()>& pseudoRNG)
   {
     std::string aa[] =
     {
@@ -463,7 +465,7 @@ namespace OpenMS
         // Get a random unmodified peptide sequence as base for later modification
         if (DecoySequenceMap[ta_it.first].empty())
         {
-          decoy_peptide_string = getRandomSequence_(ta_it.first.size(), pseudoRNG);
+          decoy_peptide_string = getRandomSequence_(ta_it.first.size(), [&pseudoRNG]() { return pseudoRNG(); });
         }
         else
         {

@@ -7,6 +7,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/ClassTest.h>
+#include <OpenMS/DATASTRUCTURES/TypeAliases.h>
 #include <OpenMS/DATASTRUCTURES/ListUtilsIO.h>
 
 using namespace OpenMS;

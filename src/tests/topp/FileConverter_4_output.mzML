@@ -125,11 +125,11 @@
 				<cvParam cvRef="MS" accession="MS:1000511" name="ms level" value="1" />
 				<cvParam cvRef="MS" accession="MS:1000294" name="mass spectrum" />
 				<cvParam cvRef="MS" accession="MS:1000130" name="positive scan" />
-				<userParam name="filter string" type="xsd:string" value="lorem &amp; &quot;impsum&quot; &lt;&gt; "/>
 				<scanList count="1">
 					<cvParam cvRef="MS" accession="MS:1000795" name="no combination" />
 					<scan>
 						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="2.05613" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
+						<cvParam cvRef="MS" accession="MS:1000512" name="filter string" value="lorem &amp; &quot;impsum&quot; &lt;&gt; "/>
 					</scan>
 				</scanList>
 				<binaryDataArrayList count="2">
@@ -718,26 +718,26 @@
 	<index name="spectrum">
 		<offset idRef="scan=1">6376</offset>
 		<offset idRef="scan=2">12900</offset>
-		<offset idRef="scan=3">19336</offset>
-		<offset idRef="scan=4">25639</offset>
-		<offset idRef="scan=5">31654</offset>
-		<offset idRef="scan=6">37541</offset>
-		<offset idRef="scan=7">43344</offset>
-		<offset idRef="scan=8">49375</offset>
-		<offset idRef="scan=9">55070</offset>
-		<offset idRef="scan=10">60796</offset>
-		<offset idRef="scan=11">66956</offset>
-		<offset idRef="scan=12">78541</offset>
-		<offset idRef="scan=13">95195</offset>
-		<offset idRef="scan=14">98600</offset>
-		<offset idRef="scan=15">116887</offset>
-		<offset idRef="scan=16">120228</offset>
-		<offset idRef="scan=17">123826</offset>
-		<offset idRef="scan=18">127184</offset>
-		<offset idRef="scan=19">143297</offset>
-		<offset idRef="scan=20">147233</offset>
+		<offset idRef="scan=3">19352</offset>
+		<offset idRef="scan=4">25655</offset>
+		<offset idRef="scan=5">31670</offset>
+		<offset idRef="scan=6">37557</offset>
+		<offset idRef="scan=7">43360</offset>
+		<offset idRef="scan=8">49391</offset>
+		<offset idRef="scan=9">55086</offset>
+		<offset idRef="scan=10">60812</offset>
+		<offset idRef="scan=11">66972</offset>
+		<offset idRef="scan=12">78557</offset>
+		<offset idRef="scan=13">95211</offset>
+		<offset idRef="scan=14">98616</offset>
+		<offset idRef="scan=15">116903</offset>
+		<offset idRef="scan=16">120244</offset>
+		<offset idRef="scan=17">123842</offset>
+		<offset idRef="scan=18">127200</offset>
+		<offset idRef="scan=19">143313</offset>
+		<offset idRef="scan=20">147249</offset>
 	</index>
 </indexList>
-<indexListOffset>151084</indexListOffset>
+<indexListOffset>151100</indexListOffset>
 <fileChecksum>0</fileChecksum>
 </indexedmzML>

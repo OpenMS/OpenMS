@@ -9,6 +9,7 @@
 #include <OpenMS/test_config.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMFeatureQC.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/SYSTEM/TempFiles.h>
 
 #include <OpenMS/FORMAT/MRMFeatureQCFile.h>
 
@@ -249,8 +250,8 @@ START_SECTION(void store(const std::string& filename, MRMFeatureQC& mrmfqc, cons
 {
   MRMFeatureQCFile mrmfqcfile;
   MRMFeatureQC mrmfqc, mrmfqc_test;
-  std::string file_comp = File::getTemporaryFile();
-  std::string file_comp_group = File::getTemporaryFile();
+  std::string file_comp = TempFiles::getTemporaryFile();
+  std::string file_comp_group = TempFiles::getTemporaryFile();
 
   mrmfqcfile.store(file_comp, mrmfqc, false); // empty components file
   mrmfqcfile.store(file_comp_group, mrmfqc, true); // empty component groups file

@@ -525,18 +525,33 @@ START_SECTION((operator long double() const))
   DataValue d(5.4L);
   long double k = d;
   TEST_REAL_SIMILAR(k,5.4L)
+  TEST_EXCEPTION(Exception::ConversionError, (long double)DataValue())
+  TEST_EXCEPTION(Exception::ConversionError, (long double)DataValue("5.4"))
+  TEST_EXCEPTION(Exception::ConversionError, (long double)DataValue(DoubleList{5.4}))
+  TEST_EXCEPTION(Exception::ConversionError, (long double)DataValue(IntList{5}))
+  TEST_EXCEPTION(Exception::ConversionError, (long double)DataValue(StringList{"5.4"}))
 END_SECTION
 
 START_SECTION((operator double() const))
   DataValue d(5.4);
   double k = d;
   TEST_REAL_SIMILAR(k,5.4)
+  TEST_EXCEPTION(Exception::ConversionError, (double)DataValue())
+  TEST_EXCEPTION(Exception::ConversionError, (double)DataValue("5.4"))
+  TEST_EXCEPTION(Exception::ConversionError, (double)DataValue(DoubleList{5.4}))
+  TEST_EXCEPTION(Exception::ConversionError, (double)DataValue(IntList{5}))
+  TEST_EXCEPTION(Exception::ConversionError, (double)DataValue(StringList{"5.4"}))
 END_SECTION
 
 START_SECTION((operator float() const))
   DataValue d(5.4f);
   float k = d;
   TEST_REAL_SIMILAR(k,5.4f)
+  TEST_EXCEPTION(Exception::ConversionError, (float)DataValue())
+  TEST_EXCEPTION(Exception::ConversionError, (float)DataValue("5.4"))
+  TEST_EXCEPTION(Exception::ConversionError, (float)DataValue(DoubleList{5.4}))
+  TEST_EXCEPTION(Exception::ConversionError, (float)DataValue(IntList{5}))
+  TEST_EXCEPTION(Exception::ConversionError, (float)DataValue(StringList{"5.4"}))
 END_SECTION
 
 START_SECTION((operator int() const ))

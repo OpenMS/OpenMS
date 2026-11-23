@@ -135,5 +135,16 @@ END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
+START_SECTION((static float getCosine(const std::vector<float>& a, int a_start, int a_end, const IsotopeDistribution& b, int offset, int min_iso_len)))
+{
+  IsotopeDistribution b;
+  b.set({Peak1D(0.0, 4.0), Peak1D(1.0, 3.0)});
+  TEST_REAL_SIMILAR(SpectralDeconvolution::getCosine({4.0f, 3.0f}, 0, 2, b, 0, 2), 1.0)
+  TEST_REAL_SIMILAR(SpectralDeconvolution::getCosine({3.0f, 4.0f}, 0, 2, b, 0, 2), 24.0 / 25.0)
+  TEST_EQUAL(SpectralDeconvolution::getCosine({0.0f, 0.0f}, 0, 2, b, 0, 2), 0.0)
+}
+END_SECTION
+
+
 END_TEST
 
