@@ -4,7 +4,7 @@
 
 The rewrite lives on [`OpenMS/OpenMS:feature/opendia-clean-rewrite`](https://github.com/OpenMS/OpenMS/tree/feature/opendia-clean-rewrite).
 All of its code is under `src/topp/OpenDIA/`, apart from the Thermo read-ahead change, which is split out as OpenMS#10925 (approved).
-- **Local commits:** the default described below is OpenMS `bcb156e036`. The cleanup (`319f043f77`, `9ba060f978`, `35db7eaee1`), the faster interference resolver (`955516d84c`) and the rename to `OpenDIA` (`46243afae4`) follow it, all output-identical. The GBM final-round fix (`88e5da3023`) follows too (byte-identical on HeLa D156, D7V and H7, 9/9 files). None of them is pushed yet.
+- **Local commits:** the default described below is OpenMS `bcb156e036`. The cleanup (`319f043f77`, `9ba060f978`, `35db7eaee1`), the faster interference resolver (`955516d84c`) and the rename to `OpenDIA` (`46243afae4`) follow it, all output-identical. The GBM final-round fix (`88e5da3023`) follows too (byte-identical on HeLa D156, D7V and H7, 9/9 files). All are pushed to `singjc/OpenMS` (23 Nov).
 - **Status:** it is an experimental branch, not a pull request. It must not merge into `develop` until the acceptance gates of R-WP6 pass.
 
 The branch's [`src/topp/OpenDIA/README.md`](https://github.com/OpenMS/OpenMS/blob/feature/opendia-clean-rewrite/src/topp/OpenDIA/README.md) describes the tool. The evidence is in [`gates/`](gates/).
@@ -76,6 +76,7 @@ Kept: `-no_rt_refine` (about half the wall time), the tuning knobs (`-max_peaks`
 - **Robustness FAIL, then fixed:** 5 of 15 runs crashed in the GBM rescore (`a fold has zero decoy spread`, after a degenerate round 3). The fix (`88e5da3023`) falls back to the round 2 scores. With it, 15/15 complete, the other 10 are byte-identical, and HeLa is unchanged.
 - **IDs:** median N @ FDP_c 1 % is 2124 / 2144 / 2246 (raws 01 / 02 / 03), against 1804 / 1909 / 1907 on 16 Nov. That is **96 / 91 / 99 % of DIA-NN (.raw)**, up from 81-84 %.
 - **Main cost, own q is now loose:** FDP_c at own q ≤ 0.01 is above 1 % on 10 of 15 runs (medians 1.17 / 0.95 / 1.32 %, max 1.77 %). On 16 Nov it was never above 1 %. One seed is low (raw02_s4 1301).
+- **Cause (PRECHECK_ASTQ → [RESULT_ASTQ](gates/single-binary/astral-laptop/RESULT_ASTQ.md)): the GBM rescore.** A stage ladder on raws 01 + 02 shows that removing the GBM alone takes the pooled combined bound from 1.17 to 0.73 %, which is 73 % of the total drop. No other stage meets the bar. On Astral the GBM gains on raw 01 (+9.9 % at FDP_c 1 %) but loses on raw 02 (-6.1 %), and it causes the low seed. A GBM fix needs a new precheck; the default is unchanged.
 - **Cost:** about 6-7 min uncontended (up to 29 min on busy shared nodes) and about 17 GB peak RSS.
 
 ## Why the direction changed
