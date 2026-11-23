@@ -1,0 +1,108 @@
+bb03387d
+== anchor
+cmp: /nfs/research/juan/singj/opendia/gbmnull-20261123/runs/raw03_A0_s0/LFQ_Astral_DIA_15min_50ng_Human_03.precursors.tsv: No such file or directory
+A0 raw03_s0 DIFF
+/nfs/research/juan/singj/opendia/gbmnull-20261123/runs/raw03_A0_s0.log:exit 8
+/nfs/research/juan/singj/opendia/gbmnull-20261123/runs/raw03_L1_s0.log:exit 0
+/nfs/research/juan/singj/opendia/gbmnull-20261123/runs/raw03_L1_s1.log:exit 0
+/nfs/research/juan/singj/opendia/gbmnull-20261123/runs/raw03_L1_s2.log:exit 0
+/nfs/research/juan/singj/opendia/gbmnull-20261123/runs/raw03_L1_s3.log:exit 0
+/nfs/research/juan/singj/opendia/gbmnull-20261123/runs/raw03_L1_s4.log:exit 0
+set	seed	region_pairs	b_decoy_to_target	c_target_to_decoy	p_one_sided	net_target_win	gbm_target_win	decision
+A3	0	35885	9763	9764	0.506	0.5024	0.5023	use
+A3	1	36112	10007	9809	0.0808	0.4975	0.5030	use
+A3	2	36006	9719	9546	0.108	0.4991	0.5039	use
+A3	3	35973	9570	9533	0.397	0.5023	0.5033	use
+A3	4	35980	9912	9956	0.625	0.5016	0.5004	use
+== D
+library: target precursors 1390163, r = 7.0539, targets with a paired decoy 1388026 (0.9985)
+   arm  seed  N_q01  E_q01  lower  combined  N_at_FDPc1
+always     0  22204    254 0.0114    0.0131       21468
+always     1  21804    252 0.0116    0.0132       21016
+always     2  22153    242 0.0109    0.0125       21396
+always     3  21732    228 0.0105    0.0120       21054
+always     4  22017    246 0.0112    0.0128       21459
+ never     0  20167    236 0.0117    0.0134       19269
+ never     1  20281    204 0.0101    0.0115       19865
+ never     2  20256    233 0.0115    0.0131       19421
+ never     3  20381    211 0.0104    0.0118       19704
+ never     4  20775    235 0.0113    0.0129       20031
+  rule     0  22204    254 0.0114    0.0131       21468
+  rule     1  21804    252 0.0116    0.0132       21016
+  rule     2  22153    242 0.0109    0.0125       21396
+  rule     3  21732    228 0.0105    0.0120       21054
+  rule     4  20775    235 0.0113    0.0129       20031
+== H
+library: target precursors 1390163, r = 7.0539, targets with a paired decoy 1388026 (0.9985)
+   arm  seed  N_q01  E_q01  lower  combined  N_at_FDPc1
+always     0  38507    498 0.0129    0.0148       37339
+always     1  38359    470 0.0123    0.0140       37342
+always     2  38462    501 0.0130    0.0149       37349
+always     3  38531    503 0.0131    0.0149       37428
+always     4  38380    504 0.0131    0.0150       37213
+ never     0  35717    414 0.0116    0.0132       34953
+ never     1  35445    386 0.0109    0.0124       34839
+ never     2  35457    400 0.0113    0.0129       34684
+ never     3  35595    405 0.0114    0.0130       34989
+ never     4  35675    434 0.0122    0.0139       34871
+  rule     0  38507    498 0.0129    0.0148       37339
+  rule     1  38359    470 0.0123    0.0140       37342
+  rule     2  38462    501 0.0130    0.0149       37349
+  rule     3  35595    405 0.0114    0.0130       34989
+  rule     4  35675    434 0.0122    0.0139       34871
+== A1
+library: target precursors 302479, r = 1.0018, targets with a paired decoy 300942 (0.9949)
+   arm  seed  N_q01  E_q01  lower  combined  N_at_FDPc1
+always     0   2257     20 0.0089    0.0177        2136
+always     1   2231      9 0.0040    0.0081        2270
+always     2   2214     13 0.0059    0.0117        2208
+always     3   2071     13 0.0063    0.0125        2000
+always     4   2006     11 0.0055    0.0110        1957
+ never     0   1927     10 0.0052    0.0104        1913
+ never     1   1849      9 0.0049    0.0097        1943
+ never     2   1740      7 0.0040    0.0080        1897
+ never     3   1450      6 0.0041    0.0083        2028
+ never     4   2006     11 0.0055    0.0110        1957
+  rule     0   2257     20 0.0089    0.0177        2136
+  rule     1   2231      9 0.0040    0.0081        2270
+  rule     2   2214     13 0.0059    0.0117        2208
+  rule     3   2071     13 0.0063    0.0125        2000
+  rule     4   2006     11 0.0055    0.0110        1957
+== A2
+library: target precursors 302479, r = 1.0018, targets with a paired decoy 300942 (0.9949)
+   arm  seed  N_q01  E_q01  lower  combined  N_at_FDPc1
+always     0   2329     18 0.0077    0.0154        2170
+always     1   1412      6 0.0042    0.0085        2215
+always     2   2072      8 0.0039    0.0077        2146
+always     3   2114     10 0.0047    0.0095        2129
+always     4   1415     10 0.0071    0.0141        1322
+ never     0   2109      5 0.0024    0.0047        2285
+ never     1   1836      4 0.0022    0.0044        2293
+ never     2   1986      5 0.0025    0.0050        2239
+ never     3   2008      6 0.0030    0.0060        2174
+ never     4   1635      5 0.0031    0.0061        2290
+  rule     0   2329     18 0.0077    0.0154        2170
+  rule     1   1412      6 0.0042    0.0085        2215
+  rule     2   2072      8 0.0039    0.0077        2146
+  rule     3   2114     10 0.0047    0.0095        2129
+  rule     4   1415     10 0.0071    0.0141        1322
+== A3
+library: target precursors 302479, r = 1.0018, targets with a paired decoy 300942 (0.9949)
+   arm  seed  N_q01  E_q01  lower  combined  N_at_FDPc1
+always     0   2343     17 0.0073    0.0145        2222
+always     1   2300     16 0.0070    0.0139        2246
+always     2   2275     15 0.0066    0.0132        2160
+always     3   2261     12 0.0053    0.0106        2252
+always     4   2268      9 0.0040    0.0079        2338
+ never     0   2137      8 0.0037    0.0075        2303
+ never     1   2140     11 0.0051    0.0103        2055
+ never     2   2035      6 0.0029    0.0059        2305
+ never     3   2125      8 0.0038    0.0075        2212
+ never     4   2078      7 0.0034    0.0067        2231
+  rule     0   2343     17 0.0073    0.0145        2222
+  rule     1   2300     16 0.0070    0.0139        2246
+  rule     2   2275     15 0.0066    0.0132        2160
+  rule     3   2261     12 0.0053    0.0106        2252
+  rule     4   2268      9 0.0040    0.0079        2338
+
+--- Command finished with exit code: 0 ---

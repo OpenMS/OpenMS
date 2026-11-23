@@ -27,10 +27,10 @@ for nd in sorted(glob.glob(f'{D}/*_net_s*')):
     gd = f'{D}/{name}_gbm_s{seed}'
     if not os.path.isdir(gd): continue
     sn, sg = scores(nd), scores(gd)
-    x = pairs.assign(nt=sn.reindex(pairs.tg).values, nd=sn.reindex(pairs.dc).values,
-                     gt=sg.reindex(pairs.tg).values, gd=sg.reindex(pairs.dc).values).dropna()
-    x = x[(x.nt <= LN2) & (x.nd <= LN2)]
-    wn, wg = x.nt > x.nd, x.gt > x.gd
+    x = pairs.assign(n_t=sn.reindex(pairs.tg).values, n_d=sn.reindex(pairs.dc).values,
+                     g_t=sg.reindex(pairs.tg).values, g_d=sg.reindex(pairs.dc).values).dropna()
+    x = x[(x.n_t <= LN2) & (x.n_d <= LN2)]
+    wn, wg = x.n_t > x.n_d, x.g_t > x.g_d
     b, cc = int((~wn & wg).sum()), int((wn & ~wg).sum())
     p = float(binom.sf(b - 1, b + cc, 0.5)) if b + cc else 1.0
     print(f'{name}\t{seed}\t{len(x)}\t{b}\t{cc}\t{p:.3g}\t{wn.mean():.4f}\t{wg.mean():.4f}\t{"skip" if p < 0.01 else "use"}')
