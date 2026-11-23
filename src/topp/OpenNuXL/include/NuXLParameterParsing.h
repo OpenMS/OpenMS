@@ -56,7 +56,7 @@ struct NuXLParameterParsing
   // With a non-empty @p oligo_nucleotides, precursor adducts of two or more nucleotides get further fragment adducts
   // (not as marker ions, and only if they are a subformula of the precursor adduct):
   //  - for each cross-linkable nucleotide they contain: the complete precursor adduct, also after loss of H2O
-  //    (named like the precursor adduct, e.g. "UU", "UU-H2O")
+  //    (named like the precursor adduct, e.g. "UU", "UU-H2O1")
   //  - for each cross-linkable nucleotide N they contain that is also in @p oligo_nucleotides: N with the phosphate of
   //    the neighbouring nucleotide ("pNp" = N+HPO3, and "pNp-H2O"), and N after loss of two waters ("N-H2O-H2O").
   //    These need the formula of N in @p nucleotide_formulas (nucleotide monophosphates as in NuXL:target_nucleotides).

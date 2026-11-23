@@ -1273,7 +1273,7 @@ protected:
     registerStringOption_("NuXL:oligo_fragment_adducts",
                         "<nucleotides>",
                         "preset",
-                        "Larger fragment adducts for precursor adducts of two or more nucleotides. For every cross-linked nucleotide: the complete adduct, also after loss of H2O. For the cross-linked nucleotides N listed here (e.g. 'U'): N with the phosphate of its neighbour (N+HPO3, annotated 'pNp', and 'pNp-H2O') and N after loss of two waters ('N-H2O-H2O'). Only those that are a subformula of the precursor adduct are used, and none of them as marker ion. 'preset': as the preset says ('U' for the RNA-UV presets of the unmodified nucleotides, none without preset). 'none': no larger fragment adducts.",
+                        "Larger fragment adducts for precursor adducts of two or more nucleotides. For every cross-linked nucleotide: the complete adduct, also after loss of H2O. For the cross-linked nucleotides N listed here (e.g. 'U'; each must be in NuXL:can_cross_link): N with the phosphate of its neighbour (N+HPO3, annotated 'pNp', and 'pNp-H2O') and N after loss of two waters ('N-H2O-H2O'). Only those that are a subformula of the precursor adduct are used, and none of them as marker ion. 'preset': as the preset says ('U' for the RNA-UV presets of the unmodified nucleotides, none without preset). 'none': no larger fragment adducts.",
                         false,
                         true);
 
@@ -5548,6 +5548,12 @@ protected:
       if (!nucleotide_formulas.contains(c))
       {
         OPENMS_LOG_ERROR << "NuXL:oligo_fragment_adducts: '" << c << "' is not one of the target nucleotides." << std::endl;
+        return ILLEGAL_PARAMETERS;
+      }
+      // only cross-linked nucleotides get fragment adducts: a nucleotide that can't cross-link would get none of its forms
+      if (!can_xl_.contains(c))
+      {
+        OPENMS_LOG_ERROR << "NuXL:oligo_fragment_adducts: '" << c << "' is not one of the nucleotides that can cross-link (NuXL:can_cross_link: '" << can_cross_link << "')." << std::endl;
         return ILLEGAL_PARAMETERS;
       }
       oligo_nucleotides.insert(c);
