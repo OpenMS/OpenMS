@@ -27,6 +27,17 @@
 #if !defined(SIMDE_X86_XOP_H)
 #define SIMDE_X86_XOP_H
 
+#include <stddef.h>
+#include <stdint.h>
+
+#include "../hedley.h"
+#include "../simde-diagnostic.h"
+#include "../simde-features.h"
+#include "../simde-math.h"
+#include "../simde-common.h"
+#include "sse.h"
+#include "sse2.h"
+#include "avx.h"
 #include "avx2.h"
 
 #if !defined(SIMDE_X86_XOP_NATIVE) && defined(SIMDE_ENABLE_NATIVE_ALIASES)
@@ -3727,7 +3738,7 @@ simde_mm256_permute2_pd (simde__m256d a, simde__m256d b, simde__m256i c, const i
       SIMDE_LCC_REVERT_DEPRECATED_WARNINGS \
     }))
   #else
-    #define simde_mm256_permute2_pd(a, b, c, imm8) simde_undeprecated_mm256_permute2_pd((a), (b), (c), (imm8))
+    #define simde_mm256_permute2_pd(a, b, c, imm8) _mm256_permute2_pd((a), (b), (c), (imm8))
   #endif
 #endif
 #if defined(SIMDE_X86_XOP_ENABLE_NATIVE_ALIASES)

@@ -121,8 +121,59 @@
 #    define SIMDE_ARCH_ARM_NEON SIMDE_ARCH_ARM
 #  endif
 #endif
-#if defined(__ARM_FEATURE_SVE)
+#if defined(__ARM_FEATURE_AES) && __ARM_FEATURE_AES
+#  define SIMDE_ARCH_ARM_AES
+#endif
+#if defined(__ARM_FEATURE_COMPLEX) && __ARM_FEATURE_COMPLEX
+#  define SIMDE_ARCH_ARM_COMPLEX
+#endif
+#if defined(__ARM_FEATURE_CRYPTO) && __ARM_FEATURE_CRYPTO
+#  define SIMDE_ARCH_ARM_CRYPTO
+#endif
+#if defined(__ARM_FEATURE_CRC32) && __ARM_FEATURE_CRC32
+#  define SIMDE_ARCH_ARM_CRC32
+#endif
+#if defined(__ARM_FEATURE_DOTPROD) && __ARM_FEATURE_DOTPROD
+#  define SIMDE_ARCH_ARM_DOTPROD
+#endif
+#if defined(__ARM_FEATURE_FMA) && __ARM_FEATURE_FMA
+#  define SIMDE_ARCH_ARM_FMA
+#endif
+#if defined(__ARM_FEATURE_FP16_FML) && __ARM_FEATURE_FP16_FML
+#  define SIMDE_ARCH_ARM_FP16_FML
+#endif
+#if defined(__ARM_FEATURE_FRINT) && __ARM_FEATURE_FRINT
+#  define SIMDE_ARCH_ARM_FRINT
+#endif
+#if defined(__ARM_FEATURE_MATMUL_INT8) && __ARM_FEATURE_MATMUL_INT8
+#  define SIMDE_ARCH_ARM_MATMUL_INT8
+#endif
+#if defined(__ARM_FEATURE_SHA2) && __ARM_FEATURE_SHA2 && !defined(__APPLE_CC__)
+#  define SIMDE_ARCH_ARM_SHA2
+#endif
+#if defined(__ARM_FEATURE_SHA3) && __ARM_FEATURE_SHA3
+#  define SIMDE_ARCH_ARM_SHA3
+#endif
+#if defined(__ARM_FEATURE_SHA512) && __ARM_FEATURE_SHA512
+#  define SIMDE_ARCH_ARM_SHA512
+#endif
+#if defined(__ARM_FEATURE_SM3) && __ARM_FEATURE_SM3
+#  define SIMDE_ARCH_ARM_SM3
+#endif
+#if defined(__ARM_FEATURE_SM4) && __ARM_FEATURE_SM4
+#  define SIMDE_ARCH_ARM_SM4
+#endif
+#if defined(__ARM_FEATURE_SVE) && __ARM_FEATURE_SVE
 #  define SIMDE_ARCH_ARM_SVE
+#endif
+#if defined(__ARM_FEATURE_SVE2) && __ARM_FEATURE_SVE2
+#  define SIMDE_ARCH_ARM_SVE2
+#endif
+#if defined(__ARM_FEATURE_QRDMX) && __ARM_FEATURE_QRDMX
+#  define SIMDE_ARCH_ARM_QRDMX
+#endif
+#if defined(__ARM_FEATURE_SVE2_BITPERM) && __ARM_FEATURE_SVE2_BITPERM
+#  define SIMDE_ARCH_ARM_SVE2_BITPERM
 #endif
 
 /* Blackfin
@@ -339,6 +390,15 @@
 #  if defined(__F16C__) || (defined(HEDLEY_MSVC_VERSION) && HEDLEY_MSVC_VERSION_CHECK(19,30,0) && defined(SIMDE_ARCH_X86_AVX2) )
 #    define SIMDE_ARCH_X86_F16C 1
 #  endif
+#  if defined(__AES__)
+#    define SIMDE_ARCH_X86_AES 1
+#  endif
+#  if defined(__BMI__)
+#    define SIMDE_ARCH_X86_BMI1 1
+#  endif
+#  if defined(__BMI2__)
+#    define SIMDE_ARCH_X86_BMI2 1
+#  endif
 #endif
 
 /* Itanium
@@ -467,8 +527,40 @@
   #define SIMDE_ARCH_POWER_ALTIVEC_CHECK(version) (0)
 #endif
 
-#if defined(__riscv) && __riscv_xlen==64
-#  define SIMDE_ARCH_RISCV64
+/* RISC-V
+   <https://en.wikipedia.org/wiki/RISC-V> */
+#if defined(__riscv) || defined(__riscv__)
+#  if __riscv_xlen == 64
+#     define SIMDE_ARCH_RISCV64
+#  elif __riscv_xlen == 32
+#     define SIMDE_ARCH_RISCV32
+#  endif
+#endif
+
+/* RISC-V SIMD ISA extensions */
+#if defined(__riscv_zve32x)
+#  define SIMDE_ARCH_RISCV_ZVE32X 1
+#endif
+#if defined(__riscv_zve32f)
+#  define SIMDE_ARCH_RISCV_ZVE32F 1
+#endif
+#if defined(__riscv_zve64x)
+#  define SIMDE_ARCH_RISCV_ZVE64X 1
+#endif
+#if defined(__riscv_zve64f)
+#  define SIMDE_ARCH_RISCV_ZVE64F 1
+#endif
+#if defined(__riscv_zve64d)
+#  define SIMDE_ARCH_RISCV_ZVE64D 1
+#endif
+#if defined(__riscv_v) || (defined(__riscv_zve64d) && defined(__riscv_zvl128b))
+#  define SIMDE_ARCH_RISCV_V 1
+#endif
+#if defined(__riscv_zvfh)
+#  define SIMDE_ARCH_RISCV_ZVFH 1
+#endif
+#if defined(__riscv_zvfhmin)
+#  define SIMDE_ARCH_RISCV_ZVFHMIN 1
 #endif
 
 /* SPARC
@@ -569,6 +661,10 @@
 #  define SIMDE_ARCH_WASM_SIMD128
 #endif
 
+#if defined(SIMDE_ARCH_WASM) && defined(__wasm_relaxed_simd__)
+#  define SIMDE_ARCH_WASM_RELAXED_SIMD
+#endif
+
 /* Xtensa
    <https://en.wikipedia.org/wiki/> */
 #if defined(__xtensa__) || defined(__XTENSA__)
@@ -578,6 +674,11 @@
 /* Availability of 16-bit floating-point arithmetic intrinsics */
 #if defined(__ARM_FEATURE_FP16_VECTOR_ARITHMETIC)
 #  define SIMDE_ARCH_ARM_NEON_FP16
+#endif
+
+/* Availability of 16-bit brain floating-point arithmetic intrinsics */
+#if defined(__ARM_FEATURE_BF16_VECTOR_ARITHMETIC)
+#  define SIMDE_ARCH_ARM_NEON_BF16
 #endif
 
 /* LoongArch

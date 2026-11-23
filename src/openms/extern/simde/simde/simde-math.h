@@ -22,6 +22,7 @@
  *
  * Copyright:
  *   2017-2020 Evan Nemerson <evan@nemerson.com>
+ *   2023      Yi-Yen Chung <eric681@andestech.com> (Copyright owned by Andes Technology)
  */
 
 /* Attempt to find math functions.  Functions may be in <cmath>,
@@ -102,10 +103,11 @@ SIMDE_DISABLE_UNWANTED_DIAGNOSTICS
    * macro libc++ uses. */
   #if defined(isnan) || (defined(_LIBCPP_MATH_H) && !defined(_LIBCPP_CMATH))
     #define SIMDE_MATH_HAVE_MATH_H
-  #elif defined(__cplusplus)
+  #elif defined(__cplusplus) && !defined(HEDLEY_MSVC_VERSION)
     #define SIMDE_MATH_HAVE_CMATH
   #endif
-#elif defined(__has_include)
+#endif
+#if defined(__has_include) && !(defined(SIMDE_MATH_HAVE_MATH_H) || defined(SIMDE_MATH_HAVE_CMATH))
   #if defined(__cplusplus) && (__cplusplus >= 201103L) && __has_include(<cmath>)
     #define SIMDE_MATH_HAVE_CMATH
     #include <cmath>
@@ -174,7 +176,7 @@ SIMDE_DISABLE_UNWANTED_DIAGNOSTICS
   #endif
 #endif
 
-#if !defined(SIMDE_NANF)
+#if !defined(SIMDE_MATH_NANF)
   #if \
       HEDLEY_HAS_BUILTIN(__builtin_nanf) || \
       HEDLEY_GCC_VERSION_CHECK(3,3,0) || \
@@ -951,16 +953,36 @@ simde_math_fpclass(double v, const int imm8) {
   #endif
 #endif
 
+#if !defined(simde_math_pow)
+  #if SIMDE_MATH_BUILTIN_LIBM(pow)
+    #define simde_math_pow(y, x) __builtin_pow(y, x)
+  #elif defined(SIMDE_MATH_HAVE_CMATH)
+    #define simde_math_pow(y, x) std::pow(y, x)
+  #elif defined(SIMDE_MATH_HAVE_MATH_H)
+    #define simde_math_pow(y, x) pow(y, x)
+  #endif
+#endif
+
+#if !defined(simde_math_powf)
+  #if SIMDE_MATH_BUILTIN_LIBM(powf)
+    #define simde_math_powf(y, x) __builtin_powf(y, x)
+  #elif defined(SIMDE_MATH_HAVE_CMATH)
+    #define simde_math_powf(y, x) std::pow(y, x)
+  #elif defined(SIMDE_MATH_HAVE_MATH_H)
+    #define simde_math_powf(y, x) powf(y, x)
+  #endif
+#endif
+
 #if HEDLEY_HAS_BUILTIN(__builtin_exp10) ||  HEDLEY_GCC_VERSION_CHECK(3,4,0)
   #  define simde_math_exp10(v) __builtin_exp10(v)
 #else
-#  define simde_math_exp10(v) pow(10.0, (v))
+#  define simde_math_exp10(v) simde_math_pow(10.0, (v))
 #endif
 
 #if HEDLEY_HAS_BUILTIN(__builtin_exp10f) ||  HEDLEY_GCC_VERSION_CHECK(3,4,0)
   #  define simde_math_exp10f(v) __builtin_exp10f(v)
 #else
-#  define simde_math_exp10f(v) powf(10.0f, (v))
+#  define simde_math_exp10f(v) simde_math_powf(10.0f, (v))
 #endif
 
 #if !defined(simde_math_fabs)
@@ -1203,26 +1225,6 @@ simde_math_fpclass(double v, const int imm8) {
   #endif
 #endif
 
-#if !defined(simde_math_pow)
-  #if SIMDE_MATH_BUILTIN_LIBM(pow)
-    #define simde_math_pow(y, x) __builtin_pow(y, x)
-  #elif defined(SIMDE_MATH_HAVE_CMATH)
-    #define simde_math_pow(y, x) std::pow(y, x)
-  #elif defined(SIMDE_MATH_HAVE_MATH_H)
-    #define simde_math_pow(y, x) pow(y, x)
-  #endif
-#endif
-
-#if !defined(simde_math_powf)
-  #if SIMDE_MATH_BUILTIN_LIBM(powf)
-    #define simde_math_powf(y, x) __builtin_powf(y, x)
-  #elif defined(SIMDE_MATH_HAVE_CMATH)
-    #define simde_math_powf(y, x) std::pow(y, x)
-  #elif defined(SIMDE_MATH_HAVE_MATH_H)
-    #define simde_math_powf(y, x) powf(y, x)
-  #endif
-#endif
-
 #if !defined(simde_math_rint)
   #if SIMDE_MATH_BUILTIN_LIBM(rint)
     #define simde_math_rint(v) __builtin_rint(v)
@@ -1265,7 +1267,7 @@ simde_math_fpclass(double v, const int imm8) {
 
 #if !defined(simde_math_roundeven)
   #if \
-     (!defined(HEDLEY_EMSCRIPTEN_VERSION) && HEDLEY_HAS_BUILTIN(__builtin_roundeven)) || \
+     ((!defined(HEDLEY_EMSCRIPTEN_VERSION) || HEDLEY_EMSCRIPTEN_VERSION_CHECK(3, 1, 43)) && HEDLEY_HAS_BUILTIN(__builtin_roundeven)) || \
       HEDLEY_GCC_VERSION_CHECK(10,0,0)
     #define simde_math_roundeven(v) __builtin_roundeven(v)
   #elif defined(simde_math_round) && defined(simde_math_fabs)
@@ -1285,7 +1287,7 @@ simde_math_fpclass(double v, const int imm8) {
 
 #if !defined(simde_math_roundevenf)
   #if \
-     (!defined(HEDLEY_EMSCRIPTEN_VERSION) && HEDLEY_HAS_BUILTIN(__builtin_roundevenf)) || \
+     ((!defined(HEDLEY_EMSCRIPTEN_VERSION) || HEDLEY_EMSCRIPTEN_VERSION_CHECK(3, 1, 43)) && HEDLEY_HAS_BUILTIN(__builtin_roundevenf)) || \
       HEDLEY_GCC_VERSION_CHECK(10,0,0)
     #define simde_math_roundevenf(v) __builtin_roundevenf(v)
   #elif defined(simde_math_roundf) && defined(simde_math_fabsf)
@@ -1360,6 +1362,16 @@ simde_math_fpclass(double v, const int imm8) {
     #define simde_math_sqrtf(v) std::sqrt(v)
   #elif defined(SIMDE_MATH_HAVE_MATH_H)
     #define simde_math_sqrtf(v) sqrtf(v)
+  #endif
+#endif
+
+#if !defined(simde_math_sqrtl)
+  #if SIMDE_MATH_BUILTIN_LIBM(sqrtl)
+    #define simde_math_sqrtl(v) __builtin_sqrtl(v)
+  #elif defined(SIMDE_MATH_HAVE_CMATH)
+    #define simde_math_sqrtl(v) std::sqrt(v)
+  #elif defined(SIMDE_MATH_HAVE_MATH_H)
+    #define simde_math_sqrtl(v) sqrtl(v)
   #endif
 #endif
 
@@ -1503,7 +1515,7 @@ simde_math_fpclass(double v, const int imm8) {
   static HEDLEY_INLINE
   double
   simde_math_cdfnorminv(double p) {
-    static const double a[] = {
+    static const double a[6] = {
       -3.969683028665376e+01,
        2.209460984245205e+02,
       -2.759285104469687e+02,
@@ -1512,7 +1524,7 @@ simde_math_fpclass(double v, const int imm8) {
        2.506628277459239e+00
     };
 
-    static const double b[] = {
+    static const double b[5] = {
       -5.447609879822406e+01,
        1.615858368580409e+02,
       -1.556989798598866e+02,
@@ -1520,7 +1532,7 @@ simde_math_fpclass(double v, const int imm8) {
       -1.328068155288572e+01
     };
 
-    static const double c[] = {
+    static const double c[6] = {
       -7.784894002430293e-03,
       -3.223964580411365e-01,
       -2.400758277161838e+00,
@@ -1529,7 +1541,7 @@ simde_math_fpclass(double v, const int imm8) {
        2.938163982698783e+00
     };
 
-    static const double d[] = {
+    static const double d[4] = {
       7.784695709041462e-03,
       3.224671290700398e-01,
       2.445134137142996e+00,
@@ -1570,7 +1582,7 @@ simde_math_fpclass(double v, const int imm8) {
   static HEDLEY_INLINE
   float
   simde_math_cdfnorminvf(float p) {
-    static const float a[] = {
+    static const float a[6] = {
       -3.969683028665376e+01f,
        2.209460984245205e+02f,
       -2.759285104469687e+02f,
@@ -1578,14 +1590,14 @@ simde_math_fpclass(double v, const int imm8) {
       -3.066479806614716e+01f,
        2.506628277459239e+00f
     };
-    static const float b[] = {
+    static const float b[5] = {
       -5.447609879822406e+01f,
        1.615858368580409e+02f,
       -1.556989798598866e+02f,
        6.680131188771972e+01f,
       -1.328068155288572e+01f
     };
-    static const float c[] = {
+    static const float c[6] = {
       -7.784894002430293e-03f,
       -3.223964580411365e-01f,
       -2.400758277161838e+00f,
@@ -1593,7 +1605,7 @@ simde_math_fpclass(double v, const int imm8) {
        4.374664141464968e+00f,
        2.938163982698783e+00f
     };
-    static const float d[] = {
+    static const float d[4] = {
       7.784695709041462e-03f,
       3.224671290700398e-01f,
       2.445134137142996e+00f,
@@ -1735,7 +1747,7 @@ simde_math_fpclass(double v, const int imm8) {
          1.382719649631f,
          0.690969348887f,
         -1.128081391617f,
-         0.680544246825f
+         0.680544246825f,
         -0.164441567910f
       };
       static const float q[3] = {
@@ -1904,7 +1916,7 @@ simde_math_adds_u32(uint32_t a, uint32_t b) {
     return vqadds_u32(a, b);
   #else
     uint32_t r = a + b;
-    r |= -(r < a);
+    r |= HEDLEY_STATIC_CAST(uint32_t, -(r < a));
     return r;
   #endif
 }
@@ -1916,7 +1928,7 @@ simde_math_adds_u64(uint64_t a, uint64_t b) {
     return vqaddd_u64(a, b);
   #else
     uint64_t r = a + b;
-    r |= -(r < a);
+    r |= HEDLEY_STATIC_CAST(uint64_t, -(r < a));
     return r;
   #endif
 }
@@ -2032,7 +2044,7 @@ simde_math_subs_u32(uint32_t a, uint32_t b) {
     return vqsubs_u32(a, b);
   #else
     uint32_t res = a - b;
-    res &= -(res <= a);
+    res &= HEDLEY_STATIC_CAST(uint32_t, -(res <= a));
     return res;
   #endif
 }
@@ -2044,7 +2056,7 @@ simde_math_subs_u64(uint64_t a, uint64_t b) {
     return vqsubd_u64(a, b);
   #else
     uint64_t res = a - b;
-    res &= -(res <= a);
+    res &= HEDLEY_STATIC_CAST(uint64_t, -(res <= a));
     return res;
   #endif
 }
