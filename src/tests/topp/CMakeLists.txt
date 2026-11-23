@@ -9406,3 +9406,12 @@ add_test("TOPP_MassTraceExtractor_3_json" ${TOPP_BIN_PATH}/MassTraceExtractor -t
 #add_test("TOPP_MassTraceExtractor_3_json_out" ${CMAKE_COMMAND} -E compare_files --ignore-eol ${DATA_DIR_TOPP}/MassTraceExtractor_3_expected.ini)
 add_test("TOPP_MassTraceExtractor_3_json_out" ${DIFF} -whitelist "Version of the tool that generated this parameters file." "supported_formats" -in1 ${TESTS_TEMP_DIR}/MassTraceExtractor_3.ini -in2 ${DATA_DIR_TOPP}/MassTraceExtractor_3_expected.ini )
 set_tests_properties("TOPP_MassTraceExtractor_3_json_out" PROPERTIES DEPENDS "TOPP_MassTraceExtractor_3_json")
+
+# TEMPORARY (scratch branch only): dump complete SimpleSearchEngine outputs to regenerate their goldens
+macro(openms_dump_golden_file name file producer)
+  add_test("TOPP_dump_${name}" ${CMAKE_COMMAND} -DFILE=${TESTS_TEMP_DIR}/${file} -DTAG=DUMP_${name} -P ${DATA_DIR_TOPP}/dump_lines_for_golden.cmake)
+  set_tests_properties("TOPP_dump_${name}" PROPERTIES DEPENDS "${producer}")
+endmacro()
+openms_dump_golden_file(SSE1 SimpleSearchEngine_1_out.tmp.idXML TOPP_SimpleSearchEngine_1)
+openms_dump_golden_file(SSE2 SimpleSearchEngine_2_out.tmp.idXML TOPP_SimpleSearchEngine_2)
+openms_dump_golden_file(SSE3 SimpleSearchEngine_3_out.tmp.idXML TOPP_SimpleSearchEngine_3_fasta_alias)
