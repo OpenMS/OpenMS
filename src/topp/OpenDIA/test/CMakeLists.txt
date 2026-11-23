@@ -52,18 +52,18 @@ add_test(NAME OpenDIA_no_openswath
 
 if(EXISTS "${CMAKE_SOURCE_DIR}/src/tests/topp/OpenSwathWorkflow_17_input.mzML" AND
    EXISTS "${CMAKE_SOURCE_DIR}/src/tests/topp/TargetedFileConverter_10_input.pqp")
-  # OpenDIAWorkflow fails closed: a library too small to calibrate, and two inputs with one file name (outputs
+  # OpenDIA fails closed: a library too small to calibrate, and two inputs with one file name (outputs
   # would collide).
-  add_test(NAME OpenDIAWorkflow_fails_closed_on_tiny_library
-    COMMAND $<TARGET_FILE:OpenDIAWorkflow>
+  add_test(NAME OpenDIA_fails_closed_on_tiny_library
+    COMMAND $<TARGET_FILE:OpenDIA>
       -in ${CMAKE_SOURCE_DIR}/src/tests/topp/OpenSwathWorkflow_17_input.mzML
       -lib ${CMAKE_SOURCE_DIR}/src/tests/topp/TargetedFileConverter_10_input.pqp
-      -out_dir ${CMAKE_CURRENT_BINARY_DIR}/OpenDIAWorkflow_tiny)
-  set_tests_properties(OpenDIAWorkflow_fails_closed_on_tiny_library PROPERTIES WILL_FAIL TRUE)
-  add_test(NAME OpenDIAWorkflow_rejects_duplicate_run_names
-    COMMAND $<TARGET_FILE:OpenDIAWorkflow>
+      -out_dir ${CMAKE_CURRENT_BINARY_DIR}/OpenDIA_tiny)
+  set_tests_properties(OpenDIA_fails_closed_on_tiny_library PROPERTIES WILL_FAIL TRUE)
+  add_test(NAME OpenDIA_rejects_duplicate_run_names
+    COMMAND $<TARGET_FILE:OpenDIA>
       -in ${CMAKE_SOURCE_DIR}/src/tests/topp/OpenSwathWorkflow_17_input.mzML ${CMAKE_SOURCE_DIR}/src/tests/topp/OpenSwathWorkflow_17_input.mzML
       -lib ${CMAKE_SOURCE_DIR}/src/tests/topp/TargetedFileConverter_10_input.pqp
-      -out_dir ${CMAKE_CURRENT_BINARY_DIR}/OpenDIAWorkflow_duplicate)
-  set_tests_properties(OpenDIAWorkflow_rejects_duplicate_run_names PROPERTIES WILL_FAIL TRUE)
+      -out_dir ${CMAKE_CURRENT_BINARY_DIR}/OpenDIA_duplicate)
+  set_tests_properties(OpenDIA_rejects_duplicate_run_names PROPERTIES WILL_FAIL TRUE)
 endif()

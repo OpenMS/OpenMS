@@ -62,10 +62,10 @@ if(COMMAND openms_add_library_compiler_flags)
   openms_add_library_compiler_flags(OpenDIA_impl)
 endif()
 
-add_executable(OpenDIAWorkflow OpenDIAWorkflow.cpp)
-target_link_libraries(OpenDIAWorkflow PRIVATE OpenDIA_impl)
+add_executable(OpenDIA OpenDIA.cpp)
+target_link_libraries(OpenDIA PRIVATE OpenDIA_impl)
 if(COMMAND openms_add_executable_compiler_flags)
-  openms_add_executable_compiler_flags(OpenDIAWorkflow)
+  openms_add_executable_compiler_flags(OpenDIA)
 endif()
 
 if(CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)

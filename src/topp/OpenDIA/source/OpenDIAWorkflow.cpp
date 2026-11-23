@@ -205,11 +205,11 @@ namespace OpenMS::OpenDIA
 
   // ------------------------------------------------------------------------------------------------ library
 
-  AnalysisLibrary AnalysisLibrary::read(const std::string& pqp)
+  AnalysisLibrary AnalysisLibrary::read(const std::string& search_pqp, const std::string& scoring_pqp)
   {
     AnalysisLibrary lib;
-    lib.search = readLibrary(pqp);
-    const auto traml = readPrecursorTraMLIDs(pqp);
+    lib.search = readLibrary(search_pqp);
+    const auto traml = readPrecursorTraMLIDs(search_pqp);
     lib.traml_ids.assign(traml.begin(), traml.end());
     std::unordered_map<std::string, std::string> traml_to_id;
     for (const auto& [id, name] : traml) traml_to_id.emplace(name, id);
@@ -290,11 +290,25 @@ namespace OpenMS::OpenDIA
         p.scoring_in_search[s] = search_annotations[pi].contains(annotation(*list[s].second));
       }
     };
-    for (std::uint32_t pi = 0; pi < lib.precursors.size(); ++pi)
+    if (scoring_pqp.empty())
     {
-      std::vector<std::pair<long, const OpenDIA::LibraryTransition*>> list;
-      for (const auto* t : fragments[pi]) list.emplace_back(std::stol(t->transition_name), t);
-      assign(pi, list);
+      for (std::uint32_t pi = 0; pi < lib.precursors.size(); ++pi)
+      {
+        std::vector<std::pair<long, const OpenDIA::LibraryTransition*>> list;
+        for (const auto* t : fragments[pi]) list.emplace_back(std::stol(t->transition_name), t);
+        assign(pi, list);
+      }
+    }
+    else
+    {
+      const OpenDIA::Library scoring = readLibrary(scoring_pqp);
+      std::vector<std::vector<std::pair<long, const OpenDIA::LibraryTransition*>>> lists(lib.precursors.size());
+      for (const auto& t : scoring.getTransitions())
+      {
+        const auto it = lib.index.find(t.peptide_ref);
+        if (it != lib.index.end()) lists[it->second].emplace_back(std::stol(t.transition_name), &t);
+      }
+      for (std::uint32_t pi = 0; pi < lib.precursors.size(); ++pi) assign(pi, lists[pi]);
     }
     return lib;
   }

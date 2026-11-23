@@ -30,7 +30,7 @@
 using namespace OpenMS;
 
 /**
-  @page TOPP_OpenDIAWorkflow OpenDIAWorkflow
+  @page TOPP_OpenDIA OpenDIA
   @brief Complete OpenDIA analysis of DIA runs: calibration, candidate search, features, scoring and q-values.
 
   For every input run: identification-free calibration of library RT, fragment m/z and 1/K0; candidate search with the
@@ -42,10 +42,10 @@ using namespace OpenMS;
   (precursors at the run and global q cut, all runs) and optionally <run>.features.tsv (every scored window with its
   features).
 */
-class TOPPOpenDIAWorkflow final : public TOPPBase
+class TOPPOpenDIA final : public TOPPBase
 {
 public:
-  TOPPOpenDIAWorkflow() : TOPPBase("OpenDIAWorkflow", "Complete OpenDIA analysis of DIA runs: raw spectra to precursor q-values.", {}, false) {}
+  TOPPOpenDIA() : TOPPBase("OpenDIA", "Complete OpenDIA analysis of DIA runs: raw spectra to precursor q-values.", {}, false) {}
 
 protected:
   void registerOptionsAndFlags_() override
@@ -53,6 +53,9 @@ protected:
     registerInputFileList_("in", "<files>", {}, "DIA runs (Thermo raw, mzML, ...)");
     registerInputFile_("lib", "<file>", "", "PQP library with decoys named DECOY_<target TRAML_ID> (search fragments, up to 6 per precursor)");
     setValidFormats_("lib", {"pqp"});
+    registerInputFile_("scoring_lib", "<file>", "", "Optional PQP with up to 12 scoring fragments per precursor (same precursor IDs); "
+                       "default: the search fragments", false);
+    setValidFormats_("scoring_lib", {"pqp"});
     registerOutputDir_("out_dir", "<dir>", "", "Output directory");
     registerDoubleOption_("q", "<q>", 0.01, "q-value cut of the combined precursor table", false);
     setMinFloat_("q", 0.0);
@@ -215,11 +218,16 @@ protected:
     std::string lib_path = getStringOption_("lib");
     if (getStringOption_("decoys") == "predict")
     {
+      if (!getStringOption_("scoring_lib").empty())
+      {
+        writeLogError_("-decoys predict does not support -scoring_lib (its decoys would not match the predicted ones).");
+        return ILLEGAL_PARAMETERS;
+      }
       const std::string cache = getStringOption_("decoy_cache");
       lib_path = predictDecoys_(lib_path, cache.empty() ? out_dir : cache);
     }
     writeLogInfo_("Reading library " + lib_path);
-    OpenDIA::AnalysisLibrary library = OpenDIA::AnalysisLibrary::read(lib_path);
+    OpenDIA::AnalysisLibrary library = OpenDIA::AnalysisLibrary::read(lib_path, getStringOption_("scoring_lib"));
     std::size_t library_rss = 0;
     SysInfo::getProcessMemoryConsumption(library_rss);
     writeLogInfo_("Library: precursors=" + std::to_string(library.precursors.size()) + " pairs=" + std::to_string(library.pairs) +
@@ -392,6 +400,6 @@ protected:
 
 int main(int argc, const char** argv)
 {
-  TOPPOpenDIAWorkflow tool;
+  TOPPOpenDIA tool;
   return tool.main(argc, argv);
 }

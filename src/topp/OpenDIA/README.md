@@ -1,12 +1,12 @@
-# OpenDIAWorkflow
+# OpenDIA
 
 Identification-free DIA analysis on a predicted spectral library. Targets and decoys are treated identically; no labels
 or external identifications are used.
 
-## One command: `OpenDIAWorkflow`
+## One command: `OpenDIA`
 
 ```
-OpenDIAWorkflow -in run1.raw run2.raw ... -lib library.pqp -out_dir results -threads 8
+OpenDIA -in run1.raw run2.raw ... -lib library.pqp [-scoring_lib library12.pqp] -out_dir results -threads 8
 ```
 
 Per run:

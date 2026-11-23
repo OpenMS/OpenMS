@@ -62,10 +62,11 @@ namespace OpenMS::OpenDIA
     std::size_t pairs = 0;
 
     /**
-      @brief Read the library; the search fragments (in transition ID order) are also the scoring fragments.
-      @throws Exception::InvalidValue On a precursor without TRAML_ID or a decoy TRAML_ID not named DECOY_<target>.
+      @brief Read the search library and, if given, the scoring library (same precursor IDs; up to 12 fragments each,
+      in transition ID order). Without a scoring library the search fragments are the scoring fragments.
+      @throws Exception::InvalidValue On a decoy without its target or a precursor missing from the scoring library.
     */
-    static AnalysisLibrary read(const std::string& pqp);
+    static AnalysisLibrary read(const std::string& search_pqp, const std::string& scoring_pqp = "");
   };
 
   /// Settings of one run.
