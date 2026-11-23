@@ -551,9 +551,13 @@ START_SECTION((static double computeMVHScore(double, bool, const MSSpectrum&, co
     TEST_STRING_EQUAL(annotations[0].annotation, "c1")
     TEST_EQUAL(annotations[0].charge, -1)
     TEST_REAL_SIMILAR(annotations[0].mz, 105.0)
+    TEST_TRUE(annotations[0].theoretical_mz.has_value())
+    TEST_REAL_SIMILAR(*annotations[0].theoretical_mz, 104.98)
     TEST_STRING_EQUAL(annotations[1].annotation, "c2")
     TEST_EQUAL(annotations[1].charge, -2)
     TEST_REAL_SIMILAR(annotations[1].mz, 105.0)
+    TEST_TRUE(annotations[1].theoretical_mz.has_value())
+    TEST_REAL_SIMILAR(*annotations[1].theoretical_mz, 105.005)
   }
   vector<PeptideHit::PeakAnnotation> legacy_annotations;
   const double legacy_annotated = MetaboliteSpectralMatching::computeMVHScore(

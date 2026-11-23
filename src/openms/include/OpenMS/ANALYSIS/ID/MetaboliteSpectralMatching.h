@@ -326,7 +326,7 @@ namespace OpenMS
       @param[in] single_peak_credit Count each observed peak once; false restores per-ion counting.
       @return Nonnegative MVH score, or zero for insufficient peaks or an invalid per-ion class count.
       @throws Exception::InvalidParameter for an invalid tolerance, class count or TIC fraction.
-      @param[out] annotations Matching ion annotations appended to the vector.
+      @param[out] annotations Matching ion annotations (annotation string, charge, observed/theoretical m/z, intensity) appended to the vector.
     */
     static double computeMVHScore(
       double fragment_mass_error,
