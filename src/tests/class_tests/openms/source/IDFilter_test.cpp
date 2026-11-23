@@ -1256,6 +1256,8 @@ START_SECTION((static void recordGroupScoreThreshold(ProteinIdentification& prot
   IDFilter::recordGroupScoreThreshold(run, 0.1);
   TEST_REAL_SIMILAR(double(run.getMetaValue(Constants::UserParam::PROTEIN_GROUP_SCORE_THRESHOLD)), 0.05)
   run.setScoreType("qvalue");
+  IDFilter::recordGroupScoreThreshold(run, 0.1); // the same score type under another name: the stricter 0.05 stays
+  TEST_REAL_SIMILAR(double(run.getMetaValue(Constants::UserParam::PROTEIN_GROUP_SCORE_THRESHOLD)), 0.05)
   IDFilter::recordGroupScoreThreshold(run, 0.01);
   TEST_REAL_SIMILAR(double(run.getMetaValue(Constants::UserParam::PROTEIN_GROUP_SCORE_THRESHOLD)), 0.01)
   TEST_EQUAL(run.getMetaValue(Constants::UserParam::PROTEIN_GROUP_SCORE_THRESHOLD_TYPE).toString(), "qvalue")
@@ -1266,10 +1268,16 @@ START_SECTION((static void recordGroupScoreThreshold(ProteinIdentification& prot
   TEST_REAL_SIMILAR(double(run.getMetaValue(Constants::UserParam::PROTEIN_GROUP_SCORE_THRESHOLD)), 0.9)
   IDFilter::recordGroupScoreThreshold(run, 0.8);
   TEST_REAL_SIMILAR(double(run.getMetaValue(Constants::UserParam::PROTEIN_GROUP_SCORE_THRESHOLD)), 0.9)
-  // a non-numeric previous cutoff is replaced
+  // a previous cutoff stored as string is compared by its value; a non-numeric one is replaced
   run.setMetaValue(Constants::UserParam::PROTEIN_GROUP_SCORE_THRESHOLD, "0.95");
   IDFilter::recordGroupScoreThreshold(run, 0.8);
+  TEST_REAL_SIMILAR(double(run.getMetaValue(Constants::UserParam::PROTEIN_GROUP_SCORE_THRESHOLD)), 0.95)
+  run.setMetaValue(Constants::UserParam::PROTEIN_GROUP_SCORE_THRESHOLD, "unknown");
+  IDFilter::recordGroupScoreThreshold(run, 0.8);
   TEST_REAL_SIMILAR(double(run.getMetaValue(Constants::UserParam::PROTEIN_GROUP_SCORE_THRESHOLD)), 0.8)
+  // after recalculated group scores (keep_stricter = false), an earlier cutoff no longer applies
+  IDFilter::recordGroupScoreThreshold(run, 0.7, false);
+  TEST_REAL_SIMILAR(double(run.getMetaValue(Constants::UserParam::PROTEIN_GROUP_SCORE_THRESHOLD)), 0.7)
 }
 END_SECTION
 

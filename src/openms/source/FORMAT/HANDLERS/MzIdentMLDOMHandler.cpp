@@ -264,6 +264,32 @@ namespace OpenMS::Internal
       Scores::IDType type = Scores::IDType::RAW;
       return Scores::findIDTypeByName(term.id, type) && !Scores::isHigherBetter(type);
     }
+
+    // Protein and protein group statistics such as "protein group-level e-value", "p-value" or "local FDR" have no
+    // order in the PSI-MS vocabulary and are unknown to OpenMS' score registry; they are error measures, so lower is better.
+    bool isLowerBetterProteinScore_(const ControlledVocabulary::CVTerm& term)
+    {
+      const bool has_order = std::any_of(term.unparsed.begin(), term.unparsed.end(),
+        [](const std::string& line) { return StringUtils::hasPrefix(line, "relationship: has_order"); });
+      if (has_order)
+      {
+        return !ControlledVocabulary::CVTerm::isHigherBetterScore(term);
+      }
+      Scores::IDType type = Scores::IDType::RAW;
+      if (Scores::findIDTypeByName(term.id, type))
+      {
+        return !Scores::isHigherBetter(type);
+      }
+      const std::string name = StringUtils::toLowered(term.name);
+      for (const char* error_measure : {"e-value", "evalue", "expect", "p-value", "pvalue", "fdr", "false discovery", "q-value", "qvalue", "posterior error"})
+      {
+        if (StringUtils::hasSubstring(name, error_measure))
+        {
+          return true;
+        }
+      }
+      return false;
+    }
   }
 
     //TODO remodel CVTermList
@@ -2640,7 +2666,7 @@ namespace OpenMS::Internal
             if (protein_score_terms_.contains(cv.getAccession()))
             {
               score_type = term_name(cv.getAccession());
-              higher_better = !isLowerBetterEngineScore_(cv_.getTerm(cv.getAccession()));
+              higher_better = !isLowerBetterProteinScore_(cv_.getTerm(cv.getAccession()));
               return true;
             }
           }
@@ -2757,6 +2783,7 @@ namespace OpenMS::Internal
       std::vector<std::string> cluster_order;
       std::map<std::string, Cluster> clusters;
       Size n_fallback = 0;
+      std::set<std::string> ignored_group_statistics;
 
       for (const ProteinAmbiguityGroup& pag : pags)
       {
@@ -2807,12 +2834,11 @@ namespace OpenMS::Internal
         if (annotated && !leading.empty())
         {
           // "leading" means strongest (or about equally strong) evidence, not identical evidence: leading proteins are
-          // indistinguishable if annotated as same-set proteins or - without such annotations - if they have the same peptides
+          // indistinguishable if annotated as same-set proteins or - for two proteins without such annotations (the term
+          // is optional) - if they have the same peptides
           std::vector<Size> root(hypotheses.size());
           std::iota(root.begin(), root.end(), 0);
           std::function<Size(Size)> find_root = [&](Size i) { return root[i] == i ? i : root[i] = find_root(root[i]); };
-          const bool same_set_annotated = std::any_of(leading.begin(), leading.end(),
-            [&hypotheses](Size i) { return !hypotheses[i].same_set.empty(); });
           std::map<std::string, Size> leading_by_id;
           for (Size i : leading)
           {
@@ -2821,19 +2847,17 @@ namespace OpenMS::Internal
           for (Size a = 0; a < leading.size(); ++a)
           {
             const ProteinHypothesis& h = hypotheses[leading[a]];
-            if (same_set_annotated)
+            for (const std::string& id : h.same_set)
             {
-              for (const std::string& id : h.same_set)
-              {
-                const auto other = leading_by_id.find(id);
-                if (other != leading_by_id.end()) { root[find_root(other->second)] = find_root(leading[a]); }
-              }
+              const auto other = leading_by_id.find(id);
+              if (other != leading_by_id.end()) { root[find_root(other->second)] = find_root(leading[a]); }
             }
-            else
+            if (h.same_set.empty())
             {
               for (Size b = 0; b < a; ++b)
               {
-                if (hypotheses[leading[b]].peptides == h.peptides) { root[find_root(leading[a])] = find_root(leading[b]); }
+                const ProteinHypothesis& other = hypotheses[leading[b]];
+                if (other.same_set.empty() && other.peptides == h.peptides) { root[find_root(leading[a])] = find_root(leading[b]); }
               }
             }
           }
@@ -2913,6 +2937,18 @@ namespace OpenMS::Internal
         }
         Scored pag_score;
         pag_score.has_score = find_score(pag.cv_params, pag.user_params, pag_score.score);
+        // OpenMS keeps one score type per run: group statistics of another type than the protein scores are not read
+        for (const CVTerm& cv : pag.cv_params)
+        {
+          double value;
+          const std::string known = MzIdentMLProteinDetection::scoreTypeOfAccession(cv.getAccession());
+          const std::string type = known.empty() ? term_name(cv.getAccession()) : known;
+          if ((!known.empty() || protein_score_terms_.contains(cv.getAccession())) && numericValue_(cv.getValue(), value) &&
+              !Scores::isSameScoreType(type, score_type))
+          {
+            ignored_group_statistics.insert(type);
+          }
+        }
 
         Scored best_group;
         std::vector<std::string> pag_accessions;
@@ -2942,6 +2978,10 @@ namespace OpenMS::Internal
           pag_accessions.push_back(hypotheses[i].accession);
         }
 
+        if (!best_group.has_score && pag_score.has_score) // e.g. no protein scores
+        {
+          best_group = pag_score;
+        }
         if (!cluster_id.empty())
         {
           auto [it, inserted] = clusters.try_emplace(cluster_id);
@@ -2982,6 +3022,12 @@ namespace OpenMS::Internal
           group.probability = cluster.score.has_score ? cluster.score.score : cluster.best.score;
           general.push_back(std::move(group));
         }
+      }
+      if (!ignored_group_statistics.empty())
+      {
+        OPENMS_LOG_WARN << "The protein groups report statistics of another type than the protein scores ('" << score_type
+                        << "'). They are not read: " << ListUtils::concatenate(std::vector<std::string>(ignored_group_statistics.begin(), ignored_group_statistics.end()), ", ")
+                        << "." << endl;
       }
       if (n_fallback > 0 && n_fallback < pags.size())
       {

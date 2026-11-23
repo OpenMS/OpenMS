@@ -235,7 +235,9 @@ protected:
               {
                 OPENMS_LOG_INFO << "FDR control: Filtering protein groups..." << endl;
                 IDFilter::filterGroupsByScore(run.getIndistinguishableProteins(), protein_fdr, run.isHigherScoreBetter());
-                IDFilter::recordGroupScoreThreshold(run, protein_fdr); // e.g. for the protein detection threshold in mzIdentML
+                // e.g. for the protein detection threshold in mzIdentML; the group q-values were just recalculated, so an
+                // earlier cutoff (on the old values) no longer applies
+                IDFilter::recordGroupScoreThreshold(run, protein_fdr, false);
                 filter_applied = true;
               }
               else

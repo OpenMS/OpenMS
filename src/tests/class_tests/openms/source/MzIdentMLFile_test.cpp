@@ -1458,6 +1458,31 @@ START_SECTION(([EXTRA] store and load protein groups (issue #1105)))
     const std::string all_errors = ListUtils::concatenate(errors2, "\n");
     TEST_EQUAL(countOf(all_errors, "MzIdentML_ProteinAmbiguityGroupThreshold_rule"), 3) // once per group
     TEST_EQUAL(countOf(all_errors, "MzIdentML_ProteinDetectionListCount_rule"), 1)
+
+    // proteins without a relationship to their group (leading protein etc.)
+    std::string no_relationship;
+    std::istringstream lines2(text);
+    for (std::string line; std::getline(lines2, line);)
+    {
+      if (!StringUtils::hasSubstring(line, "name=\"leading protein\"") && !StringUtils::hasSubstring(line, "name=\"group representative\"") &&
+          !StringUtils::hasSubstring(line, "name=\"sequence same-set protein\""))
+      {
+        no_relationship += line + "\n";
+      }
+    }
+    std::ofstream(invalid_file) << no_relationship;
+    StringList errors3, warnings3;
+    TEST_EQUAL(file.isSemanticallyValid(invalid_file, errors3, warnings3), false)
+    TEST_EQUAL(countOf(ListUtils::concatenate(errors3, "\n"), "MzIdentML_ProteinDetectionHypothesisRelationship_rule"), 4) // once per protein
+
+    // mzIdentML 1.1 did not require these terms
+    std::string version_1_1 = invalid;
+    StringUtils::substitute(version_1_1, "mzIdentML/1.3", "mzIdentML/1.1");
+    StringUtils::substitute(version_1_1, "version=\"1.3.0\"", "version=\"1.1.0\"");
+    std::ofstream(invalid_file) << version_1_1;
+    StringList errors4, warnings4;
+    TEST_EQUAL(file.isSemanticallyValid(invalid_file, errors4, warnings4), true)
+    TEST_EQUAL(ListUtils::concatenate(errors4, "\n"), "")
   }
 
   // round trip
@@ -1570,6 +1595,23 @@ START_SECTION(([EXTRA] protein groups: score type aliases and group scores only 
   ABORT_IF(proteins3.size() != 1 || proteins3[0].getIndistinguishableProteins().size() != 3)
   TEST_EQUAL(proteins3[0].getScoreType(), "q-value")
   TEST_EQUAL(proteins3[0].isHigherScoreBetter(), false)
+  {
+    // group statistics without an order in the CV (here: e-values) are error measures: lower is better
+    std::string evalues_only = group_scores_only;
+    StringUtils::substitute(evalues_only, "accession=\"MS:1002373\" cvRef=\"PSI-MS\" name=\"protein group-level q-value\"",
+                            "accession=\"MS:1002372\" cvRef=\"PSI-MS\" name=\"protein group-level e-value\"");
+    std::string filename3;
+    NEW_TMP_FILE_EXT(filename3, ".mzid")
+    std::ofstream(filename3) << evalues_only;
+    std::vector<ProteinIdentification> proteins4;
+    PeptideIdentificationList peptides4;
+    MzIdentMLFile().load(filename3, proteins4, peptides4);
+    ABORT_IF(proteins4.size() != 1 || proteins4[0].getIndistinguishableProteins().size() != 3)
+    TEST_EQUAL(proteins4[0].getScoreType(), "protein group-level e-value")
+    TEST_EQUAL(proteins4[0].isHigherScoreBetter(), false)
+    TEST_REAL_SIMILAR(proteins4[0].getIndistinguishableProteins()[1].probability, 0.02)
+  }
+  TEST_EQUAL(proteins3[0].isHigherScoreBetter(), false)
   for (Size i = 0; i < 3; ++i)
   {
     TEST_REAL_SIMILAR(proteins3[0].getIndistinguishableProteins()[i].probability, 0.01 * (i + 1))
@@ -1620,6 +1662,28 @@ START_SECTION(([EXTRA] read protein groups: clusters and leading proteins (issue
     ABORT_IF(proteins.size() != 1 || proteins[0].getIndistinguishableProteins().size() != 4)
     TEST_EQUAL(ListUtils::concatenate(accessionsOf(proteins[0].getIndistinguishableProteins()[3]), ","), "H,I")
     TEST_REAL_SIMILAR(proteins[0].getIndistinguishableProteins()[3].probability, 0.95) // the group score of the PAG
+  }
+
+  // the same-set term is optional: leading proteins without it are compared by their peptides, even if another
+  // leading protein of the group is annotated
+  {
+    std::string text = fixture;
+    for (const std::string& same_set : {std::string("\n            <cvParam cvRef=\"PSI-MS\" accession=\"MS:1001594\" name=\"sequence same-set protein\" value=\"PDH_B\"/>"),
+                                        std::string("\n            <cvParam cvRef=\"PSI-MS\" accession=\"MS:1001594\" name=\"sequence same-set protein\" value=\"PDH_A\"/>")})
+    {
+      ABORT_IF(text.find(same_set) == std::string::npos)
+      text.erase(text.find(same_set), same_set.size());
+    }
+    // C becomes a leading protein, annotated as same-set with a protein that is not in the group
+    const std::string c_roles = "<cvParam cvRef=\"PSI-MS\" accession=\"MS:1002402\" name=\"non-leading protein\"/>\n            <cvParam cvRef=\"PSI-MS\" accession=\"MS:1001596\" name=\"sequence sub-set protein\" value=\"PDH_A PDH_B\"/>";
+    ABORT_IF(text.find(c_roles) == std::string::npos)
+    text.replace(text.find(c_roles), c_roles.size(),
+      "<cvParam cvRef=\"PSI-MS\" accession=\"MS:1002401\" name=\"leading protein\"/>\n            <cvParam cvRef=\"PSI-MS\" accession=\"MS:1001594\" name=\"sequence same-set protein\" value=\"PDH_X\"/>");
+    std::vector<ProteinIdentification> proteins;
+    load(text, proteins);
+    ABORT_IF(proteins.size() != 1 || proteins[0].getIndistinguishableProteins().size() != 6)
+    TEST_EQUAL(ListUtils::concatenate(accessionsOf(proteins[0].getIndistinguishableProteins()[0]), ","), "B,A") // same peptides
+    TEST_EQUAL(ListUtils::concatenate(accessionsOf(proteins[0].getIndistinguishableProteins()[1]), ","), "C")
   }
 
   // an optional userParam whose value does not match its type does not stop the file from loading

@@ -935,9 +935,14 @@ namespace OpenMS
       Stores @p threshold_score and the protein score type of @p protein_id in the meta values
       Constants::UserParam::PROTEIN_GROUP_SCORE_THRESHOLD and Constants::UserParam::PROTEIN_GROUP_SCORE_THRESHOLD_TYPE,
       so that writers can report it (e.g. as protein detection threshold in mzIdentML).
-      If a cutoff on the same score type was recorded before, the stricter one is kept.
+
+      @param[in,out] protein_id The protein identification run whose groups were filtered
+      @param[in] threshold_score The cutoff
+      @param[in] keep_stricter If a cutoff on the same score type was recorded before, keep the stricter of the two
+                 (for repeated filtering of the same scores). Pass false if the group scores were recalculated since
+                 (e.g. by FalseDiscoveryRate), so that an earlier cutoff no longer applies.
     */
-    static void recordGroupScoreThreshold(ProteinIdentification& protein_id, double threshold_score);
+    static void recordGroupScoreThreshold(ProteinIdentification& protein_id, double threshold_score, bool keep_stricter = true);
 
     /**
       @brief Filters peptide or protein identifications according to the score of the hits.

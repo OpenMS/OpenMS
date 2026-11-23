@@ -83,6 +83,9 @@ public:
     /**
         @brief Checks if a file is valid with respect to the mapping file and the controlled vocabulary.
 
+        For files of mzIdentML version 1.2 and later, the protein grouping rules of mzIdentML 1.2
+        (share/OpenMS/MAPPING/mzIdentML-1.2-mapping.xml) are checked as well.
+
         @param[in] filename File name of the file to be checked.
         @param[out] errors Errors during the validation are returned in this output parameter.
         @param[out] warnings Warnings during the validation are returned in this output parameter.

@@ -28,6 +28,7 @@
 #include <boost/lexical_cast.hpp>
 #include <boost/regex.hpp>
 
+#include <cmath>
 #include <limits>
 #include <unordered_map>
 #include <unordered_set>
@@ -1263,14 +1264,25 @@ namespace OpenMS::Internal
           OPENMS_LOG_WARN << "The protein group score threshold was applied to scores of type '" << threshold_type
                           << "', but the protein groups have scores of type '" << score_type << "'. It is not written to mzIdentML." << endl;
         }
-        else if (value.valueType() != DataValue::DOUBLE_VALUE && value.valueType() != DataValue::INT_VALUE)
+        else if (value.valueType() == DataValue::DOUBLE_VALUE || value.valueType() == DataValue::INT_VALUE)
         {
-          OPENMS_LOG_WARN << "Ignoring the non-numeric protein group score threshold '" << value.toString() << "'." << endl;
+          threshold = value;
+          use_threshold = std::isfinite(threshold);
         }
         else
         {
-          threshold = value;
-          use_threshold = true;
+          try // e.g. read from a file without the type
+          {
+            threshold = StringUtils::toDouble(StringUtils::trimmed(value.toString()));
+            use_threshold = std::isfinite(threshold);
+          }
+          catch (const Exception::ConversionError&)
+          {
+          }
+          if (!use_threshold)
+          {
+            OPENMS_LOG_WARN << "Ignoring the non-numeric protein group score threshold '" << value.toString() << "'." << endl;
+          }
         }
       }
       auto is_decoy = [](const ProteinHit& hit)
