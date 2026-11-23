@@ -88,6 +88,36 @@ class PrepareTests(unittest.TestCase):
                 prepare(source, search, scoring)
             self.assertFalse(search.exists())
 
+    def test_shared_target_decoy_peptide_from_decoy_generator(self):
+        """LABEL_AMENDMENT: a decoy equal to a target sequence shares its PEPTIDE row and adds a DECOY_ protein."""
+        with tempfile.TemporaryDirectory() as tmp:
+            source, search, scoring = [Path(tmp) / p for p in ('full.pqp', 'six.pqp', 'twelve.pqp')]
+            fixture(source)
+            with sqlite3.connect(source) as db:
+                db.execute('ALTER TABLE PEPTIDE ADD COLUMN DECOY INTEGER DEFAULT 0')
+                db.execute('UPDATE PEPTIDE SET DECOY=1 WHERE ID IN (2,5)')
+                # Entrapment target 4 (ENT) and decoy 2 now share peptide 4, flagged as decoy, with a DECOY_ protein.
+                db.execute("INSERT INTO PROTEIN VALUES(998,'DECOY_human')")
+                db.execute('UPDATE PRECURSOR_PEPTIDE_MAPPING SET PEPTIDE_ID=4 WHERE PRECURSOR_ID=2')
+                db.execute('UPDATE PEPTIDE SET DECOY=1 WHERE ID=4')
+                db.execute('INSERT INTO PEPTIDE_PROTEIN_MAPPING VALUES(4,998)')
+            report = prepare(source, search, scoring)
+            shared = report['source']['target_decoy_shared_peptides']
+            self.assertEqual((shared['peptides'], shared['target_precursors'], shared['decoy_precursors']), (1, 1, 1))
+            # The DECOY_ protein does not change the entrapment label of target 4 or the ratio.
+            self.assertEqual(report['source']['entrapment_structural_metadata']['ratio'], .5)
+            with sqlite3.connect(source) as db:
+                db.execute('UPDATE PEPTIDE SET DECOY=1 WHERE ID=1')
+            for p in (search, scoring):
+                p.unlink()
+            with self.assertRaisesRegex(ValueError, 'peptide decoy flags'):
+                prepare(source, search, scoring)
+            with sqlite3.connect(source) as db:
+                db.execute('UPDATE PEPTIDE SET DECOY=0 WHERE ID=1')
+                db.execute('DELETE FROM PEPTIDE_PROTEIN_MAPPING WHERE PEPTIDE_ID=4 AND PROTEIN_ID=2')
+            with self.assertRaisesRegex(ValueError, 'mixed target'):
+                prepare(source, search, scoring)
+
     def test_rejects_excess_fragments_and_alias(self):
         with tempfile.TemporaryDirectory() as tmp:
             source, search, scoring = [Path(tmp) / p for p in ('full.pqp', 'six.pqp', 'twelve.pqp')]

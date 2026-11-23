@@ -97,7 +97,8 @@ def population_labels(path):
         rows = db.execute("""SELECT p.ID, max(instr(pr.PROTEIN_ACCESSION, '_p_target')>0)
             FROM PRECURSOR p LEFT JOIN PRECURSOR_PEPTIDE_MAPPING m ON m.PRECURSOR_ID=p.ID
             LEFT JOIN PEPTIDE_PROTEIN_MAPPING pp ON pp.PEPTIDE_ID=m.PEPTIDE_ID
-            LEFT JOIN PROTEIN pr ON pr.ID=pp.PROTEIN_ID WHERE p.DECOY=0 GROUP BY p.ID""").fetchall()
+            LEFT JOIN PROTEIN pr ON pr.ID=pp.PROTEIN_ID AND substr(pr.PROTEIN_ACCESSION,1,6)!='DECOY_'
+            WHERE p.DECOY=0 GROUP BY p.ID""").fetchall()
     if any(entrapment is None for _, entrapment in rows):
         raise ValueError("population grading requires protein mapping for every library target")
     return {str(pid): bool(entrapment) for pid, entrapment in rows}

@@ -17,7 +17,8 @@ def evaluate(library, runs):
         min(CASE WHEN pr.PROTEIN_ACCESSION LIKE '%_p_target%' THEN 1 ELSE 0 END) e
         FROM PRECURSOR p JOIN PRECURSOR_PEPTIDE_MAPPING m ON m.PRECURSOR_ID=p.ID
         JOIN PEPTIDE_PROTEIN_MAPPING pp ON pp.PEPTIDE_ID=m.PEPTIDE_ID
-        JOIN PROTEIN pr ON pr.ID=pp.PROTEIN_ID WHERE p.DECOY=0 GROUP BY p.ID""", conn)
+        JOIN PROTEIN pr ON pr.ID=pp.PROTEIN_ID AND substr(pr.PROTEIN_ACCESSION,1,6)!='DECOY_'
+        WHERE p.DECOY=0 GROUP BY p.ID""", conn)
     ent = labels.set_index('precursor_id').e
     ratio = int(labels.e.sum()) / int((labels.e == 0).sum())
     counts, status = [], []

@@ -25,6 +25,13 @@ def scalar(db, sql):
     return db.execute(sql).fetchone()[0]
 
 
+# Amendment LABEL_AMENDMENT.md: OpenSwathDecoyGenerator reuses one PEPTIDE row when a pseudo-reversed decoy equals a
+# target sequence, so such a target also maps to the decoy's DECOY_ protein. Target labels ignore DECOY_ proteins.
+TARGET_PROTEIN = "pr.ID=pp.PROTEIN_ID AND substr(pr.PROTEIN_ACCESSION,1,6)!='DECOY_'"
+SHARED_PEPTIDES = """SELECT m.PEPTIDE_ID FROM PRECURSOR_PEPTIDE_MAPPING m JOIN PRECURSOR p ON p.ID=m.PRECURSOR_ID
+    GROUP BY m.PEPTIDE_ID HAVING min(p.DECOY)!=max(p.DECOY)"""
+
+
 def audit(db):
     """Structural counts only. No labels influence fragment selection."""
     db.execute("DROP TABLE IF EXISTS temp.counts")
@@ -47,20 +54,28 @@ def audit(db):
         JOIN PEPTIDE pe ON pe.ID=m.PEPTIDE_ID""")
     sibling_imbalance = scalar(db, """SELECT count(*) FROM siblings t JOIN siblings d
         ON d.TRAML_ID='DECOY_'||t.TRAML_ID WHERE t.DECOY=0 AND d.DECOY=1 AND t.n!=d.n""")
-    ent, total = db.execute("""SELECT sum(e), count(*) FROM (SELECT p.ID,
+    ent, total = db.execute(f"""SELECT sum(e), count(*) FROM (SELECT p.ID,
         max(instr(pr.PROTEIN_ACCESSION, '_p_target')>0) e FROM PRECURSOR p
         JOIN PRECURSOR_PEPTIDE_MAPPING m ON m.PRECURSOR_ID=p.ID
         JOIN PEPTIDE_PROTEIN_MAPPING pp ON pp.PEPTIDE_ID=m.PEPTIDE_ID
-        JOIN PROTEIN pr ON pr.ID=pp.PROTEIN_ID WHERE p.DECOY=0 GROUP BY p.ID)""").fetchone()
+        JOIN PROTEIN pr ON {TARGET_PROTEIN} WHERE p.DECOY=0 GROUP BY p.ID)""").fetchone()
     ent = ent or 0
+    shared = scalar(db, f"SELECT count(*) FROM ({SHARED_PEPTIDES})")
+    shared_targets = scalar(db, f"""SELECT count(*) FROM PRECURSOR p JOIN PRECURSOR_PEPTIDE_MAPPING m
+        ON m.PRECURSOR_ID=p.ID WHERE p.DECOY=0 AND m.PEPTIDE_ID IN ({SHARED_PEPTIDES})""")
+    shared_decoys = scalar(db, f"""SELECT count(*) FROM PRECURSOR p JOIN PRECURSOR_PEPTIDE_MAPPING m
+        ON m.PRECURSOR_ID=p.ID WHERE p.DECOY=1 AND m.PEPTIDE_ID IN ({SHARED_PEPTIDES})""")
     return dict(sides=sides, own_pairs=paired,
                 targets_without_own_decoy=sides["target"]["precursors"]-paired,
                 decoys_without_own_target=sides["decoy"]["precursors"]-paired,
                 own_pair_fragment_count_imbalance=imbalance,
                 own_pair_sibling_count_imbalance=sibling_imbalance,
+                target_decoy_shared_peptides=dict(peptides=shared, target_precursors=shared_targets,
+                    decoy_precursors=shared_decoys, note="decoy sequence equals a target sequence; reported, never filtered"),
                 entrapment_structural_metadata=dict(marker="_p_target", targets_with_protein_mapping=total,
                     entrapment_targets=ent, nonentrapment_targets=total-ent,
-                    ratio=ent/(total-ent) if total > ent else None))
+                    ratio=ent/(total-ent) if total > ent else None,
+                    excluded_protein_prefix="DECOY_"))
 
 
 def validate(db):
@@ -85,18 +100,19 @@ def validate(db):
         LEFT JOIN PRECURSOR_PEPTIDE_MAPPING m ON m.PRECURSOR_ID=p.ID
         GROUP BY p.ID HAVING count(m.PEPTIDE_ID)!=1)"""):
         raise ValueError("require one peptide mapping per precursor")
-    if scalar(db, """SELECT count(*) FROM (SELECT p.ID,
+    if scalar(db, f"""SELECT count(*) FROM (SELECT p.ID,
         count(pr.ID) n, min(instr(pr.PROTEIN_ACCESSION,'_p_target')>0) lo,
         max(instr(pr.PROTEIN_ACCESSION,'_p_target')>0) hi
         FROM PRECURSOR p LEFT JOIN PRECURSOR_PEPTIDE_MAPPING m ON m.PRECURSOR_ID=p.ID
         LEFT JOIN PEPTIDE_PROTEIN_MAPPING pp ON pp.PEPTIDE_ID=m.PEPTIDE_ID
-        LEFT JOIN PROTEIN pr ON pr.ID=pp.PROTEIN_ID WHERE p.DECOY=0
+        LEFT JOIN PROTEIN pr ON {TARGET_PROTEIN} WHERE p.DECOY=0
         GROUP BY p.ID) WHERE n=0 OR lo!=hi"""):
         raise ValueError("missing or mixed target entrapment protein mapping")
     if any(row[1] == "DECOY" for row in db.execute('PRAGMA table_info(PEPTIDE)')):
-        if scalar(db, """SELECT count(*) FROM PRECURSOR p JOIN PRECURSOR_PEPTIDE_MAPPING m
+        # A peptide shared by a target and a decoy precursor has one flag for both; it is reported in the audit.
+        if scalar(db, f"""SELECT count(*) FROM PRECURSOR p JOIN PRECURSOR_PEPTIDE_MAPPING m
             ON m.PRECURSOR_ID=p.ID JOIN PEPTIDE x ON x.ID=m.PEPTIDE_ID
-            WHERE p.DECOY!=x.DECOY OR x.DECOY IS NULL"""):
+            WHERE (p.DECOY!=x.DECOY OR x.DECOY IS NULL) AND x.ID NOT IN ({SHARED_PEPTIDES})"""):
             raise ValueError("inconsistent peptide decoy flags")
     maximum = scalar(db, "SELECT max(n) FROM (SELECT count(*) n FROM TRANSITION_PRECURSOR_MAPPING GROUP BY PRECURSOR_ID)") or 0
     if maximum > 20:
