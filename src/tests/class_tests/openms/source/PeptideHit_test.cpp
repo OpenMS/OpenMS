@@ -321,13 +321,14 @@ START_SECTION((PeakAnnotation comparison and hashing include theoretical_mz))
 }
 END_SECTION
 
-START_SECTION((static void PeakAnnotation::writePeakAnnotationsString_(std::string&, std::vector<PeakAnnotation>)))
+START_SECTION((static void PeakAnnotation::writePeakAnnotationsString_(std::string&, const std::vector<PeakAnnotation>&)))
 {
   PeptideHit::PeakAnnotation unknown{"b2", 1, 200.0, 50.0};
-  PeptideHit::PeakAnnotation known{"y4", 1, 500.0, 100.0, 499.998};
+  // (binary-exact values: doubles are written with 15 fractional digits, trailing zeros trimmed to one)
+  PeptideHit::PeakAnnotation known{"y4", 1, 500.0, 100.0, 499.75};
   std::string packed;
   PeptideHit::PeakAnnotation::writePeakAnnotationsString_(packed, {known, unknown});
-  TEST_EQUAL(packed, "200,50,1,\"b2\"|500,100,1,\"y4\",499.998")
+  TEST_EQUAL(packed, "200.0,50.0,1,\"b2\"|500.0,100.0,1,\"y4\",499.75")
 }
 END_SECTION
 
