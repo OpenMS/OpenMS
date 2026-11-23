@@ -911,14 +911,14 @@ namespace OpenMS
         // loss-aware consistency of all fragment ions with each residue (see NuXLSiteLocalization::localizeLossAware)
         else if (loss_aware_localization)
         {
-          // shifted immonium ions support all residues of their amino acid
+          // shifted immonium ions support all residues of their amino acid (the L ion also isoleucine)
           vector<double> residue_evidence(unmodified_sequence.size(), 0.0);
           for (const auto& ion : shifted_immonium_ions)
           {
             if (ion.annotation.size() < 2 || ion.annotation[0] != 'i' || ion.intensity <= 0.0) { continue; }
             for (Size i = 0; i != unmodified_sequence.size(); ++i)
             {
-              if (unmodified_sequence[i] == ion.annotation[1]) { residue_evidence[i] += std::sqrt(ion.intensity); }
+              if (NuXLSiteLocalization::matchesImmonium(unmodified_sequence[i], ion.annotation[1])) { residue_evidence[i] += std::sqrt(ion.intensity); }
             }
           }
           // the enzyme doesn't cleave after a cross-linked residue: the C-terminal one can't carry the cross-link,

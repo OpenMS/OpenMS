@@ -146,8 +146,10 @@ namespace OpenMS
     vector<Rung> rungs;
     for (int i = 0; i != length; ++i)
     {
+      // unshifted a1/b1 ions are not used (as in supportedResidues): b1 of lysine is also y1-H2O of a C-terminal
+      // lysine, and a1 is the immonium ion of the first residue's amino acid, which any of its residues can produce
       if (n_shifts[i] > 0.0) { rungs.push_back({0, i, sqrt(n_shifts[i]), true}); }
-      else if (n_noshifts[i] > 0.0 && unshifted_weight > 0.0) { rungs.push_back({0, i, unshifted_weight * sqrt(n_noshifts[i]), false}); }
+      else if (i > 0 && n_noshifts[i] > 0.0 && unshifted_weight > 0.0) { rungs.push_back({0, i, unshifted_weight * sqrt(n_noshifts[i]), false}); }
       if (c_shifts[i] > 0.0) { rungs.push_back({i, length - 1, sqrt(c_shifts[i]), true}); }
       else if (c_noshifts[i] > 0.0 && unshifted_weight > 0.0) { rungs.push_back({i, length - 1, unshifted_weight * sqrt(c_noshifts[i]), false}); }
     }
@@ -314,5 +316,11 @@ namespace OpenMS
   {
     return binary_search(termini.c_terminal.begin(), termini.c_terminal.end(), peptide,
       [](const auto& a, const auto& b) { return string_view(a) < string_view(b); });
+  }
+
+  // static
+  bool NuXLSiteLocalization::matchesImmonium(char residue, char immonium)
+  {
+    return residue == immonium || (immonium == 'L' && residue == 'I'); // one ion for leucine and isoleucine (same mass)
   }
 } // namespace OpenMS

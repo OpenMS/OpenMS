@@ -397,6 +397,29 @@ START_SECTION((static LossAwareSite localizeLossAware(const std::vector<double>&
     TEST_EQUAL(s.secondary, -1)
   }
 
+  // an unshifted b1 is ignored (b1 of lysine coincides with common lysine ions): kLLDEGR with b2 shifted keeps
+  // the first two residues tied, as without the b1
+  {
+    Evidence e(7);
+    e.n_shifts[1] = 1.0;
+    const NuXLSiteLocalization::LossAwareSite without_b1 = NuXLSiteLocalization::localizeLossAware(e.n_shifts, e.n_noshifts, e.c_shifts, e.c_noshifts);
+    e.n_noshifts[0] = 5.0;
+    const NuXLSiteLocalization::LossAwareSite s = NuXLSiteLocalization::localizeLossAware(e.n_shifts, e.n_noshifts, e.c_shifts, e.c_noshifts);
+    TEST_EQUAL(s.position, 0)
+    TEST_EQUAL(s.best == residues(0, 1), true)
+    TEST_EQUAL(s.range_end, 1)
+    TEST_REAL_SIMILAR(s.scores[0], s.scores[1])
+    TEST_REAL_SIMILAR(s.scores[0], without_b1.scores[0])
+    TEST_EQUAL(s.best == without_b1.best, true)
+    // an unshifted b2 still counts against the first two residues: with b3 shifted, only residue 2 is left
+    e.n_shifts[1] = 0.0;
+    e.n_noshifts[1] = 1.0;
+    e.n_shifts[2] = 1.0;
+    const NuXLSiteLocalization::LossAwareSite s2 = NuXLSiteLocalization::localizeLossAware(e.n_shifts, e.n_noshifts, e.c_shifts, e.c_noshifts);
+    TEST_EQUAL(s2.position, 2)
+    TEST_EQUAL(s2.best == residues(2, 2), true)
+  }
+
   // a shifted lysine immonium ion with b2 shifted and no lysine among the first two residues: a second form at K3
   {
     Evidence e(8);
@@ -436,6 +459,17 @@ START_SECTION((static bool isProteinNTerminal(const ProteinTermini& termini, std
   TEST_EQUAL(NuXLSiteLocalization::isProteinNTerminal(termini, "ACDEK"), false)
   TEST_EQUAL(NuXLSiteLocalization::isProteinNTerminal(termini, "AAAAK"), false)
   TEST_EQUAL(NuXLSiteLocalization::isProteinNTerminal(NuXLSiteLocalization::ProteinTermini(), "MACDEKPGGR"), false)
+}
+END_SECTION
+
+START_SECTION((static bool matchesImmonium(char residue, char immonium)))
+{
+  TEST_EQUAL(NuXLSiteLocalization::matchesImmonium('L', 'L'), true)
+  TEST_EQUAL(NuXLSiteLocalization::matchesImmonium('I', 'L'), true) // same mass: one ion for both
+  TEST_EQUAL(NuXLSiteLocalization::matchesImmonium('K', 'K'), true)
+  TEST_EQUAL(NuXLSiteLocalization::matchesImmonium('L', 'I'), false) // the generator labels the ion L
+  TEST_EQUAL(NuXLSiteLocalization::matchesImmonium('K', 'L'), false)
+  TEST_EQUAL(NuXLSiteLocalization::matchesImmonium('Y', 'F'), false)
 }
 END_SECTION
 

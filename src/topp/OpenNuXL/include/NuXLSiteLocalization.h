@@ -137,7 +137,9 @@ public:
     - a rung with a shifted ion counts for the residues the ion contains and against all others;
     - an unshifted ion on a rung that also has a shifted ion is ignored: the cross-linked nucleotide (or
       cross-linker) is frequently lost completely, so it doesn't contradict a cross-link in that ion;
-    - a rung with unshifted ions only counts against the residues the ion contains, with weight @p unshifted_weight.
+    - a rung with unshifted ions only counts against the residues the ion contains, with weight @p unshifted_weight;
+    - unshifted a1/b1 ions are not used (as in @ref supportedResidues): b1 of lysine is also y1-H2O of a C-terminal
+      lysine, and a1 is the immonium ion of the first residue's amino acid, which any of its residues can produce.
 
     @p residue_evidence (e.g. the square-root intensities of shifted immonium ions of that amino acid) is added
     per residue. Scores are reported in units of the summed shifted-rung votes (1: all shifted ions contain the
@@ -220,5 +222,12 @@ public:
 
   /// Whether @p peptide is a protein C-terminal digestion product (see @ref proteinTermini)
   static bool isProteinCTerminal(const ProteinTermini& termini, std::string_view peptide);
+
+  /**
+    @brief Whether a shifted immonium ion labelled with amino acid @p immonium can come from @p residue
+
+    Leucine and isoleucine have the same mass, so the immonium ion labelled L matches both. Other amino acids match only themselves.
+  */
+  static bool matchesImmonium(char residue, char immonium);
 };
 } // namespace OpenMS
