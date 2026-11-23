@@ -8,6 +8,13 @@
 
 #include <OpenMS/FORMAT/HANDLERS/MzMLHandler.h>
 
+#include <sstream>
+#include <exception>
+#include <memory>
+#ifdef _OPENMP
+#include <omp.h>
+#endif
+
 #include <OpenMS/FORMAT/DATAACCESS/HTTPInputSource.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/LogStream.h>
@@ -4916,12 +4923,84 @@ namespace OpenMS::Internal
         }
 
         // write actual data
-        for (Size s_idx = 0; s_idx < exp.size(); ++s_idx)
+        // Serialising one spectrum is independent of every other; only the concatenation is ordered. Chunks of
+        // spectra are encoded in parallel into their own buffers and appended in index order, which gives the bytes
+        // of the serial loop. (Serial writing is CPU-bound: about 400 MB/s on a filesystem that takes 4 GB/s.)
+        //
+        // writeSpectrum_() is not reentrant on one handler (it memoises CV-term checks in cached_terms_, and the
+        // validator has state of its own), so each thread gets its own handler and validator with the same options
+        // and shares only the read-only experiment and dps. Waves of chunk size x threads spectra keep the
+        // buffered text bounded.
         {
-          logger_.setProgress(progress++);
-          const SpectrumType& spec = exp[s_idx];
-          writeSpectrum_(os, spec, s_idx, validator, renew_native_ids, dps);
-          ++stored_spectra;
+          const Size n_spec = exp.size();
+          const Size CHUNK = 256;
+#ifdef _OPENMP
+          const Size n_thr = (Size)std::max(1, omp_get_max_threads());
+#else
+          const Size n_thr = 1;
+#endif
+          std::vector<std::unique_ptr<MzMLHandler>> hs(n_thr);
+          std::vector<std::unique_ptr<Internal::MzMLValidator>> vs(n_thr);
+          for (Size t = 0; t < n_thr; ++t)
+          {
+            hs[t].reset(new MzMLHandler(exp, file_, version_, logger_));
+            hs[t]->options_ = options_;   // the options decide output; they must match exactly
+            vs[t].reset(new Internal::MzMLValidator(mapping_, cv_));
+          }
+          const Size wave = CHUNK * n_thr;
+          std::vector<std::string> enc;
+          std::exception_ptr wr_err;
+          for (Size w0 = 0; w0 < n_spec; w0 += wave)
+          {
+            const Size w1 = std::min(w0 + wave, n_spec);
+            const Size n_chunk = (w1 - w0 + CHUNK - 1) / CHUNK;
+            enc.assign(n_chunk, std::string());
+            // Each thread's handler records the <spectrum> offsets relative to its chunk buffer in its own
+            // spectra_offsets_; they are collected per chunk and rebased to the file position when the chunk is
+            // appended, so that the <indexList> is the one the serial loop writes.
+            std::vector<std::vector<std::pair<std::string, Int64>>> offs(n_chunk);
+#pragma omp parallel for schedule(dynamic, 1)
+            for (SignedSize c = 0; c < (SignedSize)n_chunk; ++c)
+            {
+              try
+              {
+#ifdef _OPENMP
+                const Size tid = (Size)omp_get_thread_num();
+#else
+                const Size tid = 0;
+#endif
+                std::ostringstream buf;
+                buf.copyfmt(os);   // identical formatting state, or the numbers differ
+                const Size lo = w0 + (Size)c * CHUNK, hi = std::min(lo + CHUNK, w1);
+                const Size o0 = hs[tid]->spectra_offsets_.size();
+                for (Size s_idx = lo; s_idx < hi; ++s_idx)
+                {
+                  hs[tid]->writeSpectrum_(buf, exp[s_idx], s_idx, *vs[tid], renew_native_ids, dps);
+                }
+                enc[(Size)c] = buf.str();
+                // buffer-relative offsets of this chunk's spectra (writeSpectrum_ took buf.tellp())
+                offs[(Size)c].assign(hs[tid]->spectra_offsets_.begin() + o0, hs[tid]->spectra_offsets_.end());
+                hs[tid]->spectra_offsets_.resize(o0);
+              }
+              catch (...)
+              {
+                // An exception must never escape an OpenMP region: that calls std::terminate.
+#pragma omp critical (OPENMS_MzMLHandler_write_error)
+                if (!wr_err) { wr_err = std::current_exception(); }
+              }
+            }
+            if (wr_err) { std::rethrow_exception(wr_err); }
+            for (Size c = 0; c < n_chunk; ++c)
+            {
+              const Int64 base = (Int64)os.tellp();   // where this chunk lands in the file
+              os << enc[c];
+              for (const auto& p : offs[c]) { spectra_offsets_.emplace_back(p.first, base + p.second); }
+              std::string().swap(enc[c]);
+            }
+            progress += (int)(w1 - w0);
+            logger_.setProgress(progress);
+            stored_spectra += (UInt)(w1 - w0);
+          }
         }
         os << "\t\t</spectrumList>\n";
       }
