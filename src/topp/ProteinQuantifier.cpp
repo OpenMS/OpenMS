@@ -764,24 +764,21 @@ protected:
       }
     }
 
-    // Only protein quantities are affected, and only once the list names a modification: the
-    // header of every run with the default (empty) list stays as it was.
-    if (proteins && !algo_params_.getValue("modifications:exclude").toStringVector().empty())
-    {
-      relevant_params.push_back("modifications:exclude");
-      relevant_params.push_back("modifications:exclude_counterparts");
-    }
-
     std::string params;
+    const auto add_param = [&](const std::string& name) { params += name + "=" + algo_params_.getValue(name).toString() + ", "; };
     for (const std::string& str : relevant_params)
     {
-      std::string value = algo_params_.getValue(str).toString();
-      // Flags are named only when set. 'modifications:exclude_counterparts' is the exception: it is
-      // on by default, so its 'false' is the value a reader has to be told about.
-      if ((value != "false") || (str == "modifications:exclude_counterparts"))
-      {
-        params += str + "=" + value + ", ";
-      }
+      // flags are named only when set
+      if (algo_params_.getValue(str).toString() != "false") { add_param(str); }
+    }
+
+    // Only protein quantities are affected, and only once the list names a modification: the
+    // header of every run with the default (empty) list stays as it was. Both are named with their
+    // value: 'exclude_counterparts' is on by default, so its 'false' is what a reader has to be told.
+    if (proteins && !algo_params_.getValue("modifications:exclude").toStringVector().empty())
+    {
+      add_param("modifications:exclude");
+      add_param("modifications:exclude_counterparts");
     }
     if (params.empty())
     {

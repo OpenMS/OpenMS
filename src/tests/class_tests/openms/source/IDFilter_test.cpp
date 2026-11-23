@@ -889,6 +889,25 @@ START_SECTION((static void removePeptidesWithMatchingModifications(PeptideIdenti
 }
 END_SECTION
 
+START_SECTION((static bool hasMatchingModification(const AASequence& seq, const std::set<std::string>& modifications)))
+{
+  const AASequence unmodified = AASequence::fromString("PEPTIDEMK");
+  const AASequence oxidized = AASequence::fromString("PEPTIDEM(Oxidation)K");
+  const AASequence acetylated = AASequence::fromString(".(Acetyl)PEPTIDEMK");
+
+  TEST_FALSE(IDFilter::hasMatchingModification(unmodified, {"Oxidation (M)"}))
+  TEST_TRUE(IDFilter::hasMatchingModification(oxidized, {"Oxidation (M)"}))
+  TEST_TRUE(IDFilter::hasMatchingModification(oxidized, {"Acetyl (N-term)", "Oxidation (M)"}))
+  // the same modification with another specificity is a different modification
+  TEST_FALSE(IDFilter::hasMatchingModification(oxidized, {"Oxidation (W)"}))
+  // terminal modifications
+  TEST_TRUE(IDFilter::hasMatchingModification(acetylated, {"Acetyl (N-term)"}))
+  TEST_FALSE(IDFilter::hasMatchingModification(acetylated, {"Acetyl (K)"}))
+  // an empty set matches nothing, also for a modified sequence
+  TEST_FALSE(IDFilter::hasMatchingModification(oxidized, {}))
+}
+END_SECTION
+
 START_SECTION((static void removePeptidesWithMatchingRegEx(PeptideIdentificationList& peptides, const std::string& regex)))
 {
   PeptideIdentificationList peptides = global_peptides;

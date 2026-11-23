@@ -148,33 +148,32 @@ namespace OpenMS
       {
         return seq.isModified();
       }
-      for (Size i = 0; i < seq.size(); ++i)
-      {
-        if (seq[i].isModified())
-        {
-          std::string mod_name = seq[i].getModification()->getFullId();
-          if (mods_.contains(mod_name))
-            return true;
-        }
-      }
-
-      // terminal modifications:
-      if (seq.hasNTerminalModification())
-      {
-        std::string mod_name = seq.getNTerminalModification()->getFullId();
-        if (mods_.contains(mod_name))
-          return true;
-      }
-      if (seq.hasCTerminalModification())
-      {
-        std::string mod_name = seq.getCTerminalModification()->getFullId();
-        if (mods_.contains(mod_name))
-          return true;
-      }
-
-      return false;
+      return IDFilter::hasMatchingModification(seq, mods_);
     }
   };
+
+  bool IDFilter::hasMatchingModification(const AASequence& seq, const set<std::string>& modifications)
+  {
+    for (Size i = 0; i < seq.size(); ++i)
+    {
+      if (seq[i].isModified() && modifications.contains(seq[i].getModification()->getFullId()))
+      {
+        return true;
+      }
+    }
+
+    // terminal modifications:
+    if (seq.hasNTerminalModification() && modifications.contains(seq.getNTerminalModification()->getFullId()))
+    {
+      return true;
+    }
+    if (seq.hasCTerminalModification() && modifications.contains(seq.getCTerminalModification()->getFullId()))
+    {
+      return true;
+    }
+
+    return false;
+  }
 
 
   struct IDFilter::HasMatchingSequence {

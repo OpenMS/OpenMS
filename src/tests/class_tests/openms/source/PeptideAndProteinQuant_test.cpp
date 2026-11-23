@@ -2431,23 +2431,32 @@ auto make_oxidation_input = [&make_detailed_input](ConsensusMap& consensus, Expe
                       "Prot", consensus, design);
 };
 
-START_SECTION(([EXTRA] modifications:exclude is empty by default and then changes nothing))
+// Run the whole pipeline with the default parameters plus @p settings.
+auto quantify_with = [](ConsensusMap& consensus, const ExperimentalDesign& design,
+                        const std::vector<std::pair<std::string, ParamValue>>& settings,
+                        const ProteinIdentification& proteins = ProteinIdentification())
 {
   PeptideAndProteinQuant quantifier;
-  TEST_TRUE(quantifier.getDefaults().getValue("modifications:exclude").toStringVector().empty())
-  TEST_EQUAL(quantifier.getDefaults().getValue("modifications:exclude_counterparts"), "true")
+  Param p = quantifier.getDefaults();
+  for (const auto& [name, value] : settings) { p.setValue(name, value); }
+  quantifier.setParameters(p);
+  quantifier.readQuantData(consensus, design);
+  quantifier.quantifyPeptides();
+  quantifier.quantifyProteins(proteins);
+  return quantifier;
+};
+const std::vector<std::string> oxidation{"Oxidation (M)"};
+
+START_SECTION(([EXTRA] modifications:exclude is empty by default and then changes nothing))
+{
+  const Param defaults = PeptideAndProteinQuant().getDefaults();
+  TEST_TRUE(defaults.getValue("modifications:exclude").toStringVector().empty())
+  TEST_EQUAL(defaults.getValue("modifications:exclude_counterparts"), "true")
 
   ConsensusMap consensus;
   ExperimentalDesign design;
   make_oxidation_input(consensus, design);
-
-  Param p = quantifier.getDefaults();
-  p.setValue("top:N", 0);
-  p.setValue("top:aggregate", "sum");
-  quantifier.setParameters(p);
-  quantifier.readQuantData(consensus, design);
-  quantifier.quantifyPeptides();
-  quantifier.quantifyProteins();
+  auto quantifier = quantify_with(consensus, design, {{"top:N", 0}, {"top:aggregate", "sum"}});
 
   // all peptidoforms are summed, as before the option existed
   const auto& pd = quantifier.getProteinResults().at("Prot");
@@ -2466,15 +2475,8 @@ START_SECTION(([EXTRA] modifications:exclude leaves a peptide out with all of it
   ExperimentalDesign design;
   make_oxidation_input(consensus, design);
 
-  PeptideAndProteinQuant quantifier;
-  Param p = quantifier.getDefaults();
-  p.setValue("top:N", 0);
-  p.setValue("top:aggregate", "sum");
-  p.setValue("modifications:exclude", std::vector<std::string>{"Oxidation (M)"});
-  quantifier.setParameters(p);
-  quantifier.readQuantData(consensus, design);
-  quantifier.quantifyPeptides();
-  quantifier.quantifyProteins();
+  auto quantifier = quantify_with(consensus, design,
+                                  {{"top:N", 0}, {"top:aggregate", "sum"}, {"modifications:exclude", oxidation}});
 
   // The peptide level is untouched: both forms are still there, with their abundances.
   const auto& peptides = quantifier.getPeptideResults();
@@ -2507,16 +2509,8 @@ START_SECTION(([EXTRA] modifications:exclude_counterparts false keeps the forms 
   ExperimentalDesign design;
   make_oxidation_input(consensus, design);
 
-  PeptideAndProteinQuant quantifier;
-  Param p = quantifier.getDefaults();
-  p.setValue("top:N", 0);
-  p.setValue("top:aggregate", "sum");
-  p.setValue("modifications:exclude", std::vector<std::string>{"Oxidation (M)"});
-  p.setValue("modifications:exclude_counterparts", "false");
-  quantifier.setParameters(p);
-  quantifier.readQuantData(consensus, design);
-  quantifier.quantifyPeptides();
-  quantifier.quantifyProteins();
+  auto quantifier = quantify_with(consensus, design,
+                                  {{"top:N", 0}, {"top:aggregate", "sum"}, {"modifications:exclude", oxidation}, {"modifications:exclude_counterparts", "false"}});
 
   // Only the oxidized form (900) is left out; the unmodified PEPTIDEMK still contributes.
   const auto& pd = quantifier.getProteinResults().at("Prot");
@@ -2539,29 +2533,14 @@ START_SECTION(([EXTRA] modifications:exclude: a peptide that is left out does no
   // Ranking: without the option PEPTIDEMK (100 + 900) leads fileA, mean(1000, 500) = 750.
   // Leaving out only its oxidized form drops it to 100 and out of the top 2: mean(500, 300).
   {
-    PeptideAndProteinQuant quantifier;
-    Param p = quantifier.getDefaults();
-    p.setValue("top:N", 2);
-    p.setValue("top:aggregate", "mean");
-    quantifier.setParameters(p);
-    quantifier.readQuantData(consensus, design);
-    quantifier.quantifyPeptides();
-    quantifier.quantifyProteins();
+    auto quantifier = quantify_with(consensus, design, {{"top:N", 2}, {"top:aggregate", "mean"}});
     const auto& pd = quantifier.getProteinResults().at("Prot");
     TEST_REAL_SIMILAR(pd.fraction_group_abundances.at(1).at(1), 750.0)
     TEST_REAL_SIMILAR(pd.channel_level_abundances.at("fileA").at(1), 750.0)
   }
   {
-    PeptideAndProteinQuant quantifier;
-    Param p = quantifier.getDefaults();
-    p.setValue("top:N", 2);
-    p.setValue("top:aggregate", "mean");
-    p.setValue("modifications:exclude", std::vector<std::string>{"Oxidation (M)"});
-    p.setValue("modifications:exclude_counterparts", "false");
-    quantifier.setParameters(p);
-    quantifier.readQuantData(consensus, design);
-    quantifier.quantifyPeptides();
-    quantifier.quantifyProteins();
+    auto quantifier = quantify_with(consensus, design,
+                                    {{"top:N", 2}, {"top:aggregate", "mean"}, {"modifications:exclude", oxidation}, {"modifications:exclude_counterparts", "false"}});
     const auto& pd = quantifier.getProteinResults().at("Prot");
     TEST_REAL_SIMILAR(pd.fraction_group_abundances.at(1).at(1), 400.0)
     TEST_REAL_SIMILAR(pd.channel_level_abundances.at("fileA").at(1), 400.0)
@@ -2570,28 +2549,14 @@ START_SECTION(([EXTRA] modifications:exclude: a peptide that is left out does no
   // Gate: three peptides satisfy 'top:N 3'. With PEPTIDEMK left out only two remain, so the
   // protein is no longer quantified - at either granularity - although it is still identified.
   {
-    PeptideAndProteinQuant quantifier;
-    Param p = quantifier.getDefaults();
-    p.setValue("top:N", 3);
-    p.setValue("top:aggregate", "sum");
-    quantifier.setParameters(p);
-    quantifier.readQuantData(consensus, design);
-    quantifier.quantifyPeptides();
-    quantifier.quantifyProteins();
+    auto quantifier = quantify_with(consensus, design, {{"top:N", 3}, {"top:aggregate", "sum"}});
     const auto& pd = quantifier.getProteinResults().at("Prot");
     TEST_REAL_SIMILAR(pd.fraction_group_abundances.at(1).at(1), 1800.0)
     TEST_REAL_SIMILAR(pd.channel_level_abundances.at("fileA").at(1), 1800.0)
   }
   {
-    PeptideAndProteinQuant quantifier;
-    Param p = quantifier.getDefaults();
-    p.setValue("top:N", 3);
-    p.setValue("top:aggregate", "sum");
-    p.setValue("modifications:exclude", std::vector<std::string>{"Oxidation (M)"});
-    quantifier.setParameters(p);
-    quantifier.readQuantData(consensus, design);
-    quantifier.quantifyPeptides();
-    quantifier.quantifyProteins();
+    auto quantifier = quantify_with(consensus, design,
+                                    {{"top:N", 3}, {"top:aggregate", "sum"}, {"modifications:exclude", oxidation}});
     const auto& pd = quantifier.getProteinResults().at("Prot");
     TEST_EQUAL(pd.peptide_fraction_group_abundances.size(), 2)
     TEST_TRUE(pd.fraction_group_abundances.empty())
@@ -2617,15 +2582,8 @@ START_SECTION(([EXTRA] modifications:exclude matches only the listed modificatio
 
   auto quantify = [&](const std::vector<std::string>& exclude)
   {
-    PeptideAndProteinQuant quantifier;
-    Param p = quantifier.getDefaults();
-    p.setValue("top:N", 0);
-    p.setValue("top:aggregate", "sum");
-    p.setValue("modifications:exclude", exclude);
-    quantifier.setParameters(p);
-    quantifier.readQuantData(consensus, design);
-    quantifier.quantifyPeptides();
-    quantifier.quantifyProteins();
+    auto quantifier = quantify_with(consensus, design,
+                                    {{"top:N", 0}, {"top:aggregate", "sum"}, {"modifications:exclude", exclude}});
     const auto& pd = quantifier.getProteinResults().at("Prot");
     // both granularities have to agree, whatever is left out
     TEST_REAL_SIMILAR(pd.channel_level_abundances.at("fileA").at(1), pd.fraction_group_abundances.at(1).at(1))
@@ -2670,16 +2628,8 @@ START_SECTION(([EXTRA] modifications:exclude: an identified, unquantified form i
 
   auto quantify = [&](const std::string& exclude_counterparts)
   {
-    PeptideAndProteinQuant quantifier;
-    Param p = quantifier.getDefaults();
-    p.setValue("top:N", 0);
-    p.setValue("top:aggregate", "sum");
-    p.setValue("modifications:exclude", std::vector<std::string>{"Oxidation (M)"});
-    p.setValue("modifications:exclude_counterparts", exclude_counterparts);
-    quantifier.setParameters(p);
-    quantifier.readQuantData(consensus, design);
-    quantifier.quantifyPeptides();
-    quantifier.quantifyProteins();
+    auto quantifier = quantify_with(consensus, design,
+                                    {{"top:N", 0}, {"top:aggregate", "sum"}, {"modifications:exclude", oxidation}, {"modifications:exclude_counterparts", exclude_counterparts}});
     const auto& pd = quantifier.getProteinResults().at("Prot");
     TEST_EQUAL(pd.psm_count, 3)
     TEST_REAL_SIMILAR(pd.channel_level_abundances.at("fileA").at(1), pd.fraction_group_abundances.at(1).at(1))
@@ -2702,16 +2652,8 @@ START_SECTION(([EXTRA] modifications:exclude: a protein without remaining peptid
                        {0, "PEPTIDEM(Oxidation)K", 2, 900.0}},
                       "Prot", consensus, design);
 
-  PeptideAndProteinQuant quantifier;
-  Param p = quantifier.getDefaults();
-  p.setValue("top:N", 0);
-  p.setValue("top:aggregate", "sum");
-  p.setValue("top:include_all", "true");
-  p.setValue("modifications:exclude", std::vector<std::string>{"Oxidation (M)"});
-  quantifier.setParameters(p);
-  quantifier.readQuantData(consensus, design);
-  quantifier.quantifyPeptides();
-  quantifier.quantifyProteins();
+  auto quantifier = quantify_with(consensus, design,
+                                  {{"top:N", 0}, {"top:aggregate", "sum"}, {"top:include_all", "true"}, {"modifications:exclude", oxidation}});
 
   const auto& quant = quantifier.getProteinResults();
   TEST_TRUE(quant.find("Prot") != quant.end())
@@ -2748,16 +2690,9 @@ START_SECTION(([EXTRA] modifications:exclude applies to both granularities of a 
     // charge 3 of AAAAAK (5.0 in frac1/ch1) only contributes without 'best_charge'
     const double z3 = (std::string(best_charge) == "false") ? 5.0 : 0.0;
 
-    PeptideAndProteinQuant quantifier;
-    Param p = quantifier.getDefaults();
-    p.setValue("top:N", 0);
-    p.setValue("top:aggregate", "sum");
-    p.setValue("best_charge", best_charge);
-    quantifier.setParameters(p);
-    quantifier.readQuantData(consensus, design);
-    quantifier.quantifyPeptides();
-    quantifier.quantifyProteins();
     {
+      auto quantifier = quantify_with(consensus, design,
+                                      {{"top:N", 0}, {"top:aggregate", "sum"}, {"best_charge", best_charge}});
       const auto& pd = quantifier.getProteinResults().at("Prot");
       TEST_REAL_SIMILAR(pd.fraction_group_abundances.at(1).at(1), 1800.0 + z3)
       TEST_REAL_SIMILAR(pd.fraction_group_abundances.at(1).at(2), 180.0)
@@ -2767,12 +2702,10 @@ START_SECTION(([EXTRA] modifications:exclude applies to both granularities of a 
 
     // Leaving PEPTIDEMK out removes it from the assays and from every (file, channel) cell -
     // from frac2 as well, where only its unmodified form was measured.
-    p.setValue("modifications:exclude", std::vector<std::string>{"Oxidation (M)"});
-    quantifier.setParameters(p);
-    quantifier.readQuantData(consensus, design);
-    quantifier.quantifyPeptides();
-    quantifier.quantifyProteins();
     {
+      auto quantifier = quantify_with(consensus, design,
+                                      {{"top:N", 0}, {"top:aggregate", "sum"}, {"best_charge", best_charge},
+                                       {"modifications:exclude", oxidation}});
       const auto& pd = quantifier.getProteinResults().at("Prot");
       TEST_REAL_SIMILAR(pd.fraction_group_abundances.at(1).at(1), 800.0 + z3)
       TEST_REAL_SIMILAR(pd.fraction_group_abundances.at(1).at(2), 80.0)
@@ -2783,12 +2716,10 @@ START_SECTION(([EXTRA] modifications:exclude applies to both granularities of a 
     }
 
     // Keeping the counterparts leaves the unmodified form of frac2 in.
-    p.setValue("modifications:exclude_counterparts", "false");
-    quantifier.setParameters(p);
-    quantifier.readQuantData(consensus, design);
-    quantifier.quantifyPeptides();
-    quantifier.quantifyProteins();
     {
+      auto quantifier = quantify_with(consensus, design,
+                                      {{"top:N", 0}, {"top:aggregate", "sum"}, {"best_charge", best_charge},
+                                       {"modifications:exclude", oxidation}, {"modifications:exclude_counterparts", "false"}});
       const auto& pd = quantifier.getProteinResults().at("Prot");
       TEST_REAL_SIMILAR(pd.fraction_group_abundances.at(1).at(1), 900.0 + z3)
       TEST_REAL_SIMILAR(pd.fraction_group_abundances.at(1).at(2), 90.0)
@@ -2811,18 +2742,11 @@ START_SECTION(([EXTRA] modifications:exclude: iBAQ does not count a left-out pep
   ProteinIdentification proteins;
   proteins.setHits({prot_hit});
 
-  auto ibaq = [&proteins](ConsensusMap& consensus, const ExperimentalDesign& design,
+  auto ibaq = [&](ConsensusMap& consensus, const ExperimentalDesign& design,
                           const std::vector<std::string>& exclude, const std::string& exclude_counterparts)
   {
-    PeptideAndProteinQuant quantifier;
-    Param p = quantifier.getDefaults();
-    p.setValue("method", "iBAQ");
-    p.setValue("modifications:exclude", exclude);
-    p.setValue("modifications:exclude_counterparts", exclude_counterparts);
-    quantifier.setParameters(p);
-    quantifier.readQuantData(consensus, design);
-    quantifier.quantifyPeptides();
-    quantifier.quantifyProteins(proteins);
+    auto quantifier = quantify_with(consensus, design,
+                                    {{"method", "iBAQ"}, {"modifications:exclude", exclude}, {"modifications:exclude_counterparts", exclude_counterparts}}, proteins);
     const auto& pd = quantifier.getProteinResults().at("Prot");
     // the file+channel level is normalized by the same count
     TEST_REAL_SIMILAR(pd.channel_level_abundances.at("fileA").at(1), pd.fraction_group_abundances.at(1).at(1))
@@ -2907,7 +2831,14 @@ START_SECTION((void annotateQuantificationsToProteins(const ProteinQuant& protei
   make_detailed_input({"fileA"}, {{0, "GGGGGK", 2, 1000.0}}, "ProtB", consensus, design);
 
   const std::string abundance_array = "fraction_group_level_abundance";
-  auto make_proteins = [&abundance_array](bool foreign_array_on_prot_a)
+  const std::string legacy_abundance_array = "abundances";
+  auto add_array = [](auto& arrays, const std::string& name, const auto& value)
+  {
+    arrays.emplace_back();
+    arrays.back().setName(name);
+    arrays.back().push_back(value);
+  };
+  auto make_proteins = [&](bool foreign_array_on_prot_a)
   {
     ProteinIdentification proteins;
     std::vector<ProteinHit> hits;
@@ -2921,32 +2852,17 @@ START_SECTION((void annotateQuantificationsToProteins(const ProteinQuant& protei
       group.accessions = {accession};
       group.probability = 1.0;
 
-      // quantities of an earlier run, in the current layout and in the sample-level layout of
-      // older versions, which the exporters still read
-      DataArrays::FloatDataArray legacy_abundance;
-      legacy_abundance.setName("abundances");
-      legacy_abundance.push_back(54321.0f);
-      group.getFloatDataArrays().push_back(legacy_abundance);
-      DataArrays::FloatDataArray abundance;
-      abundance.setName(abundance_array);
-      abundance.push_back(12345.0f);
-      group.getFloatDataArrays().push_back(abundance);
-      DataArrays::IntegerDataArray label;
-      label.setName("fraction_group_level_label");
-      label.push_back(1);
-      group.getIntegerDataArrays().push_back(label);
-      DataArrays::StringDataArray filename;
-      filename.setName("file_channel_level_filename");
-      filename.push_back("fileA");
-      group.getStringDataArrays().push_back(filename);
+      // quantities of an earlier run, in the sample-level layout of older versions (which the
+      // exporters still read) and in the current layout
+      add_array(group.getFloatDataArrays(), legacy_abundance_array, 54321.0f);
+      add_array(group.getFloatDataArrays(), abundance_array, 12345.0f);
+      add_array(group.getIntegerDataArrays(), "fraction_group_level_label", 1);
+      add_array(group.getStringDataArrays(), "file_channel_level_filename", "fileA");
 
       // an array that the quantifier does not write and must not touch
       if (foreign_array_on_prot_a && (std::string(accession) == "ProtA"))
       {
-        DataArrays::FloatDataArray foreign;
-        foreign.setName("written_by_another_annotator");
-        foreign.push_back(1.5f);
-        group.getFloatDataArrays().push_back(foreign);
+        add_array(group.getFloatDataArrays(), "written_by_another_annotator", 1.5f);
       }
       proteins.getIndistinguishableProteins().push_back(group);
     }
@@ -2963,19 +2879,13 @@ START_SECTION((void annotateQuantificationsToProteins(const ProteinQuant& protei
     return nullptr;
   };
 
-  PeptideAndProteinQuant quantifier;
-  Param p = quantifier.getDefaults();
-  p.setValue("top:N", 0);
-  p.setValue("top:aggregate", "sum");
-  p.setValue("modifications:exclude", std::vector<std::string>{"Oxidation (M)"});
-  quantifier.setParameters(p);
-  quantifier.readQuantData(consensus, design);
-  quantifier.quantifyPeptides();
+  const std::vector<std::pair<std::string, ParamValue>> settings{{"top:N", 0}, {"top:aggregate", "sum"},
+                                                                 {"modifications:exclude", oxidation}};
 
   // keeping unquantified groups: they stay, but without the stored quantities
   {
     ProteinIdentification proteins = make_proteins(true);
-    quantifier.quantifyProteins(proteins);
+    auto quantifier = quantify_with(consensus, design, settings, proteins);
     const auto& quant = quantifier.getProteinResults();
     TEST_TRUE(quant.at("ProtA").fraction_group_abundances.empty())
     TEST_REAL_SIMILAR(quant.at("ProtB").fraction_group_abundances.at(1).at(1), 1000.0)
@@ -2998,13 +2908,14 @@ START_SECTION((void annotateQuantificationsToProteins(const ProteinQuant& protei
     TEST_TRUE(prot_c->getIntegerDataArrays().empty())
     TEST_TRUE(prot_c->getStringDataArrays().empty())
 
-    // the quantified group reports this run's value, not the stored one
+    // the quantified group reports this run's value, not the stored one - in either layout
     const auto* prot_b = find_group(proteins, "ProtB");
     TEST_TRUE(prot_b != nullptr)
     const auto abundance = getDataArrayByName(prot_b->getFloatDataArrays(), abundance_array);
     TEST_TRUE(abundance != prot_b->getFloatDataArrays().end())
     TEST_EQUAL(abundance->size(), 1)
     TEST_REAL_SIMILAR((*abundance)[0], 1000.0)
+    TEST_TRUE(getDataArrayByName(prot_b->getFloatDataArrays(), legacy_abundance_array) == prot_b->getFloatDataArrays().end())
   }
 
   // removing unquantified groups: only the group quantified in this pass remains - whether or
@@ -3012,7 +2923,7 @@ START_SECTION((void annotateQuantificationsToProteins(const ProteinQuant& protei
   for (bool foreign_array_on_prot_a : {false, true})
   {
     ProteinIdentification proteins = make_proteins(foreign_array_on_prot_a);
-    quantifier.quantifyProteins(proteins);
+    auto quantifier = quantify_with(consensus, design, settings, proteins);
     quantifier.annotateQuantificationsToProteins(quantifier.getProteinResults(), proteins, true);
     TEST_EQUAL(proteins.getIndistinguishableProteins().size(), 1)
     TEST_STRING_EQUAL(proteins.getIndistinguishableProteins()[0].accessions[0], "ProtB")

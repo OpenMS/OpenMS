@@ -12,8 +12,6 @@
 #include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/CHEMISTRY/EnzymaticDigestion.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
-#include <OpenMS/CHEMISTRY/Residue.h>
-#include <OpenMS/CHEMISTRY/ResidueModification.h>
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/LogStream.h>
@@ -29,6 +27,7 @@
 #include <OpenMS/METADATA/PeptideHit.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
+#include <OpenMS/PROCESSING/ID/IDFilter.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <algorithm>
 #include <array>
@@ -37,35 +36,6 @@ using namespace std;
 
 namespace OpenMS
 {
-
-  namespace
-  {
-    /// Does @p seq carry at least one of @p modifications (full names, e.g. "Oxidation (M)"), on a
-    /// residue or on a terminus? Names are compared exactly, the way IDFilter's
-    /// 'blacklist:modifications' matches them. Unlike that filter, an empty set matches nothing.
-    bool carriesModification(const AASequence& seq, const std::set<std::string>& modifications)
-    {
-      if (modifications.empty() || !seq.isModified()) { return false; }
-
-      if (seq.hasNTerminalModification() && modifications.contains(seq.getNTerminalModification()->getFullId()))
-      {
-        return true;
-      }
-      if (seq.hasCTerminalModification() && modifications.contains(seq.getCTerminalModification()->getFullId()))
-      {
-        return true;
-      }
-      for (Size i = 0; i < seq.size(); ++i)
-      {
-        const Residue& residue = seq[i];
-        if (residue.isModified() && modifications.contains(residue.getModification()->getFullId()))
-        {
-          return true;
-        }
-      }
-      return false;
-    }
-  } // namespace
 
   PeptideAndProteinQuant::PeptideAndProteinQuant() :
     DefaultParamHandler("PeptideAndProteinQuant"), stats_(), pep_quant_(),
@@ -718,11 +688,7 @@ namespace OpenMS
       unmod_to_entries[pep_q.first.toUnmodifiedString()].push_back(&pep_q);
     }
 
-    // Peptidoforms that 'modifications:exclude' keeps out of the protein quantification (none by
-    // default). Determined once and handed to BOTH roll-ups below - the assay level in
-    // transferPeptideDataToProteins_() and the file/channel level in
-    // calculateFileAndChannelLevelProteinAbundances_() - so that the two granularities cannot
-    // disagree about which peptidoforms a protein quantity is made of.
+    // none by default; see findPeptidoformsExcludedFromProteins_()
     const ExcludedPeptidoforms excluded = findPeptidoformsExcludedFromProteins_(unmod_to_entries);
 
     // Phase 1: Transfer peptide data to protein structures
@@ -786,8 +752,8 @@ namespace OpenMS
       calculateFractionGroupLevelProteinAbundances_(accession, selected_peptides, aggregate,
                                                     top_n, include_all);
 
-      // accession_to_leader, unmod_to_entries and excluded are loop-invariant and computed once
-      // before the loop (see above).
+      // accession_to_leader and unmod_to_entries are loop-invariant and computed once before
+      // the loop (see above).
       calculateFileAndChannelLevelProteinAbundances_(accession, selected_peptides, aggregate,
                                           top_n, include_all, accession_to_leader, unmod_to_entries,
                                           excluded);
@@ -806,25 +772,7 @@ namespace OpenMS
     // Phase 4: Post-processing
     if (method == "iBAQ")
     {
-      // A peptide that 'modifications:exclude' leaves out with ALL of its forms is gone from the
-      // numerator of iBAQ. It must not count as theoretically observable in the denominator
-      // either: the value of a protein would otherwise shrink with every peptide left out, by a
-      // protein-specific factor, which is exactly what iBAQ is meant to remove. A peptide of which
-      // one form still contributes stays observable. Collecting into a set makes the iteration
-      // order of the index irrelevant.
-      std::unordered_set<std::string> left_out_peptides;
-      if (!excluded.empty())
-      {
-        for (const auto& [unmodified, forms] : unmod_to_entries)
-        {
-          if (std::all_of(forms.begin(), forms.end(),
-                          [&excluded](const PeptideQuant::value_type* form) { return excluded.contains(form); }))
-          {
-            left_out_peptides.insert(unmodified);
-          }
-        }
-      }
-      performIbaqNormalization_(proteins, left_out_peptides);
+      performIbaqNormalization_(proteins, unmod_to_entries, excluded);
     }
   }
 
@@ -1162,16 +1110,18 @@ namespace OpenMS
       return *it;
     }
 
+    /// The array that exactly the quantified groups carry; mzTab and QPX gate on it as well.
+    const char* const ASSAY_ABUNDANCE_ARRAY = "fraction_group_level_abundance";
+
     /// The arrays annotateQuantificationsToProteins() writes on a protein group, by container, in
     /// the order the consensusXML writer emits them in.
-    const std::array<const char*, 4> QUANT_FLOAT_ARRAYS = {"psm_count", "distinct_peptides", "file_channel_level_abundance", "fraction_group_level_abundance"};
+    const std::array<const char*, 4> QUANT_FLOAT_ARRAYS = {"psm_count", "distinct_peptides", "file_channel_level_abundance", ASSAY_ABUNDANCE_ARRAY};
     const std::array<const char*, 4> QUANT_INTEGER_ARRAYS = {"file_channel_level_channel", "file_level_psm_count", "fraction_group_level_fraction_group", "fraction_group_level_label"};
     const std::array<const char*, 2> QUANT_STRING_ARRAYS = {"file_channel_level_filename", "file_level_filename"};
 
     /// Sample-level abundance array of a grain that is no longer written. Files of older versions
-    /// still carry it and the mzTab and QPX exporters still look for it, so it is a quantity of an
-    /// earlier run like the arrays above - but kept apart from them, because that list is also the
-    /// list of arrays to create for a quantified group.
+    /// still carry it and the mzTab and QPX exporters still look for it, so it is removed with the
+    /// arrays above - but it is not one of them, because that list is also what gets created.
     const std::array<const char*, 1> LEGACY_QUANT_FLOAT_ARRAYS = {"abundances"};
 
     /// Remove (not merely empty) the data arrays named @p names; arrays of other names are kept.
@@ -1207,6 +1157,21 @@ namespace OpenMS
 
     auto & id_groups = proteins.getIndistinguishableProteins();
 
+    // No group keeps the quantities of an earlier annotation. The protein groups of a consensusXML
+    // written by a workflow carry them, and the exporters write every array of a group: a protein
+    // that 'top:N' or 'modifications:exclude' leaves unquantified now would be reported with the
+    // abundances it had then, and a quantified one would keep the sample-level array of an older
+    // file next to its new values. The arrays are removed rather than emptied, so that a group
+    // without quantities carries no quantity array at all. Arrays of other annotators (other
+    // names) are not touched.
+    for (auto& g : id_groups)
+    {
+      removeArraysByName(g.getFloatDataArrays(), QUANT_FLOAT_ARRAYS);
+      removeArraysByName(g.getFloatDataArrays(), LEGACY_QUANT_FLOAT_ARRAYS);
+      removeArraysByName(g.getIntegerDataArrays(), QUANT_INTEGER_ARRAYS);
+      removeArraysByName(g.getStringDataArrays(), QUANT_STRING_ARRAYS);
+    }
+
     // Build an accession -> protein-group index once. Previously the group for each
     // quantified protein was located with a linear std::find_if over all groups, making
     // annotation O(#quantified_proteins * #groups). For each accession we keep the FIRST
@@ -1219,10 +1184,6 @@ namespace OpenMS
         accession_to_group.emplace(a, &g);
       }
     }
-
-    // The groups that receive quantities in this pass. Every other group is stripped of
-    // quantities below, see there.
-    std::set<const ProteinIdentification::ProteinGroup*> annotated_groups;
 
     for (const auto& q : protein_quants)
     {
@@ -1242,7 +1203,6 @@ namespace OpenMS
       if (group_it != accession_to_group.end())
       {
         ProteinIdentification::ProteinGroup* id_group = group_it->second;
-        annotated_groups.insert(id_group);
         const SampleAbundances& total_psm_counts = q.second.total_psm_counts;
         const SampleAbundances& total_distinct_peptides = q.second.total_distinct_peptides;
         const auto& file_level_psm_counts = q.second.file_level_psm_counts;
@@ -1378,33 +1338,17 @@ namespace OpenMS
       } 
     }
 
-    // A group that was not quantified in this pass must not keep the quantities of an earlier one.
-    // The protein groups of a consensusXML written by a workflow carry them, and the exporters write
-    // every array of a group: a protein that 'top:N' or 'modifications:exclude' leaves unquantified
-    // now would be reported with the abundances it had then. The arrays are removed rather than
-    // emptied, so that a group that is kept carries no empty quantity array either.
-    // Arrays of other annotators (other names) are not touched.
-    for (auto& g : id_groups)
-    {
-      if (annotated_groups.contains(&g)) { continue; }
-      removeArraysByName(g.getFloatDataArrays(), QUANT_FLOAT_ARRAYS);
-      removeArraysByName(g.getFloatDataArrays(), LEGACY_QUANT_FLOAT_ARRAYS);
-      removeArraysByName(g.getIntegerDataArrays(), QUANT_INTEGER_ARRAYS);
-      removeArraysByName(g.getStringDataArrays(), QUANT_STRING_ARRAYS);
-    }
-
     if (remove_unquantified)
     {
-      // Remove all protein groups that have not been quantified in this pass. Deliberately not
-      // "that carry no float array": a group can hold arrays of another annotator without being
-      // quantified, and would then stay although nothing was quantified for it.
-      std::vector<ProteinIdentification::ProteinGroup> quantified_groups;
-      quantified_groups.reserve(annotated_groups.size());
-      for (auto& g : id_groups)
+      // Remove all protein groups that have not been quantified in this pass: with the quantities
+      // of earlier annotations gone (see above), these are the groups without the assay abundance
+      // array. Deliberately not "without any float array": a group can hold arrays of another
+      // annotator without being quantified, and would then stay although nothing was quantified
+      // for it.
+      std::erase_if(id_groups, [](const ProteinIdentification::ProteinGroup& g)
       {
-        if (annotated_groups.contains(&g)) { quantified_groups.push_back(std::move(g)); }
-      }
-      id_groups = std::move(quantified_groups);
+        return getDataArrayByName(g.getFloatDataArrays(), ASSAY_ABUNDANCE_ARRAY) == g.getFloatDataArrays().end();
+      });
     }
   } 
 
@@ -1420,23 +1364,22 @@ namespace OpenMS
     const std::set<std::string> modifications(names.begin(), names.end());
     const bool exclude_counterparts = param_.getValue("modifications:exclude_counterparts") == "true";
 
+    // The index holds the forms of each peptide sequence together. Its iteration order is
+    // unspecified, but only a set and a count are filled here.
     Size n_modified = 0; // peptidoforms that carry a listed modification themselves
-    for (const auto& pep_q : pep_quant_)
+    for (const auto& [unmodified, forms] : unmod_to_entries)
     {
-      if (!carriesModification(pep_q.first, modifications)) { continue; }
-
-      ++n_modified;
-      if (exclude_counterparts)
+      (void)unmodified;
+      Size n_carrying = 0;
+      for (const PeptideQuant::value_type* form : forms)
       {
-        // Every form of this peptide sequence, the unmodified one included. The index holds each
-        // pep_quant_ entry under its unmodified sequence, so the lookup cannot fail.
-        const auto& forms = unmod_to_entries.at(pep_q.first.toUnmodifiedString());
-        excluded.insert(forms.begin(), forms.end());
+        if (!IDFilter::hasMatchingModification(form->first, modifications)) { continue; }
+        ++n_carrying;
+        if (!exclude_counterparts) { excluded.insert(form); }
       }
-      else
-      {
-        excluded.insert(&pep_q);
-      }
+      // with the counterparts: every form of the peptide sequence, the unmodified one included
+      if (exclude_counterparts && (n_carrying > 0)) { excluded.insert(forms.begin(), forms.end()); }
+      n_modified += n_carrying;
     }
 
     if (n_modified == 0)
@@ -1836,8 +1779,22 @@ namespace OpenMS
   }
 
   void PeptideAndProteinQuant::performIbaqNormalization_(const ProteinIdentification& proteins,
-                                                         const std::unordered_set<std::string>& left_out_peptides)
+                                                         const UnmodifiedToEntriesIndex& unmod_to_entries,
+                                                         const ExcludedPeptidoforms& excluded)
   {
+    // A peptide that 'modifications:exclude' leaves out with ALL of its forms is gone from the
+    // numerator of iBAQ. It must not count as theoretically observable in the denominator either:
+    // the value of a protein would otherwise shrink with every peptide left out, by a
+    // protein-specific factor, which is exactly what iBAQ is meant to remove. A peptide of which
+    // one form still contributes stays observable.
+    const auto left_out = [&unmod_to_entries, &excluded](std::string_view peptide)
+    {
+      const auto forms = unmod_to_entries.find(std::string(peptide));
+      return (forms != unmod_to_entries.end())
+             && std::all_of(forms->second.begin(), forms->second.end(),
+                            [&excluded](const PeptideQuant::value_type* form) { return excluded.contains(form); });
+    };
+
     EnzymaticDigestion digest{};
     for (auto & hit : proteins.getHits())
     {
@@ -1856,12 +1813,9 @@ namespace OpenMS
           std::vector<std::string_view> peptides {};
           digest.digestUnmodified(hit_sequence, peptides);
           Size n_usable_peptides = peptides.size();
-          if (!left_out_peptides.empty())
+          if (!excluded.empty())
           {
-            n_usable_peptides = static_cast<Size>(std::count_if(peptides.begin(), peptides.end(), [&left_out_peptides](std::string_view peptide)
-            {
-              return !left_out_peptides.contains(std::string(peptide));
-            }));
+            n_usable_peptides -= static_cast<Size>(std::count_if(peptides.begin(), peptides.end(), left_out));
             if (n_usable_peptides == 0)
             {
               // Every theoretical peptide is left out, so whatever abundance remains stems from

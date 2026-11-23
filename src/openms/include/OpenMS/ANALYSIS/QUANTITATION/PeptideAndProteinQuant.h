@@ -200,11 +200,11 @@ public:
     /**
          @brief Annotate protein quant results as meta data to protein ids
 
-         The quantities are written as named data arrays on the protein groups of @p proteins. A group
-         that @p protein_quants does not quantify loses these arrays if it carries them from an earlier
-         annotation (e.g. groups read from a consensusXML that already held quantities), so that it is
-         not reported with outdated values. With @p remove_unquantified, the groups that were not
-         quantified are removed altogether, whatever other annotations they carry.
+         The quantities are written as named data arrays on the protein groups of @p proteins. The
+         arrays of an earlier annotation (e.g. on groups read from a consensusXML that already held
+         quantities) are removed from every group first, so that no group is reported with outdated
+         values. With @p remove_unquantified, the groups that were not quantified are removed
+         altogether, whatever other annotations they carry.
     */
     void annotateQuantificationsToProteins(
       const ProteinQuant& protein_quants, 
@@ -479,7 +479,7 @@ private:
          @param[in] include_all Whether to include proteins with insufficient peptides
          @param[in] accession_to_leader Map for resolving protein group leaders
          @param[in] unmod_to_entries Precomputed index from unmodified peptide sequence to the @p pep_quant_ entries sharing it (avoids rescanning @p pep_quant_)
-         @param[in] excluded Peptidoforms that do not contribute ('modifications:exclude'); the same set that transferPeptideDataToProteins_() skipped
+         @param[in] excluded Peptidoforms that do not contribute ('modifications:exclude')
     */
     void calculateFileAndChannelLevelProteinAbundances_(const std::string& protein_accession,
                                            const std::vector<std::string>& selected_peptides,
@@ -494,10 +494,12 @@ private:
          @brief Perform iBAQ normalization on protein abundances.
          
          @param[in] proteins Protein identification information containing sequences
-         @param[in] left_out_peptides Unmodified sequences of the peptides that 'modifications:exclude' leaves out with all of their forms; they do not count as theoretically observable
+         @param[in] unmod_to_entries Precomputed index from unmodified peptide sequence to the @p pep_quant_ entries sharing it
+         @param[in] excluded Peptidoforms left out by 'modifications:exclude'; a peptide all of whose forms are left out does not count as theoretically observable
     */
     void performIbaqNormalization_(const ProteinIdentification& proteins,
-                                   const std::unordered_set<std::string>& left_out_peptides);
+                                   const UnmodifiedToEntriesIndex& unmod_to_entries,
+                                   const ExcludedPeptidoforms& excluded);
 
     /**
          @brief Get the "canonical" protein accession from the list of protein accessions of a peptide.
