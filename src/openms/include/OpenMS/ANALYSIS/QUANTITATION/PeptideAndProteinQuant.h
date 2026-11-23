@@ -196,7 +196,15 @@ public:
     /// Get protein abundance data
     const ProteinQuant& getProteinResults();
 
-    /// Annotate protein quant results as meta data to protein ids
+    /**
+         @brief Annotate protein quant results as meta data to protein ids
+
+         The quantities are written as named data arrays on the protein groups of @p proteins. The
+         arrays of an earlier annotation (e.g. on groups read from a consensusXML that already held
+         quantities) are removed from every group first, so that no group is reported with outdated
+         values. With @p remove_unquantified, the groups that carry no float data array afterwards
+         are removed altogether.
+    */
     void annotateQuantificationsToProteins(
       const ProteinQuant& protein_quants, 
       ProteinIdentification& proteins,
