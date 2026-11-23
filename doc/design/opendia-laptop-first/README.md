@@ -4,7 +4,7 @@
 
 The rewrite lives on [`OpenMS/OpenMS:feature/opendia-clean-rewrite`](https://github.com/OpenMS/OpenMS/tree/feature/opendia-clean-rewrite).
 All of its code is under `src/topp/OpenDIA/`, apart from the Thermo read-ahead change, which is split out as OpenMS#10925 (approved).
-- **Local commits:** the default described below is OpenMS `bcb156e036`. The cleanup (`319f043f77`, `9ba060f978`, `35db7eaee1`), the faster interference resolver (`955516d84c`) and the rename to `OpenDIA` (`46243afae4`) follow it, all output-identical. The GBM final-round fix (`88e5da3023`) follows too; its HeLa byte-check is pending. None of them is pushed yet.
+- **Local commits:** the default described below is OpenMS `bcb156e036`. The cleanup (`319f043f77`, `9ba060f978`, `35db7eaee1`), the faster interference resolver (`955516d84c`) and the rename to `OpenDIA` (`46243afae4`) follow it, all output-identical. The GBM final-round fix (`88e5da3023`) follows too (byte-identical on HeLa D156, D7V and H7, 9/9 files). None of them is pushed yet.
 - **Status:** it is an experimental branch, not a pull request. It must not merge into `develop` until the acceptance gates of R-WP6 pass.
 
 The branch's [`src/topp/OpenDIA/README.md`](https://github.com/OpenMS/OpenMS/blob/feature/opendia-clean-rewrite/src/topp/OpenDIA/README.md) describes the tool. The evidence is in [`gates/`](gates/).
@@ -72,11 +72,11 @@ All records are in `gates/single-binary/pdec/`. Each row passed a frozen 5-seed 
 
 Kept: `-no_rt_refine` (about half the wall time), the tuning knobs (`-max_peaks`, `-valley_fraction`, `-im_tolerance_scale`, `-trace_tolerance_ppm`, `-trace_tensor_gb`, `-rt_refine_min_ids`), `-scoring_lib` and `-decoys predict`. 14 of 14 OpenDIA tests pass with no build warnings. The one-tool container (`opendia-pd10-onebin.sif`, sha256 `ecf60560…`) is byte-identical to the reference outputs on all 9 files of D r ≈ 1.56, D r ≈ 7 V7M6 and H r ≈ 7 (codon `onebin-20261123`).
 
-**Astral, re-measured 23 Nov on the laptop profile (16 threads, 32 GB; [RESULT_ASTRAL_LAPTOP](gates/single-binary/astral-laptop/RESULT_ASTRAL_LAPTOP.md), interim).**
-- **FAIL, robustness:** 5 of 15 runs crashed in the GBM rescore (`a fold has zero decoy spread`, after a degenerate round 3). The fix (`88e5da3023`) falls back to the round 2 scores. The rerun and the HeLa byte-check are pending.
-- **The 10 runs that finished:** median N @ FDP_c 1 % is 2041 / 2128 / 2252 (raws 01 / 02 / 03), against 1804 / 1909 / 1907 on 16 Nov. That is 93 / 90 / 100 % of DIA-NN (.raw), up from 81-84 %. But these are survivors only.
-- **New concern:** own q ≤ 0.01 FDP_c is above 1 % on 6 of 10 runs (up to 1.77 %). On 16 Nov it was never above 1 %. There are also two low seeds (raw02_s4 1301).
-- **Cost:** 6-8 min median wall and about 17 GB peak RSS per raw.
+**Astral, re-measured 23 Nov on the laptop profile (16 threads, 32 GB; [RESULT_ASTRAL_LAPTOP](gates/single-binary/astral-laptop/RESULT_ASTRAL_LAPTOP.md)).**
+- **Robustness FAIL, then fixed:** 5 of 15 runs crashed in the GBM rescore (`a fold has zero decoy spread`, after a degenerate round 3). The fix (`88e5da3023`) falls back to the round 2 scores. With it, 15/15 complete, the other 10 are byte-identical, and HeLa is unchanged.
+- **IDs:** median N @ FDP_c 1 % is 2124 / 2144 / 2246 (raws 01 / 02 / 03), against 1804 / 1909 / 1907 on 16 Nov. That is **96 / 91 / 99 % of DIA-NN (.raw)**, up from 81-84 %.
+- **Main cost, own q is now loose:** FDP_c at own q ≤ 0.01 is above 1 % on 10 of 15 runs (medians 1.17 / 0.95 / 1.32 %, max 1.77 %). On 16 Nov it was never above 1 %. One seed is low (raw02_s4 1301).
+- **Cost:** about 6-7 min uncontended (up to 29 min on busy shared nodes) and about 17 GB peak RSS.
 
 ## Why the direction changed
 
@@ -113,7 +113,7 @@ GBM rescoring         3 cross-fitted histogram-GBM rounds against the hardest 2 
 | [R-WP2](work-packages/R2-calibration.md) | ID-free run calibration | Delivered, with the windowed pass and per-run RT refinement (default). |
 | [R-WP3](work-packages/R3-trace-cnn.md) | Scorer | **C++ `CrossFitScorer` network, then charge-state sibling rescoring, then a hard-negative histogram GBM** (all default). The CNN + LDA path is deleted. |
 | [R-WP4](work-packages/R4-error-control.md) | Error control | Predicted decoys. Own q ≤ 0.01 true FDP on r ≈ 7: D 1.11-1.27 %, H 1.29-1.47 % (H loosened with the GBM; watch). |
-| [R-WP5](work-packages/R5-id-gap.md) | ID gap | **Active.** HeLa r ≈ 7: **82 % (D) / 90 % (H) of DIA-NN** at FDP_c 1 %. Astral (23 Nov, interim, 10 of 15 runs): 90-100 %, but own q is loose and 5 runs crashed (fix pending). |
+| [R-WP5](work-packages/R5-id-gap.md) | ID gap | **Active.** HeLa r ≈ 7: **82 % (D) / 90 % (H) of DIA-NN** at FDP_c 1 %. Astral (23 Nov, 16 threads / 32 GB): 96 / 91 / 99 %, but own q ≤ 0.01 is loose (FDP_c above 1 % on 10 of 15 runs). |
 | [R-WP6](work-packages/R6-acceptance.md) | Acceptance, packaging, merge | One tool, `OpenDIA` (renamed 23 Nov); cleanup 22-23 Nov (step tools removed). Raw 03 held back. PR split open. Speed and memory against DIA-NN open. |
 
 Dependency order: R-WP5 uses R-WP1 to R-WP4. R-WP6 needs R-WP4 and R-WP5.

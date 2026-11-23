@@ -1,0 +1,12 @@
+D156.log:exit 0
+D156.log:SAME 20200505_Evosep_200SPD_SG06-16_MLHeLa_200ng_py8_S3-A1_1_2737.calibration.json
+D156.log:SAME 20200505_Evosep_200SPD_SG06-16_MLHeLa_200ng_py8_S3-A1_1_2737.precursors.tsv
+D156.log:SAME precursors.tsv
+D7V.log:exit 0
+D7V.log:SAME 20200505_Evosep_200SPD_SG06-16_MLHeLa_200ng_py8_S3-A1_1_2737.calibration.json
+D7V.log:SAME 20200505_Evosep_200SPD_SG06-16_MLHeLa_200ng_py8_S3-A1_1_2737.precursors.tsv
+D7V.log:SAME precursors.tsv
+H7.log:exit 0
+H7.log:SAME 20201207_tims03_Evo03_PS_SA_HeLa_200ng_EvoSep_prot_high_speed_21min_8cm_S1-C8_1_22474.calibration.json
+H7.log:SAME 20201207_tims03_Evo03_PS_SA_HeLa_200ng_EvoSep_prot_high_speed_21min_8cm_S1-C8_1_22474.precursors.tsv
+H7.log:SAME precursors.tsv

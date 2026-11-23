@@ -1,0 +1,15 @@
+raw01_s0 wall=7:08.85 rss_gb=16.9 cpu=1220% node=hl-codon-cn-058 exit 0
+raw01_s1 wall=16:08.97 rss_gb=16.9 cpu=1244% node=hl-codon-cn-065 exit 0
+raw01_s2 wall=16:52.71 rss_gb=16.9 cpu=1336% node=hl-codon-cn-066 exit 0
+raw01_s3 wall=28:49.66 rss_gb=16.9 cpu=1384% node=hl-codon-cn-067 exit 0
+raw01_s4 wall=6:39.90 rss_gb=16.9 cpu=1228% node=hl-codon-cn-068 exit 0
+raw02_s0 wall=27:06.05 rss_gb=16.6 cpu=1352% node=hl-codon-cn-068 exit 0
+raw02_s1 wall=7:14.40 rss_gb=16.2 cpu=1228% node=hl-codon-cn-002 exit 0
+raw02_s2 wall=11:59.34 rss_gb=16.2 cpu=1322% node=hl-codon-cn-002 exit 0
+raw02_s3 wall=7:16.28 rss_gb=16.2 cpu=1234% node=hl-codon-cn-005 exit 0
+raw02_s4 wall=18:25.10 rss_gb=16.3 cpu=1379% node=hl-codon-cn-005 exit 0
+raw03_s0 wall=12:11.94 rss_gb=16.5 cpu=1307% node=hl-codon-cn-006 exit 0
+raw03_s1 wall=7:11.53 rss_gb=16.2 cpu=1230% node=hl-codon-cn-007 exit 0
+raw03_s2 wall=10:39.64 rss_gb=16.2 cpu=1295% node=hl-codon-cn-009 exit 0
+raw03_s3 wall=11:43.43 rss_gb=16.2 cpu=1306% node=hl-codon-cn-011 exit 0
+raw03_s4 wall=12:46.91 rss_gb=16.5 cpu=1314% node=hl-codon-cn-013 exit 0
