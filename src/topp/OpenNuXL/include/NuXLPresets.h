@@ -37,6 +37,7 @@ namespace OpenMS
       @param[out] can_cross_link Output parameter for can_cross_link
       @param[out] standalone Output parameter for standalone nucleotides (empty if the preset defines none)
       @param[out] localization Output parameter for the localization method (empty if the preset defines none)
+      @param[out] oligo_fragment_adducts Output parameter for the nucleotides whose larger fragment adducts oligonucleotide adducts get (empty if the preset defines none)
     */
    void getPresets(const std::string& p, 
     const std::string& custom_presets_file,
@@ -46,7 +47,8 @@ namespace OpenMS
     StringList& fragment_adducts, 
     std::string& can_cross_link,
     std::string& standalone,
-    std::string& localization); 
+    std::string& localization,
+    std::string& oligo_fragment_adducts);
 
     /**
       @brief Get preset parameters for a given preset name (using default presets file)
@@ -58,6 +60,7 @@ namespace OpenMS
       @param[out] can_cross_link Output parameter for can_cross_link
       @param[out] standalone Output parameter for standalone nucleotides (empty if the preset defines none)
       @param[out] localization Output parameter for the localization method (empty if the preset defines none)
+      @param[out] oligo_fragment_adducts Output parameter for the nucleotides whose larger fragment adducts oligonucleotide adducts get (empty if the preset defines none)
     */
     void getPresets(const std::string& p, 
      StringList& nucleotides, 
@@ -66,7 +69,8 @@ namespace OpenMS
      StringList& fragment_adducts, 
      std::string& can_cross_link,
      std::string& standalone,
-     std::string& localization);
+     std::string& localization,
+     std::string& oligo_fragment_adducts);
   }
 
 }
