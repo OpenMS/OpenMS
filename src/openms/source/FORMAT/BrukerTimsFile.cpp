@@ -2385,7 +2385,8 @@ namespace OpenMS
   {
   public:
     /// @param frames frame id and MS level of the frames, in the order of the next() calls
-    RawFrameReader(TimsDataHandle& handle, std::vector<std::pair<uint32_t, int>> frames) :
+    /// @param max_threads threads that decode ahead; 0: up to MAX_THREADS
+    RawFrameReader(TimsDataHandle& handle, std::vector<std::pair<uint32_t, int>> frames, int max_threads = 0) :
       handle_(handle),
       frames_(std::move(frames))
     {
@@ -2399,7 +2400,7 @@ namespace OpenMS
       constexpr int MAX_THREADS = 4;
       int n_threads = 1;
 #ifdef _OPENMP
-      if (!sdk) n_threads = std::min(MAX_THREADS, std::max(1, omp_get_max_threads()));
+      if (!sdk) n_threads = max_threads > 0 ? max_threads : std::min(MAX_THREADS, std::max(1, omp_get_max_threads()));
 #endif
       n_threads = static_cast<int>(std::min<size_t>(static_cast<size_t>(n_threads), std::max<size_t>(1, frames_.size())));
       workers_.resize(static_cast<size_t>(n_threads));
@@ -2446,7 +2447,8 @@ namespace OpenMS
       // The next frames, up to one large frame per thread. Small frames (MS2 frames of a few thousand
       // peaks) are not worth a thread of their own; a batch without two large frames is decoded serially.
       constexpr uint32_t LARGE_FRAME = 20000; // peaks
-      const size_t max_frames = 64 * workers_.size();
+      // at most 256 frames (64 per thread of the default 4): a batch of small frames is decoded serially and held whole
+      const size_t max_frames = std::min<size_t>(256, 64 * workers_.size());
       size_t n = 0, n_large = 0;
       while (n_decoded_ + n < frames_.size() && n < max_frames && n_large < workers_.size())
       {
@@ -2855,7 +2857,7 @@ namespace OpenMS
       std::vector<std::pair<uint32_t, int>> frames;
       frames.reserve(indices.size());
       for (const size_t i : indices) frames.emplace_back(ms1_frame_ids_[i], 1);
-      raw_ = std::make_unique<RawFrameReader>(handle_, std::move(frames));
+      raw_ = std::make_unique<RawFrameReader>(handle_, std::move(frames), config_.ms1_decode_threads);
     }
 
     /// readInOrder() for the first @p n frames, in the order of ms1_frame_ids
@@ -3046,45 +3048,131 @@ namespace OpenMS
 
     startProgress(0, total_work, "Streaming DIA-PASEF MS2 frames");
     Size progress_count = 0;
-    DecodedFrame decoded;
-    std::vector<char> in_window; // per scan of the frame: within the ion mobility limits of the window?
+
+    // A batch of frames is decoded and sliced into the spectra of their windows in parallel, each thread with its
+    // own decompression context, buffer and scan mask (as RawFrameReader does for the other loaders); the spectra
+    // are handed to the consumer afterwards, one by one in (frame, window) order: the spectra and their order are
+    // those of doing one frame after the other. Not with the converters of the Bruker SDK, which are called by one
+    // thread at a time.
+    const bool sdk = dynamic_cast< ::BrukerTof2MzConverter*>(handle->tof2mz_converter.get()) != nullptr
+                  || dynamic_cast< ::BrukerScan2InvIonMobilityConverter*>(handle->scan2inv_ion_mobility_converter.get()) != nullptr;
+    // the caller's parallel for (dia_ms2_parallel_for), else a team of our own
+    const bool caller_for = !sdk && eff.dia_ms2_parallel_for && eff.dia_ms2_parallel_for_slots > 1;
+    int n_dec = 1;
+    if (caller_for) n_dec = eff.dia_ms2_parallel_for_slots;
+#ifdef _OPENMP
+    else if (!sdk) n_dec = eff.dia_ms2_decode_threads > 0 ? eff.dia_ms2_decode_threads : std::min(4, std::max(1, omp_get_max_threads()));
+#endif
+    struct DecodeSlot
+    {
+      struct FreeContext
+      {
+        void operator()(ZSTD_DCtx* context) const { ZSTD_freeDCtx(context); }
+      };
+      std::unique_ptr<ZSTD_DCtx, FreeContext> context;
+      std::vector<char> buffer;
+      DecodedFrame decoded;
+      std::vector<char> in_window; // per scan of the frame: within the ion mobility limits of the window?
+    };
+    std::vector<DecodeSlot> slots(static_cast<size_t>(n_dec));
+    if (n_dec > 1)
+    {
+      for (DecodeSlot& s : slots)
+      {
+        s.context.reset(ZSTD_createDCtx());
+        s.buffer.resize(handle->get_decomp_buffer_size());
+      }
+    }
+    constexpr size_t BATCH = 256; // frames; a frame gives one spectrum per window of its group
 
     for (const auto& [group, frame_ids] : group_to_frames)
     {
       auto wit = group_to_windows.find(group);
       if (wit == group_to_windows.end()) continue;
       const auto& dia_windows = wit->second;
+      const auto& ids = frame_ids;   // OpenMP cannot capture a structured binding
+      const size_t batch = n_dec > 1 ? BATCH : 1;
+      std::vector<std::vector<MSSpectrum>> out(batch); // per frame of the batch: the spectrum of each window (empty = none)
 
       // Every frame is decoded once and split into the windows of its group. Each window still gets
       // its spectra in the order of the frames.
-      for (size_t i = 0; i < frame_ids.size(); ++i)
+      for (size_t b0 = 0; b0 < ids.size(); b0 += batch)
       {
-        TimsFrame& frame = handle->get_frame(frame_ids[i]);
-        if (frame.num_peaks > 0) decoded.decode(*handle, frame, /*order_by_mz=*/true);
-
-        for (const DIAWindow* win : dia_windows)
+        const size_t b1 = std::min(b0 + batch, ids.size());
+        auto sliceFrame = [&](size_t i, DecodeSlot& s)
         {
-          setProgress(progress_count++);
-          if (frame.num_peaks == 0) continue;
-
-          MSSpectrum spec;
-          initDIAWindowSpectrum(frame, *win, spec);
-          DataArrays::FloatDataArray im_array;
-          IMDataConverter::setIMUnit(im_array, DriftTimeUnit::VSSC);
-          markScansInWindow(decoded, *win, in_window);
-          addWindowPeaksByMZ(decoded, in_window, spec, im_array);
-
-          if (!spec.empty())
+          TimsFrame& frame = handle->get_frame(ids[i]);
+          std::vector<MSSpectrum>& specs = out[i - b0];
+          specs.clear();
+          if (frame.num_peaks == 0) return;
+          s.decoded.decode(*handle, frame, /*order_by_mz=*/true, s.context.get(), s.buffer.empty() ? nullptr : s.buffer.data());
+          specs.resize(dia_windows.size());
+          for (size_t w = 0; w < dia_windows.size(); ++w)
           {
-            spec.getFloatDataArrays().push_back(std::move(im_array));
-            spec.setIMPeakType(IMPeakType::IM_PROFILE);
-            // OpenSwath's chromatogram extraction assumes m/z-sorted input (see the matching comment
-            // in the MS1 loop above). The peaks were added in m/z order; this only sorts if the frame
-            // could not be ordered when it was decoded.
-            spec.sortByPosition();
-            polarity.apply(spec);
-            callConsumer([&] { consumer.consumeSpectrum(spec); });
+            MSSpectrum& spec = specs[w];
+            initDIAWindowSpectrum(frame, *dia_windows[w], spec);
+            DataArrays::FloatDataArray im_array;
+            IMDataConverter::setIMUnit(im_array, DriftTimeUnit::VSSC);
+            markScansInWindow(s.decoded, *dia_windows[w], s.in_window);
+            addWindowPeaksByMZ(s.decoded, s.in_window, spec, im_array);
+            if (!spec.empty())
+            {
+              spec.getFloatDataArrays().push_back(std::move(im_array));
+              spec.setIMPeakType(IMPeakType::IM_PROFILE);
+              // OpenSwath's chromatogram extraction assumes m/z-sorted input (see the matching comment
+              // in the MS1 loop above). The peaks were added in m/z order; this only sorts if the frame
+              // could not be ordered when it was decoded.
+              spec.sortByPosition();
+              polarity.apply(spec);
+            }
           }
+        };
+        if (caller_for)
+        {
+          eff.dia_ms2_parallel_for(static_cast<long>(b1 - b0), [&](long k, int slot) { sliceFrame(b0 + static_cast<size_t>(k), slots[static_cast<size_t>(slot)]); });
+        }
+        else if (n_dec > 1)
+        {
+          // every thread has its own slot; exceptions must not leave the parallel region
+          std::exception_ptr error = nullptr;
+#pragma omp parallel for schedule(dynamic, 1) num_threads(n_dec)
+          for (SignedSize k = static_cast<SignedSize>(b0); k < static_cast<SignedSize>(b1); ++k)
+          {
+            try
+            {
+              int thread = 0;
+#ifdef _OPENMP
+              thread = omp_get_thread_num();
+#endif
+              sliceFrame(static_cast<size_t>(k), slots[static_cast<size_t>(thread)]);
+            }
+            catch (...)
+            {
+#pragma omp critical (BrukerTimsFile_DIAStreamingDecode)
+              {
+                if (!error) error = std::current_exception();
+              }
+            }
+          }
+          if (error) std::rethrow_exception(error);
+        }
+        else
+        {
+          sliceFrame(b0, slots[0]);
+        }
+        for (size_t i = b0; i < b1; ++i)
+        {
+          std::vector<MSSpectrum>& specs = out[i - b0];
+          for (size_t w = 0; w < dia_windows.size(); ++w)
+          {
+            setProgress(progress_count++);
+            if (w < specs.size() && !specs[w].empty())
+            {
+              MSSpectrum& spec = specs[w];
+              callConsumer([&] { consumer.consumeSpectrum(spec); });
+            }
+          }
+          std::vector<MSSpectrum>().swap(specs);
         }
       }
     }

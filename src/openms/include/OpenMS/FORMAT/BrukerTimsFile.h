@@ -115,6 +115,22 @@ namespace OpenMS
                                            ///< not decoded and, for DDA, the precursor table is not read.
                                            ///< Affects all export modes.
 
+      /// Threads that decode the DIA-PASEF MS2 frames of loadDIAStreaming() ahead, in parallel (each with its
+      /// own decompression context). 0: up to 4, as the other parallel loaders; 1: serial. The spectra and
+      /// their order do not depend on it. Called from a parallel region, the threads form a nested team.
+      int dia_ms2_decode_threads = 0;
+
+      /// Threads that decode ahead, in parallel, the MS1 frames that become spectra as they are (not aggregated
+      /// with neighbours, not centroided). 0: up to 4; 1: serial. The spectra and their order do not depend on it.
+      int ms1_decode_threads = 0;
+
+      /// Instead of a team of its own: runs body(i, slot) for every i in [0, n), in parallel as the caller sees
+      /// fit, with slot < dia_ms2_parallel_for_slots and unique among the calls running at the same time (e.g. the
+      /// caller's thread number). For a caller already in a parallel region whose threads should do the work rather
+      /// than a nested team. Ignored with the converters of the Bruker SDK.
+      std::function<void(long n, const std::function<void(long i, int slot)>& body)> dia_ms2_parallel_for;
+      int dia_ms2_parallel_for_slots = 0;
+
       /// Frame ID range filter (inclusive). Only frames with
       /// frame_id_min <= Id <= frame_id_max are read; all peak data for frames
       /// outside the range is skipped, so memory and I/O scale with the range,
