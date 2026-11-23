@@ -77,6 +77,7 @@ Kept: `-no_rt_refine` (about half the wall time), the tuning knobs (`-max_peaks`
 - **IDs:** median N @ FDP_c 1 % is 2124 / 2144 / 2246 (raws 01 / 02 / 03), against 1804 / 1909 / 1907 on 16 Nov. That is **96 / 91 / 99 % of DIA-NN (.raw)**, up from 81-84 %.
 - **Main cost, own q is now loose:** FDP_c at own q ≤ 0.01 is above 1 % on 10 of 15 runs (medians 1.17 / 0.95 / 1.32 %, max 1.77 %). On 16 Nov it was never above 1 %. One seed is low (raw02_s4 1301).
 - **Cause (PRECHECK_ASTQ → [RESULT_ASTQ](gates/single-binary/astral-laptop/RESULT_ASTQ.md)): the GBM rescore.** A stage ladder on raws 01 + 02 shows that removing the GBM alone takes the pooled combined bound from 1.17 to 0.73 %, which is 73 % of the total drop. No other stage meets the bar. On Astral the GBM gains on raw 01 (+9.9 % at FDP_c 1 %) but loses on raw 02 (-6.1 %), and it causes the low seed. A GBM fix needs a new precheck; the default is unchanged.
+- **GBM fix precheck (PRECHECK_GBMFIX → [RESULT_GBMFIX](gates/single-binary/astral-laptop/RESULT_GBMFIX.md)): FAIL.** One GBM round (`-gbm_rounds 1`) keeps HeLa D and tightens its bound (1.31 to 1.16 %), but Astral stays at 1.12 %. Stricter positives (`-gbm_positive_q 0.005`) collapse on some Astral seeds. The looseness is in the first GBM round itself, which has too few positives on Astral (about 2,000 against 18,000-38,000 on HeLa). Next candidate: skip the GBM below a positive-count floor (decision).
 - **Cost:** about 6-7 min uncontended (up to 29 min on busy shared nodes) and about 17 GB peak RSS.
 
 ## Why the direction changed

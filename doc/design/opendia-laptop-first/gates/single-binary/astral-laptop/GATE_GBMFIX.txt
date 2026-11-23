@@ -1,0 +1,5 @@
+/nfs/research/juan/singj/opendia/gbmfix2-20261123/runs/D156_G0_s0.log:GATE SAME 20200505_Evosep_200SPD_SG06-16_MLHeLa_200ng_py8_S3-A1_1_2737.calibration.json
+/nfs/research/juan/singj/opendia/gbmfix2-20261123/runs/D156_G0_s0.log:GATE SAME 20200505_Evosep_200SPD_SG06-16_MLHeLa_200ng_py8_S3-A1_1_2737.precursors.tsv
+/nfs/research/juan/singj/opendia/gbmfix2-20261123/runs/D156_G0_s0.log:GATE SAME precursors.tsv
+/nfs/research/juan/singj/opendia/gbmfix2-20261123/runs/raw01_G0_s0.log:GATE SAME
+/nfs/research/juan/singj/opendia/gbmfix2-20261123/runs/raw02_G0_s2.log:GATE SAME

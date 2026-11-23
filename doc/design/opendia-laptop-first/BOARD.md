@@ -31,7 +31,8 @@ Current state on 23 November 2026: the HeLa diaPASEF entrapment at r ≈ 7. The 
 | Speed and memory against DIA-NN (D about 19 min / 34 GB vs 3-4 min / under 7 GB) | R-WP6 | Open | [README](README.md) |
 | Re-measure Astral on the current default, laptop profile (16 threads, 32 GB): median N@FDP_c 1 % 2124 / 2144 / 2246 (16 Nov 1804 / 1909 / 1907), 96 / 91 / 99 % of DIA-NN (.raw); about 6-7 min uncontended, about 17 GB | R-WP5 | Done (diagnostic) | [RESULT_ASTRAL_LAPTOP.md](gates/single-binary/astral-laptop/RESULT_ASTRAL_LAPTOP.md) |
 | Own q ≤ 0.01 loose on Astral: FDP_c above 1 % on 10 of 15 runs (medians 1.17 / 0.95 / 1.32 %, max 1.77 %; 16 Nov never above 1 %); one low seed (raw02_s4). PRECHECK_ASTQ ladder: **the GBM rescore is the cause** (pooled combined bound 1.17 to 0.73 % without it, 73 % of the total drop; fairness not raised); GBM on Astral +9.9 % raw 01, -6.1 % raw 02 | R-WP4 | Done (diagnostic); GBM fix needs a new precheck (decision) | [RESULT_ASTQ.md](gates/single-binary/astral-laptop/RESULT_ASTQ.md) |
-| Push the local OpenMS commits (bcb156e036 to 88e5da3023) | R-WP6 | Done (singjc/OpenMS feature/opendia-clean-rewrite, 23 Nov) | [README](README.md) |
+| PRECHECK_GBMFIX: `-gbm_rounds 1` and `-gbm_positive_q 0.005` (OpenMS 17430ba8eb, opt-in). Astral pooled combined bound 1.12 % / 0.81 % (worst run 1.77 % / 2.94 %) against the 1.00 % bar; HeLa D G1 keeps IDs (0.999x) and tightens the bound to 1.16 %; GQ -3.7 % | R-WP4 | Done (fail); next: gate the GBM on the positive count (decision) | [RESULT_GBMFIX.md](gates/single-binary/astral-laptop/RESULT_GBMFIX.md) |
+| Push OpenMS commits (bcb156e036 to 88e5da3023) to singjc/OpenMS and OpenMS/OpenMS `feature/opendia-clean-rewrite`; epic #10661 body and status comment updated | R-WP6 | Done (23 Nov) | [#10661](https://github.com/OpenMS/OpenMS/issues/10661) |
 
 ## R-WP1: Streaming search
 
