@@ -8,9 +8,10 @@ set -euo pipefail
 cd /nfs/research/juan/singj/opendia/astral-full-20261123
 mkdir -p library
 scratch=$(mktemp -d "${TMPDIR:-/tmp}/afull-predict-${SLURM_JOB_ID}-XXXXXX")
+sha256sum -c cuda_runtime.sha256
 nvidia-smi --query-gpu=name,memory.total,driver_version --format=csv > library/gpu.txt
 sha256sum /nfs/research/juan/singj/opendia/proteobench-astral-entrapment/transfer/full_fasta/ProteoBenchFASTA_Entrapment_Human_with_contaminants_entrapment_pep.fasta /nfs/research/juan/singj/opendia/entlib-hela-20261118/dialibgen-cuda-0.13.1.sif > library/generation_inputs.sha256
-/usr/bin/time -v -o library/generation.time.txt singularity exec --nv --cleanenv --no-home --home "$scratch:/tmp" --env TMPDIR=/tmp --bind /nfs/research/juan/singj/opendia --bind "$scratch:/tmp" /nfs/research/juan/singj/opendia/entlib-hela-20261118/dialibgen-cuda-0.13.1.sif DIALibGen \
+/usr/bin/time -v -o library/generation.time.txt singularity exec --nv --cleanenv --no-home --home "$scratch:/tmp" --env TMPDIR=/tmp --env LD_LIBRARY_PATH=/nfs/research/juan/singj/opendia/astral-full-20261123/cuda_runtime128/nvidia/cuda_runtime/lib:/opt/dialibgen-0.13.1/lib:/usr/local/cuda/targets/x86_64-linux/lib:/.singularity.d/libs --bind /nfs/research/juan/singj/opendia --bind "$scratch:/tmp" /nfs/research/juan/singj/opendia/entlib-hela-20261118/dialibgen-cuda-0.13.1.sif DIALibGen \
  -in /nfs/research/juan/singj/opendia/proteobench-astral-entrapment/transfer/full_fasta/ProteoBenchFASTA_Entrapment_Human_with_contaminants_entrapment_pep.fasta \
  -out /nfs/research/juan/singj/opendia/astral-full-20261123/library/targets20.pqp \
  -threads 16 -machine:device cuda -machine:require_gpu \
