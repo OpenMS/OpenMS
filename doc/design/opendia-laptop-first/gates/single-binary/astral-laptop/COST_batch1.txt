@@ -1,0 +1,15 @@
+raw01_s0 wall=9:25.18 rss_gb=17.2 user_s=7290.09 cpu=1292% node=hl-codon-cn-061.ebi.ac.uk exit 0
+raw01_s1 wall=18:15.77 rss_gb=17.0 user_s=14587.49 cpu=1336% node=hl-codon-cn-061.ebi.ac.uk exit 0
+raw01_s2 wall=7:25.68 rss_gb=16.9 user_s=5574.36 cpu=1254% node=hl-codon-cn-109.ebi.ac.uk exit 8
+raw01_s3 wall=6:23.34 rss_gb=16.9 user_s=4647.69 cpu=1216% node=hl-codon-cn-109.ebi.ac.uk exit 0
+raw01_s4 wall=5:48.01 rss_gb=17.2 user_s=4062.86 cpu=1171% node=hl-codon-cn-109.ebi.ac.uk exit 0
+raw02_s0 wall=5:35.82 rss_gb=16.2 user_s=3937.79 cpu=1176% node=hl-codon-cn-109.ebi.ac.uk exit 8
+raw02_s1 wall=3:33.17 rss_gb=16.5 user_s=2314.10 cpu=1091% node=hl-codon-cn-109.ebi.ac.uk exit 8
+raw02_s2 wall=7:47.05 rss_gb=16.2 user_s=5768.68 cpu=1242% node=hl-codon-cn-109.ebi.ac.uk exit 0
+raw02_s3 wall=7:03.96 rss_gb=16.3 user_s=5281.12 cpu=1249% node=hl-codon-cn-110.ebi.ac.uk exit 0
+raw02_s4 wall=6:43.00 rss_gb=16.3 user_s=4955.81 cpu=1233% node=hl-codon-cn-110.ebi.ac.uk exit 0
+raw03_s0 wall=3:59.45 rss_gb=16.2 user_s=2773.31 cpu=1163% node=hl-codon-cn-110.ebi.ac.uk exit 8
+raw03_s1 wall=7:12.51 rss_gb=16.2 user_s=5429.94 cpu=1258% node=hl-codon-cn-110.ebi.ac.uk exit 8
+raw03_s2 wall=6:12.30 rss_gb=16.2 user_s=4547.72 cpu=1225% node=hl-codon-cn-110.ebi.ac.uk exit 0
+raw03_s3 wall=6:02.62 rss_gb=16.2 user_s=4322.10 cpu=1196% node=hl-codon-cn-110.ebi.ac.uk exit 0
+raw03_s4 wall=9:32.40 rss_gb=16.2 user_s=7340.68 cpu=1288% node=hl-codon-cn-110.ebi.ac.uk exit 0

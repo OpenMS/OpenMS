@@ -3,11 +3,11 @@
 **Status, 23 November 2026.** This plan replaced the laptop-first WP-00 to WP-10 plan on 7 November 2026. The old plan is closed and kept unchanged under [archive/legacy-wp-plan-20261107](archive/legacy-wp-plan-20261107/README.md). Earlier status sections are in [archive/status-history-20261122](archive/status-history-20261122/README.md) (to 20 November) and [README_state_20261122.md](archive/status-history-20261122/README_state_20261122.md) (22 November).
 
 The rewrite lives on [`OpenMS/OpenMS:feature/opendia-clean-rewrite`](https://github.com/OpenMS/OpenMS/tree/feature/opendia-clean-rewrite).
-All of its code is under `src/topp/OpenDIAWorkflow/`, apart from the Thermo read-ahead change, which is split out as OpenMS#10925 (approved).
-- **Local commits:** the default described below is OpenMS `bcb156e036`. The cleanup (`319f043f77`, `9ba060f978`, `35db7eaee1`) and the faster interference resolver (`955516d84c`) follow it, all output-identical. None of them is pushed yet.
+All of its code is under `src/topp/OpenDIA/`, apart from the Thermo read-ahead change, which is split out as OpenMS#10925 (approved).
+- **Local commits:** the default described below is OpenMS `bcb156e036`. The cleanup (`319f043f77`, `9ba060f978`, `35db7eaee1`), the faster interference resolver (`955516d84c`) and the rename to `OpenDIA` (`46243afae4`) follow it, all output-identical. The GBM final-round fix (`88e5da3023`) follows too; its HeLa byte-check is pending. None of them is pushed yet.
 - **Status:** it is an experimental branch, not a pull request. It must not merge into `develop` until the acceptance gates of R-WP6 pass.
 
-The branch's [`src/topp/OpenDIAWorkflow/README.md`](https://github.com/OpenMS/OpenMS/blob/feature/opendia-clean-rewrite/src/topp/OpenDIAWorkflow/README.md) describes the tool. The evidence is in [`gates/`](gates/).
+The branch's [`src/topp/OpenDIA/README.md`](https://github.com/OpenMS/OpenMS/blob/feature/opendia-clean-rewrite/src/topp/OpenDIA/README.md) describes the tool. The evidence is in [`gates/`](gates/).
 
 ## Current state, 23 November 2026
 
@@ -30,7 +30,7 @@ The metric is N, precursors at true FDP 1 % (FDP_c), as the median of 5 seeds. D
 
 All records are in `gates/single-binary/pdec/`. Each row passed a frozen 5-seed plan on D, and H was run only after the D verdict was committed. Each default flip was byte-identical to the tested arm. The code now carries only this default, so the stages cannot be switched off.
 
-**What the default does.** `OpenDIAWorkflow` is the only tool. Per run:
+**What the default does.** `OpenDIA` is the only tool. Per run:
 1. **Calibration:** identification-free calibration of RT, fragment m/z and 1/K0, with a windowed second pass if needed.
 2. **Search:** a streaming candidate search, 5 peaks per precursor.
 3. **Evidence pass:** 6-fragment traces at ±10 ppm, a 12-fragment grid, shared-signal interference, MS1 and mobility evidence, and matched-filter features.
@@ -65,13 +65,18 @@ All records are in `gates/single-binary/pdec/`. Each row passed a frozen 5-seed 
    - `-no_extra_scores`, `-no_matched_filter`, `-no_sibling_features`, `-no_gbm_rescore`, `-gbm_hard_fraction`;
    - `OpenDIACalibrate -max_panel_targets`, plus linker-dead code.
 3. **One tool** (`35db7eaee1`, 2,202 lines removed net):
-   - The step tools `OpenDIA` and `OpenDIACalibrate` are gone. The directory is now `src/topp/OpenDIAWorkflow/` and the registered TOPP tool is `OpenDIAWorkflow`.
-   - Also removed: code only the step tools used (`-out_xipm` peak-map export, the search peak and feature tables, the trace dump, the calibration diagnostics and anchors TSV), the workflow's `-calibration`/`-anchors` reuse and `-scoring_lib`, and the old `TOPP_OpenDIA_*` tests of the pre-rewrite front-end (they no longer ran).
+   - The old step tools `OpenDIA` and `OpenDIACalibrate` are gone.
+   - Also removed: code only the step tools used (`-out_xipm` peak-map export, the search peak and feature tables, the trace dump, the calibration diagnostics and anchors TSV), the workflow's `-calibration`/`-anchors` reuse, and the old `TOPP_OpenDIA_*` tests of the pre-rewrite front-end (they no longer ran).
    - Earlier diagnostics (PRECHECK_NOCAND, PRECHECK_IDGAP, ...) that used the step tools stay reproducible from their recorded containers.
+4. **Rename** (`46243afae4`): the one tool `OpenDIAWorkflow` is now `OpenDIA` (directory `src/topp/OpenDIA/`, binary `OpenDIA`). `-scoring_lib`, removed in step 3, is restored, because the Astral benchmark scores with `library12_full.pqp`. Byte-identical on D r ≈ 1.56 (3/3 files, codon `rename-20261123`).
 
-Kept: `-no_rt_refine` (about half the wall time), the tuning knobs (`-max_peaks`, `-valley_fraction`, `-im_tolerance_scale`, `-trace_tolerance_ppm`, `-trace_tensor_gb`, `-rt_refine_min_ids`), and `-decoys predict`. 14 of 14 OpenDIA tests pass with no build warnings. The one-tool container (`opendia-pd10-onebin.sif`, sha256 `ecf60560…`) is byte-identical to the reference outputs on all 9 files of D r ≈ 1.56, D r ≈ 7 V7M6 and H r ≈ 7 (codon `onebin-20261123`).
+Kept: `-no_rt_refine` (about half the wall time), the tuning knobs (`-max_peaks`, `-valley_fraction`, `-im_tolerance_scale`, `-trace_tolerance_ppm`, `-trace_tensor_gb`, `-rt_refine_min_ids`), `-scoring_lib` and `-decoys predict`. 14 of 14 OpenDIA tests pass with no build warnings. The one-tool container (`opendia-pd10-onebin.sif`, sha256 `ecf60560…`) is byte-identical to the reference outputs on all 9 files of D r ≈ 1.56, D r ≈ 7 V7M6 and H r ≈ 7 (codon `onebin-20261123`).
 
-**Astral.** Unchanged since 16 November: OpenDIA reaches 81-84 % of DIA-NN at FDP_c 1 % (archived snapshot). The diaPASEF levers above have not been re-measured on Astral.
+**Astral, re-measured 23 Nov on the laptop profile (16 threads, 32 GB; [RESULT_ASTRAL_LAPTOP](gates/single-binary/astral-laptop/RESULT_ASTRAL_LAPTOP.md), interim).**
+- **FAIL, robustness:** 5 of 15 runs crashed in the GBM rescore (`a fold has zero decoy spread`, after a degenerate round 3). The fix (`88e5da3023`) falls back to the round 2 scores. The rerun and the HeLa byte-check are pending.
+- **The 10 runs that finished:** median N @ FDP_c 1 % is 2041 / 2128 / 2252 (raws 01 / 02 / 03), against 1804 / 1909 / 1907 on 16 Nov. That is 93 / 90 / 100 % of DIA-NN (.raw), up from 81-84 %. But these are survivors only.
+- **New concern:** own q ≤ 0.01 FDP_c is above 1 % on 6 of 10 runs (up to 1.77 %). On 16 Nov it was never above 1 %. There are also two low seeds (raw02_s4 1301).
+- **Cost:** 6-8 min median wall and about 17 GB peak RSS per raw.
 
 ## Why the direction changed
 
@@ -97,7 +102,7 @@ CrossFitScorer        decoy-whitened network, family cross-fitting, self-trainin
 sibling rescoring     4 charge-state sibling features from out-of-fold first scores, network rescored (49 features)
 GBM rescoring         3 cross-fitted histogram-GBM rounds against the hardest 2 % of decoy precursors
                       → pooled paired TDC → q-values; then per-run RT refinement and a second full pass
-                      (all steps inside the one tool, OpenDIAWorkflow)
+                      (all steps inside the one tool, OpenDIA)
 ```
 
 ## Work packages
@@ -108,8 +113,8 @@ GBM rescoring         3 cross-fitted histogram-GBM rounds against the hardest 2 
 | [R-WP2](work-packages/R2-calibration.md) | ID-free run calibration | Delivered, with the windowed pass and per-run RT refinement (default). |
 | [R-WP3](work-packages/R3-trace-cnn.md) | Scorer | **C++ `CrossFitScorer` network, then charge-state sibling rescoring, then a hard-negative histogram GBM** (all default). The CNN + LDA path is deleted. |
 | [R-WP4](work-packages/R4-error-control.md) | Error control | Predicted decoys. Own q ≤ 0.01 true FDP on r ≈ 7: D 1.11-1.27 %, H 1.29-1.47 % (H loosened with the GBM; watch). |
-| [R-WP5](work-packages/R5-id-gap.md) | ID gap | **Active.** HeLa r ≈ 7: **82 % (D) / 90 % (H) of DIA-NN** at FDP_c 1 %. Astral 81-84 % (16 Nov, not re-measured). |
-| [R-WP6](work-packages/R6-acceptance.md) | Acceptance, packaging, merge | One tool, `OpenDIAWorkflow`; cleanup 22-23 Nov (step tools removed). Raw 03 held back. PR split open. Speed and memory against DIA-NN open. |
+| [R-WP5](work-packages/R5-id-gap.md) | ID gap | **Active.** HeLa r ≈ 7: **82 % (D) / 90 % (H) of DIA-NN** at FDP_c 1 %. Astral (23 Nov, interim, 10 of 15 runs): 90-100 %, but own q is loose and 5 runs crashed (fix pending). |
+| [R-WP6](work-packages/R6-acceptance.md) | Acceptance, packaging, merge | One tool, `OpenDIA` (renamed 23 Nov); cleanup 22-23 Nov (step tools removed). Raw 03 held back. PR split open. Speed and memory against DIA-NN open. |
 
 Dependency order: R-WP5 uses R-WP1 to R-WP4. R-WP6 needs R-WP4 and R-WP5.
 
@@ -125,9 +130,9 @@ Dependency order: R-WP5 uses R-WP1 to R-WP4. R-WP6 needs R-WP4 and R-WP5.
   - The ctest `OpenDIA_no_openswath` fails on any OpenSWATH reference in the core (`include/`, `source/`).
   - Since 1f29ce2da8 the core is clean: its own PQP reader and library types (`OpenDIALibrary`), its own peak-map
     struct, and the isotope pattern taken directly from `CoarseIsotopePatternGenerator`.
-  - One marked edge remains in the tool file: `OpenDIAWorkflow -decoys predict` (`OpenSwathLibraryPreparation`),
+  - One marked edge remains in the tool file: `OpenDIA -decoys predict` (`OpenSwathLibraryPreparation`),
     which is pending a decision.
-  - OpenDIAWorkflow still links the full libOpenMS (105 MB), so the binary is not yet small.
+  - OpenDIA still links the full libOpenMS (105 MB), so the binary is not yet small.
 - Never report a calibrated FDR from decoy counts alone. Call q-derived counts decoy-count estimates. Agreement with OpenSWATH is not truth.
 - Native Bruker and Thermo input, with no mandatory conversion.
 - Inputs and baseline OSW files are read-only.
