@@ -3535,6 +3535,15 @@ if (NOT MSVC) # currently some minor numeric differences on windows. needs fixin
     -P ${DATA_DIR_TOPP}/OpenNuXL_9_xl_fdr_groups_test.cmake)
   set_tests_properties("TOPP_OpenNuXL_9_xl_fdr_groups" PROPERTIES DEPENDS "TOPP_OpenNuXL_9")
 
+  # NuXL:oligo_fragment_adducts overrides the preset and only takes nucleotides that can cross-link: C under RNA-UV (U)
+  # would get none of its forms, so the search is refused before it starts (ILLEGAL_PARAMETERS)
+  add_test(NAME "TOPP_OpenNuXL_oligo_fragment_adducts_not_xl" COMMAND ${CMAKE_COMMAND}
+    "-DCOMMAND=${TOPP_BIN_PATH}/OpenNuXL;-test;-in;${DATA_DIR_TOPP}/OpenNuXL_1_input.mzML;-database;${DATA_DIR_TOPP}/OpenNuXL_1_input.fasta;-out;${TESTS_TEMP_DIR}/OpenNuXL_oligo_not_xl.tmp.idXML;-NuXL:presets;RNA-UV (U);-NuXL:oligo_fragment_adducts;C"
+    -DEXPECTED_CODE=6
+    "-DEXPECTED_OUTPUT_REGEX=NuXL:oligo_fragment_adducts: 'C' is not one of the nucleotides that can cross-link"
+    -DABSENT_FILE=${TESTS_TEMP_DIR}/OpenNuXL_oligo_not_xl.tmp.idXML
+    -P ${DATA_DIR_TOPP}/check_exit_code.cmake)
+
   # -out_qpx: the QPX mz view of the spectra of the PSMs of -out (runs/<basename>.mz.parquet). The search of
   # TOPP_OpenNuXL_2 with -out_qpx and a small peak filter: its -out is that of TOPP_OpenNuXL_2 (compared where that one
   # is), the stale file of an earlier run in the place of the view is replaced, the log has the phase lines, and

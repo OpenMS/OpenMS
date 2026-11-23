@@ -353,7 +353,8 @@ NuXLParameterParsing::getFeasibleFragmentAdducts(const std::string &exp_pc_adduc
           // adduct, so they can't be listed per nucleotide like the other fragment adducts, and they are no marker ions.
           const EmpiricalFormula complete(exp_pc_formula);
           const EmpiricalFormula water("H2O");
-          vector<pair<std::string, EmpiricalFormula>> larger = {{exp_pc_adduct, complete}, {exp_pc_adduct + "-H2O", complete - water}};
+          // named like precursor adducts (e.g. "UU-H2O1"), so that the same shift has the same name for every precursor adduct
+          vector<pair<std::string, EmpiricalFormula>> larger = {{exp_pc_adduct, complete}, {exp_pc_adduct + "-" + water.toString(), complete - water}};
           // The forms of the cross-linked nucleotide only for the listed nucleotides (U under UV): for nucleotides that
           // rarely cross-link they mostly match by chance and raise the scores of decoys more than those of targets.
           // (The complete adduct after loss of H3PO4 did the same and is not used.)
