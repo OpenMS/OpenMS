@@ -1281,6 +1281,22 @@ START_SECTION((static void recordGroupScoreThreshold(ProteinIdentification& prot
 }
 END_SECTION
 
+START_SECTION((static void removeGroupScoreThreshold(ProteinIdentification& protein_id)))
+{
+  ProteinIdentification run;
+  run.setScoreType("q-value");
+  run.setHigherScoreBetter(false);
+  IDFilter::recordGroupScoreThreshold(run, 0.05);
+  run.setMetaValue("other", 1);
+  IDFilter::removeGroupScoreThreshold(run);
+  TEST_EQUAL(run.metaValueExists(Constants::UserParam::PROTEIN_GROUP_SCORE_THRESHOLD), false)
+  TEST_EQUAL(run.metaValueExists(Constants::UserParam::PROTEIN_GROUP_SCORE_THRESHOLD_TYPE), false)
+  TEST_EQUAL(run.getMetaValue("other"), 1)
+  IDFilter::removeGroupScoreThreshold(run); // nothing to remove
+  TEST_EQUAL(run.metaValueExists(Constants::UserParam::PROTEIN_GROUP_SCORE_THRESHOLD), false)
+}
+END_SECTION
+
 END_TEST
 
 #ifdef __clang__
