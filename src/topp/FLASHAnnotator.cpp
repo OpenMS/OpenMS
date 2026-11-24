@@ -93,8 +93,10 @@ protected:
     registerInputFile_("in", "<file>", "",
                        "Input raw mzML file (profile or centroid) the PrSMs were identified from, or the Thermo .raw file (recognised by its "
                        "extension; read with Thermo's peak picking, so centroided, as ThermoRawFileParser converts it by default; needs OpenMS "
-                       "built with WITH_THERMO_RAW and the .NET 8 runtime).", true);
-    setValidFormats_("in", ListUtils::create<std::string>("mzML,raw"));
+                       "built with WITH_THERMO_RAW and the .NET 8 runtime), or the Bruker timsTOF .d directory or zipped one (.d.zip; recognised "
+                       "by its name; read, centroided and numbered by retention time as FLASHDeconv reads it; needs OpenMS built with "
+                       "WITH_OPENTIMS, the default).", true);
+    setValidFormats_("in", ListUtils::create<std::string>("mzML,raw,d"));
 
     registerInputFile_("in_prsm", "<file>", "", "Input PrSM tsv file: -out_prsm of FLASHTnT, or any tsv with the columns Scan and ProForma (optionally PrecursorMass).", true);
     setValidFormats_("in_prsm", ListUtils::create<std::string>("tsv"));

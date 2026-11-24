@@ -1801,6 +1801,18 @@ Size FLASHAnnotatorAlgorithm::loadSpectra(const std::string& mzml_file, const st
                                       "convert it to mzML first, e.g. with ThermoRawFileParser.");
 #endif
   }
+  if (FLASHHelperClasses::isBrukerTims(mzml_file))
+  {
+    // a Bruker timsTOF .d directory, read and numbered as FLASHHelperClasses::loadExperiment reads it for FLASHDeconv
+    PeakMap map;
+    PeakFileOptions options;
+    options.setMSLevels({2, 3, 4, 5});
+    FLASHHelperClasses::loadExperiment(mzml_file, map, options, ProgressLogger::NONE);
+    NeededSpectraConsumer consumer(scans, false, spectra);
+    consumer.setExperimentalSettings(map);
+    for (auto& spec : map) consumer.consumeSpectrum(spec);
+    return consumer.readCount();
+  }
   MzMLFile mzml;
   mzml.setLogType(ProgressLogger::NONE);
   PeakFileOptions options = mzml.getOptions();

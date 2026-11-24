@@ -74,8 +74,9 @@ protected:
     registerInputFile_("in", "<file>", "",
                        "Input file: mzML (profile or centroid), or a Thermo .raw file (recognised by its extension; read with Thermo's peak "
                        "picking, so centroided, as ThermoRawFileParser converts it by default; needs OpenMS built with WITH_THERMO_RAW and the "
-                       ".NET 8 runtime).");
-    setValidFormats_("in", ListUtils::create<std::string>("mzML,raw"));
+                       ".NET 8 runtime). "
+                       "A Bruker timsTOF .d directory, or a zipped one (.d.zip), is recognised by its name and read with OpenMS's timsTOF reader (DDA-PASEF or DIA-PASEF): the spectra are summed over the ion mobility scans and centroided, the spectra are numbered by retention time (scan=1, 2, ...), and the ion mobility values are not kept (needs OpenMS built with WITH_OPENTIMS, the default).");
+    setValidFormats_("in", ListUtils::create<std::string>("mzML,raw,d"));
 
     registerOutputFile_("out", "<file>", "", "Default output tsv file containing deconvolved features");
     setValidFormats_("out", ListUtils::create<std::string>("tsv"));
