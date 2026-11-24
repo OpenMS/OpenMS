@@ -1128,6 +1128,25 @@ START_SECTION(([EXTRA] native DOM namespace Unicode entity and malformed-input r
     TEST_NOT_EQUAL(hit.getSequence(), "AAAAAAAA")
   }
 
+  // Only the namespaces of mzIdentML 1.0 to 1.3 are mzIdentML.
+  for (const std::string version : {"1.0", "1.2", "1.3"})
+  {
+    std::string other = original;
+    StringUtils::substitute(other, "xmlns=\"http://psidev.info/psi/pi/mzIdentML/1.1\"",
+                            "xmlns=\"http://psidev.info/psi/pi/mzIdentML/" + version + "\"");
+    save_xml(filename, other);
+    MzIdentMLFile().load(filename, proteins, peptides);
+    TEST_EQUAL(peptides.size(), 3)
+  }
+  for (const std::string near_miss : {"1.", "1.4", "1.30", "2.1"})
+  {
+    std::string other = original;
+    StringUtils::substitute(other, "xmlns=\"http://psidev.info/psi/pi/mzIdentML/1.1\"",
+                            "xmlns=\"http://psidev.info/psi/pi/mzIdentML/" + near_miss + "\"");
+    save_xml(filename, other);
+    TEST_EXCEPTION(Exception::ParseError, MzIdentMLFile().load(filename, proteins, peptides))
+  }
+
   // An entity's declaration tree is not a second copy of its expanded content.
   std::string entity_wrapped = original;
   const auto sil_begin = entity_wrapped.find("<SpectrumIdentificationList ");
@@ -1163,6 +1182,16 @@ START_SECTION(([EXTRA] native DOM namespace Unicode entity and malformed-input r
       TEST_NOT_EQUAL(hit.getSequence(), "EXTERNAL_ENTITY_MUST_NOT_BE_READ")
     }
   }
+
+  // A default value that the DTD declares for an absent attribute is read.
+  std::string dtd_default = original;
+  dtd_default.insert(dtd_default.find("?>") + 2,
+    "\n<!DOCTYPE MzIdentML [<!ATTLIST PeptideEvidence start CDATA \"7\" end CDATA \"14\">]>");
+  save_xml(filename, dtd_default);
+  MzIdentMLFile().load(filename, proteins, peptides);
+  ABORT_IF(peptides.empty() || peptides[0].getHits().empty() || peptides[0].getHits()[0].getPeptideEvidences().empty())
+  TEST_EQUAL(peptides[0].getHits()[0].getPeptideEvidences()[0].getStart(), 7)
+  TEST_EQUAL(peptides[0].getHits()[0].getPeptideEvidences()[0].getEnd(), 14)
 
   // Large ordinary text and attributes remain readable. HUGE
   // relaxes the 10 MB node limit but must retain the explicit entity budget.
