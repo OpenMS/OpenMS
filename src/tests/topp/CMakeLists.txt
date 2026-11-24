@@ -5201,9 +5201,9 @@ set_tests_properties("TOPP_MS1LabeledWorkflow_10_join_channels_out1" PROPERTIES 
 
 # -requantify_vetoed: a missing channel that is not quantifiable because an unidentified multiplet that can be the peptide reserved
 # peaks at its position is measured from that multiplet's peaks too.
-# MS1LabeledWorkflow_8 without the join: LVNELTEFAK's heavy dummy lies on the peaks of the unidentified heavy multiplet. With 'none'
-# it stays not quantifiable; with 'all' it is measured from them, H/L ~1 as with the join. YVNDLAGHEK is unchanged.
-add_test("TOPP_MS1LabeledWorkflow_8_vetoed_none" ${TOPP_BIN_PATH}/MS1LabeledWorkflow -test
+# MS1LabeledWorkflow_8 without the join: LVNELTEFAK's heavy dummy lies on the peaks of the unidentified heavy multiplet. With 'false'
+# it stays not quantifiable; with 'true' it is measured from them, H/L ~1 as with the join. YVNDLAGHEK is unchanged.
+add_test("TOPP_MS1LabeledWorkflow_8_vetoed_false" ${TOPP_BIN_PATH}/MS1LabeledWorkflow -test
   -in ${DATA_DIR_TOPP}/MS1LabeledWorkflow_8_input.mzML
   -ids ${DATA_DIR_TOPP}/MS1LabeledWorkflow_8.idXML
   -fasta ${DATA_DIR_TOPP}/MS1LabeledWorkflow_8.fasta
@@ -5211,9 +5211,9 @@ add_test("TOPP_MS1LabeledWorkflow_8_vetoed_none" ${TOPP_BIN_PATH}/MS1LabeledWork
   -proteinFDR 1.0
   -ratios:min_ratio_count 1
   -join_channels false
-  -requantify_vetoed none
-  -out_cxml ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_8_vetoed_none.tmp.consensusXML)
-set_tests_properties("TOPP_MS1LabeledWorkflow_8_vetoed_none" PROPERTIES PASS_REGULAR_EXPRESSION "1 channel value.s. of completed multiplets are not quantifiable")
+  -requantify_vetoed false
+  -out_cxml ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_8_vetoed_false.tmp.consensusXML)
+set_tests_properties("TOPP_MS1LabeledWorkflow_8_vetoed_false" PROPERTIES PASS_REGULAR_EXPRESSION "1 channel value.s. of completed multiplets are not quantifiable")
 add_test("TOPP_MS1LabeledWorkflow_8_vetoed" ${TOPP_BIN_PATH}/MS1LabeledWorkflow -test
   -in ${DATA_DIR_TOPP}/MS1LabeledWorkflow_8_input.mzML
   -ids ${DATA_DIR_TOPP}/MS1LabeledWorkflow_8.idXML
@@ -5222,15 +5222,15 @@ add_test("TOPP_MS1LabeledWorkflow_8_vetoed" ${TOPP_BIN_PATH}/MS1LabeledWorkflow 
   -proteinFDR 1.0
   -ratios:min_ratio_count 1
   -join_channels false
-  -requantify_vetoed all
+  -requantify_vetoed true
   -out_cxml ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_8_vetoed.tmp.consensusXML)
 set_tests_properties("TOPP_MS1LabeledWorkflow_8_vetoed" PROPERTIES PASS_REGULAR_EXPRESSION "Of 1 channel.s. not quantifiable because another multiplet reserved peaks at their position, 1 were measured from the peaks of unidentified multiplets that can be the peptide")
 add_test("TOPP_MS1LabeledWorkflow_8_vetoed_out1" ${DIFF} -whitelist "spectra_data" "map id=" "InferenceEngineVersion" -in1 ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_8_vetoed.tmp.consensusXML -in2 ${DATA_DIR_TOPP}/MS1LabeledWorkflow_8_vetoed_out.consensusXML )
 set_tests_properties("TOPP_MS1LabeledWorkflow_8_vetoed_out1" PROPERTIES DEPENDS "TOPP_MS1LabeledWorkflow_8_vetoed")
-# MS1LabeledWorkflow_10: the join examined VSFELFADK's heavy multiplet and did not join it (five common spectra). With
-# 'not_join_rejected' its heavy channel stays not quantifiable; with 'all' it is measured from that multiplet's peaks in the
-# spectra it shares with the light channel: H/L ~0.46, although the peptide is 1:1 (the two channels elute 10 s apart).
-add_test("TOPP_MS1LabeledWorkflow_10_vetoed_not_join_rejected" ${TOPP_BIN_PATH}/MS1LabeledWorkflow -test
+# MS1LabeledWorkflow_10: the join examined VSFELFADK's heavy multiplet and did not join it (five common spectra), so its heavy channel
+# stays not quantifiable. (Measured from that multiplet's peaks in the spectra it shares with the light channel, it would give H/L ~0.46,
+# although the peptide is 1:1: the two channels elute 10 s apart.)
+add_test("TOPP_MS1LabeledWorkflow_10_vetoed" ${TOPP_BIN_PATH}/MS1LabeledWorkflow -test
   -in ${DATA_DIR_TOPP}/MS1LabeledWorkflow_10_input.mzML
   -ids ${DATA_DIR_TOPP}/MS1LabeledWorkflow_10.idXML
   -fasta ${DATA_DIR_TOPP}/MS1LabeledWorkflow_10.fasta
@@ -5238,22 +5238,11 @@ add_test("TOPP_MS1LabeledWorkflow_10_vetoed_not_join_rejected" ${TOPP_BIN_PATH}/
   -proteinFDR 1.0
   -ratios:min_ratio_count 1
   -join_channels true
-  -requantify_vetoed not_join_rejected
-  -out_cxml ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_10_vetoed_not_join_rejected.tmp.consensusXML)
-set_tests_properties("TOPP_MS1LabeledWorkflow_10_vetoed_not_join_rejected" PROPERTIES PASS_REGULAR_EXPRESSION "0 were measured from the peaks of unidentified multiplets that can be the peptide and 0 gave no value there .'-requantify_vetoed'.. left as they are: 0 on another identified peptide, 0 on another multiplet of the same peptide, 0 on an unidentified multiplet that cannot be the peptide, 1 on a multiplet the join did not join")
-add_test("TOPP_MS1LabeledWorkflow_10_vetoed_not_join_rejected_out1" ${DIFF} -whitelist "spectra_data" "map id=" "InferenceEngineVersion" -in1 ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_10_vetoed_not_join_rejected.tmp.consensusXML -in2 ${DATA_DIR_TOPP}/MS1LabeledWorkflow_10_out.consensusXML )
-set_tests_properties("TOPP_MS1LabeledWorkflow_10_vetoed_not_join_rejected_out1" PROPERTIES DEPENDS "TOPP_MS1LabeledWorkflow_10_vetoed_not_join_rejected")
-add_test("TOPP_MS1LabeledWorkflow_10_vetoed_all" ${TOPP_BIN_PATH}/MS1LabeledWorkflow -test
-  -in ${DATA_DIR_TOPP}/MS1LabeledWorkflow_10_input.mzML
-  -ids ${DATA_DIR_TOPP}/MS1LabeledWorkflow_10.idXML
-  -fasta ${DATA_DIR_TOPP}/MS1LabeledWorkflow_10.fasta
-  -labels "[][Lys8,Arg10]"
-  -proteinFDR 1.0
-  -ratios:min_ratio_count 1
-  -join_channels true
-  -requantify_vetoed all
-  -out_cxml ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_10_vetoed_all.tmp.consensusXML)
-set_tests_properties("TOPP_MS1LabeledWorkflow_10_vetoed_all" PROPERTIES PASS_REGULAR_EXPRESSION "Of 1 channel.s. not quantifiable because another multiplet reserved peaks at their position, 1 were measured from the peaks of unidentified multiplets that can be the peptide")
+  -requantify_vetoed true
+  -out_cxml ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_10_vetoed.tmp.consensusXML)
+set_tests_properties("TOPP_MS1LabeledWorkflow_10_vetoed" PROPERTIES PASS_REGULAR_EXPRESSION "0 were measured from the peaks of unidentified multiplets that can be the peptide and 0 gave no value there .'-requantify_vetoed'.. left as they are: 0 on another identified peptide, 0 on another multiplet of the same peptide, 0 on an unidentified multiplet that cannot be the peptide, 1 on a multiplet the join did not join")
+add_test("TOPP_MS1LabeledWorkflow_10_vetoed_out1" ${DIFF} -whitelist "spectra_data" "map id=" "InferenceEngineVersion" -in1 ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_10_vetoed.tmp.consensusXML -in2 ${DATA_DIR_TOPP}/MS1LabeledWorkflow_10_out.consensusXML )
+set_tests_properties("TOPP_MS1LabeledWorkflow_10_vetoed_out1" PROPERTIES DEPENDS "TOPP_MS1LabeledWorkflow_10_vetoed")
 
 # -targeted_quantification: identified peptides without a multiplet. MS1LabeledWorkflow_11 is a synthetic SILAC duplex (2+, one MS1
 # spectrum per second, Gaussian elution):
