@@ -158,9 +158,12 @@ namespace OpenMS::Internal
         return {target, text.size()};
       }
 
-      /// Makes all memory available again for new allocations, without returning it to the system
+      /// Makes all memory available again for new allocations. Keeps the regular blocks for reuse and returns the
+      /// larger ones, made for single big values, to the system.
       void reset()
       {
+        blocks_.erase(std::remove_if(blocks_.begin(), blocks_.end(), [](const Block& block) { return block.size > block_size_; }),
+                      blocks_.end());
         current_ = 0;
         used_ = 0;
       }
@@ -184,16 +187,25 @@ namespace OpenMS::Internal
       std::size_t used_ = 0;
     };
 
-    /// An element from the arguments of a libxml2 SAX2 startElementNs callback. The name is libxml2's dictionary string
-    /// and stays valid as long as the parser context; attribute values are copied.
-    MzIdentMLNode* newElement_(NodeArena& arena, const xmlChar* localname, const xmlChar* uri, int attribute_count, const xmlChar** attributes)
+    /// The name of an element or attribute as libxml2's tree has it: the local name, or prefix:name if the prefix is not
+    /// bound to a namespace
+    std::string_view qualifiedName_(NodeArena& arena, const xmlChar* localname, const xmlChar* prefix, const xmlChar* uri)
+    {
+      if (uri != nullptr || prefix == nullptr) { return reinterpret_cast<const char*>(localname); }
+      return arena.copy(std::string(reinterpret_cast<const char*>(prefix)) + ":" + reinterpret_cast<const char*>(localname));
+    }
+
+    /// An element from the arguments of a libxml2 SAX2 startElementNs callback. Names are libxml2's dictionary strings
+    /// (valid as long as the parser context) unless they have an unbound prefix; attribute values are copied.
+    MzIdentMLNode* newElement_(NodeArena& arena, const xmlChar* localname, const xmlChar* prefix, const xmlChar* uri,
+                               int attribute_count, const xmlChar** attributes)
     {
       auto* node = arena.create<MzIdentMLNode>();
       node->is_element = true;
       // Prefixes are arbitrary, but extension namespaces must not impersonate
       // mzIdentML elements. Retain support for historical unqualified files.
       node->mzidentml_name = uri == nullptr || *uri == '\0' || isMzIdentMLNamespace_(uri);
-      node->name = reinterpret_cast<const char*>(localname);
+      node->name = qualifiedName_(arena, localname, prefix, uri);
       unsigned count = 0;
       for (int i = 0; i < attribute_count; ++i)
       {
@@ -207,7 +219,7 @@ namespace OpenMS::Internal
         const xmlChar** attribute = attributes + 5 * i;
         if (attribute[2] != nullptr) { continue; }
         const std::string_view value(reinterpret_cast<const char*>(attribute[3]), static_cast<std::size_t>(attribute[4] - attribute[3]));
-        new (copies + n++) MzIdentMLNode::Attribute{reinterpret_cast<const char*>(attribute[0]), arena.copy(value)};
+        new (copies + n++) MzIdentMLNode::Attribute{qualifiedName_(arena, attribute[0], attribute[1], attribute[2]), arena.copy(value)};
       }
       node->attributes = copies;
       node->attribute_count = count;
@@ -581,14 +593,14 @@ namespace OpenMS::Internal
         text.clear();
       }
 
-      void startElement(const xmlChar* localname, const xmlChar* uri, int attribute_count, const xmlChar** attributes)
+      void startElement(const xmlChar* localname, const xmlChar* prefix, const xmlChar* uri, int attribute_count, const xmlChar** attributes)
       {
         addText();
         MzIdentMLNode* parent = open.empty() ? nullptr : open.back();
-        const bool starts_result = !current_result && isList(parent) &&
-                                   (uri == nullptr || *uri == '\0' || isMzIdentMLNamespace_(uri)) &&
+        const bool mzidentml_name = uri == nullptr ? prefix == nullptr : *uri == '\0' || isMzIdentMLNamespace_(uri);
+        const bool starts_result = !current_result && isList(parent) && mzidentml_name &&
                                    std::string_view(reinterpret_cast<const char*>(localname)) == "SpectrumIdentificationResult";
-        MzIdentMLNode* node = newElement_(starts_result ? result : arena(), localname, uri, attribute_count, attributes);
+        MzIdentMLNode* node = newElement_(starts_result ? result : arena(), localname, prefix, uri, attribute_count, attributes);
         if (!root)
         {
           if (name_(node) != "MzIdentML")
@@ -752,10 +764,10 @@ namespace OpenMS::Internal
         }
       }
 
-      static void onStartElement(void* context, const xmlChar* localname, const xmlChar*, const xmlChar* uri, int, const xmlChar**,
+      static void onStartElement(void* context, const xmlChar* localname, const xmlChar* prefix, const xmlChar* uri, int, const xmlChar**,
                                  int attribute_count, int, const xmlChar** attributes)
       {
-        callback(context, [&](SaxReader& reader) { reader.startElement(localname, uri, attribute_count, attributes); });
+        callback(context, [&](SaxReader& reader) { reader.startElement(localname, prefix, uri, attribute_count, attributes); });
       }
 
       static void onEndElement(void* context, const xmlChar*, const xmlChar*, const xmlChar*)
