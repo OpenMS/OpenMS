@@ -383,6 +383,18 @@ namespace OpenMS
       */
       inline const std::string   TARGET_DECOY = "target_decoy";
 
+      /** User parameter name for the score cutoff that protein groups of a ProteinIdentification had to reach (set by
+          IDFilter's 'score:proteingroup'). Exported as the protein detection threshold in mzIdentML.
+              double
+      */
+      inline const std::string   PROTEIN_GROUP_SCORE_THRESHOLD = "protein_group_score_threshold";
+
+      /** User parameter name for the score type of PROTEIN_GROUP_SCORE_THRESHOLD (the protein score type of the
+          ProteinIdentification when the cutoff was applied).
+              String
+      */
+      inline const std::string   PROTEIN_GROUP_SCORE_THRESHOLD_TYPE = "protein_group_score_threshold_type";
+
       /** User parameter name for a delta score: a score ratio between a rank x hit and the rank x+1 hit
               String
       */

@@ -3424,12 +3424,14 @@ set_tests_properties("TOPP_Resampler_2_out1" PROPERTIES DEPENDS "TOPP_Resampler_
 
 #------------------------------------------------------------------------------
 # OpenNuXL
+# TOPP_OpenNuXL_1 to _6 (and _10, which compares with the output of _2) localize with NuXL:localization fragments,
+# the default before loss_aware; TOPP_OpenNuXL_11 runs the default
 
 if (NOT MSVC) # currently some minor numeric differences on windows. needs fixing
   # Disabled on macOS ARM64 due to test failures (see GitHub issue)
   if (NOT (APPLE AND CMAKE_HOST_SYSTEM_PROCESSOR STREQUAL "arm64"))
     add_test("TOPP_OpenNuXL_1" ${TOPP_BIN_PATH}/OpenNuXL -test -precursor:mass_tolerance 10.0 -in
-    ${DATA_DIR_TOPP}/OpenNuXL_1_input.mzML -database ${DATA_DIR_TOPP}/OpenNuXL_1_input.fasta -out ${TESTS_TEMP_DIR}/OpenNuXL_1_output.tmp.idXML -out_tsv ${TESTS_TEMP_DIR}/OpenNuXL_1_output_tsv.tmp -NuXL:decoys "false" )
+    ${DATA_DIR_TOPP}/OpenNuXL_1_input.mzML -database ${DATA_DIR_TOPP}/OpenNuXL_1_input.fasta -out ${TESTS_TEMP_DIR}/OpenNuXL_1_output.tmp.idXML -out_tsv ${TESTS_TEMP_DIR}/OpenNuXL_1_output_tsv.tmp -NuXL:decoys "false" -NuXL:localization fragments)
     add_test("TOPP_OpenNuXL_1_out1" ${DIFF} -whitelist "IdentificationRun date"
     "db=" -in1 ${TESTS_TEMP_DIR}/OpenNuXL_1_output.tmp.idXML -in2 ${DATA_DIR_TOPP}/OpenNuXL_1_output.idXML )
     set_tests_properties("TOPP_OpenNuXL_1_out1" PROPERTIES DEPENDS "TOPP_OpenNuXL_1")
@@ -3442,7 +3444,7 @@ if (NOT MSVC) # currently some minor numeric differences on windows. needs fixin
   # Disabled on macOS due to floating-point accuracy issues (see GitHub issue)
   if (NOT APPLE)
     add_test("TOPP_OpenNuXL_2" ${TOPP_BIN_PATH}/OpenNuXL -test -precursor:mass_tolerance 10.0 -in
-    ${DATA_DIR_TOPP}/OpenNuXL_1_input.mzML -database ${DATA_DIR_TOPP}/OpenNuXL_1_input.fasta -out ${TESTS_TEMP_DIR}/OpenNuXL_2_output.tmp.idXML -NuXL:decoys "true" )
+    ${DATA_DIR_TOPP}/OpenNuXL_1_input.mzML -database ${DATA_DIR_TOPP}/OpenNuXL_1_input.fasta -out ${TESTS_TEMP_DIR}/OpenNuXL_2_output.tmp.idXML -NuXL:decoys "true" -NuXL:localization fragments)
     add_test("TOPP_OpenNuXL_2_out1" ${DIFF} -whitelist "IdentificationRun date"
     "db=" -in1 ${TESTS_TEMP_DIR}/OpenNuXL_2_output.tmp.idXML -in2 ${DATA_DIR_TOPP}/OpenNuXL_2_output.idXML )
     set_tests_properties("TOPP_OpenNuXL_2_out1" PROPERTIES DEPENDS "TOPP_OpenNuXL_2")
@@ -3452,7 +3454,7 @@ if (NOT MSVC) # currently some minor numeric differences on windows. needs fixin
   # Disabled on macOS due to floating-point accuracy issues (see GitHub issue)
   if (NOT APPLE)
     add_test("TOPP_OpenNuXL_3" ${TOPP_BIN_PATH}/OpenNuXL -test -precursor:mass_tolerance 10.0 -in
-    ${DATA_DIR_TOPP}/OpenNuXL_1_input.mzML -database ${DATA_DIR_TOPP}/OpenNuXL_1_input.fasta -out ${TESTS_TEMP_DIR}/OpenNuXL_3_output.tmp.idXML -report:top_hits 3 -out_tsv ${TESTS_TEMP_DIR}/OpenNuXL_3_output2.tmp.tsv -NuXL:scoring fast)
+    ${DATA_DIR_TOPP}/OpenNuXL_1_input.mzML -database ${DATA_DIR_TOPP}/OpenNuXL_1_input.fasta -out ${TESTS_TEMP_DIR}/OpenNuXL_3_output.tmp.idXML -report:top_hits 3 -out_tsv ${TESTS_TEMP_DIR}/OpenNuXL_3_output2.tmp.tsv -NuXL:scoring fast -NuXL:localization fragments)
     add_test("TOPP_OpenNuXL_3_out1" ${DIFF} -whitelist "IdentificationRun date"
     "db=" -in1 ${TESTS_TEMP_DIR}/OpenNuXL_3_output.tmp.idXML -in2 ${DATA_DIR_TOPP}/OpenNuXL_3_output.idXML )
     add_test("TOPP_OpenNuXL_3_out2" ${DIFF} -in1 ${TESTS_TEMP_DIR}/OpenNuXL_3_output2.tmp.tsv -in2 ${DATA_DIR_TOPP}/OpenNuXL_3_output2.tsv )
@@ -3464,7 +3466,7 @@ if (NOT MSVC) # currently some minor numeric differences on windows. needs fixin
   # Disabled on macOS due to floating-point accuracy issues (see GitHub issue)
   if (NOT APPLE)
     add_test("TOPP_OpenNuXL_4" ${TOPP_BIN_PATH}/OpenNuXL -test -precursor:mass_tolerance 10.0 -in
-    ${DATA_DIR_TOPP}/OpenNuXL_1_input.mzML -NuXL:decoys "true" -database ${DATA_DIR_TOPP}/OpenNuXL_1_input.fasta -out ${TESTS_TEMP_DIR}/OpenNuXL_4_output.tmp.idXML -report:top_hits 2 -out_tsv ${TESTS_TEMP_DIR}/OpenNuXL_4_output2.tmp.tsv -NuXL:scoring fast)
+    ${DATA_DIR_TOPP}/OpenNuXL_1_input.mzML -NuXL:decoys "true" -database ${DATA_DIR_TOPP}/OpenNuXL_1_input.fasta -out ${TESTS_TEMP_DIR}/OpenNuXL_4_output.tmp.idXML -report:top_hits 2 -out_tsv ${TESTS_TEMP_DIR}/OpenNuXL_4_output2.tmp.tsv -NuXL:scoring fast -NuXL:localization fragments)
     add_test("TOPP_OpenNuXL_4_out1" ${DIFF} -whitelist "IdentificationRun date"
     "db=" -in1 ${TESTS_TEMP_DIR}/OpenNuXL_4_output.tmp.idXML -in2 ${DATA_DIR_TOPP}/OpenNuXL_4_output.idXML )
     add_test("TOPP_OpenNuXL_4_out2" ${DIFF} -in1 ${TESTS_TEMP_DIR}/OpenNuXL_4_output2.tmp.tsv -in2 ${DATA_DIR_TOPP}/OpenNuXL_4_output2.tsv )
@@ -3476,7 +3478,7 @@ if (NOT MSVC) # currently some minor numeric differences on windows. needs fixin
   # Disabled on macOS due to floating-point accuracy issues (see GitHub issue)
   if (NOT APPLE)
     add_test("TOPP_OpenNuXL_5" ${TOPP_BIN_PATH}/OpenNuXL -test -precursor:mass_tolerance 10.0 -in
-    ${DATA_DIR_TOPP}/OpenNuXL_1_input.mzML -database ${DATA_DIR_TOPP}/OpenNuXL_1_input.fasta -out ${TESTS_TEMP_DIR}/OpenNuXL_5_output.tmp.idXML -NuXL:decoys "true" -NuXL:scoring slow)
+    ${DATA_DIR_TOPP}/OpenNuXL_1_input.mzML -database ${DATA_DIR_TOPP}/OpenNuXL_1_input.fasta -out ${TESTS_TEMP_DIR}/OpenNuXL_5_output.tmp.idXML -NuXL:decoys "true" -NuXL:scoring slow -NuXL:localization fragments)
     add_test("TOPP_OpenNuXL_5_out1" ${DIFF} -whitelist "IdentificationRun date"
     "db=" -in1 ${TESTS_TEMP_DIR}/OpenNuXL_5_output.tmp.idXML -in2 ${DATA_DIR_TOPP}/OpenNuXL_5_output.idXML )
     set_tests_properties("TOPP_OpenNuXL_5_out1" PROPERTIES DEPENDS "TOPP_OpenNuXL_5")
@@ -3486,12 +3488,22 @@ if (NOT MSVC) # currently some minor numeric differences on windows. needs fixin
   # Disabled on macOS due to floating-point accuracy issues (see GitHub issue)
   if (NOT APPLE)
     add_test("TOPP_OpenNuXL_6" ${TOPP_BIN_PATH}/OpenNuXL -test -precursor:mass_tolerance 1e9 -in
-    ${DATA_DIR_TOPP}/OpenNuXL_1_input.mzML -NuXL:decoys "true" -database ${DATA_DIR_TOPP}/OpenNuXL_1_input.fasta -out ${TESTS_TEMP_DIR}/OpenNuXL_6_output.tmp.idXML -report:top_hits 2 -out_tsv ${TESTS_TEMP_DIR}/OpenNuXL_6_output2.tmp.tsv -NuXL:scoring slow)
+    ${DATA_DIR_TOPP}/OpenNuXL_1_input.mzML -NuXL:decoys "true" -database ${DATA_DIR_TOPP}/OpenNuXL_1_input.fasta -out ${TESTS_TEMP_DIR}/OpenNuXL_6_output.tmp.idXML -report:top_hits 2 -out_tsv ${TESTS_TEMP_DIR}/OpenNuXL_6_output2.tmp.tsv -NuXL:scoring slow -NuXL:localization fragments)
     add_test("TOPP_OpenNuXL_6_out1" ${DIFF} -whitelist "IdentificationRun date"
     "db=" -in1 ${TESTS_TEMP_DIR}/OpenNuXL_6_output.tmp.idXML -in2 ${DATA_DIR_TOPP}/OpenNuXL_6_output.idXML )
     add_test("TOPP_OpenNuXL_6_out2" ${DIFF} -in1 ${TESTS_TEMP_DIR}/OpenNuXL_6_output2.tmp.tsv -in2 ${DATA_DIR_TOPP}/OpenNuXL_6_output2.tsv )
     set_tests_properties("TOPP_OpenNuXL_6_out1" PROPERTIES DEPENDS "TOPP_OpenNuXL_6")
     set_tests_properties("TOPP_OpenNuXL_6_out2" PROPERTIES DEPENDS "TOPP_OpenNuXL_6")
+  endif()
+
+  # the default localization (loss_aware): ties, NuXL:localization_range and _delta, the secondary site
+  # Disabled on macOS due to floating-point accuracy issues (see GitHub issue)
+  if (NOT APPLE)
+    add_test("TOPP_OpenNuXL_11" ${TOPP_BIN_PATH}/OpenNuXL -test -precursor:mass_tolerance 10.0 -in
+    ${DATA_DIR_TOPP}/OpenNuXL_1_input.mzML -database ${DATA_DIR_TOPP}/OpenNuXL_1_input.fasta -out ${TESTS_TEMP_DIR}/OpenNuXL_11_output.tmp.idXML -NuXL:decoys "false")
+    add_test("TOPP_OpenNuXL_11_out1" ${DIFF} -whitelist "IdentificationRun date"
+    "db=" -in1 ${TESTS_TEMP_DIR}/OpenNuXL_11_output.tmp.idXML -in2 ${DATA_DIR_TOPP}/OpenNuXL_11_output.idXML )
+    set_tests_properties("TOPP_OpenNuXL_11_out1" PROPERTIES DEPENDS "TOPP_OpenNuXL_11")
   endif()
 
   # adducts with the same sum formula and adducts with several cross-linkable nucleotides (RNA-UV (UCGA) preset)
@@ -3523,6 +3535,15 @@ if (NOT MSVC) # currently some minor numeric differences on windows. needs fixin
     -P ${DATA_DIR_TOPP}/OpenNuXL_9_xl_fdr_groups_test.cmake)
   set_tests_properties("TOPP_OpenNuXL_9_xl_fdr_groups" PROPERTIES DEPENDS "TOPP_OpenNuXL_9")
 
+  # NuXL:oligo_fragment_adducts overrides the preset and only takes nucleotides that can cross-link: C under RNA-UV (U)
+  # would get none of its forms, so the search is refused before it starts (ILLEGAL_PARAMETERS)
+  add_test(NAME "TOPP_OpenNuXL_oligo_fragment_adducts_not_xl" COMMAND ${CMAKE_COMMAND}
+    "-DCOMMAND=${TOPP_BIN_PATH}/OpenNuXL;-test;-in;${DATA_DIR_TOPP}/OpenNuXL_1_input.mzML;-database;${DATA_DIR_TOPP}/OpenNuXL_1_input.fasta;-out;${TESTS_TEMP_DIR}/OpenNuXL_oligo_not_xl.tmp.idXML;-NuXL:presets;RNA-UV (U);-NuXL:oligo_fragment_adducts;C"
+    -DEXPECTED_CODE=6
+    "-DEXPECTED_OUTPUT_REGEX=NuXL:oligo_fragment_adducts: 'C' is not one of the nucleotides that can cross-link"
+    -DABSENT_FILE=${TESTS_TEMP_DIR}/OpenNuXL_oligo_not_xl.tmp.idXML
+    -P ${DATA_DIR_TOPP}/check_exit_code.cmake)
+
   # -out_qpx: the QPX mz view of the spectra of the PSMs of -out (runs/<basename>.mz.parquet). The search of
   # TOPP_OpenNuXL_2 with -out_qpx and a small peak filter: its -out is that of TOPP_OpenNuXL_2 (compared where that one
   # is), the stale file of an earlier run in the place of the view is replaced, the log has the phase lines, and
@@ -3530,7 +3551,7 @@ if (NOT MSVC) # currently some minor numeric differences on windows. needs fixin
   # kept, the peaks filtered, the footer keys of the filter).
   set(_f OpenNuXL_10)
   set(_nuxl10_args -test -precursor:mass_tolerance 10.0 -in ${DATA_DIR_TOPP}/OpenNuXL_1_input.mzML
-    -database ${DATA_DIR_TOPP}/OpenNuXL_1_input.fasta -NuXL:decoys true)
+    -database ${DATA_DIR_TOPP}/OpenNuXL_1_input.fasta -NuXL:decoys true -NuXL:localization fragments)
   set(_nuxl10_view ${TESTS_TEMP_DIR}/${_f}_qpx/runs/OpenNuXL_1_input.mz.parquet)
   # (fixtures, not DEPENDS: the run needs the stale file also when it is run alone)
   add_test(NAME "TOPP_${_f}_clean" COMMAND ${CMAKE_COMMAND} -E rm -rf ${TESTS_TEMP_DIR}/${_f}_qpx)
@@ -4019,6 +4040,10 @@ set_tests_properties("TOPP_FalseDiscoveryRate_7_out1" PROPERTIES DEPENDS "TOPP_F
 add_test("TOPP_FalseDiscoveryRate_8" ${TOPP_BIN_PATH}/FalseDiscoveryRate -test -in ${DATA_DIR_TOPP}/FalseDiscoveryRate_OMSSA.idXML -out ${TESTS_TEMP_DIR}/FalseDiscoveryRate_8_output.tmp.idXML -PSM true -protein false -PSM_class modification -FDR:PSM 0.05)
 add_test("TOPP_FalseDiscoveryRate_8_out1" ${DIFF} -whitelist "?xml-stylesheet" -in1 ${TESTS_TEMP_DIR}/FalseDiscoveryRate_8_output.tmp.idXML -in2 ${DATA_DIR_TOPP}/FalseDiscoveryRate_8_output.idXML)
 set_tests_properties("TOPP_FalseDiscoveryRate_8_out1" PROPERTIES DEPENDS "TOPP_FalseDiscoveryRate_8")
+# protein groups whose q-values were filtered before: recalculating them removes the recorded cutoff (it applied to the old values)
+add_test("TOPP_FalseDiscoveryRate_9" ${TOPP_BIN_PATH}/FalseDiscoveryRate -test -in ${DATA_DIR_TOPP}/FalseDiscoveryRate_9_input.idXML -out ${TESTS_TEMP_DIR}/FalseDiscoveryRate_9_output.tmp.idXML -PSM false -protein false -proteingroup true -algorithm:add_decoy_proteins)
+add_test("TOPP_FalseDiscoveryRate_9_out1" ${DIFF} -whitelist "?xml-stylesheet" -in1 ${TESTS_TEMP_DIR}/FalseDiscoveryRate_9_output.tmp.idXML -in2 ${DATA_DIR_TOPP}/FalseDiscoveryRate_9_output.idXML)
+set_tests_properties("TOPP_FalseDiscoveryRate_9_out1" PROPERTIES DEPENDS "TOPP_FalseDiscoveryRate_9")
 
 
 #------------------------------------------------------------------------------
@@ -4257,6 +4282,18 @@ set_tests_properties("TOPP_ProteinQuantifier_27_out1" PROPERTIES DEPENDS "TOPP_P
 add_test("TOPP_ProteinQuantifier_28" ${TOPP_BIN_PATH}/ProteinQuantifier -test -in ${DATA_DIR_TOPP}/ProteinQuantifier_25_input.consensusXML -design ${DATA_DIR_TOPP}/ProteinQuantifier_25_input.tsv -peptide_out ${TESTS_TEMP_DIR}/ProteinQuantifier_28_output.tmp -best_charge -top:N 0 -top:aggregate sum)
 add_test("TOPP_ProteinQuantifier_28_out1" ${DIFF} -in1 ${TESTS_TEMP_DIR}/ProteinQuantifier_28_output.tmp -in2 ${DATA_DIR_TOPP}/ProteinQuantifier_28_output.txt -whitelist "computed from file" )
 set_tests_properties("TOPP_ProteinQuantifier_28_out1" PROPERTIES DEPENDS "TOPP_ProteinQuantifier_28")
+
+# 34: quantities stored in the input must not be reported for proteins that this run does not
+#     quantify. The input is a consensusXML written by IsobaricWorkflow (a copy of
+#     IsobaricWorkflow_1_out.consensusXML), whose protein groups carry the quantities of that run.
+#     With 'top:N 5' no protein is quantified: the protein table is empty, and the mzTab file must
+#     not list a protein group with the abundances of the earlier run.
+#     (30-33 are left to the tests of 'modifications:exclude'.)
+add_test("TOPP_ProteinQuantifier_34" ${TOPP_BIN_PATH}/ProteinQuantifier -test -in ${DATA_DIR_TOPP}/ProteinQuantifier_34_input.consensusXML -out ${TESTS_TEMP_DIR}/ProteinQuantifier_34_output.tmp -mztab ${TESTS_TEMP_DIR}/ProteinQuantifier_34_output_mztab.tmp.mzTab -top:N 5 -top:aggregate sum)
+add_test("TOPP_ProteinQuantifier_34_out1" ${DIFF} -in1 ${TESTS_TEMP_DIR}/ProteinQuantifier_34_output.tmp -in2 ${DATA_DIR_TOPP}/ProteinQuantifier_34_output.txt -whitelist "computed from file" )
+set_tests_properties("TOPP_ProteinQuantifier_34_out1" PROPERTIES DEPENDS "TOPP_ProteinQuantifier_34")
+add_test("TOPP_ProteinQuantifier_34_out2" ${DIFF} -in1 ${TESTS_TEMP_DIR}/ProteinQuantifier_34_output_mztab.tmp.mzTab -in2 ${DATA_DIR_TOPP}/ProteinQuantifier_34_output_mztab.mzTab -whitelist "software")
+set_tests_properties("TOPP_ProteinQuantifier_34_out2" PROPERTIES DEPENDS "TOPP_ProteinQuantifier_34")
 
 # 29: 'fractions:aggregate best' on the same fractionated design, against _26, which is the same
 #     command line at the default 'sum'. AAAAAK (fraction 1 only) and CCCCCK (fraction 2 only) are

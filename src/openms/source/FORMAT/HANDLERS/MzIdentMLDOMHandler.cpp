@@ -9,6 +9,8 @@
 #include <OpenMS/FORMAT/HANDLERS/MzIdentMLDOMHandler.h>
 #include <OpenMS/CONCEPT/Init.h>
 
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
+#include <OpenMS/FORMAT/HANDLERS/MzIdentMLProteinDetection.h>
 #include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
 #include <OpenMS/SYSTEM/File.h>
 
@@ -30,7 +32,11 @@
 #include <libxml/parser.h>
 #include <libxml/tree.h>
 #include <libxml/xmlsave.h>
+#include <cmath>
+#include <functional>
 #include <memory>
+#include <numeric>
+#include <unordered_map>
 
 using namespace std;
 
@@ -204,6 +210,46 @@ namespace OpenMS::Internal
       return s.empty() ? 0.0 : StringUtils::toDouble(s);
     }
 
+    // The numeric value of a cvParam/userParam value; false if it has none (e.g. a flag term, a non-numeric string or a
+    // non-finite number). @p result is only changed on success.
+    bool numericValue_(const DataValue& value, double& result)
+    {
+      if (value.valueType() == DataValue::DOUBLE_VALUE || value.valueType() == DataValue::INT_VALUE)
+      {
+        const double number = double(value);
+        if (!std::isfinite(number))
+        {
+          return false;
+        }
+        result = number;
+        return true;
+      }
+      if (value.valueType() != DataValue::STRING_VALUE)
+      {
+        return false;
+      }
+      std::string s = value.toString();
+      StringUtils::trim(s);
+      if (s.empty())
+      {
+        return false;
+      }
+      try
+      {
+        const double number = StringUtils::toDouble(s);
+        if (!std::isfinite(number))
+        {
+          return false;
+        }
+        result = number;
+        return true;
+      }
+      catch (const Exception::ConversionError&)
+      {
+        return false;
+      }
+    }
+
     // Search engine specific scores (MS:1001143 and children) count as higher-is-better unless the PSI-MS
     // vocabulary annotates them otherwise (has_order) or, for the many terms without such an annotation,
     // OpenMS' score registry knows them as e-values, PEPs or q-values (e.g. Comet:expectation value).
@@ -217,6 +263,32 @@ namespace OpenMS::Internal
       }
       Scores::IDType type = Scores::IDType::RAW;
       return Scores::findIDTypeByName(term.id, type) && !Scores::isHigherBetter(type);
+    }
+
+    // Protein and protein group statistics such as "protein group-level e-value", "p-value" or "local FDR" have no
+    // order in the PSI-MS vocabulary and are unknown to OpenMS' score registry; they are error measures, so lower is better.
+    bool isLowerBetterProteinScore_(const ControlledVocabulary::CVTerm& term)
+    {
+      const bool has_order = std::any_of(term.unparsed.begin(), term.unparsed.end(),
+        [](const std::string& line) { return StringUtils::hasPrefix(line, "relationship: has_order"); });
+      if (has_order)
+      {
+        return !ControlledVocabulary::CVTerm::isHigherBetterScore(term);
+      }
+      Scores::IDType type = Scores::IDType::RAW;
+      if (Scores::findIDTypeByName(term.id, type))
+      {
+        return !Scores::isHigherBetter(type);
+      }
+      const std::string name = StringUtils::toLowered(term.name);
+      for (const char* error_measure : {"e-value", "evalue", "expect", "p-value", "pvalue", "fdr", "false discovery", "q-value", "qvalue", "posterior error"})
+      {
+        if (StringUtils::hasSubstring(name, error_measure))
+        {
+          return true;
+        }
+      }
+      return false;
     }
   }
 
@@ -259,6 +331,11 @@ namespace OpenMS::Internal
       cv_.addAllChildTerms(e_score_child_terms_, "MS:1001872");
       cv_.addAllChildTerms(e_score_child_terms_, "MS:1002353");
       cv_.addAllChildTerms(specific_score_child_terms_, "MS:1001143");
+      // scores of proteins and groups: protein-level and group-level statistics and - used by
+      // older files on ProteinDetectionHypotheses - any search engine specific score
+      cv_.addAllChildTerms(protein_score_terms_, "MS:1001116");
+      cv_.addAllChildTerms(protein_score_terms_, "MS:1002348"); // protein group-level statistics (including MS:1002368)
+      cv_.addAllChildTerms(protein_score_terms_, "MS:1001153");
     }
 
     MzIdentMLDOMHandler::~MzIdentMLDOMHandler() = default;
@@ -409,9 +486,10 @@ namespace OpenMS::Internal
         }
         parseSpectrumIdentificationListElements_(spectrumIdentificationListElements);
 
-        // 6.2 ProteinDetection {0,1}
-        std::vector<xmlNode*> parseProteinDetectionListElements = descendants_(xmlDoc, "ProteinDetectionList");
-        parseProteinDetectionListElements_(parseProteinDetectionListElements);
+        // 6.2 ProteinDetection {0,1}: protein inference results, with the protocol and the input lists
+        parseProteinDetectionListElements_(descendants_(xmlDoc, "ProteinDetectionList"),
+                                           descendants_(xmlDoc, "ProteinDetection"),
+                                           descendants_(xmlDoc, "ProteinDetectionProtocol"));
 
         for (vector<ProteinIdentification>::iterator it = pro_id_->begin(); it != pro_id_->end(); ++it)
         {
@@ -875,6 +953,7 @@ namespace OpenMS::Internal
           PeptideEvidence temp_struct = {start, end, pre, post, idec};
           pe_ev_map_.insert(make_pair(id, temp_struct));
           p_pv_map_.insert(make_pair(peptide_ref, id));
+          pv_p_map_.insert(make_pair(id, peptide_ref));
           pv_db_map_.insert(make_pair(id, dBSequence_ref));
         }
       }
@@ -2342,75 +2421,631 @@ namespace OpenMS::Internal
       // <Fragmentation> omitted for the time being
     }
 
-    void MzIdentMLDOMHandler::parseProteinDetectionListElements_(const std::vector<xmlNode*>& proteinDetectionListElements)
+    void MzIdentMLDOMHandler::collectParam_(xmlNode* param, std::vector<CVTerm>& cv_params, std::vector<std::pair<std::string, DataValue>>& user_params)
     {
-      const  Size node_count = proteinDetectionListElements.size();
-      for (Size c = 0; c < node_count; ++c)
+      if (equal_(name_(param), "cvParam"))
       {
-        xmlNode* current_pr = proteinDetectionListElements[c];
-        if (current_pr->type && // true is not NULL
-            current_pr->type == XML_ELEMENT_NODE) // is element - possibly not necessary after getElementsByTagName
+        cv_params.push_back(parseCvParam_(param));
+      }
+      else if (equal_(name_(param), "userParam"))
+      {
+        try
         {
-          // Found element node: re-cast as element
-          xmlNode* element_pr = current_pr;
+          user_params.push_back(parseUserParam_(param));
+        }
+        catch (const Exception::ConversionError&)
+        {
+          // e.g. type="xsd:double" with a non-numeric value: these params are optional, do not fail the whole file
+          OPENMS_LOG_WARN << "Skipping 'userParam' '" << attribute_(param, "name") << "' with a value that does not match its type ('"
+                          << attribute_(param, "value") << "')." << endl;
+        }
+      }
+    }
 
-//          std::string id = attribute_(element_pr, "id");
-//          pair<CVTermList, map<std::string, DataValue> > params = parseParamGroup_(children_(current_pr));
-
-          // TODO @mths : this needs to be a ProteinIdentification for the ProteinDetectionListElement which is not mandatory and used in downstream analysis ProteinInference etc.
-//          pro_id_->push_back(ProteinIdentification());
-//          pro_id_->back().setSearchEngine(search_engine_);
-//          pro_id_->back().setSearchEngineVersion(search_engine_version_);
-//          pro_id_->back().setIdentifier(search_engine_);
-
-          //      SearchParameters  search_parameters_
-          //      DateTime  date_
-          //      std::string protein_score_type_ <- from ProteinDetectionProtocol
-          //      DoubleReal    protein_significance_threshold_ <- from ProteinDetectionProtocol
-
-          xmlNode* child = firstElement_(element_pr);
-          while (child)
+    MzIdentMLDOMHandler::ProteinAmbiguityGroup MzIdentMLDOMHandler::parseProteinAmbiguityGroupElement_(xmlNode* proteinAmbiguityGroupElement)
+    {
+      ProteinAmbiguityGroup group;
+      for (xmlNode* child = firstElement_(proteinAmbiguityGroupElement); child; child = nextElement_(child))
+      {
+        if (!equal_(name_(child), "ProteinDetectionHypothesis"))
+        {
+          collectParam_(child, group.cv_params, group.user_params);
+          continue;
+        }
+        const std::string dbsequence_ref = attribute_(child, "dBSequence_ref");
+        const auto db = db_sq_map_.find(dbsequence_ref);
+        if (db == db_sq_map_.end())
+        {
+          OPENMS_LOG_WARN << "Skipping 'ProteinDetectionHypothesis' '" << attribute_(child, "id")
+                          << "' with unknown 'DBSequence' reference '" << dbsequence_ref << "'." << endl;
+          continue;
+        }
+        ProteinHypothesis hypothesis;
+        hypothesis.id = attribute_(child, "id");
+        hypothesis.dbsequence_ref = dbsequence_ref;
+        hypothesis.accession = db->second.accession;
+        // 'passThreshold' is required, but be lenient with files that lack it
+        hypothesis.pass_threshold = !hasAttribute_(child, "passThreshold") || boolean_(attribute_(child, "passThreshold"));
+        for (xmlNode* grandchild = firstElement_(child); grandchild; grandchild = nextElement_(grandchild))
+        {
+          if (equal_(name_(grandchild), "PeptideHypothesis"))
           {
-            if (equal_(name_(child), "ProteinAmbiguityGroup"))
+            // the supporting peptide, by unmodified sequence: used to compare the evidence of the proteins of a group
+            const auto peptide = pv_p_map_.find(attribute_(grandchild, "peptideEvidence_ref"));
+            if (peptide == pv_p_map_.end())
             {
-              parseProteinAmbiguityGroupElement_(child, pro_id_->back());
+              continue;
             }
-            child = nextElement_(child);
+            const auto sequence = pep_map_.find(peptide->second);
+            hypothesis.peptides.insert((sequence != pep_map_.end() && !sequence->second.empty()) ? sequence->second.toUnmodifiedString() : peptide->second);
+          }
+          else
+          {
+            collectParam_(grandchild, hypothesis.cv_params, hypothesis.user_params);
+          }
+        }
+        for (const CVTerm& cv : hypothesis.cv_params)
+        {
+          if (cv.getAccession() == "MS:1002401") { hypothesis.leading = true; }
+          else if (cv.getAccession() == "MS:1002402") { hypothesis.non_leading = true; }
+          else if (cv.getAccession() == "MS:1002403") { hypothesis.representative = true; }
+          else if (cv.getAccession() == "MS:1001594" || cv.getAccession() == "MS:1001595") // sequence/spectrum same-set protein
+          {
+            // the value lists the ids of the same-set ProteinDetectionHypotheses
+            std::vector<std::string> ids = ListUtils::create<std::string>(cv.getValue().toString(), ' ');
+            for (std::string& id : ids)
+            {
+              StringUtils::trim(id);
+              if (!id.empty()) { hypothesis.same_set.push_back(id); }
+            }
+          }
+        }
+        group.hypotheses.push_back(std::move(hypothesis));
+      }
+      return group;
+    }
+
+    void MzIdentMLDOMHandler::parseProteinDetectionListElements_(const std::vector<xmlNode*>& proteinDetectionListElements,
+                                                                 const std::vector<xmlNode*>& proteinDetectionElements,
+                                                                 const std::vector<xmlNode*>& proteinDetectionProtocolElements)
+    {
+      if (proteinDetectionListElements.empty() || pro_id_->empty())
+      {
+        return;
+      }
+      if (proteinDetectionListElements.size() > 1)
+      {
+        OPENMS_LOG_WARN << "Found " << proteinDetectionListElements.size()
+                        << " 'ProteinDetectionList' elements, but mzIdentML allows only one. Only the first one is read." << endl;
+      }
+      xmlNode* list = proteinDetectionListElements.front();
+      const std::string list_id = attribute_(list, "id");
+
+      // 1. The ProteinDetection of the list names the protocol and the SpectrumIdentificationLists the proteins were
+      //    inferred from; the protein groups go into the identification run of that list.
+      xmlNode* detection = nullptr;
+      for (xmlNode* pd : proteinDetectionElements)
+      {
+        if (attribute_(pd, "proteinDetectionList_ref") == list_id)
+        {
+          detection = pd;
+          break;
+        }
+      }
+      ProteinIdentification* run = nullptr;
+      std::string protocol_ref;
+      if (detection)
+      {
+        protocol_ref = attribute_(detection, "proteinDetectionProtocol_ref");
+        std::vector<std::string> input_lists;
+        for (xmlNode* child = firstElement_(detection); child; child = nextElement_(child))
+        {
+          if (equal_(name_(child), "InputSpectrumIdentifications"))
+          {
+            input_lists.push_back(attribute_(child, "spectrumIdentificationList_ref"));
+          }
+        }
+        for (const std::string& input_list : input_lists)
+        {
+          const auto run_index = si_pro_map_.find(input_list);
+          if (run_index != si_pro_map_.end())
+          {
+            run = &(*pro_id_)[run_index->second];
+            break;
+          }
+        }
+        if (input_lists.size() > 1)
+        {
+          OPENMS_LOG_WARN << "The proteins of 'ProteinDetectionList' '" << list_id << "' were inferred from " << input_lists.size()
+                          << " SpectrumIdentificationLists. They are added to the identification run of the first one." << endl;
+        }
+      }
+      if (!run)
+      {
+        if (pro_id_->size() > 1)
+        {
+          OPENMS_LOG_WARN << "No 'ProteinDetection' links 'ProteinDetectionList' '" << list_id
+                          << "' to a SpectrumIdentificationList. Its proteins are added to the first identification run." << endl;
+        }
+        run = &pro_id_->front();
+      }
+
+      // 2. The protocol: inference engine, protein score type (written by OpenMS) and the cutoff applied to group scores
+      xmlNode* protocol = nullptr;
+      for (xmlNode* pdp : proteinDetectionProtocolElements)
+      {
+        if (attribute_(pdp, "id") == protocol_ref || (protocol_ref.empty() && proteinDetectionProtocolElements.size() == 1))
+        {
+          protocol = pdp;
+          break;
+        }
+      }
+      std::string score_type;
+      bool higher_better = true;
+      std::string threshold_accession;
+      double threshold = 0.0;
+      if (protocol)
+      {
+        const auto software = as_map_.find(attribute_(protocol, "analysisSoftware_ref"));
+        // groups reported by the search engine itself (e.g. Mascot) do not come from a separate inference engine
+        if (software != as_map_.end() && software->second.name != run->getSearchEngine())
+        {
+          run->setInferenceEngine(MzIdentMLProteinDetection::inferenceEngineOfSoftware(software->second.name));
+          run->setInferenceEngineVersion(software->second.version);
+        }
+        for (xmlNode* child = firstElement_(protocol); child; child = nextElement_(child))
+        {
+          std::vector<CVTerm> cvs;
+          std::vector<std::pair<std::string, DataValue>> ups;
+          for (xmlNode* param = firstElement_(child); param; param = nextElement_(param))
+          {
+            collectParam_(param, cvs, ups);
+          }
+          if (equal_(name_(child), "AnalysisParams"))
+          {
+            for (const auto& [name, value] : ups)
+            {
+              if (name == MzIdentMLProteinDetection::SCORE_TYPE_PARAM)
+              {
+                score_type = value.toString();
+              }
+              else if (name == MzIdentMLProteinDetection::HIGHER_SCORE_BETTER_PARAM)
+              {
+                higher_better = boolean_(value.toString());
+              }
+            }
+          }
+          else if (equal_(name_(child), "Threshold"))
+          {
+            for (const CVTerm& cv : cvs)
+            {
+              const std::string& acc = cv.getAccession();
+              if ((acc == "MS:1002369" || acc == "MS:1001447" || acc == "MS:1002486") && numericValue_(cv.getValue(), threshold))
+              {
+                threshold_accession = acc;
+              }
+            }
           }
         }
       }
-    }
 
-    void MzIdentMLDOMHandler::parseProteinAmbiguityGroupElement_(xmlNode* proteinAmbiguityGroupElement, ProteinIdentification& protein_identification)
-    {
-//      std::string id = attribute_(proteinAmbiguityGroupElement, "id");
-//      pair<CVTermList, map<std::string, DataValue> > params = parseParamGroup_(children_(proteinAmbiguityGroupElement));
-
-      //fill pro_id_->back() with content,
-      xmlNode* child = firstElement_(proteinAmbiguityGroupElement);
-      while (child)
+      // 3. The groups
+      std::vector<ProteinAmbiguityGroup> pags;
+      for (xmlNode* child = firstElement_(list); child; child = nextElement_(child))
       {
-        if (equal_(name_(child), "ProteinDetectionHypothesis"))
+        if (equal_(name_(child), "ProteinAmbiguityGroup"))
         {
-          parseProteinDetectionHypothesisElement_(child, protein_identification);
+          pags.push_back(parseProteinAmbiguityGroupElement_(child));
         }
-        child = nextElement_(child);
       }
-    }
 
-    void MzIdentMLDOMHandler::parseProteinDetectionHypothesisElement_(xmlNode* proteinDetectionHypothesisElement, ProteinIdentification& protein_identification)
-    {
-      std::string dBSequence_ref = attribute_(proteinDetectionHypothesisElement, "dBSequence_ref");
+      // 4. The protein score type: as written by OpenMS, otherwise the first protein score term with a value
+      auto term_name = [this](const std::string& accession) -> std::string
+      {
+        return cv_.exists(accession) ? cv_.getTerm(accession).name : std::string();
+      };
+      if (score_type.empty())
+      {
+        // the first score term with a value in @p cvs
+        auto detect_score_type = [&](const std::vector<CVTerm>& cvs) -> bool
+        {
+          for (const CVTerm& cv : cvs)
+          {
+            double value;
+            if (!numericValue_(cv.getValue(), value))
+            {
+              continue;
+            }
+            const std::string known = MzIdentMLProteinDetection::scoreTypeOfAccession(cv.getAccession());
+            if (!known.empty())
+            {
+              score_type = known;
+              higher_better = !Scores::isScoreType(known, Scores::IDType::QVAL);
+              return true;
+            }
+            if (protein_score_terms_.contains(cv.getAccession()))
+            {
+              score_type = term_name(cv.getAccession());
+              higher_better = !isLowerBetterProteinScore_(cv_.getTerm(cv.getAccession()));
+              return true;
+            }
+          }
+          return false;
+        };
+        // protein scores first; files may also report group scores only (as the mzIdentML 1.2 guidelines suggest)
+        bool found = false;
+        for (Size pass = 0; pass < 2 && !found; ++pass)
+        {
+          for (const ProteinAmbiguityGroup& pag : pags)
+          {
+            if (pass == 1 && detect_score_type(pag.cv_params))
+            {
+              found = true;
+              break;
+            }
+            for (const ProteinHypothesis& hypothesis : pag.hypotheses)
+            {
+              if (pass == 0 && detect_score_type(hypothesis.cv_params))
+              {
+                found = true;
+                break;
+              }
+            }
+            if (found)
+            {
+              break;
+            }
+          }
+        }
+      }
+      if (!score_type.empty())
+      {
+        run->setScoreType(score_type);
+        run->setHigherScoreBetter(higher_better);
+      }
+      // the score of a protein or a group: a term for the score type, or a userParam named after it (score type
+      // aliases such as "qvalue" and "q-value" match)
+      auto find_score = [&](const std::vector<CVTerm>& cvs, const std::vector<std::pair<std::string, DataValue>>& ups, double& score) -> bool
+      {
+        if (score_type.empty())
+        {
+          return false;
+        }
+        for (const CVTerm& cv : cvs)
+        {
+          const std::string known = MzIdentMLProteinDetection::scoreTypeOfAccession(cv.getAccession());
+          if (((!known.empty() && Scores::isSameScoreType(known, score_type)) || term_name(cv.getAccession()) == score_type)
+              && numericValue_(cv.getValue(), score))
+          {
+            return true;
+          }
+        }
+        for (const auto& [name, value] : ups)
+        {
+          if (Scores::isSameScoreType(name, score_type) && numericValue_(value, score))
+          {
+            return true;
+          }
+        }
+        return false;
+      };
 
-//      pair<CVTermList, map<std::string, DataValue> > params = parseParamGroup_(children_(proteinDetectionHypothesisElement));
+      // 5. Proteins: scores and other annotations of the hits of the run
+      std::unordered_map<std::string, Size> hit_index;
+      for (Size i = 0; i < run->getHits().size(); ++i)
+      {
+        hit_index.emplace(run->getHits()[i].getAccession(), i);
+      }
+      auto hit_of = [&](const ProteinHypothesis& hypothesis) -> ProteinHit&
+      {
+        auto [it, inserted] = hit_index.emplace(hypothesis.accession, run->getHits().size());
+        if (inserted) // a protein without PSMs in the run
+        {
+          ProteinHit hit;
+          hit.setAccession(hypothesis.accession);
+          hit.setSequence(db_sq_map_[hypothesis.dbsequence_ref].sequence);
+          run->insertHit(hit);
+        }
+        return run->getHits()[it->second];
+      };
+      const auto better = [higher_better](double a, double b) { return higher_better ? a > b : a < b; };
 
-      DBSequence& db = db_sq_map_[dBSequence_ref];
+      struct Scored
+      {
+        bool has_score = false;
+        double score = 0.0;
+      };
+      // best score of the hypotheses @p members of @p pag
+      auto best_score = [&](const std::vector<Scored>& scores, const std::vector<Size>& members) -> Scored
+      {
+        Scored best;
+        for (Size m : members)
+        {
+          if (scores[m].has_score && (!best.has_score || better(scores[m].score, best.score)))
+          {
+            best = scores[m];
+          }
+        }
+        return best;
+      };
 
-      protein_identification.insertHit(ProteinHit());
-      protein_identification.getHits().back().setSequence(db.sequence);
-      protein_identification.getHits().back().setAccession(db.accession);
-//      protein_identification.getHits().back().setCoverage((long double)params.first.getCVTerms()["MS:1001093"].front().getValue()); //TODO @ mths: calc percent
-//      protein_identification.getHits().back().setScore(boost::lexical_cast<double>(params.first.getCVTerms()["MS:1001171"].front().getValue())); //or any other score
+      std::vector<ProteinIdentification::ProteinGroup> indistinguishable;
+      std::vector<ProteinIdentification::ProteinGroup> general;
+      // clusters (by "cluster identifier", in order of appearance): their groups, members and score
+      struct Cluster
+      {
+        Size n_groups = 0;
+        bool has_others = false; ///< has proteins that are not in an indistinguishable group (sub-set proteins)
+        std::vector<std::string> accessions;
+        Scored score;   ///< from the userParam CLUSTER_SCORE_PARAM
+        Scored best;    ///< best group score
+      };
+      std::vector<std::string> cluster_order;
+      std::map<std::string, Cluster> clusters;
+      Size n_fallback = 0;
+      std::set<std::string> ignored_group_statistics;
+
+      for (const ProteinAmbiguityGroup& pag : pags)
+      {
+        if (pag.hypotheses.empty())
+        {
+          continue;
+        }
+        const std::vector<ProteinHypothesis>& hypotheses = pag.hypotheses;
+        std::vector<Scored> scores(hypotheses.size());
+        for (Size i = 0; i < hypotheses.size(); ++i)
+        {
+          const ProteinHypothesis& hypothesis = hypotheses[i];
+          ProteinHit& hit = hit_of(hypothesis);
+          scores[i].has_score = find_score(hypothesis.cv_params, hypothesis.user_params, scores[i].score);
+          if (scores[i].has_score)
+          {
+            hit.setScore(scores[i].score);
+          }
+          for (const CVTerm& cv : hypothesis.cv_params)
+          {
+            double coverage;
+            if (cv.getAccession() == "MS:1001093" && numericValue_(cv.getValue(), coverage)) // sequence coverage (percent)
+            {
+              hit.setCoverage(coverage);
+            }
+          }
+          for (const auto& [name, value] : hypothesis.user_params)
+          {
+            if (!Scores::isSameScoreType(name, score_type))
+            {
+              hit.setMetaValue(name, value);
+            }
+          }
+        }
+
+        // The indistinguishable group(s) of the PAG: its "leading protein"s or - if the file does not annotate them
+        // (mzIdentML 1.1, or writers that ignore the 1.2 guidelines) - the proteins with the largest sets of supporting
+        // peptides, one group per distinct set. The other proteins (sub-set proteins) are not grouped.
+        std::vector<std::vector<Size>> subgroups;
+        std::vector<Size> others;
+        const bool annotated = std::any_of(hypotheses.begin(), hypotheses.end(),
+          [](const ProteinHypothesis& h) { return h.leading || h.non_leading; });
+        std::vector<Size> leading;
+        for (Size i = 0; i < hypotheses.size(); ++i)
+        {
+          if (hypotheses[i].leading) { leading.push_back(i); }
+        }
+        if (annotated && !leading.empty())
+        {
+          // "leading" means strongest (or about equally strong) evidence, not identical evidence: leading proteins are
+          // indistinguishable if annotated as same-set proteins or - for two proteins without such annotations (the term
+          // is optional) - if they have the same peptides
+          std::vector<Size> root(hypotheses.size());
+          std::iota(root.begin(), root.end(), 0);
+          std::function<Size(Size)> find_root = [&](Size i) { return root[i] == i ? i : root[i] = find_root(root[i]); };
+          std::map<std::string, Size> leading_by_id;
+          for (Size i : leading)
+          {
+            leading_by_id.emplace(hypotheses[i].id, i);
+          }
+          for (Size a = 0; a < leading.size(); ++a)
+          {
+            const ProteinHypothesis& h = hypotheses[leading[a]];
+            for (const std::string& id : h.same_set)
+            {
+              const auto other = leading_by_id.find(id);
+              if (other != leading_by_id.end()) { root[find_root(other->second)] = find_root(leading[a]); }
+            }
+            if (h.same_set.empty())
+            {
+              for (Size b = 0; b < a; ++b)
+              {
+                const ProteinHypothesis& other = hypotheses[leading[b]];
+                if (other.same_set.empty() && other.peptides == h.peptides) { root[find_root(leading[a])] = find_root(leading[b]); }
+              }
+            }
+          }
+          std::map<Size, Size> subgroup_of_root; // in order of first appearance
+          for (Size i : leading)
+          {
+            const auto [it, inserted] = subgroup_of_root.emplace(find_root(i), subgroups.size());
+            if (inserted) { subgroups.emplace_back(); }
+            subgroups[it->second].push_back(i);
+          }
+          for (Size i = 0; i < hypotheses.size(); ++i)
+          {
+            if (!hypotheses[i].leading) { others.push_back(i); }
+          }
+        }
+        else
+        {
+          ++n_fallback;
+          std::vector<const std::set<std::string>*> sets; // distinct peptide sets, in order of appearance
+          std::vector<std::vector<Size>> members;
+          for (Size i = 0; i < hypotheses.size(); ++i)
+          {
+            Size s = 0;
+            while (s < sets.size() && *sets[s] != hypotheses[i].peptides) { ++s; }
+            if (s == sets.size())
+            {
+              sets.push_back(&hypotheses[i].peptides);
+              members.emplace_back();
+            }
+            members[s].push_back(i);
+          }
+          for (Size s = 0; s < sets.size(); ++s)
+          {
+            // a set contained in another (different) set is a sub-set protein's
+            const bool subset = std::any_of(sets.begin(), sets.end(), [&](const std::set<std::string>* other)
+              {
+                return other != sets[s] && other->size() > sets[s]->size() &&
+                       std::includes(other->begin(), other->end(), sets[s]->begin(), sets[s]->end());
+              });
+            if (subset)
+            {
+              others.insert(others.end(), members[s].begin(), members[s].end());
+            }
+            else
+            {
+              subgroups.push_back(members[s]);
+            }
+          }
+        }
+        // the group representative first: it is the group leader in OpenMS
+        for (std::vector<Size>& subgroup : subgroups)
+        {
+          std::stable_partition(subgroup.begin(), subgroup.end(), [&](Size i) { return hypotheses[i].representative; });
+        }
+
+        // threshold: the PAG-level term of mzIdentML 1.2, otherwise the (secondary) PDH attribute
+        bool pass = std::any_of(hypotheses.begin(), hypotheses.end(), [](const ProteinHypothesis& h) { return h.pass_threshold; });
+        std::string cluster_id;
+        Scored cluster_score;
+        for (const CVTerm& cv : pag.cv_params)
+        {
+          if (cv.getAccession() == "MS:1002415") // protein group passes threshold
+          {
+            pass = boolean_(cv.getValue().toString());
+          }
+          else if (cv.getAccession() == "MS:1002407") // cluster identifier
+          {
+            cluster_id = cv.getValue().toString();
+          }
+        }
+        for (const auto& [name, value] : pag.user_params)
+        {
+          if (name == MzIdentMLProteinDetection::CLUSTER_SCORE_PARAM)
+          {
+            cluster_score.has_score = numericValue_(value, cluster_score.score);
+          }
+        }
+        Scored pag_score;
+        pag_score.has_score = find_score(pag.cv_params, pag.user_params, pag_score.score);
+        // OpenMS keeps one score type per run: group statistics of another type than the protein scores are not read
+        for (const CVTerm& cv : pag.cv_params)
+        {
+          double value;
+          const std::string known = MzIdentMLProteinDetection::scoreTypeOfAccession(cv.getAccession());
+          const std::string type = known.empty() ? term_name(cv.getAccession()) : known;
+          if ((!known.empty() || protein_score_terms_.contains(cv.getAccession())) && numericValue_(cv.getValue(), value) &&
+              !Scores::isSameScoreType(type, score_type))
+          {
+            ignored_group_statistics.insert(type);
+          }
+        }
+
+        Scored best_group;
+        std::vector<std::string> pag_accessions;
+        for (const std::vector<Size>& subgroup : subgroups)
+        {
+          ProteinIdentification::ProteinGroup group;
+          for (Size i : subgroup)
+          {
+            group.accessions.push_back(hypotheses[i].accession);
+            if (!pass)
+            {
+              hit_of(hypotheses[i]).setMetaValue("pass_threshold", "false");
+            }
+          }
+          // the PAG score is the score of the group if the PAG holds only one; otherwise use the best protein score
+          const Scored score = (subgroups.size() == 1 && pag_score.has_score) ? pag_score : best_score(scores, subgroup);
+          group.probability = score.score;
+          if (score.has_score && (!best_group.has_score || better(score.score, best_group.score)))
+          {
+            best_group = score;
+          }
+          pag_accessions.insert(pag_accessions.end(), group.accessions.begin(), group.accessions.end());
+          indistinguishable.push_back(std::move(group));
+        }
+        for (Size i : others)
+        {
+          pag_accessions.push_back(hypotheses[i].accession);
+        }
+
+        if (!best_group.has_score && pag_score.has_score) // e.g. no protein scores
+        {
+          best_group = pag_score;
+        }
+        if (!cluster_id.empty())
+        {
+          auto [it, inserted] = clusters.try_emplace(cluster_id);
+          if (inserted)
+          {
+            cluster_order.push_back(cluster_id);
+          }
+          Cluster& cluster = it->second;
+          cluster.n_groups += subgroups.size();
+          cluster.has_others = cluster.has_others || !others.empty();
+          cluster.accessions.insert(cluster.accessions.end(), pag_accessions.begin(), pag_accessions.end());
+          if (cluster_score.has_score)
+          {
+            cluster.score = cluster_score;
+          }
+          if (best_group.has_score && (!cluster.best.has_score || better(best_group.score, cluster.best.score)))
+          {
+            cluster.best = best_group;
+          }
+        }
+        else if (subgroups.size() > 1 || !others.empty())
+        {
+          // without clusters: a PAG of distinguishable proteins is a general protein group (like a protXML 'protein_group')
+          ProteinIdentification::ProteinGroup group;
+          group.accessions = pag_accessions;
+          group.probability = pag_score.has_score ? pag_score.score : best_group.score;
+          general.push_back(std::move(group));
+        }
+      }
+      // clusters of several groups, with sub-set proteins or with a score are general protein groups
+      for (const std::string& id : cluster_order)
+      {
+        const Cluster& cluster = clusters[id];
+        if (cluster.n_groups > 1 || cluster.has_others || cluster.score.has_score)
+        {
+          ProteinIdentification::ProteinGroup group;
+          group.accessions = cluster.accessions;
+          group.probability = cluster.score.has_score ? cluster.score.score : cluster.best.score;
+          general.push_back(std::move(group));
+        }
+      }
+      if (!ignored_group_statistics.empty())
+      {
+        OPENMS_LOG_WARN << "The protein groups report statistics of another type than the protein scores ('" << score_type
+                        << "'). They are not read: " << ListUtils::concatenate(std::vector<std::string>(ignored_group_statistics.begin(), ignored_group_statistics.end()), ", ")
+                        << "." << endl;
+      }
+      if (n_fallback > 0 && n_fallback < pags.size())
+      {
+        OPENMS_LOG_WARN << n_fallback << " of " << pags.size() << " 'ProteinAmbiguityGroup's have no 'leading protein' annotation. "
+                        << "Their indistinguishable proteins were determined from the supporting peptides." << endl;
+      }
+
+      run->getIndistinguishableProteins().insert(run->getIndistinguishableProteins().end(), indistinguishable.begin(), indistinguishable.end());
+      run->getProteinGroups().insert(run->getProteinGroups().end(), general.begin(), general.end());
+
+      if (!threshold_accession.empty())
+      {
+        run->setMetaValue(Constants::UserParam::PROTEIN_GROUP_SCORE_THRESHOLD, threshold);
+        // a protein group-level global FDR (or protein FDR) threshold is a cutoff on q-values
+        const bool q_value_cutoff = threshold_accession != "MS:1002486";
+        run->setMetaValue(Constants::UserParam::PROTEIN_GROUP_SCORE_THRESHOLD_TYPE,
+                          (!q_value_cutoff || Scores::isScoreType(score_type, Scores::IDType::QVAL)) ? score_type : std::string("q-value"));
+      }
     }
 
     SignedSize MzIdentMLDOMHandler::inferModificationLocation_(xmlNode* modification_element, Size peptide_length) const

@@ -7,6 +7,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/ClassTest.h>
+#include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/ANALYSIS/ID/BasicProteinInferenceAlgorithm.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/test_config.h>
@@ -90,7 +91,12 @@ START_TEST(BasicProteinInferenceAlgorithm, "$Id$")
       p.setValue("min_peptides_per_protein", 0);
       p.setValue("annotate_indistinguishable_groups", "true");
       bpia.setParameters(p);
+      // a group score cutoff recorded before applies to the old groups only
+      prots[0].setMetaValue(Constants::UserParam::PROTEIN_GROUP_SCORE_THRESHOLD, 0.95);
+      prots[0].setMetaValue(Constants::UserParam::PROTEIN_GROUP_SCORE_THRESHOLD_TYPE, prots[0].getScoreType());
       bpia.run(peps, prots);
+      TEST_EQUAL(prots[0].metaValueExists(Constants::UserParam::PROTEIN_GROUP_SCORE_THRESHOLD), false)
+      TEST_EQUAL(prots[0].metaValueExists(Constants::UserParam::PROTEIN_GROUP_SCORE_THRESHOLD_TYPE), false)
       TEST_EQUAL(prots[0].getHits()[0].getScore(), 0.6)
       TEST_EQUAL(prots[0].getHits()[1].getScore(), 0.6)
       TEST_EQUAL(prots[0].getHits()[2].getScore(), -std::numeric_limits<double>::infinity())
@@ -268,8 +274,10 @@ START_TEST(BasicProteinInferenceAlgorithm, "$Id$")
         p.setValue("annotate_indistinguishable_groups", group);
         p.setValue("greedy_group_resolution", resolve);
         bpia.setParameters(p);
+        cmap.getProteinIdentifications()[0].setMetaValue(Constants::UserParam::PROTEIN_GROUP_SCORE_THRESHOLD, 0.95); // applies to the old groups only
         bpia.run(cmap, cmap.getProteinIdentifications()[0], true);
         const ProteinIdentification& run = cmap.getProteinIdentifications()[0];
+        TEST_EQUAL(run.metaValueExists(Constants::UserParam::PROTEIN_GROUP_SCORE_THRESHOLD), false)
         TEST_EQUAL(run.getHits().size(), std::string(resolve) == "true" ? 0 : 6)
         TEST_EQUAL(run.getIndistinguishableProteins().size(), 0)
       }

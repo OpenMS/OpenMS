@@ -167,12 +167,13 @@ START_SECTION((static PrecursorsToMS2Adducts getAllFeasibleFragmentAdducts(const
   std::string can_cross_link; // nucleotides that can directly cross-link
   std::string standalone; // nucleotides that only form adducts on their own
   std::string localization; // localization method
+  std::string oligo_fragment_adducts; // nucleotides whose larger fragment adducts oligonucleotide adducts get
   // string format:  target,formula e.g. "A=C10H14N5O7P", ..., "U=C10H14N5O7P", "X=C9H13N2O8PS"  where X represents tU
   StringList target_nucleotides;
   // string format:  source->target e.g. "A->A", ..., "U->U", "U->X"
   StringList mappings;
 
-  NuXLPresets::getPresets("RNA-UV (U)", target_nucleotides, mappings, modifications, fragment_adducts, can_cross_link, standalone, localization);
+  NuXLPresets::getPresets("RNA-UV (U)", target_nucleotides, mappings, modifications, fragment_adducts, can_cross_link, standalone, localization, oligo_fragment_adducts);
 
   // test preset strings
   TEST_EQUAL(target_nucleotides.size(), 4)
@@ -254,6 +255,14 @@ START_SECTION((static PrecursorsToMS2Adducts getAllFeasibleFragmentAdducts(const
   TEST_EQUAL(can_cross_link, "U")
   TEST_EQUAL(standalone, "")
   TEST_EQUAL(localization, "")
+  TEST_EQUAL(oligo_fragment_adducts, "U")
+  { // a preset without oligo_fragment_adducts defines none (also if the output had a value before)
+    StringList other_nucleotides, other_mappings, other_modifications, other_fragment_adducts;
+    std::string other_can_cross_link, other_standalone, other_localization, other_oligo_fragment_adducts = "U";
+    NuXLPresets::getPresets("RNA-UV (4SU)", other_nucleotides, other_mappings, other_modifications, other_fragment_adducts,
+      other_can_cross_link, other_standalone, other_localization, other_oligo_fragment_adducts);
+    TEST_EQUAL(other_oligo_fragment_adducts, "")
+  }
 
   TEST_EQUAL(mappings.size(), 4)
   StringList expected_mapping = {
@@ -506,6 +515,75 @@ START_SECTION((static PrecursorsToMS2Adducts getAllFeasibleFragmentAdducts(const
 
     ++it_expected;
     ++it_actual;
+  }
+}
+END_SECTION
+
+START_SECTION(([EXTRA] getFeasibleFragmentAdducts: larger fragment adducts of oligonucleotide adducts))
+{
+  const NuXLParameterParsing::NucleotideToFragmentAdductMap nuc_to_frag =
+    NuXLParameterParsing::getTargetNucleotideToFragmentAdducts({"U:C9H13N2O9P;U", "U:C9H11N2O8P;U-H2O"});
+  const set<char> can_xl = {'U'};
+  const set<char> oligo_u = {'U'};
+  const map<char, EmpiricalFormula> formulas = {{'U', EmpiricalFormula("C9H13N2O9P")}, {'C', EmpiricalFormula("C9H14N3O8P")}};
+  auto names = [](const vector<NuXLFragmentAdductDefinition>& v)
+  {
+    set<std::string> s;
+    for (const auto& f : v) { s.insert(f.name); }
+    return s;
+  };
+
+  // dinucleotide: complete adduct (also after loss of water), U with the neighbour's phosphate, U after loss of two waters
+  auto r = NuXLParameterParsing::getFeasibleFragmentAdducts("UU", "C18H24N4O17P2", nuc_to_frag, can_xl, false, true, oligo_u, formulas);
+  TEST_EQUAL(r.feasible_adducts.size(), 1)
+  TEST_TRUE(names(r.feasible_adducts[0].second) == (set<std::string>{"U", "U-H2O", "UU", "UU-H2O1", "pUp", "pUp-H2O", "U-H2O-H2O"}))
+  for (const auto& f : r.feasible_adducts[0].second)
+  {
+    if (f.name == "UU") { TEST_REAL_SIMILAR(f.mass, 630.0612) }
+    if (f.name == "UU-H2O1") { TEST_REAL_SIMILAR(f.mass, 612.0507) }
+    if (f.name == "pUp") { TEST_REAL_SIMILAR(f.mass, 404.0022) }
+    if (f.name == "U-H2O-H2O") { TEST_REAL_SIMILAR(f.mass, 288.0148) }
+  }
+  // they are no marker ions
+  TEST_TRUE(names(r.marker_ions) == (set<std::string>{"U", "U-H2O"}))
+
+  // the same shift has the same name for every precursor adduct: UU after loss of water is the complete adduct of UU-H2O1
+  auto name_of = [](const vector<NuXLFragmentAdductDefinition>& v, const EmpiricalFormula& ef)
+  {
+    for (const auto& f : v) { if (f.formula == ef) { return f.name; } }
+    return std::string();
+  };
+  const EmpiricalFormula uu_minus_water("C18H22N4O16P2");
+  const auto from_uu = NuXLParameterParsing::getFeasibleFragmentAdducts("UU", "C18H24N4O17P2", nuc_to_frag, can_xl, false, true, oligo_u, formulas);
+  const auto from_uu_minus_water = NuXLParameterParsing::getFeasibleFragmentAdducts("UU-H2O1", "C18H22N4O16P2", nuc_to_frag, can_xl, false, true, oligo_u, formulas);
+  TEST_EQUAL(name_of(from_uu.feasible_adducts[0].second, uu_minus_water), "UU-H2O1")
+  TEST_EQUAL(name_of(from_uu_minus_water.feasible_adducts[0].second, uu_minus_water), "UU-H2O1")
+
+  // off by default
+  r = NuXLParameterParsing::getFeasibleFragmentAdducts("UU", "C18H24N4O17P2", nuc_to_frag, can_xl, false, true);
+  TEST_TRUE(names(r.feasible_adducts[0].second) == (set<std::string>{"U", "U-H2O"}))
+
+  // a dinucleotide that lost a phosphate can't keep two phosphates on one nucleotide
+  r = NuXLParameterParsing::getFeasibleFragmentAdducts("UU-HPO3", "C18H23N4O14P", nuc_to_frag, can_xl, false, true, oligo_u, formulas);
+  TEST_TRUE(names(r.feasible_adducts[0].second) == (set<std::string>{"U", "U-H2O", "UU-HPO3", "UU-HPO3-H2O1", "U-H2O-H2O"}))
+
+  // without the formula of the nucleotide only the complete adduct is added
+  r = NuXLParameterParsing::getFeasibleFragmentAdducts("UU", "C18H24N4O17P2", nuc_to_frag, can_xl, false, true, oligo_u);
+  TEST_TRUE(names(r.feasible_adducts[0].second) == (set<std::string>{"U", "U-H2O", "UU", "UU-H2O1"}))
+
+  // mononucleotide adducts are not changed
+  r = NuXLParameterParsing::getFeasibleFragmentAdducts("U", "C9H13N2O9P", nuc_to_frag, can_xl, false, true, oligo_u, formulas);
+  TEST_TRUE(names(r.feasible_adducts[0].second) == (set<std::string>{"U", "U-H2O"}))
+
+  // mixed adduct, C and U cross-linkable: both get the complete adduct, only the listed U gets the nucleotide forms
+  const NuXLParameterParsing::NucleotideToFragmentAdductMap nuc_to_frag_cu =
+    NuXLParameterParsing::getTargetNucleotideToFragmentAdducts({"U:C9H13N2O9P;U", "C:C9H14N3O8P;C"});
+  r = NuXLParameterParsing::getFeasibleFragmentAdducts("CU", "C18H25N5O16P2", nuc_to_frag_cu, {'C', 'U'}, false, true, oligo_u, formulas);
+  TEST_EQUAL(r.feasible_adducts.size(), 2)
+  for (const auto& [nucleotide, adducts] : r.feasible_adducts)
+  {
+    if (nucleotide == 'C') { TEST_TRUE(names(adducts) == (set<std::string>{"C", "CU", "CU-H2O1"})) }
+    if (nucleotide == 'U') { TEST_TRUE(names(adducts) == (set<std::string>{"U", "CU", "CU-H2O1", "pUp", "pUp-H2O", "U-H2O-H2O"})) }
   }
 }
 END_SECTION

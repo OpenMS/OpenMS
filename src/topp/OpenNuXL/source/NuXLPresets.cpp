@@ -72,7 +72,8 @@ namespace OpenMS
       StringList& fragment_adducts, 
       std::string& can_cross_link,
       std::string& standalone,
-      std::string& localization)
+      std::string& localization,
+      std::string& oligo_fragment_adducts)
     {
       StringList presets = getAllPresetsNames(custom_presets_file);
       OPENMS_LOG_INFO << "Found presets: " << presets.size() << std::endl;
@@ -171,6 +172,9 @@ namespace OpenMS
             {
               localization = preset["localization"].get<std::string>();
             }
+
+            // Load the nucleotides whose larger fragment adducts oligonucleotide adducts get (optional)
+            oligo_fragment_adducts = preset.value("oligo_fragment_adducts", std::string());
             
             // Special handling for DEB and NM presets that need methionine loss
             if (StringUtils::hasSubstring(p, "DEB") || StringUtils::hasSubstring(p, "NM"))
@@ -206,9 +210,10 @@ namespace OpenMS
       StringList& fragment_adducts, 
       std::string& can_cross_link,
       std::string& standalone,
-      std::string& localization)
+      std::string& localization,
+      std::string& oligo_fragment_adducts)
     {
-      getPresets(p, "", nucleotides, mapping, modifications, fragment_adducts, can_cross_link, standalone, localization);
+      getPresets(p, "", nucleotides, mapping, modifications, fragment_adducts, can_cross_link, standalone, localization, oligo_fragment_adducts);
     }
   }
 }

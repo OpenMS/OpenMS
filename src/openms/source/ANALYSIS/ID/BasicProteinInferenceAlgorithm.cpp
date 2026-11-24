@@ -115,6 +115,7 @@ namespace OpenMS
 
     prot_run.setInferenceEngine("TOPPProteinInference");
     prot_run.setInferenceEngineVersion(VersionInfo::getVersion());
+    IDFilter::removeGroupScoreThreshold(prot_run); // a cutoff on the old group scores does not apply to the new groups
     ProteinIdentification::SearchParameters sp = prot_run.getSearchParameters();
     sp.setMetaValue("TOPPProteinInference:aggregation_method", agg_method_string);
     sp.setMetaValue("TOPPProteinInference:use_shared_peptides", use_shared_peptides);
@@ -565,6 +566,7 @@ namespace OpenMS
     // TODO actually clearing the scores should be enough, since this algorithm does not change the grouping
     prot_run.getProteinGroups().clear();
     prot_run.getIndistinguishableProteins().clear();
+    IDFilter::removeGroupScoreThreshold(prot_run); // a cutoff on the old group scores does not apply to the new groups
 
     bool group(param_.getValue("annotate_indistinguishable_groups").toBool());
     bool resolve(param_.getValue("greedy_group_resolution").toBool());
