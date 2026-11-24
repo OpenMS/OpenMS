@@ -2321,15 +2321,31 @@ namespace OpenMS::Internal
         hit.setMetaValue("pass_threshold", pass); //TODO @ mths do not write metavalue pass_threshold
 
         //connect the PeptideHit with PeptideEvidences (for AABefore/After) and subsequently with DBSequence (for ProteinAccession)
-        pair<multimap<std::string, std::string>::iterator, multimap<std::string, std::string>::iterator> pev_its;
-        pev_its = p_pv_map_.equal_range(peptide_ref);
-        for (multimap<std::string, std::string>::iterator pev_it = pev_its.first; pev_it != pev_its.second; ++pev_it)
+        // The PeptideEvidences of this PSM are its PeptideEvidenceRefs; the PSMs of a peptide can have different ones (e.g. in
+        // runs with different databases). Only without references, use all PeptideEvidences of the peptide.
+        std::vector<std::string> pev_ids;
+        for (xmlNode* child : children_(spectrumIdentificationItemElement))
+        {
+          if (equal_(name_(child), "PeptideEvidenceRef"))
+          {
+            pev_ids.push_back(attribute_(child, "peptideEvidence_ref"));
+          }
+        }
+        if (pev_ids.empty())
+        {
+          const auto [first, last] = p_pv_map_.equal_range(peptide_ref);
+          for (auto pev_it = first; pev_it != last; ++pev_it)
+          {
+            pev_ids.push_back(pev_it->second);
+          }
+        }
+        for (const std::string& pev_id : pev_ids)
         {
           bool idec = false;
           OpenMS::PeptideEvidence pev;
-          if (pe_ev_map_.contains(pev_it->second))
+          if (pe_ev_map_.contains(pev_id))
           {
-            MzIdentMLDOMHandler::PeptideEvidence& pv = pe_ev_map_[pev_it->second];
+            MzIdentMLDOMHandler::PeptideEvidence& pv = pe_ev_map_[pev_id];
             if (pv.pre != '-') pev.setAABefore(pv.pre);
             if (pv.post != '-') pev.setAAAfter(pv.post);
 
@@ -2380,9 +2396,9 @@ namespace OpenMS::Internal
             }
           }
 
-          if (pv_db_map_.contains(pev_it->second))
+          if (pv_db_map_.contains(pev_id))
           {
-            std::string& dpv = pv_db_map_[pev_it->second];
+            std::string& dpv = pv_db_map_[pev_id];
             DBSequence& db = db_sq_map_[dpv];
             pev.setProteinAccession(db.accession);
 

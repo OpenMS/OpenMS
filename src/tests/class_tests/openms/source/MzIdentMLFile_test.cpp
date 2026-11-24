@@ -1824,4 +1824,118 @@ START_SECTION(std::string detectVersion(const std::string& filename) const)
 }
 END_SECTION
 
+START_SECTION(([EXTRA] store PeptideEvidences per evidence, also with several runs (issue #10983)))
+{
+  // two runs searched against different databases. Both identify PEPTIDEK: from P1 in run 1 and from P2 in run 2. Both
+  // runs also have the protein SHARED (with a different peptide), and run 1 identifies PEPTIDEK twice.
+  std::vector<ProteinIdentification> proteins;
+  PeptideIdentificationList peptides;
+  auto add_run = [&](const std::string& identifier, const std::string& db, const std::string& protein)
+  {
+    ProteinIdentification run;
+    run.setIdentifier(identifier);
+    run.setSearchEngine("MS-GF+");
+    ProteinIdentification::SearchParameters search_parameters;
+    search_parameters.db = db;
+    run.setSearchParameters(search_parameters);
+    run.setMetaValue("spectra_data", StringList{identifier + ".mzML"});
+    run.insertHit(ProteinHit(0.0, 1, protein, ""));
+    run.insertHit(ProteinHit(0.0, 1, "SHARED", ""));
+    proteins.push_back(run);
+  };
+  auto add_psm = [&](const std::string& identifier, const std::string& spectrum, const std::string& sequence, const PeptideEvidence& evidence)
+  {
+    PeptideIdentification id;
+    id.setIdentifier(identifier);
+    id.setScoreType("q-value");
+    id.setHigherScoreBetter(false);
+    id.setSpectrumReference(spectrum);
+    id.setRT(100.0);
+    id.setMZ(500.0);
+    PeptideHit hit(0.01, 0, 2, AASequence::fromString(sequence));
+    hit.addPeptideEvidence(evidence);
+    id.insertHit(hit);
+    peptides.push_back(id);
+  };
+  add_run("run_one", "db_one.fasta", "P1");
+  add_run("run_two", "db_two.fasta", "P2");
+  add_psm("run_one", "scan=1", "PEPTIDEK", PeptideEvidence("P1", 10, 17, 'K', 'A'));
+  add_psm("run_one", "scan=2", "PEPTIDEK", PeptideEvidence("P1", 10, 17, 'K', 'A'));
+  add_psm("run_one", "scan=3", "ELVISK", PeptideEvidence("SHARED", 0, 5, '[', 'G'));
+  add_psm("run_two", "scan=7", "PEPTIDEK", PeptideEvidence("P2", 40, 47, 'R', 'G'));
+  add_psm("run_two", "scan=8", "ELVISK", PeptideEvidence("SHARED", 0, 5, '[', 'G'));
+
+  std::string filename;
+  NEW_TMP_FILE_EXT(filename, ".mzid")
+  MzIdentMLFile().store(filename, proteins, peptides);
+  const std::string text = readFile(filename);
+  // one PeptideEvidence per evidence: P1 (shared by the two PSMs of run 1), P2, and SHARED in each database
+  TEST_EQUAL(countOf(text, "<PeptideEvidence "), 4)
+  TEST_EQUAL(countOf(text, "<Peptide "), 2)
+  // the protein of both runs has a DBSequence in each database
+  TEST_EQUAL(countOf(text, "<DBSequence accession=\"SHARED\""), 2)
+  TEST_EQUAL(countOf(text, "<DBSequence "), 4)
+
+  std::vector<ProteinIdentification> proteins2;
+  PeptideIdentificationList peptides2;
+  MzIdentMLFile().load(filename, proteins2, peptides2);
+  TEST_EQUAL(peptides2.size(), 5)
+  // each PSM has its own evidence (before the fix: the PSM of run 2 had the evidence of P1 from run 1)
+  std::map<std::string, std::string> evidence_of; // spectrum -> accession and flanking residues of its evidence
+  for (const PeptideIdentification& id : peptides2)
+  {
+    ABORT_IF(id.getHits().size() != 1 || id.getHits()[0].getPeptideEvidences().size() != 1)
+    const PeptideEvidence& evidence = id.getHits()[0].getPeptideEvidences()[0];
+    evidence_of[id.getSpectrumReference()] = evidence.getProteinAccession() + " " + evidence.getAABefore() + evidence.getAAAfter();
+  }
+  TEST_EQUAL(evidence_of["scan=1"], "P1 KA")
+  TEST_EQUAL(evidence_of["scan=2"], "P1 KA")
+  TEST_EQUAL(evidence_of["scan=7"], "P2 RG")
+  TEST_EQUAL(StringUtils::hasPrefix(evidence_of["scan=3"], "SHARED "), true)
+  TEST_EQUAL(StringUtils::hasPrefix(evidence_of["scan=8"], "SHARED "), true)
+  // ... and each run's proteins are in the database of the run
+  std::map<std::string, std::string> db_of;
+  for (const ProteinIdentification& run : proteins2)
+  {
+    for (const ProteinHit& hit : run.getHits())
+    {
+      db_of[run.getSearchParameters().db + " " + hit.getAccession()] = run.getIdentifier();
+    }
+  }
+  TEST_EQUAL(db_of.count("db_one.fasta SHARED"), 1)
+  TEST_EQUAL(db_of.count("db_two.fasta SHARED"), 1)
+  TEST_EQUAL(db_of.count("db_two.fasta P1"), 0)
+}
+END_SECTION
+
+START_SECTION(([EXTRA] store and load the units of CV-term meta values (issue #10981)))
+{
+  std::vector<ProteinIdentification> proteins;
+  PeptideIdentificationList peptides;
+  MzIdentMLFile().load(OPENMS_GET_TEST_DATA_PATH("MzIdentMLFile_msgf_mini.mzid"), proteins, peptides);
+  ABORT_IF(peptides.empty() || peptides[0].getHits().empty())
+  DataValue scan_start_time(2014.221);
+  scan_start_time.setUnit(10); // UO:0000010 second
+  scan_start_time.setUnitType(DataValue::UnitType::UNIT_ONTOLOGY);
+  peptides[0].getHits()[0].setMetaValue("MS:1000016", scan_start_time);
+
+  std::string filename;
+  NEW_TMP_FILE_EXT(filename, ".mzid")
+  MzIdentMLFile().store(filename, proteins, peptides);
+  const std::string text = readFile(filename);
+  const std::regex with_unit(R"(name="scan start time" value="2014\.221[0-9]*" unitAccession="UO:0000010" unitCvRef="UO" unitName="second"/>)");
+  TEST_EQUAL(std::distance(std::sregex_iterator(text.begin(), text.end(), with_unit), std::sregex_iterator()), 1)
+
+  std::vector<ProteinIdentification> proteins2;
+  PeptideIdentificationList peptides2;
+  MzIdentMLFile().load(filename, proteins2, peptides2);
+  ABORT_IF(peptides2.empty() || peptides2[0].getHits().empty())
+  const DataValue& value = peptides2[0].getHits()[0].getMetaValue("MS:1000016");
+  TEST_REAL_SIMILAR(double(value), 2014.221)
+  TEST_EQUAL(value.hasUnit(), true)
+  TEST_EQUAL(value.getUnit(), 10)
+  TEST_EQUAL(value.getUnitType() == DataValue::UnitType::UNIT_ONTOLOGY, true)
+}
+END_SECTION
+
 END_TEST
