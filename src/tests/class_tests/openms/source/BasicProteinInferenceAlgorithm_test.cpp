@@ -277,10 +277,43 @@ START_TEST(BasicProteinInferenceAlgorithm, "$Id$")
         cmap.getProteinIdentifications()[0].setMetaValue(Constants::UserParam::PROTEIN_GROUP_SCORE_THRESHOLD, 0.95);
         bpia.run(cmap, cmap.getProteinIdentifications()[0], true);
         const ProteinIdentification& run = cmap.getProteinIdentifications()[0];
-        // a group score cutoff applies to the old group scores only; without grouping, the groups keep their scores
-        TEST_EQUAL(run.metaValueExists(Constants::UserParam::PROTEIN_GROUP_SCORE_THRESHOLD), std::string(group) == "false")
+        // a group score cutoff applies to the old group scores only. Without groups, the only group scores are the
+        // protein scores (e.g. one group per protein in mzIdentML), which were recomputed.
+        TEST_EQUAL(run.metaValueExists(Constants::UserParam::PROTEIN_GROUP_SCORE_THRESHOLD), false)
         TEST_EQUAL(run.getHits().size(), std::string(resolve) == "true" ? 0 : 6)
         TEST_EQUAL(run.getIndistinguishableProteins().size(), 0)
+      }
+
+      // without grouping, the groups of the run keep their scores, and so their cutoff
+      {
+        vector<ProteinIdentification> prots;
+        PeptideIdentificationList peps;
+        IdXMLFile().load(OPENMS_GET_TEST_DATA_PATH("newMergerTest_out.idXML"), prots, peps);
+        ProteinIdentification::ProteinGroup group;
+        group.probability = 0.42;
+        group.accessions = {prots[0].getHits()[0].getAccession()};
+        prots[0].getIndistinguishableProteins() = {group};
+        prots[0].setMetaValue(Constants::UserParam::PROTEIN_GROUP_SCORE_THRESHOLD, 0.4);
+        ConsensusMap cmap;
+        cmap.setProteinIdentifications(prots);
+        for (auto& pep : peps)
+        {
+          pep.getHits().clear();
+          ConsensusFeature feature;
+          feature.getPeptideIdentifications().push_back(pep);
+          cmap.push_back(feature);
+        }
+        BasicProteinInferenceAlgorithm bpia;
+        Param p = bpia.getParameters();
+        p.setValue("min_peptides_per_protein", 0);
+        p.setValue("annotate_indistinguishable_groups", "false");
+        p.setValue("greedy_group_resolution", "false");
+        bpia.setParameters(p);
+        bpia.run(cmap, cmap.getProteinIdentifications()[0], true);
+        const ProteinIdentification& run = cmap.getProteinIdentifications()[0];
+        ABORT_IF(run.getIndistinguishableProteins().size() != 1)
+        TEST_REAL_SIMILAR(run.getIndistinguishableProteins()[0].probability, 0.42)
+        TEST_REAL_SIMILAR(run.getMetaValue(Constants::UserParam::PROTEIN_GROUP_SCORE_THRESHOLD, 0.0), 0.4)
       }
     }
     END_SECTION

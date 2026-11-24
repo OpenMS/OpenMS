@@ -240,6 +240,12 @@ namespace OpenMS
         IDFilter::removeUnreferencedProteins(cmap, include_unassigned);
         IDFilter::updateProteinGroups(prot_run.getIndistinguishableProteins(), prot_run.getHits());
       }
+      // Without groups, the only group scores (e.g. the one-protein groups that the mzIdentML writer reports) are the
+      // protein scores computed above: a cutoff on the old scores does not apply to them.
+      if (prot_run.getIndistinguishableProteins().empty())
+      {
+        IDFilter::removeGroupScoreThreshold(prot_run);
+      }
     }
 
     prot_run.sort();
