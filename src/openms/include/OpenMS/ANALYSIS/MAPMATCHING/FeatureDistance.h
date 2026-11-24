@@ -92,6 +92,28 @@ public:
     std::pair<bool, double> operator()(const BaseFeature & left,
                                        const BaseFeature & right);
 
+    /**
+       @brief Evaluation operator with explicit retention times
+
+       Same as operator()(const BaseFeature&, const BaseFeature&), but the RT
+       component uses @p left_rt and @p right_rt instead of the features' own
+       RTs. Use this to compare features in a transformed RT space (e.g. after
+       an internal RT alignment) without modifying the features.
+
+       @param[in] left First feature
+       @param[in] right Second feature
+       @param[in] left_rt Retention time to use for @p left
+       @param[in] right_rt Retention time to use for @p right
+
+       @returns In the first element, whether constraints were satisfied; in
+       the second element, the distance (@ref infinity if constraints were
+       violated and @ref force_constraints_ is true).
+    */
+    std::pair<bool, double> operator()(const BaseFeature & left,
+                                       const BaseFeature & right,
+                                       double left_rt,
+                                       double right_rt);
+
 protected:
 
     /// Structure for storing distance parameters

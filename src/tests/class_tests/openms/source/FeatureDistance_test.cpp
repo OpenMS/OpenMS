@@ -161,6 +161,48 @@ START_SECTION((std::pair<bool, double> operator()(const BaseFeature& left, const
 }
 END_SECTION
 
+START_SECTION((std::pair<bool, double> operator()(const BaseFeature& left, const BaseFeature& right, double left_rt, double right_rt)))
+{
+  FeatureDistance dist(1000.0, false);
+  Param param = dist.getDefaults();
+  param.setValue("distance_RT:max_difference", 100.0);
+  param.setValue("distance_MZ:max_difference", 1.0);
+  param.setValue("distance_MZ:exponent", 1.0);
+  param.setValue("distance_intensity:weight", 1.0);
+  dist.setParameters(param);
+  BaseFeature left, right;
+  left.setRT(100.0);
+  left.setMZ(100.0);
+  left.setIntensity(100.0);
+  right.setRT(500.0); // far away in RT; the explicit RTs below are used instead
+  right.setMZ(100.1);
+  right.setIntensity(200.0);
+  // explicit RTs 10 s apart: all distance components vary by 10% of the maximum
+  pair<bool, double> result = dist(left, right, 100.0, 110.0);
+  TEST_EQUAL(result.first, true);
+  TEST_REAL_SIMILAR(result.second, 0.1);
+  // same result as with features that carry these RTs
+  BaseFeature right_moved(right);
+  right_moved.setRT(110.0);
+  pair<bool, double> reference = dist(left, right_moved);
+  TEST_EQUAL(result.first, reference.first);
+  TEST_REAL_SIMILAR(result.second, reference.second);
+  // with the features' own RTs the RT constraint is violated
+  result = dist(left, right, left.getRT(), right.getRT());
+  TEST_EQUAL(result.first, false);
+  TEST_EQUAL(result, dist(left, right));
+  // constraints are checked on the explicit RTs
+  FeatureDistance dist2(1000.0, true);
+  dist2.setParameters(param);
+  result = dist2(left, right, 100.0, 300.0);
+  TEST_EQUAL(result.first, false);
+  TEST_EQUAL(result.second, FeatureDistance::infinity);
+  result = dist2(left, right, 100.0, 110.0);
+  TEST_EQUAL(result.first, true);
+  TEST_REAL_SIMILAR(result.second, 0.1);
+}
+END_SECTION
+
 START_SECTION((FeatureDistance& operator=(const FeatureDistance& other)))
 {
   FeatureDistance dist(1000.0, true);
