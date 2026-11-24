@@ -237,9 +237,13 @@ Now we can use the following code to detect features with :py:class:`~.FeatureFi
 
   # edit some parameters
   params = ff.getParameters()
-  params["extract:mz_window"] = 5.0  # 5 ppm
-  params["extract:rt_window"] = 20.0  # 20 seconds
-  params["detect:peak_width"] = 3.0  # 3 seconds
+  # full width of the m/z window: 5 ppm, i.e. +/- 2.5 ppm around the target m/z
+  params["extract:mz_window"] = 5.0
+  # full width of the RT window: 20 seconds, i.e. +/- 10 seconds around the target RT
+  params["extract:rt_window"] = 20.0
+  # width of the Gaussian the chromatograms are smoothed with: 3 seconds
+  # (about twice the width (FWHM) of the elution peaks is a good value)
+  params["detect:peak_width"] = 3.0
   ff.setParameters(params)
 
   # run the FeatureFinderMetaboIdent with the metabo_table and mzML file path -> store results in fm

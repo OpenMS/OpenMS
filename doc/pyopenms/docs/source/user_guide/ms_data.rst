@@ -197,7 +197,9 @@ bar below when the user clicks on the peak at :math:`401.5\ m/z` as shown in the
 screenshot.
 
 We can also visualize our mass spectrum from before using the :py:func:`~.plot_spectrum` function from the
-`spectrum_utils <https://github.com/bittremieux/spectrum_utils>`_ visualization library:
+`spectrum_utils <https://github.com/bittremieux/spectrum_utils>`_ visualization library.
+``pyopenms.plotting`` needs matplotlib, which is an optional dependency of pyOpenMS since
+version 3.7 (``pip install "pyopenms[plotting]"``, see :doc:`installation`):
 
 .. code-block:: python
     :linenos:

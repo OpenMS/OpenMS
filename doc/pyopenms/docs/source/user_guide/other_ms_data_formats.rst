@@ -38,6 +38,12 @@ You can store and load identification data from an `mzIdentML` file as follows:
     identifications = oms.Identification()
     oms.MzIdentMLFile().load("test.mzid", identifications)
 
+Protein inference results are part of an `mzIdentML` file as well: the indistinguishable
+protein groups (``getIndistinguishableProteins()``) and the general protein groups
+(``getProteinGroups()``) of a :py:class:`~.ProteinIdentification` are written to the
+``ProteinDetectionList`` of the file and read back from it. As `mzIdentML` allows only one
+such list, protein groups are only written if a single identification run has them.
+
 You can store and load identification data from a TPP `pepXML` file as follows:
 
 .. code-block:: python

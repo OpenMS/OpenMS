@@ -22,7 +22,7 @@ Python 3.11, 3.12, 3.13 and 3.14.
 You can install Python first from `here <https://www.python.org/downloads/>`_,
 again make sure to download the 64bit release. You can then open a shell and
 type the two commands above (on Windows you may potentially have to use
-``C:\Python37\Scripts\pip.exe`` in case ``pip`` is not in your system path).
+``C:\Python313\Scripts\pip.exe`` in case ``pip`` is not in your system path).
 
 Reading Thermo Fisher ``.raw`` files also needs the .NET 8 runtime; see
 :doc:`vendor_formats`.
