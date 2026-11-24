@@ -111,7 +111,7 @@ More information below the parameter specification.
 
 <B>Optional output: QPX Parquet (@p out_qpx)</B>
 
-@p out_qpx writes the quantification as a QPX collection - @c quantms.feature.parquet, @c quantms.psm.parquet and @c quantms.pg.parquet - for consensusXML input. QPX is an interchange format with a strict value contract, and OpenMS refuses to write a table it cannot represent rather than emit one that will not join. A refusal ends the tool with an error and leaves no QPX file behind, including any view already written. The other outputs (@p out, @p peptide_out, @p mztab) are written before the export and are not affected. The export is also refused if no protein is quantified, because no protein group is left for the protein-group view.
+@p out_qpx writes the quantification as a QPX collection - @c quantms.feature.parquet, @c quantms.psm.parquet and @c quantms.pg.parquet - for consensusXML input. QPX is an interchange format with a strict value contract, and OpenMS refuses to write a table it cannot represent rather than emit one that will not join. A refusal ends the tool with an error and removes the QPX files that this run has written, including any view already written. QPX files that were in the directory before the run are kept, so a failed run into a directory that holds an earlier collection can leave files of that collection behind, or a mix of old and new views. The other outputs (@p out, @p peptide_out, @p mztab) are written before the export and are not affected. The export is also refused if no protein is quantified, because no protein group is left for the protein-group view.
 
 Consensus maps produced by @ref TOPP_ProteomicsLFQ and @ref TOPP_IsobaricWorkflow satisfy the contract by construction; those two are the supported producers. A map assembled by a different pipeline may not. What the contract requires, and how to satisfy it, is documented in one place: on OpenMS::QPXValueValidation, the class that enforces it.
 
@@ -1050,7 +1050,7 @@ protected:
     The protein quantities have to be annotated already (see processConsensusXMLInput_()).
 
     @param[in] protein_quantified Whether the run quantified any protein; names the likely cause if the export is refused
-    @throws Exception::UnableToCreateFile if the collection cannot be written in full. No QPX file is left behind then.
+    @throws Exception::UnableToCreateFile if the collection cannot be written in full. The QPX files written by this export are removed then; files that were in the directory before are kept.
   */
   void exportQPX_(const ConsensusMap& consensus, const ExperimentalDesign& ed, const std::string& out_qpx,
                   const bool protein_quantified)
