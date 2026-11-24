@@ -1,0 +1,8048 @@
+{
+ "quant_all_q0.005": {
+  "q_cutoff": 0.005,
+  "population": "all",
+  "audit": [
+   {
+    "raw": "01",
+    "seed": "0",
+    "sha256": "07bd2588b67c153f9916f3203d499558a8b17dbcac019dc1ddac349be155e661",
+    "rows": 5868831,
+    "decoys": 2930825,
+    "rejected_q": 2858859,
+    "nonpositive": 0,
+    "nonfinite": 0,
+    "population_excluded": 0
+   },
+   {
+    "raw": "01",
+    "seed": "1",
+    "sha256": "39769d5cdd704eb5860e3b0377fae5e8d22b1b9e07762f7ce59ea4bec7f5a329",
+    "rows": 5870225,
+    "decoys": 2931523,
+    "rejected_q": 2859944,
+    "nonpositive": 0,
+    "nonfinite": 0,
+    "population_excluded": 0
+   },
+   {
+    "raw": "01",
+    "seed": "2",
+    "sha256": "8017b4fcb96e152bbf41ef39c185478a471a45874eced9bdd73df63368f5dec9",
+    "rows": 5867486,
+    "decoys": 2930152,
+    "rejected_q": 2858193,
+    "nonpositive": 0,
+    "nonfinite": 0,
+    "population_excluded": 0
+   },
+   {
+    "raw": "01",
+    "seed": "3",
+    "sha256": "6f11efad67134b58329457cef7d4bfa358b2406bd28144b49ce58fa2b8b781f1",
+    "rows": 5869685,
+    "decoys": 2931259,
+    "rejected_q": 2859577,
+    "nonpositive": 0,
+    "nonfinite": 0,
+    "population_excluded": 0
+   },
+   {
+    "raw": "01",
+    "seed": "4",
+    "sha256": "5abf2633e17d1f2edc956b4caea4b09297052ac68ae754e70f7597a349abb397",
+    "rows": 5868461,
+    "decoys": 2930633,
+    "rejected_q": 2859478,
+    "nonpositive": 0,
+    "nonfinite": 0,
+    "population_excluded": 0
+   },
+   {
+    "raw": "02",
+    "seed": "0",
+    "sha256": "360657fec9c98dea5676b280fd2e51986a08b1f0c97f4e256ddee2694458988d",
+    "rows": 6117330,
+    "decoys": 3055054,
+    "rejected_q": 2981933,
+    "nonpositive": 0,
+    "nonfinite": 0,
+    "population_excluded": 0
+   },
+   {
+    "raw": "02",
+    "seed": "1",
+    "sha256": "b0bad850356685dce9e151ecf23fbd60e283a88e40bc108ed74f4c4450a0d3ab",
+    "rows": 6117989,
+    "decoys": 3055381,
+    "rejected_q": 2981945,
+    "nonpositive": 0,
+    "nonfinite": 0,
+    "population_excluded": 0
+   },
+   {
+    "raw": "02",
+    "seed": "2",
+    "sha256": "3987e7c630b7d7dc073d7da8eaf5f0e5de9b2db4785e06b3bfa09f77a658b65b",
+    "rows": 6119165,
+    "decoys": 3055965,
+    "rejected_q": 2982380,
+    "nonpositive": 0,
+    "nonfinite": 0,
+    "population_excluded": 0
+   },
+   {
+    "raw": "02",
+    "seed": "3",
+    "sha256": "acd42c36b79334cde479caac70f0fa8a568893a003c0860a153e15c7c5ba2be0",
+    "rows": 6119762,
+    "decoys": 3056272,
+    "rejected_q": 2982833,
+    "nonpositive": 0,
+    "nonfinite": 0,
+    "population_excluded": 0
+   },
+   {
+    "raw": "02",
+    "seed": "4",
+    "sha256": "2ded0b928045b55ff82dc957728bf400d289b3ad179a2b29cbe30367b1dba15b",
+    "rows": 6119055,
+    "decoys": 3055914,
+    "rejected_q": 2982829,
+    "nonpositive": 0,
+    "nonfinite": 0,
+    "population_excluded": 0
+   },
+   {
+    "raw": "03",
+    "seed": "0",
+    "sha256": "f38f3a402f10f3c8ccb1a0e35041c99b5e11dbeaaf2899ea3db05c1a022eb2d8",
+    "rows": 6267222,
+    "decoys": 3130002,
+    "rejected_q": 3060074,
+    "nonpositive": 0,
+    "nonfinite": 0,
+    "population_excluded": 0
+   },
+   {
+    "raw": "03",
+    "seed": "1",
+    "sha256": "4e9eb338998df6aaa26750790cced8a9efc3e922a2ead07c38446fbb68eeaeb5",
+    "rows": 6266147,
+    "decoys": 3129471,
+    "rejected_q": 3059775,
+    "nonpositive": 0,
+    "nonfinite": 0,
+    "population_excluded": 0
+   },
+   {
+    "raw": "03",
+    "seed": "2",
+    "sha256": "0022525c28691dd62ff4afb24a43695dc022f7cf5b2ccc77b00b69c7fc6b36cd",
+    "rows": 6267851,
+    "decoys": 3130322,
+    "rejected_q": 3060574,
+    "nonpositive": 0,
+    "nonfinite": 0,
+    "population_excluded": 0
+   },
+   {
+    "raw": "03",
+    "seed": "3",
+    "sha256": "2cf27cc3937ea772cba62640e7257e6df7d9d50c999814cf8fde1a8fb011ac0f",
+    "rows": 6267560,
+    "decoys": 3130170,
+    "rejected_q": 3060457,
+    "nonpositive": 0,
+    "nonfinite": 0,
+    "population_excluded": 0
+   },
+   {
+    "raw": "03",
+    "seed": "4",
+    "sha256": "be7c274a883a8c7f3e1f517ca4936c1e96e1e725e3a2087983c7724b8ea36826",
+    "rows": 6268960,
+    "decoys": 3130875,
+    "rejected_q": 3060761,
+    "nonpositive": 0,
+    "nonfinite": 0,
+    "population_excluded": 0
+   }
+  ],
+  "across_raws": {
+   "precursor": {
+    "0": {
+     "labels": [
+      "01",
+      "02",
+      "03"
+     ],
+     "union": 104408,
+     "positive_complete": 57023,
+     "detection_completeness": {
+      "1": 29203,
+      "2": 18182,
+      "3": 57023
+     },
+     "positive_completeness": {
+      "0": 0,
+      "1": 29203,
+      "2": 18182,
+      "3": 57023
+     },
+     "normalization_log2_offsets": [
+      0.0064252369699424605,
+      0.0,
+      -0.04503139588266336
+     ],
+     "pairs": [
+      {
+       "a": "01",
+       "b": "02",
+       "jaccard": 0.6781531792211618,
+       "positive_pairs": 64451,
+       "log2_pearson": 0.9800586232957483
+      },
+      {
+       "a": "01",
+       "b": "03",
+       "jaccard": 0.6622494017548525,
+       "positive_pairs": 62268,
+       "log2_pearson": 0.9780389139120292
+      },
+      {
+       "a": "02",
+       "b": "03",
+       "jaccard": 0.6585296502627505,
+       "positive_pairs": 62532,
+       "log2_pearson": 0.9777252660962428
+      }
+     ],
+     "cv_raw_median": 0.10490043610583223,
+     "cv_median_normalized_median": 0.10354369313653694,
+     "cv_n": 57023
+    },
+    "1": {
+     "labels": [
+      "01",
+      "02",
+      "03"
+     ],
+     "union": 104244,
+     "positive_complete": 56921,
+     "detection_completeness": {
+      "1": 29087,
+      "2": 18236,
+      "3": 56921
+     },
+     "positive_completeness": {
+      "0": 0,
+      "1": 29087,
+      "2": 18236,
+      "3": 56921
+     },
+     "normalization_log2_offsets": [
+      0.007054696723539422,
+      0.0,
+      -0.04512467366392059
+     ],
+     "pairs": [
+      {
+       "a": "01",
+       "b": "02",
+       "jaccard": 0.6776742962378322,
+       "positive_pairs": 64396,
+       "log2_pearson": 0.9804733950038304
+      },
+      {
+       "a": "01",
+       "b": "03",
+       "jaccard": 0.6608941527955613,
+       "positive_pairs": 61939,
+       "log2_pearson": 0.9783394713894928
+      },
+      {
+       "a": "02",
+       "b": "03",
+       "jaccard": 0.6603161222339304,
+       "positive_pairs": 62664,
+       "log2_pearson": 0.9778624828876931
+      }
+     ],
+     "cv_raw_median": 0.10478777253272542,
+     "cv_median_normalized_median": 0.10335993037771798,
+     "cv_n": 56921
+    },
+    "2": {
+     "labels": [
+      "01",
+      "02",
+      "03"
+     ],
+     "union": 104490,
+     "positive_complete": 57119,
+     "detection_completeness": {
+      "1": 29183,
+      "2": 18188,
+      "3": 57119
+     },
+     "positive_completeness": {
+      "0": 0,
+      "1": 29183,
+      "2": 18188,
+      "3": 57119
+     },
+     "normalization_log2_offsets": [
+      0.00638721908930151,
+      0.0,
+      -0.04522264728952763
+     ],
+     "pairs": [
+      {
+       "a": "01",
+       "b": "02",
+       "jaccard": 0.6783761948230456,
+       "positive_pairs": 64654,
+       "log2_pearson": 0.9800972007257976
+      },
+      {
+       "a": "01",
+       "b": "03",
+       "jaccard": 0.6617271333673991,
+       "positive_pairs": 62160,
+       "log2_pearson": 0.9782954094968043
+      },
+      {
+       "a": "02",
+       "b": "03",
+       "jaccard": 0.6600206220276924,
+       "positive_pairs": 62731,
+       "log2_pearson": 0.9780336688317126
+      }
+     ],
+     "cv_raw_median": 0.10518516646319422,
+     "cv_median_normalized_median": 0.10377338649198764,
+     "cv_n": 57119
+    },
+    "3": {
+     "labels": [
+      "01",
+      "02",
+      "03"
+     ],
+     "union": 104278,
+     "positive_complete": 57020,
+     "detection_completeness": {
+      "1": 29137,
+      "2": 18121,
+      "3": 57020
+     },
+     "positive_completeness": {
+      "0": 0,
+      "1": 29137,
+      "2": 18121,
+      "3": 57020
+     },
+     "normalization_log2_offsets": [
+      0.006492291461661637,
+      0.0,
+      -0.044730781401824515
+     ],
+     "pairs": [
+      {
+       "a": "01",
+       "b": "02",
+       "jaccard": 0.6776331012431898,
+       "positive_pairs": 64428,
+       "log2_pearson": 0.9801522818105539
+      },
+      {
+       "a": "01",
+       "b": "03",
+       "jaccard": 0.6621888370802702,
+       "positive_pairs": 62061,
+       "log2_pearson": 0.9778703307546576
+      },
+      {
+       "a": "02",
+       "b": "03",
+       "jaccard": 0.6606250922042615,
+       "positive_pairs": 62692,
+       "log2_pearson": 0.9773941398589446
+      }
+     ],
+     "cv_raw_median": 0.10480119469270276,
+     "cv_median_normalized_median": 0.10342958766727517,
+     "cv_n": 57020
+    },
+    "4": {
+     "labels": [
+      "01",
+      "02",
+      "03"
+     ],
+     "union": 104051,
+     "positive_complete": 56927,
+     "detection_completeness": {
+      "1": 29043,
+      "2": 18081,
+      "3": 56927
+     },
+     "positive_completeness": {
+      "0": 0,
+      "1": 29043,
+      "2": 18081,
+      "3": 56927
+     },
+     "normalization_log2_offsets": [
+      0.007547183238131083,
+      0.0,
+      -0.04388971200468106
+     ],
+     "pairs": [
+      {
+       "a": "01",
+       "b": "02",
+       "jaccard": 0.6781460876187253,
+       "positive_pairs": 64116,
+       "log2_pearson": 0.9801791348253923
+      },
+      {
+       "a": "01",
+       "b": "03",
+       "jaccard": 0.6624377950065141,
+       "positive_pairs": 62032,
+       "log2_pearson": 0.977875496796303
+      },
+      {
+       "a": "02",
+       "b": "03",
+       "jaccard": 0.6606898295442574,
+       "positive_pairs": 62714,
+       "log2_pearson": 0.9777351843173617
+      }
+     ],
+     "cv_raw_median": 0.10497619966260727,
+     "cv_median_normalized_median": 0.10357923535649524,
+     "cv_n": 56927
+    }
+   },
+   "peptide": {
+    "0": {
+     "labels": [
+      "01",
+      "02",
+      "03"
+     ],
+     "union": 74544,
+     "positive_complete": 48961,
+     "detection_completeness": {
+      "1": 13974,
+      "2": 11609,
+      "3": 48961
+     },
+     "positive_completeness": {
+      "0": 0,
+      "1": 13974,
+      "2": 11609,
+      "3": 48961
+     },
+     "normalization_log2_offsets": [
+      0.006171228467017897,
+      0.0,
+      -0.04820185675981392
+     ],
+     "pairs": [
+      {
+       "a": "01",
+       "b": "02",
+       "jaccard": 0.7679263772314772,
+       "positive_pairs": 54072,
+       "log2_pearson": 0.9544601012111524
+      },
+      {
+       "a": "01",
+       "b": "03",
+       "jaccard": 0.7513398259666917,
+       "positive_pairs": 52152,
+       "log2_pearson": 0.9508258589108879
+      },
+      {
+       "a": "02",
+       "b": "03",
+       "jaccard": 0.7484713530852176,
+       "positive_pairs": 52268,
+       "log2_pearson": 0.9511378106837931
+      }
+     ],
+     "cv_raw_median": 0.09764642301507129,
+     "cv_median_normalized_median": 0.09592874093659144,
+     "cv_n": 48961
+    },
+    "1": {
+     "labels": [
+      "01",
+      "02",
+      "03"
+     ],
+     "union": 74403,
+     "positive_complete": 48897,
+     "detection_completeness": {
+      "1": 13911,
+      "2": 11595,
+      "3": 48897
+     },
+     "positive_completeness": {
+      "0": 0,
+      "1": 13911,
+      "2": 11595,
+      "3": 48897
+     },
+     "normalization_log2_offsets": [
+      0.006195189314148308,
+      0.0,
+      -0.04950643518638742
+     ],
+     "pairs": [
+      {
+       "a": "01",
+       "b": "02",
+       "jaccard": 0.767772915837927,
+       "positive_pairs": 54042,
+       "log2_pearson": 0.9530388873965975
+      },
+      {
+       "a": "01",
+       "b": "03",
+       "jaccard": 0.750564660913882,
+       "positive_pairs": 51840,
+       "log2_pearson": 0.9479574114276107
+      },
+      {
+       "a": "02",
+       "b": "03",
+       "jaccard": 0.7503221557229175,
+       "positive_pairs": 52404,
+       "log2_pearson": 0.9470934456887995
+      }
+     ],
+     "cv_raw_median": 0.09763153235785929,
+     "cv_median_normalized_median": 0.09595436123010706,
+     "cv_n": 48897
+    },
+    "2": {
+     "labels": [
+      "01",
+      "02",
+      "03"
+     ],
+     "union": 74669,
+     "positive_complete": 49069,
+     "detection_completeness": {
+      "1": 14006,
+      "2": 11594,
+      "3": 49069
+     },
+     "positive_completeness": {
+      "0": 0,
+      "1": 14006,
+      "2": 11594,
+      "3": 49069
+     },
+     "normalization_log2_offsets": [
+      0.008645105862349567,
+      0.0,
+      -0.04724326076586394
+     ],
+     "pairs": [
+      {
+       "a": "01",
+       "b": "02",
+       "jaccard": 0.7682345114580532,
+       "positive_pairs": 54275,
+       "log2_pearson": 0.953591598253726
+      },
+      {
+       "a": "01",
+       "b": "03",
+       "jaccard": 0.7506239090607464,
+       "positive_pairs": 52034,
+       "log2_pearson": 0.9497623211969587
+      },
+      {
+       "a": "02",
+       "b": "03",
+       "jaccard": 0.7495537690451372,
+       "positive_pairs": 52492,
+       "log2_pearson": 0.9502922691949549
+      }
+     ],
+     "cv_raw_median": 0.09806584687986111,
+     "cv_median_normalized_median": 0.09632598910695381,
+     "cv_n": 49069
+    },
+    "3": {
+     "labels": [
+      "01",
+      "02",
+      "03"
+     ],
+     "union": 74437,
+     "positive_complete": 48940,
+     "detection_completeness": {
+      "1": 13932,
+      "2": 11565,
+      "3": 48940
+     },
+     "positive_completeness": {
+      "0": 0,
+      "1": 13932,
+      "2": 11565,
+      "3": 48940
+     },
+     "normalization_log2_offsets": [
+      0.005737835472597652,
+      0.0,
+      -0.04938711827143294
+     ],
+     "pairs": [
+      {
+       "a": "01",
+       "b": "02",
+       "jaccard": 0.7674649706846864,
+       "positive_pairs": 54061,
+       "log2_pearson": 0.9543050489642124
+      },
+      {
+       "a": "01",
+       "b": "03",
+       "jaccard": 0.7515337423312883,
+       "positive_pairs": 51940,
+       "log2_pearson": 0.9487890107912927
+      },
+      {
+       "a": "02",
+       "b": "03",
+       "jaccard": 0.7502076590381807,
+       "positive_pairs": 52384,
+       "log2_pearson": 0.9500317986919854
+      }
+     ],
+     "cv_raw_median": 0.09751470388508943,
+     "cv_median_normalized_median": 0.09580202921449334,
+     "cv_n": 48940
+    },
+    "4": {
+     "labels": [
+      "01",
+      "02",
+      "03"
+     ],
+     "union": 74226,
+     "positive_complete": 48885,
+     "detection_completeness": {
+      "1": 13869,
+      "2": 11472,
+      "3": 48885
+     },
+     "positive_completeness": {
+      "0": 0,
+      "1": 13869,
+      "2": 11472,
+      "3": 48885
+     },
+     "normalization_log2_offsets": [
+      0.00649044092851625,
+      0.0,
+      -0.047768000215690165
+     ],
+     "pairs": [
+      {
+       "a": "01",
+       "b": "02",
+       "jaccard": 0.7691329264981206,
+       "positive_pairs": 53817,
+       "log2_pearson": 0.9507345494140574
+      },
+      {
+       "a": "01",
+       "b": "03",
+       "jaccard": 0.7519477510354216,
+       "positive_pairs": 51925,
+       "log2_pearson": 0.9477626660080938
+      },
+      {
+       "a": "02",
+       "b": "03",
+       "jaccard": 0.7506735068210478,
+       "positive_pairs": 52385,
+       "log2_pearson": 0.9495134126451116
+      }
+     ],
+     "cv_raw_median": 0.0978045922654187,
+     "cv_median_normalized_median": 0.0960372614793478,
+     "cv_n": 48885
+    }
+   }
+  },
+  "within_raw_seeds": {
+   "precursor": {
+    "01": {
+     "labels": [
+      "0",
+      "1",
+      "2",
+      "3",
+      "4"
+     ],
+     "union": 81215,
+     "positive_complete": 76326,
+     "detection_completeness": {
+      "1": 1352,
+      "2": 950,
+      "3": 985,
+      "4": 1602,
+      "5": 76326
+     },
+     "positive_completeness": {
+      "0": 0,
+      "1": 1352,
+      "2": 950,
+      "3": 985,
+      "4": 1602,
+      "5": 76326
+     },
+     "normalization_log2_offsets": [
+      0.0,
+      0.00019496806239160946,
+      0.0,
+      -9.677925676854215e-05,
+      0.0002557613079652299
+     ],
+     "pairs": [
+      {
+       "a": "0",
+       "b": "1",
+       "jaccard": 0.9688166278069399,
+       "positive_pairs": 77702,
+       "log2_pearson": 0.9999056026183418
+      },
+      {
+       "a": "0",
+       "b": "2",
+       "jaccard": 0.9729524236871954,
+       "positive_pairs": 78059,
+       "log2_pearson": 0.9996922499183327
+      },
+      {
+       "a": "0",
+       "b": "3",
+       "jaccard": 0.9706392266916121,
+       "positive_pairs": 77821,
+       "log2_pearson": 0.9998711595901453
+      },
+      {
+       "a": "0",
+       "b": "4",
+       "jaccard": 0.9653713686732555,
+       "positive_pairs": 77361,
+       "log2_pearson": 0.999757259475847
+      },
+      {
+       "a": "1",
+       "b": "2",
+       "jaccard": 0.9732441889527618,
+       "positive_pairs": 77879,
+       "log2_pearson": 0.9996669184910633
+      },
+      {
+       "a": "1",
+       "b": "3",
+       "jaccard": 0.9736400520937688,
+       "positive_pairs": 77751,
+       "log2_pearson": 0.9998592255766289
+      },
+      {
+       "a": "1",
+       "b": "4",
+       "jaccard": 0.9708712287524305,
+       "positive_pairs": 77393,
+       "log2_pearson": 0.9997600740223695
+      },
+      {
+       "a": "2",
+       "b": "3",
+       "jaccard": 0.9743567313580185,
+       "positive_pairs": 77969,
+       "log2_pearson": 0.9997404284567847
+      },
+      {
+       "a": "2",
+       "b": "4",
+       "jaccard": 0.9680716793921748,
+       "positive_pairs": 77468,
+       "log2_pearson": 0.9996944872030248
+      },
+      {
+       "a": "3",
+       "b": "4",
+       "jaccard": 0.9692953335421234,
+       "positive_pairs": 77374,
+       "log2_pearson": 0.9996879725098
+      }
+     ],
+     "cv_raw_median": 0.0,
+     "cv_median_normalized_median": 0.0001026551436045588,
+     "cv_n": 76326
+    },
+    "02": {
+     "labels": [
+      "0",
+      "1",
+      "2",
+      "3",
+      "4"
+     ],
+     "union": 82972,
+     "positive_complete": 78127,
+     "detection_completeness": {
+      "1": 1367,
+      "2": 1040,
+      "3": 1039,
+      "4": 1399,
+      "5": 78127
+     },
+     "positive_completeness": {
+      "0": 0,
+      "1": 1367,
+      "2": 1040,
+      "3": 1039,
+      "4": 1399,
+      "5": 78127
+     },
+     "normalization_log2_offsets": [
+      0.0,
+      0.00010428772746351456,
+      0.00010428772746351456,
+      -0.00013875993606937698,
+      -5.431598122029868e-05
+     ],
+     "pairs": [
+      {
+       "a": "0",
+       "b": "1",
+       "jaccard": 0.9717112836464278,
+       "positive_pairs": 79348,
+       "log2_pearson": 0.999751704033197
+      },
+      {
+       "a": "0",
+       "b": "2",
+       "jaccard": 0.971388729189857,
+       "positive_pairs": 79412,
+       "log2_pearson": 0.9997647706179194
+      },
+      {
+       "a": "0",
+       "b": "3",
+       "jaccard": 0.9727491055236975,
+       "positive_pairs": 79388,
+       "log2_pearson": 0.9997009130315389
+      },
+      {
+       "a": "0",
+       "b": "4",
+       "jaccard": 0.9714930849562518,
+       "positive_pairs": 79166,
+       "log2_pearson": 0.9996237943060199
+      },
+      {
+       "a": "1",
+       "b": "2",
+       "jaccard": 0.9719260968848835,
+       "positive_pairs": 79592,
+       "log2_pearson": 0.9997739820262679
+      },
+      {
+       "a": "1",
+       "b": "3",
+       "jaccard": 0.9734781757682521,
+       "positive_pairs": 79576,
+       "log2_pearson": 0.9997574502094597
+      },
+      {
+       "a": "1",
+       "b": "4",
+       "jaccard": 0.9671159556658072,
+       "positive_pairs": 79142,
+       "log2_pearson": 0.9998500022657617
+      },
+      {
+       "a": "2",
+       "b": "3",
+       "jaccard": 0.9727441542258167,
+       "positive_pairs": 79623,
+       "log2_pearson": 0.9997327211706353
+      },
+      {
+       "a": "2",
+       "b": "4",
+       "jaccard": 0.9699010966172353,
+       "positive_pairs": 79335,
+       "log2_pearson": 0.9997283781729953
+      },
+      {
+       "a": "3",
+       "b": "4",
+       "jaccard": 0.9695215954973694,
+       "positive_pairs": 79239,
+       "log2_pearson": 0.9997820312039228
+      }
+     ],
+     "cv_raw_median": 0.0,
+     "cv_median_normalized_median": 7.262270128411755e-05,
+     "cv_n": 78127
+    },
+    "03": {
+     "labels": [
+      "0",
+      "1",
+      "2",
+      "3",
+      "4"
+     ],
+     "union": 79494,
+     "positive_complete": 74575,
+     "detection_completeness": {
+      "1": 1449,
+      "2": 999,
+      "3": 947,
+      "4": 1524,
+      "5": 74575
+     },
+     "positive_completeness": {
+      "0": 0,
+      "1": 1449,
+      "2": 999,
+      "3": 947,
+      "4": 1524,
+      "5": 74575
+     },
+     "normalization_log2_offsets": [
+      0.00017510471196402477,
+      -1.2298762328555313e-06,
+      0.0,
+      -1.2298762328555313e-06,
+      0.00027884050680881955
+     ],
+     "pairs": [
+      {
+       "a": "0",
+       "b": "1",
+       "jaccard": 0.9710699388387031,
+       "positive_pairs": 75893,
+       "log2_pearson": 0.999777513713757
+      },
+      {
+       "a": "0",
+       "b": "2",
+       "jaccard": 0.9684111027373637,
+       "positive_pairs": 75814,
+       "log2_pearson": 0.9997865499360873
+      },
+      {
+       "a": "0",
+       "b": "3",
+       "jaccard": 0.9704708801186792,
+       "positive_pairs": 75885,
+       "log2_pearson": 0.9997685480944676
+      },
+      {
+       "a": "0",
+       "b": "4",
+       "jaccard": 0.9711354413903989,
+       "positive_pairs": 76104,
+       "log2_pearson": 0.9997013089412418
+      },
+      {
+       "a": "1",
+       "b": "2",
+       "jaccard": 0.9702142372360452,
+       "positive_pairs": 75765,
+       "log2_pearson": 0.999831905751005
+      },
+      {
+       "a": "1",
+       "b": "3",
+       "jaccard": 0.9706390991891165,
+       "positive_pairs": 75771,
+       "log2_pearson": 0.999650719776414
+      },
+      {
+       "a": "1",
+       "b": "4",
+       "jaccard": 0.970573954819585,
+       "positive_pairs": 75961,
+       "log2_pearson": 0.9995901747682484
+      },
+      {
+       "a": "2",
+       "b": "3",
+       "jaccard": 0.9692874692874693,
+       "positive_pairs": 75744,
+       "log2_pearson": 0.9996440701051343
+      },
+      {
+       "a": "2",
+       "b": "4",
+       "jaccard": 0.9685976776827868,
+       "positive_pairs": 75909,
+       "log2_pearson": 0.9996074023818553
+      },
+      {
+       "a": "3",
+       "b": "4",
+       "jaccard": 0.9683420740343759,
+       "positive_pairs": 75888,
+       "log2_pearson": 0.9996930979005973
+      }
+     ],
+     "cv_raw_median": 0.0,
+     "cv_median_normalized_median": 9.013938218085338e-05,
+     "cv_n": 74575
+    }
+   },
+   "peptide": {
+    "01": {
+     "labels": [
+      "0",
+      "1",
+      "2",
+      "3",
+      "4"
+     ],
+     "union": 63477,
+     "positive_complete": 59810,
+     "detection_completeness": {
+      "1": 1058,
+      "2": 714,
+      "3": 747,
+      "4": 1148,
+      "5": 59810
+     },
+     "positive_completeness": {
+      "0": 0,
+      "1": 1058,
+      "2": 714,
+      "3": 747,
+      "4": 1148,
+      "5": 59810
+     },
+     "normalization_log2_offsets": [
+      0.0,
+      0.0,
+      0.0007326471160880033,
+      -0.00024178161859467195,
+      -0.0007680050688207984
+     ],
+     "pairs": [
+      {
+       "a": "0",
+       "b": "1",
+       "jaccard": 0.9701102126098538,
+       "positive_pairs": 60823,
+       "log2_pearson": 0.9932452660867251
+      },
+      {
+       "a": "0",
+       "b": "2",
+       "jaccard": 0.9746496388769311,
+       "positive_pairs": 61131,
+       "log2_pearson": 0.9927729296582254
+      },
+      {
+       "a": "0",
+       "b": "3",
+       "jaccard": 0.9723086248424814,
+       "positive_pairs": 60955,
+       "log2_pearson": 0.9937247888697188
+      },
+      {
+       "a": "0",
+       "b": "4",
+       "jaccard": 0.9665156494273044,
+       "positive_pairs": 60587,
+       "log2_pearson": 0.9919700366399248
+      },
+      {
+       "a": "1",
+       "b": "2",
+       "jaccard": 0.9742154259573242,
+       "positive_pairs": 60906,
+       "log2_pearson": 0.9933151022372088
+      },
+      {
+       "a": "1",
+       "b": "3",
+       "jaccard": 0.9743943084219971,
+       "positive_pairs": 60810,
+       "log2_pearson": 0.9936304219544773
+      },
+      {
+       "a": "1",
+       "b": "4",
+       "jaccard": 0.9719248117886896,
+       "positive_pairs": 60548,
+       "log2_pearson": 0.9933485764943035
+      },
+      {
+       "a": "2",
+       "b": "3",
+       "jaccard": 0.9751566696508505,
+       "positive_pairs": 60998,
+       "log2_pearson": 0.9932567310601317
+      },
+      {
+       "a": "2",
+       "b": "4",
+       "jaccard": 0.969288078146733,
+       "positive_pairs": 60628,
+       "log2_pearson": 0.9921411889215895
+      },
+      {
+       "a": "3",
+       "b": "4",
+       "jaccard": 0.9702470599544973,
+       "positive_pairs": 60557,
+       "log2_pearson": 0.9919555562613882
+      }
+     ],
+     "cv_raw_median": 0.0,
+     "cv_median_normalized_median": 0.00037481520735155495,
+     "cv_n": 59810
+    },
+    "02": {
+     "labels": [
+      "0",
+      "1",
+      "2",
+      "3",
+      "4"
+     ],
+     "union": 64589,
+     "positive_complete": 60927,
+     "detection_completeness": {
+      "1": 1053,
+      "2": 788,
+      "3": 788,
+      "4": 1033,
+      "5": 60927
+     },
+     "positive_completeness": {
+      "0": 0,
+      "1": 1053,
+      "2": 788,
+      "3": 788,
+      "4": 1033,
+      "5": 60927
+     },
+     "normalization_log2_offsets": [
+      0.0006816246713583496,
+      0.0006816246713583496,
+      0.0,
+      -0.0008231600915955539,
+      -0.0008231600915955539
+     ],
+     "pairs": [
+      {
+       "a": "0",
+       "b": "1",
+       "jaccard": 0.9722707183189417,
+       "positive_pairs": 61816,
+       "log2_pearson": 0.9926607673877166
+      },
+      {
+       "a": "0",
+       "b": "2",
+       "jaccard": 0.9725538867592535,
+       "positive_pairs": 61905,
+       "log2_pearson": 0.9933863654473389
+      },
+      {
+       "a": "0",
+       "b": "3",
+       "jaccard": 0.9735632183908046,
+       "positive_pairs": 61831,
+       "log2_pearson": 0.9927861774873036
+      },
+      {
+       "a": "0",
+       "b": "4",
+       "jaccard": 0.9726355989710733,
+       "positive_pairs": 61633,
+       "log2_pearson": 0.9925384365911204
+      },
+      {
+       "a": "1",
+       "b": "2",
+       "jaccard": 0.9730203992103531,
+       "positive_pairs": 62104,
+       "log2_pearson": 0.9929898583081248
+      },
+      {
+       "a": "1",
+       "b": "3",
+       "jaccard": 0.9742450178243321,
+       "positive_pairs": 62037,
+       "log2_pearson": 0.9928267894474968
+      },
+      {
+       "a": "1",
+       "b": "4",
+       "jaccard": 0.9674994507391482,
+       "positive_pairs": 61651,
+       "log2_pearson": 0.9901925954365108
+      },
+      {
+       "a": "2",
+       "b": "3",
+       "jaccard": 0.973906225497883,
+       "positive_pairs": 62106,
+       "log2_pearson": 0.9930415661259357
+      },
+      {
+       "a": "2",
+       "b": "4",
+       "jaccard": 0.9708458929917106,
+       "positive_pairs": 61839,
+       "log2_pearson": 0.9907470566254035
+      },
+      {
+       "a": "3",
+       "b": "4",
+       "jaccard": 0.9697741311831,
+       "positive_pairs": 61698,
+       "log2_pearson": 0.9908453466732724
+      }
+     ],
+     "cv_raw_median": 0.0,
+     "cv_median_normalized_median": 0.0005219874505624642,
+     "cv_n": 60927
+    },
+    "03": {
+     "labels": [
+      "0",
+      "1",
+      "2",
+      "3",
+      "4"
+     ],
+     "union": 61355,
+     "positive_complete": 57679,
+     "detection_completeness": {
+      "1": 1109,
+      "2": 788,
+      "3": 707,
+      "4": 1072,
+      "5": 57679
+     },
+     "positive_completeness": {
+      "0": 0,
+      "1": 1109,
+      "2": 788,
+      "3": 707,
+      "4": 1072,
+      "5": 57679
+     },
+     "normalization_log2_offsets": [
+      0.00037454568775530106,
+      -0.0009461707626527982,
+      -0.0010076876341109653,
+      0.0,
+      0.0
+     ],
+     "pairs": [
+      {
+       "a": "0",
+       "b": "1",
+       "jaccard": 0.9718524658101948,
+       "positive_pairs": 58627,
+       "log2_pearson": 0.9913155749172837
+      },
+      {
+       "a": "0",
+       "b": "2",
+       "jaccard": 0.969286493996229,
+       "positive_pairs": 58605,
+       "log2_pearson": 0.9921970820217102
+      },
+      {
+       "a": "0",
+       "b": "3",
+       "jaccard": 0.9710399443330737,
+       "positive_pairs": 58611,
+       "log2_pearson": 0.9915643437446054
+      },
+      {
+       "a": "0",
+       "b": "4",
+       "jaccard": 0.9719264598902189,
+       "positive_pairs": 58786,
+       "log2_pearson": 0.9911856682062666
+      },
+      {
+       "a": "1",
+       "b": "2",
+       "jaccard": 0.971122905954553,
+       "positive_pairs": 58549,
+       "log2_pearson": 0.9920720872250098
+      },
+      {
+       "a": "1",
+       "b": "3",
+       "jaccard": 0.9708542880379757,
+       "positive_pairs": 58493,
+       "log2_pearson": 0.9919713999115262
+      },
+      {
+       "a": "1",
+       "b": "4",
+       "jaccard": 0.9721021155343506,
+       "positive_pairs": 58679,
+       "log2_pearson": 0.9910933730496418
+      },
+      {
+       "a": "2",
+       "b": "3",
+       "jaccard": 0.9703429869204118,
+       "positive_pairs": 58534,
+       "log2_pearson": 0.9922712593586174
+      },
+      {
+       "a": "2",
+       "b": "4",
+       "jaccard": 0.9698302226777538,
+       "positive_pairs": 58666,
+       "log2_pearson": 0.9914177926052904
+      },
+      {
+       "a": "3",
+       "b": "4",
+       "jaccard": 0.9686172059723209,
+       "positive_pairs": 58581,
+       "log2_pearson": 0.9908867156578178
+      }
+     ],
+     "cv_raw_median": 0.0,
+     "cv_median_normalized_median": 0.000431792781290539,
+     "cv_n": 57679
+    }
+   }
+  }
+ },
+ "quant_all_q0.01": {
+  "q_cutoff": 0.01,
+  "population": "all",
+  "audit": [
+   {
+    "raw": "01",
+    "seed": "0",
+    "sha256": "07bd2588b67c153f9916f3203d499558a8b17dbcac019dc1ddac349be155e661",
+    "rows": 5868831,
+    "decoys": 2930825,
+    "rejected_q": 2852518,
+    "nonpositive": 0,
+    "nonfinite": 0,
+    "population_excluded": 0
+   },
+   {
+    "raw": "01",
+    "seed": "1",
+    "sha256": "39769d5cdd704eb5860e3b0377fae5e8d22b1b9e07762f7ce59ea4bec7f5a329",
+    "rows": 5870225,
+    "decoys": 2931523,
+    "rejected_q": 2853529,
+    "nonpositive": 0,
+    "nonfinite": 0,
+    "population_excluded": 0
+   },
+   {
+    "raw": "01",
+    "seed": "2",
+    "sha256": "8017b4fcb96e152bbf41ef39c185478a471a45874eced9bdd73df63368f5dec9",
+    "rows": 5867486,
+    "decoys": 2930152,
+    "rejected_q": 2852023,
+    "nonpositive": 0,
+    "nonfinite": 0,
+    "population_excluded": 0
+   },
+   {
+    "raw": "01",
+    "seed": "3",
+    "sha256": "6f11efad67134b58329457cef7d4bfa358b2406bd28144b49ce58fa2b8b781f1",
+    "rows": 5869685,
+    "decoys": 2931259,
+    "rejected_q": 2853492,
+    "nonpositive": 0,
+    "nonfinite": 0,
+    "population_excluded": 0
+   },
+   {
+    "raw": "01",
+    "seed": "4",
+    "sha256": "5abf2633e17d1f2edc956b4caea4b09297052ac68ae754e70f7597a349abb397",
+    "rows": 5868461,
+    "decoys": 2930633,
+    "rejected_q": 2853259,
+    "nonpositive": 0,
+    "nonfinite": 0,
+    "population_excluded": 0
+   },
+   {
+    "raw": "02",
+    "seed": "0",
+    "sha256": "360657fec9c98dea5676b280fd2e51986a08b1f0c97f4e256ddee2694458988d",
+    "rows": 6117330,
+    "decoys": 3055054,
+    "rejected_q": 2976246,
+    "nonpositive": 0,
+    "nonfinite": 0,
+    "population_excluded": 0
+   },
+   {
+    "raw": "02",
+    "seed": "1",
+    "sha256": "b0bad850356685dce9e151ecf23fbd60e283a88e40bc108ed74f4c4450a0d3ab",
+    "rows": 6117989,
+    "decoys": 3055381,
+    "rejected_q": 2976436,
+    "nonpositive": 0,
+    "nonfinite": 0,
+    "population_excluded": 0
+   },
+   {
+    "raw": "02",
+    "seed": "2",
+    "sha256": "3987e7c630b7d7dc073d7da8eaf5f0e5de9b2db4785e06b3bfa09f77a658b65b",
+    "rows": 6119165,
+    "decoys": 3055965,
+    "rejected_q": 2977093,
+    "nonpositive": 0,
+    "nonfinite": 0,
+    "population_excluded": 0
+   },
+   {
+    "raw": "02",
+    "seed": "3",
+    "sha256": "acd42c36b79334cde479caac70f0fa8a568893a003c0860a153e15c7c5ba2be0",
+    "rows": 6119762,
+    "decoys": 3056272,
+    "rejected_q": 2977545,
+    "nonpositive": 0,
+    "nonfinite": 0,
+    "population_excluded": 0
+   },
+   {
+    "raw": "02",
+    "seed": "4",
+    "sha256": "2ded0b928045b55ff82dc957728bf400d289b3ad179a2b29cbe30367b1dba15b",
+    "rows": 6119055,
+    "decoys": 3055914,
+    "rejected_q": 2977207,
+    "nonpositive": 0,
+    "nonfinite": 0,
+    "population_excluded": 0
+   },
+   {
+    "raw": "03",
+    "seed": "0",
+    "sha256": "f38f3a402f10f3c8ccb1a0e35041c99b5e11dbeaaf2899ea3db05c1a022eb2d8",
+    "rows": 6267222,
+    "decoys": 3130002,
+    "rejected_q": 3053924,
+    "nonpositive": 0,
+    "nonfinite": 0,
+    "population_excluded": 0
+   },
+   {
+    "raw": "03",
+    "seed": "1",
+    "sha256": "4e9eb338998df6aaa26750790cced8a9efc3e922a2ead07c38446fbb68eeaeb5",
+    "rows": 6266147,
+    "decoys": 3129471,
+    "rejected_q": 3053818,
+    "nonpositive": 0,
+    "nonfinite": 0,
+    "population_excluded": 0
+   },
+   {
+    "raw": "03",
+    "seed": "2",
+    "sha256": "0022525c28691dd62ff4afb24a43695dc022f7cf5b2ccc77b00b69c7fc6b36cd",
+    "rows": 6267851,
+    "decoys": 3130322,
+    "rejected_q": 3054347,
+    "nonpositive": 0,
+    "nonfinite": 0,
+    "population_excluded": 0
+   },
+   {
+    "raw": "03",
+    "seed": "3",
+    "sha256": "2cf27cc3937ea772cba62640e7257e6df7d9d50c999814cf8fde1a8fb011ac0f",
+    "rows": 6267560,
+    "decoys": 3130170,
+    "rejected_q": 3054730,
+    "nonpositive": 0,
+    "nonfinite": 0,
+    "population_excluded": 0
+   },
+   {
+    "raw": "03",
+    "seed": "4",
+    "sha256": "be7c274a883a8c7f3e1f517ca4936c1e96e1e725e3a2087983c7724b8ea36826",
+    "rows": 6268960,
+    "decoys": 3130875,
+    "rejected_q": 3054832,
+    "nonpositive": 0,
+    "nonfinite": 0,
+    "population_excluded": 0
+   }
+  ],
+  "across_raws": {
+   "precursor": {
+    "0": {
+     "labels": [
+      "01",
+      "02",
+      "03"
+     ],
+     "union": 112315,
+     "positive_complete": 61674,
+     "detection_completeness": {
+      "1": 31490,
+      "2": 19151,
+      "3": 61674
+     },
+     "positive_completeness": {
+      "0": 0,
+      "1": 31490,
+      "2": 19151,
+      "3": 61674
+     },
+     "normalization_log2_offsets": [
+      0.010626813621144038,
+      0.0,
+      -0.04662678619413185
+     ],
+     "pairs": [
+      {
+       "a": "01",
+       "b": "02",
+       "jaccard": 0.6797046380445002,
+       "positive_pairs": 69406,
+       "log2_pearson": 0.9787350434083504
+      },
+      {
+       "a": "01",
+       "b": "03",
+       "jaccard": 0.6632242806464328,
+       "positive_pairs": 67304,
+       "log2_pearson": 0.9765306179682063
+      },
+      {
+       "a": "02",
+       "b": "03",
+       "jaccard": 0.6622915091839039,
+       "positive_pairs": 67463,
+       "log2_pearson": 0.9762379664661286
+      }
+     ],
+     "cv_raw_median": 0.1086539327866324,
+     "cv_median_normalized_median": 0.10726145914451324,
+     "cv_n": 61674
+    },
+    "1": {
+     "labels": [
+      "01",
+      "02",
+      "03"
+     ],
+     "union": 112137,
+     "positive_complete": 61472,
+     "detection_completeness": {
+      "1": 31543,
+      "2": 19122,
+      "3": 61472
+     },
+     "positive_completeness": {
+      "0": 0,
+      "1": 31543,
+      "2": 19122,
+      "3": 61472
+     },
+     "normalization_log2_offsets": [
+      0.009980990822647584,
+      0.0,
+      -0.04540345337960261
+     ],
+     "pairs": [
+      {
+       "a": "01",
+       "b": "02",
+       "jaccard": 0.6778296759789666,
+       "positive_pairs": 69222,
+       "log2_pearson": 0.9792158075752492
+      },
+      {
+       "a": "01",
+       "b": "03",
+       "jaccard": 0.661912627216711,
+       "positive_pairs": 66924,
+       "log2_pearson": 0.9766866937701938
+      },
+      {
+       "a": "02",
+       "b": "03",
+       "jaccard": 0.6630590920718629,
+       "positive_pairs": 67392,
+       "log2_pearson": 0.9765211613893116
+      }
+     ],
+     "cv_raw_median": 0.10842893228399045,
+     "cv_median_normalized_median": 0.10701501517717928,
+     "cv_n": 61472
+    },
+    "2": {
+     "labels": [
+      "01",
+      "02",
+      "03"
+     ],
+     "union": 112259,
+     "positive_complete": 61617,
+     "detection_completeness": {
+      "1": 31535,
+      "2": 19107,
+      "3": 61617
+     },
+     "positive_completeness": {
+      "0": 0,
+      "1": 31535,
+      "2": 19107,
+      "3": 61617
+     },
+     "normalization_log2_offsets": [
+      0.0102424910275829,
+      0.0,
+      -0.04649517057529451
+     ],
+     "pairs": [
+      {
+       "a": "01",
+       "b": "02",
+       "jaccard": 0.6787417614164978,
+       "positive_pairs": 69307,
+       "log2_pearson": 0.9789555250663404
+      },
+      {
+       "a": "01",
+       "b": "03",
+       "jaccard": 0.6624700298961036,
+       "positive_pairs": 67142,
+       "log2_pearson": 0.9766650532912262
+      },
+      {
+       "a": "02",
+       "b": "03",
+       "jaccard": 0.6632835527608567,
+       "positive_pairs": 67509,
+       "log2_pearson": 0.9765930339663104
+      }
+     ],
+     "cv_raw_median": 0.10870686174104886,
+     "cv_median_normalized_median": 0.10730985974975635,
+     "cv_n": 61617
+    },
+    "3": {
+     "labels": [
+      "01",
+      "02",
+      "03"
+     ],
+     "union": 111886,
+     "positive_complete": 61257,
+     "detection_completeness": {
+      "1": 31490,
+      "2": 19139,
+      "3": 61257
+     },
+     "positive_completeness": {
+      "0": 0,
+      "1": 31490,
+      "2": 19139,
+      "3": 61257
+     },
+     "normalization_log2_offsets": [
+      0.011361150321906877,
+      0.0,
+      -0.04626386963951035
+     ],
+     "pairs": [
+      {
+       "a": "01",
+       "b": "02",
+       "jaccard": 0.6779163393558523,
+       "positive_pairs": 69039,
+       "log2_pearson": 0.979040036390749
+      },
+      {
+       "a": "01",
+       "b": "03",
+       "jaccard": 0.6613533178691092,
+       "positive_pairs": 66716,
+       "log2_pearson": 0.9764159361959373
+      },
+      {
+       "a": "02",
+       "b": "03",
+       "jaccard": 0.6619517003449975,
+       "positive_pairs": 67155,
+       "log2_pearson": 0.9761426630273002
+      }
+     ],
+     "cv_raw_median": 0.10816953071824412,
+     "cv_median_normalized_median": 0.10680959270032558,
+     "cv_n": 61257
+    },
+    "4": {
+     "labels": [
+      "01",
+      "02",
+      "03"
+     ],
+     "union": 112029,
+     "positive_complete": 61332,
+     "detection_completeness": {
+      "1": 31634,
+      "2": 19063,
+      "3": 61332
+     },
+     "positive_completeness": {
+      "0": 0,
+      "1": 31634,
+      "2": 19063,
+      "3": 61332
+     },
+     "normalization_log2_offsets": [
+      0.011239421688358675,
+      0.0,
+      -0.04491213556096341
+     ],
+     "pairs": [
+      {
+       "a": "01",
+       "b": "02",
+       "jaccard": 0.6776177263514178,
+       "positive_pairs": 68869,
+       "log2_pearson": 0.9789167896246848
+      },
+      {
+       "a": "01",
+       "b": "03",
+       "jaccard": 0.6607489213474251,
+       "positive_pairs": 66770,
+       "log2_pearson": 0.9765427885167952
+      },
+      {
+       "a": "02",
+       "b": "03",
+       "jaccard": 0.6624937356903515,
+       "positive_pairs": 67420,
+       "log2_pearson": 0.9765143853400119
+      }
+     ],
+     "cv_raw_median": 0.10839600386339221,
+     "cv_median_normalized_median": 0.10699186174237238,
+     "cv_n": 61332
+    }
+   },
+   "peptide": {
+    "0": {
+     "labels": [
+      "01",
+      "02",
+      "03"
+     ],
+     "union": 81067,
+     "positive_complete": 53160,
+     "detection_completeness": {
+      "1": 15555,
+      "2": 12352,
+      "3": 53160
+     },
+     "positive_completeness": {
+      "0": 0,
+      "1": 15555,
+      "2": 12352,
+      "3": 53160
+     },
+     "normalization_log2_offsets": [
+      0.011392129674810292,
+      0.0,
+      -0.042015100302041475
+     ],
+     "pairs": [
+      {
+       "a": "01",
+       "b": "02",
+       "jaccard": 0.7660370937553174,
+       "positive_pairs": 58526,
+       "log2_pearson": 0.955880984668605
+      },
+      {
+       "a": "01",
+       "b": "03",
+       "jaccard": 0.7487838409475466,
+       "positive_pairs": 56644,
+       "log2_pearson": 0.9533077486660537
+      },
+      {
+       "a": "02",
+       "b": "03",
+       "jaccard": 0.7495270976361496,
+       "positive_pairs": 56662,
+       "log2_pearson": 0.9549976909652894
+      }
+     ],
+     "cv_raw_median": 0.10131007364557437,
+     "cv_median_normalized_median": 0.09992283029099751,
+     "cv_n": 53160
+    },
+    "1": {
+     "labels": [
+      "01",
+      "02",
+      "03"
+     ],
+     "union": 80889,
+     "positive_complete": 53016,
+     "detection_completeness": {
+      "1": 15641,
+      "2": 12232,
+      "3": 53016
+     },
+     "positive_completeness": {
+      "0": 0,
+      "1": 15641,
+      "2": 12232,
+      "3": 53016
+     },
+     "normalization_log2_offsets": [
+      0.011373926248271715,
+      0.0,
+      -0.04289754305482063
+     ],
+     "pairs": [
+      {
+       "a": "01",
+       "b": "02",
+       "jaccard": 0.7654630054394128,
+       "positive_pairs": 58401,
+       "log2_pearson": 0.9559159479730139
+      },
+      {
+       "a": "01",
+       "b": "03",
+       "jaccard": 0.7479862827976713,
+       "positive_pairs": 56274,
+       "log2_pearson": 0.9531370684251712
+      },
+      {
+       "a": "02",
+       "b": "03",
+       "jaccard": 0.7497648913201849,
+       "positive_pairs": 56605,
+       "log2_pearson": 0.9548659022259287
+      }
+     ],
+     "cv_raw_median": 0.10109190597611525,
+     "cv_median_normalized_median": 0.09967417182195501,
+     "cv_n": 53016
+    },
+    "2": {
+     "labels": [
+      "01",
+      "02",
+      "03"
+     ],
+     "union": 81091,
+     "positive_complete": 53163,
+     "detection_completeness": {
+      "1": 15652,
+      "2": 12276,
+      "3": 53163
+     },
+     "positive_completeness": {
+      "0": 0,
+      "1": 15652,
+      "2": 12276,
+      "3": 53163
+     },
+     "normalization_log2_offsets": [
+      0.013068232966588766,
+      0.0,
+      -0.04257833713979764
+     ],
+     "pairs": [
+      {
+       "a": "01",
+       "b": "02",
+       "jaccard": 0.7651917790286686,
+       "positive_pairs": 58453,
+       "log2_pearson": 0.9577633702338882
+      },
+      {
+       "a": "01",
+       "b": "03",
+       "jaccard": 0.7483221032287103,
+       "positive_pairs": 56529,
+       "log2_pearson": 0.9525807327737899
+      },
+      {
+       "a": "02",
+       "b": "03",
+       "jaccard": 0.7502047826661382,
+       "positive_pairs": 56783,
+       "log2_pearson": 0.9544916055132954
+      }
+     ],
+     "cv_raw_median": 0.1014803535579453,
+     "cv_median_normalized_median": 0.10008146209991405,
+     "cv_n": 53163
+    },
+    "3": {
+     "labels": [
+      "01",
+      "02",
+      "03"
+     ],
+     "union": 80648,
+     "positive_complete": 52855,
+     "detection_completeness": {
+      "1": 15508,
+      "2": 12285,
+      "3": 52855
+     },
+     "positive_completeness": {
+      "0": 0,
+      "1": 15508,
+      "2": 12285,
+      "3": 52855
+     },
+     "normalization_log2_offsets": [
+      0.011337746859517495,
+      0.0,
+      -0.04335426633019068
+     ],
+     "pairs": [
+      {
+       "a": "01",
+       "b": "02",
+       "jaccard": 0.7656627772521812,
+       "positive_pairs": 58270,
+       "log2_pearson": 0.9535885762962586
+      },
+      {
+       "a": "01",
+       "b": "03",
+       "jaccard": 0.7479783109737413,
+       "positive_pairs": 56144,
+       "log2_pearson": 0.9506470678873796
+      },
+      {
+       "a": "02",
+       "b": "03",
+       "jaccard": 0.7497708280745573,
+       "positive_pairs": 56436,
+       "log2_pearson": 0.9521370264351988
+      }
+     ],
+     "cv_raw_median": 0.10091557285561016,
+     "cv_median_normalized_median": 0.09953938192582137,
+     "cv_n": 52855
+    },
+    "4": {
+     "labels": [
+      "01",
+      "02",
+      "03"
+     ],
+     "union": 80736,
+     "positive_complete": 52869,
+     "detection_completeness": {
+      "1": 15641,
+      "2": 12226,
+      "3": 52869
+     },
+     "positive_completeness": {
+      "0": 0,
+      "1": 15641,
+      "2": 12226,
+      "3": 52869
+     },
+     "normalization_log2_offsets": [
+      0.01352401533988612,
+      0.0,
+      -0.04034836670022557
+     ],
+     "pairs": [
+      {
+       "a": "01",
+       "b": "02",
+       "jaccard": 0.7653314007115563,
+       "positive_pairs": 58081,
+       "log2_pearson": 0.9553846732456852
+      },
+      {
+       "a": "01",
+       "b": "03",
+       "jaccard": 0.7465629570535833,
+       "positive_pairs": 56149,
+       "log2_pearson": 0.9534428460834593
+      },
+      {
+       "a": "02",
+       "b": "03",
+       "jaccard": 0.7500364397683755,
+       "positive_pairs": 56603,
+       "log2_pearson": 0.9542090237904844
+      }
+     ],
+     "cv_raw_median": 0.10105748245991512,
+     "cv_median_normalized_median": 0.09957631728294722,
+     "cv_n": 52869
+    }
+   }
+  },
+  "within_raw_seeds": {
+   "precursor": {
+    "01": {
+     "labels": [
+      "0",
+      "1",
+      "2",
+      "3",
+      "4"
+     ],
+     "union": 87582,
+     "positive_complete": 82618,
+     "detection_completeness": {
+      "1": 1460,
+      "2": 1046,
+      "3": 999,
+      "4": 1459,
+      "5": 82618
+     },
+     "positive_completeness": {
+      "0": 0,
+      "1": 1460,
+      "2": 1046,
+      "3": 999,
+      "4": 1459,
+      "5": 82618
+     },
+     "normalization_log2_offsets": [
+      -5.261639233999915e-05,
+      3.840167673097028e-05,
+      0.0,
+      0.0,
+      0.0002078709904580478
+     ],
+     "pairs": [
+      {
+       "a": "0",
+       "b": "1",
+       "jaccard": 0.9710909888891456,
+       "positive_pairs": 84079,
+       "log2_pearson": 0.9998655241150285
+      },
+      {
+       "a": "0",
+       "b": "2",
+       "jaccard": 0.9731634338789986,
+       "positive_pairs": 84238,
+       "log2_pearson": 0.999631403598002
+      },
+      {
+       "a": "0",
+       "b": "3",
+       "jaccard": 0.9706066002173863,
+       "positive_pairs": 83940,
+       "log2_pearson": 0.9998246809792433
+      },
+      {
+       "a": "0",
+       "b": "4",
+       "jaccard": 0.9667044455752417,
+       "positive_pairs": 83589,
+       "log2_pearson": 0.9997011066029959
+      },
+      {
+       "a": "1",
+       "b": "2",
+       "jaccard": 0.9746571534469978,
+       "positive_pairs": 84148,
+       "log2_pearson": 0.9996191735193608
+      },
+      {
+       "a": "1",
+       "b": "3",
+       "jaccard": 0.9753239816062056,
+       "positive_pairs": 83991,
+       "log2_pearson": 0.9998494623928952
+      },
+      {
+       "a": "1",
+       "b": "4",
+       "jaccard": 0.9735835455253642,
+       "positive_pairs": 83735,
+       "log2_pearson": 0.9997446298406719
+      },
+      {
+       "a": "2",
+       "b": "3",
+       "jaccard": 0.9748854474798445,
+       "positive_pairs": 84040,
+       "log2_pearson": 0.9996895555556472
+      },
+      {
+       "a": "2",
+       "b": "4",
+       "jaccard": 0.9701257132254024,
+       "positive_pairs": 83652,
+       "log2_pearson": 0.9996426992386366
+      },
+      {
+       "a": "3",
+       "b": "4",
+       "jaccard": 0.9723870697479579,
+       "positive_pairs": 83565,
+       "log2_pearson": 0.9996896764477272
+      }
+     ],
+     "cv_raw_median": 0.0,
+     "cv_median_normalized_median": 6.92715792574144e-05,
+     "cv_n": 82618
+    },
+    "02": {
+     "labels": [
+      "0",
+      "1",
+      "2",
+      "3",
+      "4"
+     ],
+     "union": 88403,
+     "positive_complete": 83724,
+     "detection_completeness": {
+      "1": 1412,
+      "2": 981,
+      "3": 950,
+      "4": 1336,
+      "5": 83724
+     },
+     "positive_completeness": {
+      "0": 0,
+      "1": 1412,
+      "2": 981,
+      "3": 950,
+      "4": 1336,
+      "5": 83724
+     },
+     "normalization_log2_offsets": [
+      0.0,
+      0.0002402306417508271,
+      0.0002402306417508271,
+      -0.00020145189581910472,
+      -9.27263205525719e-05
+     ],
+     "pairs": [
+      {
+       "a": "0",
+       "b": "1",
+       "jaccard": 0.9750427232793127,
+       "positive_pairs": 85013,
+       "log2_pearson": 0.9997640668876334
+      },
+      {
+       "a": "0",
+       "b": "2",
+       "jaccard": 0.9756567847674138,
+       "positive_pairs": 85008,
+       "log2_pearson": 0.9997555521222672
+      },
+      {
+       "a": "0",
+       "b": "3",
+       "jaccard": 0.9763606693021973,
+       "positive_pairs": 84959,
+       "log2_pearson": 0.9997072616952484
+      },
+      {
+       "a": "0",
+       "b": "4",
+       "jaccard": 0.9733088530609904,
+       "positive_pairs": 84819,
+       "log2_pearson": 0.9995995673168431
+      },
+      {
+       "a": "1",
+       "b": "2",
+       "jaccard": 0.9734135166093929,
+       "positive_pairs": 84979,
+       "log2_pearson": 0.9997630891804385
+      },
+      {
+       "a": "1",
+       "b": "3",
+       "jaccard": 0.975744705274637,
+       "positive_pairs": 85002,
+       "log2_pearson": 0.999761270130534
+      },
+      {
+       "a": "1",
+       "b": "4",
+       "jaccard": 0.9701906015683132,
+       "positive_pairs": 84751,
+       "log2_pearson": 0.9998108518799611
+      },
+      {
+       "a": "2",
+       "b": "3",
+       "jaccard": 0.9753160124453221,
+       "positive_pairs": 84951,
+       "log2_pearson": 0.9997294771298401
+      },
+      {
+       "a": "2",
+       "b": "4",
+       "jaccard": 0.9733545915441261,
+       "positive_pairs": 84859,
+       "log2_pearson": 0.9996921906476712
+      },
+      {
+       "a": "3",
+       "b": "4",
+       "jaccard": 0.972605097953703,
+       "positive_pairs": 84746,
+       "log2_pearson": 0.9997550019326699
+      }
+     ],
+     "cv_raw_median": 0.0,
+     "cv_median_normalized_median": 0.0001376127059440249,
+     "cv_n": 83724
+    },
+    "03": {
+     "labels": [
+      "0",
+      "1",
+      "2",
+      "3",
+      "4"
+     ],
+     "union": 85499,
+     "positive_complete": 80612,
+     "detection_completeness": {
+      "1": 1431,
+      "2": 1050,
+      "3": 966,
+      "4": 1440,
+      "5": 80612
+     },
+     "positive_completeness": {
+      "0": 0,
+      "1": 1431,
+      "2": 1050,
+      "3": 966,
+      "4": 1440,
+      "5": 80612
+     },
+     "normalization_log2_offsets": [
+      0.00045894485660014084,
+      -8.890298193087176e-05,
+      0.0,
+      -8.890298193087176e-05,
+      0.0007330339279949527
+     ],
+     "pairs": [
+      {
+       "a": "0",
+       "b": "1",
+       "jaccard": 0.973466042710882,
+       "positive_pairs": 81960,
+       "log2_pearson": 0.9997708736746613
+      },
+      {
+       "a": "0",
+       "b": "2",
+       "jaccard": 0.9713903395028834,
+       "positive_pairs": 82031,
+       "log2_pearson": 0.9997383046053714
+      },
+      {
+       "a": "0",
+       "b": "3",
+       "jaccard": 0.9710440989583952,
+       "positive_pairs": 81759,
+       "log2_pearson": 0.9997415663901136
+      },
+      {
+       "a": "0",
+       "b": "4",
+       "jaccard": 0.9730722299226404,
+       "positive_pairs": 82138,
+       "log2_pearson": 0.9997044594365859
+      },
+      {
+       "a": "1",
+       "b": "2",
+       "jaccard": 0.973236992845768,
+       "positive_pairs": 81894,
+       "log2_pearson": 0.9998254838884199
+      },
+      {
+       "a": "1",
+       "b": "3",
+       "jaccard": 0.9718608529902312,
+       "positive_pairs": 81578,
+       "log2_pearson": 0.9996558695481532
+      },
+      {
+       "a": "1",
+       "b": "4",
+       "jaccard": 0.9744561987400452,
+       "positive_pairs": 81981,
+       "log2_pearson": 0.9996027404776385
+      },
+      {
+       "a": "2",
+       "b": "3",
+       "jaccard": 0.9697369202446701,
+       "positive_pairs": 81647,
+       "log2_pearson": 0.9995925098136917
+      },
+      {
+       "a": "2",
+       "b": "4",
+       "jaccard": 0.9720721361201953,
+       "positive_pairs": 82039,
+       "log2_pearson": 0.9995569686164143
+      },
+      {
+       "a": "3",
+       "b": "4",
+       "jaccard": 0.9697145977775667,
+       "positive_pairs": 81681,
+       "log2_pearson": 0.999670636027984
+      }
+     ],
+     "cv_raw_median": 0.0,
+     "cv_median_normalized_median": 0.0002588866539262989,
+     "cv_n": 80612
+    }
+   },
+   "peptide": {
+    "01": {
+     "labels": [
+      "0",
+      "1",
+      "2",
+      "3",
+      "4"
+     ],
+     "union": 68961,
+     "positive_complete": 65221,
+     "detection_completeness": {
+      "1": 1162,
+      "2": 762,
+      "3": 738,
+      "4": 1078,
+      "5": 65221
+     },
+     "positive_completeness": {
+      "0": 0,
+      "1": 1162,
+      "2": 762,
+      "3": 738,
+      "4": 1078,
+      "5": 65221
+     },
+     "normalization_log2_offsets": [
+      -0.0002487169677642953,
+      0.0,
+      0.00017542228943057125,
+      -0.0005515735543646372,
+      0.00017542228943057125
+     ],
+     "pairs": [
+      {
+       "a": "0",
+       "b": "1",
+       "jaccard": 0.9725953079178886,
+       "positive_pairs": 66331,
+       "log2_pearson": 0.9951906426213851
+      },
+      {
+       "a": "0",
+       "b": "2",
+       "jaccard": 0.9745232266670576,
+       "positive_pairs": 66481,
+       "log2_pearson": 0.995056112788105
+      },
+      {
+       "a": "0",
+       "b": "3",
+       "jaccard": 0.9722104027584183,
+       "positive_pairs": 66261,
+       "log2_pearson": 0.9946320269262532
+      },
+      {
+       "a": "0",
+       "b": "4",
+       "jaccard": 0.9676628959607964,
+       "positive_pairs": 65953,
+       "log2_pearson": 0.9944710316323093
+      },
+      {
+       "a": "1",
+       "b": "2",
+       "jaccard": 0.9758229468634578,
+       "positive_pairs": 66314,
+       "log2_pearson": 0.9954089696348577
+      },
+      {
+       "a": "1",
+       "b": "3",
+       "jaccard": 0.9766175906529372,
+       "positive_pairs": 66201,
+       "log2_pearson": 0.9951069276071616
+      },
+      {
+       "a": "1",
+       "b": "4",
+       "jaccard": 0.9751628965293067,
+       "positive_pairs": 66000,
+       "log2_pearson": 0.9942959524770482
+      },
+      {
+       "a": "2",
+       "b": "3",
+       "jaccard": 0.9761953863830539,
+       "positive_pairs": 66270,
+       "log2_pearson": 0.9942368450034467
+      },
+      {
+       "a": "2",
+       "b": "4",
+       "jaccard": 0.971484541852621,
+       "positive_pairs": 65957,
+       "log2_pearson": 0.9944105144472133
+      },
+      {
+       "a": "3",
+       "b": "4",
+       "jaccard": 0.9734929078014184,
+       "positive_pairs": 65886,
+       "log2_pearson": 0.9941244753484484
+      }
+     ],
+     "cv_raw_median": 0.0,
+     "cv_median_normalized_median": 0.00021568010985733525,
+     "cv_n": 65221
+    },
+    "02": {
+     "labels": [
+      "0",
+      "1",
+      "2",
+      "3",
+      "4"
+     ],
+     "union": 69307,
+     "positive_complete": 65741,
+     "detection_completeness": {
+      "1": 1095,
+      "2": 736,
+      "3": 718,
+      "4": 1017,
+      "5": 65741
+     },
+     "positive_completeness": {
+      "0": 0,
+      "1": 1095,
+      "2": 736,
+      "3": 718,
+      "4": 1017,
+      "5": 65741
+     },
+     "normalization_log2_offsets": [
+      0.0007616793007656497,
+      0.0008109457156599831,
+      -0.0011615177217230155,
+      -0.0018348233979281758,
+      0.0
+     ],
+     "pairs": [
+      {
+       "a": "0",
+       "b": "1",
+       "jaccard": 0.9758958607576422,
+       "positive_pairs": 66722,
+       "log2_pearson": 0.9939941547351422
+      },
+      {
+       "a": "0",
+       "b": "2",
+       "jaccard": 0.977019906323185,
+       "positive_pairs": 66750,
+       "log2_pearson": 0.9951626501934059
+      },
+      {
+       "a": "0",
+       "b": "3",
+       "jaccard": 0.9774089982847844,
+       "positive_pairs": 66672,
+       "log2_pearson": 0.994958272127938
+      },
+      {
+       "a": "0",
+       "b": "4",
+       "jaccard": 0.9742793531755332,
+       "positive_pairs": 66516,
+       "log2_pearson": 0.9943659981949124
+      },
+      {
+       "a": "1",
+       "b": "2",
+       "jaccard": 0.9743982718103662,
+       "positive_pairs": 66757,
+       "log2_pearson": 0.9948005517000935
+      },
+      {
+       "a": "1",
+       "b": "3",
+       "jaccard": 0.976082154507819,
+       "positive_pairs": 66724,
+       "log2_pearson": 0.995039650777391
+      },
+      {
+       "a": "1",
+       "b": "4",
+       "jaccard": 0.9703684241256496,
+       "positive_pairs": 66478,
+       "log2_pearson": 0.9932789724421437
+      },
+      {
+       "a": "2",
+       "b": "3",
+       "jaccard": 0.9760783051442617,
+       "positive_pairs": 66713,
+       "log2_pearson": 0.9953408088064076
+      },
+      {
+       "a": "2",
+       "b": "4",
+       "jaccard": 0.9742547029051227,
+       "positive_pairs": 66602,
+       "log2_pearson": 0.9938440657672667
+      },
+      {
+       "a": "3",
+       "b": "4",
+       "jaccard": 0.9730204505862892,
+       "positive_pairs": 66468,
+       "log2_pearson": 0.9938450518276586
+      }
+     ],
+     "cv_raw_median": 0.0,
+     "cv_median_normalized_median": 0.0008164306325720248,
+     "cv_n": 65741
+    },
+    "03": {
+     "labels": [
+      "0",
+      "1",
+      "2",
+      "3",
+      "4"
+     ],
+     "union": 66483,
+     "positive_complete": 62800,
+     "detection_completeness": {
+      "1": 1093,
+      "2": 791,
+      "3": 754,
+      "4": 1045,
+      "5": 62800
+     },
+     "positive_completeness": {
+      "0": 0,
+      "1": 1093,
+      "2": 791,
+      "3": 754,
+      "4": 1045,
+      "5": 62800
+     },
+     "normalization_log2_offsets": [
+      0.0010893129261617673,
+      0.0,
+      -0.0016488462680044336,
+      -0.0013502346509923768,
+      0.000619809036152219
+     ],
+     "pairs": [
+      {
+       "a": "0",
+       "b": "1",
+       "jaccard": 0.9740547309266385,
+       "positive_pairs": 63785,
+       "log2_pearson": 0.9945268444082479
+      },
+      {
+       "a": "0",
+       "b": "2",
+       "jaccard": 0.9724056101493809,
+       "positive_pairs": 63924,
+       "log2_pearson": 0.9937536790817312
+      },
+      {
+       "a": "0",
+       "b": "3",
+       "jaccard": 0.971514975638813,
+       "positive_pairs": 63608,
+       "log2_pearson": 0.9943093390369268
+      },
+      {
+       "a": "0",
+       "b": "4",
+       "jaccard": 0.9736573474518169,
+       "positive_pairs": 63906,
+       "log2_pearson": 0.9941090544595022
+      },
+      {
+       "a": "1",
+       "b": "2",
+       "jaccard": 0.9742732380603396,
+       "positive_pairs": 63811,
+       "log2_pearson": 0.9926757225660093
+      },
+      {
+       "a": "1",
+       "b": "3",
+       "jaccard": 0.9721171081457877,
+       "positive_pairs": 63453,
+       "log2_pearson": 0.9937311275652382
+      },
+      {
+       "a": "1",
+       "b": "4",
+       "jaccard": 0.9755627599706386,
+       "positive_pairs": 63794,
+       "log2_pearson": 0.9934493559468055
+      },
+      {
+       "a": "2",
+       "b": "3",
+       "jaccard": 0.9705604053476589,
+       "positive_pairs": 63595,
+       "log2_pearson": 0.993330306309396
+      },
+      {
+       "a": "2",
+       "b": "4",
+       "jaccard": 0.9737250959605191,
+       "positive_pairs": 63927,
+       "log2_pearson": 0.9932553246005821
+      },
+      {
+       "a": "3",
+       "b": "4",
+       "jaccard": 0.9700968264149791,
+       "positive_pairs": 63520,
+       "log2_pearson": 0.9936169550888989
+      }
+     ],
+     "cv_raw_median": 0.0,
+     "cv_median_normalized_median": 0.000833247203798688,
+     "cv_n": 62800
+    }
+   }
+  }
+ },
+ "quant_all_q0.02": {
+  "q_cutoff": 0.02,
+  "population": "all",
+  "audit": [
+   {
+    "raw": "01",
+    "seed": "0",
+    "sha256": "07bd2588b67c153f9916f3203d499558a8b17dbcac019dc1ddac349be155e661",
+    "rows": 5868831,
+    "decoys": 2930825,
+    "rejected_q": 2845895,
+    "nonpositive": 0,
+    "nonfinite": 0,
+    "population_excluded": 0
+   },
+   {
+    "raw": "01",
+    "seed": "1",
+    "sha256": "39769d5cdd704eb5860e3b0377fae5e8d22b1b9e07762f7ce59ea4bec7f5a329",
+    "rows": 5870225,
+    "decoys": 2931523,
+    "rejected_q": 2847099,
+    "nonpositive": 0,
+    "nonfinite": 0,
+    "population_excluded": 0
+   },
+   {
+    "raw": "01",
+    "seed": "2",
+    "sha256": "8017b4fcb96e152bbf41ef39c185478a471a45874eced9bdd73df63368f5dec9",
+    "rows": 5867486,
+    "decoys": 2930152,
+    "rejected_q": 2845352,
+    "nonpositive": 0,
+    "nonfinite": 0,
+    "population_excluded": 0
+   },
+   {
+    "raw": "01",
+    "seed": "3",
+    "sha256": "6f11efad67134b58329457cef7d4bfa358b2406bd28144b49ce58fa2b8b781f1",
+    "rows": 5869685,
+    "decoys": 2931259,
+    "rejected_q": 2846960,
+    "nonpositive": 0,
+    "nonfinite": 0,
+    "population_excluded": 0
+   },
+   {
+    "raw": "01",
+    "seed": "4",
+    "sha256": "5abf2633e17d1f2edc956b4caea4b09297052ac68ae754e70f7597a349abb397",
+    "rows": 5868461,
+    "decoys": 2930633,
+    "rejected_q": 2846653,
+    "nonpositive": 0,
+    "nonfinite": 0,
+    "population_excluded": 0
+   },
+   {
+    "raw": "02",
+    "seed": "0",
+    "sha256": "360657fec9c98dea5676b280fd2e51986a08b1f0c97f4e256ddee2694458988d",
+    "rows": 6117330,
+    "decoys": 3055054,
+    "rejected_q": 2970065,
+    "nonpositive": 0,
+    "nonfinite": 0,
+    "population_excluded": 0
+   },
+   {
+    "raw": "02",
+    "seed": "1",
+    "sha256": "b0bad850356685dce9e151ecf23fbd60e283a88e40bc108ed74f4c4450a0d3ab",
+    "rows": 6117989,
+    "decoys": 3055381,
+    "rejected_q": 2970315,
+    "nonpositive": 0,
+    "nonfinite": 0,
+    "population_excluded": 0
+   },
+   {
+    "raw": "02",
+    "seed": "2",
+    "sha256": "3987e7c630b7d7dc073d7da8eaf5f0e5de9b2db4785e06b3bfa09f77a658b65b",
+    "rows": 6119165,
+    "decoys": 3055965,
+    "rejected_q": 2970821,
+    "nonpositive": 0,
+    "nonfinite": 0,
+    "population_excluded": 0
+   },
+   {
+    "raw": "02",
+    "seed": "3",
+    "sha256": "acd42c36b79334cde479caac70f0fa8a568893a003c0860a153e15c7c5ba2be0",
+    "rows": 6119762,
+    "decoys": 3056272,
+    "rejected_q": 2971196,
+    "nonpositive": 0,
+    "nonfinite": 0,
+    "population_excluded": 0
+   },
+   {
+    "raw": "02",
+    "seed": "4",
+    "sha256": "2ded0b928045b55ff82dc957728bf400d289b3ad179a2b29cbe30367b1dba15b",
+    "rows": 6119055,
+    "decoys": 3055914,
+    "rejected_q": 2970900,
+    "nonpositive": 0,
+    "nonfinite": 0,
+    "population_excluded": 0
+   },
+   {
+    "raw": "03",
+    "seed": "0",
+    "sha256": "f38f3a402f10f3c8ccb1a0e35041c99b5e11dbeaaf2899ea3db05c1a022eb2d8",
+    "rows": 6267222,
+    "decoys": 3130002,
+    "rejected_q": 3047864,
+    "nonpositive": 0,
+    "nonfinite": 0,
+    "population_excluded": 0
+   },
+   {
+    "raw": "03",
+    "seed": "1",
+    "sha256": "4e9eb338998df6aaa26750790cced8a9efc3e922a2ead07c38446fbb68eeaeb5",
+    "rows": 6266147,
+    "decoys": 3129471,
+    "rejected_q": 3047884,
+    "nonpositive": 0,
+    "nonfinite": 0,
+    "population_excluded": 0
+   },
+   {
+    "raw": "03",
+    "seed": "2",
+    "sha256": "0022525c28691dd62ff4afb24a43695dc022f7cf5b2ccc77b00b69c7fc6b36cd",
+    "rows": 6267851,
+    "decoys": 3130322,
+    "rejected_q": 3048292,
+    "nonpositive": 0,
+    "nonfinite": 0,
+    "population_excluded": 0
+   },
+   {
+    "raw": "03",
+    "seed": "3",
+    "sha256": "2cf27cc3937ea772cba62640e7257e6df7d9d50c999814cf8fde1a8fb011ac0f",
+    "rows": 6267560,
+    "decoys": 3130170,
+    "rejected_q": 3048664,
+    "nonpositive": 0,
+    "nonfinite": 0,
+    "population_excluded": 0
+   },
+   {
+    "raw": "03",
+    "seed": "4",
+    "sha256": "be7c274a883a8c7f3e1f517ca4936c1e96e1e725e3a2087983c7724b8ea36826",
+    "rows": 6268960,
+    "decoys": 3130875,
+    "rejected_q": 3049093,
+    "nonpositive": 0,
+    "nonfinite": 0,
+    "population_excluded": 0
+   }
+  ],
+  "across_raws": {
+   "precursor": {
+    "0": {
+     "labels": [
+      "01",
+      "02",
+      "03"
+     ],
+     "union": 121319,
+     "positive_complete": 66076,
+     "detection_completeness": {
+      "1": 35036,
+      "2": 20207,
+      "3": 66076
+     },
+     "positive_completeness": {
+      "0": 0,
+      "1": 35036,
+      "2": 20207,
+      "3": 66076
+     },
+     "normalization_log2_offsets": [
+      0.010310105166013273,
+      0.0,
+      -0.043693344291611425
+     ],
+     "pairs": [
+      {
+       "a": "01",
+       "b": "02",
+       "jaccard": 0.6744824077691071,
+       "positive_pairs": 74245,
+       "log2_pearson": 0.977421710839051
+      },
+      {
+       "a": "01",
+       "b": "03",
+       "jaccard": 0.658975179412168,
+       "positive_pairs": 72082,
+       "log2_pearson": 0.9748879211032934
+      },
+      {
+       "a": "02",
+       "b": "03",
+       "jaccard": 0.6587672096401392,
+       "positive_pairs": 72108,
+       "log2_pearson": 0.9746434282861484
+      }
+     ],
+     "cv_raw_median": 0.11261080025297618,
+     "cv_median_normalized_median": 0.11102756820006504,
+     "cv_n": 66076
+    },
+    "1": {
+     "labels": [
+      "01",
+      "02",
+      "03"
+     ],
+     "union": 120880,
+     "positive_complete": 65827,
+     "detection_completeness": {
+      "1": 34899,
+      "2": 20154,
+      "3": 65827
+     },
+     "positive_completeness": {
+      "0": 0,
+      "1": 34899,
+      "2": 20154,
+      "3": 65827
+     },
+     "normalization_log2_offsets": [
+      0.00938703907862859,
+      0.0,
+      -0.04356075272986715
+     ],
+     "pairs": [
+      {
+       "a": "01",
+       "b": "02",
+       "jaccard": 0.6747659465957524,
+       "positive_pairs": 74092,
+       "log2_pearson": 0.9777829926473269
+      },
+      {
+       "a": "01",
+       "b": "03",
+       "jaccard": 0.6578441914109527,
+       "positive_pairs": 71582,
+       "log2_pearson": 0.9752116456563855
+      },
+      {
+       "a": "02",
+       "b": "03",
+       "jaccard": 0.659442469117701,
+       "positive_pairs": 71961,
+       "log2_pearson": 0.9750724707539146
+      }
+     ],
+     "cv_raw_median": 0.11231450417417381,
+     "cv_median_normalized_median": 0.11074437863797512,
+     "cv_n": 65827
+    },
+    "2": {
+     "labels": [
+      "01",
+      "02",
+      "03"
+     ],
+     "union": 121262,
+     "positive_complete": 66053,
+     "detection_completeness": {
+      "1": 34979,
+      "2": 20230,
+      "3": 66053
+     },
+     "positive_completeness": {
+      "0": 0,
+      "1": 34979,
+      "2": 20230,
+      "3": 66053
+     },
+     "normalization_log2_offsets": [
+      0.010150476084678672,
+      0.0,
+      -0.0428156171074896
+     ],
+     "pairs": [
+      {
+       "a": "01",
+       "b": "02",
+       "jaccard": 0.6745780878158665,
+       "positive_pairs": 74267,
+       "log2_pearson": 0.9774467743627255
+      },
+      {
+       "a": "01",
+       "b": "03",
+       "jaccard": 0.6588158834190726,
+       "positive_pairs": 71973,
+       "log2_pearson": 0.9751240786125276
+      },
+      {
+       "a": "02",
+       "b": "03",
+       "jaccard": 0.6590936081193419,
+       "positive_pairs": 72149,
+       "log2_pearson": 0.97509907262191
+      }
+     ],
+     "cv_raw_median": 0.11254140060786351,
+     "cv_median_normalized_median": 0.11092489463132087,
+     "cv_n": 66053
+    },
+    "3": {
+     "labels": [
+      "01",
+      "02",
+      "03"
+     ],
+     "union": 120925,
+     "positive_complete": 65686,
+     "detection_completeness": {
+      "1": 35050,
+      "2": 20189,
+      "3": 65686
+     },
+     "positive_completeness": {
+      "0": 0,
+      "1": 35050,
+      "2": 20189,
+      "3": 65686
+     },
+     "normalization_log2_offsets": [
+      0.009983200655710789,
+      0.0,
+      -0.04404162728586414
+     ],
+     "pairs": [
+      {
+       "a": "01",
+       "b": "02",
+       "jaccard": 0.6730093410295162,
+       "positive_pairs": 73922,
+       "log2_pearson": 0.9776256884560799
+      },
+      {
+       "a": "01",
+       "b": "03",
+       "jaccard": 0.6578831149712939,
+       "positive_pairs": 71504,
+       "log2_pearson": 0.9749670667355695
+      },
+      {
+       "a": "02",
+       "b": "03",
+       "jaccard": 0.657707488163811,
+       "positive_pairs": 71821,
+       "log2_pearson": 0.9747491263654621
+      }
+     ],
+     "cv_raw_median": 0.11204683851126462,
+     "cv_median_normalized_median": 0.11049972725940772,
+     "cv_n": 65686
+    },
+    "4": {
+     "labels": [
+      "01",
+      "02",
+      "03"
+     ],
+     "union": 120875,
+     "positive_complete": 65722,
+     "detection_completeness": {
+      "1": 35064,
+      "2": 20089,
+      "3": 65722
+     },
+     "positive_completeness": {
+      "0": 0,
+      "1": 35064,
+      "2": 20089,
+      "3": 65722
+     },
+     "normalization_log2_offsets": [
+      0.011451843485986046,
+      0.0,
+      -0.04328268784219702
+     ],
+     "pairs": [
+      {
+       "a": "01",
+       "b": "02",
+       "jaccard": 0.6734578433072087,
+       "positive_pairs": 73813,
+       "log2_pearson": 0.9775037908533796
+      },
+      {
+       "a": "01",
+       "b": "03",
+       "jaccard": 0.657393864127685,
+       "positive_pairs": 71462,
+       "log2_pearson": 0.9750413890257649
+      },
+      {
+       "a": "02",
+       "b": "03",
+       "jaccard": 0.6588377435859885,
+       "positive_pairs": 71980,
+       "log2_pearson": 0.9751318097981633
+      }
+     ],
+     "cv_raw_median": 0.11222380898419952,
+     "cv_median_normalized_median": 0.1107214622564636,
+     "cv_n": 65722
+    }
+   },
+   "peptide": {
+    "0": {
+     "labels": [
+      "01",
+      "02",
+      "03"
+     ],
+     "union": 88906,
+     "positive_complete": 57232,
+     "detection_completeness": {
+      "1": 18468,
+      "2": 13206,
+      "3": 57232
+     },
+     "positive_completeness": {
+      "0": 0,
+      "1": 18468,
+      "2": 13206,
+      "3": 57232
+     },
+     "normalization_log2_offsets": [
+      0.005641448335929056,
+      0.0,
+      -0.04440483593088018
+     ],
+     "pairs": [
+      {
+       "a": "01",
+       "b": "02",
+       "jaccard": 0.7548101705887289,
+       "positive_pairs": 62964,
+       "log2_pearson": 0.9591847201750642
+      },
+      {
+       "a": "01",
+       "b": "03",
+       "jaccard": 0.738530056033596,
+       "positive_pairs": 61024,
+       "log2_pearson": 0.9563940082537244
+      },
+      {
+       "a": "02",
+       "b": "03",
+       "jaccard": 0.7410101698214199,
+       "positive_pairs": 60914,
+       "log2_pearson": 0.9564316548793451
+      }
+     ],
+     "cv_raw_median": 0.10542821679598438,
+     "cv_median_normalized_median": 0.10418825178178029,
+     "cv_n": 57232
+    },
+    "1": {
+     "labels": [
+      "01",
+      "02",
+      "03"
+     ],
+     "union": 88402,
+     "positive_complete": 56997,
+     "detection_completeness": {
+      "1": 18253,
+      "2": 13152,
+      "3": 56997
+     },
+     "positive_completeness": {
+      "0": 0,
+      "1": 18253,
+      "2": 13152,
+      "3": 56997
+     },
+     "normalization_log2_offsets": [
+      0.004051935147170838,
+      0.0,
+      -0.04587337419778237
+     ],
+     "pairs": [
+      {
+       "a": "01",
+       "b": "02",
+       "jaccard": 0.7564329492227481,
+       "positive_pairs": 62821,
+       "log2_pearson": 0.9598612561664467
+      },
+      {
+       "a": "01",
+       "b": "03",
+       "jaccard": 0.7390327582628231,
+       "positive_pairs": 60529,
+       "log2_pearson": 0.954878476522124
+      },
+      {
+       "a": "02",
+       "b": "03",
+       "jaccard": 0.7413690076950281,
+       "positive_pairs": 60793,
+       "log2_pearson": 0.9569971305864504
+      }
+     ],
+     "cv_raw_median": 0.10503162816880467,
+     "cv_median_normalized_median": 0.10385409612622667,
+     "cv_n": 56997
+    },
+    "2": {
+     "labels": [
+      "01",
+      "02",
+      "03"
+     ],
+     "union": 88828,
+     "positive_complete": 57239,
+     "detection_completeness": {
+      "1": 18385,
+      "2": 13204,
+      "3": 57239
+     },
+     "positive_completeness": {
+      "0": 0,
+      "1": 18385,
+      "2": 13204,
+      "3": 57239
+     },
+     "normalization_log2_offsets": [
+      0.006490907658196932,
+      0.0,
+      -0.044598354635855486
+     ],
+     "pairs": [
+      {
+       "a": "01",
+       "b": "02",
+       "jaccard": 0.7551627371501212,
+       "positive_pairs": 62970,
+       "log2_pearson": 0.9602103198520331
+      },
+      {
+       "a": "01",
+       "b": "03",
+       "jaccard": 0.7396761428467383,
+       "positive_pairs": 60936,
+       "log2_pearson": 0.9555895238141632
+      },
+      {
+       "a": "02",
+       "b": "03",
+       "jaccard": 0.7410938771544133,
+       "positive_pairs": 61015,
+       "log2_pearson": 0.9552428758227393
+      }
+     ],
+     "cv_raw_median": 0.1053916960625458,
+     "cv_median_normalized_median": 0.10417052058776656,
+     "cv_n": 57239
+    },
+    "3": {
+     "labels": [
+      "01",
+      "02",
+      "03"
+     ],
+     "union": 88322,
+     "positive_complete": 56895,
+     "detection_completeness": {
+      "1": 18281,
+      "2": 13146,
+      "3": 56895
+     },
+     "positive_completeness": {
+      "0": 0,
+      "1": 18281,
+      "2": 13146,
+      "3": 56895
+     },
+     "normalization_log2_offsets": [
+      0.003999258535671402,
+      0.0,
+      -0.04542547272965791
+     ],
+     "pairs": [
+      {
+       "a": "01",
+       "b": "02",
+       "jaccard": 0.7548737461919154,
+       "positive_pairs": 62690,
+       "log2_pearson": 0.9579509576662427
+      },
+      {
+       "a": "01",
+       "b": "03",
+       "jaccard": 0.7401561314636713,
+       "positive_pairs": 60490,
+       "log2_pearson": 0.9533521681013534
+      },
+      {
+       "a": "02",
+       "b": "03",
+       "jaccard": 0.7404409610313507,
+       "positive_pairs": 60651,
+       "log2_pearson": 0.9549922035826622
+      }
+     ],
+     "cv_raw_median": 0.10493373687388276,
+     "cv_median_normalized_median": 0.10374184746450714,
+     "cv_n": 56895
+    },
+    "4": {
+     "labels": [
+      "01",
+      "02",
+      "03"
+     ],
+     "union": 88275,
+     "positive_complete": 56882,
+     "detection_completeness": {
+      "1": 18328,
+      "2": 13065,
+      "3": 56882
+     },
+     "positive_completeness": {
+      "0": 0,
+      "1": 18328,
+      "2": 13065,
+      "3": 56882
+     },
+     "normalization_log2_offsets": [
+      0.004528985920526196,
+      0.0,
+      -0.04458783450810344
+     ],
+     "pairs": [
+      {
+       "a": "01",
+       "b": "02",
+       "jaccard": 0.7550404442834722,
+       "positive_pairs": 62540,
+       "log2_pearson": 0.9575311415850501
+      },
+      {
+       "a": "01",
+       "b": "03",
+       "jaccard": 0.7390086707676503,
+       "positive_pairs": 60428,
+       "log2_pearson": 0.9544298431685002
+      },
+      {
+       "a": "02",
+       "b": "03",
+       "jaccard": 0.7416908837822658,
+       "positive_pairs": 60743,
+       "log2_pearson": 0.9553651979988511
+      }
+     ],
+     "cv_raw_median": 0.10499280650700175,
+     "cv_median_normalized_median": 0.1038325451828502,
+     "cv_n": 56882
+    }
+   }
+  },
+  "within_raw_seeds": {
+   "precursor": {
+    "01": {
+     "labels": [
+      "0",
+      "1",
+      "2",
+      "3",
+      "4"
+     ],
+     "union": 94471,
+     "positive_complete": 88987,
+     "detection_completeness": {
+      "1": 1715,
+      "2": 1146,
+      "3": 1097,
+      "4": 1526,
+      "5": 88987
+     },
+     "positive_completeness": {
+      "0": 0,
+      "1": 1715,
+      "2": 1146,
+      "3": 1097,
+      "4": 1526,
+      "5": 88987
+     },
+     "normalization_log2_offsets": [
+      -6.990057772959801e-05,
+      5.38165950505487e-05,
+      0.0,
+      -0.00012991275714213657,
+      0.00012364766624806123
+     ],
+     "pairs": [
+      {
+       "a": "0",
+       "b": "1",
+       "jaccard": 0.9698064654479173,
+       "positive_pairs": 90449,
+       "log2_pearson": 0.9998488841913328
+      },
+      {
+       "a": "0",
+       "b": "2",
+       "jaccard": 0.9723475149190568,
+       "positive_pairs": 90756,
+       "log2_pearson": 0.9996172282442755
+      },
+      {
+       "a": "0",
+       "b": "3",
+       "jaccard": 0.9698371139772947,
+       "positive_pairs": 90383,
+       "log2_pearson": 0.9998111572901589
+      },
+      {
+       "a": "0",
+       "b": "4",
+       "jaccard": 0.9656389082524532,
+       "positive_pairs": 90041,
+       "log2_pearson": 0.9997102149894772
+      },
+      {
+       "a": "1",
+       "b": "2",
+       "jaccard": 0.9740534844460693,
+       "positive_pairs": 90586,
+       "log2_pearson": 0.9996216992150161
+      },
+      {
+       "a": "1",
+       "b": "3",
+       "jaccard": 0.975600280580586,
+       "positive_pairs": 90404,
+       "log2_pearson": 0.9998495484130011
+      },
+      {
+       "a": "1",
+       "b": "4",
+       "jaccard": 0.9740789942649775,
+       "positive_pairs": 90189,
+       "log2_pearson": 0.9997339337237573
+      },
+      {
+       "a": "2",
+       "b": "3",
+       "jaccard": 0.9737476329833018,
+       "positive_pairs": 90504,
+       "log2_pearson": 0.9996978923315155
+      },
+      {
+       "a": "2",
+       "b": "4",
+       "jaccard": 0.969260708756236,
+       "positive_pairs": 90149,
+       "log2_pearson": 0.9996234778408711
+      },
+      {
+       "a": "3",
+       "b": "4",
+       "jaccard": 0.9715346668249873,
+       "positive_pairs": 90002,
+       "log2_pearson": 0.9996873235250345
+      }
+     ],
+     "cv_raw_median": 0.0,
+     "cv_median_normalized_median": 6.918329206560296e-05,
+     "cv_n": 88987
+    },
+    "02": {
+     "labels": [
+      "0",
+      "1",
+      "2",
+      "3",
+      "4"
+     ],
+     "union": 94945,
+     "positive_complete": 89824,
+     "detection_completeness": {
+      "1": 1648,
+      "2": 1104,
+      "3": 1034,
+      "4": 1335,
+      "5": 89824
+     },
+     "positive_completeness": {
+      "0": 0,
+      "1": 1648,
+      "2": 1104,
+      "3": 1034,
+      "4": 1335,
+      "5": 89824
+     },
+     "normalization_log2_offsets": [
+      0.0,
+      6.273035947934602e-05,
+      0.00010093844718106482,
+      -0.0004399334654046072,
+      -0.0002867693941670524
+     ],
+     "pairs": [
+      {
+       "a": "0",
+       "b": "1",
+       "jaccard": 0.9733681294586992,
+       "positive_pairs": 91007,
+       "log2_pearson": 0.9997644597804517
+      },
+      {
+       "a": "0",
+       "b": "2",
+       "jaccard": 0.974900500706124,
+       "positive_pairs": 91122,
+       "log2_pearson": 0.9997474737000434
+      },
+      {
+       "a": "0",
+       "b": "3",
+       "jaccard": 0.9758513600342685,
+       "positive_pairs": 91125,
+       "log2_pearson": 0.9997146414937478
+      },
+      {
+       "a": "0",
+       "b": "4",
+       "jaccard": 0.973255167101716,
+       "positive_pairs": 90976,
+       "log2_pearson": 0.9995998482045133
+      },
+      {
+       "a": "1",
+       "b": "2",
+       "jaccard": 0.9727174644547232,
+       "positive_pairs": 91059,
+       "log2_pearson": 0.9997540053839866
+      },
+      {
+       "a": "1",
+       "b": "3",
+       "jaccard": 0.9747838925025676,
+       "positive_pairs": 91115,
+       "log2_pearson": 0.9997641360793499
+      },
+      {
+       "a": "1",
+       "b": "4",
+       "jaccard": 0.9702120390339732,
+       "positive_pairs": 90872,
+       "log2_pearson": 0.9997985569653208
+      },
+      {
+       "a": "2",
+       "b": "3",
+       "jaccard": 0.9753658223515318,
+       "positive_pairs": 91185,
+       "log2_pearson": 0.9997245598778661
+      },
+      {
+       "a": "2",
+       "b": "4",
+       "jaccard": 0.9727098849199141,
+       "positive_pairs": 91033,
+       "log2_pearson": 0.9996758092809837
+      },
+      {
+       "a": "3",
+       "b": "4",
+       "jaccard": 0.9720966518119543,
+       "positive_pairs": 90962,
+       "log2_pearson": 0.9997495613003858
+      }
+     ],
+     "cv_raw_median": 0.0,
+     "cv_median_normalized_median": 0.00016494748748639704,
+     "cv_n": 89824
+    },
+    "03": {
+     "labels": [
+      "0",
+      "1",
+      "2",
+      "3",
+      "4"
+     ],
+     "union": 91768,
+     "positive_complete": 86381,
+     "detection_completeness": {
+      "1": 1661,
+      "2": 1118,
+      "3": 1131,
+      "4": 1477,
+      "5": 86381
+     },
+     "positive_completeness": {
+      "0": 0,
+      "1": 1661,
+      "2": 1118,
+      "3": 1131,
+      "4": 1477,
+      "5": 86381
+     },
+     "normalization_log2_offsets": [
+      2.2868226709604755e-05,
+      0.0,
+      0.0,
+      -0.0001045152021870166,
+      0.0002867687405778696
+     ],
+     "pairs": [
+      {
+       "a": "0",
+       "b": "1",
+       "jaccard": 0.9719507200495899,
+       "positive_pairs": 87807,
+       "log2_pearson": 0.9997463513954705
+      },
+      {
+       "a": "0",
+       "b": "2",
+       "jaccard": 0.9710076150535261,
+       "positive_pairs": 87983,
+       "log2_pearson": 0.9997380804585196
+      },
+      {
+       "a": "0",
+       "b": "3",
+       "jaccard": 0.9699990043917387,
+       "positive_pairs": 87685,
+       "log2_pearson": 0.9997345857700543
+      },
+      {
+       "a": "0",
+       "b": "4",
+       "jaccard": 0.9714803678811461,
+       "positive_pairs": 87884,
+       "log2_pearson": 0.9997104849922362
+      },
+      {
+       "a": "1",
+       "b": "2",
+       "jaccard": 0.9732545637933518,
+       "positive_pairs": 87808,
+       "log2_pearson": 0.9998113997719728
+      },
+      {
+       "a": "1",
+       "b": "3",
+       "jaccard": 0.9711519243154412,
+       "positive_pairs": 87460,
+       "log2_pearson": 0.9996550680111868
+      },
+      {
+       "a": "1",
+       "b": "4",
+       "jaccard": 0.9734919965366428,
+       "positive_pairs": 87698,
+       "log2_pearson": 0.9995892772076342
+      },
+      {
+       "a": "2",
+       "b": "3",
+       "jaccard": 0.9687261463576525,
+       "positive_pairs": 87568,
+       "log2_pearson": 0.9995979289547466
+      },
+      {
+       "a": "2",
+       "b": "4",
+       "jaccard": 0.9714288874632214,
+       "positive_pairs": 87823,
+       "log2_pearson": 0.999566859321001
+      },
+      {
+       "a": "3",
+       "b": "4",
+       "jaccard": 0.9691526963690154,
+       "positive_pairs": 87467,
+       "log2_pearson": 0.9996699477992426
+      }
+     ],
+     "cv_raw_median": 0.0,
+     "cv_median_normalized_median": 0.00010119691063335943,
+     "cv_n": 86381
+    }
+   },
+   "peptide": {
+    "01": {
+     "labels": [
+      "0",
+      "1",
+      "2",
+      "3",
+      "4"
+     ],
+     "union": 75121,
+     "positive_complete": 70854,
+     "detection_completeness": {
+      "1": 1378,
+      "2": 920,
+      "3": 830,
+      "4": 1139,
+      "5": 70854
+     },
+     "positive_completeness": {
+      "0": 0,
+      "1": 1378,
+      "2": 920,
+      "3": 830,
+      "4": 1139,
+      "5": 70854
+     },
+     "normalization_log2_offsets": [
+      -0.001779604044955363,
+      4.05399254788108e-05,
+      0.00017488999960590945,
+      -0.0015317526195843811,
+      0.0
+     ],
+     "pairs": [
+      {
+       "a": "0",
+       "b": "1",
+       "jaccard": 0.9702731474618982,
+       "positive_pairs": 72003,
+       "log2_pearson": 0.995828860926733
+      },
+      {
+       "a": "0",
+       "b": "2",
+       "jaccard": 0.9734844406159148,
+       "positive_pairs": 72326,
+       "log2_pearson": 0.9951083692606157
+      },
+      {
+       "a": "0",
+       "b": "3",
+       "jaccard": 0.9707793959007551,
+       "positive_pairs": 71993,
+       "log2_pearson": 0.9951808557687353
+      },
+      {
+       "a": "0",
+       "b": "4",
+       "jaccard": 0.9656630969219371,
+       "positive_pairs": 71686,
+       "log2_pearson": 0.9952858755085304
+      },
+      {
+       "a": "1",
+       "b": "2",
+       "jaccard": 0.9747469279488984,
+       "positive_pairs": 72026,
+       "log2_pearson": 0.9958974144474556
+      },
+      {
+       "a": "1",
+       "b": "3",
+       "jaccard": 0.9759407689172667,
+       "positive_pairs": 71839,
+       "log2_pearson": 0.9964696644780779
+      },
+      {
+       "a": "1",
+       "b": "4",
+       "jaccard": 0.9744789046460087,
+       "positive_pairs": 71670,
+       "log2_pearson": 0.9958793187971259
+      },
+      {
+       "a": "2",
+       "b": "3",
+       "jaccard": 0.9743759813741946,
+       "positive_pairs": 71983,
+       "log2_pearson": 0.9960300879973257
+      },
+      {
+       "a": "2",
+       "b": "4",
+       "jaccard": 0.9699556301065959,
+       "positive_pairs": 71703,
+       "log2_pearson": 0.9951093903918787
+      },
+      {
+       "a": "3",
+       "b": "4",
+       "jaccard": 0.9721750472127495,
+       "positive_pairs": 71555,
+       "log2_pearson": 0.9953783464708912
+      }
+     ],
+     "cv_raw_median": 0.0,
+     "cv_median_normalized_median": 0.0006602597768775853,
+     "cv_n": 70854
+    },
+    "02": {
+     "labels": [
+      "0",
+      "1",
+      "2",
+      "3",
+      "4"
+     ],
+     "union": 75087,
+     "positive_complete": 71158,
+     "detection_completeness": {
+      "1": 1292,
+      "2": 823,
+      "3": 804,
+      "4": 1010,
+      "5": 71158
+     },
+     "positive_completeness": {
+      "0": 0,
+      "1": 1292,
+      "2": 823,
+      "3": 804,
+      "4": 1010,
+      "5": 71158
+     },
+     "normalization_log2_offsets": [
+      0.0001486968018333812,
+      0.0005489819417299202,
+      -0.0009946777723506273,
+      -0.00046356383164791737,
+      0.0
+     ],
+     "pairs": [
+      {
+       "a": "0",
+       "b": "1",
+       "jaccard": 0.9745139395906006,
+       "positive_pairs": 72077,
+       "log2_pearson": 0.9956844147474111
+      },
+      {
+       "a": "0",
+       "b": "2",
+       "jaccard": 0.9758887882189077,
+       "positive_pairs": 72166,
+       "log2_pearson": 0.9959268001484656
+      },
+      {
+       "a": "0",
+       "b": "3",
+       "jaccard": 0.9767205655318112,
+       "positive_pairs": 72123,
+       "log2_pearson": 0.9960579421951041
+      },
+      {
+       "a": "0",
+       "b": "4",
+       "jaccard": 0.9745447159975628,
+       "positive_pairs": 71975,
+       "log2_pearson": 0.9954306135536529
+      },
+      {
+       "a": "1",
+       "b": "2",
+       "jaccard": 0.9734016725114648,
+       "positive_pairs": 72168,
+       "log2_pearson": 0.9969452355995635
+      },
+      {
+       "a": "1",
+       "b": "3",
+       "jaccard": 0.9754551475259167,
+       "positive_pairs": 72171,
+       "log2_pearson": 0.9962615243084666
+      },
+      {
+       "a": "1",
+       "b": "4",
+       "jaccard": 0.970939963286902,
+       "positive_pairs": 71935,
+       "log2_pearson": 0.9957002589452193
+      },
+      {
+       "a": "2",
+       "b": "3",
+       "jaccard": 0.9761351351351352,
+       "positive_pairs": 72234,
+       "log2_pearson": 0.9964947860982916
+      },
+      {
+       "a": "2",
+       "b": "4",
+       "jaccard": 0.9732175416323389,
+       "positive_pairs": 72058,
+       "log2_pearson": 0.9956350959693355
+      },
+      {
+       "a": "3",
+       "b": "4",
+       "jaccard": 0.9727903110258039,
+       "positive_pairs": 71968,
+       "log2_pearson": 0.995305537599072
+      }
+     ],
+     "cv_raw_median": 0.0,
+     "cv_median_normalized_median": 0.0004118617589289612,
+     "cv_n": 71158
+    },
+    "03": {
+     "labels": [
+      "0",
+      "1",
+      "2",
+      "3",
+      "4"
+     ],
+     "union": 71972,
+     "positive_complete": 67853,
+     "detection_completeness": {
+      "1": 1309,
+      "2": 829,
+      "3": 874,
+      "4": 1107,
+      "5": 67853
+     },
+     "positive_completeness": {
+      "0": 0,
+      "1": 1309,
+      "2": 829,
+      "3": 874,
+      "4": 1107,
+      "5": 67853
+     },
+     "normalization_log2_offsets": [
+      0.0009320157338592594,
+      -8.979371877160247e-06,
+      -0.0015087740853196863,
+      0.0,
+      0.0014525453725262594
+     ],
+     "pairs": [
+      {
+       "a": "0",
+       "b": "1",
+       "jaccard": 0.9724313957751642,
+       "positive_pairs": 68959,
+       "log2_pearson": 0.9945968687090716
+      },
+      {
+       "a": "0",
+       "b": "2",
+       "jaccard": 0.9722187091606593,
+       "positive_pairs": 69186,
+       "log2_pearson": 0.9934634499781787
+      },
+      {
+       "a": "0",
+       "b": "3",
+       "jaccard": 0.9713850321706738,
+       "positive_pairs": 68844,
+       "log2_pearson": 0.9940543590114824
+      },
+      {
+       "a": "0",
+       "b": "4",
+       "jaccard": 0.9722198731501057,
+       "positive_pairs": 68979,
+       "log2_pearson": 0.9946083109465598
+      },
+      {
+       "a": "1",
+       "b": "2",
+       "jaccard": 0.973550872934103,
+       "positive_pairs": 68979,
+       "log2_pearson": 0.9946295401663579
+      },
+      {
+       "a": "1",
+       "b": "3",
+       "jaccard": 0.9718248009745871,
+       "positive_pairs": 68605,
+       "log2_pearson": 0.9937936208763775
+      },
+      {
+       "a": "1",
+       "b": "4",
+       "jaccard": 0.9744225240408446,
+       "positive_pairs": 68803,
+       "log2_pearson": 0.9935398627495435
+      },
+      {
+       "a": "2",
+       "b": "3",
+       "jaccard": 0.9691949809671507,
+       "positive_pairs": 68745,
+       "log2_pearson": 0.9941915803871104
+      },
+      {
+       "a": "2",
+       "b": "4",
+       "jaccard": 0.9725316562790829,
+       "positive_pairs": 68970,
+       "log2_pearson": 0.9930514298606296
+      },
+      {
+       "a": "3",
+       "b": "4",
+       "jaccard": 0.9696048202313937,
+       "positive_pairs": 68553,
+       "log2_pearson": 0.994264055849224
+      }
+     ],
+     "cv_raw_median": 0.0,
+     "cv_median_normalized_median": 0.0007831569062197394,
+     "cv_n": 67853
+    }
+   }
+  }
+ },
+ "quant_human_q0.005": {
+  "q_cutoff": 0.005,
+  "population": "human",
+  "audit": [
+   {
+    "raw": "01",
+    "seed": "0",
+    "sha256": "07bd2588b67c153f9916f3203d499558a8b17dbcac019dc1ddac349be155e661",
+    "rows": 5868831,
+    "decoys": 2930825,
+    "rejected_q": 2858859,
+    "nonpositive": 0,
+    "nonfinite": 0,
+    "population_excluded": 268
+   },
+   {
+    "raw": "01",
+    "seed": "1",
+    "sha256": "39769d5cdd704eb5860e3b0377fae5e8d22b1b9e07762f7ce59ea4bec7f5a329",
+    "rows": 5870225,
+    "decoys": 2931523,
+    "rejected_q": 2859944,
+    "nonpositive": 0,
+    "nonfinite": 0,
+    "population_excluded": 283
+   },
+   {
+    "raw": "01",
+    "seed": "2",
+    "sha256": "8017b4fcb96e152bbf41ef39c185478a471a45874eced9bdd73df63368f5dec9",
+    "rows": 5867486,
+    "decoys": 2930152,
+    "rejected_q": 2858193,
+    "nonpositive": 0,
+    "nonfinite": 0,
+    "population_excluded": 283
+   },
+   {
+    "raw": "01",
+    "seed": "3",
+    "sha256": "6f11efad67134b58329457cef7d4bfa358b2406bd28144b49ce58fa2b8b781f1",
+    "rows": 5869685,
+    "decoys": 2931259,
+    "rejected_q": 2859577,
+    "nonpositive": 0,
+    "nonfinite": 0,
+    "population_excluded": 288
+   },
+   {
+    "raw": "01",
+    "seed": "4",
+    "sha256": "5abf2633e17d1f2edc956b4caea4b09297052ac68ae754e70f7597a349abb397",
+    "rows": 5868461,
+    "decoys": 2930633,
+    "rejected_q": 2859478,
+    "nonpositive": 0,
+    "nonfinite": 0,
+    "population_excluded": 280
+   },
+   {
+    "raw": "02",
+    "seed": "0",
+    "sha256": "360657fec9c98dea5676b280fd2e51986a08b1f0c97f4e256ddee2694458988d",
+    "rows": 6117330,
+    "decoys": 3055054,
+    "rejected_q": 2981933,
+    "nonpositive": 0,
+    "nonfinite": 0,
+    "population_excluded": 289
+   },
+   {
+    "raw": "02",
+    "seed": "1",
+    "sha256": "b0bad850356685dce9e151ecf23fbd60e283a88e40bc108ed74f4c4450a0d3ab",
+    "rows": 6117989,
+    "decoys": 3055381,
+    "rejected_q": 2981945,
+    "nonpositive": 0,
+    "nonfinite": 0,
+    "population_excluded": 307
+   },
+   {
+    "raw": "02",
+    "seed": "2",
+    "sha256": "3987e7c630b7d7dc073d7da8eaf5f0e5de9b2db4785e06b3bfa09f77a658b65b",
+    "rows": 6119165,
+    "decoys": 3055965,
+    "rejected_q": 2982380,
+    "nonpositive": 0,
+    "nonfinite": 0,
+    "population_excluded": 311
+   },
+   {
+    "raw": "02",
+    "seed": "3",
+    "sha256": "acd42c36b79334cde479caac70f0fa8a568893a003c0860a153e15c7c5ba2be0",
+    "rows": 6119762,
+    "decoys": 3056272,
+    "rejected_q": 2982833,
+    "nonpositive": 0,
+    "nonfinite": 0,
+    "population_excluded": 306
+   },
+   {
+    "raw": "02",
+    "seed": "4",
+    "sha256": "2ded0b928045b55ff82dc957728bf400d289b3ad179a2b29cbe30367b1dba15b",
+    "rows": 6119055,
+    "decoys": 3055914,
+    "rejected_q": 2982829,
+    "nonpositive": 0,
+    "nonfinite": 0,
+    "population_excluded": 285
+   },
+   {
+    "raw": "03",
+    "seed": "0",
+    "sha256": "f38f3a402f10f3c8ccb1a0e35041c99b5e11dbeaaf2899ea3db05c1a022eb2d8",
+    "rows": 6267222,
+    "decoys": 3130002,
+    "rejected_q": 3060074,
+    "nonpositive": 0,
+    "nonfinite": 0,
+    "population_excluded": 296
+   },
+   {
+    "raw": "03",
+    "seed": "1",
+    "sha256": "4e9eb338998df6aaa26750790cced8a9efc3e922a2ead07c38446fbb68eeaeb5",
+    "rows": 6266147,
+    "decoys": 3129471,
+    "rejected_q": 3059775,
+    "nonpositive": 0,
+    "nonfinite": 0,
+    "population_excluded": 294
+   },
+   {
+    "raw": "03",
+    "seed": "2",
+    "sha256": "0022525c28691dd62ff4afb24a43695dc022f7cf5b2ccc77b00b69c7fc6b36cd",
+    "rows": 6267851,
+    "decoys": 3130322,
+    "rejected_q": 3060574,
+    "nonpositive": 0,
+    "nonfinite": 0,
+    "population_excluded": 290
+   },
+   {
+    "raw": "03",
+    "seed": "3",
+    "sha256": "2cf27cc3937ea772cba62640e7257e6df7d9d50c999814cf8fde1a8fb011ac0f",
+    "rows": 6267560,
+    "decoys": 3130170,
+    "rejected_q": 3060457,
+    "nonpositive": 0,
+    "nonfinite": 0,
+    "population_excluded": 283
+   },
+   {
+    "raw": "03",
+    "seed": "4",
+    "sha256": "be7c274a883a8c7f3e1f517ca4936c1e96e1e725e3a2087983c7724b8ea36826",
+    "rows": 6268960,
+    "decoys": 3130875,
+    "rejected_q": 3060761,
+    "nonpositive": 0,
+    "nonfinite": 0,
+    "population_excluded": 300
+   }
+  ],
+  "across_raws": {
+   "precursor": {
+    "0": {
+     "labels": [
+      "01",
+      "02",
+      "03"
+     ],
+     "union": 103750,
+     "positive_complete": 56971,
+     "detection_completeness": {
+      "1": 28688,
+      "2": 18091,
+      "3": 56971
+     },
+     "positive_completeness": {
+      "0": 0,
+      "1": 28688,
+      "2": 18091,
+      "3": 56971
+     },
+     "normalization_log2_offsets": [
+      0.00616911878985249,
+      0.0,
+      -0.04494231393909587
+     ],
+     "pairs": [
+      {
+       "a": "01",
+       "b": "02",
+       "jaccard": 0.6807279879867177,
+       "positive_pairs": 64371,
+       "log2_pearson": 0.9800742944310266
+      },
+      {
+       "a": "01",
+       "b": "03",
+       "jaccard": 0.664874168787017,
+       "positive_pairs": 62191,
+       "log2_pearson": 0.9780492756986
+      },
+      {
+       "a": "02",
+       "b": "03",
+       "jaccard": 0.6610277148482988,
+       "positive_pairs": 62442,
+       "log2_pearson": 0.9776970355756497
+      }
+     ],
+     "cv_raw_median": 0.10491689008345373,
+     "cv_median_normalized_median": 0.10358465759060831,
+     "cv_n": 56971
+    },
+    "1": {
+     "labels": [
+      "01",
+      "02",
+      "03"
+     ],
+     "union": 103556,
+     "positive_complete": 56872,
+     "detection_completeness": {
+      "1": 28546,
+      "2": 18138,
+      "3": 56872
+     },
+     "positive_completeness": {
+      "0": 0,
+      "1": 28546,
+      "2": 18138,
+      "3": 56872
+     },
+     "normalization_log2_offsets": [
+      0.00702902639654468,
+      0.0,
+      -0.04529582532069654
+     ],
+     "pairs": [
+      {
+       "a": "01",
+       "b": "02",
+       "jaccard": 0.6804490197530603,
+       "positive_pairs": 64314,
+       "log2_pearson": 0.9805053442054054
+      },
+      {
+       "a": "01",
+       "b": "03",
+       "jaccard": 0.6636486515479842,
+       "positive_pairs": 61864,
+       "log2_pearson": 0.9783390948991992
+      },
+      {
+       "a": "02",
+       "b": "03",
+       "jaccard": 0.6629726551325924,
+       "positive_pairs": 62576,
+       "log2_pearson": 0.977838491168681
+      }
+     ],
+     "cv_raw_median": 0.10479464208493007,
+     "cv_median_normalized_median": 0.10338347114932353,
+     "cv_n": 56872
+    },
+    "2": {
+     "labels": [
+      "01",
+      "02",
+      "03"
+     ],
+     "union": 103812,
+     "positive_complete": 57065,
+     "detection_completeness": {
+      "1": 28657,
+      "2": 18090,
+      "3": 57065
+     },
+     "positive_completeness": {
+      "0": 0,
+      "1": 28657,
+      "2": 18090,
+      "3": 57065
+     },
+     "normalization_log2_offsets": [
+      0.005986448844335968,
+      0.0,
+      -0.04513658987569613
+     ],
+     "pairs": [
+      {
+       "a": "01",
+       "b": "02",
+       "jaccard": 0.6810510326786354,
+       "positive_pairs": 64565,
+       "log2_pearson": 0.9801050980566288
+      },
+      {
+       "a": "01",
+       "b": "03",
+       "jaccard": 0.6643800432353759,
+       "positive_pairs": 62081,
+       "log2_pearson": 0.9783038121625967
+      },
+      {
+       "a": "02",
+       "b": "03",
+       "jaccard": 0.6626011530121119,
+       "positive_pairs": 62639,
+       "log2_pearson": 0.97801361447182
+      }
+     ],
+     "cv_raw_median": 0.1051922610164628,
+     "cv_median_normalized_median": 0.10378815133502654,
+     "cv_n": 57065
+    },
+    "3": {
+     "labels": [
+      "01",
+      "02",
+      "03"
+     ],
+     "union": 103604,
+     "positive_complete": 56968,
+     "detection_completeness": {
+      "1": 28614,
+      "2": 18022,
+      "3": 56968
+     },
+     "positive_completeness": {
+      "0": 0,
+      "1": 28614,
+      "2": 18022,
+      "3": 56968
+     },
+     "normalization_log2_offsets": [
+      0.006209987717184617,
+      0.0,
+      -0.0449444311020315
+     ],
+     "pairs": [
+      {
+       "a": "01",
+       "b": "02",
+       "jaccard": 0.680381520371369,
+       "positive_pairs": 64343,
+       "log2_pearson": 0.980163572061262
+      },
+      {
+       "a": "01",
+       "b": "03",
+       "jaccard": 0.6647824781191007,
+       "positive_pairs": 61979,
+       "log2_pearson": 0.9778673726976255
+      },
+      {
+       "a": "02",
+       "b": "03",
+       "jaccard": 0.6631990423424473,
+       "positive_pairs": 62604,
+       "log2_pearson": 0.9773705496283376
+      }
+     ],
+     "cv_raw_median": 0.1048136694686618,
+     "cv_median_normalized_median": 0.10345533709197688,
+     "cv_n": 56968
+    },
+    "4": {
+     "labels": [
+      "01",
+      "02",
+      "03"
+     ],
+     "union": 103388,
+     "positive_complete": 56874,
+     "detection_completeness": {
+      "1": 28529,
+      "2": 17985,
+      "3": 56874
+     },
+     "positive_completeness": {
+      "0": 0,
+      "1": 28529,
+      "2": 17985,
+      "3": 56874
+     },
+     "normalization_log2_offsets": [
+      0.007891923845711801,
+      0.0,
+      -0.04343329303733867
+     ],
+     "pairs": [
+      {
+       "a": "01",
+       "b": "02",
+       "jaccard": 0.6807207781852974,
+       "positive_pairs": 64032,
+       "log2_pearson": 0.9802003918057403
+      },
+      {
+       "a": "01",
+       "b": "03",
+       "jaccard": 0.6650813248161469,
+       "positive_pairs": 61949,
+       "log2_pearson": 0.9778849186495187
+      },
+      {
+       "a": "02",
+       "b": "03",
+       "jaccard": 0.6632353719883506,
+       "positive_pairs": 62626,
+       "log2_pearson": 0.9777109927232722
+      }
+     ],
+     "cv_raw_median": 0.10499489527397426,
+     "cv_median_normalized_median": 0.10358189954084827,
+     "cv_n": 56874
+    }
+   },
+   "peptide": {
+    "0": {
+     "labels": [
+      "01",
+      "02",
+      "03"
+     ],
+     "union": 73958,
+     "positive_complete": 48910,
+     "detection_completeness": {
+      "1": 13518,
+      "2": 11530,
+      "3": 48910
+     },
+     "positive_completeness": {
+      "0": 0,
+      "1": 13518,
+      "2": 11530,
+      "3": 48910
+     },
+     "normalization_log2_offsets": [
+      0.005819986874648464,
+      0.0,
+      -0.04846228701975264
+     ],
+     "pairs": [
+      {
+       "a": "01",
+       "b": "02",
+       "jaccard": 0.7715490140040011,
+       "positive_pairs": 53993,
+       "log2_pearson": 0.9550333598727643
+      },
+      {
+       "a": "01",
+       "b": "03",
+       "jaccard": 0.7549795598851874,
+       "positive_pairs": 52080,
+       "log2_pearson": 0.9513311896185546
+      },
+      {
+       "a": "02",
+       "b": "03",
+       "jaccard": 0.7520390811885754,
+       "positive_pairs": 52187,
+       "log2_pearson": 0.9515555563245244
+      }
+     ],
+     "cv_raw_median": 0.09763906143413889,
+     "cv_median_normalized_median": 0.0959287717226357,
+     "cv_n": 48910
+    },
+    "1": {
+     "labels": [
+      "01",
+      "02",
+      "03"
+     ],
+     "union": 73797,
+     "positive_complete": 48847,
+     "detection_completeness": {
+      "1": 13438,
+      "2": 11512,
+      "3": 48847
+     },
+     "positive_completeness": {
+      "0": 0,
+      "1": 13438,
+      "2": 11512,
+      "3": 48847
+     },
+     "normalization_log2_offsets": [
+      0.00589192746299716,
+      0.0,
+      -0.05019122547026811
+     ],
+     "pairs": [
+      {
+       "a": "01",
+       "b": "02",
+       "jaccard": 0.7715879030528348,
+       "positive_pairs": 53961,
+       "log2_pearson": 0.9536144477132864
+      },
+      {
+       "a": "01",
+       "b": "03",
+       "jaccard": 0.7543458304798263,
+       "positive_pairs": 51770,
+       "log2_pearson": 0.948474289878578
+      },
+      {
+       "a": "02",
+       "b": "03",
+       "jaccard": 0.7540388245975587,
+       "positive_pairs": 52322,
+       "log2_pearson": 0.9473593269623786
+      }
+     ],
+     "cv_raw_median": 0.09760500828927092,
+     "cv_median_normalized_median": 0.09596537719753459,
+     "cv_n": 48847
+    },
+    "2": {
+     "labels": [
+      "01",
+      "02",
+      "03"
+     ],
+     "union": 74070,
+     "positive_complete": 49017,
+     "detection_completeness": {
+      "1": 13546,
+      "2": 11507,
+      "3": 49017
+     },
+     "positive_completeness": {
+      "0": 0,
+      "1": 13546,
+      "2": 11507,
+      "3": 49017
+     },
+     "normalization_log2_offsets": [
+      0.008177743872948895,
+      0.0,
+      -0.04763700896782197
+     ],
+     "pairs": [
+      {
+       "a": "01",
+       "b": "02",
+       "jaccard": 0.7719703121216006,
+       "positive_pairs": 54190,
+       "log2_pearson": 0.9541953731687834
+      },
+      {
+       "a": "01",
+       "b": "03",
+       "jaccard": 0.7542313833647845,
+       "positive_pairs": 51959,
+       "log2_pearson": 0.9505658485009267
+      },
+      {
+       "a": "02",
+       "b": "03",
+       "jaccard": 0.7532517929775644,
+       "positive_pairs": 52409,
+       "log2_pearson": 0.950672303118637
+      }
+     ],
+     "cv_raw_median": 0.09803913591178626,
+     "cv_median_normalized_median": 0.09629661292010641,
+     "cv_n": 49017
+    },
+    "3": {
+     "labels": [
+      "01",
+      "02",
+      "03"
+     ],
+     "union": 73839,
+     "positive_complete": 48890,
+     "detection_completeness": {
+      "1": 13473,
+      "2": 11476,
+      "3": 48890
+     },
+     "positive_completeness": {
+      "0": 0,
+      "1": 13473,
+      "2": 11476,
+      "3": 48890
+     },
+     "normalization_log2_offsets": [
+      0.006142817565599756,
+      0.0,
+      -0.049418371283287854
+     ],
+     "pairs": [
+      {
+       "a": "01",
+       "b": "02",
+       "jaccard": 0.7712905807041609,
+       "positive_pairs": 53978,
+       "log2_pearson": 0.9550820105479003
+      },
+      {
+       "a": "01",
+       "b": "03",
+       "jaccard": 0.7551798948732509,
+       "positive_pairs": 51865,
+       "log2_pearson": 0.9492117935238682
+      },
+      {
+       "a": "02",
+       "b": "03",
+       "jaccard": 0.753851919113302,
+       "positive_pairs": 52303,
+       "log2_pearson": 0.9506487852017316
+      }
+     ],
+     "cv_raw_median": 0.0974974050437005,
+     "cv_median_normalized_median": 0.09581554871557157,
+     "cv_n": 48890
+    },
+    "4": {
+     "labels": [
+      "01",
+      "02",
+      "03"
+     ],
+     "union": 73651,
+     "positive_complete": 48834,
+     "detection_completeness": {
+      "1": 13431,
+      "2": 11386,
+      "3": 48834
+     },
+     "positive_completeness": {
+      "0": 0,
+      "1": 13431,
+      "2": 11386,
+      "3": 48834
+     },
+     "normalization_log2_offsets": [
+      0.006132386725557382,
+      0.0,
+      -0.04827098194350299
+     ],
+     "pairs": [
+      {
+       "a": "01",
+       "b": "02",
+       "jaccard": 0.7726475324974117,
+       "positive_pairs": 53733,
+       "log2_pearson": 0.9517166905122573
+      },
+      {
+       "a": "01",
+       "b": "03",
+       "jaccard": 0.7555665656330147,
+       "positive_pairs": 51850,
+       "log2_pearson": 0.9486547274616509
+      },
+      {
+       "a": "02",
+       "b": "03",
+       "jaccard": 0.754174236525651,
+       "positive_pairs": 52305,
+       "log2_pearson": 0.9500115258623355
+      }
+     ],
+     "cv_raw_median": 0.09779563546805053,
+     "cv_median_normalized_median": 0.09604830121400806,
+     "cv_n": 48834
+    }
+   }
+  },
+  "within_raw_seeds": {
+   "precursor": {
+    "01": {
+     "labels": [
+      "0",
+      "1",
+      "2",
+      "3",
+      "4"
+     ],
+     "union": 80834,
+     "positive_complete": 76133,
+     "detection_completeness": {
+      "1": 1286,
+      "2": 914,
+      "3": 940,
+      "4": 1561,
+      "5": 76133
+     },
+     "positive_completeness": {
+      "0": 0,
+      "1": 1286,
+      "2": 914,
+      "3": 940,
+      "4": 1561,
+      "5": 76133
+     },
+     "normalization_log2_offsets": [
+      0.0,
+      0.00019355851353886067,
+      0.0,
+      -0.00020740567489063721,
+      0.0003637153796169912
+     ],
+     "pairs": [
+      {
+       "a": "0",
+       "b": "1",
+       "jaccard": 0.9700031298904538,
+       "positive_pairs": 77479,
+       "log2_pearson": 0.9999053278177664
+      },
+      {
+       "a": "0",
+       "b": "2",
+       "jaccard": 0.9740072834670305,
+       "positive_pairs": 77830,
+       "log2_pearson": 0.9996913468177869
+      },
+      {
+       "a": "0",
+       "b": "3",
+       "jaccard": 0.971721624566369,
+       "positive_pairs": 77591,
+       "log2_pearson": 0.9998707910115964
+      },
+      {
+       "a": "0",
+       "b": "4",
+       "jaccard": 0.9664837367814364,
+       "positive_pairs": 77137,
+       "log2_pearson": 0.9997566031683142
+      },
+      {
+       "a": "1",
+       "b": "2",
+       "jaccard": 0.9742634141444562,
+       "positive_pairs": 77641,
+       "log2_pearson": 0.9996657688913795
+      },
+      {
+       "a": "1",
+       "b": "3",
+       "jaccard": 0.9744511781125054,
+       "positive_pairs": 77502,
+       "log2_pearson": 0.9998587088393525
+      },
+      {
+       "a": "1",
+       "b": "4",
+       "jaccard": 0.9718726775749789,
+       "positive_pairs": 77156,
+       "log2_pearson": 0.9997592885466333
+      },
+      {
+       "a": "2",
+       "b": "3",
+       "jaccard": 0.9752186406012774,
+       "positive_pairs": 77722,
+       "log2_pearson": 0.9997395257372316
+      },
+      {
+       "a": "2",
+       "b": "4",
+       "jaccard": 0.969255480681148,
+       "positive_pairs": 77239,
+       "log2_pearson": 0.9996935440335653
+      },
+      {
+       "a": "3",
+       "b": "4",
+       "jaccard": 0.9702508239200986,
+       "positive_pairs": 77133,
+       "log2_pearson": 0.9996869636572837
+      }
+     ],
+     "cv_raw_median": 0.0,
+     "cv_median_normalized_median": 0.00015038487682607942,
+     "cv_n": 76133
+    },
+    "02": {
+     "labels": [
+      "0",
+      "1",
+      "2",
+      "3",
+      "4"
+     ],
+     "union": 82566,
+     "positive_complete": 77912,
+     "detection_completeness": {
+      "1": 1296,
+      "2": 993,
+      "3": 1005,
+      "4": 1360,
+      "5": 77912
+     },
+     "positive_completeness": {
+      "0": 0,
+      "1": 1296,
+      "2": 993,
+      "3": 1005,
+      "4": 1360,
+      "5": 77912
+     },
+     "normalization_log2_offsets": [
+      0.0,
+      9.486497557986695e-05,
+      9.486497557986695e-05,
+      -0.00017112606881752868,
+      -6.380669138295048e-05
+     ],
+     "pairs": [
+      {
+       "a": "0",
+       "b": "1",
+       "jaccard": 0.9727958086851718,
+       "positive_pairs": 79099,
+       "log2_pearson": 0.9997509007586338
+      },
+      {
+       "a": "0",
+       "b": "2",
+       "jaccard": 0.9720581191122465,
+       "positive_pairs": 79144,
+       "log2_pearson": 0.9997639269406542
+      },
+      {
+       "a": "0",
+       "b": "3",
+       "jaccard": 0.9737781168479598,
+       "positive_pairs": 79137,
+       "log2_pearson": 0.9996999028645311
+      },
+      {
+       "a": "0",
+       "b": "4",
+       "jaccard": 0.9725097343388043,
+       "positive_pairs": 78925,
+       "log2_pearson": 0.9996225164776719
+      },
+      {
+       "a": "1",
+       "b": "2",
+       "jaccard": 0.9729322017268446,
+       "positive_pairs": 79329,
+       "log2_pearson": 0.9997732200338009
+      },
+      {
+       "a": "1",
+       "b": "3",
+       "jaccard": 0.9745300405455216,
+       "positive_pairs": 79317,
+       "log2_pearson": 0.9997566781169174
+      },
+      {
+       "a": "1",
+       "b": "4",
+       "jaccard": 0.9683242924817751,
+       "positive_pairs": 78901,
+       "log2_pearson": 0.9998494967868823
+      },
+      {
+       "a": "2",
+       "b": "3",
+       "jaccard": 0.9736696808706428,
+       "positive_pairs": 79357,
+       "log2_pearson": 0.9997318182977486
+      },
+      {
+       "a": "2",
+       "b": "4",
+       "jaccard": 0.97097605893186,
+       "positive_pairs": 79086,
+       "log2_pearson": 0.9997274265338627
+      },
+      {
+       "a": "3",
+       "b": "4",
+       "jaccard": 0.9706088345518216,
+       "positive_pairs": 78993,
+       "log2_pearson": 0.9997812942061524
+      }
+     ],
+     "cv_raw_median": 0.0,
+     "cv_median_normalized_median": 7.822666002187162e-05,
+     "cv_n": 77912
+    },
+    "03": {
+     "labels": [
+      "0",
+      "1",
+      "2",
+      "3",
+      "4"
+     ],
+     "union": 79086,
+     "positive_complete": 74355,
+     "detection_completeness": {
+      "1": 1355,
+      "2": 956,
+      "3": 926,
+      "4": 1494,
+      "5": 74355
+     },
+     "positive_completeness": {
+      "0": 0,
+      "1": 1355,
+      "2": 956,
+      "3": 926,
+      "4": 1494,
+      "5": 74355
+     },
+     "normalization_log2_offsets": [
+      0.0004120567105498907,
+      -5.3848039746284826e-05,
+      0.0,
+      -5.3848039746284826e-05,
+      0.0005188212896758415
+     ],
+     "pairs": [
+      {
+       "a": "0",
+       "b": "1",
+       "jaccard": 0.9721761704643302,
+       "positive_pairs": 75646,
+       "log2_pearson": 0.9997766899569676
+      },
+      {
+       "a": "0",
+       "b": "2",
+       "jaccard": 0.969428729040783,
+       "positive_pairs": 75566,
+       "log2_pearson": 0.9997857651446688
+      },
+      {
+       "a": "0",
+       "b": "3",
+       "jaccard": 0.9713606883708984,
+       "positive_pairs": 75635,
+       "log2_pearson": 0.9997677049159537
+      },
+      {
+       "a": "0",
+       "b": "4",
+       "jaccard": 0.9720104063873688,
+       "positive_pairs": 75845,
+       "log2_pearson": 0.9997001188880594
+      },
+      {
+       "a": "1",
+       "b": "2",
+       "jaccard": 0.9711919337414476,
+       "positive_pairs": 75516,
+       "log2_pearson": 0.9998312974427448
+      },
+      {
+       "a": "1",
+       "b": "3",
+       "jaccard": 0.9717344037464459,
+       "positive_pairs": 75530,
+       "log2_pearson": 0.9996495243962199
+      },
+      {
+       "a": "1",
+       "b": "4",
+       "jaccard": 0.9716251074806534,
+       "positive_pairs": 75710,
+       "log2_pearson": 0.9995886352894778
+      },
+      {
+       "a": "2",
+       "b": "3",
+       "jaccard": 0.9701486783433352,
+       "positive_pairs": 75496,
+       "log2_pearson": 0.9996427868453458
+      },
+      {
+       "a": "2",
+       "b": "4",
+       "jaccard": 0.9696647357358896,
+       "positive_pairs": 75661,
+       "log2_pearson": 0.999606000341001
+      },
+      {
+       "a": "3",
+       "b": "4",
+       "jaccard": 0.9693967782035345,
+       "positive_pairs": 75643,
+       "log2_pearson": 0.9996919974484417
+      }
+     ],
+     "cv_raw_median": 0.0,
+     "cv_median_normalized_median": 0.00019271986101379417,
+     "cv_n": 74355
+    }
+   },
+   "peptide": {
+    "01": {
+     "labels": [
+      "0",
+      "1",
+      "2",
+      "3",
+      "4"
+     ],
+     "union": 63138,
+     "positive_complete": 59630,
+     "detection_completeness": {
+      "1": 1002,
+      "2": 684,
+      "3": 707,
+      "4": 1115,
+      "5": 59630
+     },
+     "positive_completeness": {
+      "0": 0,
+      "1": 1002,
+      "2": 684,
+      "3": 707,
+      "4": 1115,
+      "5": 59630
+     },
+     "normalization_log2_offsets": [
+      0.00022028303131094162,
+      0.0,
+      0.0002815171433354635,
+      -0.0002500750422314013,
+      -0.0011084540726677972
+     ],
+     "pairs": [
+      {
+       "a": "0",
+       "b": "1",
+       "jaccard": 0.9713951475914233,
+       "positive_pairs": 60617,
+       "log2_pearson": 0.9934781901553146
+      },
+      {
+       "a": "0",
+       "b": "2",
+       "jaccard": 0.975781650435674,
+       "positive_pairs": 60920,
+       "log2_pearson": 0.9931432990408909
+      },
+      {
+       "a": "0",
+       "b": "3",
+       "jaccard": 0.973397009567461,
+       "positive_pairs": 60739,
+       "log2_pearson": 0.9940851484459341
+      },
+      {
+       "a": "0",
+       "b": "4",
+       "jaccard": 0.9676736918022277,
+       "positive_pairs": 60378,
+       "log2_pearson": 0.9926118258532569
+      },
+      {
+       "a": "1",
+       "b": "2",
+       "jaccard": 0.9753318548516697,
+       "positive_pairs": 60691,
+       "log2_pearson": 0.9937559633096339
+      },
+      {
+       "a": "1",
+       "b": "3",
+       "jaccard": 0.9752893639627167,
+       "positive_pairs": 60584,
+       "log2_pearson": 0.9939130319577557
+      },
+      {
+       "a": "1",
+       "b": "4",
+       "jaccard": 0.9730344327070397,
+       "positive_pairs": 60333,
+       "log2_pearson": 0.9936041921642892
+      },
+      {
+       "a": "2",
+       "b": "3",
+       "jaccard": 0.9761327315655065,
+       "positive_pairs": 60775,
+       "log2_pearson": 0.9934633020125533
+      },
+      {
+       "a": "2",
+       "b": "4",
+       "jaccard": 0.9705551628863329,
+       "positive_pairs": 60419,
+       "log2_pearson": 0.992674976685708
+      },
+      {
+       "a": "3",
+       "b": "4",
+       "jaccard": 0.971360958176374,
+       "positive_pairs": 60339,
+       "log2_pearson": 0.992092330482629
+      }
+     ],
+     "cv_raw_median": 0.0,
+     "cv_median_normalized_median": 0.00039097569935071997,
+     "cv_n": 59630
+    },
+    "02": {
+     "labels": [
+      "0",
+      "1",
+      "2",
+      "3",
+      "4"
+     ],
+     "union": 64220,
+     "positive_complete": 60730,
+     "detection_completeness": {
+      "1": 989,
+      "2": 747,
+      "3": 755,
+      "4": 999,
+      "5": 60730
+     },
+     "positive_completeness": {
+      "0": 0,
+      "1": 989,
+      "2": 747,
+      "3": 755,
+      "4": 999,
+      "5": 60730
+     },
+     "normalization_log2_offsets": [
+      0.00034289234486095665,
+      0.00034289234486095665,
+      0.0,
+      -0.0005934323043632617,
+      -0.0003257624641435086
+     ],
+     "pairs": [
+      {
+       "a": "0",
+       "b": "1",
+       "jaccard": 0.9735698139454008,
+       "positive_pairs": 61589,
+       "log2_pearson": 0.9928062130826304
+      },
+      {
+       "a": "0",
+       "b": "2",
+       "jaccard": 0.9733535391804004,
+       "positive_pairs": 61660,
+       "log2_pearson": 0.9933912908755202
+      },
+      {
+       "a": "0",
+       "b": "3",
+       "jaccard": 0.9747610608266346,
+       "positive_pairs": 61601,
+       "log2_pearson": 0.9929215689131399
+      },
+      {
+       "a": "0",
+       "b": "4",
+       "jaccard": 0.9737889479108855,
+       "positive_pairs": 61412,
+       "log2_pearson": 0.9926363818001426
+      },
+      {
+       "a": "1",
+       "b": "2",
+       "jaccard": 0.9742055368334855,
+       "positive_pairs": 61864,
+       "log2_pearson": 0.9931769364953513
+      },
+      {
+       "a": "1",
+       "b": "3",
+       "jaccard": 0.9754869463648704,
+       "positive_pairs": 61801,
+       "log2_pearson": 0.9929970592858838
+      },
+      {
+       "a": "1",
+       "b": "4",
+       "jaccard": 0.9688820894580783,
+       "positive_pairs": 61431,
+       "log2_pearson": 0.9905960725713181
+      },
+      {
+       "a": "2",
+       "b": "3",
+       "jaccard": 0.9749881796690307,
+       "positive_pairs": 61863,
+       "log2_pearson": 0.9931413557129168
+      },
+      {
+       "a": "2",
+       "b": "4",
+       "jaccard": 0.9720894274309335,
+       "positive_pairs": 61612,
+       "log2_pearson": 0.9910049693584261
+      },
+      {
+       "a": "3",
+       "b": "4",
+       "jaccard": 0.9709993839738426,
+       "positive_pairs": 61473,
+       "log2_pearson": 0.9909934541529078
+      }
+     ],
+     "cv_raw_median": 0.0,
+     "cv_median_normalized_median": 0.00028633432145914155,
+     "cv_n": 60730
+    },
+    "03": {
+     "labels": [
+      "0",
+      "1",
+      "2",
+      "3",
+      "4"
+     ],
+     "union": 61004,
+     "positive_complete": 57486,
+     "detection_completeness": {
+      "1": 1027,
+      "2": 753,
+      "3": 688,
+      "4": 1050,
+      "5": 57486
+     },
+     "positive_completeness": {
+      "0": 0,
+      "1": 1027,
+      "2": 753,
+      "3": 688,
+      "4": 1050,
+      "5": 57486
+     },
+     "normalization_log2_offsets": [
+      0.0008775701070575792,
+      -0.0011682689570093885,
+      -0.001026495228991564,
+      0.0006266289685470383,
+      0.0
+     ],
+     "pairs": [
+      {
+       "a": "0",
+       "b": "1",
+       "jaccard": 0.9731125474778437,
+       "positive_pairs": 58414,
+       "log2_pearson": 0.991693578832336
+      },
+      {
+       "a": "0",
+       "b": "2",
+       "jaccard": 0.9704005318264916,
+       "positive_pairs": 58389,
+       "log2_pearson": 0.9926760489715768
+      },
+      {
+       "a": "0",
+       "b": "3",
+       "jaccard": 0.9720673180963162,
+       "positive_pairs": 58395,
+       "log2_pearson": 0.9920006545546125
+      },
+      {
+       "a": "0",
+       "b": "4",
+       "jaccard": 0.9728400804000067,
+       "positive_pairs": 58564,
+       "log2_pearson": 0.9915584019664407
+      },
+      {
+       "a": "1",
+       "b": "2",
+       "jaccard": 0.9722162036033933,
+       "positive_pairs": 58332,
+       "log2_pearson": 0.9924336074931923
+      },
+      {
+       "a": "1",
+       "b": "3",
+       "jaccard": 0.9721457759986657,
+       "positive_pairs": 58285,
+       "log2_pearson": 0.9922175572728358
+      },
+      {
+       "a": "1",
+       "b": "4",
+       "jaccard": 0.9731497819356127,
+       "positive_pairs": 58461,
+       "log2_pearson": 0.9916944565441759
+      },
+      {
+       "a": "2",
+       "b": "3",
+       "jaccard": 0.9713024650233177,
+       "positive_pairs": 58317,
+       "log2_pearson": 0.9925825498372655
+      },
+      {
+       "a": "2",
+       "b": "4",
+       "jaccard": 0.9708979768114017,
+       "positive_pairs": 58450,
+       "log2_pearson": 0.9921222396271522
+      },
+      {
+       "a": "3",
+       "b": "4",
+       "jaccard": 0.9697463075875131,
+       "positive_pairs": 58370,
+       "log2_pearson": 0.9916172901771949
+      }
+     ],
+     "cv_raw_median": 0.0,
+     "cv_median_normalized_median": 0.0006470972578590583,
+     "cv_n": 57486
+    }
+   }
+  }
+ },
+ "quant_human_q0.01": {
+  "q_cutoff": 0.01,
+  "population": "human",
+  "audit": [
+   {
+    "raw": "01",
+    "seed": "0",
+    "sha256": "07bd2588b67c153f9916f3203d499558a8b17dbcac019dc1ddac349be155e661",
+    "rows": 5868831,
+    "decoys": 2930825,
+    "rejected_q": 2852518,
+    "nonpositive": 0,
+    "nonfinite": 0,
+    "population_excluded": 576
+   },
+   {
+    "raw": "01",
+    "seed": "1",
+    "sha256": "39769d5cdd704eb5860e3b0377fae5e8d22b1b9e07762f7ce59ea4bec7f5a329",
+    "rows": 5870225,
+    "decoys": 2931523,
+    "rejected_q": 2853529,
+    "nonpositive": 0,
+    "nonfinite": 0,
+    "population_excluded": 597
+   },
+   {
+    "raw": "01",
+    "seed": "2",
+    "sha256": "8017b4fcb96e152bbf41ef39c185478a471a45874eced9bdd73df63368f5dec9",
+    "rows": 5867486,
+    "decoys": 2930152,
+    "rejected_q": 2852023,
+    "nonpositive": 0,
+    "nonfinite": 0,
+    "population_excluded": 598
+   },
+   {
+    "raw": "01",
+    "seed": "3",
+    "sha256": "6f11efad67134b58329457cef7d4bfa358b2406bd28144b49ce58fa2b8b781f1",
+    "rows": 5869685,
+    "decoys": 2931259,
+    "rejected_q": 2853492,
+    "nonpositive": 0,
+    "nonfinite": 0,
+    "population_excluded": 598
+   },
+   {
+    "raw": "01",
+    "seed": "4",
+    "sha256": "5abf2633e17d1f2edc956b4caea4b09297052ac68ae754e70f7597a349abb397",
+    "rows": 5868461,
+    "decoys": 2930633,
+    "rejected_q": 2853259,
+    "nonpositive": 0,
+    "nonfinite": 0,
+    "population_excluded": 598
+   },
+   {
+    "raw": "02",
+    "seed": "0",
+    "sha256": "360657fec9c98dea5676b280fd2e51986a08b1f0c97f4e256ddee2694458988d",
+    "rows": 6117330,
+    "decoys": 3055054,
+    "rejected_q": 2976246,
+    "nonpositive": 0,
+    "nonfinite": 0,
+    "population_excluded": 582
+   },
+   {
+    "raw": "02",
+    "seed": "1",
+    "sha256": "b0bad850356685dce9e151ecf23fbd60e283a88e40bc108ed74f4c4450a0d3ab",
+    "rows": 6117989,
+    "decoys": 3055381,
+    "rejected_q": 2976436,
+    "nonpositive": 0,
+    "nonfinite": 0,
+    "population_excluded": 592
+   },
+   {
+    "raw": "02",
+    "seed": "2",
+    "sha256": "3987e7c630b7d7dc073d7da8eaf5f0e5de9b2db4785e06b3bfa09f77a658b65b",
+    "rows": 6119165,
+    "decoys": 3055965,
+    "rejected_q": 2977093,
+    "nonpositive": 0,
+    "nonfinite": 0,
+    "population_excluded": 567
+   },
+   {
+    "raw": "02",
+    "seed": "3",
+    "sha256": "acd42c36b79334cde479caac70f0fa8a568893a003c0860a153e15c7c5ba2be0",
+    "rows": 6119762,
+    "decoys": 3056272,
+    "rejected_q": 2977545,
+    "nonpositive": 0,
+    "nonfinite": 0,
+    "population_excluded": 580
+   },
+   {
+    "raw": "02",
+    "seed": "4",
+    "sha256": "2ded0b928045b55ff82dc957728bf400d289b3ad179a2b29cbe30367b1dba15b",
+    "rows": 6119055,
+    "decoys": 3055914,
+    "rejected_q": 2977207,
+    "nonpositive": 0,
+    "nonfinite": 0,
+    "population_excluded": 600
+   },
+   {
+    "raw": "03",
+    "seed": "0",
+    "sha256": "f38f3a402f10f3c8ccb1a0e35041c99b5e11dbeaaf2899ea3db05c1a022eb2d8",
+    "rows": 6267222,
+    "decoys": 3130002,
+    "rejected_q": 3053924,
+    "nonpositive": 0,
+    "nonfinite": 0,
+    "population_excluded": 623
+   },
+   {
+    "raw": "03",
+    "seed": "1",
+    "sha256": "4e9eb338998df6aaa26750790cced8a9efc3e922a2ead07c38446fbb68eeaeb5",
+    "rows": 6266147,
+    "decoys": 3129471,
+    "rejected_q": 3053818,
+    "nonpositive": 0,
+    "nonfinite": 0,
+    "population_excluded": 622
+   },
+   {
+    "raw": "03",
+    "seed": "2",
+    "sha256": "0022525c28691dd62ff4afb24a43695dc022f7cf5b2ccc77b00b69c7fc6b36cd",
+    "rows": 6267851,
+    "decoys": 3130322,
+    "rejected_q": 3054347,
+    "nonpositive": 0,
+    "nonfinite": 0,
+    "population_excluded": 623
+   },
+   {
+    "raw": "03",
+    "seed": "3",
+    "sha256": "2cf27cc3937ea772cba62640e7257e6df7d9d50c999814cf8fde1a8fb011ac0f",
+    "rows": 6267560,
+    "decoys": 3130170,
+    "rejected_q": 3054730,
+    "nonpositive": 0,
+    "nonfinite": 0,
+    "population_excluded": 612
+   },
+   {
+    "raw": "03",
+    "seed": "4",
+    "sha256": "be7c274a883a8c7f3e1f517ca4936c1e96e1e725e3a2087983c7724b8ea36826",
+    "rows": 6268960,
+    "decoys": 3130875,
+    "rejected_q": 3054832,
+    "nonpositive": 0,
+    "nonfinite": 0,
+    "population_excluded": 645
+   }
+  ],
+  "across_raws": {
+   "precursor": {
+    "0": {
+     "labels": [
+      "01",
+      "02",
+      "03"
+     ],
+     "union": 110939,
+     "positive_complete": 61568,
+     "detection_completeness": {
+      "1": 30413,
+      "2": 18958,
+      "3": 61568
+     },
+     "positive_completeness": {
+      "0": 0,
+      "1": 30413,
+      "2": 18958,
+      "3": 61568
+     },
+     "normalization_log2_offsets": [
+      0.010227067726447103,
+      0.0,
+      -0.04652101316126789
+     ],
+     "pairs": [
+      {
+       "a": "01",
+       "b": "02",
+       "jaccard": 0.6846810320105219,
+       "positive_pairs": 69237,
+       "log2_pearson": 0.9788125000133344
+      },
+      {
+       "a": "01",
+       "b": "03",
+       "jaccard": 0.668375676967187,
+       "positive_pairs": 67137,
+       "log2_pearson": 0.9765355205052757
+      },
+      {
+       "a": "02",
+       "b": "03",
+       "jaccard": 0.6673212142850059,
+       "positive_pairs": 67288,
+       "log2_pearson": 0.9762149534204069
+      }
+     ],
+     "cv_raw_median": 0.10867564813960898,
+     "cv_median_normalized_median": 0.10727589224187986,
+     "cv_n": 61568
+    },
+    "1": {
+     "labels": [
+      "01",
+      "02",
+      "03"
+     ],
+     "union": 110732,
+     "positive_complete": 61368,
+     "detection_completeness": {
+      "1": 30440,
+      "2": 18924,
+      "3": 61368
+     },
+     "positive_completeness": {
+      "0": 0,
+      "1": 30440,
+      "2": 18924,
+      "3": 61368
+     },
+     "normalization_log2_offsets": [
+      0.009942413481279999,
+      0.0,
+      -0.045988209884416875
+     ],
+     "pairs": [
+      {
+       "a": "01",
+       "b": "02",
+       "jaccard": 0.6829632560209683,
+       "positive_pairs": 69051,
+       "log2_pearson": 0.9792491551725776
+      },
+      {
+       "a": "01",
+       "b": "03",
+       "jaccard": 0.6672363647266949,
+       "positive_pairs": 66759,
+       "log2_pearson": 0.9766836083766273
+      },
+      {
+       "a": "02",
+       "b": "03",
+       "jaccard": 0.6681842581363446,
+       "positive_pairs": 67218,
+       "log2_pearson": 0.9765118963845958
+      }
+     ],
+     "cv_raw_median": 0.10843542749844821,
+     "cv_median_normalized_median": 0.10704388005313162,
+     "cv_n": 61368
+    },
+    "2": {
+     "labels": [
+      "01",
+      "02",
+      "03"
+     ],
+     "union": 110874,
+     "positive_complete": 61517,
+     "detection_completeness": {
+      "1": 30453,
+      "2": 18904,
+      "3": 61517
+     },
+     "positive_completeness": {
+      "0": 0,
+      "1": 30453,
+      "2": 18904,
+      "3": 61517
+     },
+     "normalization_log2_offsets": [
+      0.009816470834948632,
+      0.0,
+      -0.04655713385541205
+     ],
+     "pairs": [
+      {
+       "a": "01",
+       "b": "02",
+       "jaccard": 0.6838393828503609,
+       "positive_pairs": 69143,
+       "log2_pearson": 0.9789710442054331
+      },
+      {
+       "a": "01",
+       "b": "03",
+       "jaccard": 0.6677334769040568,
+       "positive_pairs": 66973,
+       "log2_pearson": 0.9766702447595725
+      },
+      {
+       "a": "02",
+       "b": "03",
+       "jaccard": 0.6683108376339817,
+       "positive_pairs": 67339,
+       "log2_pearson": 0.9765529671583222
+      }
+     ],
+     "cv_raw_median": 0.10871218507370724,
+     "cv_median_normalized_median": 0.10734486890729092,
+     "cv_n": 61517
+    },
+    "3": {
+     "labels": [
+      "01",
+      "02",
+      "03"
+     ],
+     "union": 110505,
+     "positive_complete": 61151,
+     "detection_completeness": {
+      "1": 30412,
+      "2": 18942,
+      "3": 61151
+     },
+     "positive_completeness": {
+      "0": 0,
+      "1": 30412,
+      "2": 18942,
+      "3": 61151
+     },
+     "normalization_log2_offsets": [
+      0.011049330696650372,
+      0.0,
+      -0.04656466504509282
+     ],
+     "pairs": [
+      {
+       "a": "01",
+       "b": "02",
+       "jaccard": 0.6829906875725209,
+       "positive_pairs": 68868,
+       "log2_pearson": 0.979072591075519
+      },
+      {
+       "a": "01",
+       "b": "03",
+       "jaccard": 0.6664730273832655,
+       "positive_pairs": 66542,
+       "log2_pearson": 0.976405373107126
+      },
+      {
+       "a": "02",
+       "b": "03",
+       "jaccard": 0.666995260285976,
+       "positive_pairs": 66985,
+       "log2_pearson": 0.9761253489655796
+      }
+     ],
+     "cv_raw_median": 0.10818962360394817,
+     "cv_median_normalized_median": 0.10684232414713955,
+     "cv_n": 61151
+    },
+    "4": {
+     "labels": [
+      "01",
+      "02",
+      "03"
+     ],
+     "union": 110594,
+     "positive_complete": 61232,
+     "detection_completeness": {
+      "1": 30507,
+      "2": 18855,
+      "3": 61232
+     },
+     "positive_completeness": {
+      "0": 0,
+      "1": 30507,
+      "2": 18855,
+      "3": 61232
+     },
+     "normalization_log2_offsets": [
+      0.01137471002552104,
+      0.0,
+      -0.045192326233284064
+     ],
+     "pairs": [
+      {
+       "a": "01",
+       "b": "02",
+       "jaccard": 0.6828351903943065,
+       "positive_pairs": 68698,
+       "log2_pearson": 0.97900635530802
+      },
+      {
+       "a": "01",
+       "b": "03",
+       "jaccard": 0.6662065516379094,
+       "positive_pairs": 66604,
+       "log2_pearson": 0.9765361835060429
+      },
+      {
+       "a": "02",
+       "b": "03",
+       "jaccard": 0.6678617182922348,
+       "positive_pairs": 67249,
+       "log2_pearson": 0.9764759288952307
+      }
+     ],
+     "cv_raw_median": 0.10842294385045267,
+     "cv_median_normalized_median": 0.10701617526661347,
+     "cv_n": 61232
+    }
+   },
+   "peptide": {
+    "0": {
+     "labels": [
+      "01",
+      "02",
+      "03"
+     ],
+     "union": 79836,
+     "positive_complete": 53056,
+     "detection_completeness": {
+      "1": 14595,
+      "2": 12185,
+      "3": 53056
+     },
+     "positive_completeness": {
+      "0": 0,
+      "1": 14595,
+      "2": 12185,
+      "3": 53056
+     },
+     "normalization_log2_offsets": [
+      0.011004537998204,
+      0.0,
+      -0.042348272485618565
+     ],
+     "pairs": [
+      {
+       "a": "01",
+       "b": "02",
+       "jaccard": 0.7729337447524202,
+       "positive_pairs": 58365,
+       "log2_pearson": 0.95716441661703
+      },
+      {
+       "a": "01",
+       "b": "03",
+       "jaccard": 0.7558775908902359,
+       "positive_pairs": 56489,
+       "log2_pearson": 0.9547545929823543
+      },
+      {
+       "a": "02",
+       "b": "03",
+       "jaccard": 0.7566593901083448,
+       "positive_pairs": 56499,
+       "log2_pearson": 0.9557510806857054
+      }
+     ],
+     "cv_raw_median": 0.10128311902872689,
+     "cv_median_normalized_median": 0.09990006167352813,
+     "cv_n": 53056
+    },
+    "1": {
+     "labels": [
+      "01",
+      "02",
+      "03"
+     ],
+     "union": 79635,
+     "positive_complete": 52914,
+     "detection_completeness": {
+      "1": 14660,
+      "2": 12061,
+      "3": 52914
+     },
+     "positive_completeness": {
+      "0": 0,
+      "1": 14660,
+      "2": 12061,
+      "3": 52914
+     },
+     "normalization_log2_offsets": [
+      0.011016175724531507,
+      0.0,
+      -0.043178516152345026
+     ],
+     "pairs": [
+      {
+       "a": "01",
+       "b": "02",
+       "jaccard": 0.7725584357008304,
+       "positive_pairs": 58237,
+       "log2_pearson": 0.9573826656023924
+      },
+      {
+       "a": "01",
+       "b": "03",
+       "jaccard": 0.7553228715243197,
+       "positive_pairs": 56122,
+       "log2_pearson": 0.9541609971027813
+      },
+      {
+       "a": "02",
+       "b": "03",
+       "jaccard": 0.7570177438607315,
+       "positive_pairs": 56444,
+       "log2_pearson": 0.9556345156482893
+      }
+     ],
+     "cv_raw_median": 0.1010543961688791,
+     "cv_median_normalized_median": 0.09969460591871576,
+     "cv_n": 52914
+    },
+    "2": {
+     "labels": [
+      "01",
+      "02",
+      "03"
+     ],
+     "union": 79857,
+     "positive_complete": 53064,
+     "detection_completeness": {
+      "1": 14698,
+      "2": 12095,
+      "3": 53064
+     },
+     "positive_completeness": {
+      "0": 0,
+      "1": 14698,
+      "2": 12095,
+      "3": 53064
+     },
+     "normalization_log2_offsets": [
+      0.01348592226357681,
+      0.0,
+      -0.042310911759095404
+     ],
+     "pairs": [
+      {
+       "a": "01",
+       "b": "02",
+       "jaccard": 0.772177552885698,
+       "positive_pairs": 58294,
+       "log2_pearson": 0.9590304260396779
+      },
+      {
+       "a": "01",
+       "b": "03",
+       "jaccard": 0.7554950946228489,
+       "positive_pairs": 56369,
+       "log2_pearson": 0.9542843462008185
+      },
+      {
+       "a": "02",
+       "b": "03",
+       "jaccard": 0.7573293387545474,
+       "positive_pairs": 56624,
+       "log2_pearson": 0.9551452062490846
+      }
+     ],
+     "cv_raw_median": 0.10144778555420052,
+     "cv_median_normalized_median": 0.10007441028922862,
+     "cv_n": 53064
+    },
+    "3": {
+     "labels": [
+      "01",
+      "02",
+      "03"
+     ],
+     "union": 79420,
+     "positive_complete": 52753,
+     "detection_completeness": {
+      "1": 14561,
+      "2": 12106,
+      "3": 52753
+     },
+     "positive_completeness": {
+      "0": 0,
+      "1": 14561,
+      "2": 12106,
+      "3": 52753
+     },
+     "normalization_log2_offsets": [
+      0.011184174982759032,
+      0.0,
+      -0.04345134886465374
+     ],
+     "pairs": [
+      {
+       "a": "01",
+       "b": "02",
+       "jaccard": 0.772665620595197,
+       "positive_pairs": 58106,
+       "log2_pearson": 0.9549316025956541
+      },
+      {
+       "a": "01",
+       "b": "03",
+       "jaccard": 0.7550271757454786,
+       "positive_pairs": 55983,
+       "log2_pearson": 0.9515927963467589
+      },
+      {
+       "a": "02",
+       "b": "03",
+       "jaccard": 0.756906523201076,
+       "positive_pairs": 56276,
+       "log2_pearson": 0.9531424356234951
+      }
+     ],
+     "cv_raw_median": 0.10089488328084933,
+     "cv_median_normalized_median": 0.09950953417244603,
+     "cv_n": 52753
+    },
+    "4": {
+     "labels": [
+      "01",
+      "02",
+      "03"
+     ],
+     "union": 79468,
+     "positive_complete": 52773,
+     "detection_completeness": {
+      "1": 14653,
+      "2": 12042,
+      "3": 52773
+     },
+     "positive_completeness": {
+      "0": 0,
+      "1": 14653,
+      "2": 12042,
+      "3": 52773
+     },
+     "normalization_log2_offsets": [
+      0.013127436841795515,
+      0.0,
+      -0.04135723158321625
+     ],
+     "pairs": [
+      {
+       "a": "01",
+       "b": "02",
+       "jaccard": 0.7724471830985915,
+       "positive_pairs": 57915,
+       "log2_pearson": 0.9574381062867946
+      },
+      {
+       "a": "01",
+       "b": "03",
+       "jaccard": 0.7540396423569966,
+       "positive_pairs": 55998,
+       "log2_pearson": 0.9543274931231654
+      },
+      {
+       "a": "02",
+       "b": "03",
+       "jaccard": 0.7575794178040827,
+       "positive_pairs": 56448,
+       "log2_pearson": 0.9547814625330262
+      }
+     ],
+     "cv_raw_median": 0.10102951945881275,
+     "cv_median_normalized_median": 0.09964726562555112,
+     "cv_n": 52773
+    }
+   }
+  },
+  "within_raw_seeds": {
+   "precursor": {
+    "01": {
+     "labels": [
+      "0",
+      "1",
+      "2",
+      "3",
+      "4"
+     ],
+     "union": 86797,
+     "positive_complete": 82183,
+     "detection_completeness": {
+      "1": 1332,
+      "2": 969,
+      "3": 929,
+      "4": 1384,
+      "5": 82183
+     },
+     "positive_completeness": {
+      "0": 0,
+      "1": 1332,
+      "2": 969,
+      "3": 929,
+      "4": 1384,
+      "5": 82183
+     },
+     "normalization_log2_offsets": [
+      -6.90643284784187e-06,
+      1.4016611109113342e-05,
+      0.0,
+      -6.90643284784187e-06,
+      0.00020372443373872784
+     ],
+     "pairs": [
+      {
+       "a": "0",
+       "b": "1",
+       "jaccard": 0.9729012431903897,
+       "positive_pairs": 83580,
+       "log2_pearson": 0.9998646757365706
+      },
+      {
+       "a": "0",
+       "b": "2",
+       "jaccard": 0.975001746501176,
+       "positive_pairs": 83739,
+       "log2_pearson": 0.9996291713705502
+      },
+      {
+       "a": "0",
+       "b": "3",
+       "jaccard": 0.9724724666394732,
+       "positive_pairs": 83443,
+       "log2_pearson": 0.9998296481011089
+      },
+      {
+       "a": "0",
+       "b": "4",
+       "jaccard": 0.9686775077227954,
+       "positive_pairs": 83098,
+       "log2_pearson": 0.9997053019027021
+      },
+      {
+       "a": "1",
+       "b": "2",
+       "jaccard": 0.9762899836563157,
+       "positive_pairs": 83629,
+       "log2_pearson": 0.999616606242695
+      },
+      {
+       "a": "1",
+       "b": "3",
+       "jaccard": 0.9769200159172304,
+       "positive_pairs": 83470,
+       "log2_pearson": 0.9998544567693141
+      },
+      {
+       "a": "1",
+       "b": "4",
+       "jaccard": 0.9753067610486715,
+       "positive_pairs": 83220,
+       "log2_pearson": 0.99974893517448
+      },
+      {
+       "a": "2",
+       "b": "3",
+       "jaccard": 0.9763260343477091,
+       "positive_pairs": 83512,
+       "log2_pearson": 0.9996935112991461
+      },
+      {
+       "a": "2",
+       "b": "4",
+       "jaccard": 0.9721049862629333,
+       "positive_pairs": 83149,
+       "log2_pearson": 0.9996465453262923
+      },
+      {
+       "a": "3",
+       "b": "4",
+       "jaccard": 0.9741135625227254,
+       "positive_pairs": 83050,
+       "log2_pearson": 0.9996874187985637
+      }
+     ],
+     "cv_raw_median": 0.0,
+     "cv_median_normalized_median": 6.34100684129908e-05,
+     "cv_n": 82183
+    },
+    "02": {
+     "labels": [
+      "0",
+      "1",
+      "2",
+      "3",
+      "4"
+     ],
+     "union": 87631,
+     "positive_complete": 83290,
+     "detection_completeness": {
+      "1": 1285,
+      "2": 903,
+      "3": 886,
+      "4": 1267,
+      "5": 83290
+     },
+     "positive_completeness": {
+      "0": 0,
+      "1": 1285,
+      "2": 903,
+      "3": 886,
+      "4": 1267,
+      "5": 83290
+     },
+     "normalization_log2_offsets": [
+      0.0,
+      0.00020484046753921348,
+      0.00020484046753921348,
+      -0.00015120482600750051,
+      -0.00010836400972458193
+     ],
+     "pairs": [
+      {
+       "a": "0",
+       "b": "1",
+       "jaccard": 0.9766538763811197,
+       "positive_pairs": 84504,
+       "log2_pearson": 0.9997626636694693
+      },
+      {
+       "a": "0",
+       "b": "2",
+       "jaccard": 0.9772656313239358,
+       "positive_pairs": 84511,
+       "log2_pearson": 0.9997540926697248
+      },
+      {
+       "a": "0",
+       "b": "3",
+       "jaccard": 0.9777806081096728,
+       "positive_pairs": 84447,
+       "log2_pearson": 0.9997053227120201
+      },
+      {
+       "a": "0",
+       "b": "4",
+       "jaccard": 0.9751347350403626,
+       "positive_pairs": 84316,
+       "log2_pearson": 0.9995970635813044
+      },
+      {
+       "a": "1",
+       "b": "2",
+       "jaccard": 0.9750464560658348,
+       "positive_pairs": 84479,
+       "log2_pearson": 0.99976171880644
+      },
+      {
+       "a": "1",
+       "b": "3",
+       "jaccard": 0.977362899214584,
+       "positive_pairs": 84494,
+       "log2_pearson": 0.9997598357680505
+      },
+      {
+       "a": "1",
+       "b": "4",
+       "jaccard": 0.9720315222282477,
+       "positive_pairs": 84245,
+       "log2_pearson": 0.9998096742572737
+      },
+      {
+       "a": "2",
+       "b": "3",
+       "jaccard": 0.9769230769230769,
+       "positive_pairs": 84455,
+       "log2_pearson": 0.999727846056288
+      },
+      {
+       "a": "2",
+       "b": "4",
+       "jaccard": 0.9752621175165016,
+       "positive_pairs": 84367,
+       "log2_pearson": 0.9996903337721099
+      },
+      {
+       "a": "3",
+       "b": "4",
+       "jaccard": 0.9744488398454669,
+       "positive_pairs": 84245,
+       "log2_pearson": 0.9997534413015349
+      }
+     ],
+     "cv_raw_median": 0.0,
+     "cv_median_normalized_median": 0.0001170253022370225,
+     "cv_n": 83290
+    },
+    "03": {
+     "labels": [
+      "0",
+      "1",
+      "2",
+      "3",
+      "4"
+     ],
+     "union": 84673,
+     "positive_complete": 80155,
+     "detection_completeness": {
+      "1": 1290,
+      "2": 978,
+      "3": 897,
+      "4": 1353,
+      "5": 80155
+     },
+     "positive_completeness": {
+      "0": 0,
+      "1": 1290,
+      "2": 978,
+      "3": 897,
+      "4": 1353,
+      "5": 80155
+     },
+     "normalization_log2_offsets": [
+      5.1648302525464374e-05,
+      -4.565847635973341e-06,
+      0.0,
+      -4.565847635973341e-06,
+      0.00013274431896270755
+     ],
+     "pairs": [
+      {
+       "a": "0",
+       "b": "1",
+       "jaccard": 0.975265610214764,
+       "positive_pairs": 81422,
+       "log2_pearson": 0.9997692683584402
+      },
+      {
+       "a": "0",
+       "b": "2",
+       "jaccard": 0.9733199574839072,
+       "positive_pairs": 81499,
+       "log2_pearson": 0.9997364684020215
+      },
+      {
+       "a": "0",
+       "b": "3",
+       "jaccard": 0.9730610289273522,
+       "positive_pairs": 81236,
+       "log2_pearson": 0.9997512191567961
+      },
+      {
+       "a": "0",
+       "b": "4",
+       "jaccard": 0.9749193452025332,
+       "positive_pairs": 81591,
+       "log2_pearson": 0.9997022970045791
+      },
+      {
+       "a": "1",
+       "b": "2",
+       "jaccard": 0.9749883150968948,
+       "positive_pairs": 81354,
+       "log2_pearson": 0.9998241990614645
+      },
+      {
+       "a": "1",
+       "b": "3",
+       "jaccard": 0.9736895851604455,
+       "positive_pairs": 81047,
+       "log2_pearson": 0.9996648814894125
+      },
+      {
+       "a": "1",
+       "b": "4",
+       "jaccard": 0.9764282716863497,
+       "positive_pairs": 81439,
+       "log2_pearson": 0.9995998081706127
+      },
+      {
+       "a": "2",
+       "b": "3",
+       "jaccard": 0.9713649265260662,
+       "positive_pairs": 81108,
+       "log2_pearson": 0.9996009675696036
+      },
+      {
+       "a": "2",
+       "b": "4",
+       "jaccard": 0.9739581465944809,
+       "positive_pairs": 81494,
+       "log2_pearson": 0.9995536282362925
+      },
+      {
+       "a": "3",
+       "b": "4",
+       "jaccard": 0.9717156234657343,
+       "positive_pairs": 81147,
+       "log2_pearson": 0.9996796708153004
+      }
+     ],
+     "cv_raw_median": 0.0,
+     "cv_median_normalized_median": 4.1279349398685036e-05,
+     "cv_n": 80155
+    }
+   },
+   "peptide": {
+    "01": {
+     "labels": [
+      "0",
+      "1",
+      "2",
+      "3",
+      "4"
+     ],
+     "union": 68268,
+     "positive_complete": 64823,
+     "detection_completeness": {
+      "1": 1050,
+      "2": 695,
+      "3": 680,
+      "4": 1020,
+      "5": 64823
+     },
+     "positive_completeness": {
+      "0": 0,
+      "1": 1050,
+      "2": 695,
+      "3": 680,
+      "4": 1020,
+      "5": 64823
+     },
+     "normalization_log2_offsets": [
+      0.0,
+      -0.0002505879756178331,
+      0.00017953833436124,
+      -0.0011276598568201734,
+      0.00014096434820487502
+     ],
+     "pairs": [
+      {
+       "a": "0",
+       "b": "1",
+       "jaccard": 0.9745569657702435,
+       "positive_pairs": 65882,
+       "log2_pearson": 0.9957217527475174
+      },
+      {
+       "a": "0",
+       "b": "2",
+       "jaccard": 0.9765013827065556,
+       "positive_pairs": 66032,
+       "log2_pearson": 0.9958164334170678
+      },
+      {
+       "a": "0",
+       "b": "3",
+       "jaccard": 0.9743456892468024,
+       "positive_pairs": 65819,
+       "log2_pearson": 0.9952039088171837
+      },
+      {
+       "a": "0",
+       "b": "4",
+       "jaccard": 0.9697422764347994,
+       "positive_pairs": 65509,
+       "log2_pearson": 0.9953785169408672
+      },
+      {
+       "a": "1",
+       "b": "2",
+       "jaccard": 0.9776560365817447,
+       "positive_pairs": 65851,
+       "log2_pearson": 0.9956324578698117
+      },
+      {
+       "a": "1",
+       "b": "3",
+       "jaccard": 0.9783744362916549,
+       "positive_pairs": 65736,
+       "log2_pearson": 0.9954890574188218
+      },
+      {
+       "a": "1",
+       "b": "4",
+       "jaccard": 0.9768942951269323,
+       "positive_pairs": 65533,
+       "log2_pearson": 0.9950218571164853
+      },
+      {
+       "a": "2",
+       "b": "3",
+       "jaccard": 0.9777401331431289,
+       "positive_pairs": 65798,
+       "log2_pearson": 0.9945002176922071
+      },
+      {
+       "a": "2",
+       "b": "4",
+       "jaccard": 0.9735590499687881,
+       "positive_pairs": 65503,
+       "log2_pearson": 0.9951625660482036
+      },
+      {
+       "a": "3",
+       "b": "4",
+       "jaccard": 0.9752687049984348,
+       "positive_pairs": 65422,
+       "log2_pearson": 0.9949216944775272
+      }
+     ],
+     "cv_raw_median": 0.0,
+     "cv_median_normalized_median": 0.00037378660091734846,
+     "cv_n": 64823
+    },
+    "02": {
+     "labels": [
+      "0",
+      "1",
+      "2",
+      "3",
+      "4"
+     ],
+     "union": 68601,
+     "positive_complete": 65334,
+     "detection_completeness": {
+      "1": 977,
+      "2": 672,
+      "3": 657,
+      "4": 961,
+      "5": 65334
+     },
+     "positive_completeness": {
+      "0": 0,
+      "1": 977,
+      "2": 672,
+      "3": 657,
+      "4": 961,
+      "5": 65334
+     },
+     "normalization_log2_offsets": [
+      0.0007615878816729094,
+      0.0008656701958500435,
+      -0.0003791997192230667,
+      -0.00078533293768146,
+      0.0
+     ],
+     "pairs": [
+      {
+       "a": "0",
+       "b": "1",
+       "jaccard": 0.9777010374699311,
+       "positive_pairs": 66250,
+       "log2_pearson": 0.9945270997688459
+      },
+      {
+       "a": "0",
+       "b": "2",
+       "jaccard": 0.978854417388993,
+       "positive_pairs": 66289,
+       "log2_pearson": 0.9955766565284334
+      },
+      {
+       "a": "0",
+       "b": "3",
+       "jaccard": 0.9789260414972123,
+       "positive_pairs": 66194,
+       "log2_pearson": 0.9952963332626681
+      },
+      {
+       "a": "0",
+       "b": "4",
+       "jaccard": 0.9763059094805924,
+       "positive_pairs": 66051,
+       "log2_pearson": 0.9947647590511315
+      },
+      {
+       "a": "1",
+       "b": "2",
+       "jaccard": 0.9762174738981254,
+       "positive_pairs": 66292,
+       "log2_pearson": 0.995290568490512
+      },
+      {
+       "a": "1",
+       "b": "3",
+       "jaccard": 0.9779184932618932,
+       "positive_pairs": 66253,
+       "log2_pearson": 0.9953036866605444
+      },
+      {
+       "a": "1",
+       "b": "4",
+       "jaccard": 0.9724812539591343,
+       "positive_pairs": 66013,
+       "log2_pearson": 0.9936061179324707
+      },
+      {
+       "a": "2",
+       "b": "3",
+       "jaccard": 0.977932927909311,
+       "positive_pairs": 66253,
+       "log2_pearson": 0.9954823085258837
+      },
+      {
+       "a": "2",
+       "b": "4",
+       "jaccard": 0.9764263045243191,
+       "positive_pairs": 66148,
+       "log2_pearson": 0.9943042700748935
+      },
+      {
+       "a": "3",
+       "b": "4",
+       "jaccard": 0.9751218791549712,
+       "positive_pairs": 66006,
+       "log2_pearson": 0.9940926225278344
+      }
+     ],
+     "cv_raw_median": 0.0,
+     "cv_median_normalized_median": 0.0004958706920061204,
+     "cv_n": 65334
+    },
+    "03": {
+     "labels": [
+      "0",
+      "1",
+      "2",
+      "3",
+      "4"
+     ],
+     "union": 65753,
+     "positive_complete": 62393,
+     "detection_completeness": {
+      "1": 971,
+      "2": 728,
+      "3": 692,
+      "4": 969,
+      "5": 62393
+     },
+     "positive_completeness": {
+      "0": 0,
+      "1": 971,
+      "2": 728,
+      "3": 692,
+      "4": 969,
+      "5": 62393
+     },
+     "normalization_log2_offsets": [
+      0.00141699826363606,
+      0.0,
+      -0.000840121953817885,
+      -0.0006949374425744281,
+      0.0007578472197131703
+     ],
+     "pairs": [
+      {
+       "a": "0",
+       "b": "1",
+       "jaccard": 0.9761313699791844,
+       "positive_pairs": 63307,
+       "log2_pearson": 0.9950331260826933
+      },
+      {
+       "a": "0",
+       "b": "2",
+       "jaccard": 0.9745937144788178,
+       "positive_pairs": 63448,
+       "log2_pearson": 0.9941928585343869
+      },
+      {
+       "a": "0",
+       "b": "3",
+       "jaccard": 0.9738883662106513,
+       "positive_pairs": 63144,
+       "log2_pearson": 0.9948946688565448
+      },
+      {
+       "a": "0",
+       "b": "4",
+       "jaccard": 0.9756926816510515,
+       "positive_pairs": 63421,
+       "log2_pearson": 0.9948338891012327
+      },
+      {
+       "a": "1",
+       "b": "2",
+       "jaccard": 0.9762293818406043,
+       "positive_pairs": 63328,
+       "log2_pearson": 0.9932283687237138
+      },
+      {
+       "a": "1",
+       "b": "3",
+       "jaccard": 0.9742447445357093,
+       "positive_pairs": 62982,
+       "log2_pearson": 0.9943132728377847
+      },
+      {
+       "a": "1",
+       "b": "4",
+       "jaccard": 0.9778539659006672,
+       "positive_pairs": 63318,
+       "log2_pearson": 0.9941012074015867
+      },
+      {
+       "a": "2",
+       "b": "3",
+       "jaccard": 0.9723750096294584,
+       "positive_pairs": 63112,
+       "log2_pearson": 0.9941728277727587
+      },
+      {
+       "a": "2",
+       "b": "4",
+       "jaccard": 0.975790574627784,
+       "positive_pairs": 63442,
+       "log2_pearson": 0.9941529693153393
+      },
+      {
+       "a": "3",
+       "b": "4",
+       "jaccard": 0.9722869083786994,
+       "positive_pairs": 63046,
+       "log2_pearson": 0.9946893983801585
+      }
+     ],
+     "cv_raw_median": 0.0,
+     "cv_median_normalized_median": 0.000665606505687744,
+     "cv_n": 62393
+    }
+   }
+  }
+ },
+ "quant_human_q0.02": {
+  "q_cutoff": 0.02,
+  "population": "human",
+  "audit": [
+   {
+    "raw": "01",
+    "seed": "0",
+    "sha256": "07bd2588b67c153f9916f3203d499558a8b17dbcac019dc1ddac349be155e661",
+    "rows": 5868831,
+    "decoys": 2930825,
+    "rejected_q": 2845895,
+    "nonpositive": 0,
+    "nonfinite": 0,
+    "population_excluded": 1212
+   },
+   {
+    "raw": "01",
+    "seed": "1",
+    "sha256": "39769d5cdd704eb5860e3b0377fae5e8d22b1b9e07762f7ce59ea4bec7f5a329",
+    "rows": 5870225,
+    "decoys": 2931523,
+    "rejected_q": 2847099,
+    "nonpositive": 0,
+    "nonfinite": 0,
+    "population_excluded": 1210
+   },
+   {
+    "raw": "01",
+    "seed": "2",
+    "sha256": "8017b4fcb96e152bbf41ef39c185478a471a45874eced9bdd73df63368f5dec9",
+    "rows": 5867486,
+    "decoys": 2930152,
+    "rejected_q": 2845352,
+    "nonpositive": 0,
+    "nonfinite": 0,
+    "population_excluded": 1243
+   },
+   {
+    "raw": "01",
+    "seed": "3",
+    "sha256": "6f11efad67134b58329457cef7d4bfa358b2406bd28144b49ce58fa2b8b781f1",
+    "rows": 5869685,
+    "decoys": 2931259,
+    "rejected_q": 2846960,
+    "nonpositive": 0,
+    "nonfinite": 0,
+    "population_excluded": 1213
+   },
+   {
+    "raw": "01",
+    "seed": "4",
+    "sha256": "5abf2633e17d1f2edc956b4caea4b09297052ac68ae754e70f7597a349abb397",
+    "rows": 5868461,
+    "decoys": 2930633,
+    "rejected_q": 2846653,
+    "nonpositive": 0,
+    "nonfinite": 0,
+    "population_excluded": 1232
+   },
+   {
+    "raw": "02",
+    "seed": "0",
+    "sha256": "360657fec9c98dea5676b280fd2e51986a08b1f0c97f4e256ddee2694458988d",
+    "rows": 6117330,
+    "decoys": 3055054,
+    "rejected_q": 2970065,
+    "nonpositive": 0,
+    "nonfinite": 0,
+    "population_excluded": 1194
+   },
+   {
+    "raw": "02",
+    "seed": "1",
+    "sha256": "b0bad850356685dce9e151ecf23fbd60e283a88e40bc108ed74f4c4450a0d3ab",
+    "rows": 6117989,
+    "decoys": 3055381,
+    "rejected_q": 2970315,
+    "nonpositive": 0,
+    "nonfinite": 0,
+    "population_excluded": 1182
+   },
+   {
+    "raw": "02",
+    "seed": "2",
+    "sha256": "3987e7c630b7d7dc073d7da8eaf5f0e5de9b2db4785e06b3bfa09f77a658b65b",
+    "rows": 6119165,
+    "decoys": 3055965,
+    "rejected_q": 2970821,
+    "nonpositive": 0,
+    "nonfinite": 0,
+    "population_excluded": 1194
+   },
+   {
+    "raw": "02",
+    "seed": "3",
+    "sha256": "acd42c36b79334cde479caac70f0fa8a568893a003c0860a153e15c7c5ba2be0",
+    "rows": 6119762,
+    "decoys": 3056272,
+    "rejected_q": 2971196,
+    "nonpositive": 0,
+    "nonfinite": 0,
+    "population_excluded": 1215
+   },
+   {
+    "raw": "02",
+    "seed": "4",
+    "sha256": "2ded0b928045b55ff82dc957728bf400d289b3ad179a2b29cbe30367b1dba15b",
+    "rows": 6119055,
+    "decoys": 3055914,
+    "rejected_q": 2970900,
+    "nonpositive": 0,
+    "nonfinite": 0,
+    "population_excluded": 1197
+   },
+   {
+    "raw": "03",
+    "seed": "0",
+    "sha256": "f38f3a402f10f3c8ccb1a0e35041c99b5e11dbeaaf2899ea3db05c1a022eb2d8",
+    "rows": 6267222,
+    "decoys": 3130002,
+    "rejected_q": 3047864,
+    "nonpositive": 0,
+    "nonfinite": 0,
+    "population_excluded": 1217
+   },
+   {
+    "raw": "03",
+    "seed": "1",
+    "sha256": "4e9eb338998df6aaa26750790cced8a9efc3e922a2ead07c38446fbb68eeaeb5",
+    "rows": 6266147,
+    "decoys": 3129471,
+    "rejected_q": 3047884,
+    "nonpositive": 0,
+    "nonfinite": 0,
+    "population_excluded": 1201
+   },
+   {
+    "raw": "03",
+    "seed": "2",
+    "sha256": "0022525c28691dd62ff4afb24a43695dc022f7cf5b2ccc77b00b69c7fc6b36cd",
+    "rows": 6267851,
+    "decoys": 3130322,
+    "rejected_q": 3048292,
+    "nonpositive": 0,
+    "nonfinite": 0,
+    "population_excluded": 1185
+   },
+   {
+    "raw": "03",
+    "seed": "3",
+    "sha256": "2cf27cc3937ea772cba62640e7257e6df7d9d50c999814cf8fde1a8fb011ac0f",
+    "rows": 6267560,
+    "decoys": 3130170,
+    "rejected_q": 3048664,
+    "nonpositive": 0,
+    "nonfinite": 0,
+    "population_excluded": 1220
+   },
+   {
+    "raw": "03",
+    "seed": "4",
+    "sha256": "be7c274a883a8c7f3e1f517ca4936c1e96e1e725e3a2087983c7724b8ea36826",
+    "rows": 6268960,
+    "decoys": 3130875,
+    "rejected_q": 3049093,
+    "nonpositive": 0,
+    "nonfinite": 0,
+    "population_excluded": 1165
+   }
+  ],
+  "across_raws": {
+   "precursor": {
+    "0": {
+     "labels": [
+      "01",
+      "02",
+      "03"
+     ],
+     "union": 118489,
+     "positive_complete": 65855,
+     "detection_completeness": {
+      "1": 32778,
+      "2": 19856,
+      "3": 65855
+     },
+     "positive_completeness": {
+      "0": 0,
+      "1": 32778,
+      "2": 19856,
+      "3": 65855
+     },
+     "normalization_log2_offsets": [
+      0.010427284061037767,
+      0.0,
+      -0.04389930840812539
+     ],
+     "pairs": [
+      {
+       "a": "01",
+       "b": "02",
+       "jaccard": 0.6844386007148281,
+       "positive_pairs": 73918,
+       "log2_pearson": 0.9774992691199753
+      },
+      {
+       "a": "01",
+       "b": "03",
+       "jaccard": 0.6686518477095857,
+       "positive_pairs": 71743,
+       "log2_pearson": 0.97489771730487
+      },
+      {
+       "a": "02",
+       "b": "03",
+       "jaccard": 0.6681813102908861,
+       "positive_pairs": 71760,
+       "log2_pearson": 0.9746306003661592
+      }
+     ],
+     "cv_raw_median": 0.11266515702663085,
+     "cv_median_normalized_median": 0.11108514708311507,
+     "cv_n": 65855
+    },
+    "1": {
+     "labels": [
+      "01",
+      "02",
+      "03"
+     ],
+     "union": 118069,
+     "positive_complete": 65614,
+     "detection_completeness": {
+      "1": 32657,
+      "2": 19798,
+      "3": 65614
+     },
+     "positive_completeness": {
+      "0": 0,
+      "1": 32657,
+      "2": 19798,
+      "3": 65614
+     },
+     "normalization_log2_offsets": [
+      0.009291538787614684,
+      0.0,
+      -0.04376158930185525
+     ],
+     "pairs": [
+      {
+       "a": "01",
+       "b": "02",
+       "jaccard": 0.6847264120295169,
+       "positive_pairs": 73769,
+       "log2_pearson": 0.9778730503107306
+      },
+      {
+       "a": "01",
+       "b": "03",
+       "jaccard": 0.6676723572512789,
+       "positive_pairs": 71258,
+       "log2_pearson": 0.9752281577363251
+      },
+      {
+       "a": "02",
+       "b": "03",
+       "jaccard": 0.668724145337056,
+       "positive_pairs": 71613,
+       "log2_pearson": 0.9750632296479879
+      }
+     ],
+     "cv_raw_median": 0.11232315944323329,
+     "cv_median_normalized_median": 0.11078052879315248,
+     "cv_n": 65614
+    },
+    "2": {
+     "labels": [
+      "01",
+      "02",
+      "03"
+     ],
+     "union": 118439,
+     "positive_complete": 65836,
+     "detection_completeness": {
+      "1": 32738,
+      "2": 19865,
+      "3": 65836
+     },
+     "positive_completeness": {
+      "0": 0,
+      "1": 32738,
+      "2": 19865,
+      "3": 65836
+     },
+     "normalization_log2_offsets": [
+      0.010218315734945804,
+      0.0,
+      -0.0426542687823499
+     ],
+     "pairs": [
+      {
+       "a": "01",
+       "b": "02",
+       "jaccard": 0.6845282739335352,
+       "positive_pairs": 73927,
+       "log2_pearson": 0.9775226457168777
+      },
+      {
+       "a": "01",
+       "b": "03",
+       "jaccard": 0.6686047596826878,
+       "positive_pairs": 71641,
+       "log2_pearson": 0.9751425654473049
+      },
+      {
+       "a": "02",
+       "b": "03",
+       "jaccard": 0.6683762752252588,
+       "positive_pairs": 71805,
+       "log2_pearson": 0.9750896764116849
+      }
+     ],
+     "cv_raw_median": 0.11257712761272219,
+     "cv_median_normalized_median": 0.11097928466475086,
+     "cv_n": 65836
+    },
+    "3": {
+     "labels": [
+      "01",
+      "02",
+      "03"
+     ],
+     "union": 118072,
+     "positive_complete": 65474,
+     "detection_completeness": {
+      "1": 32780,
+      "2": 19818,
+      "3": 65474
+     },
+     "positive_completeness": {
+      "0": 0,
+      "1": 32780,
+      "2": 19818,
+      "3": 65474
+     },
+     "normalization_log2_offsets": [
+      0.010172705937822712,
+      0.0,
+      -0.04413581964825042
+     ],
+     "pairs": [
+      {
+       "a": "01",
+       "b": "02",
+       "jaccard": 0.6831455250895725,
+       "positive_pairs": 73598,
+       "log2_pearson": 0.9777203759062902
+      },
+      {
+       "a": "01",
+       "b": "03",
+       "jaccard": 0.6677362154859411,
+       "positive_pairs": 71172,
+       "log2_pearson": 0.9749355592280539
+      },
+      {
+       "a": "02",
+       "b": "03",
+       "jaccard": 0.6672268123045325,
+       "positive_pairs": 71470,
+       "log2_pearson": 0.9747465680994449
+      }
+     ],
+     "cv_raw_median": 0.11207835550810241,
+     "cv_median_normalized_median": 0.11054533370002795,
+     "cv_n": 65474
+    },
+    "4": {
+     "labels": [
+      "01",
+      "02",
+      "03"
+     ],
+     "union": 118065,
+     "positive_complete": 65500,
+     "detection_completeness": {
+      "1": 32816,
+      "2": 19749,
+      "3": 65500
+     },
+     "positive_completeness": {
+      "0": 0,
+      "1": 32816,
+      "2": 19749,
+      "3": 65500
+     },
+     "normalization_log2_offsets": [
+      0.010769519530327898,
+      0.0,
+      -0.04339303711408249
+     ],
+     "pairs": [
+      {
+       "a": "01",
+       "b": "02",
+       "jaccard": 0.6834903773707759,
+       "positive_pairs": 73480,
+       "log2_pearson": 0.9775798361743278
+      },
+      {
+       "a": "01",
+       "b": "03",
+       "jaccard": 0.6670730334971304,
+       "positive_pairs": 71134,
+       "log2_pearson": 0.9750211436887384
+      },
+      {
+       "a": "02",
+       "b": "03",
+       "jaccard": 0.6680126077063673,
+       "positive_pairs": 71635,
+       "log2_pearson": 0.9750856867239598
+      }
+     ],
+     "cv_raw_median": 0.11227949784012684,
+     "cv_median_normalized_median": 0.1107471033450353,
+     "cv_n": 65500
+    }
+   },
+   "peptide": {
+    "0": {
+     "labels": [
+      "01",
+      "02",
+      "03"
+     ],
+     "union": 86342,
+     "positive_complete": 57020,
+     "detection_completeness": {
+      "1": 16435,
+      "2": 12887,
+      "3": 57020
+     },
+     "positive_completeness": {
+      "0": 0,
+      "1": 16435,
+      "2": 12887,
+      "3": 57020
+     },
+     "normalization_log2_offsets": [
+      0.005229676867951838,
+      0.0,
+      -0.04476801430972088
+     ],
+     "pairs": [
+      {
+       "a": "01",
+       "b": "02",
+       "jaccard": 0.768607004845734,
+       "positive_pairs": 62653,
+       "log2_pearson": 0.9613976411371595
+      },
+      {
+       "a": "01",
+       "b": "03",
+       "jaccard": 0.7518298799895966,
+       "positive_pairs": 60705,
+       "log2_pearson": 0.9579126908600417
+      },
+      {
+       "a": "02",
+       "b": "03",
+       "jaccard": 0.7542230465686579,
+       "positive_pairs": 60589,
+       "log2_pearson": 0.95787847039018
+      }
+     ],
+     "cv_raw_median": 0.10542821679598438,
+     "cv_median_normalized_median": 0.10418320396758093,
+     "cv_n": 57020
+    },
+    "1": {
+     "labels": [
+      "01",
+      "02",
+      "03"
+     ],
+     "union": 85867,
+     "positive_complete": 56793,
+     "detection_completeness": {
+      "1": 16241,
+      "2": 12833,
+      "3": 56793
+     },
+     "positive_completeness": {
+      "0": 0,
+      "1": 16241,
+      "2": 12833,
+      "3": 56793
+     },
+     "normalization_log2_offsets": [
+      0.002892038253126117,
+      0.0,
+      -0.04692860504723839
+     ],
+     "pairs": [
+      {
+       "a": "01",
+       "b": "02",
+       "jaccard": 0.7701300941211255,
+       "positive_pairs": 62513,
+       "log2_pearson": 0.9621784324045374
+      },
+      {
+       "a": "01",
+       "b": "03",
+       "jaccard": 0.7525269562827193,
+       "positive_pairs": 60230,
+       "log2_pearson": 0.9572606324265452
+      },
+      {
+       "a": "02",
+       "b": "03",
+       "jaccard": 0.7544384973362778,
+       "positive_pairs": 60469,
+       "log2_pearson": 0.9584847793177943
+      }
+     ],
+     "cv_raw_median": 0.1050077821513965,
+     "cv_median_normalized_median": 0.1038690124614712,
+     "cv_n": 56793
+    },
+    "2": {
+     "labels": [
+      "01",
+      "02",
+      "03"
+     ],
+     "union": 86277,
+     "positive_complete": 57023,
+     "detection_completeness": {
+      "1": 16374,
+      "2": 12880,
+      "3": 57023
+     },
+     "positive_completeness": {
+      "0": 0,
+      "1": 16374,
+      "2": 12880,
+      "3": 57023
+     },
+     "normalization_log2_offsets": [
+      0.00623121791201342,
+      0.0,
+      -0.045340901275114476
+     ],
+     "pairs": [
+      {
+       "a": "01",
+       "b": "02",
+       "jaccard": 0.7688210314440708,
+       "positive_pairs": 62642,
+       "log2_pearson": 0.9624650092329338
+      },
+      {
+       "a": "01",
+       "b": "03",
+       "jaccard": 0.7529842866902677,
+       "positive_pairs": 60619,
+       "log2_pearson": 0.9581904137752348
+      },
+      {
+       "a": "02",
+       "b": "03",
+       "jaccard": 0.7541317692670925,
+       "positive_pairs": 60688,
+       "log2_pearson": 0.9572783975070078
+      }
+     ],
+     "cv_raw_median": 0.10535115468538375,
+     "cv_median_normalized_median": 0.104198578698446,
+     "cv_n": 57023
+    },
+    "3": {
+     "labels": [
+      "01",
+      "02",
+      "03"
+     ],
+     "union": 85760,
+     "positive_complete": 56692,
+     "detection_completeness": {
+      "1": 16262,
+      "2": 12806,
+      "3": 56692
+     },
+     "positive_completeness": {
+      "0": 0,
+      "1": 16262,
+      "2": 12806,
+      "3": 56692
+     },
+     "normalization_log2_offsets": [
+      0.004093266126478312,
+      0.0,
+      -0.04579093043191662
+     ],
+     "pairs": [
+      {
+       "a": "01",
+       "b": "02",
+       "jaccard": 0.7688420533678437,
+       "positive_pairs": 62380,
+       "log2_pearson": 0.9600502849653576
+      },
+      {
+       "a": "01",
+       "b": "03",
+       "jaccard": 0.7535877977308588,
+       "positive_pairs": 60177,
+       "log2_pearson": 0.9558942021129083
+      },
+      {
+       "a": "02",
+       "b": "03",
+       "jaccard": 0.7537892513963688,
+       "positive_pairs": 60325,
+       "log2_pearson": 0.9564799050470748
+      }
+     ],
+     "cv_raw_median": 0.10493424047082683,
+     "cv_median_normalized_median": 0.10375641714727624,
+     "cv_n": 56692
+    },
+    "4": {
+     "labels": [
+      "01",
+      "02",
+      "03"
+     ],
+     "union": 85759,
+     "positive_complete": 56673,
+     "detection_completeness": {
+      "1": 16329,
+      "2": 12757,
+      "3": 56673
+     },
+     "positive_completeness": {
+      "0": 0,
+      "1": 16329,
+      "2": 12757,
+      "3": 56673
+     },
+     "normalization_log2_offsets": [
+      0.004203382834621294,
+      0.0,
+      -0.04510531242610938
+     ],
+     "pairs": [
+      {
+       "a": "01",
+       "b": "02",
+       "jaccard": 0.7688429792912569,
+       "positive_pairs": 62224,
+       "log2_pearson": 0.9599600664004544
+      },
+      {
+       "a": "01",
+       "b": "03",
+       "jaccard": 0.7521799507087186,
+       "positive_pairs": 60124,
+       "log2_pearson": 0.9566951534403596
+      },
+      {
+       "a": "02",
+       "b": "03",
+       "jaccard": 0.7545671365957819,
+       "positive_pairs": 60428,
+       "log2_pearson": 0.9569523685874664
+      }
+     ],
+     "cv_raw_median": 0.1050077821513965,
+     "cv_median_normalized_median": 0.10383475587661535,
+     "cv_n": 56673
+    }
+   }
+  },
+  "within_raw_seeds": {
+   "precursor": {
+    "01": {
+     "labels": [
+      "0",
+      "1",
+      "2",
+      "3",
+      "4"
+     ],
+     "union": 92883,
+     "positive_complete": 88083,
+     "detection_completeness": {
+      "1": 1475,
+      "2": 1000,
+      "3": 963,
+      "4": 1362,
+      "5": 88083
+     },
+     "positive_completeness": {
+      "0": 0,
+      "1": 1475,
+      "2": 1000,
+      "3": 963,
+      "4": 1362,
+      "5": 88083
+     },
+     "normalization_log2_offsets": [
+      -4.388074018990551e-05,
+      0.00011764053799900864,
+      0.0,
+      -8.431087945481863e-05,
+      0.00011764053799900864
+     ],
+     "pairs": [
+      {
+       "a": "0",
+       "b": "1",
+       "jaccard": 0.9731818280763621,
+       "positive_pairs": 89414,
+       "log2_pearson": 0.9998478620096048
+      },
+      {
+       "a": "0",
+       "b": "2",
+       "jaccard": 0.9754426414930178,
+       "positive_pairs": 89690,
+       "log2_pearson": 0.99962231246904
+      },
+      {
+       "a": "0",
+       "b": "3",
+       "jaccard": 0.9730754149784342,
+       "positive_pairs": 89340,
+       "log2_pearson": 0.9998146566019493
+      },
+      {
+       "a": "0",
+       "b": "4",
+       "jaccard": 0.9692056405509882,
+       "positive_pairs": 89007,
+       "log2_pearson": 0.9997125564650549
+      },
+      {
+       "a": "1",
+       "b": "2",
+       "jaccard": 0.9770350804427078,
+       "positive_pairs": 89514,
+       "log2_pearson": 0.9996259042291759
+      },
+      {
+       "a": "1",
+       "b": "3",
+       "jaccard": 0.9783596718905718,
+       "positive_pairs": 89335,
+       "log2_pearson": 0.9998541630622947
+      },
+      {
+       "a": "1",
+       "b": "4",
+       "jaccard": 0.9770215751622522,
+       "positive_pairs": 89120,
+       "log2_pearson": 0.9997369924350755
+      },
+      {
+       "a": "2",
+       "b": "3",
+       "jaccard": 0.9768015902488041,
+       "positive_pairs": 89434,
+       "log2_pearson": 0.9997006129015455
+      },
+      {
+       "a": "2",
+       "b": "4",
+       "jaccard": 0.9725755210323482,
+       "positive_pairs": 89085,
+       "log2_pearson": 0.9996343801170681
+      },
+      {
+       "a": "3",
+       "b": "4",
+       "jaccard": 0.9748805400903073,
+       "positive_pairs": 88952,
+       "log2_pearson": 0.9996833551069175
+      }
+     ],
+     "cv_raw_median": 0.0,
+     "cv_median_normalized_median": 6.429719114504895e-05,
+     "cv_n": 88083
+    },
+    "02": {
+     "labels": [
+      "0",
+      "1",
+      "2",
+      "3",
+      "4"
+     ],
+     "union": 93395,
+     "positive_complete": 88912,
+     "detection_completeness": {
+      "1": 1419,
+      "2": 939,
+      "3": 921,
+      "4": 1204,
+      "5": 88912
+     },
+     "positive_completeness": {
+      "0": 0,
+      "1": 1419,
+      "2": 939,
+      "3": 921,
+      "4": 1204,
+      "5": 88912
+     },
+     "normalization_log2_offsets": [
+      0.0,
+      4.885149820843537e-05,
+      5.9848678821694534e-05,
+      -0.00022156732576306126,
+      -0.0001014016545024532
+     ],
+     "pairs": [
+      {
+       "a": "0",
+       "b": "1",
+       "jaccard": 0.9764940801111268,
+       "positive_pairs": 89981,
+       "log2_pearson": 0.9997618321534651
+      },
+      {
+       "a": "0",
+       "b": "2",
+       "jaccard": 0.9776190682933182,
+       "positive_pairs": 90070,
+       "log2_pearson": 0.9997445501993308
+      },
+      {
+       "a": "0",
+       "b": "3",
+       "jaccard": 0.9787236354548122,
+       "positive_pairs": 90069,
+       "log2_pearson": 0.9997142587794847
+      },
+      {
+       "a": "0",
+       "b": "4",
+       "jaccard": 0.976324616536946,
+       "positive_pairs": 89940,
+       "log2_pearson": 0.9995951011461474
+      },
+      {
+       "a": "1",
+       "b": "2",
+       "jaccard": 0.9756158356182199,
+       "positive_pairs": 90023,
+       "log2_pearson": 0.9997512722844916
+      },
+      {
+       "a": "1",
+       "b": "3",
+       "jaccard": 0.9777678871893963,
+       "positive_pairs": 90071,
+       "log2_pearson": 0.9997647492388412
+      },
+      {
+       "a": "1",
+       "b": "4",
+       "jaccard": 0.9732965009208103,
+       "positive_pairs": 89845,
+       "log2_pearson": 0.9997962197498496
+      },
+      {
+       "a": "2",
+       "b": "3",
+       "jaccard": 0.9781846598000803,
+       "positive_pairs": 90127,
+       "log2_pearson": 0.9997265118320305
+      },
+      {
+       "a": "2",
+       "b": "4",
+       "jaccard": 0.975767629456154,
+       "positive_pairs": 89997,
+       "log2_pearson": 0.9996720322828394
+      },
+      {
+       "a": "3",
+       "b": "4",
+       "jaccard": 0.9753036876355748,
+       "positive_pairs": 89923,
+       "log2_pearson": 0.9997498782170815
+      }
+     ],
+     "cv_raw_median": 0.0,
+     "cv_median_normalized_median": 8.213372930582871e-05,
+     "cv_n": 88912
+    },
+    "03": {
+     "labels": [
+      "0",
+      "1",
+      "2",
+      "3",
+      "4"
+     ],
+     "union": 90190,
+     "positive_complete": 85497,
+     "detection_completeness": {
+      "1": 1397,
+      "2": 977,
+      "3": 997,
+      "4": 1322,
+      "5": 85497
+     },
+     "positive_completeness": {
+      "0": 0,
+      "1": 1397,
+      "2": 977,
+      "3": 997,
+      "4": 1322,
+      "5": 85497
+     },
+     "normalization_log2_offsets": [
+      0.00025553472153205803,
+      0.0,
+      0.0,
+      -0.00017776641802669246,
+      0.00046499382615472484
+     ],
+     "pairs": [
+      {
+       "a": "0",
+       "b": "1",
+       "jaccard": 0.9751823668918387,
+       "positive_pairs": 86761,
+       "log2_pearson": 0.999743910478199
+      },
+      {
+       "a": "0",
+       "b": "2",
+       "jaccard": 0.9742173318692154,
+       "positive_pairs": 86945,
+       "log2_pearson": 0.9997385284798175
+      },
+      {
+       "a": "0",
+       "b": "3",
+       "jaccard": 0.9736723824078027,
+       "positive_pairs": 86651,
+       "log2_pearson": 0.9997429111311006
+      },
+      {
+       "a": "0",
+       "b": "4",
+       "jaccard": 0.9746832602035663,
+       "positive_pairs": 86855,
+       "log2_pearson": 0.9997068849392698
+      },
+      {
+       "a": "1",
+       "b": "2",
+       "jaccard": 0.9763592582590692,
+       "positive_pairs": 86771,
+       "log2_pearson": 0.9998133949616642
+      },
+      {
+       "a": "1",
+       "b": "3",
+       "jaccard": 0.9745035464991711,
+       "positive_pairs": 86418,
+       "log2_pearson": 0.9996613555990643
+      },
+      {
+       "a": "1",
+       "b": "4",
+       "jaccard": 0.9763404274496107,
+       "positive_pairs": 86659,
+       "log2_pearson": 0.9995846333177089
+      },
+      {
+       "a": "2",
+       "b": "3",
+       "jaccard": 0.9723623453808042,
+       "positive_pairs": 86549,
+       "log2_pearson": 0.9996082106133469
+      },
+      {
+       "a": "2",
+       "b": "4",
+       "jaccard": 0.974659810481879,
+       "positive_pairs": 86811,
+       "log2_pearson": 0.9995651151587649
+      },
+      {
+       "a": "3",
+       "b": "4",
+       "jaccard": 0.9726269365345455,
+       "positive_pairs": 86450,
+       "log2_pearson": 0.9996773872934931
+      }
+     ],
+     "cv_raw_median": 0.0,
+     "cv_median_normalized_median": 0.0001747309991328603,
+     "cv_n": 85497
+    }
+   },
+   "peptide": {
+    "01": {
+     "labels": [
+      "0",
+      "1",
+      "2",
+      "3",
+      "4"
+     ],
+     "union": 73694,
+     "positive_complete": 70026,
+     "detection_completeness": {
+      "1": 1171,
+      "2": 787,
+      "3": 714,
+      "4": 996,
+      "5": 70026
+     },
+     "positive_completeness": {
+      "0": 0,
+      "1": 1171,
+      "2": 787,
+      "3": 714,
+      "4": 996,
+      "5": 70026
+     },
+     "normalization_log2_offsets": [
+      -0.0018401392799383132,
+      0.00024198242517314839,
+      0.0006410262050451365,
+      -0.0011237214652126681,
+      0.0
+     ],
+     "pairs": [
+      {
+       "a": "0",
+       "b": "1",
+       "jaccard": 0.9738894447566442,
+       "positive_pairs": 71054,
+       "log2_pearson": 0.996961766641048
+      },
+      {
+       "a": "0",
+       "b": "2",
+       "jaccard": 0.9768075464465164,
+       "positive_pairs": 71347,
+       "log2_pearson": 0.9962183587217952
+      },
+      {
+       "a": "0",
+       "b": "3",
+       "jaccard": 0.9743642498559789,
+       "positive_pairs": 71037,
+       "log2_pearson": 0.9958682601493483
+      },
+      {
+       "a": "0",
+       "b": "4",
+       "jaccard": 0.9697069386188557,
+       "positive_pairs": 70744,
+       "log2_pearson": 0.99580546542687
+      },
+      {
+       "a": "1",
+       "b": "2",
+       "jaccard": 0.977964048779145,
+       "positive_pairs": 71053,
+       "log2_pearson": 0.9970229466466365
+      },
+      {
+       "a": "1",
+       "b": "3",
+       "jaccard": 0.9790302527973477,
+       "positive_pairs": 70872,
+       "log2_pearson": 0.9970725508840769
+      },
+      {
+       "a": "1",
+       "b": "4",
+       "jaccard": 0.9776948074396736,
+       "positive_pairs": 70702,
+       "log2_pearson": 0.9967824159033554
+      },
+      {
+       "a": "2",
+       "b": "3",
+       "jaccard": 0.977735552893552,
+       "positive_pairs": 71010,
+       "log2_pearson": 0.9965862049746255
+      },
+      {
+       "a": "2",
+       "b": "4",
+       "jaccard": 0.9736555957771874,
+       "positive_pairs": 70739,
+       "log2_pearson": 0.9959662660908747
+      },
+      {
+       "a": "3",
+       "b": "4",
+       "jaccard": 0.9760436826098977,
+       "positive_pairs": 70607,
+       "log2_pearson": 0.9958672776913107
+      }
+     ],
+     "cv_raw_median": 0.0,
+     "cv_median_normalized_median": 0.0007147758507796475,
+     "cv_n": 70026
+    },
+    "02": {
+     "labels": [
+      "0",
+      "1",
+      "2",
+      "3",
+      "4"
+     ],
+     "union": 73665,
+     "positive_complete": 70303,
+     "detection_completeness": {
+      "1": 1087,
+      "2": 680,
+      "3": 699,
+      "4": 896,
+      "5": 70303
+     },
+     "positive_completeness": {
+      "0": 0,
+      "1": 1087,
+      "2": 680,
+      "3": 699,
+      "4": 896,
+      "5": 70303
+     },
+     "normalization_log2_offsets": [
+      4.102779197268092e-06,
+      0.0003267664713533236,
+      -0.0017576657366831228,
+      -0.0008797806835225686,
+      0.0
+     ],
+     "pairs": [
+      {
+       "a": "0",
+       "b": "1",
+       "jaccard": 0.9780250003437891,
+       "positive_pairs": 71121,
+       "log2_pearson": 0.9963125999487039
+      },
+      {
+       "a": "0",
+       "b": "2",
+       "jaccard": 0.978931734418835,
+       "positive_pairs": 71184,
+       "log2_pearson": 0.9966270945485247
+      },
+      {
+       "a": "0",
+       "b": "3",
+       "jaccard": 0.9799716241717977,
+       "positive_pairs": 71143,
+       "log2_pearson": 0.996784873905254
+      },
+      {
+       "a": "0",
+       "b": "4",
+       "jaccard": 0.9780743434009558,
+       "positive_pairs": 71017,
+       "log2_pearson": 0.995813346453652
+      },
+      {
+       "a": "1",
+       "b": "2",
+       "jaccard": 0.9766800641984115,
+       "positive_pairs": 71199,
+       "log2_pearson": 0.9970666368076588
+      },
+      {
+       "a": "1",
+       "b": "3",
+       "jaccard": 0.9787740064062909,
+       "positive_pairs": 71197,
+       "log2_pearson": 0.9966706961576894
+      },
+      {
+       "a": "1",
+       "b": "4",
+       "jaccard": 0.9744381752536276,
+       "positive_pairs": 70981,
+       "log2_pearson": 0.9963230696680472
+      },
+      {
+       "a": "2",
+       "b": "3",
+       "jaccard": 0.9792723324124091,
+       "positive_pairs": 71245,
+       "log2_pearson": 0.9969543182177223
+      },
+      {
+       "a": "2",
+       "b": "4",
+       "jaccard": 0.9766457852511266,
+       "positive_pairs": 71092,
+       "log2_pearson": 0.9961900351828453
+      },
+      {
+       "a": "3",
+       "b": "4",
+       "jaccard": 0.9764026402640265,
+       "positive_pairs": 71004,
+       "log2_pearson": 0.9962040801788057
+      }
+     ],
+     "cv_raw_median": 0.0,
+     "cv_median_normalized_median": 0.0005909277874858658,
+     "cv_n": 70303
+    },
+    "03": {
+     "labels": [
+      "0",
+      "1",
+      "2",
+      "3",
+      "4"
+     ],
+     "union": 70577,
+     "positive_complete": 67044,
+     "detection_completeness": {
+      "1": 1077,
+      "2": 716,
+      "3": 763,
+      "4": 977,
+      "5": 67044
+     },
+     "positive_completeness": {
+      "0": 0,
+      "1": 1077,
+      "2": 716,
+      "3": 763,
+      "4": 977,
+      "5": 67044
+     },
+     "normalization_log2_offsets": [
+      0.0015172730049002325,
+      0.0,
+      -0.0007625386445155868,
+      -7.687450160176468e-05,
+      0.0017451523451867956
+     ],
+     "pairs": [
+      {
+       "a": "0",
+       "b": "1",
+       "jaccard": 0.9758935874072693,
+       "positive_pairs": 68011,
+       "log2_pearson": 0.995844631144428
+      },
+      {
+       "a": "0",
+       "b": "2",
+       "jaccard": 0.9755246754732086,
+       "positive_pairs": 68236,
+       "log2_pearson": 0.9949602674074641
+      },
+      {
+       "a": "0",
+       "b": "3",
+       "jaccard": 0.9753540344124322,
+       "positive_pairs": 67910,
+       "log2_pearson": 0.995293041408996
+      },
+      {
+       "a": "0",
+       "b": "4",
+       "jaccard": 0.9756992731287006,
+       "positive_pairs": 68056,
+       "log2_pearson": 0.9957448131599023
+      },
+      {
+       "a": "1",
+       "b": "2",
+       "jaccard": 0.9769118111592913,
+       "positive_pairs": 68038,
+       "log2_pearson": 0.9959554187571608
+      },
+      {
+       "a": "1",
+       "b": "3",
+       "jaccard": 0.9753791154932826,
+       "positive_pairs": 67664,
+       "log2_pearson": 0.9953052651094915
+      },
+      {
+       "a": "1",
+       "b": "4",
+       "jaccard": 0.9774043031193295,
+       "positive_pairs": 67869,
+       "log2_pearson": 0.9949909255220526
+      },
+      {
+       "a": "2",
+       "b": "3",
+       "jaccard": 0.9731401104813832,
+       "positive_pairs": 67823,
+       "log2_pearson": 0.995480513268149
+      },
+      {
+       "a": "2",
+       "b": "4",
+       "jaccard": 0.9759511278734602,
+       "positive_pairs": 68056,
+       "log2_pearson": 0.9945690620802619
+      },
+      {
+       "a": "3",
+       "b": "4",
+       "jaccard": 0.9733369785746148,
+       "positive_pairs": 67644,
+       "log2_pearson": 0.9955832254962569
+      }
+     ],
+     "cv_raw_median": 0.0,
+     "cv_median_normalized_median": 0.0007561537448481323,
+     "cv_n": 67044
+    }
+   }
+  }
+ }
+}

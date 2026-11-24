@@ -1,0 +1,123 @@
+{
+  "source": {
+    "path": "/gpfs/research/juan/singj/opendia/astral-full-20261123/library/predicted20.pqp",
+    "sha256": "04112671dfbe04297752272a503a75cc0cdc7651cd337a9fdb5955a3cb05a912",
+    "max_fragments": 20,
+    "numeric_id_intensity_order_violations": 0,
+    "sides": {
+      "target": {
+        "precursors": 8588443,
+        "zero_fragments": 0,
+        "min_fragments": 6,
+        "max_fragments": 20
+      },
+      "decoy": {
+        "precursors": 8573370,
+        "zero_fragments": 0,
+        "min_fragments": 1,
+        "max_fragments": 20
+      }
+    },
+    "own_pairs": 8573370,
+    "targets_without_own_decoy": 15073,
+    "decoys_without_own_target": 0,
+    "own_pair_fragment_count_imbalance": 2491338,
+    "own_pair_sibling_count_imbalance": 527,
+    "target_decoy_shared_peptides": {
+      "peptides": 518,
+      "target_precursors": 859,
+      "decoy_precursors": 520,
+      "note": "decoy sequence equals a target sequence; reported, never filtered"
+    },
+    "entrapment_structural_metadata": {
+      "marker": "_p_target",
+      "targets_with_protein_mapping": 8588443,
+      "entrapment_targets": 4294504,
+      "nonentrapment_targets": 4293939,
+      "ratio": 1.0001315808165883,
+      "excluded_protein_prefix": "DECOY_"
+    }
+  },
+  "outputs": {
+    "search6": {
+      "sides": {
+        "target": {
+          "precursors": 8588443,
+          "zero_fragments": 0,
+          "min_fragments": 6,
+          "max_fragments": 6
+        },
+        "decoy": {
+          "precursors": 8573370,
+          "zero_fragments": 0,
+          "min_fragments": 1,
+          "max_fragments": 6
+        }
+      },
+      "own_pairs": 8573370,
+      "targets_without_own_decoy": 15073,
+      "decoys_without_own_target": 0,
+      "own_pair_fragment_count_imbalance": 43655,
+      "own_pair_sibling_count_imbalance": 527,
+      "target_decoy_shared_peptides": {
+        "peptides": 518,
+        "target_precursors": 859,
+        "decoy_precursors": 520,
+        "note": "decoy sequence equals a target sequence; reported, never filtered"
+      },
+      "entrapment_structural_metadata": {
+        "marker": "_p_target",
+        "targets_with_protein_mapping": 8588443,
+        "entrapment_targets": 4294504,
+        "nonentrapment_targets": 4293939,
+        "ratio": 1.0001315808165883,
+        "excluded_protein_prefix": "DECOY_"
+      },
+      "path": "/gpfs/research/juan/singj/opendia/astral-full-20261123/library/search6.pqp",
+      "sha256": "200dea366ea358f9f97674715c070a6bd4ade8a839d2310fbf214fbf845847c7",
+      "fragment_limit": 6,
+      "transition_ids": "reindexed per precursor in descending intensity, source ID breaks ties"
+    },
+    "scoring12": {
+      "sides": {
+        "target": {
+          "precursors": 8588443,
+          "zero_fragments": 0,
+          "min_fragments": 6,
+          "max_fragments": 12
+        },
+        "decoy": {
+          "precursors": 8573370,
+          "zero_fragments": 0,
+          "min_fragments": 1,
+          "max_fragments": 12
+        }
+      },
+      "own_pairs": 8573370,
+      "targets_without_own_decoy": 15073,
+      "decoys_without_own_target": 0,
+      "own_pair_fragment_count_imbalance": 1007285,
+      "own_pair_sibling_count_imbalance": 527,
+      "target_decoy_shared_peptides": {
+        "peptides": 518,
+        "target_precursors": 859,
+        "decoy_precursors": 520,
+        "note": "decoy sequence equals a target sequence; reported, never filtered"
+      },
+      "entrapment_structural_metadata": {
+        "marker": "_p_target",
+        "targets_with_protein_mapping": 8588443,
+        "entrapment_targets": 4294504,
+        "nonentrapment_targets": 4293939,
+        "ratio": 1.0001315808165883,
+        "excluded_protein_prefix": "DECOY_"
+      },
+      "path": "/gpfs/research/juan/singj/opendia/astral-full-20261123/library/scoring12.pqp",
+      "sha256": "95a19dec2d169d6b19f973b27eda9763df26fcad69d1a3847115cb76186c49a0",
+      "fragment_limit": 12,
+      "transition_ids": "reindexed per precursor in descending intensity, source ID breaks ties"
+    }
+  },
+  "source_unchanged": true,
+  "note": "Structural audit only. Zero-fragment precursors retained in PQP but may not be read by OpenDIA transition-join loader."
+}

@@ -1,0 +1,17 @@
+raw  seed exit_code  max_rss_kib wall_time  within_32GiB_observed_rss  status
+ 01     0         0     89856164   1:38:23                      False SUCCESS
+ 01     1         0     90765476   1:39:00                      False SUCCESS
+ 01     2         0     90454672   1:48:48                      False SUCCESS
+ 01     3         0     90189420   1:29:03                      False SUCCESS
+ 01     4         0     90723428   1:20:38                      False SUCCESS
+ 02     0         0     91501912   1:34:36                      False SUCCESS
+ 02     1         0     92182240   1:07:18                      False SUCCESS
+ 02     2         0     92896432   1:57:05                      False SUCCESS
+ 02     3         0     92632236   1:49:27                      False SUCCESS
+ 02     4         0     92399328   1:33:27                      False SUCCESS
+ 03     0         0     92914028   1:32:04                      False SUCCESS
+ 03     1         0     92888980   1:39:38                      False SUCCESS
+ 03     2         0     92920648   1:20:26                      False SUCCESS
+ 03     3         0     92944300   1:59:08                      False SUCCESS
+ 03     4         0     90597432   1:25:33                      False SUCCESS
+Descriptive only. Seed spread is not an independent-replicate confidence interval.

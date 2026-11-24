@@ -1,0 +1,16 @@
+raw	seed	path
+01	0	../runs/raw01_s0/LFQ_Astral_DIA_15min_50ng_Human_01.precursors.tsv
+01	1	../runs/raw01_s1/LFQ_Astral_DIA_15min_50ng_Human_01.precursors.tsv
+01	2	../runs/raw01_s2/LFQ_Astral_DIA_15min_50ng_Human_01.precursors.tsv
+01	3	../runs/raw01_s3/LFQ_Astral_DIA_15min_50ng_Human_01.precursors.tsv
+01	4	../runs/raw01_s4/LFQ_Astral_DIA_15min_50ng_Human_01.precursors.tsv
+02	0	../runs/raw02_s0/LFQ_Astral_DIA_15min_50ng_Human_02.precursors.tsv
+02	1	../runs/raw02_s1/LFQ_Astral_DIA_15min_50ng_Human_02.precursors.tsv
+02	2	../runs/raw02_s2/LFQ_Astral_DIA_15min_50ng_Human_02.precursors.tsv
+02	3	../runs/raw02_s3/LFQ_Astral_DIA_15min_50ng_Human_02.precursors.tsv
+02	4	../runs/raw02_s4/LFQ_Astral_DIA_15min_50ng_Human_02.precursors.tsv
+03	0	../runs/raw03_s0/LFQ_Astral_DIA_15min_50ng_Human_03.precursors.tsv
+03	1	../runs/raw03_s1/LFQ_Astral_DIA_15min_50ng_Human_03.precursors.tsv
+03	2	../runs/raw03_s2/LFQ_Astral_DIA_15min_50ng_Human_03.precursors.tsv
+03	3	../runs/raw03_s3/LFQ_Astral_DIA_15min_50ng_Human_03.precursors.tsv
+03	4	../runs/raw03_s4/LFQ_Astral_DIA_15min_50ng_Human_03.precursors.tsv
