@@ -114,7 +114,7 @@ public:
     /**
         @brief Detect the mzIdentML version declared in @p filename (e.g. "1.1.0").
 
-        Reads the @c version attribute / target namespace from the document header. Falls back to the
+        Reads the @c version attribute, or else the namespace, of the root element. Falls back to the
         adapter's default version (1.3.0) if no version can be determined or no matching schema exists.
     */
     std::string detectVersion(const std::string& filename) const;

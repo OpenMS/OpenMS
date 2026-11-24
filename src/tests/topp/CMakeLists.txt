@@ -4040,6 +4040,10 @@ set_tests_properties("TOPP_FalseDiscoveryRate_7_out1" PROPERTIES DEPENDS "TOPP_F
 add_test("TOPP_FalseDiscoveryRate_8" ${TOPP_BIN_PATH}/FalseDiscoveryRate -test -in ${DATA_DIR_TOPP}/FalseDiscoveryRate_OMSSA.idXML -out ${TESTS_TEMP_DIR}/FalseDiscoveryRate_8_output.tmp.idXML -PSM true -protein false -PSM_class modification -FDR:PSM 0.05)
 add_test("TOPP_FalseDiscoveryRate_8_out1" ${DIFF} -whitelist "?xml-stylesheet" -in1 ${TESTS_TEMP_DIR}/FalseDiscoveryRate_8_output.tmp.idXML -in2 ${DATA_DIR_TOPP}/FalseDiscoveryRate_8_output.idXML)
 set_tests_properties("TOPP_FalseDiscoveryRate_8_out1" PROPERTIES DEPENDS "TOPP_FalseDiscoveryRate_8")
+# protein groups whose q-values were filtered before: recalculating them removes the recorded cutoff (it applied to the old values)
+add_test("TOPP_FalseDiscoveryRate_9" ${TOPP_BIN_PATH}/FalseDiscoveryRate -test -in ${DATA_DIR_TOPP}/FalseDiscoveryRate_9_input.idXML -out ${TESTS_TEMP_DIR}/FalseDiscoveryRate_9_output.tmp.idXML -PSM false -protein false -proteingroup true -algorithm:add_decoy_proteins)
+add_test("TOPP_FalseDiscoveryRate_9_out1" ${DIFF} -whitelist "?xml-stylesheet" -in1 ${TESTS_TEMP_DIR}/FalseDiscoveryRate_9_output.tmp.idXML -in2 ${DATA_DIR_TOPP}/FalseDiscoveryRate_9_output.idXML)
+set_tests_properties("TOPP_FalseDiscoveryRate_9_out1" PROPERTIES DEPENDS "TOPP_FalseDiscoveryRate_9")
 
 
 #------------------------------------------------------------------------------

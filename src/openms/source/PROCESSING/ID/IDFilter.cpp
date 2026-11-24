@@ -522,6 +522,12 @@ namespace OpenMS
     protein_id.setMetaValue(Constants::UserParam::PROTEIN_GROUP_SCORE_THRESHOLD_TYPE, protein_id.getScoreType());
   }
 
+  void IDFilter::removeGroupScoreThreshold(ProteinIdentification& protein_id)
+  {
+    protein_id.removeMetaValue(Constants::UserParam::PROTEIN_GROUP_SCORE_THRESHOLD);
+    protein_id.removeMetaValue(Constants::UserParam::PROTEIN_GROUP_SCORE_THRESHOLD_TYPE);
+  }
+
   void IDFilter::filterPeptidesByLength(PeptideIdentificationList& peptides, Size min_length, Size max_length)
   {
     if (min_length > 0)

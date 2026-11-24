@@ -945,6 +945,14 @@ namespace OpenMS
     static void recordGroupScoreThreshold(ProteinIdentification& protein_id, double threshold_score, bool keep_stricter = true);
 
     /**
+      @brief Removes a protein group score cutoff recorded by recordGroupScoreThreshold() from @p protein_id.
+
+      Call this when the protein groups are rebuilt or their scores recalculated (e.g. by protein inference or FDR
+      calculation): a cutoff on the old scores does not apply to the new ones.
+    */
+    static void removeGroupScoreThreshold(ProteinIdentification& protein_id);
+
+    /**
       @brief Filters peptide or protein identifications according to the score of the hits.
 
       Only peptide/protein hits with a score at least as good as @p threshold_score are kept. Score orientation (are higher scores better?) is taken into account.

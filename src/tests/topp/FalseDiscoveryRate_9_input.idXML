@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="https://www.openms.de/xml-stylesheet/IdXML.xsl" ?>
+<IdXML version="1.5" xsi:noNamespaceSchemaLocation="https://www.openms.de/xml-schema/IdXML_1_5.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<SearchParameters id="SP_0" db="proteins.fasta" db_version="" taxonomy="" mass_type="monoisotopic" charges="" enzyme="trypsin" missed_cleavages="1" precursor_peak_tolerance="10" precursor_peak_tolerance_ppm="true" peak_mass_tolerance="0.02" peak_mass_tolerance_ppm="false" >
+				<UserParam type="string" name="InferenceEngine" value="Epifany"/>
+				<UserParam type="string" name="InferenceEngineVersion" value="3.6.0"/>
+	</SearchParameters>
+	<IdentificationRun date="2026-11-23T12:00:00" search_engine="MSGFPlus" search_engine_version="2024.03.26" search_parameters_ref="SP_0" >
+		<ProteinIdentification score_type="q-value" higher_score_better="false" significance_threshold="0" >
+			<ProteinHit id="PH_0" accession="A" score="0" sequence="" >
+				<UserParam type="string" name="target_decoy" value="target"/>
+			</ProteinHit>
+			<ProteinHit id="PH_1" accession="B" score="0" sequence="" >
+				<UserParam type="string" name="target_decoy" value="target"/>
+			</ProteinHit>
+			<ProteinHit id="PH_2" accession="C" score="0" sequence="" >
+				<UserParam type="string" name="target_decoy" value="target"/>
+			</ProteinHit>
+			<ProteinHit id="PH_3" accession="DECOY_D" score="0.04" sequence="" >
+				<UserParam type="string" name="target_decoy" value="decoy"/>
+			</ProteinHit>
+			<UserParam type="string" name="indistinguishable_proteins_0" value="0,PH_0"/>
+			<UserParam type="string" name="indistinguishable_proteins_1" value="0,PH_1,PH_2"/>
+			<UserParam type="string" name="indistinguishable_proteins_2" value="0.04,PH_3"/>
+			<UserParam type="float" name="protein_group_score_threshold" value="0.05"/>
+			<UserParam type="string" name="protein_group_score_threshold_type" value="q-value"/>
+		</ProteinIdentification>
+		<PeptideIdentification score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="465.24" RT="1200.0" >
+			<PeptideHit score="0.001" sequence="PEPTIDEK" charge="2" aa_before="K" aa_after="A" protein_refs="PH_0" >
+				<UserParam type="string" name="target_decoy" value="target"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="351.71" RT="1500.0" >
+			<PeptideHit score="0.002" sequence="ELVISK" charge="2" aa_before="R R" aa_after="G G" protein_refs="PH_1 PH_2" >
+				<UserParam type="string" name="target_decoy" value="target"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="418.70" RT="1800.0" >
+			<PeptideHit score="0.04" sequence="GLYCINEK" charge="2" aa_before="K" aa_after="L" protein_refs="PH_3" >
+				<UserParam type="string" name="target_decoy" value="decoy"/>
+			</PeptideHit>
+		</PeptideIdentification>
+	</IdentificationRun>
+</IdXML>
