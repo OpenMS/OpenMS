@@ -28,6 +28,7 @@
 #include <sys/stat.h>
 #include <algorithm>
 #include <cerrno>
+#include <cstring>
 #include <limits>
 #include <libxml/parser.h>
 #include <libxml/tree.h>
@@ -83,11 +84,14 @@ namespace OpenMS::Internal
       if (!node || !node->name) { return {}; }
       // Prefixes are arbitrary, but extension namespaces must not impersonate
       // mzIdentML elements. Retain support for historical unqualified files.
-      if (node->ns && node->ns->href && *node->ns->href &&
-          !xmlStrEqual(node->ns->href, BAD_CAST "http://psidev.info/psi/pi/mzIdentML/1.0") &&
-          !xmlStrEqual(node->ns->href, BAD_CAST "http://psidev.info/psi/pi/mzIdentML/1.1") &&
-          !xmlStrEqual(node->ns->href, BAD_CAST "http://psidev.info/psi/pi/mzIdentML/1.2") &&
-          !xmlStrEqual(node->ns->href, BAD_CAST "http://psidev.info/psi/pi/mzIdentML/1.3")) { return {}; }
+      if (node->ns && node->ns->href && *node->ns->href)
+      {
+        // http://psidev.info/psi/pi/mzIdentML/1.0 to 1.3
+        constexpr std::string_view prefix = "http://psidev.info/psi/pi/mzIdentML/1.";
+        const char* href = reinterpret_cast<const char*>(node->ns->href);
+        if (std::strncmp(href, prefix.data(), prefix.size()) != 0 ||
+            href[prefix.size()] < '0' || href[prefix.size()] > '3' || href[prefix.size() + 1] != '\0') { return {}; }
+      }
       return reinterpret_cast<const char*>(node->name);
     }
 
@@ -424,7 +428,7 @@ namespace OpenMS::Internal
       xmlCtxtSetMaxAmplification(parser.get(), 5);
       std::unique_ptr<xmlDoc, decltype(&xmlFreeDoc)> document(
         xmlCtxtReadFile(parser.get(), mzid_file.c_str(), nullptr,
-          XML_PARSE_NONET | XML_PARSE_NO_XXE | XML_PARSE_NOENT | XML_PARSE_HUGE), xmlFreeDoc);
+          XML_PARSE_NONET | XML_PARSE_NO_XXE | XML_PARSE_NOENT | XML_PARSE_HUGE | XML_PARSE_COMPACT), xmlFreeDoc);
       if (!document)
       {
         const xmlError* error = xmlCtxtGetLastError(parser.get());
