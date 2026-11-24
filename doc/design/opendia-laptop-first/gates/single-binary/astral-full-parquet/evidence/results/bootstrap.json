@@ -1,0 +1,30 @@
+{
+  "status": "PASS",
+  "exit_code": "0",
+  "baseline_exit_ok": true,
+  "job_id": "42109936",
+  "accounting": {
+    "JobID": "42109936",
+    "State": "COMPLETED",
+    "ExitCode": "0:0",
+    "Elapsed": "01:38:35",
+    "TotalCPU": "06:27:44",
+    "MaxRSS": "",
+    "ReqMem": "268435456K",
+    "AllocCPUS": "16",
+    "NodeList": "hl-codon-cn-045"
+  },
+  "files": {
+    "precursors.tsv": "SAME",
+    "LFQ_Astral_DIA_15min_50ng_Human_01.precursors.tsv": "SAME",
+    "LFQ_Astral_DIA_15min_50ng_Human_01.calibration.json": "SAME"
+  },
+  "candidate": {
+    "wall_seconds": 5874.0,
+    "max_rss_kib": 65814796
+  },
+  "baseline": {
+    "wall_seconds": 5903.0,
+    "max_rss_kib": 89856164
+  }
+}
