@@ -2731,11 +2731,12 @@ START_SECTION(([EXTRA] modifications:exclude applies to both granularities of a 
 }
 END_SECTION
 
-START_SECTION(([EXTRA] modifications:exclude: iBAQ does not count a left-out peptide as theoretically observable))
+START_SECTION(([EXTRA] modifications:exclude: iBAQ keeps a left-out peptide in the theoretical peptide count))
 {
-  // iBAQ divides by the number of theoretical peptides. A peptide that is left out of the sum
-  // has to leave that count as well, or the value of a protein shrinks with every peptide left
-  // out. The protein below has three theoretical peptides: PEPTIDEMK, AAAAAK and CCCCCK.
+  // iBAQ divides by the number of theoretically observable peptides of the protein sequence.
+  // A peptide that is left out of the sum is still theoretically observable: it counts like a
+  // peptide that was not detected, so the divisor does not depend on the data.
+  // The protein below has three theoretical peptides: PEPTIDEMK, AAAAAK and CCCCCK.
   ProteinHit prot_hit;
   prot_hit.setAccession("Prot");
   prot_hit.setSequence("PEPTIDEMKAAAAAKCCCCCK");
@@ -2766,14 +2767,14 @@ START_SECTION(([EXTRA] modifications:exclude: iBAQ does not count a left-out pep
 
     // nothing left out: (1000 + 500 + 300) / 3
     TEST_REAL_SIMILAR(ibaq(consensus, design, {}, "true"), 600.0)
-    // PEPTIDEMK left out with both forms: (500 + 300) / 2, not 800 / 3
-    TEST_REAL_SIMILAR(ibaq(consensus, design, {"Oxidation (M)"}, "true"), 400.0)
-    // only the oxidized form left out: PEPTIDEMK still contributes, so it stays observable:
-    // (100 + 500 + 300) / 3
+    // PEPTIDEMK left out with both forms: (500 + 300) / 3, still three theoretical peptides
+    TEST_REAL_SIMILAR(ibaq(consensus, design, {"Oxidation (M)"}, "true"), 800.0 / 3.0)
+    // only the oxidized form left out: (100 + 500 + 300) / 3
     TEST_REAL_SIMILAR(ibaq(consensus, design, {"Oxidation (M)"}, "false"), 300.0)
   }
 
-  // PEPTIDEMK seen oxidized only: without the counterparts, too, none of its forms is left
+  // PEPTIDEMK seen oxidized only: without the counterparts, too, none of its forms is left;
+  // the divisor stays 3
   {
     ConsensusMap consensus;
     ExperimentalDesign design;
@@ -2783,11 +2784,11 @@ START_SECTION(([EXTRA] modifications:exclude: iBAQ does not count a left-out pep
                          {0, "CCCCCK", 2, 300.0}},
                         "Prot", consensus, design);
     TEST_REAL_SIMILAR(ibaq(consensus, design, {}, "false"), 1700.0 / 3.0)
-    TEST_REAL_SIMILAR(ibaq(consensus, design, {"Oxidation (M)"}, "false"), 400.0)
+    TEST_REAL_SIMILAR(ibaq(consensus, design, {"Oxidation (M)"}, "false"), 800.0 / 3.0)
   }
 
   // Every theoretical peptide left out, while a peptide with a missed cleavage (not a
-  // theoretical one) is still quantified: the value stays finite instead of dividing by zero.
+  // theoretical one) is still quantified: divided by the two theoretical peptides as usual.
   {
     ConsensusMap consensus;
     ExperimentalDesign design;
@@ -2799,7 +2800,7 @@ START_SECTION(([EXTRA] modifications:exclude: iBAQ does not count a left-out pep
     prot_hit.setSequence("PEPTIDEMKAAAAAMK");
     proteins.setHits({prot_hit});
     TEST_REAL_SIMILAR(ibaq(consensus, design, {}, "true"), 1040.0 / 2.0)
-    TEST_REAL_SIMILAR(ibaq(consensus, design, {"Oxidation (M)"}, "true"), 50.0)
+    TEST_REAL_SIMILAR(ibaq(consensus, design, {"Oxidation (M)"}, "true"), 50.0 / 2.0)
   }
 }
 END_SECTION

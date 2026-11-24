@@ -485,13 +485,13 @@ private:
     /**
          @brief Perform iBAQ normalization on protein abundances.
          
+         The divisor is the number of theoretically observable peptides of the protein sequence. It
+         does not depend on the data: a peptide that 'modifications:exclude' leaves out counts like
+         a peptide that was not detected.
+
          @param[in] proteins Protein identification information containing sequences
-         @param[in] unmod_to_entries Precomputed index from unmodified peptide sequence to the @p pep_quant_ entries sharing it
-         @param[in] excluded Peptidoforms left out by 'modifications:exclude'; a peptide all of whose forms are left out does not count as theoretically observable
     */
-    void performIbaqNormalization_(const ProteinIdentification& proteins,
-                                   const UnmodifiedToEntriesIndex& unmod_to_entries,
-                                   const ExcludedPeptidoforms& excluded);
+    void performIbaqNormalization_(const ProteinIdentification& proteins);
 
     /**
          @brief Get the "canonical" protein accession from the list of protein accessions of a peptide.
