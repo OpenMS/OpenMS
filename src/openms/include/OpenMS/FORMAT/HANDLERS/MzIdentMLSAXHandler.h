@@ -49,23 +49,23 @@ namespace OpenMS
         at a time, and writes a file through a libxml2 DOM tree.
 
         @note Do not use this class. It is only needed in MzIdentMLFile.
-        @note DOM and STREAM handler for MzIdentML have the same interface for legacy id structures.
+        @note This handler and MzIdentMLHandler, the writer that MzIdentMLFile uses, have the same interface for legacy id structures.
         @note Only upon destruction of this class it can be guaranteed that all
         data has been appended to the appropriate containers. Do not try to access the data before that.
     */
-    class OPENMS_DLLAPI MzIdentMLDOMHandler
+    class OPENMS_DLLAPI MzIdentMLSAXHandler
     {
 public:
       /**@name Constructors and destructor */
       //@{
       /// Constructor for a write-only handler for internal identification structures
-      MzIdentMLDOMHandler(const std::vector<ProteinIdentification>& pro_id, const PeptideIdentificationList& pep_id, const std::string& version, const ProgressLogger& logger);
+      MzIdentMLSAXHandler(const std::vector<ProteinIdentification>& pro_id, const PeptideIdentificationList& pep_id, const std::string& version, const ProgressLogger& logger);
 
       /// Constructor for a read-only handler for internal identification structures
-      MzIdentMLDOMHandler(std::vector<ProteinIdentification>& pro_id, PeptideIdentificationList& pep_id, const std::string& version, const ProgressLogger& logger);
+      MzIdentMLSAXHandler(std::vector<ProteinIdentification>& pro_id, PeptideIdentificationList& pep_id, const std::string& version, const ProgressLogger& logger);
 
       /// Destructor
-      virtual ~MzIdentMLDOMHandler();
+      virtual ~MzIdentMLSAXHandler();
       //@}
 
       /// Provides the functionality of reading a mzid with a handler object
@@ -161,9 +161,9 @@ protected:
 private:
       struct SaxReader;
 
-      MzIdentMLDOMHandler();
-      MzIdentMLDOMHandler(const MzIdentMLDOMHandler& rhs);
-      MzIdentMLDOMHandler& operator=(const MzIdentMLDOMHandler& rhs);
+      MzIdentMLSAXHandler();
+      MzIdentMLSAXHandler(const MzIdentMLSAXHandler& rhs);
+      MzIdentMLSAXHandler& operator=(const MzIdentMLSAXHandler& rhs);
 
       ///Struct to hold the used analysis software for that file
       struct AnalysisSoftware

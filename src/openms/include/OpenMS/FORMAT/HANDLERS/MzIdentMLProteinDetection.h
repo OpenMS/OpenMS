@@ -17,7 +17,7 @@ namespace OpenMS::Internal
   /**
     @brief Mapping between OpenMS protein inference results and the mzIdentML protein detection model
 
-    Shared by the mzIdentML writer (MzIdentMLHandler) and reader (MzIdentMLDOMHandler), so that a store/load round
+    Shared by the mzIdentML writer (MzIdentMLHandler) and reader (MzIdentMLSAXHandler), so that a store/load round
     trip restores the same score types and inference engine.
 
     The mzIdentML 1.2/1.3 model (specification section "Protein grouping") and its OpenMS counterpart:

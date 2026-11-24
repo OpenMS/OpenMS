@@ -18,7 +18,7 @@
 #include <OpenMS/CHEMISTRY/CrossLinksDB.h>
 #include <OpenMS/CONCEPT/Constants.h>
 
-#include <OpenMS/FORMAT/HANDLERS/MzIdentMLDOMHandler.h>
+#include <OpenMS/FORMAT/HANDLERS/MzIdentMLSAXHandler.h>
 
 #include <set>
 #include <regex>
@@ -1299,7 +1299,7 @@ START_SECTION(([EXTRA] legacy DOM writer emits UTF8 namespaces and propagates ou
   const std::vector<ProteinIdentification> proteins{protein};
   const PeptideIdentificationList peptides;
   MzIdentMLFile logger;
-  Internal::MzIdentMLDOMHandler writer(proteins, peptides, "1.1.0", logger);
+  Internal::MzIdentMLSAXHandler writer(proteins, peptides, "1.1.0", logger);
   std::string filename;
   NEW_TMP_FILE(filename)
   writer.writeMzIdentMLFile(filename);
@@ -1339,7 +1339,7 @@ START_SECTION(([EXTRA] legacy DOM writer emits UTF8 namespaces and propagates ou
   // the real engine name and emit a nonempty fallback when no version is known.
   protein.setSearchEngineVersion("");
   const std::vector<ProteinIdentification> missing_version_proteins{protein};
-  Internal::MzIdentMLDOMHandler missing_version_writer(missing_version_proteins, peptides, "1.1.0", logger);
+  Internal::MzIdentMLSAXHandler missing_version_writer(missing_version_proteins, peptides, "1.1.0", logger);
   std::string missing_version_file;
   NEW_TMP_FILE(missing_version_file)
   missing_version_writer.writeMzIdentMLFile(missing_version_file);

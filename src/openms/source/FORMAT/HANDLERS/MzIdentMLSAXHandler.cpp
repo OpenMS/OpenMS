@@ -6,7 +6,7 @@
 // $Authors: Mathias Walzer, Eugen Netz $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/FORMAT/HANDLERS/MzIdentMLDOMHandler.h>
+#include <OpenMS/FORMAT/HANDLERS/MzIdentMLSAXHandler.h>
 #include <OpenMS/CONCEPT/Init.h>
 
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
@@ -49,7 +49,7 @@ using namespace std;
 
 namespace OpenMS::Internal
 {
-  /// An element or a text node of the document, as kept by the reader (see MzIdentMLDOMHandler::SaxReader)
+  /// An element or a text node of the document, as kept by the reader (see MzIdentMLSAXHandler::SaxReader)
   struct MzIdentMLNode
   {
     struct Attribute
@@ -469,7 +469,7 @@ namespace OpenMS::Internal
     //TODO remodel CVTermList
     //TODO extend CVTermlist with CVCollection functionality for complete replacement??
     //TODO general id openms struct for overall parameter for one id run
-    MzIdentMLDOMHandler::MzIdentMLDOMHandler(const vector<ProteinIdentification>& pro_id, const PeptideIdentificationList& pep_id, const std::string& version, const ProgressLogger& logger) :
+    MzIdentMLSAXHandler::MzIdentMLSAXHandler(const vector<ProteinIdentification>& pro_id, const PeptideIdentificationList& pep_id, const std::string& version, const ProgressLogger& logger) :
       logger_(logger),
       cv_(ControlledVocabulary::getPSIMSCV()),
       //~ ms_exp_(0),
@@ -483,7 +483,7 @@ namespace OpenMS::Internal
       initScoreTermCaches_();
     }
 
-    MzIdentMLDOMHandler::MzIdentMLDOMHandler(vector<ProteinIdentification>& pro_id, PeptideIdentificationList& pep_id, const std::string& version, const ProgressLogger& logger) :
+    MzIdentMLSAXHandler::MzIdentMLSAXHandler(vector<ProteinIdentification>& pro_id, PeptideIdentificationList& pep_id, const std::string& version, const ProgressLogger& logger) :
       logger_(logger),
       cv_(ControlledVocabulary::getPSIMSCV()),
       //~ ms_exp_(0),
@@ -498,7 +498,7 @@ namespace OpenMS::Internal
       initScoreTermCaches_();
     }
 
-    void MzIdentMLDOMHandler::initScoreTermCaches_()
+    void MzIdentMLSAXHandler::initScoreTermCaches_()
     {
       // precompute CV child term sets, used per PSM, but constant across the file
       cv_.addAllChildTerms(q_score_child_terms_, "MS:1002354");
@@ -512,7 +512,7 @@ namespace OpenMS::Internal
       cv_.addAllChildTerms(protein_score_terms_, "MS:1001153");
     }
 
-    MzIdentMLDOMHandler::~MzIdentMLDOMHandler() = default;
+    MzIdentMLSAXHandler::~MzIdentMLSAXHandler() = default;
 
     /**
       @brief Reads an mzIdentML file with the SAX2 interface of libxml2
@@ -523,9 +523,9 @@ namespace OpenMS::Internal
       mzIdentML requires that order) are read when that list starts, in the order the handler has always used, and
       the SequenceCollection is freed afterwards. Protein detection is read at the end.
     */
-    struct MzIdentMLDOMHandler::SaxReader
+    struct MzIdentMLSAXHandler::SaxReader
     {
-      SaxReader(MzIdentMLDOMHandler& handler, const std::string& file) :
+      SaxReader(MzIdentMLSAXHandler& handler, const std::string& file) :
         handler(handler),
         file(file)
       {
@@ -537,7 +537,7 @@ namespace OpenMS::Internal
         }
       }
 
-      MzIdentMLDOMHandler& handler;
+      MzIdentMLSAXHandler& handler;
       const std::string& file;
       /// the elements of the sections before the first SpectrumIdentificationList and of protein detection, by name, in document order
       std::unordered_map<std::string_view, std::vector<MzIdentMLNode*>> elements;
@@ -821,7 +821,7 @@ namespace OpenMS::Internal
     /*
      * reads a mzid file into handlers pro_id_ & pep_id_ members
      */
-    void MzIdentMLDOMHandler::readMzIdentMLFile(const std::string& mzid_file)
+    void MzIdentMLSAXHandler::readMzIdentMLFile(const std::string& mzid_file)
     {
       // Test to see if the file is ok.
       struct stat fileStatus;
@@ -901,7 +901,7 @@ namespace OpenMS::Internal
       }
     }
 
-    void MzIdentMLDOMHandler::writeMzIdentMLFile(const std::string& mzid_file)
+    void MzIdentMLSAXHandler::writeMzIdentMLFile(const std::string& mzid_file)
     {
       xml_handler_ = make_unique<XMLHandler>(mzid_file, schema_version_);
 
@@ -1022,7 +1022,7 @@ namespace OpenMS::Internal
       }
     }
 
-    pair<CVTermList, map<std::string, DataValue> > MzIdentMLDOMHandler::parseParamGroup_(const std::vector<MzIdentMLNode*>& paramGroup)
+    pair<CVTermList, map<std::string, DataValue> > MzIdentMLSAXHandler::parseParamGroup_(const std::vector<MzIdentMLNode*>& paramGroup)
     {
       CVTermList ret_cv;             // cvParam
       map<std::string, DataValue> ret_up; // userParam
@@ -1057,7 +1057,7 @@ namespace OpenMS::Internal
       return make_pair(ret_cv, ret_up);
     }
 
-    CVTerm MzIdentMLDOMHandler::parseCvParam_(MzIdentMLNode* param)
+    CVTerm MzIdentMLSAXHandler::parseCvParam_(MzIdentMLNode* param)
     {
       if (param)
       {
@@ -1090,7 +1090,7 @@ namespace OpenMS::Internal
         throw invalid_argument("no cv param here");
     }
 
-    pair<std::string, DataValue> MzIdentMLDOMHandler::parseUserParam_(MzIdentMLNode* param)
+    pair<std::string, DataValue> MzIdentMLSAXHandler::parseUserParam_(MzIdentMLNode* param)
     {
       if (param)
       {
@@ -1137,7 +1137,7 @@ namespace OpenMS::Internal
       }
     }
 
-    void MzIdentMLDOMHandler::parseAnalysisSoftwareList_(const std::vector<MzIdentMLNode*>& analysisSoftwareElements)
+    void MzIdentMLSAXHandler::parseAnalysisSoftwareList_(const std::vector<MzIdentMLNode*>& analysisSoftwareElements)
     {
       const  Size as_node_count = analysisSoftwareElements.size();
       for (Size swni = 0; swni < as_node_count; ++swni)
@@ -1202,7 +1202,7 @@ namespace OpenMS::Internal
       }
     }
 
-    void MzIdentMLDOMHandler::parseDBSequenceElements_(const std::vector<MzIdentMLNode*>& dbSequenceElements)
+    void MzIdentMLSAXHandler::parseDBSequenceElements_(const std::vector<MzIdentMLNode*>& dbSequenceElements)
     {
       const  Size dbs_node_count = dbSequenceElements.size();
       for (Size c = 0; c < dbs_node_count; ++c)
@@ -1240,7 +1240,7 @@ namespace OpenMS::Internal
       }
     }
 
-    void MzIdentMLDOMHandler::parsePeptideElements_(const std::vector<MzIdentMLNode*>& peptideElements)
+    void MzIdentMLSAXHandler::parsePeptideElements_(const std::vector<MzIdentMLNode*>& peptideElements)
     {
       const  Size pep_node_count = peptideElements.size();
       for (Size c = 0; c < pep_node_count; ++c)
@@ -1281,7 +1281,7 @@ namespace OpenMS::Internal
       }
     }
 
-    void MzIdentMLDOMHandler::parsePeptideEvidenceElements_(const std::vector<MzIdentMLNode*>& peptideEvidenceElements)
+    void MzIdentMLSAXHandler::parsePeptideEvidenceElements_(const std::vector<MzIdentMLNode*>& peptideEvidenceElements)
     {
       const  Size pev_node_count = peptideEvidenceElements.size();
       for (Size c = 0; c < pev_node_count; ++c)
@@ -1346,7 +1346,7 @@ namespace OpenMS::Internal
       }
     }
 
-    void MzIdentMLDOMHandler::parseSpectrumIdentificationElements_(const std::vector<MzIdentMLNode*>& spectrumIdentificationElements)
+    void MzIdentMLSAXHandler::parseSpectrumIdentificationElements_(const std::vector<MzIdentMLNode*>& spectrumIdentificationElements)
     {
       const  Size si_node_count = spectrumIdentificationElements.size();
       for (Size c = 0; c < si_node_count; ++c)
@@ -1408,7 +1408,7 @@ namespace OpenMS::Internal
       }
     }
 
-    void MzIdentMLDOMHandler::parseSpectrumIdentificationProtocolElements_(const std::vector<MzIdentMLNode*>& spectrumIdentificationProtocolElements)
+    void MzIdentMLSAXHandler::parseSpectrumIdentificationProtocolElements_(const std::vector<MzIdentMLNode*>& spectrumIdentificationProtocolElements)
     {
       const  Size si_node_count = spectrumIdentificationProtocolElements.size();
       for (Size c = 0; c < si_node_count; ++c)
@@ -1717,7 +1717,7 @@ namespace OpenMS::Internal
       }
     }
 
-    void MzIdentMLDOMHandler::parseInputElements_(const std::vector<MzIdentMLNode*>& inputElements)
+    void MzIdentMLSAXHandler::parseInputElements_(const std::vector<MzIdentMLNode*>& inputElements)
     {
       const  Size node_count = inputElements.size();
       for (Size c = 0; c < node_count; ++c)
@@ -1787,7 +1787,7 @@ namespace OpenMS::Internal
       }
     }
 
-    Size MzIdentMLDOMHandler::runIndexOfList_(const std::string& spectrum_identification_list_ref) const
+    Size MzIdentMLSAXHandler::runIndexOfList_(const std::string& spectrum_identification_list_ref) const
     {
       const auto run = si_pro_map_.find(spectrum_identification_list_ref);
       if (run == si_pro_map_.end())
@@ -1799,12 +1799,12 @@ namespace OpenMS::Internal
       return run->second;
     }
 
-    ProteinIdentification& MzIdentMLDOMHandler::runOfList_(const std::string& spectrum_identification_list_ref)
+    ProteinIdentification& MzIdentMLSAXHandler::runOfList_(const std::string& spectrum_identification_list_ref)
     {
       return pro_id_->at(runIndexOfList_(spectrum_identification_list_ref));
     }
 
-    void MzIdentMLDOMHandler::addProteinHit_(const std::string& spectrum_identification_list_ref, const DBSequence& db, bool is_decoy)
+    void MzIdentMLSAXHandler::addProteinHit_(const std::string& spectrum_identification_list_ref, const DBSequence& db, bool is_decoy)
     {
       const Size run_index = runIndexOfList_(spectrum_identification_list_ref);
       ProteinIdentification& run = pro_id_->at(run_index);
@@ -1827,7 +1827,7 @@ namespace OpenMS::Internal
       run.getHits().back().setMetaValue("isDecoy", is_decoy ? "true" : "false");
     }
 
-    void MzIdentMLDOMHandler::parseSpectrumIdentificationResultElement_(MzIdentMLNode* element_res, const std::string& id)
+    void MzIdentMLSAXHandler::parseSpectrumIdentificationResultElement_(MzIdentMLNode* element_res, const std::string& id)
     {
       std::string spectra_data_ref = attribute_(element_res, "spectraData_ref"); //ref to the sourcefile, could be useful but now nowhere to store
       std::string spectrumID = attribute_(element_res, "spectrumID");
@@ -1939,7 +1939,7 @@ namespace OpenMS::Internal
       }
     }
 
-    void MzIdentMLDOMHandler::parseSpectrumIdentificationItemSetXLMS(set<std::string>::const_iterator set_it, std::multimap<std::string, int> xl_val_map, MzIdentMLNode* element_res, const std::string& spectrumID)
+    void MzIdentMLSAXHandler::parseSpectrumIdentificationItemSetXLMS(set<std::string>::const_iterator set_it, std::multimap<std::string, int> xl_val_map, MzIdentMLNode* element_res, const std::string& spectrumID)
     {
       // each value in the set corresponds to one PeptideIdentification object
       std::pair <std::multimap<std::string, int>::iterator, std::multimap<std::string, int>::iterator> range;
@@ -2503,7 +2503,7 @@ namespace OpenMS::Internal
           OpenMS::PeptideEvidence pev;
           if (pe_ev_map_.contains(pev_it->second))
           {
-            MzIdentMLDOMHandler::PeptideEvidence& pv = pe_ev_map_[pev_it->second];
+            MzIdentMLSAXHandler::PeptideEvidence& pv = pe_ev_map_[pev_it->second];
             if (pv.pre != '-') pev.setAABefore(pv.pre);
             if (pv.post != '-') pev.setAAAfter(pv.post);
 
@@ -2569,7 +2569,7 @@ namespace OpenMS::Internal
       pep_id_->back().sort();
     }
 
-    void MzIdentMLDOMHandler::parseSpectrumIdentificationItemElement_(MzIdentMLNode* spectrumIdentificationItemElement, PeptideIdentification& spectrum_identification, std::string& spectrumIdentificationList_ref)
+    void MzIdentMLSAXHandler::parseSpectrumIdentificationItemElement_(MzIdentMLNode* spectrumIdentificationItemElement, PeptideIdentification& spectrum_identification, std::string& spectrumIdentificationList_ref)
     {
       std::string id = attribute_(spectrumIdentificationItemElement, "id");
       std::string name = attribute_(spectrumIdentificationItemElement, "name");
@@ -2711,7 +2711,7 @@ namespace OpenMS::Internal
           OpenMS::PeptideEvidence pev;
           if (pe_ev_map_.contains(pev_it->second))
           {
-            MzIdentMLDOMHandler::PeptideEvidence& pv = pe_ev_map_[pev_it->second];
+            MzIdentMLSAXHandler::PeptideEvidence& pv = pe_ev_map_[pev_it->second];
             if (pv.pre != '-') pev.setAABefore(pv.pre);
             if (pv.post != '-') pev.setAAAfter(pv.post);
 
@@ -2795,7 +2795,7 @@ namespace OpenMS::Internal
       // <Fragmentation> omitted for the time being
     }
 
-    void MzIdentMLDOMHandler::collectParam_(MzIdentMLNode* param, std::vector<CVTerm>& cv_params, std::vector<std::pair<std::string, DataValue>>& user_params)
+    void MzIdentMLSAXHandler::collectParam_(MzIdentMLNode* param, std::vector<CVTerm>& cv_params, std::vector<std::pair<std::string, DataValue>>& user_params)
     {
       if (equal_(name_(param), "cvParam"))
       {
@@ -2816,7 +2816,7 @@ namespace OpenMS::Internal
       }
     }
 
-    MzIdentMLDOMHandler::ProteinAmbiguityGroup MzIdentMLDOMHandler::parseProteinAmbiguityGroupElement_(MzIdentMLNode* proteinAmbiguityGroupElement)
+    MzIdentMLSAXHandler::ProteinAmbiguityGroup MzIdentMLSAXHandler::parseProteinAmbiguityGroupElement_(MzIdentMLNode* proteinAmbiguityGroupElement)
     {
       ProteinAmbiguityGroup group;
       for (MzIdentMLNode* child = firstElement_(proteinAmbiguityGroupElement); child; child = nextElement_(child))
@@ -2879,7 +2879,7 @@ namespace OpenMS::Internal
       return group;
     }
 
-    void MzIdentMLDOMHandler::parseProteinDetectionListElements_(const std::vector<MzIdentMLNode*>& proteinDetectionListElements,
+    void MzIdentMLSAXHandler::parseProteinDetectionListElements_(const std::vector<MzIdentMLNode*>& proteinDetectionListElements,
                                                                  const std::vector<MzIdentMLNode*>& proteinDetectionElements,
                                                                  const std::vector<MzIdentMLNode*>& proteinDetectionProtocolElements)
     {
@@ -3422,7 +3422,7 @@ namespace OpenMS::Internal
       }
     }
 
-    SignedSize MzIdentMLDOMHandler::inferModificationLocation_(MzIdentMLNode* modification_element, Size peptide_length) const
+    SignedSize MzIdentMLSAXHandler::inferModificationLocation_(MzIdentMLNode* modification_element, Size peptide_length) const
     {
       // The 'location' attribute of a <Modification> is optional in mzIdentML (schema use="optional").
       // Several search engines omit it for terminal modifications. As a best-effort recovery, look up the
@@ -3498,7 +3498,7 @@ namespace OpenMS::Internal
       return -1; // position could not be inferred
     }
 
-    AASequence MzIdentMLDOMHandler::parsePeptideSiblings_(MzIdentMLNode* peptide)
+    AASequence MzIdentMLSAXHandler::parsePeptideSiblings_(MzIdentMLNode* peptide)
     {
       std::vector<MzIdentMLNode*> peptideSiblings = children_(peptide);
       const  Size node_count = peptideSiblings.size();
@@ -3995,7 +3995,7 @@ namespace OpenMS::Internal
       return aas;
     }
 
-    void MzIdentMLDOMHandler::buildCvList_(xmlNode* cvElements)
+    void MzIdentMLSAXHandler::buildCvList_(xmlNode* cvElements)
     {
       xmlNode* cv1 = element_(cvElements->doc, "cv");
       setAttribute_(cv1, "id", "PSI-MS");
@@ -4021,7 +4021,7 @@ namespace OpenMS::Internal
       append_(cvElements, cv3);
     }
 
-    void MzIdentMLDOMHandler::buildAnalysisSoftwareList_(xmlNode* analysisSoftwareElements)
+    void MzIdentMLSAXHandler::buildAnalysisSoftwareList_(xmlNode* analysisSoftwareElements)
     {
       const std::string engine = cpro_id_->empty() || cpro_id_->front().getSearchEngine().empty()
         ? "TOPP software" : cpro_id_->front().getSearchEngine();
@@ -4044,7 +4044,7 @@ namespace OpenMS::Internal
       append_(current_as, current_sw);
     }
 
-    void MzIdentMLDOMHandler::buildSequenceCollection_(xmlNode* sequenceCollectionElements)
+    void MzIdentMLSAXHandler::buildSequenceCollection_(xmlNode* sequenceCollectionElements)
     {
       for (map<std::string, DBSequence>::iterator dbs = db_sq_map_.begin(); dbs != db_sq_map_.end(); ++dbs)
       {
@@ -4138,7 +4138,7 @@ namespace OpenMS::Internal
       }
     }
 
-    void MzIdentMLDOMHandler::buildAnalysisCollection_(xmlNode* analysisCollectionElements)
+    void MzIdentMLSAXHandler::buildAnalysisCollection_(xmlNode* analysisCollectionElements)
     {
       // for now there is only one search per file
       xmlNode* current_si = element_(analysisCollectionElements->doc, "SpectrumIdentification");
@@ -4156,7 +4156,7 @@ namespace OpenMS::Internal
       append_(analysisCollectionElements, current_si);
     }
 
-    void MzIdentMLDOMHandler::buildAnalysisProtocolCollection_(xmlNode* protocolElements)
+    void MzIdentMLSAXHandler::buildAnalysisProtocolCollection_(xmlNode* protocolElements)
     {
       // for now there is only one search per file
       xmlNode* current_sp = element_(protocolElements->doc, "SpectrumIdentificationProtocol");
@@ -4182,7 +4182,7 @@ namespace OpenMS::Internal
       append_(protocolElements, current_th);
     }
 
-    void MzIdentMLDOMHandler::buildInputDataCollection_(xmlNode* inputElements)
+    void MzIdentMLSAXHandler::buildInputDataCollection_(xmlNode* inputElements)
     {
       xmlNode* current_sf = element_(inputElements->doc, "SourceFile");
       setAttribute_(current_sf, "location", "file:///tmp/test.dat");
@@ -4220,7 +4220,7 @@ namespace OpenMS::Internal
       append_(inputElements, current_spd);
     }
 
-    void MzIdentMLDOMHandler::buildEnclosedCV_(xmlNode* parentElement, const std::string& encel, const std::string& acc, const std::string& name, const std::string& cvref)
+    void MzIdentMLSAXHandler::buildEnclosedCV_(xmlNode* parentElement, const std::string& encel, const std::string& acc, const std::string& name, const std::string& cvref)
     {
       xmlNode* current_ff = element_(parentElement->doc, encel);
       xmlNode* current_cv = element_(current_ff->doc, "cvParam");
@@ -4231,7 +4231,7 @@ namespace OpenMS::Internal
       append_(parentElement, current_ff);
     }
 
-    void MzIdentMLDOMHandler::buildAnalysisDataCollection_(xmlNode* analysisElements)
+    void MzIdentMLSAXHandler::buildAnalysisDataCollection_(xmlNode* analysisElements)
     {
       xmlNode* current_sil = element_(analysisElements->doc, "SpectrumIdentificationList");
       setAttribute_(current_sil, "id", "SIL1");
@@ -4276,7 +4276,7 @@ namespace OpenMS::Internal
       // and no ProteinDetection for now
     }
 
-    ProteinIdentification::SearchParameters MzIdentMLDOMHandler::findSearchParameters_(pair<CVTermList, map<std::string, DataValue> > as_params)
+    ProteinIdentification::SearchParameters MzIdentMLSAXHandler::findSearchParameters_(pair<CVTermList, map<std::string, DataValue> > as_params)
     {
       ProteinIdentification::SearchParameters sp = ProteinIdentification::SearchParameters();
       for (std::map<std::string, vector<CVTerm> >::const_iterator cvs = as_params.first.getCVTerms().begin(); cvs != as_params.first.getCVTerms().end(); ++cvs)
