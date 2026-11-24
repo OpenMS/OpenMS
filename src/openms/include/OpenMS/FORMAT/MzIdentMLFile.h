@@ -46,7 +46,8 @@ namespace OpenMS
       - Only one identification run may have protein inference results (mzIdentML allows only one
         @c ProteinDetectionList); otherwise no protein groups are written.
       - Each protein references the top-ranked PSMs that support it; proteins without PSMs are not written.
-      - A cutoff on group scores recorded by IDFilter becomes the threshold of the @c ProteinDetectionProtocol.
+      - A cutoff on group scores recorded by IDFilter becomes the threshold of the @c ProteinDetectionProtocol, if the run
+        has indistinguishable groups (it does not apply to the protein scores of one group per protein).
 
       When reading, the protein groups of a @c ProteinDetectionList are added to the identification run that they
       were inferred from. Files without "leading protein" annotations (e.g. mzIdentML 1.1) are supported: there, the
