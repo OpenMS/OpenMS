@@ -1940,6 +1940,18 @@ START_SECTION(([EXTRA] store and load the value types of userParams (issue #1098
   NEW_TMP_FILE_EXT(legacy_file, ".mzid")
   std::ofstream(legacy_file) << legacy;
   check_types(legacy_file);
+
+  // a value that does not fit its type is kept as a string (and the file still loads)
+  StringUtils::substitute(legacy, "unitName=\"xsd:integer\" value=\"7\"", "unitName=\"xsd:integer\" value=\"none\"");
+  TEST_EQUAL(countOf(legacy, "value=\"none\""), 1)
+  std::ofstream(legacy_file) << legacy;
+  std::vector<ProteinIdentification> proteins3;
+  PeptideIdentificationList peptides3;
+  MzIdentMLFile().load(legacy_file, proteins3, peptides3);
+  ABORT_IF(peptides3.empty() || peptides3[0].getHits().empty())
+  TEST_EQUAL(peptides3[0].getHits()[0].getMetaValue("an integer").valueType(), DataValue::STRING_VALUE)
+  TEST_EQUAL(peptides3[0].getHits()[0].getMetaValue("an integer").toString(), "none")
+  TEST_EQUAL(peptides3[0].getHits()[0].getMetaValue("a double").valueType(), DataValue::DOUBLE_VALUE)
 }
 END_SECTION
 

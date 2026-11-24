@@ -754,7 +754,16 @@ namespace OpenMS::Internal
         DataValue dv = DataValue::EMPTY;
         if (has_value)
         {
-          dv = XMLHandler::fromXSDString(type, value);
+          try
+          {
+            dv = XMLHandler::fromXSDString(type, value);
+          }
+          catch (const Exception::ConversionError&) // does not fit its type: keep it as it is
+          {
+            OPENMS_LOG_WARN << "The value '" << value << "' of userParam '" << name << "' is not of type '" << type
+                            << "'. It is read as a string." << endl;
+            dv = DataValue(value);
+          }
         }
 
         // Add unit *after* creating the term
