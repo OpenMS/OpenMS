@@ -98,6 +98,12 @@ public:
   }
   /// free the results (PrSMs, protein hits, tags) with all threads; they are empty afterwards
   void releaseResults();
+  /// the ion types of the last run, comma-separated, when ion_type was auto (from the fragmentation method); empty when they were given
+  const std::string& getIonTypesFromFragmentation() const
+  {
+    return ion_types_from_fragmentation_;
+  }
+
   double getMaxTotalModificationMass() const
   {
     return max_total_mod_mass_;
@@ -137,6 +143,8 @@ protected:
   void setDefaultParams_();
 
 private:
+  /// the ion types resolved from the fragmentation method in run() (ion_type auto), comma-separated; empty when given
+  std::string ion_types_from_fragmentation_;
 
   Param tagger_param_, extender_param_, gapped_param_, annotator_param_;
   RawSpectrumLoader raw_loader_;

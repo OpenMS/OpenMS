@@ -538,14 +538,12 @@ protected:
 
     if (! out_prsm_file.empty())
     {
-      out_prsm_stream = fstream(out_prsm_file, fstream::out);
-      FLASHTnTFile::writePrSMHeader(out_prsm_stream, chimeric, with_targets);
+      out_prsm_stream = fstream(out_prsm_file, fstream::out); // the header after the run: its IonTypes column depends on the ion types
     }
 
     if (! out_pro_file.empty())
     {
       out_pro_stream = fstream(out_pro_file, fstream::out);
-      FLASHTnTFile::writeProHeader(out_pro_stream, chimeric, with_targets);
     }
 
     if (! out_protein_file.empty())
@@ -585,12 +583,14 @@ protected:
     }
     if (! out_prsm_file.empty())
     {
-      FLASHTnTFile::writePrSMs(proteoform_hits, out_prsm_stream, chimeric, with_targets);
+      FLASHTnTFile::writePrSMHeader(out_prsm_stream, chimeric, with_targets, tnt.getIonTypesFromFragmentation());
+      FLASHTnTFile::writePrSMs(proteoform_hits, out_prsm_stream, chimeric, with_targets, tnt.getIonTypesFromFragmentation());
       out_prsm_stream.close();
     }
     if (! out_pro_file.empty())
     {
-      FLASHTnTFile::writeProteoforms(proteoform_hits, out_pro_stream, pro_fdr, chimeric, with_targets);
+      FLASHTnTFile::writeProHeader(out_pro_stream, chimeric, with_targets, tnt.getIonTypesFromFragmentation());
+      FLASHTnTFile::writeProteoforms(proteoform_hits, out_pro_stream, pro_fdr, chimeric, with_targets, tnt.getIonTypesFromFragmentation());
       out_pro_stream.close();
     }
     if (! out_protein_file.empty())

@@ -107,9 +107,21 @@ protected:
     registerOutputFile_("out_annotation", "<file>", "", "Output tsv file with one row per accepted fragment isotope envelope.", false);
     setValidFormats_("out_annotation", ListUtils::create<std::string>("tsv"));
 
-    registerStringList_("ion_type", "<types>", ListUtils::toStringList(std::vector<std::string> {"b", "y"}),
-                        "Ion types to annotate (as for FLASHTnT).", false);
-    setValidStrings_("ion_type", {"b", "c", "a", "y", "z", "x", "zp1", "zp2"});
+    registerStringList_("ion_type", "<types>", ListUtils::toStringList(std::vector<std::string> {"auto"}),
+                        "Ion types to annotate. 'auto': the ion types of the fragmentation method of each PrSM's spectrum (see -fragmentation): "
+                        "HCD, CID: b y; EThcD, EChcD, ECD-HCD: b c y z zp1; ETD, ECD: c zp1 y; UVPD: a b c x y z (untested); they are written "
+                        "in the column IonTypes. Any list of b c a y z x zp1 zp2 (zp1, zp2: z+1, z+2) is annotated as given for every PrSM, "
+                        "whatever -fragmentation says (as for FLASHTnT).", false);
+    setValidStrings_("ion_type", {"auto", "b", "c", "a", "y", "z", "x", "zp1", "zp2"});
+
+    registerStringOption_("fragmentation", "<method>", "auto",
+                          "The fragmentation method, which sets the ion types when -ion_type is auto. 'auto': read for each PrSM's spectrum from "
+                          "its activation as the file records it (the mzML activation terms, a Thermo .raw file's activation type); ETD or ECD "
+                          "with a collisional supplemental activation is EThcD or ECD-HCD; a spectrum without a known activation is annotated with "
+                          "b y (a warning gives their count). A file of mixed methods (e.g. HCD and ETD alternating) is annotated spectrum by "
+                          "spectrum. Add-on ExD cells (e.g. e-MSion's on Thermo instruments) record their spectra as HCD, so they need this option "
+                          "(EChcD or ECD-HCD). Any other value: the method of every spectrum, whatever the file records.", false);
+    setValidStrings_("fragmentation", {"auto", "HCD", "CID", "ETD", "ECD", "EThcD", "EChcD", "ECD-HCD", "UVPD"});
 
     registerIntOption_("precursor_charge", "<charge>", 0,
                        "Precursor charge used for all PrSMs (caps the fragment charges). 0: the charge of the raw precursor if "
@@ -206,7 +218,12 @@ protected:
     const int fixed_precursor_charge = getIntOption_("precursor_charge");
 
     Param algorithm_param = getParam_().copy("algorithm:", true);
-    algorithm_param.setValue("ion_type", getParam_().getValue("ion_type"));
+    // ion_type auto: the ion types of each spectrum's fragmentation method, resolved after the spectra are read; the annotator here (b y
+    // meanwhile) gives the isotope envelopes and charge caps, which do not depend on the ion types
+    const std::vector<std::string> given_ion_types = getParam_().getValue("ion_type").toStringVector();
+    const bool ion_types_auto = std::find(given_ion_types.begin(), given_ion_types.end(), "auto") != given_ion_types.end();
+    const std::string fragmentation = getStringOption_("fragmentation");
+    algorithm_param.setValue("ion_type", ion_types_auto ? std::vector<std::string> {"b", "y"} : given_ion_types);
     FLASHAnnotatorAlgorithm annotator;
     annotator.setParameters(algorithm_param);
     const bool detection = algorithm_param.getValue("ion_type_detection").toString() == "true";
@@ -282,7 +299,7 @@ protected:
       // nothing to annotate: the raw file is not read
       std::ofstream out(out_file);
       if (! out) { throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, out_file); }
-      out << header << prsm_columns_ << (detection ? "\tDetectedIonTypes" : "") << "\n";
+      out << header << prsm_columns_ << (detection ? "\tDetectedIonTypes" : "") << (ion_types_auto ? "\tIonTypes" : "") << "\n";
       if (! out_annotation_file.empty())
       {
         std::ofstream out_annotation(out_annotation_file);
@@ -443,8 +460,62 @@ protected:
     // annotation
     //-------------------------------------------------------------
     time = std::chrono::steady_clock::now();
+    // the ion types of each spectrum (ion_type auto: from its fragmentation method), and the PrSMs annotated in groups of equal ion types
+    std::vector<std::vector<std::string>> slot_ion_types(raw_spectra.size(), given_ion_types);
+    if (ion_types_auto)
+    {
+      std::map<std::string, Size> counts;
+      for (const auto& spec : raw_spectra)
+      {
+        counts[FLASHHelperClasses::fragmentationOf(spec)]++;
+      }
+      std::string summary;
+      const auto pool = FLASHHelperClasses::resolveIonTypes(given_ion_types, fragmentation, counts, true, summary);
+      OPENMS_LOG_INFO << "Annotating " << summary << endl;
+      for (Size s = 0; s < raw_spectra.size(); s++)
+      {
+        slot_ion_types[s] = pool.empty() ? FLASHHelperClasses::ionTypesOf(FLASHHelperClasses::fragmentationOf(raw_spectra[s])) : pool;
+      }
+    }
+    std::map<std::vector<std::string>, std::vector<Size>> groups; // ion types -> PrSM rows
+    for (Size r = 0; r < rows.size(); r++)
+    {
+      const int slot = prsms[r].spectrum_index;
+      groups[slot < 0 ? (ion_types_auto ? std::vector<std::string> {"b", "y"} : given_ion_types) : slot_ion_types[slot]].push_back(r);
+    }
     std::vector<FLASHAnnotatorAlgorithm::Result> results;
-    annotator.annotate(spectra, prsms, results);
+    std::vector<std::string> row_ion_types(rows.size());           // ion_type auto: the IonTypes column
+    std::vector<const std::vector<std::string>*> row_names(rows.size(), &annotator.getIonTypes()); // the names of Envelope::ion_type
+    std::vector<std::unique_ptr<FLASHAnnotatorAlgorithm>> group_annotators;
+    if (! ion_types_auto)
+    {
+      annotator.annotate(spectra, prsms, results); // one set of ion types: as before
+    }
+    else
+    {
+      results.resize(rows.size());
+      for (const auto& [ion_types, members] : groups)
+      {
+        Param group_param = algorithm_param;
+        group_param.setValue("ion_type", ion_types);
+        group_annotators.push_back(std::make_unique<FLASHAnnotatorAlgorithm>());
+        auto& group_annotator = *group_annotators.back();
+        group_annotator.setParameters(group_param);
+        std::vector<FLASHAnnotatorAlgorithm::PrSM> group_prsms;
+        group_prsms.reserve(members.size());
+        for (Size r : members) group_prsms.push_back(prsms[r]);
+        std::vector<FLASHAnnotatorAlgorithm::Result> group_results;
+        group_annotator.annotate(spectra, group_prsms, group_results);
+        std::string names;
+        for (const auto& t : ion_types) names += (names.empty() ? "" : ",") + t;
+        for (Size i = 0; i < members.size(); i++)
+        {
+          results[members[i]] = std::move(group_results[i]);
+          if (prsms[members[i]].spectrum_index >= 0) row_ion_types[members[i]] = names; // empty: the scan is not in the file
+          row_names[members[i]] = &group_annotator.getIonTypes();
+        }
+      }
+    }
     const double annotation_time = seconds_(time);
 
     //-------------------------------------------------------------
@@ -454,7 +525,7 @@ protected:
     {
       std::ofstream out(out_file);
       if (! out) { throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, out_file); }
-      out << header << prsm_columns_ << (detection ? "\tDetectedIonTypes" : "") << "\n";
+      out << header << prsm_columns_ << (detection ? "\tDetectedIonTypes" : "") << (ion_types_auto ? "\tIonTypes" : "") << "\n";
       for (Size r = 0; r < rows.size(); r++)
       {
         const auto& res = results[r];
@@ -464,6 +535,7 @@ protected:
             << res.authentic_cleavages << "\t" << res.coverage_with_internal << "\t" << res.internal_chance_bonds << "\t" << res.internal_tag_pieces_asp << "/"
             << res.internal_tag_pieces_pro << "/" << res.internal_tag_pieces_other << "\t" << res.internal_tol_ppm;
         if (detection) out << "\t" << res.detected_ion_types;
+        if (ion_types_auto) out << "\t" << row_ion_types[r];
         out << "\n";
       }
     }
@@ -472,10 +544,10 @@ protected:
       std::ofstream out(out_annotation_file);
       if (! out) { throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, out_annotation_file); }
       out << envelope_header_ << "\n";
-      const auto& ion_types = annotator.getIonTypes();
       const auto& internal_ion_types = annotator.getInternalIonTypes();
       for (Size r = 0; r < rows.size(); r++)
       {
+        const auto& ion_types = *row_names[r];
         const std::string prsm_index = field(rows[r], col_index);
         const std::string scan = field(rows[r], col_scan);
         std::ostringstream ss;

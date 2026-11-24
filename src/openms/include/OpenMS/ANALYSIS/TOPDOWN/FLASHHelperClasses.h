@@ -741,6 +741,31 @@ namespace OpenMS
     static bool isBrukerTims(const std::string& file);
 
     /**
+      @brief Fragmentation methods and the ion types the top-down tools search for them (the -fragmentation option of FLASHTnT and
+      FLASHAnnotator, used when -ion_type is auto).
+
+      fragmentationMethods: the method names the option takes after 'auto': HCD, CID, ETD, ECD, EThcD, EChcD, ECD-HCD, UVPD.
+      ionTypesOf: the ion types of a method: HCD, CID: b y; EThcD, EChcD, ECD-HCD: b c y z zp1; ETD, ECD: c zp1 y; UVPD: a b c x y z;
+      any other name (an unknown method): b y.
+      fragmentationOf: the method of a spectrum from the activation of its first precursor as the file records it (mzML activation terms;
+      a Thermo .raw file's activation type, its supplemental activation as EThcD/ETciD): ETD or ECD with a collisional activation (or
+      EThcD, ETciD) is EThcD or ECD-HCD, ETD and ECD alone are ETD and ECD, beam-type CID is HCD, the other collisional activations
+      (CID, trap-type, high- and low-energy CID, PQD) are CID, photodissociation (and a Thermo UVPD activation) is UVPD; "" if there is
+      no precursor or the activation is none of these. Add-on ExD cells are recorded as the collisional activation they replace (HCD).
+      countFragmentation: the MSn spectra of @p map per method ("" for unknown).
+      resolveIonTypes: the ion types to search. @p ion_types other than {"auto"} are returned as given. With {"auto"}, a @p fragmentation
+      other than "auto" gives its ion types; "auto" gives the ion types of the methods counted in @p counts (unknown as b y, with a
+      warning naming the count) and throws InvalidParameter if they need different ion types (unless @p allow_mixed, then {} is returned
+      and the caller resolves each spectrum). @p summary describes the choice for the log.
+    */
+    static const std::vector<std::string>& fragmentationMethods();
+    static std::vector<std::string> ionTypesOf(const std::string& method);
+    static std::string fragmentationOf(const MSSpectrum& spectrum);
+    static std::map<std::string, Size> countFragmentation(const MSExperiment& map);
+    static std::vector<std::string> resolveIonTypes(const std::vector<std::string>& ion_types, const std::string& fragmentation,
+                                                    const std::map<std::string, Size>& counts, bool allow_mixed, std::string& summary);
+
+    /**
       @brief A modification of a proteoform as the top-down tools read and write it in ProForma 2.0 (HUPO-PSI): its site, its residues and
       its mass. Parsing and writing are OpenMS::ProForma's (getProFormaModifications, toPeptidoform); the masses are computed here.
 

@@ -355,8 +355,22 @@ void FLASHTnTAlgorithm::setDefaultParams_()
   defaults_.setMaxFloat("protein_fdr", 1.0);
   defaults_.addTag("protein_fdr", "advanced");
 
-  defaults_.setValue("ion_type", std::vector<std::string> {"b", "y"}, "Specifies ion types to consider.");
-  defaults_.setValidStrings("ion_type", {"b", "c", "a", "y", "z", "x", "zp1", "zp2"});
+  defaults_.setValue("ion_type", std::vector<std::string> {"auto"},
+                     "Ion types to search. 'auto': the ion types of the fragmentation method (see fragmentation): HCD, CID: b y; EThcD, EChcD, "
+                     "ECD-HCD: b c y z zp1; ETD, ECD: c zp1 y; UVPD: a b c x y z (untested). Any list of b c a y z x zp1 zp2 (zp1, zp2: z+1, z+2) "
+                     "is searched as given for every spectrum, whatever fragmentation says. The ion types searched are written in the IonTypes "
+                     "column of the PrSM and proteoform outputs when they come from the fragmentation method.");
+  defaults_.setValidStrings("ion_type", {"auto", "b", "c", "a", "y", "z", "x", "zp1", "zp2"});
+
+  defaults_.setValue("fragmentation", "auto",
+                     "The fragmentation method, which sets the ion types when ion_type is auto. 'auto': read from the activation of each MSn "
+                     "spectrum as the file records it (the mzML activation terms, a Thermo .raw file's activation type); ETD or ECD with a "
+                     "collisional supplemental activation is EThcD or ECD-HCD; a spectrum without a known activation is searched with b y "
+                     "(a warning gives their count). All spectra must need the same ion types: FLASHTnT searches one set per run and stops "
+                     "with a message for a file of mixed methods (give the method, or split the file). Add-on ExD cells (e.g. e-MSion's on "
+                     "Thermo instruments) record their spectra as HCD, so they need this option (EChcD or ECD-HCD). Any other value: the "
+                     "method of every spectrum, whatever the file records.");
+  defaults_.setValidStrings("fragmentation", {"auto", "HCD", "CID", "ETD", "ECD", "EThcD", "EChcD", "ECD-HCD", "UVPD"});
 
   defaults_.setValue("var_mod", std::vector<std::string> {"Acetyl (Protein N-term)", "Gln->pyro-Glu (Protein N-term Q)"},
                      "Variable modifications, by name with the site as in Unimod/PSI-MOD (e.g. "
@@ -1110,6 +1124,22 @@ namespace
 void FLASHTnTAlgorithm::run(const MSExperiment& map, const std::vector<FASTAFile::FASTAEntry>& original_fasta_entry, const ProteoformDatabase* db)
 {
   setLogType(CMD);
+
+  // ion types from the fragmentation method (ion_type auto): one set for the run
+  {
+    const auto given = param_.getValue("ion_type").toStringVector();
+    std::string summary;
+    const auto ion_types = FLASHHelperClasses::resolveIonTypes(given, param_.getValue("fragmentation").toString(),
+                                                              FLASHHelperClasses::countFragmentation(map), false, summary);
+    OPENMS_LOG_INFO << "Searching " << summary << std::endl;
+    ion_types_from_fragmentation_.clear();
+    if (ion_types != given)
+    {
+      for (const auto& t : ion_types) ion_types_from_fragmentation_ += (ion_types_from_fragmentation_.empty() ? "" : ",") + t;
+      param_.setValue("ion_type", ion_types);
+      updateMembers_();
+    }
+  }
 
   // The database (ProteoformDatabase): without one, the FASTA entries are the proteins (the identity database), and every step below
   // that reads it is the search as before. With a PEFF database, an entry is a processed form of a protein with fixed modifications: the

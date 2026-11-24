@@ -408,7 +408,112 @@ namespace OpenMS
     mzml.load(file, map);
   }
 
-  bool FLASHHelperClasses::isBrukerTims(const std::string& file)
+  const std::vector<std::string>& FLASHHelperClasses::fragmentationMethods()
+{
+  static const std::vector<std::string> methods {"HCD", "CID", "ETD", "ECD", "EThcD", "EChcD", "ECD-HCD", "UVPD"};
+  return methods;
+}
+
+std::vector<std::string> FLASHHelperClasses::ionTypesOf(const std::string& method)
+{
+  if (method == "EThcD" || method == "EChcD" || method == "ECD-HCD") return {"b", "c", "y", "z", "zp1"};
+  if (method == "ETD" || method == "ECD") return {"c", "zp1", "y"};
+  if (method == "UVPD") return {"a", "b", "c", "x", "y", "z"};
+  return {"b", "y"}; // HCD, CID, and an unknown method
+}
+
+std::string FLASHHelperClasses::fragmentationOf(const MSSpectrum& spectrum)
+{
+  if (spectrum.getPrecursors().empty()) return "";
+  const Precursor& precursor = spectrum.getPrecursors()[0];
+  using AM = Precursor::ActivationMethod;
+  const auto& methods = precursor.getActivationMethods();
+  auto has = [&methods](AM m) { return methods.find(m) != methods.end(); };
+  const bool collisional = has(AM::HCD) || has(AM::CID) || has(AM::TRAP) || has(AM::HCID) || has(AM::LCID) || has(AM::PQD);
+  if (has(AM::EThcD) || has(AM::ETciD) || (has(AM::ETD) && collisional)) return "EThcD";
+  if (has(AM::ECD) && collisional) return "ECD-HCD";
+  if (has(AM::ETD)) return "ETD";
+  if (has(AM::ECD)) return "ECD";
+  std::string thermo = precursor.metaValueExists("Thermo activation type") ? precursor.getMetaValue("Thermo activation type").toString() : std::string();
+  std::transform(thermo.begin(), thermo.end(), thermo.begin(), [](unsigned char ch) { return (char)std::tolower(ch); });
+  if (has(AM::PHD) || precursor.metaValueExists("ultraviolet photodissociation") || thermo.find("ultraviolet") != std::string::npos
+      || thermo.find("uvpd") != std::string::npos)
+  {
+    return "UVPD";
+  }
+  if (has(AM::HCD)) return "HCD";
+  if (collisional) return "CID";
+  return "";
+}
+
+std::map<std::string, Size> FLASHHelperClasses::countFragmentation(const MSExperiment& map)
+{
+  std::map<std::string, Size> counts;
+  for (const auto& spec : map)
+  {
+    if (spec.getMSLevel() >= 2) counts[fragmentationOf(spec)]++;
+  }
+  return counts;
+}
+
+std::vector<std::string> FLASHHelperClasses::resolveIonTypes(const std::vector<std::string>& ion_types, const std::string& fragmentation,
+                                                             const std::map<std::string, Size>& counts, bool allow_mixed, std::string& summary)
+{
+  auto joined = [](const std::vector<std::string>& v) {
+    std::string s;
+    for (const auto& x : v) s += (s.empty() ? "" : " ") + x;
+    return s;
+  };
+  if (std::find(ion_types.begin(), ion_types.end(), "auto") == ion_types.end())
+  {
+    summary = "ion types " + joined(ion_types) + " (given)";
+    return ion_types;
+  }
+  if (ion_types.size() > 1)
+  {
+    throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "ion_type: 'auto' cannot be combined with ion types");
+  }
+  if (fragmentation != "auto")
+  {
+    const auto pool = ionTypesOf(fragmentation);
+    summary = "ion types " + joined(pool) + " (fragmentation " + fragmentation + ", given)";
+    return pool;
+  }
+  std::map<std::vector<std::string>, std::string> pools; // ion types -> the methods that give them
+  std::string methods;
+  for (const auto& [method, n] : counts)
+  {
+    const std::string name = method.empty() ? std::string("unknown") : method;
+    methods += (methods.empty() ? "" : ", ") + name + ": " + std::to_string(n);
+    auto& names = pools[ionTypesOf(method)];
+    names += (names.empty() ? "" : "/") + name;
+  }
+  if (counts.count("") > 0)
+  {
+    OPENMS_LOG_WARN << "fragmentation auto: " << counts.at("") << " MSn spectra without a known activation in the file; their ion types are b y"
+                    << " (give -fragmentation to set the method)" << std::endl;
+  }
+  if (pools.empty())
+  {
+    summary = "ion types b y (fragmentation auto: no MSn spectrum)";
+    return {"b", "y"};
+  }
+  if (pools.size() > 1)
+  {
+    if (allow_mixed)
+    {
+      summary = "ion types per spectrum (fragmentation auto: " + methods + ")";
+      return {};
+    }
+    throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                      "fragmentation auto: the MSn spectra have fragmentation methods that need different ion types (" + methods +
+                                        "); FLASHTnT searches one set of ion types per run. Give -fragmentation or -ion_type, or split the file by method.");
+  }
+  summary = "ion types " + joined(pools.begin()->first) + " (fragmentation auto: " + methods + ")";
+  return pools.begin()->first;
+}
+
+bool FLASHHelperClasses::isBrukerTims(const std::string& file)
   {
     const std::string f = stripTrailingSeparators(file);
     return FileHandler::getTypeByFileName(f) == FileTypes::BRUKER_TDF;

@@ -1161,12 +1161,12 @@ set_tests_properties("TOPP_FLASHQuantConsensus_9_id" PROPERTIES DEPENDS "TOPP_FL
 #  1: one step from the raw mzML of FLASHDeconv_9 (deconvolved inside): PrSMs, proteoforms and tags
 #  2: two steps, the deconvolved mzML of FLASHDeconv_9 with -in_raw: the same PrSMs and proteoforms as 1
 #  3: -native on one native spectrum of AqpZ (EThcD; b y c z)
-add_test("TOPP_FLASHTnT_1" ${TOPP_BIN_PATH}/FLASHTnT -test -threads 4 -in ${DATA_DIR_TOPP}/FLASHTnT_1_input.mzML -db ${DATA_DIR_TOPP}/FLASHTnT_input.fasta -out_prsm FLASHTnT_1_prsm.tmp.tsv -out_pro FLASHTnT_1_pro.tmp.tsv -out_tag FLASHTnT_1_tag.tmp.tsv)
+add_test("TOPP_FLASHTnT_1" ${TOPP_BIN_PATH}/FLASHTnT -test -threads 4 -in ${DATA_DIR_TOPP}/FLASHTnT_1_input.mzML -db ${DATA_DIR_TOPP}/FLASHTnT_input.fasta -ion_type b y -out_prsm FLASHTnT_1_prsm.tmp.tsv -out_pro FLASHTnT_1_pro.tmp.tsv -out_tag FLASHTnT_1_tag.tmp.tsv)
 add_test("TOPP_FLASHTnT_1_out1" ${DIFF} -ratio 1.0000001 -absdiff 0.000001 -in1 FLASHTnT_1_prsm.tmp.tsv -in2 ${DATA_DIR_TOPP}/FLASHTnT_1_prsm_output.tsv)
 add_test("TOPP_FLASHTnT_1_out2" ${DIFF} -ratio 1.0000001 -absdiff 0.000001 -in1 FLASHTnT_1_pro.tmp.tsv -in2 ${DATA_DIR_TOPP}/FLASHTnT_1_pro_output.tsv)
 add_test("TOPP_FLASHTnT_1_out3" ${DIFF} -ratio 1.0000001 -absdiff 0.000001 -in1 FLASHTnT_1_tag.tmp.tsv -in2 ${DATA_DIR_TOPP}/FLASHTnT_1_tag_output.tsv)
 set_tests_properties("TOPP_FLASHTnT_1_out1" "TOPP_FLASHTnT_1_out2" "TOPP_FLASHTnT_1_out3" PROPERTIES DEPENDS "TOPP_FLASHTnT_1")
-add_test("TOPP_FLASHTnT_2" ${TOPP_BIN_PATH}/FLASHTnT -test -threads 4 -in FLASHDeconv_9_deconv.tmp.mzML -in_raw ${DATA_DIR_TOPP}/FLASHTnT_1_input.mzML -db ${DATA_DIR_TOPP}/FLASHTnT_input.fasta -out_prsm FLASHTnT_2_prsm.tmp.tsv -out_pro FLASHTnT_2_pro.tmp.tsv)
+add_test("TOPP_FLASHTnT_2" ${TOPP_BIN_PATH}/FLASHTnT -test -threads 4 -in FLASHDeconv_9_deconv.tmp.mzML -in_raw ${DATA_DIR_TOPP}/FLASHTnT_1_input.mzML -db ${DATA_DIR_TOPP}/FLASHTnT_input.fasta -ion_type b y -out_prsm FLASHTnT_2_prsm.tmp.tsv -out_pro FLASHTnT_2_pro.tmp.tsv)
 set_tests_properties("TOPP_FLASHTnT_2" PROPERTIES FIXTURES_REQUIRED FLASH_lysate_deconv)
 add_test("TOPP_FLASHTnT_2_out1" ${DIFF} -ratio 1.0000001 -absdiff 0.000001 -in1 FLASHTnT_2_prsm.tmp.tsv -in2 ${DATA_DIR_TOPP}/FLASHTnT_1_prsm_output.tsv)
 add_test("TOPP_FLASHTnT_2_out2" ${DIFF} -ratio 1.0000001 -absdiff 0.000001 -in1 FLASHTnT_2_pro.tmp.tsv -in2 ${DATA_DIR_TOPP}/FLASHTnT_1_pro_output.tsv)
@@ -1176,7 +1176,7 @@ add_test("TOPP_FLASHTnT_3_out1" ${DIFF} -ratio 1.0000001 -absdiff 0.000001 -in1 
 add_test("TOPP_FLASHTnT_3_out2" ${DIFF} -ratio 1.0000001 -absdiff 0.000001 -in1 FLASHTnT_3_pro.tmp.tsv -in2 ${DATA_DIR_TOPP}/FLASHTnT_3_pro_output.tsv)
 set_tests_properties("TOPP_FLASHTnT_3_out1" "TOPP_FLASHTnT_3_out2" PROPERTIES DEPENDS "TOPP_FLASHTnT_3")
 # FLASHAnnotator: the PrSMs of FLASHTnT_1 annotated on the raw spectra (fragment isotope envelopes at every charge)
-add_test("TOPP_FLASHAnnotator_1" ${TOPP_BIN_PATH}/FLASHAnnotator -test -threads 4 -in ${DATA_DIR_TOPP}/FLASHTnT_1_input.mzML -in_prsm ${DATA_DIR_TOPP}/FLASHTnT_1_prsm_output.tsv -out FLASHAnnotator_1.tmp.tsv -out_annotation FLASHAnnotator_1_annotation.tmp.tsv)
+add_test("TOPP_FLASHAnnotator_1" ${TOPP_BIN_PATH}/FLASHAnnotator -test -threads 4 -in ${DATA_DIR_TOPP}/FLASHTnT_1_input.mzML -in_prsm ${DATA_DIR_TOPP}/FLASHTnT_1_prsm_output.tsv -ion_type b y -out FLASHAnnotator_1.tmp.tsv -out_annotation FLASHAnnotator_1_annotation.tmp.tsv)
 add_test("TOPP_FLASHAnnotator_1_out1" ${DIFF} -ratio 1.0000001 -absdiff 0.000001 -in1 FLASHAnnotator_1.tmp.tsv -in2 ${DATA_DIR_TOPP}/FLASHAnnotator_1_output.tsv)
 add_test("TOPP_FLASHAnnotator_1_out2" ${DIFF} -ratio 1.0000001 -absdiff 0.000001 -in1 FLASHAnnotator_1_annotation.tmp.tsv -in2 ${DATA_DIR_TOPP}/FLASHAnnotator_1_annotation_output.tsv)
 set_tests_properties("TOPP_FLASHAnnotator_1_out1" "TOPP_FLASHAnnotator_1_out2" PROPERTIES DEPENDS "TOPP_FLASHAnnotator_1")
