@@ -868,6 +868,40 @@ START_SECTION(void store round-trip processed imzML)
 END_SECTION
 
 
+START_SECTION([EXTRA] store round-trip of the MALDI spot (spotID))
+{
+  // The reader (MzMLHandler) keeps the spotID attribute as the MetaValue maldi_spot_id; the writer used to drop it
+  MSExperiment original;
+  MSSpectrum spot = makePixelSpectrum_(1, 1, 100.0, 10.0f);
+  spot.setMetaValue("maldi_spot_id", "R00X001Y001\tline\rbreak\nnext <&>");
+  original.addSpectrum(spot);
+  original.addSpectrum(makePixelSpectrum_(2, 1, 100.0, 20.0f));
+
+  std::string tmp_imzml;
+  NEW_TMP_FILE_EXT(tmp_imzml, ".imzML");
+  ImzMLFile().store(tmp_imzml, original);
+  std::ifstream is(tmp_imzml);
+  const std::string out((std::istreambuf_iterator<char>(is)), std::istreambuf_iterator<char>());
+  is.close();
+  TEST_TRUE(StringUtils::hasSubstring(out, "spotID=\"R00X001Y001&#x9;line&#xD;break&#xA;next &lt;&amp;&gt;\""))
+  TEST_TRUE(out.find("spotID=") == out.rfind("spotID=")) // only for the spectrum with a spot
+  std::ostringstream errors;
+  TEST_TRUE(ImzMLFile().isValid(tmp_imzml, errors)) // spotID is an attribute of <spectrum> in the mzML 1.1 schema
+
+  const MSExperiment reloaded = loadImzMLExperiment_(tmp_imzml);
+  TEST_EQUAL(reloaded.size(), 2)
+  if (reloaded.size() == 2)
+  {
+    TEST_STRING_EQUAL(reloaded[0].getMetaValue("maldi_spot_id").toString(), "R00X001Y001\tline\rbreak\nnext <&>")
+    TEST_FALSE(reloaded[1].metaValueExists("maldi_spot_id"))
+  }
+
+  // NEW_TMP_FILE_EXT only tracks the .imzML, so drop the companion .ibd file
+  remove((tmp_imzml.substr(0, tmp_imzml.size() - 6) + ".ibd").c_str());
+}
+END_SECTION
+
+
 START_SECTION(void store round-trip FloatDataArray ion mobility and non-standard)
 {
   // PSI MS:1003006 ion mobility plus a free-text MS:1000786 array.

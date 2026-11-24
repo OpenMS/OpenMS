@@ -49,6 +49,14 @@ namespace OpenMS
    * export mode FRAME only (as BrukerTimsImagingFile does); the other modes and the DIA streaming
    * functions throw Exception::InvalidFileType for them.
    *
+   * The spectra of MALDI runs (TDF and TSF data) get the spot name of MaldiFrameInfo (SpotName) as the
+   * MetaValue "maldi_spot_id", which the mzML and imzML writers write as the spotID attribute of the
+   * spectrum (and the mzML reader reads back). A spectrum gets the spot of the frame its native ID names. A DDA MS2
+   * spectrum can combine precursor evidence from several frames, so its native ID names the first frame of its
+   * precursor. This first-frame interpretation is specific to DDA. The DIA streaming API does not attach MALDI spot
+   * metadata. For frame-aggregated DIA spectra from load() or transform(), the output is associated with the frame
+   * named by its native ID; no DIA MALDI data is known, so this mapping is unvalidated.
+   *
    * In FRAME export mode, raw TOF indices and intensities are returned without
    * any signal processing. TOF-to-m/z and scan-to-IM conversions are applied,
    * but no smoothing or centroiding is performed.
@@ -84,9 +92,8 @@ namespace OpenMS
    * spectrum, which the acquisition stored centroided, without ion mobility. The spectra of MS/MS frames (any
    * MsMsType but 0) are MS2 spectra with the precursor of FrameMsMsInfo (trigger m/z, isolation width, charge; the
    * collision energy as the meta value "collision energy" in eV, as for DDA-PASEF; CID). Spectra of MALDI runs get
-   * the spot name of MaldiFrameInfo as the MetaValue "maldi_spot_id", as the mzML reader stores the spotID of a
-   * spectrum. The native IDs are "frame=<id>" (Bruker TSF nativeID format). m/z comes from the same calibrations as
-   * for TDF data (see tims_calibration_strategy).
+   * their spot name as for TDF data (see above). The native IDs are "frame=<id>" (Bruker TSF nativeID format). m/z
+   * comes from the same calibrations as for TDF data (see tims_calibration_strategy).
    *
    * The ion mobility options do not apply to TSF data: load() and transform() throw Exception::InvalidParameter if
    * any of them differs from its default (im_min/im_max, the centroiding, isotopic prefilter and frame aggregation
