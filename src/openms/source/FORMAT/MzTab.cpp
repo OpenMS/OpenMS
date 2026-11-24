@@ -136,14 +136,24 @@ namespace OpenMS
 
       // Position info, when present, is a digit (optionally a '|'-separated
       // list, each with an optional bracketed parameter) immediately before
-      // the first '-'. A CHEMMOD identifier's own mass can be negative, so a
-      // '-' anywhere in the string does not mean there is position info --
-      // only a digit right at the start of the string does. Checking for any
-      // '-' here mistook "CHEMMOD:-18.0106" (no position) for position "CHEM"
-      // and identifier "MOD:...18.0106" once split, corrupting the parsed
-      // value or throwing from deep inside toInt32 instead of this function's
-      // own, clearer error.
-      Size dash_pos = ss.find('-');
+      // the first '-' that sits outside any bracketed parameter and outside
+      // quotes. A CHEMMOD identifier's own mass can be negative, and a
+      // bracketed parameter can itself contain a '-' (scientific notation
+      // such as "5e-03", or a quoted value), so neither alone marks the
+      // split point -- only a digit right at the start of the string does,
+      // and the split itself must skip over any "[...]" and quoted text.
+      Size dash_pos = std::string::npos;
+      int depth = 0;
+      bool in_quotes = false;
+      for (Size i = 0; i < ss.size(); ++i)
+      {
+        const char c = ss[i];
+        if (c == '"') { in_quotes = !in_quotes; }
+        else if (in_quotes) { continue; }
+        else if (c == '[') { ++depth; }
+        else if (c == ']') { --depth; }
+        else if (c == '-' && depth == 0) { dash_pos = i; break; }
+      }
       bool has_position = dash_pos != std::string::npos && dash_pos > 0
         && std::isdigit(static_cast<unsigned char>(ss[0]));
 

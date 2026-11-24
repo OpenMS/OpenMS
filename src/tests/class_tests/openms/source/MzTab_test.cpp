@@ -481,6 +481,17 @@ START_SECTION([EXTRA] MzTabModification round-trips a CHEMMOD identifier with a 
   std::vector<std::pair<Size, MzTabParameter> > pos = with_position.getPositionsAndParameters();
   TEST_EQUAL(pos.size(), 1)
   TEST_EQUAL(pos[0].first, 3)
+
+  // The position's own bracketed parameter can carry a '-' too (scientific
+  // notation, e.g. a false-localization-rate of 0.005 written as "5e-03" by
+  // StringUtils::toStr) -- that dash must not be mistaken for the split point.
+  MzTabModification with_bracketed_param;
+  with_bracketed_param.fromCellString("3[MS, MS:1002380, false localization rate, 5e-03]-UNIMOD:21");
+  TEST_EQUAL(with_bracketed_param.getModOrSubstIdentifier().toCellString(), "UNIMOD:21")
+  std::vector<std::pair<Size, MzTabParameter> > bracketed_pos = with_bracketed_param.getPositionsAndParameters();
+  TEST_EQUAL(bracketed_pos.size(), 1)
+  TEST_EQUAL(bracketed_pos[0].first, 3)
+  TEST_STRING_EQUAL(bracketed_pos[0].second.toCellString(), "[MS, MS:1002380, false localization rate, 5e-03]")
 }
 END_SECTION
 
