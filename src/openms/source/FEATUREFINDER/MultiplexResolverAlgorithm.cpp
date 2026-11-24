@@ -328,12 +328,11 @@ namespace OpenMS
     return false;
   }
 
-  bool MultiplexResolverAlgorithm::isReservedByOther_(const MSExperiment& blacklist, double rt, double mz, size_t charge,
-                                                      const ConsensusFeature& consensus, const OwnerPeptides& peptides,
-                                                      OwnerCheckCounts_& counts) const
+  std::vector<UInt64> MultiplexResolverAlgorithm::reservingOwners(const MSExperiment& blacklist, double rt, double mz, size_t charge,
+                                                                  const ConsensusFeature& consensus) const
   {
+    std::vector<UInt64> owners;
     const double mz_tolerance = mz_tolerance_ * mz / 1000000; // m/z tolerance in Da
-    bool other_peptide = false, unidentified = false, own = false, same_peptide = false, orphan = false;
     const MSExperiment::ConstIterator it_rt_end = blacklist.RTEnd(rt + rt_tolerance_);
     for (auto it_rt = blacklist.RTBegin(rt - rt_tolerance_); it_rt < it_rt_end; ++it_rt)
     {
@@ -344,15 +343,29 @@ namespace OpenMS
         for (auto it_mz = it_rt->MZBegin(mz_isotope - mz_tolerance); it_mz != it_rt->end() && it_mz->getMZ() < mz_isotope + mz_tolerance; ++it_mz)
         {
           if (std::abs(it_mz->getMZ() - mz_isotope) >= mz_tolerance) { continue; }
-          switch (classifyBlacklistOwner(blacklistOwner(*it_rt, it_mz - it_rt->begin()), consensus, peptides))
-          {
-            case OwnerRelation::OTHER_PEPTIDE: other_peptide = true; break;
-            case OwnerRelation::SAME_PEPTIDE: same_peptide = true; break;
-            case OwnerRelation::UNIDENTIFIED: unidentified = true; break;
-            case OwnerRelation::OWN: own = true; break;
-            case OwnerRelation::ORPHAN: orphan = true; break;
-          }
+          owners.push_back(blacklistOwner(*it_rt, it_mz - it_rt->begin()));
         }
+      }
+    }
+    std::sort(owners.begin(), owners.end());
+    owners.erase(std::unique(owners.begin(), owners.end()), owners.end());
+    return owners;
+  }
+
+  bool MultiplexResolverAlgorithm::isReservedByOther_(const MSExperiment& blacklist, double rt, double mz, size_t charge,
+                                                      const ConsensusFeature& consensus, const OwnerPeptides& peptides,
+                                                      OwnerCheckCounts_& counts) const
+  {
+    bool other_peptide = false, unidentified = false, own = false, same_peptide = false, orphan = false;
+    for (const UInt64 owner : reservingOwners(blacklist, rt, mz, charge, consensus))
+    {
+      switch (classifyBlacklistOwner(owner, consensus, peptides))
+      {
+        case OwnerRelation::OTHER_PEPTIDE: other_peptide = true; break;
+        case OwnerRelation::SAME_PEPTIDE: same_peptide = true; break;
+        case OwnerRelation::UNIDENTIFIED: unidentified = true; break;
+        case OwnerRelation::OWN: own = true; break;
+        case OwnerRelation::ORPHAN: orphan = true; break;
       }
     }
     // the same rule as isForeign()

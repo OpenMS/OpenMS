@@ -836,5 +836,55 @@ START_SECTION(([EXTRA] resolve with a blacklist that records owners))
 }
 END_SECTION
 
+START_SECTION((std::vector<UInt64> reservingOwners(const MSExperiment& blacklist, double rt, double mz, size_t charge, const ConsensusFeature& consensus) const))
+{
+  // the window of the owner-aware check of a missing channel at m/z 800 (2+) of a multiplet at RT 500: 5 s, 10 ppm on both sides, M+0 to M+2
+  MultiplexResolverAlgorithm resolver;
+  ConsensusFeature cf;
+  cf.setRT(500.0);
+  cf.setMZ(900.0);
+  cf.setCharge(2);
+  const double mz = 800.0;
+  const double spacing = Constants::C13C12_MASSDIFF_U / 2;
+  auto spectrumAt = [](double rt, const std::vector<double>& mzs, const std::vector<UInt64>& owners)
+  {
+    MSSpectrum spec;
+    spec.setRT(rt);
+    spec.setMSLevel(1);
+    for (double peak_mz : mzs) { spec.push_back(Peak1D(peak_mz, 1000.0)); }
+    MultiplexResolverAlgorithm::setBlacklistOwners(spec, owners);
+    return spec;
+  };
+  MSExperiment blacklist;
+  blacklist.addSpectrum(spectrumAt(494.0, {mz}, {11}));                                         // outside the RT window
+  blacklist.addSpectrum(spectrumAt(498.0, {mz - 0.004, mz + 0.02, mz + spacing}, {12, 13, 14})); // 5 ppm below: in; 25 ppm above: out; M+1: in
+  blacklist.addSpectrum(spectrumAt(502.0, {mz, mz + 2 * spacing, mz + 3 * spacing}, {12, UniqueIdInterface::INVALID, 15})); // again 12; M+2 of no feature; M+3: out
+  blacklist.updateRanges();
+
+  const std::vector<UInt64> owners = resolver.reservingOwners(blacklist, 500.0, mz, 2, cf);
+  TEST_EQUAL(owners.size(), 3)
+  TEST_EQUAL(owners == std::vector<UInt64>({UniqueIdInterface::INVALID, 12, 14}), true)
+
+  // nothing reserved at another position
+  TEST_EQUAL(resolver.reservingOwners(blacklist, 500.0, 700.0, 2, cf).empty(), true)
+
+  // the spectra of another FAIMS CV do not count
+  ConsensusFeature at_cv = cf;
+  at_cv.setMetaValue(Constants::UserParam::FAIMS_CV, -45.0);
+  TEST_EQUAL(resolver.reservingOwners(blacklist, 500.0, mz, 2, at_cv).empty(), true)
+  MSExperiment with_cv = blacklist;
+  for (MSSpectrum& spec : with_cv) { spec.setMetaValue(Constants::UserParam::FAIMS_CV, -45.0); }
+  TEST_EQUAL(resolver.reservingOwners(with_cv, 500.0, mz, 2, at_cv).size(), 3)
+  TEST_EQUAL(resolver.reservingOwners(with_cv, 500.0, mz, 2, cf).empty(), true)
+
+  // the tolerances are those of the check ('algorithm:rt_tolerance', 'algorithm:mz_tolerance')
+  Param p = resolver.getParameters();
+  p.setValue("algorithm:rt_tolerance", 7.0);
+  p.setValue("algorithm:mz_tolerance", 30.0);
+  resolver.setParameters(p);
+  TEST_EQUAL(resolver.reservingOwners(blacklist, 500.0, mz, 2, cf) == std::vector<UInt64>({UniqueIdInterface::INVALID, 11, 12, 13, 14}), true)
+}
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 END_TEST
