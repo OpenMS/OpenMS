@@ -426,7 +426,8 @@ protected:
       "missing channel itself, detected on its own. Not if 'join_channels' examined such a multiplet for the identified one and did not\n"
       "join it (its re-measurement over their common spectra failed), and never on a multiplet identified as another peptide or as the\n"
       "same one (it is quantified itself). The channel counts as re-quantified, and stays not quantifiable if the measurement gives no\n"
-      "value. With 'match_between_runs', an unidentified multiplet kept for linking whose peaks gave such a value is removed.\n"
+      "value, or if another such channel's value read the same peaks (one signal is counted once). With 'match_between_runs', an\n"
+      "unidentified multiplet kept for linking whose peaks gave such a value is removed.\n"
       "false: such channels stay not quantifiable.", false, true);
     setValidStrings_("requantify_vetoed", {"true", "false"});
 
@@ -2048,8 +2049,11 @@ protected:
     With '-requantify_vetoed' (and owners), a channel of an identified multiplet that the resolver made not quantifiable is measured
     in the same way if only unidentified multiplets that can be the peptide occupy its position (vetoedChannelOwners_()), and may then
     also use their reserved peaks. It keeps the value if there is one and stays not quantifiable otherwise (its position is occupied,
-    so it is not absent). An unidentified multiplet kept for match between runs whose reserved peaks entered such a value is removed
-    from @p resolved, so that linking cannot quantify its signal a second time.
+    so it is not absent). If the values of several such channels read the reserved peaks of the same unidentified multiplet's channel
+    (e.g. two identified multiplets of one peptide, detected separately, that both lack the channel it holds), the signal cannot be
+    told to belong to one of them: all of them stay not quantifiable, so that it is not counted twice. An unidentified multiplet kept
+    for match between runs whose reserved peaks entered such a value is removed from @p resolved, so that linking cannot quantify its
+    signal a second time.
 
     @param[in] multiplets The multiplets the resolver completed (for the owners of the reserved peaks)
     @param[in] join_rejected The candidates joinChannelsOfIdentifiedPeptides_() examined and did not join
@@ -2070,12 +2074,22 @@ protected:
       unidentified = unidentifiedChannels_(multiplets);
     }
     std::map<VetoedChannel_, Size> vetoed_outcomes;
-    Size vetoed_requantified = 0, vetoed_no_value = 0, vetoed_peaks_used = 0;
+    Size vetoed_requantified = 0, vetoed_no_value = 0, vetoed_contested = 0, vetoed_peaks_used = 0;
     std::unordered_set<UInt64> vetoed_owners_read; // channels of unidentified multiplets whose reserved peaks entered a value
+    // the values measured for vetoed channels, applied once all are known: a signal that several of them read belongs to none
+    struct VetoedValue
+    {
+      Size feature;                    // position in resolved
+      Size map_index;                  // the channel
+      double intensity;
+      std::unordered_set<UInt64> read; // the unidentified multiplets' channels whose reserved peaks it read
+    };
+    vector<VetoedValue> vetoed_values;
 
     Size requantified = 0, absent = 0, occupied = 0, no_pattern = 0, not_coeluting = 0, reserved_used = 0;
-    for (auto& cf : resolved)
+    for (Size f = 0; f < resolved.size(); ++f)
     {
+      ConsensusFeature& cf = resolved[f];
       // the elution region and the number of mass traces of the detected channels, and the most intense one
       double rt_lo = std::numeric_limits<double>::max(), rt_hi = std::numeric_limits<double>::lowest();
       Size traces = 0;
@@ -2144,13 +2158,7 @@ protected:
                                                             channel_mzs, traces, reference_mz, reference_intensity,
                                                             lowerIsotopeBound_(lower_bounds, handle.getMapIndex()), true);
             allowed_owners = nullptr;
-            if (result.intensity > 0.0)
-            {
-              handle.setIntensity(result.intensity);
-              requantified_channels.push_back(static_cast<Int>(handle.getMapIndex()));
-              vetoed_owners_read.insert(owners_read.begin(), owners_read.end());
-              ++vetoed_requantified;
-            }
+            if (result.intensity > 0.0) { vetoed_values.push_back({f, handle.getMapIndex(), result.intensity, owners_read}); }
             else { ++vetoed_no_value; }
           }
         }
@@ -2201,6 +2209,39 @@ protected:
       OPENMS_LOG_INFO << "The re-quantification used " << reserved_used << " reserved peak(s) of no reported feature (patterns the detection dropped)." << endl;
     }
 
+    // One signal, one channel: if the values of several vetoed channels read the reserved peaks of the same unidentified multiplet's
+    // channel (e.g. two identified multiplets of one peptide, detected separately, that both lack the channel it holds), that signal
+    // cannot be told to belong to one of them, and counting it for each would count it twice: they all stay not quantifiable.
+    std::unordered_map<UInt64, Size> readers;
+    for (const VetoedValue& value : vetoed_values)
+    {
+      for (const UInt64 owner : value.read) { ++readers[owner]; }
+    }
+    for (const VetoedValue& value : vetoed_values)
+    {
+      if (std::any_of(value.read.begin(), value.read.end(), [&](UInt64 owner) { return readers[owner] > 1; }))
+      {
+        ++vetoed_contested;
+        continue;
+      }
+      ConsensusFeature& cf = resolved[value.feature];
+      ConsensusFeature::HandleSetType handles;
+      for (FeatureHandle handle : cf.getFeatures())
+      {
+        if (handle.getMapIndex() == value.map_index && std::isnan(handle.getIntensity())) { handle.setIntensity(value.intensity); }
+        handles.insert(handle);
+      }
+      cf.setFeatures(std::move(handles));
+      for (PeptideIdentification& id : cf.getPeptideIdentifications())
+      {
+        IntList channels = id.metaValueExists(requantified_channels_meta_) ? IntList(id.getMetaValue(requantified_channels_meta_)) : IntList();
+        channels.push_back(static_cast<Int>(value.map_index));
+        id.setMetaValue(requantified_channels_meta_, channels);
+      }
+      vetoed_owners_read.insert(value.read.begin(), value.read.end());
+      ++vetoed_requantified;
+    }
+
     // an unidentified multiplet kept for match between runs whose peaks entered a vetoed channel's value is that channel's signal
     Size removed = 0;
     if (!vetoed_owners_read.empty())
@@ -2227,7 +2268,8 @@ protected:
                         << vetoed_outcomes[VetoedChannel_::OTHER_PEPTIDE] << " on another identified peptide, "
                         << vetoed_outcomes[VetoedChannel_::SAME_PEPTIDE] << " on another multiplet of the same peptide, "
                         << vetoed_outcomes[VetoedChannel_::NOT_THE_PEPTIDE] << " on an unidentified multiplet that cannot be the peptide, "
-                        << vetoed_outcomes[VetoedChannel_::JOIN_REJECTED] << " on a multiplet the join did not join." << endl;
+                        << vetoed_outcomes[VetoedChannel_::JOIN_REJECTED] << " on a multiplet the join did not join, " << vetoed_contested
+                        << " whose value read the same unidentified multiplet's peaks as another channel's (counted in neither)." << endl;
       }
       if (vetoed_peaks_used > 0)
       {

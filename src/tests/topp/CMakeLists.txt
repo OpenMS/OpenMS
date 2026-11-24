@@ -5243,6 +5243,34 @@ add_test("TOPP_MS1LabeledWorkflow_10_vetoed" ${TOPP_BIN_PATH}/MS1LabeledWorkflow
 set_tests_properties("TOPP_MS1LabeledWorkflow_10_vetoed" PROPERTIES PASS_REGULAR_EXPRESSION "0 were measured from the peaks of unidentified multiplets that can be the peptide and 0 gave no value there .'-requantify_vetoed'.. left as they are: 0 on another identified peptide, 0 on another multiplet of the same peptide, 0 on an unidentified multiplet that cannot be the peptide, 1 on a multiplet the join did not join")
 add_test("TOPP_MS1LabeledWorkflow_10_vetoed_out1" ${DIFF} -whitelist "spectra_data" "map id=" "InferenceEngineVersion" -in1 ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_10_vetoed.tmp.consensusXML -in2 ${DATA_DIR_TOPP}/MS1LabeledWorkflow_10_out.consensusXML )
 set_tests_properties("TOPP_MS1LabeledWorkflow_10_vetoed_out1" PROPERTIES DEPENDS "TOPP_MS1LabeledWorkflow_10_vetoed")
+# MS1LabeledWorkflow_24 (triple SILAC, written by MS1LabeledWorkflow_24_input_generate.py): LVNELTEFAK 1:1:1 is detected as three
+# separate channels, the light and the medium one identified. Without the join, both identified multiplets lack the heavy channel,
+# which only the unidentified heavy multiplet occupies: both values would read the same peaks, so the signal would count twice in the
+# peptide's heavy abundance; neither keeps it. With the join (default), the three channels form one multiplet, H/L and M/L ~1.
+add_test("TOPP_MS1LabeledWorkflow_24_vetoed_shared" ${TOPP_BIN_PATH}/MS1LabeledWorkflow -test
+  -in ${DATA_DIR_TOPP}/MS1LabeledWorkflow_24_input.mzML
+  -ids ${DATA_DIR_TOPP}/MS1LabeledWorkflow_24.idXML
+  -fasta ${DATA_DIR_TOPP}/MS1LabeledWorkflow_8.fasta
+  -labels "[][Lys4,Arg6][Lys8,Arg10]"
+  -proteinFDR 1.0
+  -ratios:min_ratio_count 1
+  -join_channels false
+  -requantify_vetoed true
+  -out_cxml ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_24_vetoed_shared.tmp.consensusXML)
+set_tests_properties("TOPP_MS1LabeledWorkflow_24_vetoed_shared" PROPERTIES PASS_REGULAR_EXPRESSION "Of 4 channel.s. not quantifiable because another multiplet reserved peaks at their position, 0 were measured from the peaks of unidentified multiplets that can be the peptide and 0 gave no value there .'-requantify_vetoed'.. left as they are: 0 on another identified peptide, 2 on another multiplet of the same peptide, 0 on an unidentified multiplet that cannot be the peptide, 0 on a multiplet the join did not join, 2 whose value read the same unidentified multiplet's peaks as another channel's")
+add_test("TOPP_MS1LabeledWorkflow_24_vetoed_shared_out1" ${DIFF} -whitelist "spectra_data" "map id=" "InferenceEngineVersion" -in1 ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_24_vetoed_shared.tmp.consensusXML -in2 ${DATA_DIR_TOPP}/MS1LabeledWorkflow_24_shared_out.consensusXML )
+set_tests_properties("TOPP_MS1LabeledWorkflow_24_vetoed_shared_out1" PROPERTIES DEPENDS "TOPP_MS1LabeledWorkflow_24_vetoed_shared")
+add_test("TOPP_MS1LabeledWorkflow_24_join" ${TOPP_BIN_PATH}/MS1LabeledWorkflow -test
+  -in ${DATA_DIR_TOPP}/MS1LabeledWorkflow_24_input.mzML
+  -ids ${DATA_DIR_TOPP}/MS1LabeledWorkflow_24.idXML
+  -fasta ${DATA_DIR_TOPP}/MS1LabeledWorkflow_8.fasta
+  -labels "[][Lys4,Arg6][Lys8,Arg10]"
+  -proteinFDR 1.0
+  -ratios:min_ratio_count 1
+  -out_cxml ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_24_join.tmp.consensusXML)
+set_tests_properties("TOPP_MS1LabeledWorkflow_24_join" PROPERTIES PASS_REGULAR_EXPRESSION "2 partial multiplet.s. were found to be other channels of an identified partial multiplet and were joined to it, re-measured over common spectra. 0 such candidate.s. were not joined")
+add_test("TOPP_MS1LabeledWorkflow_24_join_out1" ${DIFF} -whitelist "spectra_data" "map id=" "InferenceEngineVersion" -in1 ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_24_join.tmp.consensusXML -in2 ${DATA_DIR_TOPP}/MS1LabeledWorkflow_24_join_out.consensusXML )
+set_tests_properties("TOPP_MS1LabeledWorkflow_24_join_out1" PROPERTIES DEPENDS "TOPP_MS1LabeledWorkflow_24_join")
 
 # -targeted_quantification: identified peptides without a multiplet. MS1LabeledWorkflow_11 is a synthetic SILAC duplex (2+, one MS1
 # spectrum per second, Gaussian elution):
