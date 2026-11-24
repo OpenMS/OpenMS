@@ -1735,6 +1735,17 @@ START_SECTION(([EXTRA] store protein groups with a recorded group score threshol
   const std::string text2 = readFile(filename);
   TEST_EQUAL(countOf(text2, "name=\"no threshold\""), 2)
   TEST_EQUAL(countOf(text2, "name=\"protein group passes threshold\" value=\"true\""), 2)
+
+  // nor is one for a run without indistinguishable groups (one group per protein): no group was filtered with it,
+  // and the protein scores may have been recalculated since
+  proteins[0].setMetaValue(Constants::UserParam::PROTEIN_GROUP_SCORE_THRESHOLD_TYPE, "Posterior Probability");
+  proteins[0].getIndistinguishableProteins().clear();
+  proteins[0].getProteinGroups().clear();
+  MzIdentMLFile().store(filename, proteins, peptides);
+  const std::string text3 = readFile(filename);
+  TEST_EQUAL(countOf(text3, "name=\"no threshold\""), 2)
+  TEST_EQUAL(countOf(text3, "<ProteinAmbiguityGroup "), 4) // A, B, C, DECOY_D
+  TEST_EQUAL(countOf(text3, "name=\"protein group passes threshold\" value=\"true\""), 3) // all but the decoy
 }
 END_SECTION
 

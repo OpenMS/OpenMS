@@ -1252,10 +1252,16 @@ namespace OpenMS::Internal
         return std::string(indent, '\t') + "<userParam name=\"" + writeXMLEscape(score_type) + "\" type=\"xsd:double\" value=\""
                + StringUtils::toStr(score) + "\"/>\n";
       };
-      // the cutoff that the groups were filtered with (IDFilter::recordGroupScoreThreshold()), if it applies to their score
+      // the cutoff that the groups were filtered with (IDFilter::recordGroupScoreThreshold()), if it applies to their score.
+      // Without indistinguishable groups (one group per protein, see above), no group was filtered with it: the group
+      // scores are then the protein scores, which may have been recalculated since (e.g. by protein inference).
       bool use_threshold = false;
       double threshold = 0.0;
-      if (run.metaValueExists(Constants::UserParam::PROTEIN_GROUP_SCORE_THRESHOLD))
+      if (run.metaValueExists(Constants::UserParam::PROTEIN_GROUP_SCORE_THRESHOLD) && run.getIndistinguishableProteins().empty())
+      {
+        OPENMS_LOG_WARN << "The run has a protein group score threshold, but no protein groups. It is not written to mzIdentML." << endl;
+      }
+      else if (run.metaValueExists(Constants::UserParam::PROTEIN_GROUP_SCORE_THRESHOLD))
       {
         const std::string threshold_type = run.getMetaValue(Constants::UserParam::PROTEIN_GROUP_SCORE_THRESHOLD_TYPE, score_type).toString();
         const DataValue& value = run.getMetaValue(Constants::UserParam::PROTEIN_GROUP_SCORE_THRESHOLD);

@@ -8,6 +8,7 @@
 
 #include <OpenMS/ANALYSIS/ID/BasicProteinInferenceAlgorithm.h>
 #include <OpenMS/ANALYSIS/ID/IDBoostGraph.h>
+#include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/CONCEPT/VersionInfo.h>
 #include <OpenMS/PROCESSING/ID/IDFilter.h>
 #include <OpenMS/METADATA/PeptideHit.h>
@@ -115,7 +116,6 @@ namespace OpenMS
 
     prot_run.setInferenceEngine("TOPPProteinInference");
     prot_run.setInferenceEngineVersion(VersionInfo::getVersion());
-    IDFilter::removeGroupScoreThreshold(prot_run); // a cutoff on the old group scores does not apply to the new groups
     ProteinIdentification::SearchParameters sp = prot_run.getSearchParameters();
     sp.setMetaValue("TOPPProteinInference:aggregation_method", agg_method_string);
     sp.setMetaValue("TOPPProteinInference:use_shared_peptides", use_shared_peptides);
@@ -172,6 +172,13 @@ namespace OpenMS
         isr.requested_score_higher_better
     );
 
+    // A group score cutoff without a type applies to the score type of the groups it was recorded for. Without
+    // regrouping, the groups (and the cutoff) are kept while the run's score type may change below: record that type.
+    if (prot_run.metaValueExists(Constants::UserParam::PROTEIN_GROUP_SCORE_THRESHOLD) &&
+        !prot_run.metaValueExists(Constants::UserParam::PROTEIN_GROUP_SCORE_THRESHOLD_TYPE))
+    {
+      prot_run.setMetaValue(Constants::UserParam::PROTEIN_GROUP_SCORE_THRESHOLD_TYPE, prot_run.getScoreType());
+    }
     if (pep_scores)
     {
       prot_run.setScoreType("Posterior Probability");
@@ -193,6 +200,8 @@ namespace OpenMS
 
     if (group)
     {
+      // the groups get new scores: a cutoff on the old ones does not apply (without grouping, they keep their scores)
+      IDFilter::removeGroupScoreThreshold(prot_run);
       //TODO you could actually also do the aggregation/inference as well as the resolution on the Graph structure.
       // Groups would be clustered already. Saving some time.
       // But it is quite fast right now already.
@@ -239,6 +248,12 @@ namespace OpenMS
         IDFilter::removeUnreferencedProteins(cmap, include_unassigned);
         IDFilter::updateProteinGroups(prot_run.getIndistinguishableProteins(), prot_run.getHits());
       }
+      // Without groups, the only group scores (e.g. the one-protein groups that the mzIdentML writer reports) are the
+      // protein scores computed above: a cutoff on the old scores does not apply to them.
+      if (prot_run.getIndistinguishableProteins().empty())
+      {
+        IDFilter::removeGroupScoreThreshold(prot_run);
+      }
     }
 
     prot_run.sort();
@@ -267,6 +282,7 @@ namespace OpenMS
       proteins.getIndistinguishableProteins() = std::move(previous);
       throw;
     }
+    IDFilter::removeGroupScoreThreshold(proteins); // a cutoff on the old group scores does not apply to the new groups
   }
 
   void BasicProteinInferenceAlgorithm::run(PeptideIdentificationList &pep_ids,
