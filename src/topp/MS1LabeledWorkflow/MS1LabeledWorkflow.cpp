@@ -2234,7 +2234,8 @@ protected:
       cf.setFeatures(std::move(handles));
       for (PeptideIdentification& id : cf.getPeptideIdentifications())
       {
-        IntList channels = id.metaValueExists(requantified_channels_meta_) ? IntList(id.getMetaValue(requantified_channels_meta_)) : IntList();
+        IntList channels;
+        if (id.metaValueExists(requantified_channels_meta_)) { channels = id.getMetaValue(requantified_channels_meta_).toIntList(); }
         channels.push_back(static_cast<Int>(value.map_index));
         id.setMetaValue(requantified_channels_meta_, channels);
       }
