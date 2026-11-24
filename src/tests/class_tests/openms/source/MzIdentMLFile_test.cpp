@@ -1832,6 +1832,8 @@ START_SECTION(([EXTRA] store and load integer score terms, e.g. MS-GF:RawScore (
   MzIdentMLFile().load(OPENMS_GET_TEST_DATA_PATH("MzIdentMLFile_msgf_mini.mzid"), proteins, peptides);
   ABORT_IF(peptides.empty() || peptides[0].getHits().empty())
   TEST_EQUAL(peptides[0].getScoreType(), "MS-GF:RawScore")
+  // another term with integer values, as a double (e.g. as PercolatorFeatureSetHelper sets missing values)
+  peptides[0].getHits()[0].setMetaValue("MS:1002050", 230.0);
 
   std::string filename;
   NEW_TMP_FILE_EXT(filename, ".mzid")
@@ -1840,6 +1842,9 @@ START_SECTION(([EXTRA] store and load integer score terms, e.g. MS-GF:RawScore (
   // the main score: MS-GF:RawScore has integer values, so no decimals
   TEST_EQUAL(countOf(text, "name=\"MS-GF:RawScore\" value=\"195\""), 1)
   TEST_EQUAL(countOf(text, "name=\"MS-GF:RawScore\" value=\"195.0\""), 0)
+  // ... nor for other values of terms with integer values
+  TEST_EQUAL(countOf(text, "name=\"MS-GF:DeNovoScore\" value=\"230\""), 1)
+  TEST_EQUAL(countOf(text, "name=\"MS-GF:DeNovoScore\" value=\"230.0\""), 0)
   std::vector<ProteinIdentification> proteins2;
   PeptideIdentificationList peptides2;
   MzIdentMLFile().load(filename, proteins2, peptides2);
@@ -1949,6 +1954,10 @@ START_SECTION(([EXTRA] XL-MS userParams: value types from type or unitName, opti
   text = std::regex_replace(text, std::regex(R"(<userParam name="OpenPepXL:prescore" unitName="xsd:double" value="[^"]*"/>)"),
                             R"(<userParam name="OpenPepXL:prescore" type="xsd:double"/>)");
   TEST_EQUAL(countOf(text, "<userParam name=\"OpenPepXL:prescore\" type=\"xsd:double\"/>"), prescores)
+  // a value that does not fit its type is kept as a string
+  text = std::regex_replace(text, std::regex(R"(<userParam name="isotope_error" unitName="xsd:integer" value="[^"]*"/>)"),
+                            R"(<userParam name="isotope_error" type="xsd:integer" value="none"/>)");
+  TEST_EQUAL(countOf(text, "<userParam name=\"isotope_error\" type=\"xsd:integer\" value=\"none\"/>"), 4)
   std::string filename;
   NEW_TMP_FILE_EXT(filename, ".mzid")
   std::ofstream(filename) << text;
@@ -1962,7 +1971,9 @@ START_SECTION(([EXTRA] XL-MS userParams: value types from type or unitName, opti
     {
       if (!hit.metaValueExists("OpenPepXL:prescore")) continue;
       ++xl_hits;
-      TEST_EQUAL(hit.getMetaValue("isotope_error").valueType(), DataValue::INT_VALUE)
+      TEST_EQUAL(hit.getMetaValue("isotope_error").valueType(), DataValue::STRING_VALUE)
+      TEST_EQUAL(hit.getMetaValue("isotope_error").toString(), "none")
+      TEST_EQUAL(hit.getMetaValue("matched_xlink_alpha").valueType(), DataValue::INT_VALUE) // unitName="xsd:integer"
       TEST_EQUAL(hit.getMetaValue("OpenPepXL:prescore").valueType(), DataValue::STRING_VALUE)
       TEST_EQUAL(hit.getMetaValue("OpenPepXL:prescore").toString(), "")
     }

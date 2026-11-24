@@ -2031,7 +2031,18 @@ namespace OpenMS::Internal
       {
         // no value (it is optional): an empty string, not a number
         const std::string type = userParamValues_alpha[i].empty() ? std::string() : userParamTypes_alpha[i];
-        ph_alpha.setMetaValue(userParamNames_alpha[i], XMLHandler::fromXSDString(type, userParamValues_alpha[i]));
+        DataValue value;
+        try
+        {
+          value = XMLHandler::fromXSDString(type, userParamValues_alpha[i]);
+        }
+        catch (const Exception::ConversionError&) // does not fit its type: keep it as it is
+        {
+          OPENMS_LOG_WARN << "The value '" << userParamValues_alpha[i] << "' of userParam '" << userParamNames_alpha[i]
+                          << "' is not of type '" << type << "'. It is read as a string." << std::endl;
+          value = userParamValues_alpha[i];
+        }
+        ph_alpha.setMetaValue(userParamNames_alpha[i], value);
       }
 
       ph_alpha.setPeakAnnotations(frag_annotations);

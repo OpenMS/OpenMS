@@ -39,9 +39,9 @@ namespace OpenMS::Internal
   {
     namespace
     {
-      /// The value of a PSM score @p score for a cvParam of @p term: a whole number without decimals for terms with integer
+      /// The value of a number @p score for a cvParam of @p term: a whole number without decimals for terms with integer
       /// values (e.g. "102" for MS-GF:RawScore, not "102.0", which readers reject), else @p score_string
-      std::string scoreValue_(const ControlledVocabulary::CVTerm& term, double score, const std::string& score_string)
+      std::string cvValue_(const ControlledVocabulary::CVTerm& term, double score, const std::string& score_string)
       {
         switch (term.xref_type)
         {
@@ -1545,7 +1545,10 @@ namespace OpenMS::Internal
         if (cv_.exists(keys[i]))
         {
           ControlledVocabulary::CVTerm a = cv_.getTerm(keys[i]);
-          s +=std::string(indent, '\t') + a.toXMLString("PSI-MS", StringUtils::toStr((meta.getMetaValue(keys[i])))) + "\n";
+          const DataValue& d = meta.getMetaValue(keys[i]);
+          // a whole number of a term with integer values without decimals (e.g. a missing MS-GF:RawScore set to 0.0)
+          const std::string value = d.valueType() == DataValue::DOUBLE_VALUE ? cvValue_(a, double(d), StringUtils::toStr(d)) : StringUtils::toStr(d);
+          s +=std::string(indent, '\t') + a.toXMLString("PSI-MS", value) + "\n";
         }
         else
         {
@@ -1941,7 +1944,7 @@ namespace OpenMS::Internal
           OPENMS_LOG_WARN << "No score assigned to this PSM: " /*<< hit.getSequence().toString()*/ << '\n';
         }
         // the cvParam of the score
-        auto score_param = [&](const ControlledVocabulary::CVTerm& term) { return term.toXMLString(cv_ns, scoreValue_(term, hit.getScore(), sc)); };
+        auto score_param = [&](const ControlledVocabulary::CVTerm& term) { return term.toXMLString(cv_ns, cvValue_(term, hit.getScore(), sc)); };
         std::string c = StringUtils::toStr(hit.getCharge()); //charge
 
         std::string pte;
@@ -2592,7 +2595,7 @@ namespace OpenMS::Internal
         OPENMS_LOG_WARN << "No score assigned to this PSM: " /*<< hit.getSequence().toString()*/ << '\n';
       }
       // the cvParam of the score
-      auto score_param = [&](const ControlledVocabulary::CVTerm& term) { return term.toXMLString(cv_ns, scoreValue_(term, hit.getScore(), sc)); };
+      auto score_param = [&](const ControlledVocabulary::CVTerm& term) { return term.toXMLString(cv_ns, cvValue_(term, hit.getScore(), sc)); };
       std::string c = StringUtils::toStr(hit.getCharge()); //charge
 
       std::string pte;
