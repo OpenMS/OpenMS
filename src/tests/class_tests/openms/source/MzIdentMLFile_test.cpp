@@ -1918,11 +1918,22 @@ START_SECTION(([EXTRA] store and load the units of CV-term meta values (issue #1
   scan_start_time.setUnit(10); // UO:0000010 second
   scan_start_time.setUnitType(DataValue::UnitType::UNIT_ONTOLOGY);
   peptides[0].getHits()[0].setMetaValue("MS:1000016", scan_start_time);
+  // a unit of the PSI-MS CV: its CV reference is the id of PSI-MS in the cvList of the document ("PSI-MS", not "MS")
+  DataValue selected_mz(500.25);
+  selected_mz.setUnit(1000040); // MS:1000040 m/z
+  selected_mz.setUnitType(DataValue::UnitType::MS_ONTOLOGY);
+  peptides[0].getHits()[0].setMetaValue("MS:1000744", selected_mz);
 
   std::string filename;
   NEW_TMP_FILE_EXT(filename, ".mzid")
   MzIdentMLFile().store(filename, proteins, peptides);
   const std::string text = readFile(filename);
+  TEST_EQUAL(countOf(text, "name=\"selected ion m/z\" value=\"500.25\" unitAccession=\"MS:1000040\" unitCvRef=\"PSI-MS\" unitName=\"m/z\"/>"), 1)
+  TEST_EQUAL(countOf(text, "unitCvRef=\"MS\""), 0)
+  std::string version;
+  std::stringstream schema_errors;
+  TEST_EQUAL(MzIdentMLFile().isValid(filename, schema_errors, version), true)
+  TEST_EQUAL(schema_errors.str(), "")
   const std::regex with_unit(R"(name="scan start time" value="2014\.221[0-9]*" unitAccession="UO:0000010" unitCvRef="UO" unitName="second"/>)");
   TEST_EQUAL(std::distance(std::sregex_iterator(text.begin(), text.end(), with_unit), std::sregex_iterator()), 1)
 
@@ -1935,6 +1946,10 @@ START_SECTION(([EXTRA] store and load the units of CV-term meta values (issue #1
   TEST_EQUAL(value.hasUnit(), true)
   TEST_EQUAL(value.getUnit(), 10)
   TEST_EQUAL(value.getUnitType() == DataValue::UnitType::UNIT_ONTOLOGY, true)
+  const DataValue& mz = peptides2[0].getHits()[0].getMetaValue("MS:1000744");
+  TEST_REAL_SIMILAR(double(mz), 500.25)
+  TEST_EQUAL(mz.getUnit(), 1000040)
+  TEST_EQUAL(mz.getUnitType() == DataValue::UnitType::MS_ONTOLOGY, true)
 }
 END_SECTION
 

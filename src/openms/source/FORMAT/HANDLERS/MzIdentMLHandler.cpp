@@ -39,23 +39,27 @@ namespace OpenMS::Internal
   {
     namespace
     {
-      /// A cvParam of @p term with @p value, with the unit of the value if it has one: accession, name and CV of the unit
-      /// (readers, including OpenMS, need the name to read the unit)
+      /// A cvParam of @p term (of the CV with the id @p ref in the document) with @p value, with the unit of the value if it has
+      /// one: accession, CV and name of the unit (readers, including OpenMS, need the name to read the unit)
       std::string cvParamWithUnit_(const ControlledVocabulary::CVTerm& term, const std::string& ref, const DataValue& value)
       {
-        if (!value.hasUnit())
+        std::string s = term.toXMLString(ref, StringUtils::toStr(value)); // an empty value (e.g. of a flag term) is left out
+        if (!value.hasUnit() || !StringUtils::hasSuffix(s, "/>"))
         {
-          return term.toXMLString(ref, StringUtils::toStr(value)); // an empty value (e.g. of a flag term) is left out
+          return s;
         }
-        std::string s = term.toXMLString(ref, value); // the unit's accession and CV, but not its name
         char accession[8];
         snprintf(accession, sizeof(accession), "%07d", value.getUnit()); // all CVs use 7-digit identifiers
-        const std::string unit = (value.getUnitType() == DataValue::UnitType::UNIT_ONTOLOGY ? "UO:" : "MS:") + std::string(accession);
+        const bool uo = value.getUnitType() == DataValue::UnitType::UNIT_ONTOLOGY;
+        const std::string unit = (uo ? "UO:" : "MS:") + std::string(accession);
+        // the ids of the CVs in the cvList of the document: "UO", and @p ref for PSI-MS (not the accession prefix "MS")
+        std::string attributes = " unitAccession=\"" + unit + "\" unitCvRef=\"" + (uo ? std::string("UO") : ref) + "\"";
         const ControlledVocabulary& cv = ControlledVocabulary::getPSIMSCV(); // also has the unit ontology
-        if (cv.exists(unit) && StringUtils::hasSuffix(s, "/>"))
+        if (cv.exists(unit))
         {
-          s.insert(s.size() - 2, " unitName=\"" + XMLHandler::writeXMLEscape(cv.getTerm(unit).name) + "\"");
+          attributes += " unitName=\"" + XMLHandler::writeXMLEscape(cv.getTerm(unit).name) + "\"";
         }
+        s.insert(s.size() - 2, attributes);
         return s;
       }
     }
