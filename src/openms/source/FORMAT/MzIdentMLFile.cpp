@@ -12,6 +12,7 @@
 #include <OpenMS/FORMAT/MzIdentMLFile.h>
 #include <OpenMS/FORMAT/VALIDATORS/MzIdentMLValidator.h>
 #include <OpenMS/FORMAT/CVMappingFile.h>
+#include <OpenMS/DATASTRUCTURES/CVMappingRule.h>
 #include <OpenMS/FORMAT/HANDLERS/MzIdentMLHandler.h>
 #include <OpenMS/FORMAT/HANDLERS/MzIdentMLDOMHandler.h>
 #include <OpenMS/FORMAT/TextFile.h>
@@ -108,6 +109,17 @@ namespace OpenMS
     // load mapping
     CVMappings mapping;
     CVMappingFile().load(File::find("/MAPPING/mzIdentML-mapping.xml"), mapping);
+    // mzIdentML 1.2 made some terms required for protein grouping: check them only for files of version 1.2 and later
+    const std::string version = detectVersion(filename);
+    if (version != "1.0.0" && version != "1.1.0")
+    {
+      CVMappings mapping_1_2;
+      CVMappingFile().load(File::find("/MAPPING/mzIdentML-1.2-mapping.xml"), mapping_1_2);
+      for (const CVMappingRule& rule : mapping_1_2.getMappingRules())
+      {
+        mapping.addMappingRule(rule);
+      }
+    }
 
     // validate
     Internal::MzIdentMLValidator v(mapping, ControlledVocabulary::getPSIMSCV());

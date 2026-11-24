@@ -36,6 +36,23 @@ namespace OpenMS
         threshold set in ProteinIdentification
       @note All PSM will be read into PeptideIdentification, even the passThreshold=false
 
+      <b>Protein groups</b> (protein inference results) are stored in the @c ProteinDetectionList, following the
+      protein grouping guidelines of mzIdentML 1.2:
+      - Each indistinguishable protein group (ProteinIdentification::getIndistinguishableProteins()) becomes a
+        @c ProteinAmbiguityGroup of "leading protein"s, with the group score and whether it passes the threshold.
+        Groups of decoy proteins do not pass. After protein inference without grouping, each protein is a group of its own.
+      - General protein groups (ProteinIdentification::getProteinGroups()) become "cluster identifier"s of the groups
+        they consist of.
+      - Only one identification run may have protein inference results (mzIdentML allows only one
+        @c ProteinDetectionList); otherwise no protein groups are written.
+      - Each protein references the top-ranked PSMs that support it; proteins without PSMs are not written.
+      - A cutoff on group scores recorded by IDFilter becomes the threshold of the @c ProteinDetectionProtocol.
+
+      When reading, the protein groups of a @c ProteinDetectionList are added to the identification run that they
+      were inferred from. Files without "leading protein" annotations (e.g. mzIdentML 1.1) are supported: there, the
+      proteins of an ambiguity group with the same, largest set of peptides become an indistinguishable group.
+      See Internal::MzIdentMLProteinDetection for details of the mapping.
+
       @ingroup FileIO
   */
   class OPENMS_DLLAPI MzIdentMLFile :
@@ -65,6 +82,9 @@ public:
 
     /**
         @brief Checks if a file is valid with respect to the mapping file and the controlled vocabulary.
+
+        For files of mzIdentML version 1.2 and later, the protein grouping rules of mzIdentML 1.2
+        (share/OpenMS/MAPPING/mzIdentML-1.2-mapping.xml) are checked as well.
 
         @param[in] filename File name of the file to be checked.
         @param[out] errors Errors during the validation are returned in this output parameter.

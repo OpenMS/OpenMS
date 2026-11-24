@@ -930,6 +930,21 @@ namespace OpenMS
     static void filterGroupsByScore(std::vector<ProteinIdentification::ProteinGroup>& grps, double threshold_score, bool higher_better);
 
     /**
+      @brief Records the score cutoff that the protein groups of @p protein_id were filtered with (e.g. by filterGroupsByScore()).
+
+      Stores @p threshold_score and the protein score type of @p protein_id in the meta values
+      Constants::UserParam::PROTEIN_GROUP_SCORE_THRESHOLD and Constants::UserParam::PROTEIN_GROUP_SCORE_THRESHOLD_TYPE,
+      so that writers can report it (e.g. as protein detection threshold in mzIdentML).
+
+      @param[in,out] protein_id The protein identification run whose groups were filtered
+      @param[in] threshold_score The cutoff
+      @param[in] keep_stricter If a cutoff on the same score type was recorded before, keep the stricter of the two
+                 (for repeated filtering of the same scores). Pass false if the group scores were recalculated since
+                 (e.g. by FalseDiscoveryRate), so that an earlier cutoff no longer applies.
+    */
+    static void recordGroupScoreThreshold(ProteinIdentification& protein_id, double threshold_score, bool keep_stricter = true);
+
+    /**
       @brief Filters peptide or protein identifications according to the score of the hits.
 
       Only peptide/protein hits with a score at least as good as @p threshold_score are kept. Score orientation (are higher scores better?) is taken into account.
