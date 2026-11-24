@@ -290,10 +290,12 @@ START_TEST(BasicProteinInferenceAlgorithm, "$Id$")
         PeptideIdentificationList peps;
         IdXMLFile().load(OPENMS_GET_TEST_DATA_PATH("newMergerTest_out.idXML"), prots, peps);
         ProteinIdentification::ProteinGroup group;
-        group.probability = 0.42;
+        group.probability = 0.01;
         group.accessions = {prots[0].getHits()[0].getAccession()};
         prots[0].getIndistinguishableProteins() = {group};
-        prots[0].setMetaValue(Constants::UserParam::PROTEIN_GROUP_SCORE_THRESHOLD, 0.4);
+        prots[0].setScoreType("q-value"); // of the groups
+        prots[0].setHigherScoreBetter(false);
+        prots[0].setMetaValue(Constants::UserParam::PROTEIN_GROUP_SCORE_THRESHOLD, 0.05); // without a type: it belongs to the run's score type before inference
         ConsensusMap cmap;
         cmap.setProteinIdentifications(prots);
         for (auto& pep : peps)
@@ -312,8 +314,10 @@ START_TEST(BasicProteinInferenceAlgorithm, "$Id$")
         bpia.run(cmap, cmap.getProteinIdentifications()[0], true);
         const ProteinIdentification& run = cmap.getProteinIdentifications()[0];
         ABORT_IF(run.getIndistinguishableProteins().size() != 1)
-        TEST_REAL_SIMILAR(run.getIndistinguishableProteins()[0].probability, 0.42)
-        TEST_REAL_SIMILAR(run.getMetaValue(Constants::UserParam::PROTEIN_GROUP_SCORE_THRESHOLD, 0.0), 0.4)
+        TEST_REAL_SIMILAR(run.getIndistinguishableProteins()[0].probability, 0.01)
+        TEST_REAL_SIMILAR(run.getMetaValue(Constants::UserParam::PROTEIN_GROUP_SCORE_THRESHOLD, 0.0), 0.05)
+        TEST_NOT_EQUAL(run.getScoreType(), "q-value") // the proteins have new scores
+        TEST_EQUAL(run.getMetaValue(Constants::UserParam::PROTEIN_GROUP_SCORE_THRESHOLD_TYPE, "").toString(), "q-value")
       }
     }
     END_SECTION

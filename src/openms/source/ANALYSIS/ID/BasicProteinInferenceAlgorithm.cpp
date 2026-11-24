@@ -8,6 +8,7 @@
 
 #include <OpenMS/ANALYSIS/ID/BasicProteinInferenceAlgorithm.h>
 #include <OpenMS/ANALYSIS/ID/IDBoostGraph.h>
+#include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/CONCEPT/VersionInfo.h>
 #include <OpenMS/PROCESSING/ID/IDFilter.h>
 #include <OpenMS/METADATA/PeptideHit.h>
@@ -171,6 +172,13 @@ namespace OpenMS
         isr.requested_score_higher_better
     );
 
+    // A group score cutoff without a type applies to the score type of the groups it was recorded for. Without
+    // regrouping, the groups (and the cutoff) are kept while the run's score type may change below: record that type.
+    if (prot_run.metaValueExists(Constants::UserParam::PROTEIN_GROUP_SCORE_THRESHOLD) &&
+        !prot_run.metaValueExists(Constants::UserParam::PROTEIN_GROUP_SCORE_THRESHOLD_TYPE))
+    {
+      prot_run.setMetaValue(Constants::UserParam::PROTEIN_GROUP_SCORE_THRESHOLD_TYPE, prot_run.getScoreType());
+    }
     if (pep_scores)
     {
       prot_run.setScoreType("Posterior Probability");
