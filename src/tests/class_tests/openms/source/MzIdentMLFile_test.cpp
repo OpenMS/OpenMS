@@ -1989,8 +1989,8 @@ END_SECTION
 
 START_SECTION(([EXTRA] read PeptideEvidenceRefs: listed twice, or to the evidence of another peptide (issue #10983)))
 {
-  // a file with PEPTIDEK (scan=1), ELVISK (scan=2) and a modified PEPTIDEK (scan=3), each from its own evidence; then the
-  // PeptideEvidenceRefs of the PSMs are changed as in faulty files
+  // a file with PEPTIDEK (scan=1), ELVISK (scan=2), a modified PEPTIDEK (scan=3) and SAMPLER (scan=4), each from its own
+  // evidence; then the PeptideEvidenceRefs of the PSMs are changed as in faulty files
   std::vector<ProteinIdentification> proteins(1);
   proteins[0].setIdentifier("run");
   proteins[0].setSearchEngine("MS-GF+");
@@ -2018,19 +2018,20 @@ START_SECTION(([EXTRA] read PeptideEvidenceRefs: listed twice, or to the evidenc
   add_psm("scan=1", "PEPTIDEK", PeptideEvidence("P1", 10, 17, 'K', 'A'));
   add_psm("scan=2", "ELVISK", PeptideEvidence("P2", 20, 25, 'K', 'G'));
   add_psm("scan=3", "PEPTIDEK(Label:13C(6)15N(2))", PeptideEvidence("P2", 30, 37, 'R', 'L'));
+  add_psm("scan=4", "SAMPLER", PeptideEvidence("P2", 50, 56, 'K', 'A'));
 
   std::string filename;
   NEW_TMP_FILE_EXT(filename, ".mzid")
   MzIdentMLFile().store(filename, proteins, peptides);
   std::string text = readFile(filename);
-  TEST_EQUAL(countOf(text, "<Peptide "), 3)
+  TEST_EQUAL(countOf(text, "<Peptide "), 4)
   std::map<std::string, std::string> pev_of; // spectrum -> id of the PeptideEvidence it references
   const std::regex pev_reference(R"re(spectrumID="([^"]*)"[^>]*>\s*<SpectrumIdentificationItem[^>]*>\s*<PeptideEvidenceRef peptideEvidence_ref="([^"]*)")re");
   for (std::sregex_iterator m(text.begin(), text.end(), pev_reference), end; m != end; ++m)
   {
     pev_of[(*m)[1]] = (*m)[2];
   }
-  ABORT_IF(pev_of.size() != 3)
+  ABORT_IF(pev_of.size() != 4)
   auto set_references = [&](const std::string& spectrum, const std::vector<std::string>& pev_ids)
   {
     const Size start = text.find("<PeptideEvidenceRef ", text.find("spectrumID=\"" + spectrum + "\""));
@@ -2039,12 +2040,14 @@ START_SECTION(([EXTRA] read PeptideEvidenceRefs: listed twice, or to the evidenc
     for (const std::string& pev_id : pev_ids) references += "<PeptideEvidenceRef peptideEvidence_ref=\"" + pev_id + "\"/>";
     text.replace(start, end - start, references);
   };
-  // its own evidence twice, and the evidence of ELVISK
-  set_references("scan=1", {pev_of["scan=1"], pev_of["scan=1"], pev_of["scan=2"]});
+  // its own evidence twice, the evidence of ELVISK, and a PeptideEvidence that is not in the file
+  set_references("scan=1", {pev_of["scan=1"], pev_of["scan=1"], pev_of["scan=2"], "PEV_missing"});
   // only the evidence of PEPTIDEK
   set_references("scan=2", {pev_of["scan=1"]});
   // the evidence of another Peptide element with the same sequence
   set_references("scan=3", {pev_of["scan=1"]});
+  // only a PeptideEvidence that is not in the file
+  set_references("scan=4", {"PEV_missing"});
   NEW_TMP_FILE_EXT(filename, ".mzid")
   std::ofstream(filename) << text;
 
@@ -2060,9 +2063,10 @@ START_SECTION(([EXTRA] read PeptideEvidenceRefs: listed twice, or to the evidenc
       evidences_of[id.getSpectrumReference()] += evidence.getProteinAccession() + " " + evidence.getAABefore() + evidence.getAAAfter() + ";";
     }
   }
-  TEST_EQUAL(evidences_of["scan=1"], "P1 KA;") // once, and without the protein of ELVISK
+  TEST_EQUAL(evidences_of["scan=1"], "P1 KA;") // once, without the protein of ELVISK and without an empty evidence
   TEST_EQUAL(evidences_of["scan=2"], "P2 KG;") // no usable reference: the evidence of its peptide
   TEST_EQUAL(evidences_of["scan=3"], "P1 KA;")
+  TEST_EQUAL(evidences_of["scan=4"], "P2 KA;")
 }
 END_SECTION
 
