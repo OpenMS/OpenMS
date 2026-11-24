@@ -123,6 +123,15 @@ void FLASHAnnotatorAlgorithm::setDefaultParams_()
                      "PrSM (DetectedIonTypes); 'none' if no set passes. Needs at least two decoy shifts.");
   defaults_.setValidStrings("ion_type_detection", {"true", "false"});
 
+  defaults_.setValue("ion_type_detection_loss_check", "false",
+                     "With ion_type_detection, tell z ions from the ammonia losses of y ions, which have the z mass (y - NH3 = z; its next "
+                     "isotopes fall on z+1 and z+2). 'true': until c is kept for the PrSM, a z form (z, z+1, z+2) is tested only if its bonds "
+                     "not yet covered exceed those of the water losses of the same y ions (y - H2O, matched as one more world; Poisson, P "
+                     "below 0.01); otherwise its set is tested without it. Ammonia and water losses of y come at similar rates, so z-like "
+                     "envelopes that are y - NH3 do not exceed y - H2O; once c ions are found, electron-based fragmentation is shown and the z "
+                     "forms are tested as usual. Needs y among the candidates (otherwise no check). 'false': no check.");
+  defaults_.setValidStrings("ion_type_detection_loss_check", {"true", "false"});
+
   defaults_.setValue("min_peaks", 3, "Minimum number of matched isotope peaks of an envelope, the most abundant one included.");
   defaults_.setMinInt("min_peaks", 1);
 
@@ -261,6 +270,7 @@ void FLASHAnnotatorAlgorithm::updateMembers_()
   p1_ = param_.getValue("p1");
   report_decoys_ = param_.getValue("report_decoy_envelopes").toString() == "true";
   detect_ion_types_ = param_.getValue("ion_type_detection").toString() == "true";
+  loss_check_ = param_.getValue("ion_type_detection_loss_check").toString() == "true";
   internal_on_ = param_.getValue("internal_ions").toString() == "true";
   min_peaks_small_ = param_.getValue("min_peaks_small");
   terminal_calibration_ = param_.getValue("terminal_calibration").toDoubleVector();
@@ -1271,7 +1281,15 @@ std::vector<char> FLASHAnnotatorAlgorithm::detectIonTypes_(const PeakArrays& spe
                                                            double cal_factor, int length) const
 {
   const int types = (int)ion_types_.size();
-  const int worlds = 1 + (int)decoy_shifts_.size(); // 0: target, s + 1: decoy shift s
+  auto index_of = [this](const std::string& name) {
+    const auto it = std::find(ion_types_.begin(), ion_types_.end(), name);
+    return it == ion_types_.end() ? -1 : (int)(it - ion_types_.begin());
+  };
+  // loss check: one more world holding the water losses of the y ions (y - H2O), the reference rate of neutral losses for the z forms
+  const int y_index = loss_check_ ? index_of("y") : -1;
+  const int loss_world = y_index >= 0 ? 1 + (int)decoy_shifts_.size() : -1;
+  const int worlds = 1 + (int)decoy_shifts_.size() + (loss_world >= 0 ? 1 : 0); // 0: target, s + 1: decoy shift s, last: y - H2O
+  constexpr double water_mass = 18.0105646863;
   const int width = std::max(1, length);
   std::vector<char> bonds((Size)worlds * types * width, 0); // [world][type][bond]: an envelope of the type matched at the bond
   auto at = [&](int w, int t, int b) -> char& { return bonds[((Size)w * types + t) * width + b]; };
@@ -1279,10 +1297,11 @@ std::vector<char> FLASHAnnotatorAlgorithm::detectIonTypes_(const PeakArrays& spe
   EnvelopeMatch match;
   for (int w = 0; w < worlds; w++)
   {
-    const double shift = w == 0 ? 0.0 : decoy_shifts_[w - 1];
+    const double shift = w == 0 ? 0.0 : (w == loss_world ? -water_mass : decoy_shifts_[w - 1]);
     for (const auto& f : fragments)
     {
       if (f.bond < 0 || f.bond >= width || at(w, f.ion_type, f.bond)) continue;
+      if (w == loss_world && f.ion_type != y_index) continue;
       const double mono_mass = f.mono_mass + shift;
       if (mono_mass <= 0) continue;
       const int bin = massToBin_(f.mono_mass); // the isotope pattern of the target fragment, as for the decoy fragments of the score
@@ -1301,10 +1320,6 @@ std::vector<char> FLASHAnnotatorAlgorithm::detectIonTypes_(const PeakArrays& spe
   }
 
   // candidate sets: complementary ion types together; a type given without its partner alone
-  auto index_of = [this](const std::string& name) {
-    const auto it = std::find(ion_types_.begin(), ion_types_.end(), name);
-    return it == ion_types_.end() ? -1 : (int)(it - ion_types_.begin());
-  };
   std::vector<std::vector<int>> sets;
   std::vector<char> placed(types, 0);
   auto add_set = [&](std::vector<int> members) {
@@ -1345,6 +1360,31 @@ std::vector<char> FLASHAnnotatorAlgorithm::detectIonTypes_(const PeakArrays& spe
     }
     return n;
   };
+  std::vector<char> z_form(types, 0);
+  if (loss_world >= 0)
+  {
+    for (const char* zname : {"z", "zp1", "zp2"})
+    {
+      if (index_of(zname) >= 0) z_form[index_of(zname)] = 1;
+    }
+  }
+  // the members of a set that are tested: with the loss check and c not yet kept, a z form only if its bonds not yet covered exceed
+  // those of y - H2O (y - NH3 has the z mass)
+  auto tested_members = [&](const std::vector<int>& set) {
+    std::vector<int> members;
+    for (int t : set)
+    {
+      if (z_form[t] && (c < 0 || ! keep[c]))
+      {
+        const int k = uncovered_bonds(0, {t});
+        const double losses = std::max(0.5, (double)uncovered_bonds(loss_world, {y_index}));
+        if (k == 0 || boost::math::gamma_p((double)k, losses) >= 0.01) continue;
+      }
+      members.push_back(t);
+    }
+    return members;
+  };
+  std::vector<std::vector<int>> tested(sets.size());
   while (true)
   {
     const Size left = (Size)std::count(set_done.begin(), set_done.end(), 0);
@@ -1354,16 +1394,18 @@ std::vector<char> FLASHAnnotatorAlgorithm::detectIonTypes_(const PeakArrays& spe
     for (Size i = 0; i < sets.size(); i++)
     {
       if (set_done[i]) continue;
-      const int k = uncovered_bonds(0, sets[i]);
+      tested[i] = tested_members(sets[i]);
+      if (tested[i].empty()) continue;
+      const int k = uncovered_bonds(0, tested[i]);
       double lambda = 0;
-      for (Size w : choosing) lambda += uncovered_bonds((int)w, sets[i]);
+      for (Size w : choosing) lambda += uncovered_bonds((int)w, tested[i]);
       lambda = std::max(0.5, lambda / (double)choosing.size());
       const double p = k > 0 ? boost::math::gamma_p((double)k, lambda) : 1.0; // P(X >= k), X ~ Poisson(lambda)
       if (p < best_p) { best_p = p; best = (int)i; }
     }
     if (best < 0 || best_p >= 0.01 / (double)left) break;
     set_done[best] = 1;
-    for (int t : sets[best])
+    for (int t : tested[best])
     {
       keep[t] = 1;
       for (int b = 1; b < length; b++) covered[b] |= at(0, t, b);
