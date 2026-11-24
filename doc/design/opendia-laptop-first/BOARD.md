@@ -2,7 +2,7 @@
 
 [Master plan](README.md)
 
-**Status, 23 November 2026.** This file lists the steps of each work package and the state of each step. Each row links to the record of the step. The script [`board_sync.py`](board_sync.py) copies the R-WP sections of this file to the GitHub project [OpenMS/38](https://github.com/orgs/OpenMS/projects/38). Edit this file first, then run the script. The "Now" table repeats rows from the R-WP sections, and the script does not copy it.
+**Status, 24 November 2026.** This file lists the steps of each work package and the state of each step. Each row links to the record of the step. The script [`board_sync.py`](board_sync.py) copies the R-WP sections of this file to the GitHub project [OpenMS/38](https://github.com/orgs/OpenMS/projects/38). Edit this file first, then run the script. The "Now" table repeats rows from the R-WP sections, and the script does not copy it.
 
 **States:**
 - **Done (pass)**: the step met its predeclared rule.
@@ -28,6 +28,8 @@ Current state on 23 November 2026: the HeLa diaPASEF entrapment at r ≈ 7. The 
 | Faster interference resolver (OpenMS 955516d84c): D r ≈ 7 V7M6 first pass 1,562 → 878 s, output-identical | R-WP6 | Done | [RESULT_V7M6T2.md](gates/single-binary/pdec/RESULT_V7M6T2.md) |
 | Candidate recall on H (38 % of missed IDs have no candidate); PLAN_V7M6 D FAIL on wall only: median N@FDP_c 1 % 21,396 → 24,249 (+13.3 %), bounds unchanged, fairness 0.540, median wall 1.515x > 1.5x (unmatched AMD nodes; 1.375x on matched nodes) | R-WP1, R-WP5 | Blocked: user decision (keep opt-in, speed up then new plan, or timing-rule change for future plans) | [RESULT_V7M6_D.md](gates/single-binary/pdec/RESULT_V7M6_D.md) |
 | Own-q calibration on H loosened with the GBM (lower bound 1.15 to 1.29 %) | R-WP4 | Open | [RESULT_GBT_H.md](gates/single-binary/pdec/RESULT_GBT_H.md) |
+| Compact streaming library tables and training-row-only RT refinement (OpenMS 8c0a89f053): 19 tests pass, allocated AnalysisLibrary heap 1344.23 to 372.519 MiB on the 603k library | R-WP6 | Done: both raw01 seed0 arms byte-identical, 3/3 files each | [local validation](gates/single-binary/compact-library-20261124/RESULT_LOCAL.md) |
+| Full predicted-library direct-Parquet resource and identity experiment, unchanged three raws x five seeds | R-WP6 | Next: frozen plan, new container and pushed preflight approval before submission | [PLAN_PARQUET](gates/single-binary/astral-full-parquet/PLAN_PARQUET.md) |
 | Speed and memory against DIA-NN (D about 19 min / 34 GB vs 3-4 min / under 7 GB) | R-WP6 | Open | [README](README.md) |
 | Re-measure Astral on the current default, laptop profile (16 threads, 32 GB): median N@FDP_c 1 % 2124 / 2144 / 2246 (16 Nov 1804 / 1909 / 1907), 96 / 91 / 99 % of DIA-NN (.raw); about 6-7 min uncontended, about 17 GB | R-WP5 | Done (diagnostic) | [RESULT_ASTRAL_LAPTOP.md](gates/single-binary/astral-laptop/RESULT_ASTRAL_LAPTOP.md) |
 | Own q ≤ 0.01 loose on Astral: FDP_c above 1 % on 10 of 15 runs (medians 1.17 / 0.95 / 1.32 %, max 1.77 %; 16 Nov never above 1 %); one low seed (raw02_s4). PRECHECK_ASTQ ladder: **the GBM rescore is the cause** (pooled combined bound 1.17 to 0.73 % without it, 73 % of the total drop; fairness not raised); GBM on Astral +9.9 % raw 01, -6.1 % raw 02 | R-WP4 | Done (diagnostic); GBM fix needs a new precheck (decision) | [RESULT_ASTQ.md](gates/single-binary/astral-laptop/RESULT_ASTQ.md) |
@@ -185,6 +187,8 @@ Current state on 23 November 2026: the HeLa diaPASEF entrapment at r ≈ 7. The 
 
 | Step | State | Record |
 |---|---|---|
+| Compact streaming library tables and training-row-only RT refinement (OpenMS 8c0a89f053): 19 tests pass, allocated AnalysisLibrary heap 1344.23 to 372.519 MiB on the 603k library | Done: both raw01 seed0 arms byte-identical, 3/3 files each | [local validation](gates/single-binary/compact-library-20261124/RESULT_LOCAL.md) |
+| Full predicted-library direct-Parquet resource and identity experiment, unchanged three raws x five seeds | Next: frozen plan, new container and pushed preflight approval before submission | [PLAN_PARQUET](gates/single-binary/astral-full-parquet/PLAN_PARQUET.md) |
 | Full predicted-library Astral capacity: GPU max20 fragments, three raws x five seeds, IDs/quant/calibration curves/resources | Done, descriptive (attempt 3: 15/15 searches exit 0, 82.7k-86.2k precursors at q 1%, 86-89 GiB per search; entrapment combined estimate 1.32-1.55% at q 1%, so calibration not shown; frozen evaluator `LIKE` mislabel recorded and recounted) | [PLAN_ASTRAL_FULL](gates/single-binary/astral-full/PLAN_ASTRAL_FULL.md), [label amendment](gates/single-binary/astral-full/LABEL_AMENDMENT.md), [RESULT_ASTRAL_FULL](gates/single-binary/astral-full/RESULT_ASTRAL_FULL.md) |
 | Raw 03 held-out check under each new hashed plan | Done for PLAN_RTWIN2 / PLAN_RTPROFILE (current setup 1907 median) | [RESULT_RTWIN2.md](gates/single-binary/rtwin/RESULT_RTWIN2.md) |
 | Memory: the 22 GB peak came from the windowed calibration pass, not the scoring library. Trimmed calibration traces: 21.6 → 15.6 GB, outputs byte-identical (a132e9104e) | Done | [README snapshot](README.md) |

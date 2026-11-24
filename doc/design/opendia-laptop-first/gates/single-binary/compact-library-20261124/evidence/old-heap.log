@@ -1,0 +1,31 @@
+search Library MB=724.379 tr=3620526 comp=603421
+traml_ids MB=36.832
+compounds MB=154.355
+scoring Library MB=1266.16
+precursors MB=347.514
+index MB=42.2674
+analysis traml_ids MB=36.8299
+AnalysisLibrary total MB=1344.23 sizeof Precursor=424
+	Command being timed: "stdbuf -oL old/heap /home/singjc/.jcode/scratch/perf/lib/search.opendia.parquet /home/singjc/.jcode/scratch/perf/lib/scoring.opendia.parquet"
+	User time (seconds): 38.01
+	System time (seconds): 10.54
+	Percent of CPU this job got: 100%
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 0:48.50
+	Average shared text size (kbytes): 0
+	Average unshared data size (kbytes): 0
+	Average stack size (kbytes): 0
+	Average total size (kbytes): 0
+	Maximum resident set size (kbytes): 3252376
+	Average resident set size (kbytes): 0
+	Major (requiring I/O) page faults: 1
+	Minor (reclaiming a frame) page faults: 2516386
+	Voluntary context switches: 112
+	Involuntary context switches: 1829
+	Swaps: 0
+	File system inputs: 136
+	File system outputs: 16
+	Socket messages sent: 0
+	Socket messages received: 0
+	Signals delivered: 0
+	Page size (bytes): 4096
+	Exit status: 0

@@ -1,0 +1,36 @@
+search Library heap_MiB=724.379 tr=3620526 comp=603421
+search traml_ids copy_heap_MiB=36.832 size=603421
+search compounds copy_heap_MiB=154.355 size=603421
+search transitions copy_heap_MiB=497.207 size=3620526
+scoring Library heap_MiB=1266.16 tr=7113750 comp=603421
+AnalysisLibrary total heap_MiB=372.519 retained_rss_MiB=481.359 seconds=28.3132 sizeof_Precursor=328 sizeof_Fragment=24
+precursors copy_heap_MiB=208.397 size=603421
+index copy_heap_MiB=42.2172 size=603421
+fragments copy_heap_MiB=82.8711 size=3620526
+fragment_offset copy_heap_MiB=4.60376 size=603422
+protein_sets copy_heap_MiB=20.0644 size=200933
+calibration_pairs copy_heap_MiB=2.29602 size=300942
+sibling_group_sizes copy_heap_MiB=1.0184 size=266965
+	Command being timed: "./compact_heap /home/singjc/.jcode/scratch/perf/lib/search.opendia.parquet /home/singjc/.jcode/scratch/perf/lib/scoring.opendia.parquet"
+	User time (seconds): 47.26
+	System time (seconds): 11.07
+	Percent of CPU this job got: 100%
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 0:58.21
+	Average shared text size (kbytes): 0
+	Average unshared data size (kbytes): 0
+	Average stack size (kbytes): 0
+	Average total size (kbytes): 0
+	Maximum resident set size (kbytes): 1567956
+	Average resident set size (kbytes): 0
+	Major (requiring I/O) page faults: 0
+	Minor (reclaiming a frame) page faults: 1886601
+	Voluntary context switches: 131
+	Involuntary context switches: 2846
+	Swaps: 0
+	File system inputs: 0
+	File system outputs: 48
+	Socket messages sent: 0
+	Socket messages received: 0
+	Signals delivered: 0
+	Page size (bytes): 4096
+	Exit status: 0

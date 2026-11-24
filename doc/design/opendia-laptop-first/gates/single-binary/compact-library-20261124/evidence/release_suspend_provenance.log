@@ -1,0 +1,9 @@
+Nov 24 17:08:07 pop-os systemd-logind[1343]: The system will suspend now!
+Nov 24 17:08:11 pop-os systemd[1]: Starting systemd-suspend.service - System Suspend...
+Nov 24 17:08:24 pop-os systemd-sleep[610176]: Performing sleep operation 'suspend'...
+Nov 24 18:09:11 pop-os systemd-logind[1343]: Lid closed.
+Nov 24 18:09:11 pop-os systemd-logind[1343]: Lid opened.
+Nov 24 18:09:11 pop-os systemd-sleep[610176]: System returned from sleep operation 'suspend'.
+Nov 24 18:09:12 pop-os systemd[1]: systemd-suspend.service: Deactivated successfully.
+Nov 24 18:09:12 pop-os systemd[1]: Finished systemd-suspend.service - System Suspend.
+Nov 24 18:09:12 pop-os systemd-logind[1343]: Operation 'suspend' finished.

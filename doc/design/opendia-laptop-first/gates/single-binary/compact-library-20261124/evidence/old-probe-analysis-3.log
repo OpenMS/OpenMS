@@ -1,0 +1,25 @@
+analysis 603421 s=29.4294 rss_mb=1988 peak_mb=3190
+copy s=0.573107 rss_mb=2551 peak_mb=3190
+	Command being timed: "./old/probe analysis /home/singjc/.jcode/scratch/perf/lib/search.opendia.parquet /home/singjc/.jcode/scratch/perf/lib/scoring.opendia.parquet"
+	User time (seconds): 24.40
+	System time (seconds): 6.72
+	Percent of CPU this job got: 100%
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 0:30.99
+	Average shared text size (kbytes): 0
+	Average unshared data size (kbytes): 0
+	Average stack size (kbytes): 0
+	Average total size (kbytes): 0
+	Maximum resident set size (kbytes): 3266996
+	Average resident set size (kbytes): 0
+	Major (requiring I/O) page faults: 0
+	Minor (reclaiming a frame) page faults: 1612947
+	Voluntary context switches: 146
+	Involuntary context switches: 1206
+	Swaps: 0
+	File system inputs: 0
+	File system outputs: 8
+	Socket messages sent: 0
+	Socket messages received: 0
+	Signals delivered: 0
+	Page size (bytes): 4096
+	Exit status: 0

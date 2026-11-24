@@ -1,0 +1,23 @@
+	Command being timed: "/home/singjc/.jcode/scratch/compact-20261124/OpenDIA.release -in /home/singjc/Documents/datasets/proteobench-astral-entrapment/raw/LFQ_Astral_DIA_15min_50ng_Human_01.raw -lib /home/singjc/.jcode/scratch/perf/lib/search.pqp -scoring_lib /home/singjc/.jcode/scratch/perf/lib/scoring.pqp -out_dir /home/singjc/.jcode/scratch/compact-20261124/out_release_cached_pqp -threads 16 -seed 0"
+	User time (seconds): 3880.93
+	System time (seconds): 244.73
+	Percent of CPU this job got: 89%
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 1:16:58
+	Average shared text size (kbytes): 0
+	Average unshared data size (kbytes): 0
+	Average stack size (kbytes): 0
+	Average total size (kbytes): 0
+	Maximum resident set size (kbytes): 16324332
+	Average resident set size (kbytes): 0
+	Major (requiring I/O) page faults: 38
+	Minor (reclaiming a frame) page faults: 5732866
+	Voluntary context switches: 27271259
+	Involuntary context switches: 586020
+	Swaps: 0
+	File system inputs: 5184
+	File system outputs: 127592
+	Socket messages sent: 0
+	Socket messages received: 0
+	Signals delivered: 0
+	Page size (bytes): 4096
+	Exit status: 0

@@ -48,6 +48,47 @@ class FullEvaluationTest(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, 'duplicate target winners'):
                 module.evaluate(lib, root)
 
+    def test_literal_case_sensitive_entrapment_labels(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            lib = root/'lib.pqp'
+            # Include LIKE wildcard/case false hits, a literal substring, mixed
+            # mappings, and decoy mappings that must not affect target labels.
+            accessions = [
+                'sp|Q123P_target',
+                'shuffle_P_TARGET',
+                'shuffle_p_Target',
+                'shuffle_pXtarget',
+                'prefix_p_target_suffix',
+                'human',
+                'DECOY_shuffle_p_target',
+                'DECOY_human',
+            ]
+            with sqlite3.connect(lib) as conn:
+                conn.executescript('''CREATE TABLE PRECURSOR(ID,DECOY);
+                CREATE TABLE PRECURSOR_PEPTIDE_MAPPING(PRECURSOR_ID,PEPTIDE_ID);
+                CREATE TABLE PEPTIDE_PROTEIN_MAPPING(PEPTIDE_ID,PROTEIN_ID);
+                CREATE TABLE PROTEIN(ID,PROTEIN_ACCESSION);''')
+                conn.executemany('INSERT INTO PROTEIN VALUES(?,?)', enumerate(accessions, 1))
+                conn.executemany('INSERT INTO PRECURSOR VALUES(?,0)', [(i,) for i in range(1, 8)])
+                conn.executemany('INSERT INTO PRECURSOR_PEPTIDE_MAPPING VALUES(?,?)',
+                                 [(i, i) for i in range(1, 8)])
+                conn.executemany('INSERT INTO PEPTIDE_PROTEIN_MAPPING VALUES(?,?)',
+                                 [(1, 1), (2, 2), (3, 3), (4, 4), (5, 5),
+                                  (6, 6), (6, 7), (7, 5), (7, 6), (7, 8)])
+            run = root/'raw01_s0'
+            run.mkdir()
+            (run/'exit_code.txt').write_text('0\n')
+            # Distinct cutoffs expose each individual label, not just totals.
+            pd.DataFrame(dict(precursor_id=list(range(1, 8)), is_decoy=[0]*7,
+                              score=[3]*7, q_value=module.ALPHAS[:7],
+                              sequence=[f'PEPTIDE{i}' for i in range(1, 8)])).to_csv(
+                run/'LFQ_Astral_DIA_15min_50ng_Human_01.precursors.tsv', sep='\t', index=False)
+            counts, _ = module.evaluate(lib, root)
+            self.assertEqual(counts.E.tolist(), [0, 0, 0, 0, 1, 1, 2, 2, 2])
+            self.assertEqual(counts.human_precursors.tolist(), [1, 2, 3, 4, 4, 5, 5, 5, 5])
+            self.assertTrue((counts.r == 2/5).all())
+
     def test_curve_plot_synthetic(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)

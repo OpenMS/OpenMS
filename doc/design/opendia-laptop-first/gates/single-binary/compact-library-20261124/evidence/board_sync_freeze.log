@@ -1,0 +1,5 @@
+create draft "R-WP6: Compact streaming library tables and training-row-only RT refinement (OpenMS 8c0a89f053): 19 tests pass, allocated AnalysisLibrary heap 1344.23 to 372.519 MiB on the 603k library" [Done]
+  status -> Done
+create draft "R-WP6: Full predicted-library direct-Parquet resource and identity experiment, unchanged three raws x five seeds" [Ready]
+  status -> Ready
+4 actions

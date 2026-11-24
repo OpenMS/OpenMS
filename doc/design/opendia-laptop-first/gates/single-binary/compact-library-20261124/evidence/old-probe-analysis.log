@@ -1,0 +1,25 @@
+analysis 603421 s=27.2194 rss_mb=1987 peak_mb=3189
+copy s=1.36685 rss_mb=2550 peak_mb=3189
+	Command being timed: "stdbuf -oL old/probe analysis /home/singjc/.jcode/scratch/perf/lib/search.opendia.parquet /home/singjc/.jcode/scratch/perf/lib/scoring.opendia.parquet"
+	User time (seconds): 22.73
+	System time (seconds): 7.68
+	Percent of CPU this job got: 100%
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 0:30.32
+	Average shared text size (kbytes): 0
+	Average unshared data size (kbytes): 0
+	Average stack size (kbytes): 0
+	Average total size (kbytes): 0
+	Maximum resident set size (kbytes): 3266444
+	Average resident set size (kbytes): 0
+	Major (requiring I/O) page faults: 0
+	Minor (reclaiming a frame) page faults: 1613067
+	Voluntary context switches: 62
+	Involuntary context switches: 737
+	Swaps: 0
+	File system inputs: 0
+	File system outputs: 8
+	Socket messages sent: 0
+	Socket messages received: 0
+	Signals delivered: 0
+	Page size (bytes): 4096
+	Exit status: 0

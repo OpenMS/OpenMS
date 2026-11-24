@@ -1,0 +1,221 @@
+[0/1] Re-running CMake...
+-- Building OpenMS 3.7.0
+--   [CMake cannot track Git commits and branching, since Git information could not be determined. ('-D GIT_TRACKING=On')]
+-- Dependency provider: system packages and CMAKE_PREFIX_PATH (the CMake presets, see 'cmake --list-presets', build the dependency set CI tests with vcpkg)
+-- OpenMP support requested: ON
+-- Architecture: 64 bit
+-- Processor is : x86_64
+-- Position-independent code (-fPIC) is supported and will be applied to targets
+-- Compiler checks for conversion: OFF
+-- Collection of usage statistics and update notifications enabled.
+--   If you don't want this information to be transmitted to our update sever, you can:
+--     - Switch the build variable ENABLE_UPDATE_CHECK to OFF to remove the functionality at build time.
+--     - Set the environment variable OPENMS_DISABLE_UPDATE_CHECK to disable the functionality at runtime.
+-- Package type is 'none'
+-- Looking for LIBXML_SAX1_ENABLED
+-- Looking for LIBXML_SAX1_ENABLED - found
+-- Looking for LIBXML_PUSH_ENABLED
+-- Looking for LIBXML_PUSH_ENABLED - found
+-- Looking for LIBXML_READER_ENABLED
+-- Looking for LIBXML_READER_ENABLED - found
+-- Looking for LIBXML_SCHEMAS_ENABLED
+-- Looking for LIBXML_SCHEMAS_ENABLED - found
+-- Looking for LIBXML_THREAD_ENABLED
+-- Looking for LIBXML_THREAD_ENABLED - found
+-- Looking for LIBXML_ICONV_ENABLED
+-- Looking for LIBXML_ICONV_ENABLED - found
+-- Looking for LIBXML_ICU_ENABLED
+-- Looking for LIBXML_ICU_ENABLED - not found
+-- Found Boost version 1.91.0
+-- Using vcpkg libsvm
+-- HIGHS version: 1.14.0
+-- Git hash: 7df0786de
+-- Build C++ library: ON
+-- Build C++ executable: OFF
+-- Build Fortran: OFF
+-- Build CSharp: OFF
+-- Build Python: OFF
+-- Build all tests: OFF
+-- ZLIB: ON
+-- Build examples: OFF
+-- Build pdlp with GPU: OFF
+-- Use FindCUDAConf: OFF
+-- Build GPU with delayed loading: OFF
+-- Build HIPO: OFF
+-- Build OpenBLAS: OFF
+-- Build type: Release
+-- Found long size: 8
+-- Found long long size: 8
+-- Found int64_t size: 8
+-- Found unsigned long size: 8
+-- Found unsigned long long size: 8
+-- Found uint64_t size: 8
+-- Found int * size: 8
+-- IPO / LTO supported by compiler: YES
+-- IPO / LTO: OFF as requested by user
+-- FAST_BUILD set to on.
+-- Build C++ example: OFF
+-- Build CSharp example: OFF
+-- Build dotnet package: OFF
+-- No CSharp support
+-- .Net: Use .Net Framework 2.1 support: ON
+-- LP solver: HiGHS (FetchContent)
+-- Using zstd target: zstd::libzstd
+-- Found Eigen3 version in range 3.4.0...<6: 5.0.1
+-- Found CURL: /home/singjc/Documents/github/openms-build/vcpkg_installed/x64-linux/share/curl/CURLConfig.cmake (found suitable version "8.20.0", minimum required is "7.66")  
+[stderr] CMake Warning at /home/singjc/Documents/github/openms-build/vcpkg_installed/x64-linux/share/unofficial-utf8proc/unofficial-utf8proc-config.cmake:1 (message):
+[stderr]   find_package(unofficial-utf8proc) is deprecated.
+[stderr] 
+[stderr]   utf8proc provides CMake targets:
+[stderr] 
+[stderr] 
+[stderr] 
+[stderr]     find_package(utf8proc)
+[stderr]     target_link_libraries(main PRIVATE utf8proc::utf8proc)
+[stderr] 
+[stderr] Call Stack (most recent call first):
+[stderr]   /home/singjc/Documents/github/openms-build/vcpkg_installed/x64-linux/share/arrow/Findutf8proc.cmake:33 (find_package)
+[stderr]   /usr/share/cmake-3.28/Modules/CMakeFindDependencyMacro.cmake:76 (find_package)
+[stderr]   /home/singjc/Documents/github/openms-build/vcpkg_installed/x64-linux/share/arrow/ArrowConfig.cmake:101 (find_dependency)
+[stderr]   /home/singjc/Documents/github/openms-build/vcpkg_installed/x64-linux/share/arrow/ArrowConfig.cmake:124 (arrow_find_dependencies)
+[stderr]   cmake/cmake_findExternalLibs.cmake:265 (find_package)
+[stderr]   CMakeLists.txt:737 (include)
+[stderr] 
+[stderr] 
+-- Found CURL: /home/singjc/Documents/github/openms-build/vcpkg_installed/x64-linux/share/curl/CURLConfig.cmake (found version "8.20.0")  
+-- Found AWS SDK for C++, Version: 1.11.800, Install Root:/home/singjc/Documents/github/openms-build/vcpkg_installed/x64-linux, Platform Prefix:, Platform Dependent Libraries: pthread;curl
+-- Components specified for AWSSDK: config;s3;transfer;identity-management;sts, application will be depending on libs: aws-cpp-sdk-config;aws-cpp-sdk-transfer;aws-cpp-sdk-identity-management;aws-cpp-sdk-cognito-identity;aws-cpp-sdk-sts;aws-cpp-sdk-s3;aws-cpp-sdk-core;AWS::aws-crt-cpp;AWS::aws-c-http;AWS::aws-c-mqtt;AWS::aws-c-cal;AWS::aws-c-auth;AWS::aws-c-common;AWS::aws-c-io;AWS::aws-checksums;AWS::aws-c-event-stream;AWS::aws-c-s3;AWS::aws-c-compression;AWS::aws-c-sdkutils;pthread;curl
+-- Try finding aws-cpp-sdk-core
+-- Found OpenSSL: /home/singjc/Documents/github/openms-build/vcpkg_installed/x64-linux/lib/libcrypto.a (found version "3.6.5") found components: Crypto 
+-- Found OpenSSL: /home/singjc/Documents/github/openms-build/vcpkg_installed/x64-linux/lib/libcrypto.a (found version "3.6.5")  
+-- Found aws-cpp-sdk-core
+-- Try finding aws-cpp-sdk-s3
+-- Found aws-cpp-sdk-s3
+-- Try finding aws-cpp-sdk-sts
+-- Found aws-cpp-sdk-sts
+-- Try finding aws-cpp-sdk-cognito-identity
+-- Found aws-cpp-sdk-cognito-identity
+-- Try finding aws-cpp-sdk-identity-management
+-- Found aws-cpp-sdk-identity-management
+-- Try finding aws-cpp-sdk-transfer
+-- Found aws-cpp-sdk-transfer
+-- Try finding aws-cpp-sdk-config
+-- Found aws-cpp-sdk-config
+-- Arrow version: 24.0.0
+-- Found the Arrow shared library: 
+-- Found the Arrow import library: 
+-- Found the Arrow static library: /home/singjc/Documents/github/openms-build/vcpkg_installed/x64-linux/lib/libarrow.a
+-- Found thrift: /home/singjc/Documents/github/openms-build/vcpkg_installed/x64-linux
+-- Found libevent: /home/singjc/Documents/github/openms-build/vcpkg_installed/x64-linux/lib/libevent.a
+-- Parquet version: 24.0.0
+-- Found the Parquet shared library: 
+-- Found the Parquet import library: 
+-- Found the Parquet static library: /home/singjc/Documents/github/openms-build/vcpkg_installed/x64-linux/lib/libparquet.a
+-- Using Arrow Compute library from find_library: /home/singjc/Documents/github/openms-build/vcpkg_installed/x64-linux/lib/libarrow_compute.a
+-- Using Arrow target: Arrow::arrow_static
+-- Using Arrow Compute target: /home/singjc/Documents/github/openms-build/vcpkg_installed/x64-linux/lib/libarrow_compute.a
+-- Using Parquet target: Parquet::parquet_static
+-- Using Arrow Dataset target: ArrowDataset::arrow_dataset_static
+-- Arrow is linked statically: added LibXml2 to its link interface
+-- S3 support (s3:// URIs, via Arrow): ON 
+-- Found Qt 6.4.2
+-- Could NOT find XKB (missing: XKB_LIBRARY XKB_INCLUDE_DIR) (Required is at least version "0.5.0")
+[stderr] CMake Warning at cmake/cmake_findQt.cmake:57 (message):
+[stderr]   Qt6WebEngineWidgets not found or disabled, disabling JS Views in TOPPView!
+[stderr] Call Stack (most recent call first):
+[stderr]   cmake/cmake_findExternalLibs.cmake:531 (include)
+[stderr]   CMakeLists.txt:737 (include)
+[stderr] 
+[stderr] 
+-- opentims: system installation not found, fetching from git
+-- opentims: built from source (/home/singjc/Documents/github/OpenMS-r1-full-ninja-build/_deps/opentims-src)
+-- openms-thermo-bridge: system installation not found, fetching from git
+-- openms-thermo-bridge: built from source (/home/singjc/Documents/github/OpenMS-r1-full-ninja-build/_deps/openmsthermobridge-src)
+-- Adding library OpenSwathAlgo
+-- Adding library OpenSwathAlgo - SUCCESS
+-- Option USE_EXTERNAL_JSON: OFF
+-- Using the multi-header code from /home/singjc/Documents/github/OpenMS-r1-sparse-experiment/src/openms/extern/nlohmann_json/include/
+-- Option USE_EXTERNAL_SQLITECPP: OFF
+-- Using Stack Protection hardening
+-- CMAKE_CXX_COMPILER '/usr/bin/c++' 'GNU' '13.3.0'
+-- CMAKE_CXX_FLAGS                ' -Wall -Wextra -Wpedantic -Wswitch-enum -Wshadow -Wno-long-long'
+-- CMAKE_CXX_FLAGS_RELEASE        '-O3 -DNDEBUG'
+-- Compile sqlite3 from source in subdirectory
+-- SQLITECPP_RUN_CPPLINT OFF
+-- SQLITECPP_RUN_CPPCHECK OFF
+-- SQLITECPP_RUN_DOXYGEN OFF
+-- SQLITECPP_BUILD_EXAMPLES OFF
+-- SQLITECPP_BUILD_TESTS OFF
+-- Option USE_EXTERNAL_SIMDE: OFF
+-- Option USE_EXTERNAL_ISOSPEC: OFF
+-- Option USE_EXTERNAL_EOLBSPLINE: OFF
+-- Info: CF_OPENMS_DATA_PATH: /home/singjc/Documents/github/OpenMS-r1-sparse-experiment/share/OpenMS
+-- Info: CF_OPENMS_DOC_PATH: /home/singjc/Documents/github/OpenMS-r1-sparse-experiment/doc
+-- Adding library OpenMS
+-- Adding library OpenMS - SUCCESS
+-- Adding library OpenMS_CLI
+-- Adding library OpenMS_CLI - SUCCESS
+-- Adding library OpenMS_GUI
+-- Adding library OpenMS_GUI - SUCCESS
+-- TOPP tool registry: 149 tools -> /home/singjc/Documents/github/OpenMS-r1-full-ninja-build/share/OpenMS/TOOLS/OpenMS.tsv
+-- Percolator_subprocess_parity_test: subprocess sections skipped (percolator binary not on PATH nor in THIRDPARTY)
+-- PercolatorAdapter_parity_test: subprocess sections skipped (percolator binary not on PATH nor in THIRDPARTY)
+-- Searching for third party tools...
+--   - MaRaCluster not found
+--   - Comet not found
+--   + Sage binary found at sage -> Enabling corresponding tests.
+--   - MS-GF+ not found
+--   - MSFragger not found
+--   - Percolator not found
+--   - Novor not found
+--   - SpectraST not found
+--   - ThermoRawFileParser not found
+--   - LuciPHOr2 not found
+-- Adding TOPPAS example pipeline for testing: BSA_Quantitation.toppas [WITH_GUI + ENABLE_PIPELINE_TESTING]
+-- Adding TOPPAS example pipeline for testing: Ecoli_Identification.toppas [WITH_GUI + ENABLE_PIPELINE_TESTING]
+-- Adding TOPPAS example pipeline for testing: FDR_NeighborSearch.toppas [WITH_GUI + ENABLE_PIPELINE_TESTING]
+-- Adding TOPPAS example pipeline for testing: QualityControl.toppas [WITH_GUI + ENABLE_PIPELINE_TESTING]
+-- Adding TOPPAS example pipeline for testing: merger_tutorial.toppas [WITH_GUI + ENABLE_PIPELINE_TESTING]
+-- Adding TOPPAS example pipeline for testing: peakpicker_tutorial.toppas [WITH_GUI + ENABLE_PIPELINE_TESTING]
+-- Documentation is built (-D ENABLE_DOCS=On).
+-- Build C++ tutorials: ON (-DBUILD_EXAMPLES=ON/OFF);
+--  --> Tutorials in '/home/singjc/Documents/github/OpenMS-r1-sparse-experiment/doc/code_examples' will be built!
+-- THIRD-PARTY-NOTICES.txt: 19 license, copyright and notice files
+-- 
+-- -----------------------------------------------------------------
+-- 
+-- You have successfully configured OpenMS.
+-- 
+-- For a full list of make targets execute:
+-- 'make targets'
+-- 
+-- -----------------------------------------------------------------
+-- 
+-- Configuring done (6.9s)
+-- Generating done (6.3s)
+-- Build files have been written to: /home/singjc/Documents/github/OpenMS-r1-full-ninja-build
+Test project /home/singjc/Documents/github/OpenMS-r1-full-ninja-build
+      Start  962: TOPPWRITEINI_OpenDIA
+      Start  745: OpenDIAGBM_test
+      Start  747: OpenDIAMzIndex_test
+      Start  744: OpenDIAScorer_test
+      Start  742: OpenDIAPeakPicker_test
+      Start  749: OpenDIALibraryParquet_test
+      Start  740: OpenDIACalibration_test
+      Start  751: OpenDIA_fails_closed_on_tiny_library
+      Start  746: OpenDIAFragmentGrid_test
+      Start  752: OpenDIA_rejects_duplicate_run_names
+      Start  750: OpenDIA_no_openswath
+      Start  738: OpenDIASearch_test
+      Start  743: OpenDIAInterference_test
+      Start 1172: TOPPWRITECTD_OpenDIA
+      Start  963: TOPPWRITEINI_OpenDIA_SectionName
+      Start  739: OpenDIATraces_test
+      Start  748: OpenDIARTRefine_test
+      Start  741: OpenDIAStage2_test
+      Start  737: OpenDIAWorkflow_test
+
+
+Total Test time (real) =  16.86 sec
+
+--- Command finished with exit code: 0 ---

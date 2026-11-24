@@ -1,0 +1,4 @@
+/home/singjc/.jcode/scratch/perf/lib/search.pqp 414224384 1794650433
+/home/singjc/.jcode/scratch/perf/lib/search.opendia.parquet 78442364 1795512125
+/home/singjc/.jcode/scratch/perf/lib/scoring.pqp 839561216 1794822289
+/home/singjc/.jcode/scratch/perf/lib/scoring.opendia.parquet 101697372 1795512163
