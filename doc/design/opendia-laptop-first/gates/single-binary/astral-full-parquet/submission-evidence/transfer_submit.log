@@ -1,0 +1,35 @@
+Pushed approval commit: 97a803dc71dda2df9cdb7d999791ffd3d7fe20af
+035cd7004896d636dc83800230876b4a504fbc247433ea180c02e7ddaffb9caf  /home/singjc/.jcode/scratch/compact-20261124/container/opendia-compact-parquet-20261124.sif
+/homes/sing/.bashrc: line 37: bind: warning: line editing not enabled
+/homes/sing/.bashrc: line 38: bind: warning: line editing not enabled
+/nfs/research/juan/singj/opendia/opendia-compact-parquet-20261124.sif.partial: OK
+JCODE_PROGRESS {"message":"unique Codon SIF transferred and hash verified"}
+/homes/sing/.bashrc: line 37: bind: warning: line editing not enabled
+/homes/sing/.bashrc: line 38: bind: warning: line editing not enabled
+JCODE_PROGRESS {"message":"frozen bundle transferred into fresh Codon directory"}
+/homes/sing/.bashrc: line 37: bind: warning: line editing not enabled
+/homes/sing/.bashrc: line 38: bind: warning: line editing not enabled
+bootstrap.sbatch: OK
+run.sbatch: OK
+evaluate.sbatch: OK
+submit.sh: OK
+compare_resources.py: OK
+PLAN_PARQUET.md: OK
+PREFLIGHT_APPROVED.md: OK
+source_provenance.txt: OK
+test_compare_resources.py: OK
+runtime.sha256: OK
+/nfs/research/juan/singj/opendia/opendia-compact-parquet-20261124.sif: OK
+/nfs/research/juan/singj/opendia/astral-full-20261123/library/search6.pqp: OK
+/nfs/research/juan/singj/opendia/astral-full-20261123/library/scoring12.pqp: OK
+/nfs/research/juan/singj/opendia/proteobench-astral-entrapment/transfer/raw/LFQ_Astral_DIA_15min_50ng_Human_01.raw: OK
+/nfs/research/juan/singj/opendia/proteobench-astral-entrapment/transfer/raw/LFQ_Astral_DIA_15min_50ng_Human_02.raw: OK
+/nfs/research/juan/singj/opendia/proteobench-astral-entrapment/transfer/raw/LFQ_Astral_DIA_15min_50ng_Human_03.raw: OK
+bootstrap.sbatch: OK
+run.sbatch: OK
+evaluate.sbatch: OK
+submit.sh: OK
+compare_resources.py: OK
+library/search6.pqp: OK
+library/scoring12.pqp: OK
+bootstrap=42109936 primary=42109937 evaluation=42109938
