@@ -1782,4 +1782,35 @@ START_SECTION(([EXTRA] store protein groups: only one run may have protein infer
 }
 END_SECTION
 
+START_SECTION(std::string detectVersion(const std::string& filename) const)
+{
+  // only the root element declares the version (from its version attribute, or else from its namespace)
+  const std::vector<std::pair<std::string, std::string>> cases = {
+    // a comment with a root-like tag before the root
+    {"<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<!-- e.g. <MzIdentML version=\"1.3.0\"> -->\n"
+     "<MzIdentML xmlns=\"http://psidev.info/psi/pi/mzIdentML/1.1\" version=\"1.1.0\" id=\"x\"></MzIdentML>\n", "1.1.0"},
+    // '>' in an attribute value before the version
+    {"<MzIdentML name=\"A > B\" xmlns=\"http://psidev.info/psi/pi/mzIdentML/1.1\" version=\"1.1.0\" id=\"x\"></MzIdentML>\n", "1.1.0"},
+    // another element's version attribute
+    {"<MzIdentML xmlns=\"http://psidev.info/psi/pi/mzIdentML/1.1\" version=\"1.1.0\" id=\"x\">\n<AnalysisSoftwareList>"
+     "<AnalysisSoftware id=\"s\" version=\"1.3.0\"/></AnalysisSoftwareList></MzIdentML>\n", "1.1.0"},
+    // namespace of a prefixed root without version attribute
+    {"<mzid:MzIdentML xmlns:mzid=\"http://psidev.info/psi/pi/mzIdentML/1.2\" id=\"x\"></mzid:MzIdentML>\n", "1.2.0"},
+    // mzIdentML 1.0
+    {"<mzIdentML xmlns=\"http://psidev.info/psi/pi/mzIdentML/1.0\" version=\"1.0.0\" id=\"x\"></mzIdentML>\n", "1.0.0"},
+    // no version: the default
+    {"<MzIdentML id=\"x\"></MzIdentML>\n", "1.3.0"},
+    // not XML: the default
+    {"no XML\n", "1.3.0"}};
+  std::string filename;
+  NEW_TMP_FILE_EXT(filename, ".mzid")
+  for (const auto& [content, version] : cases)
+  {
+    std::ofstream(filename) << content;
+    TEST_EQUAL(MzIdentMLFile().detectVersion(filename), version)
+  }
+  TEST_EXCEPTION(Exception::FileNotFound, MzIdentMLFile().detectVersion("this_file_does_not_exist.mzid"))
+}
+END_SECTION
+
 END_TEST

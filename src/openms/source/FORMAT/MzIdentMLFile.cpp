@@ -15,7 +15,7 @@
 #include <OpenMS/DATASTRUCTURES/CVMappingRule.h>
 #include <OpenMS/FORMAT/HANDLERS/MzIdentMLHandler.h>
 #include <OpenMS/FORMAT/HANDLERS/MzIdentMLDOMHandler.h>
-#include <OpenMS/FORMAT/TextFile.h>
+#include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
 #include <OpenMS/FORMAT/VALIDATORS/XMLValidator.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/METADATA/ProteinRunReferences.h>
@@ -57,31 +57,48 @@ namespace OpenMS
 //    handler.writeMzIdentMLFile(filename);
   }
 
+  namespace
+  {
+    /// Reads the version attribute and the namespace of the root element, then stops parsing
+    class RootVersionHandler final : public Internal::XMLHandler
+    {
+    public:
+      explicit RootVersionHandler(const std::string& filename) :
+        XMLHandler(filename, "")
+      {
+      }
+
+      void onStartElement(const char16_t* qname, const Internal::XMLAttributes& attributes) override
+      {
+        attributes.valueUTF8("version", version);
+        // the default namespace, or the one of the root's prefix (e.g. <mzid:MzIdentML xmlns:mzid="...">)
+        const std::string name = sm_.convert(qname);
+        const std::string::size_type colon = name.find(':');
+        const std::string xmlns_attribute = colon == std::string::npos ? std::string("xmlns") : "xmlns:" + name.substr(0, colon);
+        attributes.valueUTF8(xmlns_attribute.c_str(), xmlns);
+        throw EndParsingSoftly(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
+      }
+
+      std::string version; ///< version attribute of the root (empty if absent)
+      std::string xmlns; ///< namespace of the root (empty if not declared)
+    };
+  }
+
   std::string MzIdentMLFile::detectVersion(const std::string& filename) const
   {
-    // Read the first few lines of the header and look for the mzIdentML version. The version is
-    // declared both as a 'version="x.y.z"' attribute on the <MzIdentML> root and in its target
-    // namespace ('.../mzIdentML/x.y'). We prefer the explicit version attribute and fall back to
-    // the namespace; if neither maps to a bundled schema we keep the adapter default (1.3.0).
-    TextFile file(filename, true, 15);
-    std::string header = StringUtils::concatenate(file, " ");
-    // Only the root element declares the mzIdentML version; other elements have version attributes of their own
-    // (e.g. <AnalysisSoftware version="1.3.0">). Search only the root's start tag if it is in the header.
-    for (std::string::size_type pos = header.find('<'); pos != std::string::npos; pos = header.find('<', pos + 1))
+    // The mzIdentML version is declared by the root element, both as its 'version="x.y.z"' attribute and in its
+    // namespace ('.../mzIdentML/x.y'). Only the root counts: other elements have version attributes of their own
+    // (e.g. <AnalysisSoftware version="1.3.0">). We prefer the version attribute and fall back to the namespace;
+    // if neither maps to a bundled schema we keep the adapter default (1.3.0).
+    RootVersionHandler root(filename);
+    try
     {
-      const std::string::size_type name_end = header.find_first_of(" \t\r\n/>", pos + 1);
-      if (name_end == std::string::npos)
-      {
-        break;
-      }
-      std::string name = header.substr(pos + 1, name_end - pos - 1);
-      name = name.substr(name.rfind(':') + 1); // without namespace prefix (npos + 1 == 0)
-      if (name == "MzIdentML" || name == "mzIdentML") // root of mzIdentML 1.1+ / 1.0
-      {
-        const std::string::size_type tag_end = header.find('>', name_end);
-        header = header.substr(pos, tag_end == std::string::npos ? std::string::npos : tag_end - pos);
-        break;
-      }
+      MzIdentMLFile reader; // parse_() is not const
+      reader.parse_(filename, &root); // stops at the root element
+    }
+    catch (const Exception::ParseError&)
+    {
+      // not well-formed up to the root element: use the default
     }
 
     // candidate versions we ship schemas for, newest first
@@ -90,7 +107,7 @@ namespace OpenMS
     // 1) explicit version attribute, e.g. version="1.1.0"
     for (const std::string& v : known_versions)
     {
-      if (StringUtils::hasSubstring(header, std::string("version=\"") + v + "\""))
+      if (root.version == v)
       {
         return v;
       }
@@ -100,7 +117,7 @@ namespace OpenMS
     {
       // namespace carries only major.minor (e.g. "1.1"), so match on that prefix
       std::string ns_version = StringUtils::prefix(v, v.rfind('.')); // "1.1.0" -> "1.1"
-      if (StringUtils::hasSubstring(header, std::string("mzIdentML/") + ns_version))
+      if (StringUtils::hasSubstring(root.xmlns, std::string("mzIdentML/") + ns_version))
       {
         return v;
       }
