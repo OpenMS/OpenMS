@@ -1,0 +1,21 @@
+Source repository: singjc/OpenMS
+Source branch: feature/opendia-clean-rewrite
+Source commit: 8c0a89f053284c9aebb620d36e351b14a642d15c
+Source working tree clean at container construction: yes
+Source pushed before frozen plan: yes
+Frozen plan commit: 045aae4160719d1a56b127d5ab093bd3efb71705
+Frozen plan pushed before container construction: yes
+Container construction: 2026-11-24 18:15:32 to 18:16:53 UTC
+Container filename: opendia-compact-parquet-20261124.sif
+Container SHA256: 035cd7004896d636dc83800230876b4a504fbc247433ea180c02e7ddaffb9caf
+Local, Docker image and SIF OpenDIA SHA256: 83c408e5ad42e4865283a0f8586f18b223139f0f9a1b7d5c9f3ea491c9235eb7
+Docker image: opendia-compact-parquet:20261124-tools
+Build flags: -O3 -std=gnu++23 -ffp-contract=off
+Local executable: /home/singjc/Documents/github/OpenMS-r1-full-ninja-build/bin/OpenDIA
+Actual Docker and SIF OpenDIA --help exit: 0
+Container-native OpenDIAWorkflow_test: passed
+Container-native OpenDIALibraryParquet_test: passed
+Local OpenDIA CTest: 19/19 passed
+Local raw01 seed0 output identity: direct Parquet 3/3, final exact-binary automatic-cache PQP 3/3
+Final automatic-cache identity wall time includes system suspend, not a timing benchmark
+Container construction and smoke evidence: ../compact-library-20261124/container-evidence/

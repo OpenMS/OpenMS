@@ -1,0 +1,11 @@
+81aa2d7624db60cba24014844bc768ae2b476ac5aa833ac1c83d03d9c63748c4  /nfs/research/juan/singj/opendia/opendia-pd10-fastint2.sif
+a05675e55369a6e0c716a1694651d3a19d46fd2ee810c612d7c07b44430c9b26  /nfs/research/juan/singj/opendia/entlib-hela-20261118/dialibgen-cuda-0.13.1.sif
+0e2da771a618a002722f0e15c67dfe8a90fabd4cb4280af2b2fc4e2c03dbccac  /nfs/research/juan/singj/opendia/proteobench-astral-entrapment/transfer/full_fasta/ProteoBenchFASTA_Entrapment_Human_with_contaminants_entrapment_pep.fasta
+65d7c288949ac22290e93b6a4ad69d6eae5f944f8c0cbdc93dba75729f97a125  /nfs/research/juan/singj/opendia/proteobench-astral-entrapment/transfer/raw/LFQ_Astral_DIA_15min_50ng_Human_01.raw
+d945298ce44cd49ef2337636f5e0cf4b7ec3a139504e09d5fcb5ec1d4a03215a  /nfs/research/juan/singj/opendia/proteobench-astral-entrapment/transfer/raw/LFQ_Astral_DIA_15min_50ng_Human_02.raw
+bee9061cb1528b2e39f5baa05fbe94806e7c3d28578ba0c625afe256f0566e10  /nfs/research/juan/singj/opendia/proteobench-astral-entrapment/transfer/raw/LFQ_Astral_DIA_15min_50ng_Human_03.raw
+41607467
+41607472
+41607474
+Filesystem         Size  Used Avail Use% Mounted on
+hl-hpc-projects01  200T  128T   73T  64% /gpfs

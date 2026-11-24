@@ -1,0 +1,2 @@
+FROM opendia-compact-parquet:20261124
+COPY TOOLS /home/singjc/Documents/github/OpenMS-r1-sparse-experiment/share/OpenMS/TOOLS

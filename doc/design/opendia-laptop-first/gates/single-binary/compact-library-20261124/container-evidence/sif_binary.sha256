@@ -1,0 +1,15 @@
+83c408e5ad42e4865283a0f8586f18b223139f0f9a1b7d5c9f3ea491c9235eb7  /home/singjc/Documents/github/OpenMS-r1-full-ninja-build/bin/OpenDIA
+stty: 'standard input': Inappropriate ioctl for device
+
+OpenDIA -- Complete OpenDIA analysis of DIA runs: raw spectra to precursor q-values.
+Full documentation: http://www.openms.de/doxygen/nightly/html/TOPP_OpenDIA.html
+Version: 3.7.0-pre-exported-20261124 Nov 24 2026, 16:40:06
+To cite OpenMS:
+ + Pfeuffer, J., Bielow, C., Wein, S. et al.. OpenMS 3 enables reproducible analysis of large-scale mass spectrometry data. Nat Methods (2024). doi:10.1038/s41592-024-02197-7.
+
+Usage:
+  OpenDIA <options>
+
+Options (mandatory options marked with '*'):
+  -in <files>*         DIA runs (Thermo raw, mzML, ...)
+  -lib <file>*         Library (PQP or OpenDIA .parquet) with decoys named DECOY_<target TRAML_ID> (search fragments, up to 6 per precursor). A PQP is converted once to <stem>.opendia.parquet next to it, which later runs read instead (valid formats: 'pqp', 'parquet', 'pqt')
