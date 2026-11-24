@@ -115,7 +115,6 @@ namespace OpenMS
 
     prot_run.setInferenceEngine("TOPPProteinInference");
     prot_run.setInferenceEngineVersion(VersionInfo::getVersion());
-    IDFilter::removeGroupScoreThreshold(prot_run); // a cutoff on the old group scores does not apply to the new groups
     ProteinIdentification::SearchParameters sp = prot_run.getSearchParameters();
     sp.setMetaValue("TOPPProteinInference:aggregation_method", agg_method_string);
     sp.setMetaValue("TOPPProteinInference:use_shared_peptides", use_shared_peptides);
@@ -193,6 +192,8 @@ namespace OpenMS
 
     if (group)
     {
+      // the groups get new scores: a cutoff on the old ones does not apply (without grouping, they keep their scores)
+      IDFilter::removeGroupScoreThreshold(prot_run);
       //TODO you could actually also do the aggregation/inference as well as the resolution on the Graph structure.
       // Groups would be clustered already. Saving some time.
       // But it is quite fast right now already.
@@ -267,6 +268,7 @@ namespace OpenMS
       proteins.getIndistinguishableProteins() = std::move(previous);
       throw;
     }
+    IDFilter::removeGroupScoreThreshold(proteins); // a cutoff on the old group scores does not apply to the new groups
   }
 
   void BasicProteinInferenceAlgorithm::run(PeptideIdentificationList &pep_ids,

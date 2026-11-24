@@ -253,7 +253,7 @@ START_TEST(BasicProteinInferenceAlgorithm, "$Id$")
     START_SECTION(BasicProteinInferenceAlgorithm on ConsensusMap without PSMs)
     {
       // As above, for the features of a consensus map and its unassigned peptide identifications.
-      for (const auto& [group, resolve] : {std::pair{"true", "false"}, {"true", "true"}, {"false", "true"}})
+      for (const auto& [group, resolve] : {std::pair{"true", "false"}, {"true", "true"}, {"false", "true"}, {"false", "false"}})
       {
         vector<ProteinIdentification> prots;
         PeptideIdentificationList peps;
@@ -274,10 +274,11 @@ START_TEST(BasicProteinInferenceAlgorithm, "$Id$")
         p.setValue("annotate_indistinguishable_groups", group);
         p.setValue("greedy_group_resolution", resolve);
         bpia.setParameters(p);
-        cmap.getProteinIdentifications()[0].setMetaValue(Constants::UserParam::PROTEIN_GROUP_SCORE_THRESHOLD, 0.95); // applies to the old groups only
+        cmap.getProteinIdentifications()[0].setMetaValue(Constants::UserParam::PROTEIN_GROUP_SCORE_THRESHOLD, 0.95);
         bpia.run(cmap, cmap.getProteinIdentifications()[0], true);
         const ProteinIdentification& run = cmap.getProteinIdentifications()[0];
-        TEST_EQUAL(run.metaValueExists(Constants::UserParam::PROTEIN_GROUP_SCORE_THRESHOLD), false)
+        // a group score cutoff applies to the old group scores only; without grouping, the groups keep their scores
+        TEST_EQUAL(run.metaValueExists(Constants::UserParam::PROTEIN_GROUP_SCORE_THRESHOLD), std::string(group) == "false")
         TEST_EQUAL(run.getHits().size(), std::string(resolve) == "true" ? 0 : 6)
         TEST_EQUAL(run.getIndistinguishableProteins().size(), 0)
       }
@@ -353,20 +354,25 @@ START_TEST(BasicProteinInferenceAlgorithm, "$Id$")
       TEST_EQUAL(proteins.getIndistinguishableProteins().size(), 0)
 
       // the groups replace those the run had, also from an earlier call, instead of adding to them
+      // (and a score cutoff recorded for the old groups does not apply to them)
       ProteinIdentification::ProteinGroup stale;
       stale.accessions = {"P3", "P1"};
       proteins = make_proteins();
       proteins.getIndistinguishableProteins().push_back(stale);
+      proteins.setMetaValue(Constants::UserParam::PROTEIN_GROUP_SCORE_THRESHOLD, 0.95);
       BasicProteinInferenceAlgorithm::annotateIndistinguishableGroups(proteins, peptides);
+      TEST_EQUAL(proteins.metaValueExists(Constants::UserParam::PROTEIN_GROUP_SCORE_THRESHOLD), false)
       BasicProteinInferenceAlgorithm::annotateIndistinguishableGroups(proteins, peptides);
       TEST_EQUAL(groups(proteins), "P1,P2|P3")
 
-      // on failure the run keeps its groups
+      // on failure the run keeps its groups (and their cutoff)
       proteins = make_proteins();
       proteins.getIndistinguishableProteins().push_back(stale);
+      proteins.setMetaValue(Constants::UserParam::PROTEIN_GROUP_SCORE_THRESHOLD, 0.95);
       TEST_EXCEPTION(Exception::MissingInformation,
                      BasicProteinInferenceAlgorithm::annotateIndistinguishableGroups(proteins, PeptideIdentificationList()))
       TEST_EQUAL(groups(proteins), "P1,P3")
+      TEST_EQUAL(proteins.metaValueExists(Constants::UserParam::PROTEIN_GROUP_SCORE_THRESHOLD), true)
     }
     END_SECTION
 
