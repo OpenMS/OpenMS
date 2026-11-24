@@ -624,7 +624,7 @@ namespace OpenMS::Internal
         if (name == "SpectrumIdentificationList")
         {
           ++lists;
-          if (!leading_sections_read) { readLeadingSections(); }
+          if (!leading_sections_read) { readLeadingSections(true); }
         }
         else if (name == "SequenceCollection" && !in_sequence_collection && !current_result)
         {
@@ -661,10 +661,21 @@ namespace OpenMS::Internal
         }
       }
 
-      /// Reads the sections before the first SpectrumIdentificationList, which the results refer to
-      void readLeadingSections()
+      /// Reads the sections before the first SpectrumIdentificationList, which the results refer to. @p at_first_list:
+      /// called when that list starts, so a missing section may still follow it.
+      void readLeadingSections(bool at_first_list)
       {
         leading_sections_read = true;
+        const auto require = [&](const char* name, const char* message)
+        {
+          if (!elements.at(name).empty()) { return; }
+          if (at_first_list)
+          {
+            throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, file,
+              "No '" + std::string(name) + "' element before the first SpectrumIdentificationList.");
+          }
+          throw(runtime_error(message));
+        };
 
         // Catch special case: Cross-Linking MS
         const std::vector<MzIdentMLNode*>& additionalSearchParams = elements.at("AdditionalSearchParams");
@@ -691,12 +702,8 @@ namespace OpenMS::Internal
         handler.parseAnalysisSoftwareList_(elements.at("AnalysisSoftware"));
 
         // 1. DataCollection {1,1}
-        const std::vector<MzIdentMLNode*>& spectraDataElements = elements.at("SpectraData");
-        if (spectraDataElements.empty())
-        {
-          throw(runtime_error("No SpectraData nodes"));
-        }
-        handler.parseInputElements_(spectraDataElements);
+        require("SpectraData", "No SpectraData nodes");
+        handler.parseInputElements_(elements.at("SpectraData"));
 
         // 1.2. SearchDatabase {0,unbounded}
         handler.parseInputElements_(elements.at("SearchDatabase"));
@@ -705,20 +712,12 @@ namespace OpenMS::Internal
         handler.parseInputElements_(elements.at("SourceFile"));
 
         // 2. SpectrumIdentification  {1,unbounded} ! creates identification runs (or ProteinIdentifications)
-        const std::vector<MzIdentMLNode*>& spectrumIdentificationElements = elements.at("SpectrumIdentification");
-        if (spectrumIdentificationElements.empty())
-        {
-          throw(runtime_error("No SpectrumIdentification nodes"));
-        }
-        handler.parseSpectrumIdentificationElements_(spectrumIdentificationElements);
+        require("SpectrumIdentification", "No SpectrumIdentification nodes");
+        handler.parseSpectrumIdentificationElements_(elements.at("SpectrumIdentification"));
 
         // 3. AnalysisProtocolCollection {1,1} SpectrumIdentificationProtocol  {1,unbounded} ! identification run parameters
-        const std::vector<MzIdentMLNode*>& spectrumIdentificationProtocolElements = elements.at("SpectrumIdentificationProtocol");
-        if (spectrumIdentificationProtocolElements.empty())
-        {
-          throw(runtime_error("No SpectrumIdentificationProtocol nodes"));
-        }
-        handler.parseSpectrumIdentificationProtocolElements_(spectrumIdentificationProtocolElements);
+        require("SpectrumIdentificationProtocol", "No SpectrumIdentificationProtocol nodes");
+        handler.parseSpectrumIdentificationProtocolElements_(elements.at("SpectrumIdentificationProtocol"));
 
         // 4. SequenceCollection nodes {0,1} DBSequenceElement {1,unbounded} Peptide {0,unbounded} PeptideEvidence {0,unbounded}
         handler.parseDBSequenceElements_(elements.at("DBSequence"));
@@ -872,7 +871,7 @@ namespace OpenMS::Internal
         reader.parse();
         if (!reader.leading_sections_read)
         {
-          reader.readLeadingSections();
+          reader.readLeadingSections(false);
         }
 
         // 6. AnalysisCollection {1,1} - build final structures PeptideIdentification (and hits)

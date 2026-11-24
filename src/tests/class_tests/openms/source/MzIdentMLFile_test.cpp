@@ -1128,6 +1128,26 @@ START_SECTION(([EXTRA] native DOM namespace Unicode entity and malformed-input r
     TEST_NOT_EQUAL(hit.getSequence(), "AAAAAAAA")
   }
 
+  // Undeclared prefixes stay part of the name, as in libxml2's tree: such elements and attributes are not mzIdentML.
+  save_xml(filename, original);
+  MzIdentMLFile().load(filename, proteins, peptides);
+  ABORT_IF(peptides.empty() || peptides[0].getHits().empty())
+  const double original_score = peptides[0].getHits()[0].getScore();
+  std::string undeclared = original;
+  StringUtils::substitute(undeclared, "<DBSequence accession=", "<DBSequence x:accession=\"POISON\" accession=");
+  const auto undeclared_item = undeclared.find("<SpectrumIdentificationItem ");
+  ABORT_IF(undeclared_item == std::string::npos)
+  undeclared.insert(undeclared.find('>', undeclared_item) + 1,
+    "<x:cvParam accession='MS:1001171' cvRef='PSI-MS' name='Mascot:score' value='999999'/>");
+  save_xml(filename, undeclared);
+  MzIdentMLFile().load(filename, proteins, peptides);
+  ABORT_IF(proteins.size() != 1 || peptides.empty() || peptides[0].getHits().empty())
+  TEST_REAL_SIMILAR(peptides[0].getHits()[0].getScore(), original_score)
+  for (const auto& hit : proteins[0].getHits())
+  {
+    TEST_NOT_EQUAL(hit.getAccession(), "POISON")
+  }
+
   // Only the namespaces of mzIdentML 1.0 to 1.3 are mzIdentML.
   for (const std::string version : {"1.0", "1.2", "1.3"})
   {
@@ -1273,9 +1293,12 @@ START_SECTION(([EXTRA] native DOM namespace Unicode entity and malformed-input r
   }
   TEST_TRUE(reported_location)
 
-  // Do not traverse a partial DOM after a malformed tail, invalid reference or UTF8.
+  // Do not traverse a partial DOM after a malformed tail, invalid reference or UTF8. Results read before the error
+  // are removed again.
   save_xml(filename, original.substr(0, original.rfind("</MzIdentML>")));
   TEST_EXCEPTION(Exception::ParseError, MzIdentMLFile().load(filename, proteins, peptides))
+  TEST_EQUAL(peptides.size(), 0)
+  TEST_EQUAL(proteins.size(), 0)
   std::string malformed = original;
   StringUtils::substitute(malformed, "accession=\"PROT1\"", "accession=\"bad&-\"");
   save_xml(filename, malformed);
@@ -1284,6 +1307,21 @@ START_SECTION(([EXTRA] native DOM namespace Unicode entity and malformed-input r
   StringUtils::substitute(malformed, "accession=\"PROT1\"", std::string("accession=\"bad") + char(0xff) + "\"");
   save_xml(filename, malformed);
   TEST_EXCEPTION(Exception::ParseError, MzIdentMLFile().load(filename, proteins, peptides))
+
+  // A section that has to come before the results is rejected after them
+  for (const std::string section : {"AnalysisSoftwareList", "SequenceCollection", "AnalysisCollection", "AnalysisProtocolCollection"})
+  {
+    const auto begin = original.find("<" + section);
+    const auto end = original.find("</" + section + ">");
+    ABORT_IF(begin == std::string::npos || end == std::string::npos)
+    const std::string block = original.substr(begin, end + section.size() + 3 - begin);
+    std::string moved = original;
+    moved.erase(begin, block.size());
+    moved.insert(moved.find("</DataCollection>") + std::string("</DataCollection>").size(), block);
+    save_xml(filename, moved);
+    TEST_EXCEPTION(Exception::ParseError, MzIdentMLFile().load(filename, proteins, peptides))
+    TEST_EQUAL(peptides.size(), 0)
+  }
 }
 END_SECTION
 
