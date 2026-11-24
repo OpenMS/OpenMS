@@ -34,9 +34,12 @@
 #include <libxml/xmlsave.h>
 #include <cmath>
 #include <functional>
+#include <initializer_list>
 #include <memory>
 #include <numeric>
+#include <string_view>
 #include <unordered_map>
+#include <unordered_set>
 
 using namespace std;
 
@@ -75,7 +78,7 @@ namespace OpenMS::Internal
       }
     };
 
-    std::string name_(const xmlNode* node)
+    std::string_view name_(const xmlNode* node)
     {
       if (!node || !node->name) { return {}; }
       // Prefixes are arbitrary, but extension namespaces must not impersonate
@@ -108,10 +111,30 @@ namespace OpenMS::Internal
       return value == "true" || value == "1";
     }
 
-    bool equal_(const std::string& left, const std::string& right) { return left == right; }
+    bool equal_(std::string_view left, std::string_view right) { return left == right; }
 
+    /// Value of the attribute @p name in no namespace, or an empty string. Same result as xmlGetNoNsProp(), without its
+    /// copy of the value for the common case of a value stored as a single text node.
     std::string attribute_(const xmlNode* node, const char* name)
     {
+      if (!node || node->type != XML_ELEMENT_NODE) { return {}; }
+      const xmlAttr* attr = node->properties;
+      while (attr && !(attr->ns == nullptr && xmlStrEqual(attr->name, BAD_CAST name))) { attr = attr->next; }
+      if (attr == nullptr)
+      {
+        // only a DTD can declare a default value for an absent attribute
+        if (!node->doc || (!node->doc->intSubset && !node->doc->extSubset)) { return {}; }
+      }
+      else
+      {
+        const xmlNode* value = attr->children;
+        if (value == nullptr) { return {}; }
+        if (value->next == nullptr && value->content &&
+            (value->type == XML_TEXT_NODE || value->type == XML_CDATA_SECTION_NODE))
+        {
+          return reinterpret_cast<const char*>(value->content);
+        }
+      }
       std::unique_ptr<xmlChar, decltype(xmlFree)> value(xmlGetNoNsProp(node, BAD_CAST name), xmlFree);
       return value ? reinterpret_cast<const char*>(value.get()) : "";
     }
@@ -131,14 +154,14 @@ namespace OpenMS::Internal
       return result;
     }
 
-    // Preserve descendant document order while excluding the starting element.
-    std::vector<xmlNode*> descendants_(const xmlNode* parent, const std::string& name)
+    /// Calls @p visit for every node below @p parent (not for @p parent itself), in document order
+    template <typename Visit>
+    void forEachDescendant_(const xmlNode* parent, Visit&& visit)
     {
-      std::vector<xmlNode*> result;
       xmlNode* node = parent->children;
       while (node)
       {
-        if (node->type == XML_ELEMENT_NODE && name_(node) == name) { result.push_back(node); }
+        visit(node);
         if (node->children) { node = node->children; }
         else
         {
@@ -147,17 +170,36 @@ namespace OpenMS::Internal
           node = node->next;
         }
       }
+    }
+
+    // Preserve descendant document order while excluding the starting element.
+    std::vector<xmlNode*> descendants_(const xmlNode* parent, std::string_view name)
+    {
+      std::vector<xmlNode*> result;
+      forEachDescendant_(parent, [&](xmlNode* node)
+      {
+        if (node->type == XML_ELEMENT_NODE && name_(node) == name) { result.push_back(node); }
+      });
       return result;
     }
 
-    std::vector<xmlNode*> descendants_(const xmlDoc* doc, const std::string& name)
+    /// The elements of the document named in @p names, by name and in document order, collected in a single walk
+    /// over the document
+    std::unordered_map<std::string_view, std::vector<xmlNode*>> descendants_(const xmlDoc* doc, std::initializer_list<std::string_view> names)
     {
+      std::unordered_map<std::string_view, std::vector<xmlNode*>> result;
+      for (std::string_view name : names) { result.try_emplace(name); }
       // DTD entity declarations can themselves own parsed element trees. They
       // describe replacement content and must not be counted as document data.
       xmlNode* root = xmlDocGetRootElement(doc);
-      if (!root) { return {}; }
-      auto result = descendants_(root, name);
-      if (name_(root) == name) { result.insert(result.begin(), root); }
+      if (!root) { return result; }
+      const auto collect = [&result](xmlNode* node)
+      {
+        if (node->type != XML_ELEMENT_NODE) { return; }
+        if (auto it = result.find(name_(node)); it != result.end()) { it->second.push_back(node); }
+      };
+      collect(root);
+      forEachDescendant_(root, collect);
       return result;
     }
 
@@ -399,8 +441,13 @@ namespace OpenMS::Internal
         throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, mzid_file, "Expected MzIdentML root element.");
       }
       {
+        const auto elements = descendants_(xmlDoc, {"AdditionalSearchParams", "AnalysisSoftware", "SpectraData", "SearchDatabase",
+                                                     "SourceFile", "SpectrumIdentification", "SpectrumIdentificationProtocol",
+                                                     "DBSequence", "Peptide", "PeptideEvidence", "SpectrumIdentificationList",
+                                                     "ProteinDetectionList", "ProteinDetection", "ProteinDetectionProtocol"});
+
         // Catch special case: Cross-Linking MS
-        std::vector<xmlNode*> additionalSearchParams = descendants_(xmlDoc, "AdditionalSearchParams");
+        const std::vector<xmlNode*>& additionalSearchParams = elements.at("AdditionalSearchParams");
         const  Size as_node_count = additionalSearchParams.size();
 
         for (Size i = 0; i < as_node_count; ++i)
@@ -428,11 +475,11 @@ namespace OpenMS::Internal
         }
 
         // 0. AnalysisSoftwareList {0,1}
-        std::vector<xmlNode*> analysisSoftwareElements = descendants_(xmlDoc, "AnalysisSoftware");
+        const std::vector<xmlNode*>& analysisSoftwareElements = elements.at("AnalysisSoftware");
         parseAnalysisSoftwareList_(analysisSoftwareElements);
 
         // 1. DataCollection {1,1}
-        std::vector<xmlNode*> spectraDataElements = descendants_(xmlDoc, "SpectraData");
+        const std::vector<xmlNode*>& spectraDataElements = elements.at("SpectraData");
         if (spectraDataElements.size() == 0)
         {
           throw(runtime_error("No SpectraData nodes"));
@@ -440,15 +487,15 @@ namespace OpenMS::Internal
         parseInputElements_(spectraDataElements);
 
         // 1.2. SearchDatabase {0,unbounded}
-        std::vector<xmlNode*> searchDatabaseElements = descendants_(xmlDoc, "SearchDatabase");
+        const std::vector<xmlNode*>& searchDatabaseElements = elements.at("SearchDatabase");
         parseInputElements_(searchDatabaseElements);
 
         // 1.1 SourceFile {0,unbounded}
-        std::vector<xmlNode*> sourceFileElements = descendants_(xmlDoc, "SourceFile");
+        const std::vector<xmlNode*>& sourceFileElements = elements.at("SourceFile");
         parseInputElements_(sourceFileElements);
 
         // 2. SpectrumIdentification  {1,unbounded} ! creates identification runs (or ProteinIdentifications)
-        std::vector<xmlNode*> spectrumIdentificationElements = descendants_(xmlDoc, "SpectrumIdentification");
+        const std::vector<xmlNode*>& spectrumIdentificationElements = elements.at("SpectrumIdentification");
         if (spectrumIdentificationElements.size() == 0)
         {
           throw(runtime_error("No SpectrumIdentification nodes"));
@@ -456,7 +503,7 @@ namespace OpenMS::Internal
         parseSpectrumIdentificationElements_(spectrumIdentificationElements);
 
         // 3. AnalysisProtocolCollection {1,1} SpectrumIdentificationProtocol  {1,unbounded} ! identification run parameters
-        std::vector<xmlNode*> spectrumIdentificationProtocolElements = descendants_(xmlDoc, "SpectrumIdentificationProtocol");
+        const std::vector<xmlNode*>& spectrumIdentificationProtocolElements = elements.at("SpectrumIdentificationProtocol");
         if (spectrumIdentificationProtocolElements.size() == 0)
         {
           throw(runtime_error("No SpectrumIdentificationProtocol nodes"));
@@ -464,13 +511,13 @@ namespace OpenMS::Internal
         parseSpectrumIdentificationProtocolElements_(spectrumIdentificationProtocolElements);
 
         // 4. SequenceCollection nodes {0,1} DBSequenceElement {1,unbounded} Peptide {0,unbounded} PeptideEvidence {0,unbounded}
-        std::vector<xmlNode*> dbSequenceElements = descendants_(xmlDoc, "DBSequence");
+        const std::vector<xmlNode*>& dbSequenceElements = elements.at("DBSequence");
         parseDBSequenceElements_(dbSequenceElements);
 
-        std::vector<xmlNode*> peptideElements = descendants_(xmlDoc, "Peptide");
+        const std::vector<xmlNode*>& peptideElements = elements.at("Peptide");
         parsePeptideElements_(peptideElements);
 
-        std::vector<xmlNode*> peptideEvidenceElements = descendants_(xmlDoc, "PeptideEvidence");
+        const std::vector<xmlNode*>& peptideEvidenceElements = elements.at("PeptideEvidence");
         parsePeptideEvidenceElements_(peptideEvidenceElements);
 
 
@@ -479,7 +526,7 @@ namespace OpenMS::Internal
         // 6. AnalysisCollection {1,1} - build final structures PeptideIdentification (and hits)
 
         // 6.1 SpectrumIdentificationList {0,1}
-        std::vector<xmlNode*> spectrumIdentificationListElements = descendants_(xmlDoc, "SpectrumIdentificationList");
+        const std::vector<xmlNode*>& spectrumIdentificationListElements = elements.at("SpectrumIdentificationList");
         if (spectrumIdentificationListElements.size() == 0)
         {
           throw(runtime_error("No SpectrumIdentificationList nodes"));
@@ -487,9 +534,9 @@ namespace OpenMS::Internal
         parseSpectrumIdentificationListElements_(spectrumIdentificationListElements);
 
         // 6.2 ProteinDetection {0,1}: protein inference results, with the protocol and the input lists
-        parseProteinDetectionListElements_(descendants_(xmlDoc, "ProteinDetectionList"),
-                                           descendants_(xmlDoc, "ProteinDetection"),
-                                           descendants_(xmlDoc, "ProteinDetectionProtocol"));
+        parseProteinDetectionListElements_(elements.at("ProteinDetectionList"),
+                                           elements.at("ProteinDetection"),
+                                           elements.at("ProteinDetectionProtocol"));
 
         for (vector<ProteinIdentification>::iterator it = pro_id_->begin(); it != pro_id_->end(); ++it)
         {
@@ -1403,7 +1450,7 @@ namespace OpenMS::Internal
       }
     }
 
-    ProteinIdentification& MzIdentMLDOMHandler::runOfList_(const std::string& spectrum_identification_list_ref)
+    Size MzIdentMLDOMHandler::runIndexOfList_(const std::string& spectrum_identification_list_ref) const
     {
       const auto run = si_pro_map_.find(spectrum_identification_list_ref);
       if (run == si_pro_map_.end())
@@ -1412,7 +1459,35 @@ namespace OpenMS::Internal
         throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
           ProteinRunReferences::missingRunMessage(spectrum_identification_list_ref) + " (SpectrumIdentificationList)");
       }
-      return pro_id_->at(run->second);
+      return run->second;
+    }
+
+    ProteinIdentification& MzIdentMLDOMHandler::runOfList_(const std::string& spectrum_identification_list_ref)
+    {
+      return pro_id_->at(runIndexOfList_(spectrum_identification_list_ref));
+    }
+
+    void MzIdentMLDOMHandler::addProteinHit_(const std::string& spectrum_identification_list_ref, const DBSequence& db, bool is_decoy)
+    {
+      const Size run_index = runIndexOfList_(spectrum_identification_list_ref);
+      ProteinIdentification& run = pro_id_->at(run_index);
+      auto [accessions, first_use] = protein_accessions_of_run_.try_emplace(run_index);
+      if (first_use)
+      {
+        for (const ProteinHit& hit : run.getHits())
+        {
+          accessions->second.insert(hit.getAccession());
+        }
+      }
+      if (!accessions->second.insert(db.accession).second)
+      {
+        return;
+      }
+      // butt ugly! TODO @ mths for ProteinInference
+      run.insertHit(ProteinHit());
+      run.getHits().back().setSequence(db.sequence);
+      run.getHits().back().setAccession(db.accession);
+      run.getHits().back().setMetaValue("isDecoy", is_decoy ? "true" : "false");
     }
 
     void MzIdentMLDOMHandler::parseSpectrumIdentificationListElements_(const std::vector<xmlNode*>& spectrumIdentificationListElements)
@@ -2167,15 +2242,7 @@ namespace OpenMS::Internal
             std::string& dpv = pv_db_map_[pev_it->second];
             DBSequence& db = db_sq_map_[dpv];
             pev.setProteinAccession(db.accession);
-
-            ProteinIdentification& run = runOfList_(spectrumIdentificationList_ref);
-            if (run.findHit(db.accession) == run.getHits().end())
-            { // butt ugly! TODO @ mths for ProteinInference
-              run.insertHit(ProteinHit());
-              run.getHits().back().setSequence(db.sequence);
-              run.getHits().back().setAccession(db.accession);
-              run.getHits().back().setMetaValue("isDecoy", idec ? "true" : "false");
-            }
+            addProteinHit_(spectrumIdentificationList_ref, db, idec);
           }
           phs[pep].addPeptideEvidence(pev);
         }
@@ -2385,15 +2452,7 @@ namespace OpenMS::Internal
             std::string& dpv = pv_db_map_[pev_it->second];
             DBSequence& db = db_sq_map_[dpv];
             pev.setProteinAccession(db.accession);
-
-            ProteinIdentification& run = runOfList_(spectrumIdentificationList_ref);
-            if (run.findHit(db.accession) == run.getHits().end())
-            { // butt ugly! TODO @ mths for ProteinInference
-              run.insertHit(ProteinHit());
-              run.getHits().back().setSequence(db.sequence);
-              run.getHits().back().setAccession(db.accession);
-              run.getHits().back().setMetaValue("isDecoy", idec ? "true" : "false");
-            }
+            addProteinHit_(spectrumIdentificationList_ref, db, idec);
           }
           hit.addPeptideEvidence(pev);
         }
