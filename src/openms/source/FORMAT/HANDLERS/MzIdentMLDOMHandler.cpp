@@ -1547,6 +1547,12 @@ namespace OpenMS::Internal
           }
         }
       }
+      if (psms_with_foreign_evidence_ > 0)
+      {
+        OPENMS_LOG_WARN << psms_with_foreign_evidence_ << " 'SpectrumIdentificationItem's reference the 'PeptideEvidence' of a peptide "
+                        << "with another sequence. These references were ignored." << endl;
+        psms_with_foreign_evidence_ = 0;
+      }
     }
 
     void MzIdentMLDOMHandler::parseSpectrumIdentificationItemSetXLMS(set<std::string>::const_iterator set_it, std::multimap<std::string, int> xl_val_map, xmlNode* element_res, const std::string& spectrumID)
@@ -2322,15 +2328,32 @@ namespace OpenMS::Internal
 
         //connect the PeptideHit with PeptideEvidences (for AABefore/After) and subsequently with DBSequence (for ProteinAccession)
         // The PeptideEvidences of this PSM are its PeptideEvidenceRefs; the PSMs of a peptide can have different ones (e.g. in
-        // runs with different databases). Only without references, use all PeptideEvidences of the peptide.
+        // runs with different databases). Only without (usable) references, use all PeptideEvidences of the peptide.
         std::vector<std::string> pev_ids;
+        std::set<std::string> referenced;
+        const auto own_peptide = pep_map_.find(peptide_ref);
+        bool foreign_reference = false;
         for (xmlNode* child : children_(spectrumIdentificationItemElement))
         {
-          if (equal_(name_(child), "PeptideEvidenceRef"))
+          if (!equal_(name_(child), "PeptideEvidenceRef")) continue;
+          std::string pev_id = attribute_(child, "peptideEvidence_ref");
+          if (!referenced.insert(pev_id).second) continue; // listed twice
+          // The evidence of a peptide with another sequence (an error in the file) has the wrong protein, position and flanking
+          // residues. Another Peptide element with the same sequence is fine, and so is an item without peptide_ref.
+          if (const auto pev_peptide = pv_p_map_.find(pev_id);
+              own_peptide != pep_map_.end() && !own_peptide->second.empty() && pev_peptide != pv_p_map_.end() && pev_peptide->second != peptide_ref)
           {
-            pev_ids.push_back(attribute_(child, "peptideEvidence_ref"));
+            const auto other_peptide = pep_map_.find(pev_peptide->second);
+            if (other_peptide != pep_map_.end() && !other_peptide->second.empty() &&
+                other_peptide->second.toUnmodifiedString() != own_peptide->second.toUnmodifiedString())
+            {
+              foreign_reference = true;
+              continue;
+            }
           }
+          pev_ids.push_back(std::move(pev_id));
         }
+        if (foreign_reference) ++psms_with_foreign_evidence_;
         if (pev_ids.empty())
         {
           const auto [first, last] = p_pv_map_.equal_range(peptide_ref);
