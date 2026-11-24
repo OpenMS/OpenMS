@@ -1864,13 +1864,41 @@ START_SECTION(([EXTRA] store PeptideEvidences per evidence, also with several ru
   add_psm("run_one", "scan=3", "ELVISK", PeptideEvidence("SHARED", 0, 5, '[', 'G'));
   add_psm("run_two", "scan=7", "PEPTIDEK", PeptideEvidence("P2", 40, 47, 'R', 'G'));
   add_psm("run_two", "scan=8", "ELVISK", PeptideEvidence("SHARED", 0, 5, '[', 'G'));
+  // same peptide, protein and run, but one other field of the evidence each: position, flanking residue, decoy flag
+  add_psm("run_one", "scan=4", "PEPTIDEK", PeptideEvidence("P1", 20, 27, 'K', 'A'));
+  add_psm("run_one", "scan=5", "PEPTIDEK", PeptideEvidence("P1", 10, 17, 'R', 'A'));
+  add_psm("run_one", "scan=6", "PEPTIDEK", PeptideEvidence("P1", 10, 17, 'K', 'A'));
+  peptides.back().getHits()[0].setMetaValue(Constants::UserParam::TARGET_DECOY, "decoy");
 
   std::string filename;
   NEW_TMP_FILE_EXT(filename, ".mzid")
   MzIdentMLFile().store(filename, proteins, peptides);
   const std::string text = readFile(filename);
-  // one PeptideEvidence per evidence: P1 (shared by the two PSMs of run 1), P2, and SHARED in each database
-  TEST_EQUAL(countOf(text, "<PeptideEvidence "), 4)
+  // one PeptideEvidence per evidence: P1 (shared by the first two PSMs of run 1, and three variants of it), P2, and SHARED
+  // in each database
+  TEST_EQUAL(countOf(text, "<PeptideEvidence "), 7)
+  // the PeptideEvidence that each spectrum references, as written
+  std::map<std::string, std::string> pev_attributes; // PeptideEvidence id -> its attributes
+  const std::regex pev_element(R"re(<PeptideEvidence id="([^"]*)"([^>]*)/>)re");
+  for (std::sregex_iterator m(text.begin(), text.end(), pev_element), end; m != end; ++m)
+  {
+    pev_attributes[(*m)[1]] = (*m)[2];
+  }
+  std::map<std::string, std::string> pev_of; // spectrum -> id of the PeptideEvidence it references
+  const std::regex pev_reference(R"re(spectrumID="([^"]*)"[^>]*>\s*<SpectrumIdentificationItem[^>]*>\s*<PeptideEvidenceRef peptideEvidence_ref="([^"]*)")re");
+  for (std::sregex_iterator m(text.begin(), text.end(), pev_reference), end; m != end; ++m)
+  {
+    pev_of[(*m)[1]] = (*m)[2];
+  }
+  TEST_EQUAL(pev_of.size(), 8)
+  TEST_EQUAL(pev_of["scan=1"], pev_of["scan=2"])
+  TEST_EQUAL(StringUtils::hasSubstring(pev_attributes[pev_of["scan=1"]], "post=\"A\" pre=\"K\" start=\"11\" end=\"18\""), true)
+  TEST_EQUAL(StringUtils::hasSubstring(pev_attributes[pev_of["scan=1"]], "isDecoy"), false)
+  TEST_EQUAL(StringUtils::hasSubstring(pev_attributes[pev_of["scan=4"]], "post=\"A\" pre=\"K\" start=\"21\" end=\"28\""), true)
+  TEST_EQUAL(StringUtils::hasSubstring(pev_attributes[pev_of["scan=5"]], "post=\"A\" pre=\"R\" start=\"11\" end=\"18\""), true)
+  TEST_EQUAL(StringUtils::hasSubstring(pev_attributes[pev_of["scan=6"]], "post=\"A\" pre=\"K\" start=\"11\" end=\"18\" isDecoy=\"1\""), true)
+  TEST_EQUAL(StringUtils::hasSubstring(pev_attributes[pev_of["scan=7"]], "post=\"G\" pre=\"R\" start=\"41\" end=\"48\""), true)
+  TEST_EQUAL(std::set<std::string>({pev_of["scan=1"], pev_of["scan=4"], pev_of["scan=5"], pev_of["scan=6"], pev_of["scan=7"]}).size(), 5)
   TEST_EQUAL(countOf(text, "<Peptide "), 2)
   // the protein of both runs has a DBSequence in each database
   TEST_EQUAL(countOf(text, "<DBSequence accession=\"SHARED\""), 2)
@@ -1879,7 +1907,7 @@ START_SECTION(([EXTRA] store PeptideEvidences per evidence, also with several ru
   std::vector<ProteinIdentification> proteins2;
   PeptideIdentificationList peptides2;
   MzIdentMLFile().load(filename, proteins2, peptides2);
-  TEST_EQUAL(peptides2.size(), 5)
+  TEST_EQUAL(peptides2.size(), 8)
   // each PSM has its own evidence (before the fix: the PSM of run 2 had the evidence of P1 from run 1)
   std::map<std::string, std::string> evidence_of; // spectrum -> accession and flanking residues of its evidence
   for (const PeptideIdentification& id : peptides2)
@@ -1940,13 +1968,19 @@ START_SECTION(([EXTRA] store and load the units of CV-term meta values (issue #1
   std::vector<ProteinIdentification> proteins2;
   PeptideIdentificationList peptides2;
   MzIdentMLFile().load(filename, proteins2, peptides2);
-  ABORT_IF(peptides2.empty() || peptides2[0].getHits().empty())
-  const DataValue& value = peptides2[0].getHits()[0].getMetaValue("MS:1000016");
+  // the PSM with the values (the order of the runs in the file follows their generated ids)
+  const PeptideHit* hit = nullptr;
+  for (const PeptideIdentification& id : peptides2)
+  {
+    if (!id.getHits().empty() && id.getHits()[0].metaValueExists("MS:1000016")) hit = &id.getHits()[0];
+  }
+  ABORT_IF(hit == nullptr)
+  const DataValue& value = hit->getMetaValue("MS:1000016");
   TEST_REAL_SIMILAR(double(value), 2014.221)
   TEST_EQUAL(value.hasUnit(), true)
   TEST_EQUAL(value.getUnit(), 10)
   TEST_EQUAL(value.getUnitType() == DataValue::UnitType::UNIT_ONTOLOGY, true)
-  const DataValue& mz = peptides2[0].getHits()[0].getMetaValue("MS:1000744");
+  const DataValue& mz = hit->getMetaValue("MS:1000744");
   TEST_REAL_SIMILAR(double(mz), 500.25)
   TEST_EQUAL(mz.getUnit(), 1000040)
   TEST_EQUAL(mz.getUnitType() == DataValue::UnitType::MS_ONTOLOGY, true)
