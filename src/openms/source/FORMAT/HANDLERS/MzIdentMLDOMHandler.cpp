@@ -228,18 +228,21 @@ namespace OpenMS::Internal
         case ControlledVocabulary::CVTerm::XRefType::XSD_POSITIVE_INTEGER:
         case ControlledVocabulary::CVTerm::XRefType::XSD_NON_NEGATIVE_INTEGER:
         case ControlledVocabulary::CVTerm::XRefType::XSD_NON_POSITIVE_INTEGER:
-          try
+        {
+          // only an integer followed by a point and zeros, judged by the text: as a double, e.g. "0.99999999999999999" would be 1
+          const std::string::size_type point = value.find('.');
+          if (point != std::string::npos && point > 0 && value.find_first_not_of('0', point + 1) == std::string::npos)
           {
-            const double number = StringUtils::toDouble(value);
-            if (std::isfinite(number) && number == std::trunc(number) && std::fabs(number) <= double(std::numeric_limits<Int>::max()))
+            try
             {
-              return StringUtils::toStr(static_cast<Int>(number));
+              return StringUtils::toStr(StringUtils::toInt32(value.substr(0, point)));
+            }
+            catch (const Exception::ConversionError&)
+            {
             }
           }
-          catch (const Exception::ConversionError&)
-          {
-          }
           break;
+        }
         default:
           break;
       }
@@ -2026,7 +2029,9 @@ namespace OpenMS::Internal
 
       for (Size i = 0; i < userParamNames_alpha.size(); ++i)
       {
-        ph_alpha.setMetaValue(userParamNames_alpha[i], XMLHandler::fromXSDString(userParamTypes_alpha[i], userParamValues_alpha[i]));
+        // no value (it is optional): an empty string, not a number
+        const std::string type = userParamValues_alpha[i].empty() ? std::string() : userParamTypes_alpha[i];
+        ph_alpha.setMetaValue(userParamNames_alpha[i], XMLHandler::fromXSDString(type, userParamValues_alpha[i]));
       }
 
       ph_alpha.setPeakAnnotations(frag_annotations);
