@@ -97,6 +97,37 @@ namespace OpenMS
       bool is_prepared{false};
     };
 
+    /**
+      @brief All the "settings" that every calibration step needs, bundled in one object.
+
+      Previously these 10 values were passed as 10 separate function arguments to
+      performCalibration(), performLinearCalibration_() and
+      performLinearThenNonlinearCalibration_(). Same values, same meaning, just packed together.
+    */
+    struct CalibrationConfig
+    {
+      /// Parameters for MRMFeatureFinderScoring
+      Param feature_finder_param;
+      /// Extraction parameters for iRT peptides
+      ChromExtractParams cp_irt;
+      /// Parameters for iRT detection and outlier removal
+      Param irt_detection_param;
+      /// Parameters for m/z and IM calibration
+      Param calibration_param;
+      /// Parameters for MRM chromatogram mapping
+      Param mrm_mapping_param;
+      /// Whether data is PASEF (ion mobility) data
+      bool pasef{false};
+      /// Whether to load data into memory for processing
+      bool load_into_memory{false};
+      /// Output file for RT transformation (empty = no output)
+      std::string irt_trafo_out{""};
+      /// Output file for iRT chromatograms (empty = no output)
+      std::string irt_mzml_out{""};
+      /// Debug level (0 = no debug output, >1 = verbose)
+      Size debug_level{0};
+    };
+
     /// Default constructor
     CalibrationWorkflow();
 
@@ -165,16 +196,9 @@ namespace OpenMS
       @param[in,out] cp Extraction parameters (windows may be updated with estimates)
       @param[in,out] cp_ms1 MS1 extraction parameters (windows may be updated)
       @param[in] irt_experiments Pre-prepared iRT experiments for calibration
-      @param[in] feature_finder_param Parameters for MRMFeatureFinderScoring
-      @param[in] cp_irt Extraction parameters for iRT peptides
-      @param[in] irt_detection_param Parameters for iRT detection and outlier removal
-      @param[in] calibration_param Parameters for m/z and IM calibration
-      @param[in] mrm_mapping_param Parameters for MRM chromatogram mapping
-      @param[in] pasef Whether data is PASEF (ion mobility) data
-      @param[in] load_into_memory Whether to load data into memory for processing
-      @param[in] irt_trafo_out Output file for RT transformation (empty = no output)
-      @param[in] irt_mzml_out Output file for iRT chromatograms (empty = no output)
-      @param[in] debug_level Debug level (0 = no debug output, >1 = verbose)
+      @param[in] config All remaining settings (feature finder, iRT detection, calibration and
+                 MRM mapping parameters, PASEF flag, memory flag, output files, debug level);
+                 see CalibrationConfig
 
       @return Calibration results including transformations and estimated windows
 
@@ -187,16 +211,7 @@ namespace OpenMS
       ChromExtractParams& cp,
       ChromExtractParams& cp_ms1,
       const IrtExperiments& irt_experiments,
-      const Param& feature_finder_param,
-      const ChromExtractParams& cp_irt,
-      const Param& irt_detection_param,
-      const Param& calibration_param,
-      const Param& mrm_mapping_param,
-      bool pasef = false,
-      bool load_into_memory = false,
-      const std::string& irt_trafo_out = "",
-      const std::string& irt_mzml_out = "",
-      Size debug_level = 0
+      const CalibrationConfig& config
     );
 
     /**
@@ -408,32 +423,14 @@ namespace OpenMS
 
       @param[in,out] swath_maps SWATH data maps
       @param[in] irt_experiments Prepared iRT experiments
-      @param[in] feature_finder_param Parameters for MRMFeatureFinderScoring
-      @param[in] cp_irt Extraction parameters for iRT peptides
-      @param[in] irt_detection_param Parameters for iRT detection
-      @param[in] calibration_param Parameters for calibration
-      @param[in] mrm_mapping_param Parameters for MRM mapping
-      @param[in] pasef Whether this is PASEF data
-      @param[in] load_into_memory Whether to load data into memory
-      @param[in] irt_trafo_out Output transformation file
-      @param[in] irt_mzml_out Output iRT chromatograms file
-      @param[in] debug_level Debug level (0 = no debug output, >1 = verbose)
+      @param[in] config Bundled settings (see CalibrationConfig)
 
       @return Linear calibration results
     */
     CalibrationResult performLinearCalibration_(
       std::vector<OpenSwath::SwathMap>& swath_maps,
       const IrtExperiments& irt_experiments,
-      const Param& feature_finder_param,
-      const ChromExtractParams& cp_irt,
-      const Param& irt_detection_param,
-      const Param& calibration_param,
-      const Param& mrm_mapping_param,
-      bool pasef,
-      bool load_into_memory,
-      const std::string& irt_trafo_out,
-      const std::string& irt_mzml_out,
-      Size debug_level);
+      const CalibrationConfig& config);
 
     /**
       @brief Perform linear + nonlinear calibration workflow.
@@ -443,32 +440,14 @@ namespace OpenMS
 
       @param[in,out] swath_maps SWATH data maps
       @param[in] irt_experiments Prepared iRT experiments
-      @param[in] feature_finder_param Parameters for MRMFeatureFinderScoring
-      @param[in] cp_irt Extraction parameters for iRT peptides
-      @param[in] irt_detection_param Parameters for iRT detection
-      @param[in] calibration_param Parameters for calibration
-      @param[in] mrm_mapping_param Parameters for MRM mapping
-      @param[in] pasef Whether this is PASEF data
-      @param[in] load_into_memory Whether to load data into memory
-      @param[in] irt_trafo_out Output transformation file
-      @param[in] irt_mzml_out Output iRT chromatograms file
-      @param[in] debug_level Debug level (0 = no debug output, >1 = verbose)
+      @param[in] config Bundled settings (see CalibrationConfig)
 
       @return Combined calibration results
     */
     CalibrationResult performLinearThenNonlinearCalibration_(
       std::vector<OpenSwath::SwathMap>& swath_maps,
       const IrtExperiments& irt_experiments,
-      const Param& feature_finder_param,
-      const ChromExtractParams& cp_irt,
-      const Param& irt_detection_param,
-      const Param& calibration_param,
-      const Param& mrm_mapping_param,
-      bool pasef,
-      bool load_into_memory,
-      const std::string& irt_trafo_out,
-      const std::string& irt_mzml_out,
-      Size debug_level);
+      const CalibrationConfig& config);
 
     /**
       @brief Apply estimated extraction windows to parameters.
