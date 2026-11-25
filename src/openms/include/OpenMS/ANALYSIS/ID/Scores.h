@@ -71,6 +71,18 @@ namespace OpenMS
     static bool isScoreType(const std::string& score_name, IDType type);
 
     /**
+      @brief Checks if two score names denote the same score type.
+
+      This is the case for equal names, or for two names of the same probability-based score type (posterior
+      probability, PEP, FDR or q-value), e.g. "q-value" and "qvalue". Raw search engine scores are only equal by name.
+
+      @param[in] score_name1 The name of the first score.
+      @param[in] score_name2 The name of the second score.
+      @return True if both names denote the same score type, false otherwise.
+    */
+    static bool isSameScoreType(const std::string& score_name1, const std::string& score_name2);
+
+    /**
       @brief Converts a string representation of an ID score type to an IDType enum.
 
       This method attempts to map a given string, representing a score type, to the corresponding

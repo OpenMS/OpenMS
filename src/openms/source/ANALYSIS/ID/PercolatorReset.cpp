@@ -200,30 +200,26 @@ namespace
   {
     const int m = static_cast<int>(rows.size());
     const int n = static_cast<int>(X.cols) + 1;
-    P::AlgIn in(static_cast<unsigned int>(m), n);
-    in.m = m;
+    // the rows in place (tron() reads the n - 1 features of each row and appends the 1.0 itself)
+    P::AlgIn in(n, /*rowsInPlace=*/true);
+    in.resizeExamples(static_cast<size_t>(m));
     for (int i = 0; i < m; ++i)
     {
-      in.vals[i] = const_cast<double*>(X.row(rows[i]));
-      in.Y[i] = y[i];
+      in.set(static_cast<size_t>(i), X.row(rows[i]), y[i]);
       if (y[i] > 0) ++in.positives; else ++in.negatives;
     }
-    P::vector_double w;
-    w.d = n;
-    w.vec = new double[n]();
-    P::vector_double out;
-    out.d = m;
-    out.vec = new double[std::max(m, 1)]();
+    std::vector<double> w(static_cast<size_t>(n), 0.0), out;
     P::options opt;
     opt.lambda = 1.0;
     opt.lambda_u = 1.0;
     opt.epsilon = P::EPSILON;
     opt.cgitermax = P::CGITERMAX;
     opt.mfnitermax = P::MFNITERMAX;
+    opt.weightsOnly = true; // (the same weights, without the outputs)
     // TRON's per-example cost is c / (2 lambda)
     P::tron(in, opt, w, out, 2.0 * c_pos, 2.0 * c_neg);
     Model model;
-    model.w.assign(w.vec, w.vec + n);
+    model.w = std::move(w);
     return model;
   }
 

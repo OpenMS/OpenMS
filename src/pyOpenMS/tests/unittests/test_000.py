@@ -6448,8 +6448,34 @@ def testKernelMassTrace():
     assert trace.updateMeanMZ is not None
     assert trace.updateWeightedMeanMZ is not None
     assert trace.updateWeightedMZsd is not None
+    assert trace.clearSmoothedIntensities is not None
 
     s = trace.getSize()
+
+    # average peak FWHMs: accessors, and the attributes they replaced
+    assert trace.getFWHMMZAvg() == 0.0
+    assert trace.getFWHMIMAvg() == 0.0
+    trace.setFWHMMZAvg(0.5)
+    assert trace.getFWHMMZAvg() == 0.5
+    assert trace.fwhm_mz_avg == 0.5
+    trace.fwhm_im_avg = 0.25
+    assert trace.getFWHMIMAvg() == 0.25
+
+    # quantitation method as an argument
+    peaks = []
+    for rt, intensity in [(1.0, 10.0), (2.0, 30.0), (3.0, 20.0)]:
+        p = pyopenms.Peak2D()
+        p.setRT(rt)
+        p.setMZ(100.0)
+        p.setIntensity(intensity)
+        peaks.append(p)
+    trace = pyopenms.MassTrace(peaks)
+    assert trace.getIntensity(False, pyopenms.MT_QUANTMETHOD.MT_QUANT_HEIGHT) == 30.0
+    assert trace.getIntensity(False, pyopenms.MT_QUANTMETHOD.MT_QUANT_MEDIAN) == 20.0
+    trace.setSmoothedIntensities([12.0, 25.0, 18.0])
+    assert trace.getIntensity(True, pyopenms.MT_QUANTMETHOD.MT_QUANT_HEIGHT) == 25.0
+    trace.clearSmoothedIntensities()
+    assert len(trace.getSmoothedIntensities()) == 0
 
 @report
 def testElutionPeakDetection():

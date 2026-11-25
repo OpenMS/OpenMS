@@ -21,9 +21,9 @@
 MKTAYIAKQRQISFVKSHFSRQLEERLGLIEVQAPILSRV
 >sp:P77777-2 \PName=(Isoform 2 of Splice-happy test protein) \GName=ISOG \NcbiTaxId=9606 \TaxName=Homo sapiens \Length=30 \ID=ISO1_HUMAN
 MKTAYIAKQRRQLEERLGLIEVQAPILSRV
->sp:P77777-3 \PName=(Isoform 3 of Splice-happy test protein) \GName=ISOG \NcbiTaxId=9606 \TaxName=Homo sapiens \Length=27 \ID=ISO1_HUMAN
+>sp:P77777-3 \PName=(Isoform 3 of Splice-happy test protein) \GName=ISOG \NcbiTaxId=9606 \TaxName=Homo sapiens \Length=27 \ID=ISO1_HUMAN \ModResPsi=(10|MOD:00046|O-phospho-L-serine)
 MKTAWQRQISFVKSHFSRQLEERLGLI
->sp:P77777-4 \PName=(Isoform Alpha of Splice-happy test protein) \GName=ISOG \NcbiTaxId=9606 \TaxName=Homo sapiens \Length=45 \ID=ISO1_HUMAN
+>sp:P77777-4 \PName=(Isoform Alpha of Splice-happy test protein) \GName=ISOG \NcbiTaxId=9606 \TaxName=Homo sapiens \Length=45 \ID=ISO1_HUMAN \ModResPsi=(13|MOD:00046|O-phospho-L-serine)
 MKTAYIAKQRQISFVKSHFSRQLEERLGLIEVQAPILSRVPRACK
 >tr:Q11111 \PName=(Displayed-only test protein) \NcbiTaxId=9606 \TaxName=Homo sapiens \Length=20 \SV=1 \EV=1 \PE=4 \ID=ISO2_HUMAN
 MDEQNNTEMTFQIQRIYTKD

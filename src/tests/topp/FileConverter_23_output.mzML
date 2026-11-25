@@ -14,7 +14,7 @@
 			<cvParam cvRef="MS" accession="MS:1000580" name="MSn spectrum" />
 		</fileContent>
 		<sourceFileList count="2">
-			<sourceFile id="sf_ru_0" name="FileConverter_23_input.mzML" location="file:///workspace/OpenMS/src/tests/topp">
+			<sourceFile id="sf_ru_0" name="FileConverter_23_input.mzML" location="file:///D:/OpenMS/OpenMS/src/tests/topp">
 				<cvParam cvRef="MS" accession="MS:1000569" name="SHA-1" value="a262023f28d63389e25eac6007d172b040fde24f" />
 				<cvParam cvRef="MS" accession="MS:1000584" name="mzML format" />
 				<cvParam cvRef="MS" accession="MS:1000774" name="multiple peak list nativeID format" />
@@ -203,7 +203,7 @@
 		<userParam name="flag" type="xsd:string" value=""/>
 		<userParam name="float" type="xsd:double" value="5.11"/>
 		<spectrumList count="4" defaultDataProcessingRef="dp_sp_0">
-			<spectrum id="index=0" index="0" defaultArrayLength="0" dataProcessingRef="dp_sp_0">
+			<spectrum id="index=0" index="0" defaultArrayLength="0" dataProcessingRef="dp_sp_0" spotID="M0">
 				<cvParam cvRef="MS" accession="MS:1000127" name="centroid spectrum" />
 				<cvParam cvRef="MS" accession="MS:1000511" name="ms level" value="1" />
 				<cvParam cvRef="MS" accession="MS:1000579" name="MS1 spectrum" />
@@ -218,7 +218,6 @@
 				<cvParam cvRef="MS" accession="MS:1000796" name="spectrum title" value="title"/>
 				<cvParam cvRef="MS" accession="MS:1000797" name="peak list scans" value="15 scans"/>
 				<cvParam cvRef="MS" accession="MS:1000798" name="peak list raw scans" value="16 scans"/>
-				<userParam name="maldi_spot_id" type="xsd:string" value="M0"/>
 				<userParam name="sdname" type="xsd:string" value="spectrumdescription1"/>
 				<userParam name="mzname" type="xsd:string" value="mzarray1"/>
 				<userParam name="itname" type="xsd:string" value="itarray1"/>
@@ -251,7 +250,7 @@
 					</scan>
 				</scanList>
 			</spectrum>
-			<spectrum id="index=1" index="1" defaultArrayLength="10" sourceFileRef="sf_sp_1">
+			<spectrum id="index=1" index="1" defaultArrayLength="10" sourceFileRef="sf_sp_1" spotID="M1">
 				<cvParam cvRef="MS" accession="MS:1000127" name="centroid spectrum" />
 				<cvParam cvRef="MS" accession="MS:1000511" name="ms level" value="2" />
 				<cvParam cvRef="MS" accession="MS:1000580" name="MSn spectrum" />
@@ -261,7 +260,6 @@
 				<cvParam cvRef="MS" accession="MS:1000504" name="base peak m/z" value="456.34699999999998" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
 				<cvParam cvRef="MS" accession="MS:1000505" name="base peak intensity" value="2.3433e04" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
 				<cvParam cvRef="MS" accession="MS:1000285" name="total ion current" value="1.66755e07"/>
-				<userParam name="maldi_spot_id" type="xsd:string" value="M1"/>
 				<userParam name="sdname" type="xsd:string" value="spectrumdescription2"/>
 				<userParam name="mzname" type="xsd:string" value="mzarray2"/>
 				<userParam name="itname" type="xsd:string" value="itarray2"/>
@@ -368,7 +366,7 @@
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</spectrum>
-			<spectrum id="index=2" index="2" defaultArrayLength="15" dataProcessingRef="dp_sp_1">
+			<spectrum id="index=2" index="2" defaultArrayLength="15" dataProcessingRef="dp_sp_1" spotID="M2">
 				<cvParam cvRef="MS" accession="MS:1000127" name="centroid spectrum" />
 				<cvParam cvRef="MS" accession="MS:1000511" name="ms level" value="1" />
 				<cvParam cvRef="MS" accession="MS:1000579" name="MS1 spectrum" />
@@ -378,7 +376,6 @@
 				<cvParam cvRef="MS" accession="MS:1000504" name="base peak m/z" value="445.34699999999998" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
 				<cvParam cvRef="MS" accession="MS:1000505" name="base peak intensity" value="1.20054e05" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
 				<cvParam cvRef="MS" accession="MS:1000285" name="total ion current" value="1.66755e07"/>
-				<userParam name="maldi_spot_id" type="xsd:string" value="M2"/>
 				<userParam name="sdname" type="xsd:string" value="spectrumdescription3"/>
 				<scanList count="2">
 					<cvParam cvRef="MS" accession="MS:1000573" name="median of spectra" />
@@ -495,15 +492,15 @@
 <indexList count="2">
 	<index name="spectrum">
 		<offset idRef="index=0">13671</offset>
-		<offset idRef="index=1">17936</offset>
-		<offset idRef="index=2">26870</offset>
-		<offset idRef="index=3">31712</offset>
+		<offset idRef="index=1">17881</offset>
+		<offset idRef="index=2">26760</offset>
+		<offset idRef="index=3">31547</offset>
 	</index>
 	<index name="chromatogram">
-		<offset idRef="tic native">33052</offset>
-		<offset idRef="sic native">34146</offset>
+		<offset idRef="tic native">32887</offset>
+		<offset idRef="sic native">33981</offset>
 	</index>
 </indexList>
-<indexListOffset>35338</indexListOffset>
+<indexListOffset>35173</indexListOffset>
 <fileChecksum>0</fileChecksum>
 </indexedmzML>

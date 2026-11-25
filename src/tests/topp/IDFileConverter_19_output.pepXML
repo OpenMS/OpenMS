@@ -8,8 +8,8 @@
 		<aminoacid_modification aminoacid="N" massdiff="0.984016" mass="115.026944159500005" variable="Y" binary="N" description="Deamidated (N)"/>
 		<aminoacid_modification aminoacid="Q" massdiff="0.984016" mass="129.0425942233" variable="Y" binary="N" description="Deamidated (Q)"/>
 		<aminoacid_modification aminoacid="M" massdiff="15.994915000000001" mass="147.035400017099988" variable="Y" binary="N" description="Oxidation (M)"/>
-		<terminal_modification terminus="n" massdiff="42.010565" mass="0.0" variable="Y" description="Acetyl (N-term)" protein_terminus=""/>
-		<terminal_modification terminus="n" massdiff="57.021464000000002" mass="0.0" variable="Y" description="Carbamidomethyl (N-term)" protein_terminus=""/>
+		<terminal_modification terminus="n" massdiff="42.010565" mass="43.018390031899997" variable="Y" description="Acetyl (N-term)" protein_terminus=""/>
+		<terminal_modification terminus="n" massdiff="57.021464000000002" mass="58.029289031899999" variable="Y" description="Carbamidomethyl (N-term)" protein_terminus=""/>
 	</search_summary>
 	<spectrum_query spectrum="IDFileConverter_19_output_tmp.1.1.2" start_scan="1" end_scan="1" precursor_neutral_mass="2184.040715625500525" assumed_charge="2" index="0" retention_time_sec="2187.96" >
 	<search_result>

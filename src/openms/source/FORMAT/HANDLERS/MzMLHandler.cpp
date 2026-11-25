@@ -5386,6 +5386,11 @@ namespace OpenMS::Internal
         }
         os << " dataProcessingRef=\"dp_sp_" << dp_ref_num << "\"";
       }
+      // the MALDI spot, which the reader stores as the MetaValue maldi_spot_id (left out of the userParams below)
+      if (spec.metaValueExists("maldi_spot_id"))
+      {
+        os << " spotID=\"" << writeXMLAttribute_(spec.getMetaValue("maldi_spot_id").toString()) << "\"";
+      }
       os << ">\n";
 
       //spectrum representation
@@ -5499,10 +5504,11 @@ namespace OpenMS::Internal
         {"mass resolving power", "MS:1000800"}, {"interchannel delay", "MS:1000880"}};
       static const std::set<std::string> spectrum_exclude = []
       {
-        // imzml:scan_start_time (imaging spectra) is written as the scan start time MS:1000016 below
+        // imzml:scan_start_time (imaging spectra) is written as the scan start time MS:1000016 below, maldi_spot_id as
+        // the spotID attribute above
         std::set<std::string> keys = {"mzml coordinate array", "mzml intensity array", "sampled noise m/z array",
                                       "sampled noise intensity array", "sampled noise baseline array",
-                                      "imzml:scan_start_time"};
+                                      "imzml:scan_start_time", "maldi_spot_id"};
         for (const auto& attribute : scan_attributes) keys.insert(attribute.first);
         return keys;
       }();

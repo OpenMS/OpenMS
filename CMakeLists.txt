@@ -132,7 +132,6 @@ if(WITH_GUI)
     "are built by https://github.com/OpenMS/OpenMS-TOPP-GUI against an installed OpenMS. "
     "Drop -DWITH_GUI=ON. A build directory that still has the option cached needs 'cmake -U WITH_GUI'.")
 endif()
-option(WITH_HDF5 "Build HDF5 parts of OpenMS." OFF)
 option(WITH_CURL "Build with libcurl, for HTTP requests (NetworkGetRequest, MascotRemoteQuery, the update check). Without it, these report an error when run." ON)
 option(WITH_OPENTIMS "Build with Bruker TimsTOF .d file support via opentims" ON)
 option(OPENMS_ENABLE_MZPEAK "Build with mzPeak (HUPO-PSI Parquet-based raw data format) support via the vendored mzPeak library (needs Arrow/Parquet, which OpenMS requires anyway)" ON)
@@ -143,6 +142,7 @@ option(ENABLE_OPENTIMS_TESTS "Download Bruker test data for opentims integration
 option(WITH_THERMO_RAW "Build with Thermo RAW file reading support via openms-thermo-bridge" ON)
 option(ENABLE_THERMO_RAW_TESTS "Download Thermo RAW test data for integration tests" OFF)
 option(ENABLE_THERMO_FAIMS_DIA_TESTS "Download Thermo FAIMS-DIA test data for integration tests" OFF)
+option(ENABLE_THERMO_ASCEND_TESTS "Download Thermo Orbitrap Ascend test data (scan trailers that leave out fields) for integration tests" OFF)
 option(ENABLE_FAIMS_DDA_TESTS "Download FAIMS-DDA test data (mzML) for integration tests" OFF)
 option(ENABLE_TDL "Load dependency and compile against TDL (required for CWL file support)." OFF)
 option(ENABLE_CWL_GENERATION "Build and validate the CWL description files for all TOPP tools (Requires ENABLE_TDL=ON)." OFF)
@@ -251,6 +251,39 @@ endif()
 if ((ENABLE_THERMO_FAIMS_DIA_TESTS OR THERMO_FAIMS_DIA_TEST_DATA) AND NOT WITH_THERMO_RAW)
   message(WARNING
     "Thermo FAIMS-DIA integration testing was requested but WITH_THERMO_RAW=OFF; the test will not run.")
+endif()
+
+# Optional regression fixture for scan trailers that do not list every field of the
+# trailer layout (#10897): an Orbitrap Ascend run acquired with instrument software 4.2.
+# A developer can either set THERMO_ASCEND_TEST_DATA explicitly to an existing local RAW
+# file, or enable ENABLE_THERMO_ASCEND_TESTS to fetch the pinned public PRIDE fixture. The
+# ~139 MB download remains opt-in and is not part of normal OpenMS builds/tests.
+set(THERMO_ASCEND_TEST_DATA "${THERMO_ASCEND_TEST_DATA}" CACHE FILEPATH
+    "Path to a Thermo Orbitrap Ascend RAW file for integration testing")
+if (ENABLE_THERMO_ASCEND_TESTS AND WITH_THERMO_RAW AND NOT THERMO_ASCEND_TEST_DATA)
+  include(FetchContent)
+  # Public FAIMS DDA run from PRIDE PXD077768. The pinned hash fixes the exact
+  # 139,358,606-byte input used by ThermoRawFile_test.
+  FetchContent_Declare(
+    thermo_ascend_testdata
+    URL "https://ftp.pride.ebi.ac.uk/pride/data/archive/2026/09/PXD077768/sa01113b.raw"
+    URL_HASH SHA256=e9b0b892afbafacbecd9fa5918d0a75557ecdb2baf360c04a85c3527f4c89966
+    DOWNLOAD_NO_EXTRACT TRUE
+  )
+  FetchContent_MakeAvailable(thermo_ascend_testdata)
+  set(THERMO_ASCEND_TEST_DATA
+      "${thermo_ascend_testdata_SOURCE_DIR}/sa01113b.raw"
+      CACHE FILEPATH "Path to a Thermo Orbitrap Ascend RAW file for integration testing" FORCE)
+endif()
+
+if (THERMO_ASCEND_TEST_DATA AND NOT EXISTS "${THERMO_ASCEND_TEST_DATA}")
+  message(FATAL_ERROR
+    "THERMO_ASCEND_TEST_DATA does not exist: ${THERMO_ASCEND_TEST_DATA}")
+endif()
+
+if ((ENABLE_THERMO_ASCEND_TESTS OR THERMO_ASCEND_TEST_DATA) AND NOT WITH_THERMO_RAW)
+  message(WARNING
+    "Thermo Orbitrap Ascend integration testing was requested but WITH_THERMO_RAW=OFF; the test will not run.")
 endif()
 
 # Optional end-to-end FAIMS-DDA integration fixture: a 2 h LC-MS/MS DDA run of E. coli lysate on an

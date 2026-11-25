@@ -68,6 +68,26 @@ public:
 
     /**
         @brief Bundles multiple (e.g. indistinguishable) proteins in a group
+
+        A ProteinIdentification holds two kinds of groups, both of this type:
+
+        - <b>Indistinguishable protein groups</b> (getIndistinguishableProteins()): proteins that the peptide evidence
+          cannot tell apart, i.e. that were identified by the same peptides. This is the "protein group" that most
+          tools report and that downstream processing uses (ProteinQuantifier, FalseDiscoveryRate, IDFilter, mzTab).
+          They are filled by the protein inference tools (Epifany, ProteinInference) and by protXML import
+          (a @c protein element together with its @c indistinguishable_protein elements). @p accessions[0] is the
+          group representative ("group leader").
+        - <b>General protein groups</b> (getProteinGroups()): sets of indistinguishable groups that share peptides,
+          i.e. connected components of the protein-peptide graph ("clusters"). They are filled by protXML import
+          (@c protein_group elements) and by PeptideProteinResolution. Each general group should consist of complete
+          indistinguishable groups.
+
+        In both cases, @p probability is the score of the group, of the protein score type of the
+        ProteinIdentification (getScoreType(), isHigherScoreBetter()); despite its name it is not necessarily a
+        probability (e.g. FalseDiscoveryRate replaces it with the group q-value).
+
+        In mzIdentML (MzIdentMLFile), an indistinguishable group becomes a @c ProteinAmbiguityGroup whose proteins
+        are all "leading proteins", and general groups are written as "cluster identifier"s of these groups.
     */
     class OPENMS_DLLAPI ProteinGroup
     {
@@ -280,18 +300,18 @@ public:
     /// Finds a protein hit by accession (returns past-the-end iterator if not found)
     std::vector<ProteinHit>::iterator findHit(const std::string& accession);
 
-    /// Returns the protein groups
+    /// Returns the general protein groups (clusters of indistinguishable groups sharing peptides, see ProteinGroup)
     const std::vector<ProteinGroup>& getProteinGroups() const;
-    /// Returns the protein groups (mutable)
+    /// Returns the general protein groups (mutable, see ProteinGroup)
     std::vector<ProteinGroup>& getProteinGroups();
-    /// Appends a new protein group
+    /// Appends a new general protein group (see ProteinGroup)
     void insertProteinGroup(const ProteinGroup& group);
 
-    /// Returns the indistinguishable proteins
+    /// Returns the indistinguishable protein groups (see ProteinGroup)
     const std::vector<ProteinGroup>& getIndistinguishableProteins() const;
-    /// Returns the indistinguishable proteins (mutable)
+    /// Returns the indistinguishable protein groups (mutable, see ProteinGroup)
     std::vector<ProteinGroup>& getIndistinguishableProteins();
-    /// Appends new indistinguishable proteins
+    /// Appends new indistinguishable proteins (see ProteinGroup)
     void insertIndistinguishableProteins(const ProteinGroup& group);
     /// Appends singleton groups (with the current score) for every yet ungrouped protein hit
     void fillIndistinguishableGroupsWithSingletons();
@@ -445,8 +465,9 @@ protected:
     std::string protein_score_type_;
     bool higher_score_better_;
     std::vector<ProteinHit> protein_hits_;
+    /// General protein groups (clusters of indistinguishable groups that share peptides, see ProteinGroup)
     std::vector<ProteinGroup> protein_groups_;
-    /// Indistinguishable proteins: @p accessions[0] is "group leader", @p probability is meaningless
+    /// Indistinguishable proteins: @p accessions[0] is "group leader", @p probability is the group score (see ProteinGroup)
     std::vector<ProteinGroup> indistinguishable_proteins_;
     double protein_significance_threshold_;
     //@}

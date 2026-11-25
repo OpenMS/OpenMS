@@ -97,15 +97,27 @@ canonical sequence and is not emitted again; isoforms typed "external" or
 "not described" have no reconstructable sequence and are reported in the log.
 An isoform entry carries the features UniProt annotates on that isoform
 (<code>\<location sequence="..."\></code>, see above), with ids and
-\\DisulfideBond connectivity as for canonical entries. By default the canonical
-entry's annotations are not mapped onto the spliced sequence, since UniProt does
-not assert them for the isoform. With @c -map_canonical_features they are: each
-canonical annotation is moved to isoform coordinates through the splice variants
-the isoform is built from. Annotations on a deleted or replaced residue (for a
+\\DisulfideBond connectivity as for canonical entries. It also carries the
+canonical entry's annotations, mapped onto the spliced sequence, unless
+@c -omit_canonical_features is set (UniProt does not assert them for the isoform;
+the features UniProt annotates on the isoform itself are written either way):
+each canonical annotation is moved to isoform coordinates through the splice
+variants the isoform is built from. Annotations on a deleted or replaced residue (for a
 disulfide bond or cross-link: on either of its residues) are not mapped, nor are
 regions overlapping a splice variant, except processed regions (chain, propeptide,
-signal and transit peptide): those are clipped to the residues they keep, and one
-reaching the canonical N- or C-terminus reaches the isoform's. A mapped annotation
+signal and transit peptide, initiator methionine): those may span a splice variant,
+but each of their ends is a cleavage site, which the isoform keeps only if both
+residues next to it lie outside every splice variant. A region whose cleavage site is
+not kept is not mapped, except a region starting right after a removed initiator
+methionine, which then starts at the isoform's N-terminus (e.g. the chain 2-N of an
+isoform with an N-terminal extension). One reaching the canonical N- or C-terminus
+reaches the isoform's. Likewise, a modification that the ptmlist places at the N- or
+C-terminus of a chain (its @c PP line, e.g. N-acetylalanine, pyrrolidone carboxylic
+acid or an amidated residue) is not mapped if the residue before or after it lies in a
+splice variant: there it would sit inside the isoform's chain. The same holds for a
+cross-link whose first residue the @c PP line places at the N-terminus or whose last
+residue it places at the C-terminus (e.g. a head-to-tail cyclopeptide, a lasso peptide
+or the aminovinyl-cysteine of a lantibiotic). A mapped annotation
 that UniProt also annotates on the isoform itself is written once (a glycosylation:
 if the isoform has one on that residue). Other annotations UniProt makes on the
 isoform on the same residues are written side by side with the mapped ones, as in
@@ -146,6 +158,7 @@ namespace
   /// @verbatim
   ///   ID   Phosphoserine
   ///   AC   PTM-0253
+  ///   PP   Anywhere.
   ///   DR   PSI-MOD; MOD:00046.
   ///   DR   Unimod; 21.
   ///   //
@@ -209,6 +222,13 @@ namespace
           // skip "Unimod; " (8 chars), drop trailing "."
           current.unimod = rest.substr(8, rest.size() - 9);
         }
+      }
+      else if (key == "PP")
+      {
+        // position in the polypeptide: "Anywhere.", "N-terminal.", "C-terminal." or "Protein core.", for a cross-link
+        // one per residue joined by '-' (e.g. "N-terminal-C-terminal." for a head-to-tail cyclopeptide); which of them
+        // make a chain terminus is decided where they are used
+        current.chain_positions = parseChainPositions(line.size() > 5 ? line.substr(5) : std::string());
       }
       else if (key == "//")
       {
@@ -748,8 +768,8 @@ namespace
   /// with gene / taxonomy / mnemonic inherited from the parent and no SV/EV/PE
   /// (UniProt versions isoform sequences with the parent entry, not separately).
   /// Its annotations are the features UniProt annotates on this isoform
-  /// (&lt;location sequence="..."&gt;), in the isoform's coordinates, plus, with
-  /// -map_canonical_features, the canonical annotations mapped onto it.
+  /// (&lt;location sequence="..."&gt;), in the isoform's coordinates, plus, unless
+  /// -omit_canonical_features is set, the canonical annotations mapped onto it.
   void writeIsoformPeffEntry(std::ostream& out, const UniProtEntry& parent, const IsoformEntry& iso,
                              const std::string& prefix,
                              const OboNameMap& psi_obo, const OboNameMap& unimod_obo,
@@ -843,7 +863,7 @@ protected:
     registerFlag_("omit_amino_acid_modifications", "Skip \\ModResPsi / \\ModResUnimod / \\ModRes and \\DisulfideBond; ptmlist is not read.");
     registerFlag_("omit_sequence_variations", "Skip \\VariantSimple and \\VariantComplex annotations.");
     registerFlag_("omit_isoforms", "Skip the additional PEFF entries for UniProt isoforms (alternative products whose sequences are reconstructed from splice-variant features).");
-    registerFlag_("map_canonical_features", "Also annotate each isoform entry with the canonical entry's annotations, mapped to isoform coordinates through its splice variants (UniProt does not assert them for the isoform). Annotations in a deleted or replaced region are not mapped, nor are regions overlapping one, except processed regions (e.g. chains), which are clipped. UniProt's own annotations of the isoform win over mapped ones they contradict. No effect with -omit_isoforms.");
+    registerFlag_("omit_canonical_features", "Do not annotate the isoform entries with the canonical entry's annotations. By default they are mapped to isoform coordinates through the isoform's splice variants (UniProt does not assert them for the isoform): annotations in a deleted or replaced region are not mapped, nor are regions overlapping one, except processed regions (e.g. chains), which are mapped if their cleavage sites are kept, nor N- or C-terminal modifications next to one, and UniProt's own annotations of the isoform win over mapped ones they contradict. The annotations UniProt makes on an isoform itself are written either way. No effect with -omit_isoforms.");
   }
 
   ExitCodes main_(int, const char**) override
@@ -857,12 +877,13 @@ protected:
     const bool omit_aa               = getFlag_("omit_amino_acid_modifications");
     const bool omit_var              = getFlag_("omit_sequence_variations");
     const bool omit_iso              = getFlag_("omit_isoforms");
-    const bool map_canonical         = getFlag_("map_canonical_features");
+    const bool omit_canon            = getFlag_("omit_canonical_features");
 
     const bool record_processing = !omit_proc;
     const bool record_aa_mods    = !omit_aa;
     const bool record_variants   = !omit_var;
     const bool record_isoforms   = !omit_iso;
+    const bool map_canonical     = !omit_canon;
 
     if (dbversion.empty())
     {
@@ -1128,7 +1149,8 @@ protected:
     if (canonical_mapped_tracker.skipped > 0)
     {
       OPENMS_LOG_INFO << "UniPEFF: " << canonical_mapped_tracker.skipped << " canonical annotation(s) lie in or "
-                         "cross a splice variant of an isoform, have an unknown position, or contradict an annotation "
+                         "cross a splice variant of an isoform (or one changes a cleavage site or chain terminus they "
+                         "depend on), have an unknown position, or contradict an annotation "
                          "UniProt makes on the isoform, and were not mapped onto it ("
                       << canonical_mapped_tracker.skipped_entries << " entries affected).\n";
     }

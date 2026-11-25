@@ -49,8 +49,8 @@
 ###                                         OpenMSGUI package was found
 ###   OpenMS_WITH_GUI                       the GUI layer is part of this installation
 ###                                         (OpenMS::OpenMS_GUI exists)
-###   OpenMS_WITH_HDF5, OpenMS_WITH_OPENTIMS, OpenMS_WITH_THERMO_RAW, OpenMS_WITH_ONNX,
-###   OpenMS_WITH_OPENMP, OpenMS_WITH_WNETALIGN, OpenMS_BUILD_TOPP_TOOLS
+###   OpenMS_WITH_OPENTIMS, OpenMS_WITH_THERMO_RAW, OpenMS_WITH_ONNX, OpenMS_WITH_OPENMP,
+###   OpenMS_WITH_WNETALIGN, OpenMS_BUILD_TOPP_TOOLS
 ###                                         build options of this installation
 ###   OPENMS_DATA_DIR (= OPENMS_SHARE_DIR), OPENMS_LIB_DIR, OPENMS_BIN_DIR, OPENMS_DOC_DIR
 ###                                         directories of this installation
@@ -83,7 +83,6 @@ set(OpenMS_VERSION_PRERELEASE "@OPENMS_PACKAGE_VERSION_PRERELEASE_IDENTIFIER@")
 
 #------------------------------------------------------------------------------
 # Build options of this installation
-set(OpenMS_WITH_HDF5 "@WITH_HDF5@")
 set(OpenMS_WITH_OPENTIMS "@WITH_OPENTIMS@")
 set(OpenMS_WITH_THERMO_RAW "@WITH_THERMO_RAW@")
 set(OpenMS_WITH_ONNX "@WITH_ONNX@")
@@ -96,7 +95,7 @@ set(OpenMS_BUILD_TOPP_TOOLS "@BUILD_TOPP_TOOLS@")
 # Everything else OpenMS links is PRIVATE: the installed shared library resolves it
 # through its own RPATH/soname, and consumers need neither the CMake packages nor
 # the development files of those libraries (CURL, libxml2, libsvm, SQLite,
-# HDF5, Arrow, ...).
+# Arrow, ...).
 
 include(CMakeFindDependencyMacro)
 

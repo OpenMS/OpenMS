@@ -52,13 +52,23 @@ struct NuXLParameterParsing
   // The precursor adduct (the oligo including losses, e.g.: "TC-H3PO4") is mapped to all contained nucleotides
   // and their marker ions. In addition, each cross-linkable nucleotide is mapped to its chemically feasible fragment adducts.
   // Chemical feasible means in this context, that the fragment or marker ion adduct is a subformula of the precursor adduct.
+  //
+  // With a non-empty @p oligo_nucleotides, precursor adducts of two or more nucleotides get further fragment adducts
+  // (not as marker ions, and only if they are a subformula of the precursor adduct):
+  //  - for each cross-linkable nucleotide they contain: the complete precursor adduct, also after loss of H2O
+  //    (named like the precursor adduct, e.g. "UU", "UU-H2O1")
+  //  - for each cross-linkable nucleotide N they contain that is also in @p oligo_nucleotides: N with the phosphate of
+  //    the neighbouring nucleotide ("pNp" = N+HPO3, and "pNp-H2O"), and N after loss of two waters ("N-H2O-H2O").
+  //    These need the formula of N in @p nucleotide_formulas (nucleotide monophosphates as in NuXL:target_nucleotides).
   static MS2AdductsOfSinglePrecursorAdduct getFeasibleFragmentAdducts(
     const std::string& exp_pc_adduct,
     const std::string& exp_pc_formula,
     const NucleotideToFragmentAdductMap& nucleotide_to_fragment_adducts,
     const std::set<char>& can_xl,
     const bool always_add_default_marker_ions,
-    const bool default_marker_ions_RNA
+    const bool default_marker_ions_RNA,
+    const std::set<char>& oligo_nucleotides = {},
+    const std::map<char, EmpiricalFormula>& nucleotide_formulas = {}
   );
 
   // Maps a precursor adduct (e.g.: "UU-H2O") to all chemically feasible fragment adducts.
@@ -74,7 +84,9 @@ struct NuXLParameterParsing
     const NucleotideToFragmentAdductMap& nucleotide_to_fragment_adducts,
     const std::set<char>& can_xl,
     const bool always_add_default_marker_ions,
-    const bool default_marker_ions_RNA
+    const bool default_marker_ions_RNA,
+    const std::set<char>& oligo_nucleotides = {},
+    const std::map<char, EmpiricalFormula>& nucleotide_formulas = {}
   );
 };
 

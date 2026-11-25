@@ -13,6 +13,9 @@
 #include <OpenMS/KERNEL/OnDiscMSExperiment.h>
 #include <OpenMS/FORMAT/OPTIONS/PeakFileOptions.h>
 #include <OpenMS/FORMAT/IndexedMzMLFileLoader.h>
+#include <OpenMS/FORMAT/MzMLFile.h>
+#include <OpenMS/IONMOBILITY/IMDataArrayUtils.h>
+#include <OpenMS/IONMOBILITY/IMTypes.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 ///////////////////////////
 
@@ -711,6 +714,72 @@ START_SECTION(([EXTRA] getSpectrumMetadata/getSpectrumRT/getSpectrumMSLevel: met
   TEST_EXCEPTION(Exception::IllegalArgument, no_meta.getSpectrumMetadata(1))
   TEST_EXCEPTION(Exception::IllegalArgument, no_meta.findFirstRT(0.0))
   TEST_EXCEPTION(Exception::IndexOverflow, no_meta.getSpectrumRT(n))
+}
+END_SECTION
+
+START_SECTION(([EXTRA] Ion mobility array name, unit and IM peak type of an indexed read match MzMLFile::load))
+{
+  // indexed mzML with three spectra: an ion mobility frame that declares no IM peak type, a frame declared as
+  // centroided (MS:1003441) and a spectrum without ion mobility array
+  PeakMap exp;
+  for (Size i = 0; i < 3; ++i)
+  {
+    MSSpectrum spec;
+    spec.setRT(10.0 * (i + 1));
+    spec.setMSLevel(1);
+    spec.setNativeID("scan=" + std::to_string(i + 1));
+    MSSpectrum::FloatDataArray im;
+    IMDataArrayUtils::setIMUnit(im, DriftTimeUnit::VSSC); // MS:1003008, raw inverse reduced ion mobility array
+    for (Size p = 0; p < 5; ++p)
+    {
+      spec.emplace_back(400.0 + p, 100.0 * (p + 1));
+      im.push_back(0.8f + 0.1f * p);
+    }
+    if (i < 2) spec.getFloatDataArrays().push_back(im);
+    if (i == 1) spec.setIMPeakType(IMPeakType::IM_CENTROIDED);
+    exp.addSpectrum(spec);
+  }
+  std::string filename;
+  NEW_TMP_FILE(filename);
+  IndexedMzMLFileLoader().store(filename, exp);
+
+  // the streaming load is the reference
+  PeakMap loaded;
+  MzMLFile().load(filename, loaded);
+  TEST_EQUAL(loaded.size(), 3)
+  TEST_TRUE(loaded[0].getIMPeakType() == IMPeakType::IM_PROFILE)    // the default of a frame that declares no type
+  TEST_TRUE(loaded[1].getIMPeakType() == IMPeakType::IM_CENTROIDED) // declared by MS:1003441
+  TEST_TRUE(loaded[2].getIMPeakType() == IMPeakType::UNKNOWN)       // no ion mobility array
+
+  OnDiscPeakMap od;
+  TEST_EQUAL(od.openFile(filename), true)
+  TEST_EQUAL(od.getNrSpectra(), 3)
+  for (Size i = 0; i < loaded.size(); ++i)
+  {
+    const MSSpectrum& ref = loaded[i];
+    for (const MSSpectrum& s : {od.getSpectrum(i), od.getSpectrumByNativeId(ref.getNativeID())})
+    {
+      TEST_EQUAL(s.size(), ref.size())
+      TEST_EQUAL(s.containsIMData(), ref.containsIMData())
+      TEST_TRUE(s.getIMPeakType() == ref.getIMPeakType())
+      if (!ref.containsIMData() || !s.containsIMData()) continue;
+      const auto [ref_index, ref_unit] = ref.getIMData();
+      const auto [index, unit] = s.getIMData();
+      TEST_TRUE(unit == ref_unit)
+      TEST_TRUE(unit == DriftTimeUnit::VSSC)
+      TEST_EQUAL(s.getFloatDataArrays()[index].getName(), ref.getFloatDataArrays()[ref_index].getName())
+      TEST_EQUAL(s.getFloatDataArrays()[index].getName(), "raw inverse reduced ion mobility array")
+      TEST_EQUAL(s.getFloatDataArrays()[index].size(), ref.getFloatDataArrays()[ref_index].size())
+    }
+  }
+
+  // without meta data, the type a file declares is not known: the IM peak type is not guessed
+  OnDiscPeakMap no_meta;
+  TEST_EQUAL(no_meta.openFile(filename, true), true)
+  TEST_EQUAL(no_meta.getSpectrum(0).containsIMData(), true)
+  TEST_TRUE(no_meta.getSpectrum(0).getIMPeakType() == IMPeakType::UNKNOWN)
+  TEST_TRUE(no_meta.getSpectrum(1).getIMPeakType() == IMPeakType::UNKNOWN)
+  TEST_TRUE(no_meta.getSpectrumByNativeId("scan=1").getIMPeakType() == IMPeakType::UNKNOWN)
 }
 END_SECTION
 

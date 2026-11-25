@@ -1,3 +1,4 @@
+
 /*******************************************************************************
  Copyright 2006-2012 Lukas Käll <lukas.kall@scilifelab.se>
 
@@ -20,17 +21,10 @@
 
 namespace OpenMS { namespace Internal { namespace Percolator {
 
+
 size_t FeatureNames::numFeatures = 0;
 
 FeatureNames::FeatureNames() {
-  minCharge = 100;
-  maxCharge = -1;
-  chargeFeatNum = -1;
-  enzFeatNum = -1;
-  numSPFeatNum = -1;
-  ptmFeatNum = -1;
-  intraSetFeatNum = -1;
-  quadraticFeatNum = -1;
 }
 
 FeatureNames::~FeatureNames() {

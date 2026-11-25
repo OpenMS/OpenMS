@@ -5,6 +5,7 @@
 
 namespace OpenMS { namespace Internal { namespace Percolator {
 
+
 std::unique_ptr<MonotoneRegressor> make_monotone_regressor(RegressorType type) {
   std::unique_ptr<MonotoneRegressor> ptr;
   switch (type) {

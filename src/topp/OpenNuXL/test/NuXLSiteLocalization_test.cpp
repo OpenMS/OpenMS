@@ -266,6 +266,175 @@ START_SECTION((static void digestProtein(const EnzymaticDigestion& digestion, st
 }
 END_SECTION
 
+START_SECTION((static LossAwareSite localizeLossAware(const std::vector<double>& n_shifts, const std::vector<double>& n_noshifts, const std::vector<double>& c_shifts, const std::vector<double>& c_noshifts, const std::vector<double>& residue_evidence = {}, const std::vector<bool>& blocked = {}, double unshifted_weight = DEFAULT_UNSHIFTED_WEIGHT, double secondary_min_gain = DEFAULT_SECONDARY_MIN_GAIN)))
+{
+  // no fragment ion, or unshifted ions only: nothing carries the cross-link
+  {
+    Evidence e(8);
+    TEST_EQUAL(NuXLSiteLocalization::localizeLossAware(e.n_shifts, e.n_noshifts, e.c_shifts, e.c_noshifts).position, -1)
+    e.n_noshifts[2] = 1.0;
+    const NuXLSiteLocalization::LossAwareSite s = NuXLSiteLocalization::localizeLossAware(e.n_shifts, e.n_noshifts, e.c_shifts, e.c_noshifts);
+    TEST_EQUAL(s.position, -1)
+    TEST_EQUAL(s.range_begin, -1)
+    TEST_EQUAL(s.scores.empty(), true)
+  }
+
+  // VVAAAIEQNyDER: y1-y3 and b2-b7 unshifted, y4-y11 shifted
+  {
+    Evidence e(13);
+    for (int i = 10; i != 13; ++i) { e.c_noshifts[i] = 1.0; }
+    for (int i = 2; i != 10; ++i) { e.c_shifts[i] = 4.0; }
+    for (int i = 1; i != 7; ++i) { e.n_noshifts[i] = 1.0; }
+    NuXLSiteLocalization::LossAwareSite s = NuXLSiteLocalization::localizeLossAware(e.n_shifts, e.n_noshifts, e.c_shifts, e.c_noshifts);
+    TEST_EQUAL(s.position, 9)
+    TEST_EQUAL(s.range_begin, 9)
+    TEST_EQUAL(s.range_end, 9)
+    TEST_REAL_SIMILAR(s.score, 1.0) // all shifted ions contain the tyrosine, no unshifted one does
+    TEST_EQUAL(s.delta > 0.0, true)
+    TEST_EQUAL(s.scores.size(), 13)
+    // every shifted ion contains the tyrosine: nothing indicates a second cross-linked form
+    TEST_EQUAL(s.secondary, -1)
+    TEST_EQUAL(s.secondary_range_begin, -1)
+    TEST_EQUAL(s.secondary_best.empty(), true)
+    TEST_REAL_SIMILAR(s.secondary_gain, 0.0)
+
+    // the cross-link is often lost: an unshifted y4 next to the shifted one doesn't speak against the tyrosine
+    e.c_noshifts[9] = 100.0;
+    s = NuXLSiteLocalization::localizeLossAware(e.n_shifts, e.n_noshifts, e.c_shifts, e.c_noshifts);
+    TEST_EQUAL(s.position, 9)
+    TEST_REAL_SIMILAR(s.score, 1.0)
+  }
+
+  // residues the ions can't tell apart: b2 unshifted, b5 shifted -> residues 2-4, the N-terminal-most is reported
+  {
+    const Evidence e = prefixEvidence(8, 2, 4);
+    const NuXLSiteLocalization::LossAwareSite s = NuXLSiteLocalization::localizeLossAware(e.n_shifts, e.n_noshifts, e.c_shifts, e.c_noshifts);
+    TEST_EQUAL(s.position, 2)
+    TEST_EQUAL(s.range_begin, 2)
+    TEST_EQUAL(s.range_end, 4)
+    TEST_EQUAL(s.best == residues(2, 4), true)
+  }
+
+  // DEPMiTLPR: a weak shifted b2 must not pull the site to the N-terminus against a strong y ladder
+  // (a residue doesn't inherit the evidence of longer shifted ions)
+  {
+    Evidence e(9);
+    e.n_shifts[1] = 0.01;  // b2 shifted, weak: vote 0.1
+    e.n_noshifts[3] = 1.0; // b4 unshifted
+    e.c_shifts[4] = 1.0;   // y5 shifted: vote 1
+    e.c_noshifts[5] = 1.0; // y4 unshifted
+    const NuXLSiteLocalization::LossAwareSite s = NuXLSiteLocalization::localizeLossAware(e.n_shifts, e.n_noshifts, e.c_shifts, e.c_noshifts);
+    TEST_EQUAL(s.position, 4)
+    TEST_EQUAL(s.range_end, 4)
+    TEST_REAL_SIMILAR(s.score, 0.9 / 1.1)
+    TEST_REAL_SIMILAR(s.delta, 0.5 / 1.1) // residues 5-8: 0.4 / 1.1
+    TEST_REAL_SIMILAR(s.scores[0], -1.4 / 1.1)
+    // without the penalty for unshifted-only rungs, residues 4-8 can't be told apart
+    const NuXLSiteLocalization::LossAwareSite t = NuXLSiteLocalization::localizeLossAware(e.n_shifts, e.n_noshifts, e.c_shifts, e.c_noshifts, {}, {}, 0.0);
+    TEST_EQUAL(t.range_begin, 4)
+    TEST_EQUAL(t.range_end, 8)
+  }
+
+  // FDQkIIDK: a shifted lysine immonium ion supports both lysines; the C-terminal one the enzyme cleaved after is blocked
+  {
+    const Evidence e(8);
+    const vector<double> immonium = {0, 0, 0, 1, 0, 0, 0, 1};
+    NuXLSiteLocalization::LossAwareSite s = NuXLSiteLocalization::localizeLossAware(e.n_shifts, e.n_noshifts, e.c_shifts, e.c_noshifts, immonium);
+    TEST_EQUAL(s.position, 3)
+    TEST_EQUAL(s.best == vector<int>({3, 7}), true)
+    vector<bool> blocked(8, false);
+    blocked[7] = true;
+    s = NuXLSiteLocalization::localizeLossAware(e.n_shifts, e.n_noshifts, e.c_shifts, e.c_noshifts, immonium, blocked);
+    TEST_EQUAL(s.position, 3)
+    TEST_EQUAL(s.best == vector<int>({3}), true)
+    TEST_REAL_SIMILAR(s.delta, 1.0)
+    // all residues blocked: unlocalized
+    s = NuXLSiteLocalization::localizeLossAware(e.n_shifts, e.n_noshifts, e.c_shifts, e.c_noshifts, immonium, vector<bool>(8, true));
+    TEST_EQUAL(s.position, -1)
+  }
+
+  // YAVSVATR, two cross-linked forms: b3 shifted, b2 unshifted (a cross-link at V2), y5 shifted (one in S3-T6),
+  // y4 unshifted; the C-terminal arginine is blocked
+  {
+    Evidence e(8);
+    e.n_shifts[2] = 1.0;    // b3 shifted: vote 1
+    e.n_noshifts[1] = 1.0;  // b2 unshifted: -0.5
+    e.c_shifts[3] = 0.64;   // y5 shifted: vote 0.8
+    e.c_noshifts[4] = 1.0;  // y4 unshifted: -0.5
+    vector<bool> blocked(8, false);
+    blocked[7] = true;
+    NuXLSiteLocalization::LossAwareSite s = NuXLSiteLocalization::localizeLossAware(e.n_shifts, e.n_noshifts, e.c_shifts, e.c_noshifts, {}, blocked);
+    TEST_EQUAL(s.position, 2)
+    TEST_EQUAL(s.best == vector<int>({2}), true)
+    TEST_REAL_SIMILAR(s.score, 0.2 / 1.8)
+    TEST_REAL_SIMILAR(s.delta, 0.4 / 1.8) // S3: -0.2 / 1.8
+    // a second form explains y5: its vote turns from against to for
+    TEST_EQUAL(s.secondary, 3)
+    TEST_REAL_SIMILAR(s.secondary_gain, 1.6 / 1.8)
+    // y4 unshifted doesn't tell S3-T6 apart: the form cross-linked at V2 explains it
+    TEST_EQUAL(s.secondary_range_begin, 3)
+    TEST_EQUAL(s.secondary_range_end, 6)
+    TEST_EQUAL(s.secondary_best == residues(3, 6), true)
+    // the primary site doesn't change
+    s = NuXLSiteLocalization::localizeLossAware(e.n_shifts, e.n_noshifts, e.c_shifts, e.c_noshifts, {}, blocked,
+      NuXLSiteLocalization::DEFAULT_UNSHIFTED_WEIGHT, 1.0);
+    TEST_EQUAL(s.position, 2)
+    TEST_EQUAL(s.secondary, -1) // gain below 1
+    s = NuXLSiteLocalization::localizeLossAware(e.n_shifts, e.n_noshifts, e.c_shifts, e.c_noshifts, {}, blocked,
+      NuXLSiteLocalization::DEFAULT_UNSHIFTED_WEIGHT, 0.0);
+    TEST_EQUAL(s.secondary, -1) // switched off
+  }
+
+  // a second form needs shifted ions of its own: b3 shifted and b4 unshifted contradict each other, but nothing
+  // shows a cross-link at residues 4-5 (a pair would only stop b4 from counting against)
+  {
+    Evidence e(6);
+    e.n_shifts[2] = 1.0;   // b3 shifted: vote 1
+    e.n_noshifts[3] = 1.0; // b4 unshifted: -0.5
+    const NuXLSiteLocalization::LossAwareSite s = NuXLSiteLocalization::localizeLossAware(e.n_shifts, e.n_noshifts, e.c_shifts, e.c_noshifts);
+    TEST_EQUAL(s.position, 0)
+    TEST_EQUAL(s.best == residues(0, 2), true)
+    TEST_EQUAL(s.secondary, -1)
+  }
+
+  // an unshifted b1 is ignored (b1 of lysine coincides with common lysine ions): kLLDEGR with b2 shifted keeps
+  // the first two residues tied, as without the b1
+  {
+    Evidence e(7);
+    e.n_shifts[1] = 1.0;
+    const NuXLSiteLocalization::LossAwareSite without_b1 = NuXLSiteLocalization::localizeLossAware(e.n_shifts, e.n_noshifts, e.c_shifts, e.c_noshifts);
+    e.n_noshifts[0] = 5.0;
+    const NuXLSiteLocalization::LossAwareSite s = NuXLSiteLocalization::localizeLossAware(e.n_shifts, e.n_noshifts, e.c_shifts, e.c_noshifts);
+    TEST_EQUAL(s.position, 0)
+    TEST_EQUAL(s.best == residues(0, 1), true)
+    TEST_EQUAL(s.range_end, 1)
+    TEST_REAL_SIMILAR(s.scores[0], s.scores[1])
+    TEST_REAL_SIMILAR(s.scores[0], without_b1.scores[0])
+    TEST_EQUAL(s.best == without_b1.best, true)
+    // an unshifted b2 still counts against the first two residues: with b3 shifted, only residue 2 is left
+    e.n_shifts[1] = 0.0;
+    e.n_noshifts[1] = 1.0;
+    e.n_shifts[2] = 1.0;
+    const NuXLSiteLocalization::LossAwareSite s2 = NuXLSiteLocalization::localizeLossAware(e.n_shifts, e.n_noshifts, e.c_shifts, e.c_noshifts);
+    TEST_EQUAL(s2.position, 2)
+    TEST_EQUAL(s2.best == residues(2, 2), true)
+  }
+
+  // a shifted lysine immonium ion with b2 shifted and no lysine among the first two residues: a second form at K3
+  {
+    Evidence e(8);
+    e.n_shifts[1] = 1.0; // b2 shifted: vote 1
+    const vector<double> immonium = {0, 0, 0, 0.5, 0, 0, 0, 0};
+    const NuXLSiteLocalization::LossAwareSite s = NuXLSiteLocalization::localizeLossAware(e.n_shifts, e.n_noshifts, e.c_shifts, e.c_noshifts, immonium);
+    TEST_EQUAL(s.position, 0)
+    TEST_EQUAL(s.best == residues(0, 1), true)
+    TEST_EQUAL(s.secondary, 3)
+    TEST_REAL_SIMILAR(s.secondary_gain, 0.5)
+    TEST_EQUAL(s.secondary_best == vector<int>({3}), true)
+  }
+}
+END_SECTION
+
 START_SECTION((static ProteinTermini proteinTermini(const std::vector<std::string_view>& proteins, const EnzymaticDigestion& digestion, size_t min_length, size_t max_length, bool clip_nterm_methionine)))
 {
   ProteaseDigestion trypsin;
@@ -290,6 +459,17 @@ START_SECTION((static bool isProteinNTerminal(const ProteinTermini& termini, std
   TEST_EQUAL(NuXLSiteLocalization::isProteinNTerminal(termini, "ACDEK"), false)
   TEST_EQUAL(NuXLSiteLocalization::isProteinNTerminal(termini, "AAAAK"), false)
   TEST_EQUAL(NuXLSiteLocalization::isProteinNTerminal(NuXLSiteLocalization::ProteinTermini(), "MACDEKPGGR"), false)
+}
+END_SECTION
+
+START_SECTION((static bool matchesImmonium(char residue, char immonium)))
+{
+  TEST_EQUAL(NuXLSiteLocalization::matchesImmonium('L', 'L'), true)
+  TEST_EQUAL(NuXLSiteLocalization::matchesImmonium('I', 'L'), true) // same mass: one ion for both
+  TEST_EQUAL(NuXLSiteLocalization::matchesImmonium('K', 'K'), true)
+  TEST_EQUAL(NuXLSiteLocalization::matchesImmonium('L', 'I'), false) // the generator labels the ion L
+  TEST_EQUAL(NuXLSiteLocalization::matchesImmonium('K', 'L'), false)
+  TEST_EQUAL(NuXLSiteLocalization::matchesImmonium('Y', 'F'), false)
 }
 END_SECTION
 

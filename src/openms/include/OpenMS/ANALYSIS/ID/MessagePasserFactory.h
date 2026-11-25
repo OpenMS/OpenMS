@@ -191,7 +191,7 @@ namespace OpenMS
 
   template <typename Label>
   evergreen::TableDependency<Label> MessagePasserFactory<Label>::createSumFactor(size_t nrParents, Label nId) {
-    evergreen::Tensor<double> table({nrParents+1});
+    evergreen::Tensor<double> table({static_cast<unsigned long>(nrParents + 1)});
     for (unsigned long i=0; i <= nrParents; ++i) {
       table[i] = 1.0/(nrParents+1.);
     }

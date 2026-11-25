@@ -856,6 +856,8 @@ class OpenNuXL :
   set<char> standalone_; ///< nucleotides that only form adducts on their own (e.g., a cross-linker without nucleotide)
   bool nhs_localization_ = false; ///< localize cross-links by the NHS-ester chemistry (NuXL:localization NHS)
   NuXLSiteLocalization::ProteinTermini protein_termini_; ///< protein-terminal peptides of the digest (targets and decoys) for NHS localization
+  bool loss_aware_localization_ = false; ///< localize cross-links by the loss-aware consistency of the fragment ions (NuXL:localization loss_aware)
+  std::string enzyme_cleavage_residues_; ///< loss-aware localization: residues the enzyme cleaves after; such a C-terminal residue can't carry the cross-link unless the peptide ends a protein
   bool enzyme_cleaves_after_lysine_ = false; ///< NHS localization: a C-terminal lysine of a peptide that doesn't end a protein can't carry the cross-link
   Size named_adduct_count_ = 0; ///< localized cross-links written as a named modification
   Size mass_delta_adduct_count_ = 0; ///< localized cross-links written as an anonymous mass delta
@@ -1211,13 +1213,15 @@ protected:
       registerTOPPSubsection_(subsection_name, "Presets for " + p + " cross-link protocol (Note: changes will be ignored).");
       StringList target_nucleotides, mappings, modifications, fragment_adducts;
       std::string can_cross_link, standalone, localization;
-      NuXLPresets::getPresets(p, custom_presets_file, target_nucleotides, mappings, modifications, fragment_adducts, can_cross_link, standalone, localization);
+      std::string oligo_fragment_adducts;
+      NuXLPresets::getPresets(p, custom_presets_file, target_nucleotides, mappings, modifications, fragment_adducts, can_cross_link, standalone, localization, oligo_fragment_adducts);
 
       registerStringList_(subsection_name + ":target_nucleotides", "", target_nucleotides, "", false, true);
       registerStringList_(subsection_name + ":mapping", "", mappings, "", false, true);
       registerStringOption_(subsection_name + ":can_cross_link", "", can_cross_link, "", false, true);
       if (!standalone.empty()) { registerStringOption_(subsection_name + ":standalone", "", standalone, "", false, true); }
       if (!localization.empty()) { registerStringOption_(subsection_name + ":localization", "", localization, "", false, true); }
+      if (!oligo_fragment_adducts.empty()) { registerStringOption_(subsection_name + ":oligo_fragment_adducts", "", oligo_fragment_adducts, "", false, true); }
       registerStringList_(subsection_name + ":modifications", "", modifications, "", false, true);
       registerStringList_(subsection_name + ":fragment_adducts", "", fragment_adducts, "", false, true);
     }
@@ -1260,11 +1264,18 @@ protected:
 
     registerStringOption_("NuXL:localization",
                         "<method>",
-                        "fragments",
-                        "How cross-links are localized. 'fragments': at the residue the shifted fragment ions point to. 'NHS': for cross-linkers attached through an NHS ester (e.g. SDA), by its chemistry among the residues the fragment ions can't tell apart: the free protein N-terminus, then lysine, then S/T/Y with a histidine within four residues, skipping residues with a modification other than a pure isotope substitution (e.g. Acetyl (K) or TMT6plex (K), but not Label:13C(6) (K)) and, if the enzyme cleaves after lysine, a C-terminal lysine unless the peptide ends the protein; otherwise unlocalized. Reports how the site was chosen in NuXL:localization_method and the supported residues in NuXL:localization_range.",
+                        "loss_aware",
+                        "How cross-links are localized. 'fragments': at the residue the shifted fragment ions point to. 'loss_aware' (default): at the residue most consistent with all fragment ions: shifted ions count for the residues they contain and against all others, unshifted ions count against the residues they contain unless a shifted ion of the same length shows that the cross-link was merely lost, and the C-terminal residue the enzyme cleaved after is excluded unless the peptide ends the protein. Reports the tied residues (equally likely, as no fragment ion tells them apart) in NuXL:localization_range and the score distance to the best residue not tied with them in NuXL:localization_delta. If the fragment ions also show a second cross-linked form, distinguishable from the first by shifted ions only it explains, reports its site in NuXL:secondary_localization_position, the residues tied with it in NuXL:secondary_localization_range, and how much it improves the explanation of the fragment ions in NuXL:secondary_localization_gain (at least 0.2, in the units of NuXL:localization_delta; -1, NA and 0 if there is none). 'NHS': for cross-linkers attached through an NHS ester (e.g. SDA), by its chemistry among the residues the fragment ions can't tell apart: the free protein N-terminus, then lysine, then S/T/Y with a histidine within four residues, skipping residues with a modification other than a pure isotope substitution (e.g. Acetyl (K) or TMT6plex (K), but not Label:13C(6) (K)) and, if the enzyme cleaves after lysine, a C-terminal lysine unless the peptide ends the protein; otherwise unlocalized. Reports how the site was chosen in NuXL:localization_method and the supported residues in NuXL:localization_range.",
                         false,
                         true);
-    setValidStrings_("NuXL:localization", {"fragments", "NHS"});
+    setValidStrings_("NuXL:localization", {"fragments", "loss_aware", "NHS"});
+
+    registerStringOption_("NuXL:oligo_fragment_adducts",
+                        "<nucleotides>",
+                        "preset",
+                        "Larger fragment adducts for precursor adducts of two or more nucleotides. For every cross-linked nucleotide: the complete adduct, also after loss of H2O. For the cross-linked nucleotides N listed here (e.g. 'U'; each must be in NuXL:can_cross_link): N with the phosphate of its neighbour (N+HPO3, annotated 'pNp', and 'pNp-H2O') and N after loss of two waters ('N-H2O-H2O'). Only those that are a subformula of the precursor adduct are used, and none of them as marker ion. 'preset': as the preset says ('U' for the RNA-UV presets of the unmodified nucleotides, none without preset). 'none': no larger fragment adducts.",
+                        false,
+                        true);
 
     StringList modifications;
     modifications.emplace_back("U:");
@@ -3227,7 +3238,11 @@ protected:
                                          false, // no iso peak count annotation
                                          true, // decreasing isotope model
                                          2, // enforce only starting from second peak
-                                         true); // add up intensities
+                                         true, // add up intensities
+                                         false, // no feature annotation
+                                         false, // don't preserve high-intensity peaks
+                                         -1e10,
+                                         1500.0); // below 1500 Da an isotope can't be more intense than the monoisotopic peak
     }
 
     filterPeakInterference_(exp, purities);
@@ -3649,8 +3664,8 @@ protected:
       rescoreFastHits_(exp, annotated_peptide_hits, mm, fixed_modifications, variable_modifications, max_variable_mods_per_peptide, fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, all_feasible_adducts);
     }
 
-    NuXLAnnotateAndLocate::annotateAndLocate_(exp, annotated_XL_hits, mm, fixed_modifications, variable_modifications, max_variable_mods_per_peptide, fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm,  all_feasible_adducts, nhs_localization_, &protein_termini_, enzyme_cleaves_after_lysine_);
-    NuXLAnnotateAndLocate::annotateAndLocate_(exp, annotated_peptide_hits, mm, fixed_modifications, variable_modifications, max_variable_mods_per_peptide, fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, all_feasible_adducts, nhs_localization_, &protein_termini_, enzyme_cleaves_after_lysine_);
+    NuXLAnnotateAndLocate::annotateAndLocate_(exp, annotated_XL_hits, mm, fixed_modifications, variable_modifications, max_variable_mods_per_peptide, fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm,  all_feasible_adducts, nhs_localization_, &protein_termini_, enzyme_cleaves_after_lysine_, loss_aware_localization_, enzyme_cleavage_residues_);
+    NuXLAnnotateAndLocate::annotateAndLocate_(exp, annotated_peptide_hits, mm, fixed_modifications, variable_modifications, max_variable_mods_per_peptide, fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, all_feasible_adducts, nhs_localization_, &protein_termini_, enzyme_cleaves_after_lysine_, loss_aware_localization_, enzyme_cleavage_residues_);
   }
 
   void fillSpectrumID_(
@@ -3803,11 +3818,19 @@ protected:
       }
       ph.setMetaValue("NuXL:best_localization", ah.best_localization);
       ph.setMetaValue("NuXL:best_localization_position", ah.best_localization_position);
-      if (!ah.localization_method.empty()) // NHS localization
+      if (!ah.localization_method.empty()) // NHS or loss-aware localization
       {
         ph.setMetaValue("NuXL:localization_method", ah.localization_method);
         ph.setMetaValue("NuXL:localization_range", ah.localization_range_begin < 0 ? std::string("NA")
           : StringUtils::toStr(ah.localization_range_begin) + "-" + StringUtils::toStr(ah.localization_range_end));
+        if (loss_aware_localization_)
+        {
+          ph.setMetaValue("NuXL:localization_delta", ah.localization_delta);
+          ph.setMetaValue("NuXL:secondary_localization_position", ah.secondary_localization_position);
+          ph.setMetaValue("NuXL:secondary_localization_range", ah.secondary_localization_range_begin < 0 ? std::string("NA")
+            : StringUtils::toStr(ah.secondary_localization_range_begin) + "-" + StringUtils::toStr(ah.secondary_localization_range_end));
+          ph.setMetaValue("NuXL:secondary_localization_gain", ah.secondary_localization_gain);
+        }
       }
 
       // one-hot encoding of cross-linked nucleotide
@@ -5398,7 +5421,8 @@ protected:
     StringList fragment_adducts;
     std::string can_cross_link;
     std::string standalone; // nucleotides that only form adducts on their own (e.g., a cross-linker without nucleotide)
-    std::string localization; // how cross-links are localized ("fragments" or "NHS")
+    std::string localization; // how cross-links are localized ("fragments", "loss_aware" or "NHS")
+    std::string oligo_fragment_adducts; // nucleotides whose larger fragment adducts precursor adducts of two or more nucleotides get (empty: none)
     // string format:  target,formula e.g. "A=C10H14N5O7P", ..., "U=C10H14N5O7P", "X=C9H13N2O8PS"  where X represents tU
     StringList target_nucleotides;
     // string format:  source->target e.g. "A->A", ..., "U->U", "U->X"
@@ -5433,8 +5457,9 @@ protected:
     { // set from presets
       std::string p = getStringOption_("NuXL:presets");
       std::string custom_presets_file = getStringOption_("NuXL:presets_file");
-      NuXLPresets::getPresets(p, custom_presets_file, target_nucleotides, mappings, modifications, fragment_adducts, can_cross_link, standalone, localization);
-      if (localization.empty()) { localization = "fragments"; }
+      NuXLPresets::getPresets(p, custom_presets_file, target_nucleotides, mappings, modifications, fragment_adducts, can_cross_link, standalone, localization, oligo_fragment_adducts);
+      // a preset that prescribes the localization (e.g. NHS for SDA) decides; otherwise the user's choice applies
+      if (localization.empty()) { localization = getStringOption_("NuXL:localization"); }
       
       // set if DNA or RNA preset
       if (StringUtils::hasSubstring(p, "RNA"))
@@ -5449,11 +5474,12 @@ protected:
     // convert string to set
     for (const auto& c : can_cross_link) { can_xl_.insert(c); } // sort and make unique
     standalone_ = std::set<char>(standalone.begin(), standalone.end());
-    if (localization != "fragments" && localization != "NHS")
+    if (localization != "fragments" && localization != "loss_aware" && localization != "NHS")
     {
-      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Unknown localization method (valid: 'fragments', 'NHS').", localization);
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Unknown localization method (valid: 'fragments', 'loss_aware', 'NHS').", localization);
     }
     nhs_localization_ = localization == "NHS";
+    loss_aware_localization_ = localization == "loss_aware";
 
     std::string sequence_restriction = getStringOption_("NuXL:sequence");
 
@@ -5509,8 +5535,32 @@ protected:
       }
     }
 
+    // the user's choice overrides the preset
+    if (const std::string choice = getStringOption_("NuXL:oligo_fragment_adducts"); choice != "preset") { oligo_fragment_adducts = (choice == "none") ? "" : choice; }
+    std::map<char, EmpiricalFormula> nucleotide_formulas; // from entries like "U=C9H13N2O9P"
+    for (const std::string& t : target_nucleotides)
+    {
+      if (t.size() > 2 && t[1] == '=') { nucleotide_formulas[t[0]] = EmpiricalFormula(t.substr(2)); }
+    }
+    std::set<char> oligo_nucleotides;
+    for (const char c : oligo_fragment_adducts)
+    {
+      if (!nucleotide_formulas.contains(c))
+      {
+        OPENMS_LOG_ERROR << "NuXL:oligo_fragment_adducts: '" << c << "' is not one of the target nucleotides." << std::endl;
+        return ILLEGAL_PARAMETERS;
+      }
+      // only cross-linked nucleotides get fragment adducts: a nucleotide that can't cross-link would get none of its forms
+      if (!can_xl_.contains(c))
+      {
+        OPENMS_LOG_ERROR << "NuXL:oligo_fragment_adducts: '" << c << "' is not one of the nucleotides that can cross-link (NuXL:can_cross_link: '" << can_cross_link << "')." << std::endl;
+        return ILLEGAL_PARAMETERS;
+      }
+      oligo_nucleotides.insert(c);
+    }
+
     // calculate all feasible fragment adducts from all possible precursor adducts
-    NuXLParameterParsing::PrecursorsToMS2Adducts all_feasible_fragment_adducts = NuXLParameterParsing::getAllFeasibleFragmentAdducts(mm, nucleotide_to_fragment_adducts, can_xl_, true, isRNA);
+    NuXLParameterParsing::PrecursorsToMS2Adducts all_feasible_fragment_adducts = NuXLParameterParsing::getAllFeasibleFragmentAdducts(mm, nucleotide_to_fragment_adducts, can_xl_, true, isRNA, oligo_nucleotides, nucleotide_formulas);
     
     std::vector<NuXLFragmentAdductDefinition> all_possible_marker_ion_masses = NuXLParameterParsing::getMarkerIonsMassSet(all_feasible_fragment_adducts);
     PeakSpectrum all_possible_marker_ion_sub_score_spectrum_z1;   
@@ -5853,7 +5903,7 @@ protected:
     Size max_peptide_length = (Size)getIntOption_("peptide:max_size");
 
     // NHS localization: protein N-terminal peptides (targets and decoys) can carry the cross-link on their free N-terminus
-    if (nhs_localization_)
+    if (nhs_localization_ || loss_aware_localization_)
     {
       vector<std::string_view> protein_sequences;
       protein_sequences.reserve(fasta_db.size());
@@ -5865,6 +5915,16 @@ protected:
       // lysine can then only carry it at a protein C-terminus
       const std::string enzyme = getStringOption_("peptide:enzyme");
       enzyme_cleaves_after_lysine_ = enzyme != EnzymaticDigestion::UnspecificCleavage && digestor.countInternalCleavageSites("KA") > 0;
+
+      // loss-aware localization: the same holds for every residue the enzyme cleaves after
+      enzyme_cleavage_residues_.clear();
+      if (loss_aware_localization_ && enzyme != EnzymaticDigestion::UnspecificCleavage)
+      {
+        for (const char residue : std::string("ACDEFGHIKLMNPQRSTVWY"))
+        {
+          if (digestor.countInternalCleavageSites(std::string(1, residue) + "A") > 0) { enzyme_cleavage_residues_ += residue; }
+        }
+      }
     }
 
     Size count_proteins(0), count_peptides(0);

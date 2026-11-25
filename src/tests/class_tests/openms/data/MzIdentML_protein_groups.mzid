@@ -1,0 +1,228 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Protein inference results in mzIdentML 1.2 (hand-written test file for reading protein groups, issue #1105):
+  - PAG_1: annotated as in the 1.2 guidelines: B and A are indistinguishable leading proteins (B is the group
+    representative), C is a non-leading sub-set protein; group probability on the PAG; cluster 1.
+  - PAG_2: the single leading protein D; cluster 1 (shares peptide PEP_2 with A and B).
+  - PAG_3: without leading/non-leading annotation (as in mzIdentML 1.1 files): E and F have the same peptides,
+    G a sub-set of them; the group does not pass the threshold.
+  - PAG_4: two leading proteins H and I with different peptides (both have about equally strong evidence), which
+    are not indistinguishable.
+-->
+<MzIdentML xmlns="http://psidev.info/psi/pi/mzIdentML/1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://psidev.info/psi/pi/mzIdentML/1.2 http://www.psidev.info/files/mzIdentML1.2.0.xsd"
+  id="protein_groups" version="1.2.0">
+  <cvList>
+    <cv id="PSI-MS" fullName="PSI-MS" uri="https://raw.githubusercontent.com/HUPO-PSI/psi-ms-CV/master/psi-ms.obo"/>
+  </cvList>
+  <AnalysisSoftwareList>
+    <AnalysisSoftware id="AS_search" version="2024.03.26">
+      <SoftwareName><cvParam cvRef="PSI-MS" accession="MS:1002048" name="MS-GF+"/></SoftwareName>
+    </AnalysisSoftware>
+    <AnalysisSoftware id="AS_inference" version="3.6.0">
+      <SoftwareName><cvParam cvRef="PSI-MS" accession="MS:1003118" name="EPIFANY"/></SoftwareName>
+    </AnalysisSoftware>
+  </AnalysisSoftwareList>
+  <SequenceCollection>
+    <DBSequence id="DBSeq_A" accession="A" searchDatabase_ref="SDB_1"><Seq>MPEPTIDEKELVISK</Seq></DBSequence>
+    <DBSequence id="DBSeq_B" accession="B" searchDatabase_ref="SDB_1"><Seq>MPEPTIDEKELVISKR</Seq></DBSequence>
+    <DBSequence id="DBSeq_C" accession="C" searchDatabase_ref="SDB_1"><Seq>MPEPTIDEK</Seq></DBSequence>
+    <DBSequence id="DBSeq_D" accession="D" searchDatabase_ref="SDB_1"><Seq>MELVISKSAMPLER</Seq></DBSequence>
+    <DBSequence id="DBSeq_E" accession="E" searchDatabase_ref="SDB_1"><Seq>MGLYCINEKTHREONINEK</Seq></DBSequence>
+    <DBSequence id="DBSeq_F" accession="F" searchDatabase_ref="SDB_1"><Seq>MGLYCINEKTHREONINEKR</Seq></DBSequence>
+    <DBSequence id="DBSeq_G" accession="G" searchDatabase_ref="SDB_1"><Seq>MGLYCINEK</Seq></DBSequence>
+    <DBSequence id="DBSeq_H" accession="H" searchDatabase_ref="SDB_1"><Seq>MLEADINGKPEPTIDEAK</Seq></DBSequence>
+    <DBSequence id="DBSeq_I" accession="I" searchDatabase_ref="SDB_1"><Seq>MLEADINGKPEPTIDECK</Seq></DBSequence>
+    <Peptide id="PEP_1"><PeptideSequence>PEPTIDEK</PeptideSequence></Peptide>
+    <Peptide id="PEP_2"><PeptideSequence>ELVISK</PeptideSequence></Peptide>
+    <Peptide id="PEP_3"><PeptideSequence>SAMPLER</PeptideSequence></Peptide>
+    <Peptide id="PEP_4"><PeptideSequence>GLYCINEK</PeptideSequence></Peptide>
+    <Peptide id="PEP_5"><PeptideSequence>THREONINEK</PeptideSequence></Peptide>
+    <Peptide id="PEP_6"><PeptideSequence>LEADINGK</PeptideSequence></Peptide>
+    <Peptide id="PEP_7"><PeptideSequence>PEPTIDEAK</PeptideSequence></Peptide>
+    <Peptide id="PEP_8"><PeptideSequence>PEPTIDECK</PeptideSequence></Peptide>
+    <PeptideEvidence id="PE_1_A" peptide_ref="PEP_1" dBSequence_ref="DBSeq_A" start="2" end="9" pre="M" post="E" isDecoy="false"/>
+    <PeptideEvidence id="PE_1_B" peptide_ref="PEP_1" dBSequence_ref="DBSeq_B" start="2" end="9" pre="M" post="E" isDecoy="false"/>
+    <PeptideEvidence id="PE_1_C" peptide_ref="PEP_1" dBSequence_ref="DBSeq_C" start="2" end="9" pre="M" post="-" isDecoy="false"/>
+    <PeptideEvidence id="PE_2_A" peptide_ref="PEP_2" dBSequence_ref="DBSeq_A" start="10" end="15" pre="K" post="-" isDecoy="false"/>
+    <PeptideEvidence id="PE_2_B" peptide_ref="PEP_2" dBSequence_ref="DBSeq_B" start="10" end="15" pre="K" post="R" isDecoy="false"/>
+    <PeptideEvidence id="PE_2_D" peptide_ref="PEP_2" dBSequence_ref="DBSeq_D" start="2" end="7" pre="M" post="S" isDecoy="false"/>
+    <PeptideEvidence id="PE_3_D" peptide_ref="PEP_3" dBSequence_ref="DBSeq_D" start="8" end="14" pre="K" post="-" isDecoy="false"/>
+    <PeptideEvidence id="PE_4_E" peptide_ref="PEP_4" dBSequence_ref="DBSeq_E" start="2" end="9" pre="M" post="T" isDecoy="false"/>
+    <PeptideEvidence id="PE_4_F" peptide_ref="PEP_4" dBSequence_ref="DBSeq_F" start="2" end="9" pre="M" post="T" isDecoy="false"/>
+    <PeptideEvidence id="PE_4_G" peptide_ref="PEP_4" dBSequence_ref="DBSeq_G" start="2" end="9" pre="M" post="-" isDecoy="false"/>
+    <PeptideEvidence id="PE_5_E" peptide_ref="PEP_5" dBSequence_ref="DBSeq_E" start="10" end="19" pre="K" post="-" isDecoy="false"/>
+    <PeptideEvidence id="PE_5_F" peptide_ref="PEP_5" dBSequence_ref="DBSeq_F" start="10" end="19" pre="K" post="R" isDecoy="false"/>
+    <PeptideEvidence id="PE_6_H" peptide_ref="PEP_6" dBSequence_ref="DBSeq_H" start="2" end="9" pre="M" post="P" isDecoy="false"/>
+    <PeptideEvidence id="PE_6_I" peptide_ref="PEP_6" dBSequence_ref="DBSeq_I" start="2" end="9" pre="M" post="P" isDecoy="false"/>
+    <PeptideEvidence id="PE_7_H" peptide_ref="PEP_7" dBSequence_ref="DBSeq_H" start="10" end="18" pre="K" post="-" isDecoy="false"/>
+    <PeptideEvidence id="PE_8_I" peptide_ref="PEP_8" dBSequence_ref="DBSeq_I" start="10" end="18" pre="K" post="-" isDecoy="false"/>
+  </SequenceCollection>
+  <AnalysisCollection>
+    <SpectrumIdentification id="SI_1" spectrumIdentificationProtocol_ref="SIP_1" spectrumIdentificationList_ref="SIL_1">
+      <InputSpectra spectraData_ref="SD_1"/>
+      <SearchDatabaseRef searchDatabase_ref="SDB_1"/>
+    </SpectrumIdentification>
+    <ProteinDetection id="PD_1" proteinDetectionProtocol_ref="PDP_1" proteinDetectionList_ref="PDL_1">
+      <InputSpectrumIdentifications spectrumIdentificationList_ref="SIL_1"/>
+    </ProteinDetection>
+  </AnalysisCollection>
+  <AnalysisProtocolCollection>
+    <SpectrumIdentificationProtocol id="SIP_1" analysisSoftware_ref="AS_search">
+      <SearchType><cvParam cvRef="PSI-MS" accession="MS:1001083" name="ms-ms search"/></SearchType>
+      <AdditionalSearchParams><cvParam cvRef="PSI-MS" accession="MS:1002495" name="no special processing"/></AdditionalSearchParams>
+      <Threshold><cvParam cvRef="PSI-MS" accession="MS:1001494" name="no threshold"/></Threshold>
+    </SpectrumIdentificationProtocol>
+    <ProteinDetectionProtocol id="PDP_1" analysisSoftware_ref="AS_inference">
+      <Threshold>
+        <cvParam cvRef="PSI-MS" accession="MS:1002369" name="protein group-level global FDR" value="0.05"/>
+      </Threshold>
+    </ProteinDetectionProtocol>
+  </AnalysisProtocolCollection>
+  <DataCollection>
+    <Inputs>
+      <SearchDatabase id="SDB_1" location="db.fasta">
+        <FileFormat><cvParam cvRef="PSI-MS" accession="MS:1001348" name="FASTA format"/></FileFormat>
+        <DatabaseName><userParam name="db.fasta"/></DatabaseName>
+      </SearchDatabase>
+      <SpectraData id="SD_1" location="run.mgf">
+        <FileFormat><cvParam cvRef="PSI-MS" accession="MS:1001062" name="Mascot MGF format"/></FileFormat>
+        <SpectrumIDFormat><cvParam cvRef="PSI-MS" accession="MS:1000774" name="multiple peak list nativeID format"/></SpectrumIDFormat>
+      </SpectraData>
+    </Inputs>
+    <AnalysisData>
+      <SpectrumIdentificationList id="SIL_1">
+        <SpectrumIdentificationResult id="SIR_1" spectrumID="index=1" spectraData_ref="SD_1">
+          <SpectrumIdentificationItem id="SII_1" chargeState="2" experimentalMassToCharge="465.7" peptide_ref="PEP_1" rank="1" passThreshold="true">
+            <PeptideEvidenceRef peptideEvidence_ref="PE_1_A"/>
+            <PeptideEvidenceRef peptideEvidence_ref="PE_1_B"/>
+            <PeptideEvidenceRef peptideEvidence_ref="PE_1_C"/>
+            <cvParam cvRef="PSI-MS" accession="MS:1002049" name="MS-GF:RawScore" value="120"/>
+          </SpectrumIdentificationItem>
+        </SpectrumIdentificationResult>
+        <SpectrumIdentificationResult id="SIR_2" spectrumID="index=2" spectraData_ref="SD_1">
+          <SpectrumIdentificationItem id="SII_2" chargeState="2" experimentalMassToCharge="344.7" peptide_ref="PEP_2" rank="1" passThreshold="true">
+            <PeptideEvidenceRef peptideEvidence_ref="PE_2_A"/>
+            <PeptideEvidenceRef peptideEvidence_ref="PE_2_B"/>
+            <PeptideEvidenceRef peptideEvidence_ref="PE_2_D"/>
+            <cvParam cvRef="PSI-MS" accession="MS:1002049" name="MS-GF:RawScore" value="95"/>
+          </SpectrumIdentificationItem>
+        </SpectrumIdentificationResult>
+        <SpectrumIdentificationResult id="SIR_3" spectrumID="index=3" spectraData_ref="SD_1">
+          <SpectrumIdentificationItem id="SII_3" chargeState="2" experimentalMassToCharge="402.2" peptide_ref="PEP_3" rank="1" passThreshold="true">
+            <PeptideEvidenceRef peptideEvidence_ref="PE_3_D"/>
+            <cvParam cvRef="PSI-MS" accession="MS:1002049" name="MS-GF:RawScore" value="80"/>
+          </SpectrumIdentificationItem>
+        </SpectrumIdentificationResult>
+        <SpectrumIdentificationResult id="SIR_4" spectrumID="index=4" spectraData_ref="SD_1">
+          <SpectrumIdentificationItem id="SII_4" chargeState="2" experimentalMassToCharge="455.2" peptide_ref="PEP_4" rank="1" passThreshold="true">
+            <PeptideEvidenceRef peptideEvidence_ref="PE_4_E"/>
+            <PeptideEvidenceRef peptideEvidence_ref="PE_4_F"/>
+            <PeptideEvidenceRef peptideEvidence_ref="PE_4_G"/>
+            <cvParam cvRef="PSI-MS" accession="MS:1002049" name="MS-GF:RawScore" value="60"/>
+          </SpectrumIdentificationItem>
+        </SpectrumIdentificationResult>
+        <SpectrumIdentificationResult id="SIR_5" spectrumID="index=5" spectraData_ref="SD_1">
+          <SpectrumIdentificationItem id="SII_5" chargeState="2" experimentalMassToCharge="603.8" peptide_ref="PEP_5" rank="1" passThreshold="true">
+            <PeptideEvidenceRef peptideEvidence_ref="PE_5_E"/>
+            <PeptideEvidenceRef peptideEvidence_ref="PE_5_F"/>
+            <cvParam cvRef="PSI-MS" accession="MS:1002049" name="MS-GF:RawScore" value="55"/>
+          </SpectrumIdentificationItem>
+        </SpectrumIdentificationResult>
+        <SpectrumIdentificationResult id="SIR_6" spectrumID="index=6" spectraData_ref="SD_1">
+          <SpectrumIdentificationItem id="SII_6" chargeState="2" experimentalMassToCharge="430.7" peptide_ref="PEP_6" rank="1" passThreshold="true">
+            <PeptideEvidenceRef peptideEvidence_ref="PE_6_H"/>
+            <PeptideEvidenceRef peptideEvidence_ref="PE_6_I"/>
+            <cvParam cvRef="PSI-MS" accession="MS:1002049" name="MS-GF:RawScore" value="90"/>
+          </SpectrumIdentificationItem>
+        </SpectrumIdentificationResult>
+        <SpectrumIdentificationResult id="SIR_7" spectrumID="index=7" spectraData_ref="SD_1">
+          <SpectrumIdentificationItem id="SII_7" chargeState="2" experimentalMassToCharge="500.2" peptide_ref="PEP_7" rank="1" passThreshold="true">
+            <PeptideEvidenceRef peptideEvidence_ref="PE_7_H"/>
+            <cvParam cvRef="PSI-MS" accession="MS:1002049" name="MS-GF:RawScore" value="85"/>
+          </SpectrumIdentificationItem>
+        </SpectrumIdentificationResult>
+        <SpectrumIdentificationResult id="SIR_8" spectrumID="index=8" spectraData_ref="SD_1">
+          <SpectrumIdentificationItem id="SII_8" chargeState="2" experimentalMassToCharge="508.7" peptide_ref="PEP_8" rank="1" passThreshold="true">
+            <PeptideEvidenceRef peptideEvidence_ref="PE_8_I"/>
+            <cvParam cvRef="PSI-MS" accession="MS:1002049" name="MS-GF:RawScore" value="84"/>
+          </SpectrumIdentificationItem>
+        </SpectrumIdentificationResult>
+      </SpectrumIdentificationList>
+      <ProteinDetectionList id="PDL_1">
+        <ProteinAmbiguityGroup id="PAG_1">
+          <ProteinDetectionHypothesis id="PDH_A" dBSequence_ref="DBSeq_A" passThreshold="true">
+            <PeptideHypothesis peptideEvidence_ref="PE_1_A"><SpectrumIdentificationItemRef spectrumIdentificationItem_ref="SII_1"/></PeptideHypothesis>
+            <PeptideHypothesis peptideEvidence_ref="PE_2_A"><SpectrumIdentificationItemRef spectrumIdentificationItem_ref="SII_2"/></PeptideHypothesis>
+            <cvParam cvRef="PSI-MS" accession="MS:1002401" name="leading protein"/>
+            <cvParam cvRef="PSI-MS" accession="MS:1001594" name="sequence same-set protein" value="PDH_B"/>
+            <cvParam cvRef="PSI-MS" accession="MS:1003119" name="EPIFANY:Protein posterior probability" value="0.98"/>
+            <cvParam cvRef="PSI-MS" accession="MS:1001093" name="sequence coverage" value="93.3"/>
+          </ProteinDetectionHypothesis>
+          <ProteinDetectionHypothesis id="PDH_B" dBSequence_ref="DBSeq_B" passThreshold="true">
+            <PeptideHypothesis peptideEvidence_ref="PE_1_B"><SpectrumIdentificationItemRef spectrumIdentificationItem_ref="SII_1"/></PeptideHypothesis>
+            <PeptideHypothesis peptideEvidence_ref="PE_2_B"><SpectrumIdentificationItemRef spectrumIdentificationItem_ref="SII_2"/></PeptideHypothesis>
+            <cvParam cvRef="PSI-MS" accession="MS:1002401" name="leading protein"/>
+            <cvParam cvRef="PSI-MS" accession="MS:1002403" name="group representative"/>
+            <cvParam cvRef="PSI-MS" accession="MS:1001594" name="sequence same-set protein" value="PDH_A"/>
+            <cvParam cvRef="PSI-MS" accession="MS:1003119" name="EPIFANY:Protein posterior probability" value="0.98"/>
+          </ProteinDetectionHypothesis>
+          <ProteinDetectionHypothesis id="PDH_C" dBSequence_ref="DBSeq_C" passThreshold="false">
+            <PeptideHypothesis peptideEvidence_ref="PE_1_C"><SpectrumIdentificationItemRef spectrumIdentificationItem_ref="SII_1"/></PeptideHypothesis>
+            <cvParam cvRef="PSI-MS" accession="MS:1002402" name="non-leading protein"/>
+            <cvParam cvRef="PSI-MS" accession="MS:1001596" name="sequence sub-set protein" value="PDH_A PDH_B"/>
+            <cvParam cvRef="PSI-MS" accession="MS:1003119" name="EPIFANY:Protein posterior probability" value="0.2"/>
+          </ProteinDetectionHypothesis>
+          <cvParam cvRef="PSI-MS" accession="MS:1002415" name="protein group passes threshold" value="true"/>
+          <cvParam cvRef="PSI-MS" accession="MS:1002376" name="protein group-level probability" value="0.97"/>
+          <cvParam cvRef="PSI-MS" accession="MS:1002407" name="cluster identifier" value="1"/>
+        </ProteinAmbiguityGroup>
+        <ProteinAmbiguityGroup id="PAG_2">
+          <ProteinDetectionHypothesis id="PDH_D" dBSequence_ref="DBSeq_D" passThreshold="true">
+            <PeptideHypothesis peptideEvidence_ref="PE_2_D"><SpectrumIdentificationItemRef spectrumIdentificationItem_ref="SII_2"/></PeptideHypothesis>
+            <PeptideHypothesis peptideEvidence_ref="PE_3_D"><SpectrumIdentificationItemRef spectrumIdentificationItem_ref="SII_3"/></PeptideHypothesis>
+            <cvParam cvRef="PSI-MS" accession="MS:1002401" name="leading protein"/>
+            <cvParam cvRef="PSI-MS" accession="MS:1003119" name="EPIFANY:Protein posterior probability" value="0.6"/>
+          </ProteinDetectionHypothesis>
+          <cvParam cvRef="PSI-MS" accession="MS:1002415" name="protein group passes threshold" value="true"/>
+          <cvParam cvRef="PSI-MS" accession="MS:1002376" name="protein group-level probability" value="0.6"/>
+          <cvParam cvRef="PSI-MS" accession="MS:1002407" name="cluster identifier" value="1"/>
+        </ProteinAmbiguityGroup>
+        <ProteinAmbiguityGroup id="PAG_3">
+          <ProteinDetectionHypothesis id="PDH_E" dBSequence_ref="DBSeq_E" passThreshold="false">
+            <PeptideHypothesis peptideEvidence_ref="PE_4_E"><SpectrumIdentificationItemRef spectrumIdentificationItem_ref="SII_4"/></PeptideHypothesis>
+            <PeptideHypothesis peptideEvidence_ref="PE_5_E"><SpectrumIdentificationItemRef spectrumIdentificationItem_ref="SII_5"/></PeptideHypothesis>
+            <cvParam cvRef="PSI-MS" accession="MS:1003119" name="EPIFANY:Protein posterior probability" value="0.4"/>
+          </ProteinDetectionHypothesis>
+          <ProteinDetectionHypothesis id="PDH_F" dBSequence_ref="DBSeq_F" passThreshold="false">
+            <PeptideHypothesis peptideEvidence_ref="PE_4_F"><SpectrumIdentificationItemRef spectrumIdentificationItem_ref="SII_4"/></PeptideHypothesis>
+            <PeptideHypothesis peptideEvidence_ref="PE_5_F"><SpectrumIdentificationItemRef spectrumIdentificationItem_ref="SII_5"/></PeptideHypothesis>
+            <cvParam cvRef="PSI-MS" accession="MS:1003119" name="EPIFANY:Protein posterior probability" value="0.35"/>
+          </ProteinDetectionHypothesis>
+          <ProteinDetectionHypothesis id="PDH_G" dBSequence_ref="DBSeq_G" passThreshold="false">
+            <PeptideHypothesis peptideEvidence_ref="PE_4_G"><SpectrumIdentificationItemRef spectrumIdentificationItem_ref="SII_4"/></PeptideHypothesis>
+            <cvParam cvRef="PSI-MS" accession="MS:1003119" name="EPIFANY:Protein posterior probability" value="0.1"/>
+          </ProteinDetectionHypothesis>
+          <cvParam cvRef="PSI-MS" accession="MS:1002415" name="protein group passes threshold" value="false"/>
+        </ProteinAmbiguityGroup>
+        <ProteinAmbiguityGroup id="PAG_4">
+          <ProteinDetectionHypothesis id="PDH_H" dBSequence_ref="DBSeq_H" passThreshold="true">
+            <PeptideHypothesis peptideEvidence_ref="PE_6_H"><SpectrumIdentificationItemRef spectrumIdentificationItem_ref="SII_6"/></PeptideHypothesis>
+            <PeptideHypothesis peptideEvidence_ref="PE_7_H"><SpectrumIdentificationItemRef spectrumIdentificationItem_ref="SII_7"/></PeptideHypothesis>
+            <cvParam cvRef="PSI-MS" accession="MS:1002401" name="leading protein"/>
+            <cvParam cvRef="PSI-MS" accession="MS:1003119" name="EPIFANY:Protein posterior probability" value="0.9"/>
+          </ProteinDetectionHypothesis>
+          <ProteinDetectionHypothesis id="PDH_I" dBSequence_ref="DBSeq_I" passThreshold="true">
+            <PeptideHypothesis peptideEvidence_ref="PE_6_I"><SpectrumIdentificationItemRef spectrumIdentificationItem_ref="SII_6"/></PeptideHypothesis>
+            <PeptideHypothesis peptideEvidence_ref="PE_8_I"><SpectrumIdentificationItemRef spectrumIdentificationItem_ref="SII_8"/></PeptideHypothesis>
+            <cvParam cvRef="PSI-MS" accession="MS:1002401" name="leading protein"/>
+            <cvParam cvRef="PSI-MS" accession="MS:1003119" name="EPIFANY:Protein posterior probability" value="0.88"/>
+          </ProteinDetectionHypothesis>
+          <cvParam cvRef="PSI-MS" accession="MS:1002415" name="protein group passes threshold" value="true"/>
+          <cvParam cvRef="PSI-MS" accession="MS:1002376" name="protein group-level probability" value="0.95"/>
+        </ProteinAmbiguityGroup>
+        <cvParam cvRef="PSI-MS" accession="MS:1002404" name="count of identified proteins" value="3"/>
+      </ProteinDetectionList>
+    </AnalysisData>
+  </DataCollection>
+</MzIdentML>

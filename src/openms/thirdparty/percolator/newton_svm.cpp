@@ -297,7 +297,7 @@ int newtonSvm(const AlgIn& set, const options& opts, double cpos, double cneg, d
   const int n = set.n;
   const int m = set.m;
   if (n < 1 || n > kNewtonMaxColumns || m < 1 || !(opts.lambda > 0.0)) return -1;
-  Problem p{set.vals, set.Y, m, n, cpos / opts.lambda, cneg / opts.lambda};
+  Problem p{set.rows(), set.Y.data(), m, n, cpos / opts.lambda, cneg / opts.lambda};
   const int nb = p.numBlocks();
   const std::size_t nn = static_cast<std::size_t>(n) * n;
 
@@ -515,7 +515,7 @@ bool ldaSvm(const AlgIn& set, const options& opts, double cpos, double cneg, dou
   const int n = set.n;
   const int m = set.m;
   if (n < 2 || n > kNewtonMaxColumns || m < 1 || !(opts.lambda > 0.0)) return false;
-  Problem p{set.vals, set.Y, m, n, cpos / opts.lambda, cneg / opts.lambda};
+  Problem p{set.rows(), set.Y.data(), m, n, cpos / opts.lambda, cneg / opts.lambda};
   const int nb = p.numBlocks();
   const std::size_t nn = static_cast<std::size_t>(n) * n;
   // per block and class: sum x x^T of x = (row, 1), i.e. also the sums of the features and the count
@@ -604,7 +604,7 @@ double svmObjective(const AlgIn& set, double lambda, double cpos, double cneg, c
   const double cp = 0.5 * (cpos / lambda), cn = 0.5 * (cneg / lambda);  // C_i
   for (int i = 0; i < set.m; ++i) {
     double s = 0.0;
-    for (int j = 0; j < n - 1; ++j) s += set.vals[i][j] * w[j];
+    for (int j = 0; j < n - 1; ++j) s += set.row(i)[j] * w[j];
     s += w[n - 1];
     const double margin = set.Y[i] * s;
     if (margin < 1.0) {

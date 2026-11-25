@@ -1,0 +1,23 @@
+diff --git a/src/openms/thirdparty/percolator/SanityCheck.h b/src/openms/thirdparty/percolator/SanityCheck.h
+index cb7a782cf7b22992f31201079b7d4ec434757b0f..2da40cfd54041938d7f3edf1850ce19d31702ff4 100644
+--- a/src/openms/thirdparty/percolator/SanityCheck.h
++++ b/src/openms/thirdparty/percolator/SanityCheck.h
+@@ -44,6 +44,9 @@ class Normalizer;
+  */
+ class SanityCheck {
+  public:
++  // OpenMS: validateDirection is virtual, so that OpenMS' wrapper can check each fold on its own training set
++  // (out-of-fold capped training)
++  virtual ~SanityCheck() = default;
+   // How validateDirection counts the targets with q < test FDR. With one
+   // bin, as with RESET, all three are the same.
+   enum class DirectionCheck {
+@@ -77,7 +80,7 @@ class SanityCheck {
+                        std::vector<Scores>& trainset, const Normalizer* pNorm,
+                        std::vector<std::vector<double> >& w, double test_fdr,
+                        double initial_train_fdr);
+-  DirectionOutcome validateDirection(std::vector<Scores>& testset,
++  virtual DirectionOutcome validateDirection(std::vector<Scores>& testset,
+                                      std::vector<Scores>& trainset,
+                                      std::vector<std::vector<double> >& w);
+   void resetDirection(std::vector<Scores>& trainset,

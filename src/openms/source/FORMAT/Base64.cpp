@@ -9,6 +9,20 @@
 #include <OpenMS/FORMAT/Base64.h>
 #include <OpenMS/SYSTEM/SIMDe.h>
 
+#include <cstring>
+
+namespace
+{
+  // 16 unaligned bytes into a register through memcpy: clang-cl turned simde_mm_lddqu_si128 on these unaligned
+  // buffers into an aligned movdqa (access violation in stringSimdEncoder_). memcpy is an unaligned load everywhere.
+  inline simde__m128i loadUnaligned_(const void* p)
+  {
+    simde__m128i r;
+    std::memcpy(&r, p, sizeof(r));
+    return r;
+  }
+}
+
 using namespace std;
 
 namespace OpenMS
@@ -130,7 +144,7 @@ namespace OpenMS
     for (int i = 0; i < loop; i++)
     {
       // Each iteration: 12 input bytes -> 16 output bytes (last 4 of 16 loaded bytes are discarded)
-      data = simde_mm_lddqu_si128(reinterpret_cast<const simde__m128i*>(&in[12 * i]));
+      data = loadUnaligned_(&in[12 * i]);
       registerEncoder_(data);
       simde_mm_storeu_si128(reinterpret_cast<simde__m128i*>(&out[i * 16]), data);
     }
@@ -141,7 +155,7 @@ namespace OpenMS
     // Handle remaining bytes using a stack buffer to avoid out-of-bounds access
     std::array<char, 16> buffer {};
     memcpy(&buffer[0], &in[read], in.size() - read - 4); // minus 4 because of 4 appended null bytes
-    data = simde_mm_lddqu_si128(reinterpret_cast<const simde__m128i*>(&buffer[0]));
+    data = loadUnaligned_(&buffer[0]);
     registerEncoder_(data);
     simde_mm_storeu_si128(reinterpret_cast<simde__m128i*>(&out[written]), data);
 
@@ -185,7 +199,7 @@ namespace OpenMS
     for (int i = 0; i < loop; i++)
     {
       // IMPORTANT: Pointer cast must use simde__m128i* to match data type (strict aliasing).
-      simde__m128i data = simde_mm_lddqu_si128(reinterpret_cast<const simde__m128i*>(inPtr + i * 16));
+      simde__m128i data = loadUnaligned_(inPtr + i * 16);
       registerDecoder_(data);
       simde_mm_storeu_si128(reinterpret_cast<simde__m128i*>(outPtr + i * 12), data);
     }
@@ -198,7 +212,7 @@ namespace OpenMS
     std::fill(rest.begin(), rest.end(), 'x');
     std::copy(in.begin() + read, in.end(), rest.begin());
 
-    simde__m128i data = simde_mm_lddqu_si128(reinterpret_cast<const simde__m128i*>(&rest[0]));
+    simde__m128i data = loadUnaligned_(&rest[0]);
     registerDecoder_(data);
     simde_mm_storeu_si128(reinterpret_cast<simde__m128i*>(outPtr + written), data);
 

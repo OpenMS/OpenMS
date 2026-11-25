@@ -237,7 +237,9 @@ use CMake's standard
 override to use the paired checkout. A matching prebuilt managed directory can
 be supplied with `OPENMS_THERMO_BRIDGE_PREBUILT_MANAGED_DIR`; otherwise a .NET 8
 SDK is required. Older system/vcpkg installations of the bridge are rejected by
-the minimum-version check. The vcpkg overlay builds the matching managed component
-from source and requires a .NET 8 SDK on the build host; it does not depend on a
-pre-built binary asset. The overlay fetches the pinned GitHub source archive with
-a verified SHA-512 checksum.
+the minimum-version check. The vcpkg overlay fetches the pinned GitHub source archive
+and the matching pre-built managed component (the zip of the bridge release for the
+target platform), each with a verified SHA-512 checksum, so it needs no .NET SDK on the
+build host. When the overlay is pinned to a bridge revision without a release (empty
+release tag or checksum in its portfile), it builds the managed component from source
+instead, which requires a .NET 8 SDK.

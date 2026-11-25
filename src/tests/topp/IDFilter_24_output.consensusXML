@@ -36,6 +36,8 @@
 			<UserParam type="string" name="indistinguishable_proteins_0" value="0.999273936308983,PH_0,PH_1"/>
 			<UserParam type="string" name="indistinguishable_proteins_1" value="0.995977601279186,PH_2,PH_3"/>
 			<UserParam type="string" name="indistinguishable_proteins_2" value="0.995345539062979,PH_4"/>
+			<UserParam type="float" name="protein_group_score_threshold" value="0.99"/>
+			<UserParam type="string" name="protein_group_score_threshold_type" value="Posterior Probability"/>
 		</ProteinIdentification>
 	</IdentificationRun>
 	<UnassignedPeptideIdentification identification_run_ref="PI_0" score_type="Posterior Probability" higher_score_better="true" significance_threshold="0" MZ="611.327697753906" RT="3002.38033267983" spectrum_reference="controllerType=0 controllerNumber=1 scan=4428" >
