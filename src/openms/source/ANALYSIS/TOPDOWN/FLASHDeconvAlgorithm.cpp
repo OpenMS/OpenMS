@@ -1461,8 +1461,9 @@ void FLASHDeconvAlgorithm::findPrecursorPeakGroupsForMSnSpectra_(const MSExperim
         // the decoy precursor is decided by the fragments (runSpectralDeconvolution_). A decoy mass within three isotopes of a target mass
         // of the window is that mass with another monoisotopic peak, not a wrong mass: as a decoy precursor it took the fragments of the
         // right proteoform (FLASHExtender corrects isotope errors back), so most decoys that won were such siblings. It is no decoy here.
-        // Nor is a charge harmonic of a target mass (1/2, 1/3, 2 or 3 times it, up to three isotopes of the decoy): FLASHExtender fits the
-        // right protein to it as a truncated stretch (Eclip_1480 scan 3012: RS14 31-44 at 1590.69, half the precursor 3181.39).
+        // A charge harmonic of a target mass (1/2, 1/3, 2 or 3 times it) stays a decoy: a harmonic precursor is a wrong mass that gives the
+        // right protein as a truncated stretch (Eclip_1480 scan 3012: RS14 31-44 at 1590.69, half the precursor 3181.39), an error the
+        // target precursors make too.
         std::vector<Size> order;
         for (Size k = 0; k < window_decoys.size(); k++)
         {
@@ -1476,10 +1477,6 @@ void FLASHDeconvAlgorithm::findPrecursorPeakGroupsForMSnSpectra_(const MSExperim
             {
               const double shift = iso * Constants::ISOTOPE_MASSDIFF_55K_U;
               sibling = std::abs(d - m - shift) <= max_diff;
-              for (int h = 2; h <= 3 && ! sibling; h++)
-              {
-                sibling = std::abs(d - m / h - shift) <= max_diff || std::abs(d - m * h - shift) <= max_diff;
-              }
             }
             if (sibling) break;
           }
