@@ -272,6 +272,8 @@ private:
       std::multimap<std::string, std::string> p_pv_map_; ///< mapping Peptide id -> PeptideEvidence id, multiple PeptideEvidences can have equivalent Peptides.
       std::map<std::string, std::string> pv_p_map_; ///< mapping PeptideEvidence id -> Peptide id
       std::map<std::string, DBSequence> db_sq_map_; ///< mapping DBSequence id -> Sequence
+      Size psms_with_foreign_evidence_ = 0; ///< PSMs with PeptideEvidenceRefs to the evidence of a peptide with another sequence (ignored)
+      Size psms_with_missing_evidence_ = 0; ///< PSMs with PeptideEvidenceRefs to a PeptideEvidence that is not in the file (ignored)
 
       std::list<std::list<std::string> > hit_pev_; ///< writing help only
 
