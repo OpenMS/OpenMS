@@ -82,6 +82,16 @@ namespace OpenMS
     defaults_.setValue("add_zp2_ions", "false", "Add peaks of z+2-radical cations (also [z+2H]*^{2+} or simply z') to the spectrum (often observed in ExD esp. with higher precursor charges >3 and smaller z-ions.)");
     defaults_.setValidStrings("add_zp2_ions", {"true","false"});
 
+    // satellite ions: side-chain losses at the residue of the cleavage site
+    defaults_.setValue("add_d_ions", "false", "Add peaks of d-ions to the spectrum: a-ions with partial loss of the side chain of their C-terminal residue (seen e.g. in EThcD, HECD, EAD and UVPD). Ile and Thr give two d-ions each (da and db).");
+    defaults_.setValidStrings("add_d_ions", {"true","false"});
+
+    defaults_.setValue("add_v_ions", "false", "Add peaks of v-ions to the spectrum: y-ions with complete loss of the side chain of their N-terminal residue (seen e.g. in high-energy CID and UVPD)");
+    defaults_.setValidStrings("add_v_ions", {"true","false"});
+
+    defaults_.setValue("add_w_ions", "false", "Add peaks of w-ions to the spectrum: z+1-ions with partial loss of the side chain of their N-terminal residue (seen e.g. in ETD, ECD, EThcD and EAD; they distinguish Leu from Ile). Ile and Thr give two w-ions each (wa and wb).");
+    defaults_.setValidStrings("add_w_ions", {"true","false"});
+
     // intensity options of the ions
     defaults_.setValue("y_intensity", 1.0, "Intensity of the y-ions");
     defaults_.setMinFloat("y_intensity", 0.0);
@@ -95,6 +105,12 @@ namespace OpenMS
     defaults_.setMinFloat("x_intensity", 0.0);
     defaults_.setValue("z_intensity", 1.0, "Intensity of the z-ions");
     defaults_.setMinFloat("z_intensity", 0.0);
+    defaults_.setValue("d_intensity", 1.0, "Intensity of the d-ions");
+    defaults_.setMinFloat("d_intensity", 0.0);
+    defaults_.setValue("v_intensity", 1.0, "Intensity of the v-ions");
+    defaults_.setMinFloat("v_intensity", 0.0);
+    defaults_.setValue("w_intensity", 1.0, "Intensity of the w-ions");
+    defaults_.setMinFloat("w_intensity", 0.0);
 
     defaults_.setValue("relative_loss_intensity", 0.1, "Intensity of loss ions, in relation to the intact ion intensity");
     defaults_.setMinFloat("relative_loss_intensity", 0.0);
@@ -173,6 +189,9 @@ namespace OpenMS
       if (add_z_ions_) addPeaks_(spectrum, peptide, *ion_names, *charges, chunks, Residue::ZIon, z);
       if (add_zp1_ions_) addPeaks_(spectrum, peptide, *ion_names, *charges, chunks, Residue::Zp1Ion, z);
       if (add_zp2_ions_) addPeaks_(spectrum, peptide, *ion_names, *charges, chunks, Residue::Zp2Ion, z);
+      if (add_d_ions_) addSatellitePeaks_(spectrum, peptide, *ion_names, *charges, chunks, Residue::DIon, z);
+      if (add_v_ions_) addSatellitePeaks_(spectrum, peptide, *ion_names, *charges, chunks, Residue::VIon, z);
+      if (add_w_ions_) addSatellitePeaks_(spectrum, peptide, *ion_names, *charges, chunks, Residue::WIon, z);
     }
 
     if (add_internal_fragments_)
@@ -272,7 +291,7 @@ namespace OpenMS
                                                            const AASequence& peptide, Int min_charge, Int max_charge) const
   {
     if (add_isotopes_ || add_losses_ || add_internal_fragments_ || add_precursor_peaks_ || add_abundant_immonium_ions_
-        || !sort_by_position_ || peptide.size() < 2)
+        || add_d_ions_ || add_v_ions_ || add_w_ions_ || !sort_by_position_ || peptide.size() < 2)
     {
       return false;
     }
@@ -435,6 +454,8 @@ namespace OpenMS
       theo_gen_settings.setValue("add_zp2_ions", "true");
       theo_gen_settings.setValue("add_b_ions", "false");
       theo_gen_settings.setValue("add_y_ions", "false");
+      // w ions form from the z+1 radicals by side-chain loss (e.g. Leu -C3H7 vs. Ile -C2H5)
+      theo_gen_settings.setValue("add_w_ions", "true");
     }
     else if (fm == Precursor::ActivationMethod::ETciD || fm == Precursor::ActivationMethod::EThcD)
     {
@@ -446,6 +467,9 @@ namespace OpenMS
       theo_gen_settings.setValue("add_z_ions", "true");
       theo_gen_settings.setValue("add_zp1_ions", "true");
       theo_gen_settings.setValue("add_zp2_ions", "true");
+      // the supplemental collisional activation of the ETD products also gives d ions
+      theo_gen_settings.setValue("add_d_ions", "true");
+      theo_gen_settings.setValue("add_w_ions", "true");
     }
     else
     {
@@ -552,8 +576,20 @@ namespace OpenMS
                                                         Int charge,
                                                         double intensity) const
   {
+    const std::string ion_name = std::string(Residue::residueTypeToIonLetter(res_type)) + StringUtils::toStr(ion.size());
+    addIsotopeCluster_(spectrum, ion.getFormula(res_type, charge), ion_name, ion_names, charges, charge, intensity);
+  }
+
+  void TheoreticalSpectrumGenerator::addIsotopeCluster_(PeakSpectrum& spectrum,
+                                                        const EmpiricalFormula& ion_formula,
+                                                        const std::string& ion_name,
+                                                        DataArrays::StringDataArray& ion_names,
+                                                        DataArrays::IntegerDataArray& charges,
+                                                        Int charge,
+                                                        double intensity) const
+  {
     // manually compute correct sum formula (instead of using built-in assumption of hydrogen adduct)
-    EmpiricalFormula f = ion.getFormula(res_type, charge) + EmpiricalFormula("H") * charge;
+    EmpiricalFormula f = ion_formula + EmpiricalFormula("H") * charge;
     f.setCharge(0);
 
     IsotopeDistribution dist;
@@ -565,8 +601,6 @@ namespace OpenMS
     {
       dist = f.getIsotopeDistribution(FineIsotopePatternGenerator(max_isotope_probability_));
     }
-
-    const std::string ion_name =std::string(Residue::residueTypeToIonLetter(res_type)) + StringUtils::toStr(ion.size());
 
     for (const auto& it : dist)
     {
@@ -1145,6 +1179,116 @@ namespace OpenMS
   }
 
 
+  void TheoreticalSpectrumGenerator::addSatellitePeaks_(PeakSpectrum& spectrum,
+                                                        const AASequence& peptide,
+                                                        DataArrays::StringDataArray& ion_names,
+                                                        DataArrays::IntegerDataArray& charges,
+                                                        MSSpectrum::Chunks& chunks,
+                                                        const Residue::ResidueType res_type,
+                                                        Int charge) const
+  {
+    // A satellite ion is its parent ion (d: a, v: y, w: z+1) after losing (part of) the side chain of the residue at the
+    // cleavage site: the last residue of a d ion, the first residue of a v or w ion. Same formulas as Residue::getFormula().
+    Residue::ResidueType parent_type = Residue::AIon;
+    EmpiricalFormula internal_to_parent;
+    EmpiricalFormula parent_to_ion; // what the satellite ion has in addition to its parent, apart from the loss
+    double intensity = 1.0;
+    switch (res_type)
+    {
+      case Residue::DIon:
+        parent_type = Residue::AIon;
+        internal_to_parent = Residue::getInternalToAIon();
+        parent_to_ion = EmpiricalFormula("H");
+        intensity = d_intensity_;
+        break;
+      case Residue::VIon:
+        parent_type = Residue::YIon;
+        internal_to_parent = Residue::getInternalToYIon();
+        intensity = v_intensity_;
+        break;
+      case Residue::WIon:
+        parent_type = Residue::Zp1Ion;
+        internal_to_parent = Residue::getInternalToZp1Ion();
+        intensity = w_intensity_;
+        break;
+      default:
+        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Not a satellite ion type.", Residue::getResidueTypeName(res_type));
+    }
+    const bool prefix = (res_type == Residue::DIon);
+    const Size n = peptide.size();
+    const std::string ion_letter(Residue::residueTypeToIonLetter(res_type));
+    const std::string charge_str((Size)abs(charge), '+');
+    const double offset = (internal_to_parent + parent_to_ion).getMonoWeight();
+
+    // The losses of a cleavage residue with their mzPAF subtype label: none (no peak), one, or for the d and w ions of
+    // Ile and Thr two ('a' is the heavier ion).
+    std::vector<std::pair<std::string, EmpiricalFormula>> losses;
+    auto setLosses = [&losses, res_type](const Residue& residue)
+    {
+      losses.clear();
+      if (res_type == Residue::VIon)
+      {
+        if (residue.hasVLoss()) losses.emplace_back("", residue.getVLossFormula());
+        return;
+      }
+      if (!residue.hasSatelliteLoss()) return;
+      const EmpiricalFormula loss_a = residue.getSatelliteLossFormula('a');
+      const EmpiricalFormula loss_b = residue.getSatelliteLossFormula('b');
+      if (loss_a == loss_b)
+      {
+        losses.emplace_back("", loss_a);
+      }
+      else
+      {
+        losses.emplace_back("a", loss_a);
+        losses.emplace_back("b", loss_b);
+      }
+    };
+
+    // running mass of the fragment, as in addPeaks_()
+    double mono_weight(Constants::PROTON_MASS_U * charge);
+    if (prefix && peptide.hasNTerminalModification())
+    {
+      mono_weight += peptide.getNTerminalModification()->getDiffMonoMass();
+    }
+    if (!prefix && peptide.hasCTerminalModification())
+    {
+      mono_weight += peptide.getCTerminalModification()->getDiffMonoMass();
+    }
+
+    // the fragments of the other series: never the full peptide, and prefix ions of length 1 only with add_first_prefix_ion
+    for (Size ordinal = 1; ordinal < n; ++ordinal)
+    {
+      const Residue& cleavage_residue = peptide[prefix ? ordinal - 1 : n - ordinal]; // the residue this fragment adds
+      mono_weight += cleavage_residue.getMonoWeight(Residue::Internal);
+      if (prefix && ordinal == 1 && !add_first_prefix_ion_) continue;
+
+      setLosses(cleavage_residue);
+      for (const auto& [label, loss] : losses)
+      {
+        const std::string ion_name = ion_letter + label + StringUtils::toStr(ordinal);
+        if (add_isotopes_)
+        {
+          const AASequence fragment = prefix ? peptide.getPrefix(ordinal) : peptide.getSuffix(ordinal);
+          addIsotopeCluster_(spectrum, fragment.getFormula(parent_type, charge) + parent_to_ion - loss, ion_name, ion_names, charges, charge, intensity);
+        }
+        else
+        {
+          spectrum.emplace_back((mono_weight + offset - loss.getMonoWeight()) / charge, static_cast<float>(intensity));
+          if (add_metainfo_)
+          {
+            ion_names.push_back(ion_name + charge_str);
+            charges.push_back(charge);
+          }
+        }
+      }
+    }
+    // not sorted: of the two ions of Ile and Thr, the heavier 'a' ion comes first (and the isotope clusters of the
+    // Thr ions, only 2 Da apart, overlap)
+    chunks.add(false);
+  }
+
+
   void TheoreticalSpectrumGenerator::addPrecursorPeaks_(PeakSpectrum& spectrum,
                                                         const AASequence& peptide,
                                                         DataArrays::StringDataArray& ion_names,
@@ -1428,6 +1572,9 @@ namespace OpenMS
     add_z_ions_ = param_.getValue("add_z_ions").toBool();
     add_zp1_ions_ = param_.getValue("add_zp1_ions").toBool();
     add_zp2_ions_ = param_.getValue("add_zp2_ions").toBool();
+    add_d_ions_ = param_.getValue("add_d_ions").toBool();
+    add_v_ions_ = param_.getValue("add_v_ions").toBool();
+    add_w_ions_ = param_.getValue("add_w_ions").toBool();
     add_first_prefix_ion_ = param_.getValue("add_first_prefix_ion").toBool();
     add_losses_ = param_.getValue("add_losses").toBool();
     add_term_losses_ = param_.getValue("add_term_losses").toBool();
@@ -1447,6 +1594,9 @@ namespace OpenMS
     x_intensity_ = (double)param_.getValue("x_intensity");
     y_intensity_ = (double)param_.getValue("y_intensity");
     z_intensity_ = (double)param_.getValue("z_intensity");
+    d_intensity_ = (double)param_.getValue("d_intensity");
+    v_intensity_ = (double)param_.getValue("v_intensity");
+    w_intensity_ = (double)param_.getValue("w_intensity");
     max_isotope_ = (Int)param_.getValue("max_isotope");
     max_isotope_probability_ = param_.getValue("max_isotope_probability");
     rel_loss_intensity_ = (double)param_.getValue("relative_loss_intensity");

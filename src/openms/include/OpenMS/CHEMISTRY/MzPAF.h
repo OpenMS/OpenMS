@@ -391,9 +391,9 @@ namespace OpenMS
 
       Calculates the theoretical m/z value for the annotated ion based on the sequence.
 
-      @note Satellite ions (d, v, w, including their subtypes) are parsed and serialized,
-            but their residue-dependent side-chain losses are not yet supported here;
-            these ions return std::nullopt.
+      @note Satellite ions (d, v, w, including their subtypes) return std::nullopt if the residue
+            at the cleavage site has no such side-chain loss (e.g. Gly, Ala or Pro for d and w ions,
+            or a modified residue); see Residue::getSatelliteLossFormula().
 
       @param[in] ann The annotation
       @param[in] sequence The peptide sequence
@@ -410,8 +410,8 @@ namespace OpenMS
       @param[in] series The ion series to check
       @return True if it's a peptide fragment ion type
       @note True here does not imply a computable mass. calculateTheoreticalMZ() returns
-            std::nullopt for the satellite series d/v/w, so
-            `if (isPeptideFragmentIon(s)) mz = *calculateTheoreticalMZ(...)` would
+            std::nullopt e.g. for a satellite ion (d/v/w) at a residue without side-chain loss, so
+            `if (isPeptideFragmentIon(s)) mz = *calculateTheoreticalMZ(...)` can
             dereference an empty optional.
     */
     static bool isPeptideFragmentIon(MzPAFIonSeries series);
