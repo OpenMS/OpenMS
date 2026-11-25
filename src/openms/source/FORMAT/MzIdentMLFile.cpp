@@ -14,7 +14,7 @@
 #include <OpenMS/FORMAT/CVMappingFile.h>
 #include <OpenMS/DATASTRUCTURES/CVMappingRule.h>
 #include <OpenMS/FORMAT/HANDLERS/MzIdentMLHandler.h>
-#include <OpenMS/FORMAT/HANDLERS/MzIdentMLDOMHandler.h>
+#include <OpenMS/FORMAT/HANDLERS/MzIdentMLSAXHandler.h>
 #include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
 #include <OpenMS/FORMAT/VALIDATORS/XMLValidator.h>
 #include <OpenMS/SYSTEM/File.h>
@@ -37,7 +37,7 @@ namespace OpenMS
     // behavior of the sibling identification loaders (e.g. IdXMLFile::load) and FileHandler::loadIdentifications.
     poid.clear();
     peid.clear();
-    Internal::MzIdentMLDOMHandler handler(poid, peid, schema_version_, *this);
+    Internal::MzIdentMLSAXHandler handler(poid, peid, schema_version_, *this);
     handler.readMzIdentMLFile(filename);
   }
 
@@ -53,7 +53,7 @@ namespace OpenMS
 
     Internal::MzIdentMLHandler handler(poid, peid, filename, schema_version_, *this);
     save_(filename, &handler);
-//    Internal::MzIdentMLDOMHandler handler(poid, peid, schema_version_, *this);
+//    Internal::MzIdentMLSAXHandler handler(poid, peid, schema_version_, *this);
 //    handler.writeMzIdentMLFile(filename);
   }
 

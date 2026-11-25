@@ -16,8 +16,8 @@ set(sources_list
   MascotXMLHandler.cpp
   MzDataHandler.cpp
   MzIdentMLHandler.cpp
-  MzIdentMLDOMHandler.cpp
   MzIdentMLProteinDetection.cpp
+  MzIdentMLSAXHandler.cpp
   MzMLHandler.cpp
   MzMLHandlerHelper.cpp
   MzMLSpectrumDecoder.cpp

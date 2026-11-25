@@ -18,7 +18,7 @@
 #include <OpenMS/CHEMISTRY/CrossLinksDB.h>
 #include <OpenMS/CONCEPT/Constants.h>
 
-#include <OpenMS/FORMAT/HANDLERS/MzIdentMLDOMHandler.h>
+#include <OpenMS/FORMAT/HANDLERS/MzIdentMLSAXHandler.h>
 
 #include <set>
 #include <regex>
@@ -1128,6 +1128,26 @@ START_SECTION(([EXTRA] native DOM namespace Unicode entity and malformed-input r
     TEST_NOT_EQUAL(hit.getSequence(), "AAAAAAAA")
   }
 
+  // Undeclared prefixes stay part of the name, as in libxml2's tree: such elements and attributes are not mzIdentML.
+  save_xml(filename, original);
+  MzIdentMLFile().load(filename, proteins, peptides);
+  ABORT_IF(peptides.empty() || peptides[0].getHits().empty())
+  const double original_score = peptides[0].getHits()[0].getScore();
+  std::string undeclared = original;
+  StringUtils::substitute(undeclared, "<DBSequence accession=", "<DBSequence x:accession=\"POISON\" accession=");
+  const auto undeclared_item = undeclared.find("<SpectrumIdentificationItem ");
+  ABORT_IF(undeclared_item == std::string::npos)
+  undeclared.insert(undeclared.find('>', undeclared_item) + 1,
+    "<x:cvParam accession='MS:1001171' cvRef='PSI-MS' name='Mascot:score' value='999999'/>");
+  save_xml(filename, undeclared);
+  MzIdentMLFile().load(filename, proteins, peptides);
+  ABORT_IF(proteins.size() != 1 || peptides.empty() || peptides[0].getHits().empty())
+  TEST_REAL_SIMILAR(peptides[0].getHits()[0].getScore(), original_score)
+  for (const auto& hit : proteins[0].getHits())
+  {
+    TEST_NOT_EQUAL(hit.getAccession(), "POISON")
+  }
+
   // Only the namespaces of mzIdentML 1.0 to 1.3 are mzIdentML.
   for (const std::string version : {"1.0", "1.2", "1.3"})
   {
@@ -1273,9 +1293,12 @@ START_SECTION(([EXTRA] native DOM namespace Unicode entity and malformed-input r
   }
   TEST_TRUE(reported_location)
 
-  // Do not traverse a partial DOM after a malformed tail, invalid reference or UTF8.
+  // Do not traverse a partial DOM after a malformed tail, invalid reference or UTF8. Results read before the error
+  // are removed again.
   save_xml(filename, original.substr(0, original.rfind("</MzIdentML>")));
   TEST_EXCEPTION(Exception::ParseError, MzIdentMLFile().load(filename, proteins, peptides))
+  TEST_EQUAL(peptides.size(), 0)
+  TEST_EQUAL(proteins.size(), 0)
   std::string malformed = original;
   StringUtils::substitute(malformed, "accession=\"PROT1\"", "accession=\"bad&-\"");
   save_xml(filename, malformed);
@@ -1284,6 +1307,21 @@ START_SECTION(([EXTRA] native DOM namespace Unicode entity and malformed-input r
   StringUtils::substitute(malformed, "accession=\"PROT1\"", std::string("accession=\"bad") + char(0xff) + "\"");
   save_xml(filename, malformed);
   TEST_EXCEPTION(Exception::ParseError, MzIdentMLFile().load(filename, proteins, peptides))
+
+  // A section that has to come before the results is rejected after them
+  for (const std::string section : {"AnalysisSoftwareList", "SequenceCollection", "AnalysisCollection", "AnalysisProtocolCollection"})
+  {
+    const auto begin = original.find("<" + section);
+    const auto end = original.find("</" + section + ">");
+    ABORT_IF(begin == std::string::npos || end == std::string::npos)
+    const std::string block = original.substr(begin, end + section.size() + 3 - begin);
+    std::string moved = original;
+    moved.erase(begin, block.size());
+    moved.insert(moved.find("</DataCollection>") + std::string("</DataCollection>").size(), block);
+    save_xml(filename, moved);
+    TEST_EXCEPTION(Exception::ParseError, MzIdentMLFile().load(filename, proteins, peptides))
+    TEST_EQUAL(peptides.size(), 0)
+  }
 }
 END_SECTION
 
@@ -1299,7 +1337,7 @@ START_SECTION(([EXTRA] legacy DOM writer emits UTF8 namespaces and propagates ou
   const std::vector<ProteinIdentification> proteins{protein};
   const PeptideIdentificationList peptides;
   MzIdentMLFile logger;
-  Internal::MzIdentMLDOMHandler writer(proteins, peptides, "1.1.0", logger);
+  Internal::MzIdentMLSAXHandler writer(proteins, peptides, "1.1.0", logger);
   std::string filename;
   NEW_TMP_FILE(filename)
   writer.writeMzIdentMLFile(filename);
@@ -1339,7 +1377,7 @@ START_SECTION(([EXTRA] legacy DOM writer emits UTF8 namespaces and propagates ou
   // the real engine name and emit a nonempty fallback when no version is known.
   protein.setSearchEngineVersion("");
   const std::vector<ProteinIdentification> missing_version_proteins{protein};
-  Internal::MzIdentMLDOMHandler missing_version_writer(missing_version_proteins, peptides, "1.1.0", logger);
+  Internal::MzIdentMLSAXHandler missing_version_writer(missing_version_proteins, peptides, "1.1.0", logger);
   std::string missing_version_file;
   NEW_TMP_FILE(missing_version_file)
   missing_version_writer.writeMzIdentMLFile(missing_version_file);
@@ -1418,6 +1456,40 @@ START_SECTION(([EXTRA] read protein groups from a ProteinDetectionList (issue #1
   // the protein group-level FDR threshold
   TEST_REAL_SIMILAR(double(run.getMetaValue(Constants::UserParam::PROTEIN_GROUP_SCORE_THRESHOLD)), 0.05)
   TEST_EQUAL(run.getMetaValue(Constants::UserParam::PROTEIN_GROUP_SCORE_THRESHOLD_TYPE).toString(), "q-value")
+}
+END_SECTION
+
+START_SECTION(([EXTRA] several SequenceCollections, one inside a ProteinDetectionProtocol))
+{
+  std::ifstream source(OPENMS_GET_TEST_DATA_PATH("MzIdentML_protein_groups.mzid"));
+  std::string contents((std::istreambuf_iterator<char>(source)), std::istreambuf_iterator<char>());
+  const auto begin = contents.find("<SequenceCollection>");
+  const auto end = contents.find("</SequenceCollection>");
+  ABORT_IF(begin == std::string::npos || end == std::string::npos)
+  const std::string collection = contents.substr(begin, end + std::string("</SequenceCollection>").size() - begin);
+  contents.erase(begin, collection.size());
+  // a second, nested SequenceCollection that comes first: its children are freed with the other one's, and the
+  // ProteinDetectionProtocol is read at the end
+  const auto protocol = contents.find("<ProteinDetectionProtocol");
+  ABORT_IF(protocol == std::string::npos)
+  contents.insert(contents.find('>', protocol) + 1,
+    "<SequenceCollection><DBSequence id=\"DBSeq_X\" accession=\"X\" searchDatabase_ref=\"SDB_1\"><Seq>MK</Seq></DBSequence></SequenceCollection>");
+  contents.insert(contents.find("</AnalysisProtocolCollection>") + std::string("</AnalysisProtocolCollection>").size(), collection);
+  std::string filename;
+  NEW_TMP_FILE(filename)
+  {
+    std::ofstream output(filename, std::ios::binary);
+    output << contents;
+  }
+  std::vector<ProteinIdentification> proteins;
+  PeptideIdentificationList peptides;
+  MzIdentMLFile().load(filename, proteins, peptides);
+  ABORT_IF(proteins.size() != 1)
+  TEST_EQUAL(peptides.size(), 8)
+  TEST_EQUAL(proteins[0].getHits().size(), 9)
+  TEST_EQUAL(proteins[0].getIndistinguishableProteins().size(), 5)
+  TEST_EQUAL(proteins[0].getProteinGroups().size(), 3)
+  TEST_EQUAL(proteins[0].getInferenceEngine(), "Epifany")
 }
 END_SECTION
 
