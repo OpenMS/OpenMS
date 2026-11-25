@@ -143,7 +143,7 @@ protected:
     registerStringOption_("score:type_protein", "<type>", "", "The type of the score which should be reached by a protein hit to be kept. If empty, the most recently set score is used.", false, true);
     setValidStrings_("score:type_protein", ids.getScoreNames());
 
-    registerDoubleOption_("score:proteingroup", "<score>", NAN, "The score which should be reached by a protein group to be kept. Performs group level score filtering (including groups of single proteins). Use in combination with 'delete_unreferenced_peptide_hits' to remove affected peptides. (use 'NAN' to disable this filter)", false);
+    registerDoubleOption_("score:proteingroup", "<score>", NAN, "The score which should be reached by a protein group to be kept. Performs group level score filtering (including groups of single proteins). Use in combination with 'delete_unreferenced_peptide_hits' to remove affected peptides. The cutoff is recorded in the output (and exported as protein detection threshold to mzIdentML). (use 'NAN' to disable this filter)", false);
 
     registerTOPPSubsection_("whitelist", "Filtering by whitelisting (only peptides/proteins from a given set can pass)");
     registerInputFile_("whitelist:proteins", "<file>", "", "Filename of a FASTA file containing protein sequences.\n"
@@ -707,6 +707,7 @@ protected:
         OPENMS_LOG_INFO << "Filtering by protein group score..." << endl;
         IDFilter::filterGroupsByScore(proteinid.getIndistinguishableProteins(), prot_grp_score, proteinid.isHigherScoreBetter());
         IDFilter::filterGroupsByScore(proteinid.getProteinGroups(), prot_grp_score, proteinid.isHigherScoreBetter());
+        IDFilter::recordGroupScoreThreshold(proteinid, prot_grp_score); // e.g. for the protein detection threshold in mzIdentML
       }
     }
     else

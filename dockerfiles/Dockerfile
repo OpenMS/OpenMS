@@ -46,7 +46,6 @@ RUN apt-get update \
     libbz2-dev \
     libcurl4-openssl-dev \
     libomp-dev \
-    libhdf5-dev\
     libeigen3-dev \
     # Boost headers only: OpenMS links no compiled Boost library
     libboost-dev \
@@ -120,8 +119,21 @@ RUN <<-EOF
         *) echo "Unsupported architecture: ${TARGETARCH}" && exit 1 ;;
     esac
     ORT_NAME="onnxruntime-linux-${ORT_ARCH}-${ONNXRUNTIME_VERSION}"
-    wget "https://github.com/microsoft/onnxruntime/releases/download/v${ONNXRUNTIME_VERSION}/${ORT_NAME}.tgz" -O ort.tgz
-    echo "${ORT_SHA256}  ort.tgz" | sha256sum -c -
+    # Microsoft's release first; PhotoPrism mirrors the byte-identical release
+    # archives while github.com/microsoft/onnxruntime is unavailable (#10946, same
+    # mirror as the vcpkg overlay port). Each download must match the pinned SHA256.
+    ORT_OK=""
+    for ORT_URL in \
+        "https://github.com/microsoft/onnxruntime/releases/download/v${ONNXRUNTIME_VERSION}/${ORT_NAME}.tgz" \
+        "https://dl.photoprism.app/onnx/runtime/v${ONNXRUNTIME_VERSION}/${ORT_NAME}.tgz"
+    do
+        rm -f ort.tgz
+        if wget "${ORT_URL}" -O ort.tgz && echo "${ORT_SHA256}  ort.tgz" | sha256sum -c -; then
+            ORT_OK=1
+            break
+        fi
+    done
+    test -n "${ORT_OK}"
     mkdir -p "${ONNXRUNTIME_DIR}"
     tar xzf ort.tgz --strip-components=1 -C "${ONNXRUNTIME_DIR}"
     test -f "${ONNXRUNTIME_DIR}/include/onnxruntime_cxx_api.h"

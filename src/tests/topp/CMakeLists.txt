@@ -504,6 +504,9 @@ set_tests_properties("TOPP_FeatureFinderIdentification_7_rescore" PROPERTIES DEP
 add_test("TOPP_FeatureFinderIdentification_7_no_pseudo_ids"
   bash -c "grep -q 'XXX' ${TESTS_TEMP_DIR}/FeatureFinderIdentification_7_candidates.tmp.featureXML && ! grep -q 'XXX' ${TESTS_TEMP_DIR}/FeatureFinderIdentification_7.tmp.featureXML && ! grep -q 'XXX' ${TESTS_TEMP_DIR}/FeatureFinderIdentification_7_rescored.tmp.featureXML")
 set_tests_properties("TOPP_FeatureFinderIdentification_7_no_pseudo_ids" PROPERTIES DEPENDS "TOPP_FeatureFinderIdentification_7_rescore")
+add_test("TOPP_FeatureFinderIdentification_10" ${TOPP_BIN_PATH}/FeatureFinderIdentification -test -in ${DATA_DIR_TOPP}/FeatureFinderIdentification_1_input.mzML -id ${DATA_DIR_TOPP}/FeatureFinderIdentification_1_input.idXML -out ${TESTS_TEMP_DIR}/FeatureFinderIdentification_10.tmp.featureXML -chrom_out ${TESTS_TEMP_DIR}/FeatureFinderIdentification_10_chrom.tmp.mzML -extract:mz_window 0.1 -extract:batch_size 10 -detect:peak_width 60 -model:type none)
+add_test("TOPP_FeatureFinderIdentification_10_chrom_out" ${DIFF} -whitelist ${INDEX_WHITELIST} -in1 ${TESTS_TEMP_DIR}/FeatureFinderIdentification_10_chrom.tmp.mzML -in2 ${DATA_DIR_TOPP}/FeatureFinderIdentification_10_chrom_output.mzML)
+set_tests_properties("TOPP_FeatureFinderIdentification_10_chrom_out" PROPERTIES DEPENDS "TOPP_FeatureFinderIdentification_10")
 # FAIMS (synthetic): one peptide at three compensation voltages, identified at each. The features of
 # the three CVs are merged into one; the candidates keep each CV, and re-scoring them merges them again.
 add_test("TOPP_FeatureFinderIdentification_8" ${TOPP_BIN_PATH}/FeatureFinderIdentification -test -in ${DATA_DIR_TOPP}/FAIMS_3CV_synthetic.mzML -id ${DATA_DIR_TOPP}/FAIMS_3CV_synthetic.idXML -out ${TESTS_TEMP_DIR}/FeatureFinderIdentification_8.tmp.featureXML -candidates_out ${TESTS_TEMP_DIR}/FeatureFinderIdentification_8_candidates.tmp.featureXML)
@@ -3454,12 +3457,14 @@ set_tests_properties("TOPP_Resampler_2_out1" PROPERTIES DEPENDS "TOPP_Resampler_
 
 #------------------------------------------------------------------------------
 # OpenNuXL
+# TOPP_OpenNuXL_1 to _6 (and _10, which compares with the output of _2) localize with NuXL:localization fragments,
+# the default before loss_aware; TOPP_OpenNuXL_11 runs the default
 
 if (NOT MSVC) # currently some minor numeric differences on windows. needs fixing
   # Disabled on macOS ARM64 due to test failures (see GitHub issue)
   if (NOT (APPLE AND CMAKE_HOST_SYSTEM_PROCESSOR STREQUAL "arm64"))
     add_test("TOPP_OpenNuXL_1" ${TOPP_BIN_PATH}/OpenNuXL -test -precursor:mass_tolerance 10.0 -in
-    ${DATA_DIR_TOPP}/OpenNuXL_1_input.mzML -database ${DATA_DIR_TOPP}/OpenNuXL_1_input.fasta -out ${TESTS_TEMP_DIR}/OpenNuXL_1_output.tmp.idXML -out_tsv ${TESTS_TEMP_DIR}/OpenNuXL_1_output_tsv.tmp -NuXL:decoys "false" )
+    ${DATA_DIR_TOPP}/OpenNuXL_1_input.mzML -database ${DATA_DIR_TOPP}/OpenNuXL_1_input.fasta -out ${TESTS_TEMP_DIR}/OpenNuXL_1_output.tmp.idXML -out_tsv ${TESTS_TEMP_DIR}/OpenNuXL_1_output_tsv.tmp -NuXL:decoys "false" -NuXL:localization fragments)
     add_test("TOPP_OpenNuXL_1_out1" ${DIFF} -whitelist "IdentificationRun date"
     "db=" -in1 ${TESTS_TEMP_DIR}/OpenNuXL_1_output.tmp.idXML -in2 ${DATA_DIR_TOPP}/OpenNuXL_1_output.idXML )
     set_tests_properties("TOPP_OpenNuXL_1_out1" PROPERTIES DEPENDS "TOPP_OpenNuXL_1")
@@ -3472,7 +3477,7 @@ if (NOT MSVC) # currently some minor numeric differences on windows. needs fixin
   # Disabled on macOS due to floating-point accuracy issues (see GitHub issue)
   if (NOT APPLE)
     add_test("TOPP_OpenNuXL_2" ${TOPP_BIN_PATH}/OpenNuXL -test -precursor:mass_tolerance 10.0 -in
-    ${DATA_DIR_TOPP}/OpenNuXL_1_input.mzML -database ${DATA_DIR_TOPP}/OpenNuXL_1_input.fasta -out ${TESTS_TEMP_DIR}/OpenNuXL_2_output.tmp.idXML -NuXL:decoys "true" )
+    ${DATA_DIR_TOPP}/OpenNuXL_1_input.mzML -database ${DATA_DIR_TOPP}/OpenNuXL_1_input.fasta -out ${TESTS_TEMP_DIR}/OpenNuXL_2_output.tmp.idXML -NuXL:decoys "true" -NuXL:localization fragments)
     add_test("TOPP_OpenNuXL_2_out1" ${DIFF} -whitelist "IdentificationRun date"
     "db=" -in1 ${TESTS_TEMP_DIR}/OpenNuXL_2_output.tmp.idXML -in2 ${DATA_DIR_TOPP}/OpenNuXL_2_output.idXML )
     set_tests_properties("TOPP_OpenNuXL_2_out1" PROPERTIES DEPENDS "TOPP_OpenNuXL_2")
@@ -3482,7 +3487,7 @@ if (NOT MSVC) # currently some minor numeric differences on windows. needs fixin
   # Disabled on macOS due to floating-point accuracy issues (see GitHub issue)
   if (NOT APPLE)
     add_test("TOPP_OpenNuXL_3" ${TOPP_BIN_PATH}/OpenNuXL -test -precursor:mass_tolerance 10.0 -in
-    ${DATA_DIR_TOPP}/OpenNuXL_1_input.mzML -database ${DATA_DIR_TOPP}/OpenNuXL_1_input.fasta -out ${TESTS_TEMP_DIR}/OpenNuXL_3_output.tmp.idXML -report:top_hits 3 -out_tsv ${TESTS_TEMP_DIR}/OpenNuXL_3_output2.tmp.tsv -NuXL:scoring fast)
+    ${DATA_DIR_TOPP}/OpenNuXL_1_input.mzML -database ${DATA_DIR_TOPP}/OpenNuXL_1_input.fasta -out ${TESTS_TEMP_DIR}/OpenNuXL_3_output.tmp.idXML -report:top_hits 3 -out_tsv ${TESTS_TEMP_DIR}/OpenNuXL_3_output2.tmp.tsv -NuXL:scoring fast -NuXL:localization fragments)
     add_test("TOPP_OpenNuXL_3_out1" ${DIFF} -whitelist "IdentificationRun date"
     "db=" -in1 ${TESTS_TEMP_DIR}/OpenNuXL_3_output.tmp.idXML -in2 ${DATA_DIR_TOPP}/OpenNuXL_3_output.idXML )
     add_test("TOPP_OpenNuXL_3_out2" ${DIFF} -in1 ${TESTS_TEMP_DIR}/OpenNuXL_3_output2.tmp.tsv -in2 ${DATA_DIR_TOPP}/OpenNuXL_3_output2.tsv )
@@ -3494,7 +3499,7 @@ if (NOT MSVC) # currently some minor numeric differences on windows. needs fixin
   # Disabled on macOS due to floating-point accuracy issues (see GitHub issue)
   if (NOT APPLE)
     add_test("TOPP_OpenNuXL_4" ${TOPP_BIN_PATH}/OpenNuXL -test -precursor:mass_tolerance 10.0 -in
-    ${DATA_DIR_TOPP}/OpenNuXL_1_input.mzML -NuXL:decoys "true" -database ${DATA_DIR_TOPP}/OpenNuXL_1_input.fasta -out ${TESTS_TEMP_DIR}/OpenNuXL_4_output.tmp.idXML -report:top_hits 2 -out_tsv ${TESTS_TEMP_DIR}/OpenNuXL_4_output2.tmp.tsv -NuXL:scoring fast)
+    ${DATA_DIR_TOPP}/OpenNuXL_1_input.mzML -NuXL:decoys "true" -database ${DATA_DIR_TOPP}/OpenNuXL_1_input.fasta -out ${TESTS_TEMP_DIR}/OpenNuXL_4_output.tmp.idXML -report:top_hits 2 -out_tsv ${TESTS_TEMP_DIR}/OpenNuXL_4_output2.tmp.tsv -NuXL:scoring fast -NuXL:localization fragments)
     add_test("TOPP_OpenNuXL_4_out1" ${DIFF} -whitelist "IdentificationRun date"
     "db=" -in1 ${TESTS_TEMP_DIR}/OpenNuXL_4_output.tmp.idXML -in2 ${DATA_DIR_TOPP}/OpenNuXL_4_output.idXML )
     add_test("TOPP_OpenNuXL_4_out2" ${DIFF} -in1 ${TESTS_TEMP_DIR}/OpenNuXL_4_output2.tmp.tsv -in2 ${DATA_DIR_TOPP}/OpenNuXL_4_output2.tsv )
@@ -3506,7 +3511,7 @@ if (NOT MSVC) # currently some minor numeric differences on windows. needs fixin
   # Disabled on macOS due to floating-point accuracy issues (see GitHub issue)
   if (NOT APPLE)
     add_test("TOPP_OpenNuXL_5" ${TOPP_BIN_PATH}/OpenNuXL -test -precursor:mass_tolerance 10.0 -in
-    ${DATA_DIR_TOPP}/OpenNuXL_1_input.mzML -database ${DATA_DIR_TOPP}/OpenNuXL_1_input.fasta -out ${TESTS_TEMP_DIR}/OpenNuXL_5_output.tmp.idXML -NuXL:decoys "true" -NuXL:scoring slow)
+    ${DATA_DIR_TOPP}/OpenNuXL_1_input.mzML -database ${DATA_DIR_TOPP}/OpenNuXL_1_input.fasta -out ${TESTS_TEMP_DIR}/OpenNuXL_5_output.tmp.idXML -NuXL:decoys "true" -NuXL:scoring slow -NuXL:localization fragments)
     add_test("TOPP_OpenNuXL_5_out1" ${DIFF} -whitelist "IdentificationRun date"
     "db=" -in1 ${TESTS_TEMP_DIR}/OpenNuXL_5_output.tmp.idXML -in2 ${DATA_DIR_TOPP}/OpenNuXL_5_output.idXML )
     set_tests_properties("TOPP_OpenNuXL_5_out1" PROPERTIES DEPENDS "TOPP_OpenNuXL_5")
@@ -3516,12 +3521,22 @@ if (NOT MSVC) # currently some minor numeric differences on windows. needs fixin
   # Disabled on macOS due to floating-point accuracy issues (see GitHub issue)
   if (NOT APPLE)
     add_test("TOPP_OpenNuXL_6" ${TOPP_BIN_PATH}/OpenNuXL -test -precursor:mass_tolerance 1e9 -in
-    ${DATA_DIR_TOPP}/OpenNuXL_1_input.mzML -NuXL:decoys "true" -database ${DATA_DIR_TOPP}/OpenNuXL_1_input.fasta -out ${TESTS_TEMP_DIR}/OpenNuXL_6_output.tmp.idXML -report:top_hits 2 -out_tsv ${TESTS_TEMP_DIR}/OpenNuXL_6_output2.tmp.tsv -NuXL:scoring slow)
+    ${DATA_DIR_TOPP}/OpenNuXL_1_input.mzML -NuXL:decoys "true" -database ${DATA_DIR_TOPP}/OpenNuXL_1_input.fasta -out ${TESTS_TEMP_DIR}/OpenNuXL_6_output.tmp.idXML -report:top_hits 2 -out_tsv ${TESTS_TEMP_DIR}/OpenNuXL_6_output2.tmp.tsv -NuXL:scoring slow -NuXL:localization fragments)
     add_test("TOPP_OpenNuXL_6_out1" ${DIFF} -whitelist "IdentificationRun date"
     "db=" -in1 ${TESTS_TEMP_DIR}/OpenNuXL_6_output.tmp.idXML -in2 ${DATA_DIR_TOPP}/OpenNuXL_6_output.idXML )
     add_test("TOPP_OpenNuXL_6_out2" ${DIFF} -in1 ${TESTS_TEMP_DIR}/OpenNuXL_6_output2.tmp.tsv -in2 ${DATA_DIR_TOPP}/OpenNuXL_6_output2.tsv )
     set_tests_properties("TOPP_OpenNuXL_6_out1" PROPERTIES DEPENDS "TOPP_OpenNuXL_6")
     set_tests_properties("TOPP_OpenNuXL_6_out2" PROPERTIES DEPENDS "TOPP_OpenNuXL_6")
+  endif()
+
+  # the default localization (loss_aware): ties, NuXL:localization_range and _delta, the secondary site
+  # Disabled on macOS due to floating-point accuracy issues (see GitHub issue)
+  if (NOT APPLE)
+    add_test("TOPP_OpenNuXL_11" ${TOPP_BIN_PATH}/OpenNuXL -test -precursor:mass_tolerance 10.0 -in
+    ${DATA_DIR_TOPP}/OpenNuXL_1_input.mzML -database ${DATA_DIR_TOPP}/OpenNuXL_1_input.fasta -out ${TESTS_TEMP_DIR}/OpenNuXL_11_output.tmp.idXML -NuXL:decoys "false")
+    add_test("TOPP_OpenNuXL_11_out1" ${DIFF} -whitelist "IdentificationRun date"
+    "db=" -in1 ${TESTS_TEMP_DIR}/OpenNuXL_11_output.tmp.idXML -in2 ${DATA_DIR_TOPP}/OpenNuXL_11_output.idXML )
+    set_tests_properties("TOPP_OpenNuXL_11_out1" PROPERTIES DEPENDS "TOPP_OpenNuXL_11")
   endif()
 
   # adducts with the same sum formula and adducts with several cross-linkable nucleotides (RNA-UV (UCGA) preset)
@@ -3553,6 +3568,15 @@ if (NOT MSVC) # currently some minor numeric differences on windows. needs fixin
     -P ${DATA_DIR_TOPP}/OpenNuXL_9_xl_fdr_groups_test.cmake)
   set_tests_properties("TOPP_OpenNuXL_9_xl_fdr_groups" PROPERTIES DEPENDS "TOPP_OpenNuXL_9")
 
+  # NuXL:oligo_fragment_adducts overrides the preset and only takes nucleotides that can cross-link: C under RNA-UV (U)
+  # would get none of its forms, so the search is refused before it starts (ILLEGAL_PARAMETERS)
+  add_test(NAME "TOPP_OpenNuXL_oligo_fragment_adducts_not_xl" COMMAND ${CMAKE_COMMAND}
+    "-DCOMMAND=${TOPP_BIN_PATH}/OpenNuXL;-test;-in;${DATA_DIR_TOPP}/OpenNuXL_1_input.mzML;-database;${DATA_DIR_TOPP}/OpenNuXL_1_input.fasta;-out;${TESTS_TEMP_DIR}/OpenNuXL_oligo_not_xl.tmp.idXML;-NuXL:presets;RNA-UV (U);-NuXL:oligo_fragment_adducts;C"
+    -DEXPECTED_CODE=6
+    "-DEXPECTED_OUTPUT_REGEX=NuXL:oligo_fragment_adducts: 'C' is not one of the nucleotides that can cross-link"
+    -DABSENT_FILE=${TESTS_TEMP_DIR}/OpenNuXL_oligo_not_xl.tmp.idXML
+    -P ${DATA_DIR_TOPP}/check_exit_code.cmake)
+
   # -out_qpx: the QPX mz view of the spectra of the PSMs of -out (runs/<basename>.mz.parquet). The search of
   # TOPP_OpenNuXL_2 with -out_qpx and a small peak filter: its -out is that of TOPP_OpenNuXL_2 (compared where that one
   # is), the stale file of an earlier run in the place of the view is replaced, the log has the phase lines, and
@@ -3560,7 +3584,7 @@ if (NOT MSVC) # currently some minor numeric differences on windows. needs fixin
   # kept, the peaks filtered, the footer keys of the filter).
   set(_f OpenNuXL_10)
   set(_nuxl10_args -test -precursor:mass_tolerance 10.0 -in ${DATA_DIR_TOPP}/OpenNuXL_1_input.mzML
-    -database ${DATA_DIR_TOPP}/OpenNuXL_1_input.fasta -NuXL:decoys true)
+    -database ${DATA_DIR_TOPP}/OpenNuXL_1_input.fasta -NuXL:decoys true -NuXL:localization fragments)
   set(_nuxl10_view ${TESTS_TEMP_DIR}/${_f}_qpx/runs/OpenNuXL_1_input.mz.parquet)
   # (fixtures, not DEPENDS: the run needs the stale file also when it is run alone)
   add_test(NAME "TOPP_${_f}_clean" COMMAND ${CMAKE_COMMAND} -E rm -rf ${TESTS_TEMP_DIR}/${_f}_qpx)
@@ -4049,6 +4073,10 @@ set_tests_properties("TOPP_FalseDiscoveryRate_7_out1" PROPERTIES DEPENDS "TOPP_F
 add_test("TOPP_FalseDiscoveryRate_8" ${TOPP_BIN_PATH}/FalseDiscoveryRate -test -in ${DATA_DIR_TOPP}/FalseDiscoveryRate_OMSSA.idXML -out ${TESTS_TEMP_DIR}/FalseDiscoveryRate_8_output.tmp.idXML -PSM true -protein false -PSM_class modification -FDR:PSM 0.05)
 add_test("TOPP_FalseDiscoveryRate_8_out1" ${DIFF} -whitelist "?xml-stylesheet" -in1 ${TESTS_TEMP_DIR}/FalseDiscoveryRate_8_output.tmp.idXML -in2 ${DATA_DIR_TOPP}/FalseDiscoveryRate_8_output.idXML)
 set_tests_properties("TOPP_FalseDiscoveryRate_8_out1" PROPERTIES DEPENDS "TOPP_FalseDiscoveryRate_8")
+# protein groups whose q-values were filtered before: recalculating them removes the recorded cutoff (it applied to the old values)
+add_test("TOPP_FalseDiscoveryRate_9" ${TOPP_BIN_PATH}/FalseDiscoveryRate -test -in ${DATA_DIR_TOPP}/FalseDiscoveryRate_9_input.idXML -out ${TESTS_TEMP_DIR}/FalseDiscoveryRate_9_output.tmp.idXML -PSM false -protein false -proteingroup true -algorithm:add_decoy_proteins)
+add_test("TOPP_FalseDiscoveryRate_9_out1" ${DIFF} -whitelist "?xml-stylesheet" -in1 ${TESTS_TEMP_DIR}/FalseDiscoveryRate_9_output.tmp.idXML -in2 ${DATA_DIR_TOPP}/FalseDiscoveryRate_9_output.idXML)
+set_tests_properties("TOPP_FalseDiscoveryRate_9_out1" PROPERTIES DEPENDS "TOPP_FalseDiscoveryRate_9")
 
 
 #------------------------------------------------------------------------------
@@ -4288,6 +4316,18 @@ add_test("TOPP_ProteinQuantifier_28" ${TOPP_BIN_PATH}/ProteinQuantifier -test -i
 add_test("TOPP_ProteinQuantifier_28_out1" ${DIFF} -in1 ${TESTS_TEMP_DIR}/ProteinQuantifier_28_output.tmp -in2 ${DATA_DIR_TOPP}/ProteinQuantifier_28_output.txt -whitelist "computed from file" )
 set_tests_properties("TOPP_ProteinQuantifier_28_out1" PROPERTIES DEPENDS "TOPP_ProteinQuantifier_28")
 
+# 34: quantities stored in the input must not be reported for proteins that this run does not
+#     quantify. The input is a consensusXML written by IsobaricWorkflow (a copy of
+#     IsobaricWorkflow_1_out.consensusXML), whose protein groups carry the quantities of that run.
+#     With 'top:N 5' no protein is quantified: the protein table is empty, and the mzTab file must
+#     not list a protein group with the abundances of the earlier run.
+#     (30-33 are left to the tests of 'modifications:exclude'.)
+add_test("TOPP_ProteinQuantifier_34" ${TOPP_BIN_PATH}/ProteinQuantifier -test -in ${DATA_DIR_TOPP}/ProteinQuantifier_34_input.consensusXML -out ${TESTS_TEMP_DIR}/ProteinQuantifier_34_output.tmp -mztab ${TESTS_TEMP_DIR}/ProteinQuantifier_34_output_mztab.tmp.mzTab -top:N 5 -top:aggregate sum)
+add_test("TOPP_ProteinQuantifier_34_out1" ${DIFF} -in1 ${TESTS_TEMP_DIR}/ProteinQuantifier_34_output.tmp -in2 ${DATA_DIR_TOPP}/ProteinQuantifier_34_output.txt -whitelist "computed from file" )
+set_tests_properties("TOPP_ProteinQuantifier_34_out1" PROPERTIES DEPENDS "TOPP_ProteinQuantifier_34")
+add_test("TOPP_ProteinQuantifier_34_out2" ${DIFF} -in1 ${TESTS_TEMP_DIR}/ProteinQuantifier_34_output_mztab.tmp.mzTab -in2 ${DATA_DIR_TOPP}/ProteinQuantifier_34_output_mztab.mzTab -whitelist "software")
+set_tests_properties("TOPP_ProteinQuantifier_34_out2" PROPERTIES DEPENDS "TOPP_ProteinQuantifier_34")
+
 # 29: 'fractions:aggregate best' on the same fractionated design, against _26, which is the same
 #     command line at the default 'sum'. AAAAAK (fraction 1 only) and CCCCCK (fraction 2 only) are
 #     unaffected; PEPTIDEK, seen in both at 100/10 and 50/5, has equal label prevalence in the two,
@@ -4296,6 +4336,38 @@ set_tests_properties("TOPP_ProteinQuantifier_28_out1" PROPERTIES DEPENDS "TOPP_P
 add_test("TOPP_ProteinQuantifier_29" ${TOPP_BIN_PATH}/ProteinQuantifier -test -in ${DATA_DIR_TOPP}/ProteinQuantifier_25_input.consensusXML -design ${DATA_DIR_TOPP}/ProteinQuantifier_25_input.tsv -out ${TESTS_TEMP_DIR}/ProteinQuantifier_29_output.tmp -top:N 0 -top:aggregate sum -fractions:aggregate best)
 add_test("TOPP_ProteinQuantifier_29_out1" ${DIFF} -in1 ${TESTS_TEMP_DIR}/ProteinQuantifier_29_output.tmp -in2 ${DATA_DIR_TOPP}/ProteinQuantifier_29_output.txt -whitelist "computed from file" )
 set_tests_properties("TOPP_ProteinQuantifier_29_out1" PROPERTIES DEPENDS "TOPP_ProteinQuantifier_29")
+
+# 30-32: 'modifications:exclude' on the peptidoform input of _23. In sample1 PEPTIDEMK is measured
+#     unmodified (100) and oxidized (900) next to AAAAAK (500) and CCCCCK (300); sample2 has
+#     AAAAAK (20) only. Summing everything gives 1800 for sample1.
+# 30: leaving out 'Oxidation (M)' takes PEPTIDEMK out with both forms (the default
+#     'modifications:exclude_counterparts'): 800, from 2 instead of 3 peptides. The header names
+#     the setting. The peptide table is unaffected and still lists both forms.
+add_test("TOPP_ProteinQuantifier_30" ${TOPP_BIN_PATH}/ProteinQuantifier -test -in ${DATA_DIR_TOPP}/ProteinQuantifier_23_input.consensusXML -design ${DATA_DIR_TOPP}/ProteinQuantifier_23_input.tsv -out ${TESTS_TEMP_DIR}/ProteinQuantifier_30_output1.tmp -peptide_out ${TESTS_TEMP_DIR}/ProteinQuantifier_30_output2.tmp -top:N 0 -top:aggregate sum -modifications:exclude "Oxidation (M)")
+add_test("TOPP_ProteinQuantifier_30_out1" ${DIFF} -in1 ${TESTS_TEMP_DIR}/ProteinQuantifier_30_output1.tmp -in2 ${DATA_DIR_TOPP}/ProteinQuantifier_30_output1.txt -whitelist "computed from file" )
+set_tests_properties("TOPP_ProteinQuantifier_30_out1" PROPERTIES DEPENDS "TOPP_ProteinQuantifier_30")
+add_test("TOPP_ProteinQuantifier_30_out2" ${DIFF} -in1 ${TESTS_TEMP_DIR}/ProteinQuantifier_30_output2.tmp -in2 ${DATA_DIR_TOPP}/ProteinQuantifier_30_output2.txt -whitelist "computed from file" )
+set_tests_properties("TOPP_ProteinQuantifier_30_out2" PROPERTIES DEPENDS "TOPP_ProteinQuantifier_30")
+
+# 31: the same decision at the file+channel level
+add_test("TOPP_ProteinQuantifier_31" ${TOPP_BIN_PATH}/ProteinQuantifier -test -in ${DATA_DIR_TOPP}/ProteinQuantifier_23_input.consensusXML -design ${DATA_DIR_TOPP}/ProteinQuantifier_23_input.tsv -file_and_channel_level_output "true" -out ${TESTS_TEMP_DIR}/ProteinQuantifier_31_output.tmp -top:N 0 -top:aggregate sum -modifications:exclude "Oxidation (M)")
+add_test("TOPP_ProteinQuantifier_31_out1" ${DIFF} -in1 ${TESTS_TEMP_DIR}/ProteinQuantifier_31_output.tmp -in2 ${DATA_DIR_TOPP}/ProteinQuantifier_31_output.txt -whitelist "computed from file" )
+set_tests_properties("TOPP_ProteinQuantifier_31_out1" PROPERTIES DEPENDS "TOPP_ProteinQuantifier_31")
+
+# 32: without the counterparts only the oxidized form (900) is left out: 900, from 3 peptides
+add_test("TOPP_ProteinQuantifier_32" ${TOPP_BIN_PATH}/ProteinQuantifier -test -in ${DATA_DIR_TOPP}/ProteinQuantifier_23_input.consensusXML -design ${DATA_DIR_TOPP}/ProteinQuantifier_23_input.tsv -out ${TESTS_TEMP_DIR}/ProteinQuantifier_32_output.tmp -top:N 0 -top:aggregate sum -modifications:exclude "Oxidation (M)" -modifications:exclude_counterparts false)
+add_test("TOPP_ProteinQuantifier_32_out1" ${DIFF} -in1 ${TESTS_TEMP_DIR}/ProteinQuantifier_32_output.tmp -in2 ${DATA_DIR_TOPP}/ProteinQuantifier_32_output.txt -whitelist "computed from file" )
+set_tests_properties("TOPP_ProteinQuantifier_32_out1" PROPERTIES DEPENDS "TOPP_ProteinQuantifier_32")
+
+# 33: a protein that loses ALL of its peptides. The input adds "Protein2" to that of _23, whose
+#     single peptide is observed oxidized only. With 'Oxidation (M)' left out it is not quantified:
+#     it is absent from the protein table and from the protein group rows of the mzTab file, while
+#     its protein row and the peptide and PSM sections (the identifications) stay as they are.
+add_test("TOPP_ProteinQuantifier_33" ${TOPP_BIN_PATH}/ProteinQuantifier -test -in ${DATA_DIR_TOPP}/ProteinQuantifier_33_input.consensusXML -design ${DATA_DIR_TOPP}/ProteinQuantifier_23_input.tsv -out ${TESTS_TEMP_DIR}/ProteinQuantifier_33_output.tmp -mztab ${TESTS_TEMP_DIR}/ProteinQuantifier_33_output_mztab.tmp.mzTab -top:N 0 -top:aggregate sum -modifications:exclude "Oxidation (M)")
+add_test("TOPP_ProteinQuantifier_33_out1" ${DIFF} -in1 ${TESTS_TEMP_DIR}/ProteinQuantifier_33_output.tmp -in2 ${DATA_DIR_TOPP}/ProteinQuantifier_33_output.txt -whitelist "computed from file" )
+set_tests_properties("TOPP_ProteinQuantifier_33_out1" PROPERTIES DEPENDS "TOPP_ProteinQuantifier_33")
+add_test("TOPP_ProteinQuantifier_33_out2" ${DIFF} -in1 ${TESTS_TEMP_DIR}/ProteinQuantifier_33_output_mztab.tmp.mzTab -in2 ${DATA_DIR_TOPP}/ProteinQuantifier_33_output_mztab.mzTab -whitelist "software")
+set_tests_properties("TOPP_ProteinQuantifier_33_out2" PROPERTIES DEPENDS "TOPP_ProteinQuantifier_33")
 
 #------------------------------------------------------------------------------
 # QPX value references (#9864 Phase 0.1, phases 1-2)
@@ -6537,7 +6609,7 @@ add_test("TOPP_ProSE_11_rescore" ${TOPP_BIN_PATH}/ProSE -test
 add_test("TOPP_ProSE_11_rescore_info" ${TOPP_BIN_PATH}/FileInfo -test
   -in ${TESTS_TEMP_DIR}/ProSE_11_rescore_out.tmp.idXML)
 set_tests_properties("TOPP_ProSE_11_rescore_info" PROPERTIES DEPENDS "TOPP_ProSE_11_rescore"
-  PASS_REGULAR_EXPRESSION "Percolator \\(version: 3.08-vendored\\)")
+  PASS_REGULAR_EXPRESSION "Percolator \\(version: 3.09-vendored\\)")
 # The protein inference ranked the proteins by the best PEP of their PSMs (as posterior probability), not by the PSM q-values;
 # the PSMs carry the q-values of their peptides among the run's peptides, 'peptide q-value' (the name EntrapmentEvaluator reads).
 add_test("TOPP_ProSE_11_rescore_structure" ${CMAKE_COMMAND}
@@ -6558,7 +6630,7 @@ foreach(_part a b)
   add_test("TOPP_ProSE_11_rescore_multi_info_${_part}" ${TOPP_BIN_PATH}/FileInfo -test
     -in ${TESTS_TEMP_DIR}/ProSE_11_rescore_multi_${_part}.tmp.idXML)
   set_tests_properties("TOPP_ProSE_11_rescore_multi_info_${_part}" PROPERTIES DEPENDS "TOPP_ProSE_11_rescore_multi"
-    PASS_REGULAR_EXPRESSION "Percolator \\(version: 3.08-vendored\\)")
+    PASS_REGULAR_EXPRESSION "Percolator \\(version: 3.09-vendored\\)")
 endforeach()
 # Percolator cannot rescore the second file on its own (60 spectra, too few PSMs): the first file keeps its own
 # rescoring, the second gets the scores of a model trained on the first one's PSMs (before, -out_merged refused the
@@ -6590,7 +6662,7 @@ foreach(_part a b)
   add_test("TOPP_ProSE_11_rescore_mixed_info_${_part}" ${TOPP_BIN_PATH}/FileInfo -test
     -in ${TESTS_TEMP_DIR}/ProSE_11_rescore_mixed_${_part}.tmp.idXML)
   set_tests_properties("TOPP_ProSE_11_rescore_mixed_info_${_part}" PROPERTIES DEPENDS "TOPP_ProSE_11_rescore_mixed"
-    PASS_REGULAR_EXPRESSION "Percolator \\(version: 3.08-vendored\\)")
+    PASS_REGULAR_EXPRESSION "Percolator \\(version: 3.09-vendored\\)")
 endforeach()
 # Too few PSMs to train on: the file is not rescored, keeps its HyperScores and ProSE still succeeds.
 add_test("TOPP_ProSE_11_rescore_skip" ${TOPP_BIN_PATH}/ProSE -test
@@ -7718,11 +7790,12 @@ add_test("TOPP_FeatureFinderMetaboIdent_3_out1" ${CMAKE_COMMAND}
   "-DEXPECTED=<featureList count=\"0\">;name=\"label\" value=\"caffeine\""
   -P ${DATA_DIR_TOPP}/check_file_contains.cmake)
 set_tests_properties("TOPP_FeatureFinderMetaboIdent_3_out1" PROPERTIES DEPENDS "TOPP_FeatureFinderMetaboIdent_3")
-# The elution peaks of this data are about 4 s wide: the default 'detect:peak_width' (60 s) smooths them away, which
-# the tool has to point out (issue #6058), with the advice to keep the RT window when lowering it.
+# The elution peaks of this data are about 4 s wide: a 'detect:peak_width' of 60 s (the former default, set explicitly
+# here) smooths them away, which the tool has to point out (issue #6058), with the advice to keep the RT window when
+# lowering it ('extract:rt_window 0', also the former default: the window is four times the peak width).
 # (check_exit_code.cmake: the tool also has to succeed, which PASS_REGULAR_EXPRESSION would not check.)
 add_test(NAME "TOPP_FeatureFinderMetaboIdent_4" COMMAND ${CMAKE_COMMAND}
-  "-DCOMMAND=${TOPP_BIN_PATH}/FeatureFinderMetaboIdent;-test;-in;${DATA_DIR_TOPP}/FeatureFinderMetaboIdent_1_input.mzML;-id;${DATA_DIR_TOPP}/FeatureFinderMetaboIdent_1_input.tsv;-out;${TESTS_TEMP_DIR}/FeatureFinderMetaboIdent_4_output.tmp.featureXML;-extract:mz_window;5"
+  "-DCOMMAND=${TOPP_BIN_PATH}/FeatureFinderMetaboIdent;-test;-in;${DATA_DIR_TOPP}/FeatureFinderMetaboIdent_1_input.mzML;-id;${DATA_DIR_TOPP}/FeatureFinderMetaboIdent_1_input.tsv;-out;${TESTS_TEMP_DIR}/FeatureFinderMetaboIdent_4_output.tmp.featureXML;-extract:mz_window;5;-detect:peak_width;60;-extract:rt_window;0"
   -DEXPECTED_CODE=0
   "-DEXPECTED_OUTPUT_REGEX='detect:peak_width' \\(60 s\\) is much larger than the elution peaks.*also set 'extract:rt_window' \\(e\\.g\\. to the current 240 s\\)"
   -P ${DATA_DIR_TOPP}/check_exit_code.cmake)
@@ -7733,7 +7806,7 @@ add_test("TOPP_FeatureFinderMetaboIdent_4_out1" ${CMAKE_COMMAND}
 set_tests_properties("TOPP_FeatureFinderMetaboIdent_4_out1" PROPERTIES DEPENDS "TOPP_FeatureFinderMetaboIdent_4")
 # ... and an RT extraction window that is narrower than the expected peaks
 add_test(NAME "TOPP_FeatureFinderMetaboIdent_5" COMMAND ${CMAKE_COMMAND}
-  "-DCOMMAND=${TOPP_BIN_PATH}/FeatureFinderMetaboIdent;-test;-in;${DATA_DIR_TOPP}/FeatureFinderMetaboIdent_1_input.mzML;-id;${DATA_DIR_TOPP}/FeatureFinderMetaboIdent_1_input.tsv;-out;${TESTS_TEMP_DIR}/FeatureFinderMetaboIdent_5_output.tmp.featureXML;-extract:mz_window;5;-extract:rt_window;20"
+  "-DCOMMAND=${TOPP_BIN_PATH}/FeatureFinderMetaboIdent;-test;-in;${DATA_DIR_TOPP}/FeatureFinderMetaboIdent_1_input.mzML;-id;${DATA_DIR_TOPP}/FeatureFinderMetaboIdent_1_input.tsv;-out;${TESTS_TEMP_DIR}/FeatureFinderMetaboIdent_5_output.tmp.featureXML;-extract:mz_window;5;-extract:rt_window;20;-detect:peak_width;60"
   -DEXPECTED_CODE=0
   "-DEXPECTED_OUTPUT_REGEX='extract:rt_window' \\(20 s\\) is smaller than 'detect:peak_width' \\(60 s\\)"
   -P ${DATA_DIR_TOPP}/check_exit_code.cmake)
@@ -7782,6 +7855,47 @@ add_test("TOPP_FeatureFinderMetaboIdent_9_out1" ${CMAKE_COMMAND}
   "-DEXPECTED=<featureList count=\"2\">;-O-methylcytidine\";name=\"label\" value=\"adenosine\""
   -P ${DATA_DIR_TOPP}/check_file_contains.cmake)
 set_tests_properties("TOPP_FeatureFinderMetaboIdent_9_out1" PROPERTIES DEPENDS "TOPP_FeatureFinderMetaboIdent_9")
+# The default 'detect:peak_width' (20 s) on the same data: 6 features instead of 5 with 60 s (test 4), as
+# 2'-O-methylcytidine is found as well (issue #6058). The 6 features are those of 7 of the 8 targets ('inosine' and
+# 'equal_to_inosine' share one); that of 'very_similar_to_inosine' is removed as overlapping.
+add_test("TOPP_FeatureFinderMetaboIdent_10" ${TOPP_BIN_PATH}/FeatureFinderMetaboIdent -test -in ${DATA_DIR_TOPP}/FeatureFinderMetaboIdent_1_input.mzML -id ${DATA_DIR_TOPP}/FeatureFinderMetaboIdent_1_input.tsv -out ${TESTS_TEMP_DIR}/FeatureFinderMetaboIdent_10_output.tmp.featureXML -extract:mz_window 5)
+add_test("TOPP_FeatureFinderMetaboIdent_10_out1" ${CMAKE_COMMAND}
+  -DINPUT_FILE=${TESTS_TEMP_DIR}/FeatureFinderMetaboIdent_10_output.tmp.featureXML
+  "-DEXPECTED=<featureList count=\"6\">"
+  "-DFORBIDDEN=RT=\"207.6\"" # 2'-O-methylcytidine (target RT 207.6) must not be among the targets without a feature
+  -P ${DATA_DIR_TOPP}/check_file_contains.cmake)
+set_tests_properties("TOPP_FeatureFinderMetaboIdent_10_out1" PROPERTIES DEPENDS "TOPP_FeatureFinderMetaboIdent_10")
+# Target RTs 32 s later than in test 10 (e.g. from another LC setup): with an RT window of 80 s (+/- 40 s) the
+# features are found near its edge, which the tool has to point out (targets further off would not be found).
+# The warning is given for shifts of 30 to 36 s (5 of 6, 6 of 6, ... 4 of 4 features; from 37 s on, at most one
+# feature is left), so neither the numbers in the message nor the number of features are checked exactly.
+add_test(NAME "TOPP_FeatureFinderMetaboIdent_11" COMMAND ${CMAKE_COMMAND}
+  "-DCOMMAND=${TOPP_BIN_PATH}/FeatureFinderMetaboIdent;-test;-in;${DATA_DIR_TOPP}/FeatureFinderMetaboIdent_1_input.mzML;-id;${DATA_DIR_TOPP}/FeatureFinderMetaboIdent_11_input.tsv;-out;${TESTS_TEMP_DIR}/FeatureFinderMetaboIdent_11_output.tmp.featureXML;-extract:mz_window;5;-extract:rt_window;80"
+  -DEXPECTED_CODE=0
+  "-DEXPECTED_OUTPUT_REGEX=[0-9] of [0-9] features are near the edge of the RT window of their target.*Consider a larger 'extract:rt_window' \\(80 s\\), or"
+  -P ${DATA_DIR_TOPP}/check_exit_code.cmake)
+add_test("TOPP_FeatureFinderMetaboIdent_11_out1" ${CMAKE_COMMAND}
+  -DINPUT_FILE=${TESTS_TEMP_DIR}/FeatureFinderMetaboIdent_11_output.tmp.featureXML
+  "-DEXPECTED=name=\"rt_deviation\"" # only features have it (targets without a feature are listed with their label)
+  -P ${DATA_DIR_TOPP}/check_file_contains.cmake)
+set_tests_properties("TOPP_FeatureFinderMetaboIdent_11_out1" PROPERTIES DEPENDS "TOPP_FeatureFinderMetaboIdent_11")
+# The same for targets with their own RT window ('RetentionTimeRange' 40 s, target RTs 16 s later): the advice has to
+# name 'RetentionTimeRange', as 'extract:rt_window' does not change these windows. (Warning for shifts of 15 to 17 s.)
+add_test(NAME "TOPP_FeatureFinderMetaboIdent_12" COMMAND ${CMAKE_COMMAND}
+  "-DCOMMAND=${TOPP_BIN_PATH}/FeatureFinderMetaboIdent;-test;-in;${DATA_DIR_TOPP}/FeatureFinderMetaboIdent_1_input.mzML;-id;${DATA_DIR_TOPP}/FeatureFinderMetaboIdent_12_input.tsv;-out;${TESTS_TEMP_DIR}/FeatureFinderMetaboIdent_12_output.tmp.featureXML;-extract:mz_window;5;-detect:peak_width;3"
+  -DEXPECTED_CODE=0
+  "-DEXPECTED_OUTPUT_REGEX=[0-9] of [0-9] features are near the edge of the RT window of their target.*Consider a larger 'RetentionTimeRange' for the targets that have their own"
+  -P ${DATA_DIR_TOPP}/check_exit_code.cmake)
+# A target with its own RT window ('RetentionTimeRange' 100 s) that is much wider than 'extract:rt_window' (20 s), and
+# its peak 35 s from the target RT: the feature is inside the target's window, so it has to be kept. (The distance of
+# the candidates was compared with 'extract:rt_window' for all targets before.)
+add_test("TOPP_FeatureFinderMetaboIdent_13" ${TOPP_BIN_PATH}/FeatureFinderMetaboIdent -test -in ${DATA_DIR_TOPP}/FeatureFinderMetaboIdent_1_input.mzML -id ${DATA_DIR_TOPP}/FeatureFinderMetaboIdent_13_input.tsv -out ${TESTS_TEMP_DIR}/FeatureFinderMetaboIdent_13_output.tmp.featureXML -extract:mz_window 5 -extract:rt_window 20 -detect:peak_width 3)
+add_test("TOPP_FeatureFinderMetaboIdent_13_out1" ${CMAKE_COMMAND}
+  -DINPUT_FILE=${TESTS_TEMP_DIR}/FeatureFinderMetaboIdent_13_output.tmp.featureXML
+  "-DEXPECTED=<featureList count=\"2\">"
+  "-DFORBIDDEN=RT=\"255.8\"" # adenosine (target RT 255.8) must not be among the targets without a feature
+  -P ${DATA_DIR_TOPP}/check_file_contains.cmake)
+set_tests_properties("TOPP_FeatureFinderMetaboIdent_13_out1" PROPERTIES DEPENDS "TOPP_FeatureFinderMetaboIdent_13")
 
 # MzMLSplitter test:
 # specify number of parts directly:

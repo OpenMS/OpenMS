@@ -160,10 +160,11 @@ public:
   PeakMap& getMSData() { return ms_data_; }
   const PeakMap& getMSData() const { return ms_data_; }
 
-  /// @brief Set spectra
-  void setMSData(const PeakMap& m); // needed because pyOpenMS can't wrap the non-const reference version
+  /// @brief Set the spectra: keeps only the MS1 spectra of @p m (all other MS levels are dropped)
+  void setFromMS1Data(const PeakMap& m); // needed because pyOpenMS can't wrap the non-const reference version
 
-  void setMSData(PeakMap&& m); // moves peak data and saves the copy. Note that getMSData() will give back a processed/modified version.
+  /// @brief Move the MS1 spectra of @p m into the algorithm (all other MS levels are dropped)
+  void setFromMS1Data(PeakMap&& m); // moves peak data and saves the copy. Note that getMSData() will give back a processed/modified version.
 
   /// @brief Retrieve chromatograms (empty if run was not executed)
   const PeakMap& getChromatograms() const { return chrom_data_; }
@@ -254,6 +255,15 @@ protected:
   /// the time between MS1 spectra: the chromatograms are then smoothed too much
   void warnIfPeakWidthTooLarge_(const FeatureMap& features) const;
 
+  /// Count the features of @p features that are near the edge of the RT window of their target (more than three
+  /// quarters of half the window away from the target RT), for warnIfRTWindowTooNarrow_()
+  void countRTDeviations_(const FeatureMap& features);
+
+  /// Warn if many features (at least three, and more than a quarter of all) are near the edge of the RT window of
+  /// their target: the window is then probably too narrow for the RT deviations of the targets, and targets beyond
+  /// it are missed
+  void warnIfRTWindowTooNarrow_() const;
+
   /// Keep only the MS1 spectra of ms_data_, sorted by RT (and their peaks by m/z)
   void prepareMSData_();
 
@@ -296,6 +306,11 @@ protected:
   CoarseIsotopePatternGenerator iso_gen_; ///< isotope pattern generator
   std::map<std::string, double> isotope_probs_; ///< isotope probabilities of transitions
   std::map<std::string, double> target_rts_; ///< RTs of targets (assays)
+  /// half RT windows of targets (assays), and whether they are their own ('RetentionTimeRange', not 'extract:rt_window')
+  std::map<std::string, std::pair<double, bool>> target_rt_tols_;
+  Size n_rt_deviations_ = 0; ///< features with an RT deviation (see countRTDeviations_())
+  Size n_near_window_edge_ = 0; ///< ... of which near the edge of the RT window of their target
+  Size n_near_own_window_edge_ = 0; ///< ... of which the window is the target's own 'RetentionTimeRange'
   
   size_t n_shared_ = 0;
 

@@ -32,6 +32,15 @@ namespace OpenMS
       retention time. During this extension phase, the centroid m/z is computed
       on-line as an intensity-weighted mean of peaks.
 
+      A peak extends a mass trace if its m/z lies within three standard
+      deviations of the centroid m/z of the trace. The standard deviation is the
+      parameter mass_error_ppm. With reestimate_mt_sd, it is also estimated
+      on-line from the peaks of the trace, which narrows the m/z window of traces
+      that are more precise than mass_error_ppm. The estimate never widens the
+      window beyond three times mass_error_ppm: it is computed from the peaks
+      that the window let in, so a window that grows with it would let in ever
+      more distant peaks (of noise or of other ions) and run away.
+
       The extension phase ends when either the frequency of gathered peaks drops
       below a threshold (min_sample_rate, see @ref MassTraceDetection parameters)
       or when the number of missed scans exceeds a threshold
@@ -39,7 +48,10 @@ namespace OpenMS
 
       Finally, only mass traces that pass a filter (a certain minimal and maximal
       length as well as having the minimal sample rate criterion fulfilled) get
-      added to the result.
+      added to the result. The minimal length is given both in seconds
+      (min_trace_length) and in peaks (min_trace_scans). The latter does not depend
+      on the MS1 cycle time, so that slowly scanning instruments do not yield
+      traces of two or three peaks.
 
       @htmlinclude OpenMS_MassTraceDetection.parameters
 
@@ -155,10 +167,11 @@ namespace OpenMS
                                const std::vector<Size>& spec_offsets,
                                const std::vector<bool>& peak_visited) const;
 
-        /// Process a single peak during trace extension
+        /// Process a single peak during trace extension; the peak is appended to @p trace_peaks
+        /// (the peaks collected so far in the direction of the extension)
         void processPeak_(const PeakCandidate& candidate,
                          const MSSpectrum& spectrum,
-                         std::list<PeakType>& current_trace,
+                         std::vector<MassTrace::PeakType>& trace_peaks,
                          std::vector<std::pair<Size, Size>>& gathered_idx,
                          std::vector<double>& fwhms_mz,
                          std::vector<double>& fwhms_im,
@@ -170,12 +183,12 @@ namespace OpenMS
                          double& prev_denom_im,
                          double& ftl_sd,
                          double& intensity_so_far,
-                         Size spectrum_idx,
-                         bool is_upward_extension);
+                         Size spectrum_idx);
 
 
-        /// Check if a mass trace meets quality criteria
-        bool isTraceValid_(const std::list<PeakType>& trace,
+        /// Check if a mass trace of @p peak_count peaks spanning @p rt_range meets quality criteria
+        bool isTraceValid_(double rt_range,
+                          Size peak_count,
                           Size total_scans_visited,
                           Size consecutive_missed_down,
                           Size consecutive_missed_up) const;
@@ -197,6 +210,7 @@ namespace OpenMS
         Size trace_termination_outliers_;
         double min_sample_rate_;
         double min_trace_length_;
+        Size min_trace_scans_;
         double max_trace_length_;
 
         bool reestimate_mt_sd_;

@@ -1,0 +1,5 @@
+# Protein abundances computed from file 'ProteinQuantifier_23_input.consensusXML'
+# Parameters (relevant only): method=top, top:N=0, top:aggregate=sum, modifications:exclude=[Oxidation (M)], modifications:exclude_counterparts=false
+# Runs per fraction group: fgroup1: 'sample1'; fgroup2: 'sample2'
+"protein"	"n_proteins"	"protein_score"	"n_peptides"	"abundance_fgroup1_label1"	"abundance_fgroup2_label1"
+"Protein"	1	0.99	3	900.0	20.0

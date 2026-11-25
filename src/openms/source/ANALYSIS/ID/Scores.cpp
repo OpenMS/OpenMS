@@ -59,6 +59,22 @@ namespace OpenMS
     return possible_types.contains(chopped);
   }
 
+  bool Scores::isSameScoreType(const std::string& score_name1, const std::string& score_name2)
+  {
+    if (score_name1 == score_name2)
+    {
+      return true;
+    }
+    for (IDType type : {IDType::PP, IDType::PEP, IDType::FDR, IDType::QVAL})
+    {
+      if (isScoreType(score_name1, type) && isScoreType(score_name2, type))
+      {
+        return true;
+      }
+    }
+    return false;
+  }
+
   Scores::IDType Scores::parseIDType(const std::string& score_type_in)
   {
     std::string score_type = score_type_in;

@@ -17,13 +17,16 @@
 #include <OpenMS/ANALYSIS/ID/Percolator.h>
 #include "PercolatorImpl.h"
 #include "ssl.h" // vendored: adviseHugePages
-#include "OpenMPTasks.h" // vendored: PERCOLATOR_OMP_TASKS, PERCOLATOR_TASK_PRAGMA
+#include "newton_svm.h" // vendored: SvmSolver
+#include "PosteriorEstimator.h" // vendored: resetToDefaults
+#include "OpenMPThreads.h" // vendored: ThreadCap, maxThreads
 #include <new>
 
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/FORMAT/PercolatorInfile.h>
 #include <OpenMS/METADATA/SpectrumLookup.h>
+#include <OpenMS/SYSTEM/SysInfo.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 #include <algorithm>
@@ -104,22 +107,20 @@ namespace
     return file;
   }
 
-  // Percolator's sanity check, recording whether it replaced the learned
-  // weights by the default direction (the best single feature): validateDirection()
-  // does that whenever it returns false, i.e. no target at q < test_fdr, fewer
-  // targets than the default direction, or a wrong sign of the initial direction.
+  // Percolator's direction check (SanityCheck::validateDirection), with OpenMS' per-fold check of out-of-fold capped
+  // training. Whether Percolator's check replaced the learned weights by the default direction (the best single
+  // feature: no target at q < test_fdr, fewer targets than the initial direction, or a wrong sign of the initial
+  // direction) is CrossValidation::directionOutcome() (FAILED).
   class RecordingSanityCheck : public P::SanityCheck
   {
   public:
-    bool validateDirection(std::vector<std::vector<double>>& w) override
+    DirectionOutcome validateDirection(std::vector<P::Scores>& testset, std::vector<P::Scores>& trainset,
+                                       std::vector<std::vector<double>>& w) override
     {
-      if (per_fold) return validateFolds_(w);
-      const bool valid = P::SanityCheck::validateDirection(w);
-      used_default_direction = used_default_direction || !valid;
-      return valid;
+      if (per_fold) return validateFolds_(testset, trainset, w);
+      return P::SanityCheck::validateDirection(testset, trainset, w);
     }
 
-    bool used_default_direction = false;
     /// Out-of-fold capped training: each fold's model is checked on its own training set only (Percolator's check
     /// counts the targets of all test sets, i.e. of the held-out folds, and resets all models at once).
     bool per_fold = false;
@@ -132,57 +133,47 @@ namespace
   private:
     // Per fold, as validateDirection() for all: the learned weights are replaced by the fold's default direction
     // (getDefaultDirection: from its training set) if they find fewer targets at q < test_fdr on the fold's training
-    // set than the default direction does, or give the initial direction's feature the wrong sign; the test set of a
-    // replaced model is scored again (for the merge), its labels decide nothing. getInitDirection's count over the
-    // test sets (initPositives_) is not used here. Returns true.
-    bool validateFolds_(std::vector<std::vector<double>>& w)
+    // set than the default direction does, or give the initial direction's feature the wrong sign. Each test set is
+    // then scored with its fold's model, as Percolator's check leaves them for the merge; their labels decide
+    // nothing. getInitDirection's count over the test sets is not used here. Returns KEPT.
+    DirectionOutcome validateFolds_(std::vector<P::Scores>& testset, std::vector<P::Scores>& trainset,
+                                    std::vector<std::vector<double>>& w)
     {
       std::vector<std::vector<double>> w0(w.size(), std::vector<double>(w.empty() ? 0 : w[0].size(), 0.0));
-      getDefaultDirection(w0);
       reset_folds.assign(w.size(), 0);
-      // the folds in parallel, each on its own training set (as Percolator's validateDirection scores its test sets);
-      // the sorts of the scorings run as tasks of this region
       std::vector<std::exception_ptr> errors(w.size());
-#if PERCOLATOR_OMP_TASKS
-#pragma omp parallel num_threads(static_cast<int>(std::max<size_t>(1, std::min<size_t>(w.size(), numThreads_))))
-#pragma omp single
-#pragma omp taskloop grainsize(1)
-#else
-#pragma omp parallel for schedule(dynamic, 1) num_threads(static_cast<int>(std::max<size_t>(1, std::min<size_t>(w.size(), numThreads_))))
-#endif
-      for (SignedSize task = 0; task < static_cast<SignedSize>(w.size()); ++task)
+      // the folds one after the other: the scoring and the sorts of each run on the threads (OpenMPThreads.h)
+      for (size_t set = 0; set < w.size(); ++set)
       try
       {
-        const size_t set = static_cast<size_t>(task);
-        P::Scores& train = (*pTrainset_)[set];
+        getDefaultDirection(trainset[set], set, w0[set], /*quiet=*/true);
+        P::Scores& train = trainset[set];
         const int learned = train.calcScoresAndQvals(w[set], test_fdr_);
         const int initial = train.calcScoresAndQvals(w0[set], test_fdr_);
         // (Percolator's check also resets when no fold finds a target; per fold, a model that finds as many as the
         // default direction, even none, is kept)
         bool valid = learned >= initial;
-        if (valid && initDefaultDir != 0)
+        if (valid && initDefaultDir_ != 0)
         {
-          valid = w[set][static_cast<size_t>(std::abs(initDefaultDir) - 1)] * initDefaultDir > 0;
+          valid = w[set][static_cast<size_t>(std::abs(initDefaultDir_) - 1)] * initDefaultDir_ > 0;
         }
-        if (!valid && !overRule)
+        if (!valid && !overRule_)
         {
           std::cerr << "Fold " << set + 1 << ": the learned model (" << learned << " training set PSMs with q<"
                     << test_fdr_ << ") is replaced by the default direction (" << initial << ")." << std::endl;
           w[set] = w0[set];
           reset_folds[set] = 1;
-          // the CV merge rescales each model by its test set's scores (getAvgWeights averages the rescaled models):
-          // score the test set with the replacement (the saved fold models below do not depend on this)
-          (*pTestset_)[set].calcScoresAndQvals(w[set], test_fdr_);
         }
+        // the CV merge rescales each model by its test set's scores (getAvgWeights averages the rescaled models)
+        testset[set].calcScoresAndQvals(w[set], test_fdr_);
       }
       catch (...)
       {
-        errors[static_cast<size_t>(task)] = std::current_exception();
+        errors[set] = std::current_exception();
       }
       rethrowFirstError(errors);
-      for (char reset : reset_folds) used_default_direction = used_default_direction || reset != 0;
       validated_weights = w;
-      return true;
+      return DirectionOutcome::KEPT;
     }
   };
 }
@@ -210,7 +201,6 @@ void Percolator::Impl::PsmSlab::destroy()
 #pragma omp parallel for schedule(static)
   for (SignedSize i = 0; i < static_cast<SignedSize>(size); ++i)
   {
-    data[i].deleteRetentionFeatures(); // as PSMDescription::deletePtr
     data[i].~PSMDescription();
   }
   ::operator delete(data);
@@ -245,7 +235,7 @@ void Percolator::Impl::reset()
   // need to free the PSMDescription objects.
   for (auto* psm : second_pass_psms)
   {
-    if (psm) P::PSMDescription::deletePtr(psm);
+    delete psm;
   }
   second_pass_psms.clear();
   second_pass_pool.reset();
@@ -256,7 +246,6 @@ void Percolator::Impl::reset()
   // First-pass (training) PSM ownership lives with DataSet: DataSet::~DataSet()
   // calls PSMDescription::deletePtr on each PSM. Don't double-free.
   owned_psms.clear();
-  synthesized_ids.clear();
   target_ds.reset();
   decoy_ds.reset();
   // set_handler's destructor cascades: ~SetHandler → ~DataSet → PSM deletion,
@@ -284,7 +273,7 @@ Percolator::Percolator()
   defaults_.setValue("test_fdr",         0.01, "Test FDR threshold for SVM direction selection.");
   defaults_.setMinFloat("test_fdr",      0.0);
   defaults_.setMaxFloat("test_fdr",      1.0);
-  defaults_.setValue("train_fdr",        0.01, "Training FDR for SVM iterations.");
+  defaults_.setValue("train_fdr",        0.01, "Training FDR for SVM iterations (0: test_fdr).");
   defaults_.setMinFloat("train_fdr",     0.0);
   defaults_.setMaxFloat("train_fdr",     1.0);
   defaults_.setValue("num_iterations",   10,   "Number of SVM training iterations.");
@@ -343,8 +332,8 @@ Percolator::Percolator()
                      "Cap on the training set size (0 = use all). Default 100000 bounds training "
                      "time on very large inputs (>1M PSMs) at negligible quality loss. Sampling "
                      "is reservoir-based, keyed by (scan, exp_mass) so all PSMs sharing a "
-                     "spectrum travel together; the trained model is then applied to ALL input "
-                     "rows via a second scoring pass (matches upstream Caller.cpp behavior). "
+                     "spectrum travel together; all input rows are then scored in a second pass "
+                     "(see subset_mode). "
                      "Inert when the input size is at or below the cap. Note: upstream "
                      "percolator binary defaults this to 0 — PercolatorAdapter preserves the "
                      "CLI contract by passing its own int option (CLI default 0) through to "
@@ -352,9 +341,11 @@ Percolator::Percolator()
   defaults_.setMinInt("subset_max_train", 0);
   defaults_.setValue("subset_mode", "in_sample",
                      "How rescore() trains when subset_max_train caps the training set. 'in_sample' (default, as the "
-                     "percolator executable's --subset-max-train): the cross-validation runs on the sample, and all rows "
-                     "are scored by the average of the fold models, so a sampled row is scored by two models that "
-                     "trained on it. 'out_of_fold': every spectrum (spectrum file, scan) is assigned to one of the "
+                     "percolator executable's --subset-max-train, -N): the cross-validation runs on the sample; each sampled "
+                     "row is scored by the model of the fold in which it was a test row (each fold's scores mapped to "
+                     "the mean and standard deviation of the other rows' scores), the other rows by the average of the "
+                     "fold models (after a failed direction check all rows). 'out_of_fold': every spectrum (spectrum "
+                     "file, scan) is assigned to one of the "
                      "cross-validation folds first; a seeded random sample of whole spectra of at most "
                      "subset_max_train rows is drawn from the entire input (one sample: each fold's model trains on the "
                      "sampled spectra of the other folds); each fold's model is trained (positive selection and Cpos/Cneg "
@@ -392,15 +383,27 @@ Percolator::Percolator()
                      "subset_mode 'learning_curve': largest sample if subset_max_train is 0 (0 = all rows).", {"advanced"});
   defaults_.setMinInt("subset_curve_max", 0);
 
+  defaults_.setValue("classic_training", "true",
+                     "'true' (default): train as Percolator up to version 3.09 did (the percolator executable's "
+                     "--classic-training): all 'num_iterations' iterations, every (Cpos, Cneg) pair of the grid in every "
+                     "iteration, each SVM solved from zero weights (solver 'tron'; 'newton' and 'lda' start from the "
+                     "weights of the iteration before). 'false': Percolator's training since it was reworked "
+                     "after 3.09 (the default of its executable): each SVM starts from its weights of the previous "
+                     "iteration, the (Cpos, Cneg) pair of each fold is fixed after three iterations, and the training "
+                     "stops when the estimated positives grew by less than 0.1% over two iterations. Faster; the results "
+                     "differ within the spread of the training.");
+  defaults_.setValidStrings("classic_training", {"true","false"});
   defaults_.setValue("tron_epsilon", 1e-7,
-                     "Stopping tolerance of the TRON solver of the SVM training (relative gradient norm). "
-                     "Larger values train faster; the results differ from Percolator's (1e-7).",
+                     "Stopping tolerance of the SVM solves with the solvers 'tron' and 'newton' (the gradient norm "
+                     "relative to that at 0; with classic_training, 'newton' stops at 1e-4 in the iterations before the "
+                     "last one). Larger values train faster; the results differ from Percolator's (1e-7).",
                      {"advanced"});
   defaults_.setMinFloat("tron_epsilon", 1e-15);
   defaults_.setValue("warm_start", "false",
-                     "Start each SVM training of a cross-validation iteration from the weights its (Cpos, Cneg) "
-                     "pair learned in the previous iteration instead of 0 (faster; the results differ). "
-                     "Not with nested_xval_bins > 1.",
+                     "With classic_training and the solver 'tron': start each SVM training of a cross-validation "
+                     "iteration from the weights its (Cpos, Cneg) pair learned in the previous iteration instead of 0 "
+                     "(faster; the results differ). Not with nested_xval_bins > 1. (Without classic_training, and with "
+                     "the solvers 'newton' and 'lda', every training starts so.)",
                      {"advanced"});
   defaults_.setValidStrings("warm_start", {"true", "false"});
   defaults_.setValue("single_cneg", "false",
@@ -448,16 +451,19 @@ Percolator::Percolator()
                      "which reads it as metadata; 'true': the in-process training before OpenMS #10717.");
   defaults_.setValidStrings("calc_mass_feature", {"true","false"});
 
-  defaults_.setValue("solver", "tron",
-                     "Solver of the SVMs of the cross-validation. 'tron' (default): the trust region Newton method "
-                     "(TRON) of Percolator, from 0 in every step. 'newton': the modified finite Newton method of "
-                     "Keerthi & DeCoste (2005) with the explicit Hessian (one pass over the active PSMs per step) and "
-                     "an exact line search, warm-started from the weights of the step before, with a looser tolerance "
-                     "in all steps but the last; for a given training set it reaches the same optimum as 'tron' (within the "
-                     "tolerance) in far fewer passes over the data (the looser steps may choose slightly different "
-                     "training sets for the next), and runs the blocks of large training sets on all threads. 'lda': "
-                     "Fisher's linear discriminant of the positives and the decoys in every step (one pass, no "
-                     "optimization; a fast approximation of the SVM). Upstream percolator has no such option.");
+  defaults_.setValue("solver", "newton",
+                     "Solver of the SVMs of the cross-validation. 'newton' (default): the modified finite Newton method "
+                     "of Keerthi & DeCoste (2005) with the explicit Hessian (one pass over the active PSMs per step) and "
+                     "an exact line search, started from the weights of the step before; with classic_training it stops "
+                     "at a looser tolerance in the iterations before the last one. For a given training set it reaches "
+                     "the same optimum as 'tron' (within the tolerance) in far fewer passes over the data (the looser "
+                     "steps may choose slightly different training sets for the next), runs the blocks of large training "
+                     "sets on all threads, and falls back to 'tron' for more than 127 features or when it does not "
+                     "converge. 'tron': the trust region Newton method (TRON) that the OpenMS copy of Percolator uses "
+                     "instead of upstream's SVMlin (the same optimum); with classic_training from 0 in every step, "
+                     "otherwise from the weights of the step before. 'lda': Fisher's linear discriminant of the "
+                     "positives and the decoys in every step (one pass, no optimization; a fast approximation of the "
+                     "SVM). Upstream percolator has no such option.");
   defaults_.setValidStrings("solver", {"tron","newton","lda"});
   defaults_.setValue("algorithm", "percolator",
                      "rescorePSMs(): 'percolator' = Percolator's cross-validated PSM-level FDR (default); 'reset' = "
@@ -529,7 +535,6 @@ Percolator::Percolator()
 Percolator::~Percolator()
 {
   if (impl_) impl_->reset();
-  P::Normalizer::resetNormalizer();
   P::Globals::clean();
 }
 
@@ -558,6 +563,7 @@ void Percolator::updateMembers_()
   impl_->subset_curve_max    = static_cast<int>(param_.getValue("subset_curve_max"));
   impl_->tron_epsilon        = static_cast<double>(param_.getValue("tron_epsilon"));
   impl_->warm_start          = (param_.getValue("warm_start").toString() == "true");
+  impl_->classic_training    = (param_.getValue("classic_training").toString() == "true");
   impl_->single_cneg         = (param_.getValue("single_cneg").toString() == "true");
   impl_->initial_direction   = param_.getValue("initial_direction").toString();
   impl_->use_pi0             = param_.getValue("use_pi0").toString();
@@ -659,17 +665,38 @@ struct RowKeys
 
 // Populate a single PSMDescription from one row of RescoreInput. The row's
 // feature pointer comes from SetHandler's FeatureMemoryPool.
-// The threads of a parallel region whose sorts and pi0 bootstraps run as its tasks: at most 12,
-// as the cross-validation's (thirdparty/percolator/CrossValidation.cpp: numTeamThreads), more
-// would mostly wait for tasks; never more than OpenMP allows here.
+// The threads of the wrapper's own parallel regions: num_threads, at most what the vendored code may use here
+// (P::maxThreads(): the ThreadCap of the entry points, see capThreads_)
 [[maybe_unused]] static int teamThreads(int num_threads)
 {
-#ifdef _OPENMP
-  return std::max(1, std::min({num_threads, 12, omp_get_max_threads()}));
-#else
-  (void)num_threads;
-  return 1;
-#endif
+  return std::max(1, std::min(num_threads, P::maxThreads()));
+}
+
+// The cap of the vendored code's parallel regions for a call of the wrapper (OpenMPThreads.h): the Percolator parameter
+// num_threads, at most the OpenMP threads of the calling thread (a TOPP tool's -threads; where the OpenMP runtime keeps
+// one number for the whole process, the share of a helper thread, SysInfo::ompThreadsOfThisThread()).
+static int capThreads_(int num_threads)
+{
+  return std::max(1, std::min(num_threads, SysInfo::ompThreadsOfThisThread()));
+}
+
+// The PEPs of Scores::calcPep for the Percolator parameter pep_method, as the executable computes them since 3.09,
+// from the score (not the rank, its --rank-pep): 'logistic_regression' the I-spline regression of the target
+// q-values (its default), 'isotonic' PAVA (--pava-pep), 'nonparametric' the P-IRLS spline (--irls-pep).
+static void calcPep_(P::Scores& scores, const std::string& pep_method)
+{
+  if (pep_method == "isotonic")
+  {
+    scores.calcPep(/*spline=*/false, /*interp=*/true, /*pava=*/true);
+  }
+  else if (pep_method == "nonparametric")
+  {
+    scores.calcPep(/*spline=*/true, /*interp=*/true, /*pava=*/false);
+  }
+  else
+  {
+    scores.calcPep(/*spline=*/false, /*interp=*/true, /*pava=*/false);
+  }
 }
 
 // Rethrows the first error, in iteration order, caught in the iterations of a parallel loop.
@@ -681,17 +708,13 @@ static void rethrowFirstError(const std::vector<std::exception_ptr>& errors)
   }
 }
 
-// The row of a PSM that rescore() or score() made from row i of the input (id "row_<i>"), or n_rows for another id
+// The row of a PSM that rescore() or score() made from row i of the input (its line number, see fillPSMFromRow), or
+// n_rows for another PSM
 static size_t rowOfPSM(const P::ScoreHolder& sh, size_t n_rows)
 {
   if (sh.pPSM == nullptr) return n_rows;
-  const std::string& id = sh.pPSM->getFullPeptide();
-  if (id.size() < 12 || id.compare(0, 4, "row_") != 0) return n_rows;
-  char* end = nullptr;
-  const char* num_begin = id.c_str() + 4;
-  const unsigned long row = std::strtoul(num_begin, &end, 10);
-  if (end == nullptr || end == num_begin || *end != '\0' || row >= n_rows) return n_rows;
-  return static_cast<size_t>(row);
+  const size_t row = sh.pPSM->getLineNr();
+  return row < n_rows ? row : n_rows;
 }
 
 // OpenMS (PL-PAR): the PSMs (at least this many, and more than one thread) whose peptide-level representatives
@@ -836,34 +859,10 @@ static void peptideLevelEstimates(const P::Scores& psms, const RescoreInput& inp
   P::Scores peptides(use_pi0);
   peptides.reserve(reps.size());
   for (const P::ScoreHolder* sh : reps) peptides.addScoreHolder(*sh);
-  // as rescore(): the sort and the bootstraps of a pi0 estimate as the tasks of a parallel region
-  std::exception_ptr error;
-  PERCOLATOR_TASK_PRAGMA(omp parallel num_threads(team_threads))
-  PERCOLATOR_TASK_PRAGMA(omp single)
-  {
-    try
-    {
-      peptides.postMergeStep();
-      peptides.calcQvals(test_fdr);
-    }
-    catch (...)
-    {
-      error = std::current_exception();
-    }
-  }
-  if (error) std::rethrow_exception(error);
-  if (pep_method == "isotonic")
-  {
-    peptides.calcPep(/*spline=*/false, /*interp=*/false, /*pava=*/true);
-  }
-  else if (pep_method == "nonparametric")
-  {
-    peptides.calcPep(/*spline=*/true,  /*interp=*/false, /*pava=*/false);
-  }
-  else
-  {
-    peptides.calcPep(/*spline=*/false, /*interp=*/false, /*pava=*/false);
-  }
+  // (the sort runs on the threads of the vendored code, OpenMPThreads.h)
+  peptides.postMergeStep();
+  peptides.calcQvals(test_fdr);
+  calcPep_(peptides, pep_method);
   out.peptide_q_values.assign(n_rows, 1.0);
   out.peptide_peps.assign(n_rows, 1.0);
   if (by_group)
@@ -903,6 +902,14 @@ static void peptideLevelEstimates(const P::Scores& psms, const RescoreInput& inp
   }
 }
 
+// A feature value as the PSMs of the vendored Percolator hold it: one that is not finite is 0, as the executable sets
+// it under --no-terminate (validateRescoreInput_ warns). The scores that the wrapper computes from the rows of a
+// RescoreInput read the features through it as well (a NaN score would break the order of the sorts).
+static inline double featureValue_(double value)
+{
+  return std::isfinite(value) ? value : 0.0;
+}
+
 // Fills a PSMDescription from one row of RescoreInput (n_feat values at feats); its feature row
 // (psm.features) is allocated already.
 static void fillPSMFromRow(
@@ -910,18 +917,12 @@ static void fillPSMFromRow(
   const double* feats,
   size_t n_feat,
   const RowKeys& keys,
-  size_t row_index,
-  std::string& synth_id)
+  size_t row_index)
 {
-  // Synthesize an opaque row ID as the "peptide" string: "row_%08zu" (written without snprintf, which cost more than
-  // the rest of the row); the scores are mapped back to the rows by it.
-  char digits[24];
-  size_t n_digits = 0;
-  for (size_t v = row_index; v != 0 || n_digits < 8; v /= 10) digits[n_digits++] = static_cast<char>('0' + v % 10);
-  synth_id.assign("row_");
-  while (n_digits > 0) synth_id += digits[--n_digits];
-  psm.setId(synth_id);
-  psm.setPeptide(synth_id);
+  // The row is the PSM's line number: the scores are mapped back to the rows by it (rowOfPSM), and Percolator's
+  // comparators break ties by (id, line number), with an empty id here, so by the row (validateRescoreInput_ caps the
+  // rows at UINT_MAX). The PSM has no id, peptide or proteins, which nothing here reads.
+  psm.setLineNr(static_cast<unsigned int>(row_index));
   psm.scan        = static_cast<unsigned int>(keys.scan);
   psm.specFileNr  = static_cast<unsigned int>(keys.spec_file);
   psm.expMass     = keys.exp_mass;
@@ -931,7 +932,7 @@ static void fillPSMFromRow(
   double* feat_ptr = psm.features;
   for (size_t j = 0; j < n_feat; ++j)
   {
-    feat_ptr[j] = feats[j];
+    feat_ptr[j] = featureValue_(feats[j]);
   }
 }
 
@@ -940,13 +941,12 @@ static P::PSMDescription* makePSMFromRow(
   size_t n_feat,
   const RowKeys& keys,
   size_t row_index,
-  std::string& synth_id,
   P::FeatureMemoryPool& pool)
 {
   auto* psm = new P::PSMDescription();
   // Allocate feature row from the pool.
   psm->features = pool.allocate();
-  fillPSMFromRow(*psm, feats, n_feat, keys, row_index, synth_id);
+  fillPSMFromRow(*psm, feats, n_feat, keys, row_index);
   return psm;
 }
 
@@ -961,6 +961,7 @@ static RowKeys makeRowKeys(const RescoreInput& input, size_t i)
   else                                   keys.scan = static_cast<int>(i);
   keys.spec_file = input.spec_file_numbers.empty() ? 0 : input.spec_file_numbers[i];
   keys.exp_mass  = input.exp_masses.empty()        ? 0.0 : input.exp_masses[i];
+  if (!std::isfinite(keys.exp_mass)) keys.exp_mass = 0.0; // as the executable under --no-terminate (validateRescoreInput_ warns)
   keys.calc_mass = input.calc_masses.empty()       ? 0.0 : input.calc_masses[i];
   return keys;
 }
@@ -1041,6 +1042,77 @@ static RescoreInput makeSubsetInput_(
 }
 
 // Dimension + optional-field checks shared by rescore/train/score entry points.
+// SetHandler::rescaleFoldScores (protected): the scores of the PSMs that a fold's model scored, mapped to the mean and
+// standard deviation of the other PSMs' scores
+struct FoldScoreRescaler_ : P::SetHandler
+{
+  static void rescale(P::Scores& scores, const std::vector<std::pair<size_t, unsigned int>>& rows, size_t num_folds)
+  {
+    rescaleFoldScores(scores, rows, num_folds);
+  }
+};
+
+// The process-wide settings of the vendored code that the percolator executable resets for every run
+// (Caller::resetProcessSettings); the wrapper sets the seed, the feature names and --no-terminate itself.
+static void resetProcessSettings_()
+{
+  P::PosteriorEstimator::resetToDefaults();
+  P::DataSet::resetWarnings();
+  P::PSMDescription::resetSpectrumFileNames();
+}
+
+// SetHandler::normalizeFeatures, whose MyException (a normalization factor that is not finite, e.g. from values near
+// the largest double) is rethrown as an OpenMS exception
+static void normalizeFeatures_(P::SetHandler& set_handler, P::Normalizer& normalizer)
+{
+  try
+  {
+    set_handler.normalizeFeatures(normalizer);
+  }
+  catch (const std::exception& e)
+  {
+    throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+      std::string("Percolator feature normalization failed: ") + e.what(), "");
+  }
+}
+
+// The feature normalizer of the Percolator parameter normalizer ('stdv', 'uni' or 'none')
+static std::unique_ptr<P::Normalizer> makeNormalizer_(const std::string& normalizer)
+{
+  int norm_type = P::Normalizer::STDV;
+  if      (normalizer == "uni")  norm_type = P::Normalizer::UNI;
+  else if (normalizer == "none") norm_type = P::Normalizer::NONORM;
+  return P::Normalizer::create(norm_type);
+}
+
+// The settings of the cross-validation that do not depend on the input, as the percolator executable makes them
+// (Caller::run): the training (classic_training), the solver and the options of the training, and the plan of the
+// merge of the test bins (test, which the executable uses with three folds); the merged lists that its direction
+// check would count (the best PSM per spectrum with TDC, per peptide at the peptide level) only matter for the
+// direction checks other than its default, which the wrapper uses.
+struct TrainingSettings_
+{
+  bool classic_training;
+  int solver;
+  double tron_epsilon;
+  bool warm_start;
+  bool single_cneg;
+  bool post_processing_tdc;
+  bool peptide_level;
+};
+
+static void configureCrossValidation_(P::CrossValidation& cv, const TrainingSettings_& t)
+{
+  cv.setClassicTraining(t.classic_training);
+  cv.setSolver(t.solver);
+  cv.setTrainingOptions(t.tron_epsilon, t.warm_start, t.single_cneg);
+  P::MergePlan plan;
+  plan.scheme = P::CrossValidation::defaultMergeNormalization(3);
+  plan.lists.bestPsmPerSpectrum = t.post_processing_tdc;
+  plan.lists.bestPsmPerPeptide = t.peptide_level;
+  cv.setMergePlan(plan);
+}
+
 static void validateRescoreInput_(const RescoreInput& input)
 {
   if (input.features.empty() && input.feature_matrix.empty())
@@ -1089,6 +1161,27 @@ static void validateRescoreInput_(const RescoreInput& input)
   validate_opt(input.exp_masses,         "exp_masses");
   validate_opt(input.calc_masses,        "calc_masses");
   validate_opt(input.peptide_keys,       "peptide_keys");
+  // the row is the vendored PSM's (32-bit) line number, see fillPSMFromRow
+  if (n_rows >= static_cast<size_t>(std::numeric_limits<unsigned int>::max()))
+  {
+    throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+      "RescoreInput has too many rows", std::to_string(n_rows));
+  }
+  // Percolator's comparators need finite scores and masses (a strict weak order); the percolator executable sets a
+  // feature or experimental mass that is not finite to 0 under --no-terminate, which the wrapper always sets
+  // (fillPSMFromRow does the same)
+  size_t non_finite_features = 0, non_finite_masses = 0;
+  for (size_t i = 0; i < n_rows; ++i)
+  {
+    const double* row = input.row(i);
+    for (size_t j = 0; j < n_feat; ++j) non_finite_features += std::isfinite(row[j]) ? 0 : 1;
+  }
+  for (double m : input.exp_masses) non_finite_masses += std::isfinite(m) ? 0 : 1;
+  if (non_finite_features > 0 || non_finite_masses > 0)
+  {
+    OPENMS_LOG_WARN << "Percolator: " << non_finite_features << " feature value(s) and " << non_finite_masses
+                    << " experimental mass(es) are not finite; they are set to 0." << std::endl;
+  }
 }
 
 // Feature-count + feature-names compatibility between a scoring input and a
@@ -1154,8 +1247,10 @@ PercolatorModel Percolator::train(const RescoreInput& input)
 
   validateRescoreInput_(input);
   const bool use_pi0 = resolveUsePi0(impl_->use_pi0, impl_->post_processing_tdc, input);
+  const P::ThreadCap thread_cap(capThreads_(impl_->num_threads));
 
   impl_->reset();
+  resetProcessSettings_();
   P::PseudoRandom::setSeed(static_cast<unsigned long>(impl_->seed));
 
   const size_t n_rows = input.rowCount();
@@ -1186,38 +1281,30 @@ PercolatorModel Percolator::train(const RescoreInput& input)
   impl_->target_ds->setLabel(P::LabelType::TARGET);
   impl_->decoy_ds->setLabel(P::LabelType::DECOY);
 
-  // Populate ALL rows of the training input (caller handles any subsetting).
-  impl_->synthesized_ids.resize(n_rows);
-  impl_->owned_psms.reserve(n_rows);
+  // Populate ALL rows of the training input (caller handles any subsetting). The PSMs are made in one block that
+  // Impl owns (psm_slab; the data sets do not own their PSMs) and get the pool's rows in the order of the rows.
+  impl_->psm_slab.create(n_rows);
+  impl_->owned_psms.resize(n_rows);
   for (size_t i = 0; i < n_rows; ++i)
   {
-    const RowKeys keys = makeRowKeys(input, i);
-    auto* psm = makePSMFromRow(input.row(i), n_feat, keys, i,
-                               impl_->synthesized_ids[i], pool);
-    impl_->owned_psms.push_back(psm);
+    P::PSMDescription* psm = impl_->psm_slab.data + i;
+    psm->features = pool.allocate();
+    fillPSMFromRow(*psm, input.row(i), n_feat, makeRowKeys(input, i), i);
+    impl_->owned_psms[i] = psm;
     if (input.is_decoy[i]) impl_->decoy_ds->registerPsm(psm);
     else                   impl_->target_ds->registerPsm(psm);
   }
 
-  impl_->set_handler->push_back_dataset(impl_->target_ds.release());
-  impl_->set_handler->push_back_dataset(impl_->decoy_ds.release());
+  impl_->set_handler->push_back_dataset(std::move(impl_->target_ds));
+  impl_->set_handler->push_back_dataset(std::move(impl_->decoy_ds));
 
-  int norm_type = P::Normalizer::STDV;
-  if      (impl_->normalizer == "uni")  norm_type = P::Normalizer::UNI;
-  else if (impl_->normalizer == "none") norm_type = P::Normalizer::NONORM;
   P::Globals::getInstance()->setNoTerminate(true);
-  P::Normalizer::resetNormalizer();
-  P::Normalizer::setType(norm_type);
-  // normalizeFeatures() owns Normalizer construction via its out-parameter.
-  P::Normalizer* normalizer = nullptr;
+  const std::unique_ptr<P::Normalizer> normalizer = makeNormalizer_(impl_->normalizer);
 
-  // SanityCheck: reset static state so successive calls don't leak configuration.
-  P::SanityCheck::setInitDefaultDir(0);
-  P::SanityCheck::setInitDefaultDirName(impl_->initial_direction);
-  // The plain SanityCheck that SanityCheck::initialize() returns, recording
-  // whether it replaced the learned weights (see usedDefaultDirection()).
-  // unique_ptr releases it on every exit path (including throws).
+  // The SanityCheck of the cross-validation, (re)configured per call. unique_ptr releases it on every exit path
+  // (including throws).
   auto sanity = std::make_unique<RecordingSanityCheck>();
+  sanity->setInitDefaultDirName(impl_->initial_direction);
   try
   {
     sanity->checkAndSetDefaultDir();
@@ -1229,7 +1316,7 @@ PercolatorModel Percolator::train(const RescoreInput& input)
       impl_->initial_direction);
   }
 
-  impl_->set_handler->normalizeFeatures(normalizer);
+  normalizeFeatures_(*impl_->set_handler, *normalizer);
 
   P::Scores train_scores(/*usePi0=*/use_pi0);
   train_scores.populateWithPSMs(*impl_->set_handler);
@@ -1247,27 +1334,23 @@ PercolatorModel Percolator::train(const RescoreInput& input)
     /*nestedXvalBins=*/static_cast<unsigned int>(impl_->nested_xval_bins),
     /*trainBestPositive=*/impl_->train_best_positive,
     /*numThreads=*/static_cast<unsigned int>(impl_->num_threads),
-    /*skipNormalizeScores=*/false,
     /*decoyFractionTraining=*/1.0,
     /*numFolds=*/3);
-  cv.setSolver(impl_->solver);
-  cv.setTrainingOptions(impl_->tron_epsilon, impl_->warm_start, impl_->single_cneg);
+  configureCrossValidation_(cv, {impl_->classic_training, impl_->solver, impl_->tron_epsilon, impl_->warm_start,
+                                 impl_->single_cneg, impl_->post_processing_tdc, false});
 
   std::vector<double> avg_weights;
   WeightsFile weights_file;
   try
   {
-    // CV uses sanity transiently per call (no storage); the unique_ptr in
-    // this scope outlives cv, so the bare pointer stays valid.
-    cv.preIterationSetup(train_scores, sanity.get(), normalizer,
-                         impl_->set_handler->getFeaturePool());
-    cv.train(normalizer);
-    cv.postIterationProcessing(train_scores, sanity.get());
-    impl_->last_used_default_direction = sanity->used_default_direction;
+    cv.preIterationSetup(train_scores, *sanity, normalizer.get());
+    cv.train(normalizer.get());
+    cv.postIterationProcessing(train_scores, *sanity);
+    impl_->last_used_default_direction = cv.directionOutcome() == P::SanityCheck::DirectionOutcome::FAILED;
     // getAvgWeights returns un-normalized (raw feature space) averaged weights:
     // size = n_features + 1, bias last. This is what score() will use.
-    cv.getAvgWeights(avg_weights, normalizer);
-    weights_file = printWeights(cv, normalizer, 3);
+    cv.getAvgWeights(avg_weights, normalizer.get());
+    weights_file = printWeights(cv, normalizer.get(), 3);
   }
   catch (const std::exception& e)
   {
@@ -1360,7 +1443,7 @@ RescoreOutput Percolator::score(const RescoreInput& input,
     const double* row = input.row(i);
     // as Scores::scoreAndAddPSM, with the weights that Scores::normalizeScores rescaled for the reference
     double s = rescaled_weights[n_feat];
-    for (size_t j = 0; j < n_feat; ++j) { s += row[j] * rescaled_weights[j]; }
+    for (size_t j = 0; j < n_feat; ++j) { s += featureValue_(row[j]) * rescaled_weights[j]; }
     const auto [q, pep] = at(s);
     out.scores.push_back(s);
     out.q_values.push_back(q);
@@ -1382,8 +1465,10 @@ RescoreOutput Percolator::score_(const RescoreInput& input,
   validateRescoreInput_(input);
   validateModelCompat_(input, model);
   const bool use_pi0 = resolveUsePi0(impl_->use_pi0, impl_->post_processing_tdc, input);
+  const P::ThreadCap thread_cap(capThreads_(impl_->num_threads));
 
   impl_->reset();
+  resetProcessSettings_();
   // As train() and rescore(): the pi0 estimate below bootstraps with Percolator's (process-wide) random number
   // generator, so the q-values and PEPs would otherwise depend on whatever drew from it before (e.g. train() or a
   // previous score()). The same rows and model must give the same results, also in score(input, model, reference),
@@ -1417,14 +1502,12 @@ RescoreOutput Percolator::score_(const RescoreInput& input,
   P::Globals::getInstance()->setNoTerminate(true);
 
   P::Scores all_scores(/*usePi0=*/use_pi0);
-  impl_->synthesized_ids.resize(n_rows);
   impl_->second_pass_psms.reserve(n_rows);
 
   for (size_t i = 0; i < n_rows; ++i)
   {
     const RowKeys keys = makeRowKeys(input, i);
-    auto* psm = makePSMFromRow(input.row(i), n_feat, keys, i,
-                               impl_->synthesized_ids[i], pool);
+    auto* psm = makePSMFromRow(input.row(i), n_feat, keys, i, pool);
     impl_->second_pass_psms.push_back(psm);
 
     P::ScoreHolder sh;
@@ -1441,56 +1524,31 @@ RescoreOutput Percolator::score_(const RescoreInput& input,
   // train()/rescore() — otherwise callers see raw upstream exceptions.
   try
   {
-    // In a parallel region, as in rescore(): the sorts and the bootstraps of the pi0 estimate run as its tasks, with the
-    // same results (see thirdparty/percolator/SortLikeStd.h and PosteriorEstimator::estimatePi0).
-    std::exception_ptr error;
-    PERCOLATOR_TASK_PRAGMA(omp parallel num_threads(teamThreads(impl_->num_threads)))
-    PERCOLATOR_TASK_PRAGMA(omp single)
+    // (the sorts run on the threads of the vendored code, OpenMPThreads.h)
+    all_scores.postMergeStep();
+    all_scores.calcQvals(impl_->test_fdr);
+    // normalizeScores takes a non-const ref and rescales the weight vector in
+    // place (endScoreNormalizeWeights). Use a local copy so the caller's model
+    // is not mutated.
+    std::vector<double> weights_copy = model.weights;
+    all_scores.normalizeScores(impl_->test_fdr, weights_copy);
+    if (scale != nullptr) { scale->rescaled_weights = weights_copy; }
+
+    if (impl_->post_processing_tdc)
     {
-      try
-      {
-        all_scores.postMergeStep();
-        all_scores.calcQvals(impl_->test_fdr);
-        // normalizeScores takes a non-const ref and rescales the weight vector in
-        // place (endScoreNormalizeWeights). Use a local copy so the caller's model
-        // is not mutated.
-        std::vector<double> weights_copy = model.weights;
-        all_scores.normalizeScores(impl_->test_fdr, weights_copy);
-        if (scale != nullptr) { scale->rescaled_weights = weights_copy; }
-
-        if (impl_->post_processing_tdc)
-        {
-          all_scores.weedOutRedundantTDC();
-        }
-
-        // Mirror Caller::calculatePSMProb: after any TDC weed-out, recompute
-        // q-values so they use the post-TDC pi0 set by weedOutRedundantTDC's
-        // internal postMergeStep. Kept unconditional for symmetry with rescore()
-        // — when TDC is off this is a no-op (pi0 and scores are unchanged since
-        // the earlier calcQvals call) but the cost is negligible on already-
-        // sorted scores.
-        all_scores.calcQvals(impl_->test_fdr);
-      }
-      catch (...)
-      {
-        error = std::current_exception();
-      }
+      all_scores.weedOutRedundantTDC();
     }
-    if (error) std::rethrow_exception(error);
+
+    // Mirror Caller::calculatePSMProb: after any TDC weed-out, recompute
+    // q-values so they use the post-TDC pi0 set by weedOutRedundantTDC's
+    // internal postMergeStep. Kept unconditional for symmetry with rescore()
+    // — when TDC is off this is a no-op (pi0 and scores are unchanged since
+    // the earlier calcQvals call) but the cost is negligible on already-
+    // sorted scores.
+    all_scores.calcQvals(impl_->test_fdr);
     impl_->last_pi0 = all_scores.getPi0();
 
-    if (impl_->pep_method == "isotonic")
-    {
-      all_scores.calcPep(/*spline=*/false, /*interp=*/false, /*pava=*/true);
-    }
-    else if (impl_->pep_method == "nonparametric")
-    {
-      all_scores.calcPep(/*spline=*/true,  /*interp=*/false, /*pava=*/false);
-    }
-    else
-    {
-      all_scores.calcPep(/*spline=*/false, /*interp=*/false, /*pava=*/false);
-    }
+    calcPep_(all_scores, impl_->pep_method);
   }
   catch (const std::exception& e)
   {
@@ -1508,16 +1566,8 @@ RescoreOutput Percolator::score_(const RescoreInput& input,
   double score_max = -std::numeric_limits<double>::infinity();
   for (const auto& sh : all_scores)
   {
-    if (sh.pPSM == nullptr) continue;
-    const std::string& id = sh.pPSM->getFullPeptide();
-    if (id.size() < 12 || id.compare(0, 4, "row_") != 0) continue;
-    char* end = nullptr;
-    const char* num_begin = id.c_str() + 4;
-    const unsigned long row = std::strtoul(num_begin, &end, 10);
-    // Reject ids whose digit suffix didn't parse cleanly: no digits consumed
-    // or unexpected trailing chars after the number.
-    if (end == nullptr || end == num_begin || *end != '\0') continue;
-    if (row >= n_rows) continue;
+    const size_t row = rowOfPSM(sh, n_rows);
+    if (row == n_rows) continue;
     out.scores[row]   = sh.score;
     out.q_values[row] = sh.q;
     out.peps[row]     = sh.pep;
@@ -1553,7 +1603,7 @@ static std::vector<size_t> acceptedTargets_(const RescoreInput& input, const std
   {
     const double* feats = input.row(i);
     double score = 0.0;
-    for (size_t j = 0; j < n_feat; ++j) score += feats[j] * w[j];
+    for (size_t j = 0; j < n_feat; ++j) score += featureValue_(feats[j]) * w[j];
     scored.push_back({score + w[n_feat], static_cast<bool>(input.is_decoy[i]), i});
   }
   std::sort(scored.begin(), scored.end(), [](const Scored& a, const Scored& b)
@@ -1593,11 +1643,16 @@ RescoreOutput Percolator::rescore(const RescoreInput& input)
 
   validateRescoreInput_(input);
   const bool use_pi0 = resolveUsePi0(impl_->use_pi0, impl_->post_processing_tdc, input);
+  const P::ThreadCap thread_cap(capThreads_(impl_->num_threads));
+  // the FDR at which the training selects its positives: train_fdr, or test_fdr if train_fdr is 0, as the
+  // cross-validation resolves it (CrossValidation: selectionFdr_ <= 0 -> testFdr_)
+  const double selection_fdr = impl_->train_fdr > 0.0 ? impl_->train_fdr : impl_->test_fdr;
 
   const size_t n_rows = input.rowCount();
   const size_t n_feat = input.featureCount();
 
   impl_->reset();
+  resetProcessSettings_();
   P::PseudoRandom::setSeed(static_cast<unsigned long>(impl_->seed));
 
   impl_->capped_info = CappedTrainingInfo();
@@ -1684,6 +1739,10 @@ RescoreOutput Percolator::rescore(const RescoreInput& input)
     std::vector<std::vector<size_t>> trained_rows; // out-of-fold: each fold model's training rows, ascending
     std::vector<char> reset_folds;                 // out-of-fold: the fold models replaced by the default direction
     WeightsFile weights_file;                      // the fold models as the executable's -w writes them (storeWeights)
+    // in_sample with a cap (the executable's -N): each fold's model (raw feature space) and the (row, fold) of every
+    // training PSM by the fold in which it was a test PSM, sorted by row (empty after a failed direction check)
+    std::vector<std::vector<double>> subset_fold_weights;
+    std::vector<std::pair<unsigned int, unsigned int>> subset_test_folds;
   };
   auto train_rows = [&](const std::vector<size_t>& training_rows) -> Trained
   {
@@ -1716,45 +1775,29 @@ RescoreOutput Percolator::rescore(const RescoreInput& input)
   // thread, in the order of the rows, and filled in parallel. (The data sets
   // delete the PSMs in this thread; PSMs allocated by other threads would take
   // much longer to free.)
-  // The PSMs are made in one block (psm_slab) and get the pool's rows in the order of the rows, as one allocate() per
-  // PSM did (claimRows; the pool's blocks zero-filled in parallel); the data sets get them in the same order and do not
-  // own them. (Before: one new and one allocate() per PSM on this thread, ~0.5 s for 5.3 M rows.)
-  impl_->synthesized_ids.resize(n_rows);
+  // The PSMs are made in one block (psm_slab) and get the pool's rows in the order of the rows (allocate() hands out
+  // rows that are not initialised); the data sets get them in the same order and do not own them. The PSMs are filled
+  // in parallel.
   const size_t n_train = training_rows.size();
   impl_->psm_slab.create(n_train);
   impl_->owned_psms.resize(n_train);
-  std::size_t first_row = 0;
-  if (!pool.claimRows(n_train, first_row))
-  {
-    throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Percolator: too many rows for the feature pool.",
-                                  std::to_string(n_train));
-  }
-  impl_->target_ds->setOwnsPsms(false);
-  impl_->decoy_ds->setOwnsPsms(false);
-  {
-    size_t n_decoys = 0;
-    for (size_t i : training_rows) n_decoys += input.is_decoy[i] ? 1 : 0;
-    impl_->decoy_ds->reservePsms(n_decoys);
-    impl_->target_ds->reservePsms(n_train - n_decoys);
-  }
   for (size_t k = 0; k < n_train; ++k)
   {
     P::PSMDescription* psm = impl_->psm_slab.data + k;
+    psm->features = pool.allocate();
     impl_->owned_psms[k] = psm;
     if (input.is_decoy[training_rows[k]]) impl_->decoy_ds->registerPsm(psm);
     else                                  impl_->target_ds->registerPsm(psm);
   }
   std::vector<std::exception_ptr> row_errors(n_train);
   // (static: the threads that constructed the PSMs fill them)
-#pragma omp parallel for schedule(static)
+#pragma omp parallel for schedule(static) num_threads(P::maxThreads())
   for (SignedSize k = 0; k < static_cast<SignedSize>(n_train); ++k)
   {
     try
     {
       const size_t i = training_rows[k];
-      impl_->owned_psms[k]->features = pool.rowOfClaim(first_row + static_cast<size_t>(k));
-      fillPSMFromRow(*impl_->owned_psms[k], input.row(i), n_feat, makeRowKeys(input, i), i,
-                     impl_->synthesized_ids[i]);
+      fillPSMFromRow(*impl_->owned_psms[k], input.row(i), n_feat, makeRowKeys(input, i), i);
     }
     catch (...)
     {
@@ -1770,24 +1813,16 @@ RescoreOutput Percolator::rescore(const RescoreInput& input)
     for (size_t k = 0; k < training_rows.size(); ++k) row_of_psm.emplace(impl_->owned_psms[k], training_rows[k]);
   }
 
-  impl_->set_handler->push_back_dataset(impl_->target_ds.release());
-  impl_->set_handler->push_back_dataset(impl_->decoy_ds.release());
+  impl_->set_handler->push_back_dataset(std::move(impl_->target_ds));
+  impl_->set_handler->push_back_dataset(std::move(impl_->decoy_ds));
 
-  int norm_type = P::Normalizer::STDV;
-  if      (impl_->normalizer == "uni")  norm_type = P::Normalizer::UNI;
-  else if (impl_->normalizer == "none") norm_type = P::Normalizer::NONORM;
   P::Globals::getInstance()->setNoTerminate(true);
-  P::Normalizer::resetNormalizer();
-  P::Normalizer::setType(norm_type);
-  // normalizeFeatures() owns Normalizer construction via its out-parameter.
-  P::Normalizer* normalizer = nullptr;
+  const std::unique_ptr<P::Normalizer> normalizer = makeNormalizer_(impl_->normalizer);
 
-  P::SanityCheck::setInitDefaultDir(0);
-  P::SanityCheck::setInitDefaultDirName(impl_->initial_direction);
-  // The plain SanityCheck that SanityCheck::initialize() returns, recording
-  // whether it replaced the learned weights (see usedDefaultDirection()).
-  // unique_ptr releases it on every exit path (including throws).
+  // The SanityCheck of the cross-validation, with the per-fold check of out-of-fold training. unique_ptr releases it
+  // on every exit path (including throws).
   auto sanity = std::make_unique<RecordingSanityCheck>();
+  sanity->setInitDefaultDirName(impl_->initial_direction);
   sanity->per_fold = out_of_fold;
   try
   {
@@ -1800,7 +1835,7 @@ RescoreOutput Percolator::rescore(const RescoreInput& input)
       impl_->initial_direction);
   }
 
-  impl_->set_handler->normalizeFeatures(normalizer);
+  normalizeFeatures_(*impl_->set_handler, *normalizer);
 
   all_scores = P::Scores(/*usePi0=*/use_pi0);
   all_scores.populateWithPSMs(*impl_->set_handler);
@@ -1818,11 +1853,14 @@ RescoreOutput Percolator::rescore(const RescoreInput& input)
     /*nestedXvalBins=*/static_cast<unsigned int>(impl_->nested_xval_bins),
     /*trainBestPositive=*/impl_->train_best_positive,
     /*numThreads=*/static_cast<unsigned int>(impl_->num_threads),
-    /*skipNormalizeScores=*/false,
     /*decoyFractionTraining=*/1.0,
     /*numFolds=*/3);
-  cv.setSolver(impl_->solver);
-  cv.setTrainingOptions(impl_->tron_epsilon, impl_->warm_start, impl_->single_cneg);
+  configureCrossValidation_(cv, {impl_->classic_training, impl_->solver, impl_->tron_epsilon, impl_->warm_start,
+                                 impl_->single_cneg, impl_->post_processing_tdc, impl_->peptide_level});
+  // in_sample with a cap: as the executable with -N (Caller::run), the cross-validation records the test fold of every
+  // training PSM, whose score in the full list then comes from its fold's model (see the second pass)
+  const bool record_test_folds = training_rows.size() < n_rows && !out_of_fold;
+  cv.setRecordTestFolds(record_test_folds);
   if (out_of_fold)
   {
     cv.setFixedFolds([&row_of_psm, &oof](const P::PSMDescription& psm)
@@ -1834,31 +1872,12 @@ RescoreOutput Percolator::rescore(const RescoreInput& input)
   std::vector<std::vector<double>>& fold_weights = trained.fold_weights;
   try
   {
-    // CV uses sanity transiently per call (no storage); the unique_ptr in
-    // this scope outlives cv, so the bare pointer stays valid.
-    cv.preIterationSetup(all_scores, sanity.get(), normalizer,
-                         impl_->set_handler->getFeaturePool());
-    cv.train(normalizer);
-    cv.postIterationProcessing(all_scores, sanity.get());
-    impl_->last_used_default_direction = sanity->used_default_direction;
-    cv.getAvgWeights(avg_weights, normalizer);
-    trained.weights_file = printWeights(cv, normalizer, num_folds);
+    cv.preIterationSetup(all_scores, *sanity, normalizer.get());
+    cv.train(normalizer.get());
     if (out_of_fold)
     {
-      trained.reset_folds = sanity->reset_folds;
-      // the fold models as the per-fold sanity check left them (Scores::merge then rescales each by its test set,
-      // i.e. by held-out labels; the scorers below are rescaled on their own rows anyway)
-      if (sanity->validated_weights.size() != num_folds)
-      {
-        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-          "out-of-fold training: the fold models were not checked", std::to_string(sanity->validated_weights.size()));
-      }
-      for (const std::vector<double>& w : sanity->validated_weights)
-      {
-        fold_weights.emplace_back(n_feat + 1);
-        normalizer->unnormalizeweight(w, fold_weights.back());
-      }
-      // each fold model's training rows (getCappedTrainingInfo)
+      // each fold model's training rows (getCappedTrainingInfo), before postIterationProcessing releases the training
+      // sets
       trained.trained_rows.assign(num_folds, {});
       std::vector<std::exception_ptr> fold_row_errors(num_folds);
       // (a local: MSVC's OpenMP does not accept impl_ in the clause, C2327)
@@ -1882,6 +1901,32 @@ RescoreOutput Percolator::rescore(const RescoreInput& input)
       }
       rethrowFirstError(fold_row_errors);
     }
+    cv.postIterationProcessing(all_scores, *sanity);
+    impl_->last_used_default_direction = cv.directionOutcome() == P::SanityCheck::DirectionOutcome::FAILED ||
+      std::any_of(sanity->reset_folds.begin(), sanity->reset_folds.end(), [](char reset) { return reset != 0; });
+    cv.getAvgWeights(avg_weights, normalizer.get());
+    trained.weights_file = printWeights(cv, normalizer.get(), num_folds);
+    if (record_test_folds)
+    {
+      cv.getRawFoldWeights(trained.subset_fold_weights, normalizer.get());
+      cv.getTestFolds(trained.subset_test_folds); // (the PSMs' line numbers are their rows, fillPSMFromRow)
+    }
+    if (out_of_fold)
+    {
+      trained.reset_folds = sanity->reset_folds;
+      // the fold models as the per-fold sanity check left them (Scores::merge then rescales each by its test set,
+      // i.e. by held-out labels; the scorers below are rescaled on their own rows anyway)
+      if (sanity->validated_weights.size() != num_folds)
+      {
+        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+          "out-of-fold training: the fold models were not checked", std::to_string(sanity->validated_weights.size()));
+      }
+      for (const std::vector<double>& w : sanity->validated_weights)
+      {
+        fold_weights.emplace_back(n_feat + 1);
+        normalizer->unnormalizeweight(w, fold_weights.back());
+      }
+    }
   }
   catch (const std::exception& e)
   {
@@ -1896,7 +1941,7 @@ RescoreOutput Percolator::rescore(const RescoreInput& input)
   if (learning_curve)
   {
     // Nested samples of start, 2 start, 4 start ... rows (the last: the largest allowed); each trained out-of-fold.
-    // Fold k's curve: the targets at q <= train_fdr among the validation spectra of the other folds under fold k's
+    // Fold k's curve: the targets at q <= selection_fdr among the validation spectra of the other folds under fold k's
     // model; fold k stops at the first doubling that adds less than subset_curve_min_gain and keeps that model.
     const size_t available = n_rows - oof.validation_rows.size();
     const size_t largest_allowed = impl_->subset_max_train > 0 ? static_cast<size_t>(impl_->subset_max_train)
@@ -1961,7 +2006,7 @@ RescoreOutput Percolator::rescore(const RescoreInput& input)
       {
         if (stopped[f]) continue;
         std::vector<size_t> accepted =
-          acceptedTargets_(input, validation_of_fold[f], at_size.fold_weights[f], impl_->train_fdr);
+          acceptedTargets_(input, validation_of_fold[f], at_size.fold_weights[f], selection_fdr);
         const long count = static_cast<long>(accepted.size());
         info.curve_counts.back()[f] = count;
         trained.fold_weights[f] = std::move(at_size.fold_weights[f]);
@@ -2086,22 +2131,19 @@ RescoreOutput Percolator::rescore(const RescoreInput& input)
       std::vector<double> scores(n_rows);
       std::exception_ptr score_error;
       size_t score_error_row = n_rows;
-      int score_threads = std::max(1, impl_->num_threads);
-#ifdef _OPENMP
-      score_threads = std::min(score_threads, omp_get_max_threads());
-#endif
+      const int score_threads = P::maxThreads(); // (the cap of this call, capThreads_)
 #pragma omp parallel for schedule(dynamic, 4096) num_threads(score_threads)
       for (SignedSize k = 0; k < static_cast<SignedSize>(n_rows); ++k)
       {
         const size_t i = static_cast<size_t>(k);
         try
         {
-          fillPSMFromRow(slab[i], nullptr, 0, makeRowKeys(input, i), i, impl_->synthesized_ids[i]);
+          fillPSMFromRow(slab[i], nullptr, 0, makeRowKeys(input, i), i);
           // as Scores::scoreAndAddPSM: the features in order, then the bias
           const std::vector<double>& w = fold_weights[scorer_of_row[i]];
           const double* feats = input.row(i);
           double score = 0.0;
-          for (size_t j = 0; j < n_feat; ++j) score += feats[j] * w[j];
+          for (size_t j = 0; j < n_feat; ++j) score += featureValue_(feats[j]) * w[j];
           scores[i] = score + w[n_feat];
         }
         catch (...)
@@ -2138,21 +2180,8 @@ RescoreOutput Percolator::rescore(const RescoreInput& input)
 
       all_scores = P::Scores(use_pi0);
       std::vector<std::vector<double>> merge_weights = fold_weights; // Scores::merge rescales them
-      std::exception_ptr merge_error;
-      PERCOLATOR_TASK_PRAGMA(omp parallel num_threads(teamThreads(impl_->num_threads)))
-      PERCOLATOR_TASK_PRAGMA(omp single)
-      {
-        try
-        {
-          // at the CV's selection FDR (CrossValidation: selectionFdr_ = train_fdr), as it merges its test folds
-          all_scores.merge(fold_scores, impl_->train_fdr, /*skipNormalizeScores=*/false, merge_weights);
-        }
-        catch (...)
-        {
-          merge_error = std::current_exception();
-        }
-      }
-      if (merge_error) std::rethrow_exception(merge_error);
+      // at the CV's selection FDR (selection_fdr), as it merges its test folds
+      all_scores.merge(fold_scores, selection_fdr, /*skipNormalizeScores=*/false, merge_weights);
     }
     else if (did_subsample)
     {
@@ -2163,43 +2192,45 @@ RescoreOutput Percolator::rescore(const RescoreInput& input)
       all_scores = P::Scores(use_pi0);
       impl_->second_pass_psms.reserve(n_rows);
 
+      // As the executable with -N since upstream's a3527fac and 94154bd2 (November 2026, after 3.09; in a90106b)
+      // (SetHandler::readAndScorePSMs): a PSM of the training subset is
+      // scored with the model of the fold in which it was a test PSM (the averaged weights would score it with models
+      // that trained on it, so that the decoys would no longer model the incorrect targets at the top of the list),
+      // and the scores of each fold are then mapped to the mean and standard deviation of the other PSMs' scores
+      // (SetHandler::rescaleFoldScores). The other PSMs, and all after a failed direction check, are scored with the
+      // averaged weights.
+      const std::vector<std::pair<unsigned int, unsigned int>>& test_folds = trained.subset_test_folds;
+      std::vector<std::pair<size_t, unsigned int>> fold_rows; // (index in all_scores, fold)
+      fold_rows.reserve(test_folds.size());
+      size_t next_fold = 0;
       for (size_t i = 0; i < n_rows; ++i)
       {
         const RowKeys keys = makeRowKeys(input, i);
-        auto* psm = makePSMFromRow(input.row(i), n_feat, keys, i,
-                                   impl_->synthesized_ids[i], full_pool);
+        auto* psm = makePSMFromRow(input.row(i), n_feat, keys, i, full_pool);
         impl_->second_pass_psms.push_back(psm);
 
         P::ScoreHolder sh;
         sh.pPSM  = psm;
         sh.label = input.is_decoy[i] ? P::LabelType::DECOY : P::LabelType::TARGET;
-        all_scores.scoreAndAddPSM(sh, avg_weights, full_pool);
+        while (next_fold < test_folds.size() && test_folds[next_fold].first < i) ++next_fold;
+        const bool in_fold = next_fold < test_folds.size() && test_folds[next_fold].first == i;
+        if (in_fold) fold_rows.emplace_back(all_scores.size(), test_folds[next_fold].second);
+        all_scores.scoreAndAddPSM(sh, in_fold ? trained.subset_fold_weights.at(test_folds[next_fold].second) : avg_weights,
+                                  full_pool);
       }
+      FoldScoreRescaler_::rescale(all_scores, fold_rows, trained.subset_fold_weights.size());
 
+      // (as the executable with -N, at the selection FDR of the training; its merge scheme with 3 folds is 'test', the
+      // only one that rescales here)
       all_scores.postMergeStep();
-      all_scores.calcQvals(impl_->test_fdr);
-      all_scores.normalizeScores(impl_->test_fdr, avg_weights);
+      all_scores.calcQvals(selection_fdr);
+      all_scores.normalizeScores(selection_fdr, avg_weights);
     }
 
     if (impl_->post_processing_tdc)
     {
-      // In a parallel region, as the cross-validation calls Scores::merge: the sorts and the
-      // bootstraps of the pi0 estimate run as its tasks, with the same results (see
-      // thirdparty/percolator/SortLikeStd.h and PosteriorEstimator::estimatePi0).
-      std::exception_ptr tdc_error;
-      PERCOLATOR_TASK_PRAGMA(omp parallel num_threads(teamThreads(impl_->num_threads)))
-      PERCOLATOR_TASK_PRAGMA(omp single)
-      {
-        try
-        {
-          all_scores.weedOutRedundantTDC();
-        }
-        catch (...)
-        {
-          tdc_error = std::current_exception();
-        }
-      }
-      if (tdc_error) std::rethrow_exception(tdc_error);
+      // (the sorts run on the threads of the vendored code, OpenMPThreads.h)
+      all_scores.weedOutRedundantTDC();
     }
 
     // Mirror Caller::calculatePSMProb: after the merge, recompute q-values
@@ -2210,18 +2241,7 @@ RescoreOutput Percolator::rescore(const RescoreInput& input)
     all_scores.calcQvals(impl_->test_fdr);
     impl_->last_pi0 = all_scores.getPi0();
 
-    if (impl_->pep_method == "isotonic")
-    {
-      all_scores.calcPep(/*spline=*/false, /*interp=*/false, /*pava=*/true);
-    }
-    else if (impl_->pep_method == "nonparametric")
-    {
-      all_scores.calcPep(/*spline=*/true,  /*interp=*/false, /*pava=*/false);
-    }
-    else
-    {
-      all_scores.calcPep(/*spline=*/false, /*interp=*/false, /*pava=*/false);
-    }
+    calcPep_(all_scores, impl_->pep_method);
   }
   catch (const std::exception& e)
   {
@@ -2234,7 +2254,7 @@ RescoreOutput Percolator::rescore(const RescoreInput& input)
   out.q_values.assign(n_rows, 1.0);
   out.peps.assign(n_rows, 1.0);
 
-  // The row of each score holder (its PSM's id "row_<n>", see makePSMFromRow; none: n_rows) is decoded in parallel, then
+  // The row of each score holder (its PSM's line number, see fillPSMFromRow; none: n_rows) is looked up in parallel, then
   // the values are written to their rows in parallel if no row has two holders (the case: one PSM per row), else in
   // order (the last one wins, as before). The count and the extremes only go to the debug log.
   size_t matched = 0;
@@ -2243,21 +2263,10 @@ RescoreOutput Percolator::rescore(const RescoreInput& input)
   const P::Scores& merged_scores = all_scores;
   const SignedSize n_holders = static_cast<SignedSize>(merged_scores.size());
   std::vector<size_t> row_of(static_cast<size_t>(n_holders), n_rows);
-#pragma omp parallel for schedule(static)
+#pragma omp parallel for schedule(static) num_threads(P::maxThreads())
   for (SignedSize k = 0; k < n_holders; ++k)
   {
-    const P::ScoreHolder& sh = *(merged_scores.begin() + k);
-    if (sh.pPSM == nullptr) continue;
-    const std::string& id = sh.pPSM->getFullPeptide();
-    if (id.size() < 12 || id.compare(0, 4, "row_") != 0) continue;
-    char* end = nullptr;
-    const char* num_begin = id.c_str() + 4;
-    const unsigned long row = std::strtoul(num_begin, &end, 10);
-    // Reject ids whose digit suffix didn't parse cleanly: no digits consumed
-    // or unexpected trailing chars after the number.
-    if (end == nullptr || end == num_begin || *end != '\0') continue;
-    if (row >= n_rows) continue;
-    row_of[static_cast<size_t>(k)] = static_cast<size_t>(row);
+    row_of[static_cast<size_t>(k)] = rowOfPSM(*(merged_scores.begin() + k), n_rows);
   }
   std::vector<char> taken(n_rows, 0);
   bool unique_rows = true;
@@ -2267,7 +2276,7 @@ RescoreOutput Percolator::rescore(const RescoreInput& input)
     if (taken[row]) { unique_rows = false; break; }
     taken[row] = 1;
   }
-#pragma omp parallel if (unique_rows)
+#pragma omp parallel if (unique_rows) num_threads(P::maxThreads())
   {
   size_t thread_matched = 0;
   double thread_min = std::numeric_limits<double>::infinity();

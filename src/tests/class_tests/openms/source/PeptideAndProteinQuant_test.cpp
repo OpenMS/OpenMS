@@ -1806,6 +1806,145 @@ START_SECTION((void annotateQuantificationsToProteins(const ProteinQuant& protei
 }
 END_SECTION
 
+START_SECTION((void annotateQuantificationsToProteins(const ProteinQuant& protein_quants, ProteinIdentification& proteins, bool remove_unquantified) removes the quantities of an earlier annotation))
+{
+  // Protein groups read from a consensusXML that a workflow wrote already carry the quantities
+  // of that run. The exporters (mzTab, QPX) write every array of a group, so no group may keep
+  // them: a protein that is not quantified now would be reported with the abundance it had then.
+  // Three groups, all with stored quantities:
+  //   ProtA - a single peptide, so with 'top:N 2' it is not quantified now
+  //   ProtB - two peptides, quantified now (1000 + 3000)
+  //   ProtC - no peptide at all in the current data
+  ConsensusMap consensus;
+  ExperimentalDesign design;
+  make_detailed_input({"fileA"}, {{0, "AAAAAK", 2, 100.0}}, "ProtA", consensus, design);
+  make_detailed_input({"fileA"}, {{0, "CCCCCK", 2, 1000.0}, {0, "EEEEEK", 2, 3000.0}}, "ProtB", consensus, design);
+
+  const std::string abundance_array = "fraction_group_level_abundance";
+  const std::string legacy_abundance_array = "abundances";
+  const std::string foreign_array = "written_by_another_annotator";
+  auto add_array = [](auto& arrays, const std::string& name, const auto& value)
+  {
+    arrays.emplace_back();
+    arrays.back().setName(name);
+    arrays.back().push_back(value);
+  };
+  auto make_proteins = [&](bool foreign_array_on_prot_a)
+  {
+    ProteinIdentification proteins;
+    std::vector<ProteinHit> hits;
+    for (const char* accession : {"ProtA", "ProtB", "ProtC"})
+    {
+      ProteinHit hit;
+      hit.setAccession(accession);
+      hits.push_back(hit);
+
+      ProteinIdentification::ProteinGroup group;
+      group.accessions = {accession};
+      group.probability = 1.0;
+
+      // quantities of an earlier run, in the sample-level layout of older versions (which the
+      // exporters still read) and in the current layout
+      add_array(group.getFloatDataArrays(), legacy_abundance_array, 54321.0f);
+      add_array(group.getFloatDataArrays(), abundance_array, 12345.0f);
+      add_array(group.getIntegerDataArrays(), "fraction_group_level_label", 1);
+      add_array(group.getStringDataArrays(), "file_channel_level_filename", "fileA");
+
+      // an array that the quantifier does not write and must not touch
+      if (foreign_array_on_prot_a && (std::string(accession) == "ProtA"))
+      {
+        add_array(group.getFloatDataArrays(), foreign_array, 1.5f);
+      }
+      proteins.getIndistinguishableProteins().push_back(group);
+    }
+    proteins.setHits(hits);
+    return proteins;
+  };
+
+  auto find_group = [](const ProteinIdentification& proteins, const std::string& accession) -> const ProteinIdentification::ProteinGroup*
+  {
+    for (const auto& group : proteins.getIndistinguishableProteins())
+    {
+      if (group.accessions[0] == accession) { return &group; }
+    }
+    return nullptr;
+  };
+
+  // quantify with 'top:N 2' and annotate @p proteins
+  auto annotate = [&](ProteinIdentification& proteins, bool remove_unquantified)
+  {
+    PeptideAndProteinQuant quantifier;
+    Param p = quantifier.getDefaults();
+    p.setValue("top:N", 2);
+    p.setValue("top:aggregate", "sum");
+    quantifier.setParameters(p);
+    quantifier.readQuantData(consensus, design);
+    quantifier.quantifyPeptides();
+    quantifier.quantifyProteins(proteins);
+
+    const auto& quant = quantifier.getProteinResults();
+    TEST_TRUE(quant.at("ProtA").fraction_group_abundances.empty())
+    TEST_REAL_SIMILAR(quant.at("ProtB").fraction_group_abundances.at(1).at(1), 4000.0)
+    TEST_TRUE(quant.find("ProtC") == quant.end())
+    quantifier.annotateQuantificationsToProteins(quant, proteins, remove_unquantified);
+  };
+
+  // the only float array of ProtA that may survive is the one of the other annotator
+  auto has_only_foreign_array = [&](const ProteinIdentification::ProteinGroup& group)
+  {
+    return (group.getFloatDataArrays().size() == 1) && (group.getFloatDataArrays()[0].getName() == foreign_array)
+           && group.getIntegerDataArrays().empty() && group.getStringDataArrays().empty();
+  };
+
+  // keeping unquantified groups: they stay, but without the stored quantities
+  {
+    ProteinIdentification proteins = make_proteins(true);
+    annotate(proteins, false);
+    TEST_EQUAL(proteins.getIndistinguishableProteins().size(), 3)
+
+    const auto* prot_a = find_group(proteins, "ProtA");
+    TEST_TRUE(prot_a != nullptr)
+    TEST_TRUE(has_only_foreign_array(*prot_a))
+    TEST_REAL_SIMILAR(prot_a->getFloatDataArrays()[0][0], 1.5)
+
+    const auto* prot_c = find_group(proteins, "ProtC");
+    TEST_TRUE(prot_c != nullptr)
+    TEST_TRUE(prot_c->getFloatDataArrays().empty())
+    TEST_TRUE(prot_c->getIntegerDataArrays().empty())
+    TEST_TRUE(prot_c->getStringDataArrays().empty())
+
+    // the quantified group reports this run's value, not the stored one - in either layout
+    const auto* prot_b = find_group(proteins, "ProtB");
+    TEST_TRUE(prot_b != nullptr)
+    const auto abundance = getDataArrayByName(prot_b->getFloatDataArrays(), abundance_array);
+    TEST_TRUE(abundance != prot_b->getFloatDataArrays().end())
+    TEST_EQUAL(abundance->size(), 1)
+    TEST_REAL_SIMILAR((*abundance)[0], 4000.0)
+    TEST_TRUE(getDataArrayByName(prot_b->getFloatDataArrays(), legacy_abundance_array) == prot_b->getFloatDataArrays().end())
+  }
+
+  // removing unquantified groups: without their stored quantities they are recognized as such
+  {
+    ProteinIdentification proteins = make_proteins(false);
+    annotate(proteins, true);
+    TEST_EQUAL(proteins.getIndistinguishableProteins().size(), 1)
+    TEST_STRING_EQUAL(proteins.getIndistinguishableProteins()[0].accessions[0], "ProtB")
+  }
+
+  // ... while a group that carries the array of another annotator is kept, as before - but
+  // without quantities
+  {
+    ProteinIdentification proteins = make_proteins(true);
+    annotate(proteins, true);
+    TEST_EQUAL(proteins.getIndistinguishableProteins().size(), 2)
+    const auto* prot_a = find_group(proteins, "ProtA");
+    TEST_TRUE(prot_a != nullptr)
+    TEST_TRUE(has_only_foreign_array(*prot_a))
+    TEST_TRUE(find_group(proteins, "ProtB") != nullptr)
+  }
+}
+END_SECTION
+
 START_SECTION((const ProteinQuant& getProteinResults() file+channel level must sum all peptidoforms))
 {
   // Two peptidoforms of the same unmodified sequence, in one file/channel.
@@ -2398,6 +2537,419 @@ START_SECTION(([EXTRA] "enough peptides" counts the detected ones, and a dead sa
     TEST_REAL_SIMILAR(protein.fraction_group_abundances.at(1).at(2), 1000.0)
     TEST_REAL_SIMILAR(protein.fraction_group_abundances.at(1).at(3), 0.0)
   }
+}
+END_SECTION
+
+/////////////////////////////////////////////////////////////
+// 'modifications:exclude': leaving modified peptides out of the protein quantification.
+//
+// The option removes peptidoforms from the protein roll-up only. It has to
+//   - be a no-op while the list is empty (the default),
+//   - act on BOTH protein granularities (assay and file/channel) identically,
+//   - with 'modifications:exclude_counterparts' (default) take the other forms of the same
+//     peptide sequence along, the unmodified one included,
+//   - leave the peptide-level results and the identification evidence (PSM counts) alone,
+//   - only ever match the modifications that are listed.
+/////////////////////////////////////////////////////////////
+
+// "Prot" with three peptides in two files. PEPTIDEMK occurs oxidized and unmodified in fileA and
+// only unmodified in fileB:
+//             PEPTIDEMK   PEPTIDEM(Oxidation)K   AAAAAK   CCCCCK
+//   fileA           100                    900      500      300
+//   fileB            10                      -       50       30
+auto make_oxidation_input = [&make_detailed_input](ConsensusMap& consensus, ExperimentalDesign& design)
+{
+  make_detailed_input({"fileA", "fileB"},
+                      {{0, "PEPTIDEMK", 2, 100.0},
+                       {0, "PEPTIDEM(Oxidation)K", 2, 900.0},
+                       {0, "AAAAAK", 2, 500.0},
+                       {0, "CCCCCK", 2, 300.0},
+                       {1, "PEPTIDEMK", 2, 10.0},
+                       {1, "AAAAAK", 2, 50.0},
+                       {1, "CCCCCK", 2, 30.0}},
+                      "Prot", consensus, design);
+};
+
+// Run the whole pipeline with the default parameters plus @p settings.
+auto quantify_with = [](ConsensusMap& consensus, const ExperimentalDesign& design,
+                        const std::vector<std::pair<std::string, ParamValue>>& settings,
+                        const ProteinIdentification& proteins = ProteinIdentification())
+{
+  PeptideAndProteinQuant quantifier;
+  Param p = quantifier.getDefaults();
+  for (const auto& [name, value] : settings) { p.setValue(name, value); }
+  quantifier.setParameters(p);
+  quantifier.readQuantData(consensus, design);
+  quantifier.quantifyPeptides();
+  quantifier.quantifyProteins(proteins);
+  return quantifier;
+};
+const std::vector<std::string> oxidation{"Oxidation (M)"};
+
+START_SECTION(([EXTRA] modifications:exclude is empty by default and then changes nothing))
+{
+  const Param defaults = PeptideAndProteinQuant().getDefaults();
+  TEST_TRUE(defaults.getValue("modifications:exclude").toStringVector().empty())
+  TEST_EQUAL(defaults.getValue("modifications:exclude_counterparts"), "true")
+
+  ConsensusMap consensus;
+  ExperimentalDesign design;
+  make_oxidation_input(consensus, design);
+  auto quantifier = quantify_with(consensus, design, {{"top:N", 0}, {"top:aggregate", "sum"}});
+
+  // all peptidoforms are summed, as before the option existed
+  const auto& pd = quantifier.getProteinResults().at("Prot");
+  TEST_EQUAL(pd.peptide_fraction_group_abundances.size(), 3)
+  TEST_REAL_SIMILAR(pd.peptide_fraction_group_abundances.at("PEPTIDEMK").at(1).at(1), 1000.0)
+  TEST_REAL_SIMILAR(pd.fraction_group_abundances.at(1).at(1), 1800.0)
+  TEST_REAL_SIMILAR(pd.fraction_group_abundances.at(2).at(1), 90.0)
+  TEST_REAL_SIMILAR(pd.channel_level_abundances.at("fileA").at(1), 1800.0)
+  TEST_REAL_SIMILAR(pd.channel_level_abundances.at("fileB").at(1), 90.0)
+}
+END_SECTION
+
+START_SECTION(([EXTRA] modifications:exclude leaves a peptide out with all of its forms))
+{
+  ConsensusMap consensus;
+  ExperimentalDesign design;
+  make_oxidation_input(consensus, design);
+
+  auto quantifier = quantify_with(consensus, design,
+                                  {{"top:N", 0}, {"top:aggregate", "sum"}, {"modifications:exclude", oxidation}});
+
+  // The peptide level is untouched: both forms are still there, with their abundances.
+  const auto& peptides = quantifier.getPeptideResults();
+  TEST_EQUAL(peptides.size(), 4)
+  TEST_REAL_SIMILAR(peptides.at(AASequence::fromString("PEPTIDEM(Oxidation)K")).fraction_group_abundances.at(1).at(1), 900.0)
+  TEST_REAL_SIMILAR(peptides.at(AASequence::fromString("PEPTIDEMK")).fraction_group_abundances.at(1).at(1), 100.0)
+  TEST_REAL_SIMILAR(peptides.at(AASequence::fromString("PEPTIDEMK")).fraction_group_abundances.at(2).at(1), 10.0)
+
+  // The protein is made of the two remaining peptides. PEPTIDEMK is gone with BOTH forms - in
+  // fileB too, where only the unmodified counterpart was seen (90 - 10 = 80).
+  const auto& pd = quantifier.getProteinResults().at("Prot");
+  TEST_EQUAL(pd.peptide_fraction_group_abundances.size(), 2)
+  TEST_TRUE(pd.peptide_fraction_group_abundances.find("PEPTIDEMK") == pd.peptide_fraction_group_abundances.end())
+  TEST_REAL_SIMILAR(pd.fraction_group_abundances.at(1).at(1), 800.0)
+  TEST_REAL_SIMILAR(pd.fraction_group_abundances.at(2).at(1), 80.0)
+
+  // ... and the file+channel level must make exactly the same decision
+  TEST_REAL_SIMILAR(pd.channel_level_abundances.at("fileA").at(1), 800.0)
+  TEST_REAL_SIMILAR(pd.channel_level_abundances.at("fileB").at(1), 80.0)
+
+  // Identification evidence is not filtered: all seven PSMs still count for the protein.
+  TEST_EQUAL(pd.psm_count, 7)
+  TEST_EQUAL(quantifier.getStatistics().quant_proteins, 1)
+}
+END_SECTION
+
+START_SECTION(([EXTRA] modifications:exclude_counterparts false keeps the forms without a listed modification))
+{
+  ConsensusMap consensus;
+  ExperimentalDesign design;
+  make_oxidation_input(consensus, design);
+
+  auto quantifier = quantify_with(consensus, design,
+                                  {{"top:N", 0}, {"top:aggregate", "sum"}, {"modifications:exclude", oxidation}, {"modifications:exclude_counterparts", "false"}});
+
+  // Only the oxidized form (900) is left out; the unmodified PEPTIDEMK still contributes.
+  const auto& pd = quantifier.getProteinResults().at("Prot");
+  TEST_EQUAL(pd.peptide_fraction_group_abundances.size(), 3)
+  TEST_REAL_SIMILAR(pd.peptide_fraction_group_abundances.at("PEPTIDEMK").at(1).at(1), 100.0)
+  TEST_REAL_SIMILAR(pd.peptide_fraction_group_abundances.at("PEPTIDEMK").at(2).at(1), 10.0)
+  TEST_REAL_SIMILAR(pd.fraction_group_abundances.at(1).at(1), 900.0)
+  TEST_REAL_SIMILAR(pd.fraction_group_abundances.at(2).at(1), 90.0)
+  TEST_REAL_SIMILAR(pd.channel_level_abundances.at("fileA").at(1), 900.0)
+  TEST_REAL_SIMILAR(pd.channel_level_abundances.at("fileB").at(1), 90.0)
+}
+END_SECTION
+
+START_SECTION(([EXTRA] modifications:exclude: a peptide that is left out does not count towards top:N))
+{
+  ConsensusMap consensus;
+  ExperimentalDesign design;
+  make_oxidation_input(consensus, design);
+
+  // Ranking: without the option PEPTIDEMK (100 + 900) leads fileA, mean(1000, 500) = 750.
+  // Leaving out only its oxidized form drops it to 100 and out of the top 2: mean(500, 300).
+  {
+    auto quantifier = quantify_with(consensus, design, {{"top:N", 2}, {"top:aggregate", "mean"}});
+    const auto& pd = quantifier.getProteinResults().at("Prot");
+    TEST_REAL_SIMILAR(pd.fraction_group_abundances.at(1).at(1), 750.0)
+    TEST_REAL_SIMILAR(pd.channel_level_abundances.at("fileA").at(1), 750.0)
+  }
+  {
+    auto quantifier = quantify_with(consensus, design,
+                                    {{"top:N", 2}, {"top:aggregate", "mean"}, {"modifications:exclude", oxidation}, {"modifications:exclude_counterparts", "false"}});
+    const auto& pd = quantifier.getProteinResults().at("Prot");
+    TEST_REAL_SIMILAR(pd.fraction_group_abundances.at(1).at(1), 400.0)
+    TEST_REAL_SIMILAR(pd.channel_level_abundances.at("fileA").at(1), 400.0)
+  }
+
+  // Gate: three peptides satisfy 'top:N 3'. With PEPTIDEMK left out only two remain, so the
+  // protein is no longer quantified - at either granularity - although it is still identified.
+  {
+    auto quantifier = quantify_with(consensus, design, {{"top:N", 3}, {"top:aggregate", "sum"}});
+    const auto& pd = quantifier.getProteinResults().at("Prot");
+    TEST_REAL_SIMILAR(pd.fraction_group_abundances.at(1).at(1), 1800.0)
+    TEST_REAL_SIMILAR(pd.channel_level_abundances.at("fileA").at(1), 1800.0)
+  }
+  {
+    auto quantifier = quantify_with(consensus, design,
+                                    {{"top:N", 3}, {"top:aggregate", "sum"}, {"modifications:exclude", oxidation}});
+    const auto& pd = quantifier.getProteinResults().at("Prot");
+    TEST_EQUAL(pd.peptide_fraction_group_abundances.size(), 2)
+    TEST_TRUE(pd.fraction_group_abundances.empty())
+    TEST_TRUE(pd.channel_level_abundances.empty())
+    TEST_EQUAL(pd.psm_count, 7)
+    TEST_EQUAL(quantifier.getStatistics().quant_proteins, 0)
+  }
+}
+END_SECTION
+
+START_SECTION(([EXTRA] modifications:exclude matches only the listed modifications, on residues and termini))
+{
+  // Four peptides, three of them modified in different places:
+  //   N-terminal acetylation, carbamidomethylated cysteine, oxidized methionine.
+  ConsensusMap consensus;
+  ExperimentalDesign design;
+  make_detailed_input({"fileA"},
+                      {{0, ".(Acetyl)AAAAAK", 2, 1.0},
+                       {0, "DDC(Carbamidomethyl)DDK", 2, 10.0},
+                       {0, "EEM(Oxidation)EEK", 2, 100.0},
+                       {0, "GGGGGK", 2, 1000.0}},
+                      "Prot", consensus, design);
+
+  auto quantify = [&](const std::vector<std::string>& exclude)
+  {
+    auto quantifier = quantify_with(consensus, design,
+                                    {{"top:N", 0}, {"top:aggregate", "sum"}, {"modifications:exclude", exclude}});
+    const auto& pd = quantifier.getProteinResults().at("Prot");
+    // both granularities have to agree, whatever is left out
+    TEST_REAL_SIMILAR(pd.channel_level_abundances.at("fileA").at(1), pd.fraction_group_abundances.at(1).at(1))
+    return pd.fraction_group_abundances.at(1).at(1);
+  };
+
+  TEST_REAL_SIMILAR(quantify({}), 1111.0)
+  // a terminal modification
+  TEST_REAL_SIMILAR(quantify({"Acetyl (N-term)"}), 1110.0)
+  // a residue modification; the carbamidomethylated and the acetylated peptide stay
+  TEST_REAL_SIMILAR(quantify({"Oxidation (M)"}), 1011.0)
+  // a "fixed" modification is left out only because it is listed
+  TEST_REAL_SIMILAR(quantify({"Carbamidomethyl (C)"}), 1101.0)
+  // several at once
+  TEST_REAL_SIMILAR(quantify({"Acetyl (N-term)", "Oxidation (M)"}), 1010.0)
+  // the same modification with another specificity is a different modification
+  TEST_REAL_SIMILAR(quantify({"Acetyl (K)", "Oxidation (W)", "Carbamidomethyl (N-term)"}), 1111.0)
+}
+END_SECTION
+
+START_SECTION(([EXTRA] modifications:exclude: an identified, unquantified form is evidence for its counterparts))
+{
+  // EEEEEMK is quantified unmodified only. Its oxidized form was identified, but no feature
+  // carries that identification (an unassigned peptide identification).
+  ConsensusMap consensus;
+  ExperimentalDesign design;
+  make_detailed_input({"fileA"},
+                      {{0, "EEEEEMK", 2, 100.0},
+                       {0, "GGGGGK", 2, 1000.0}},
+                      "Prot", consensus, design);
+
+  PeptideEvidence ev;
+  ev.setProteinAccession("Prot");
+  PeptideHit hit;
+  hit.setSequence(AASequence::fromString("EEEEEM(Oxidation)K"));
+  hit.setCharge(2);
+  hit.setScore(1.0);
+  hit.setPeptideEvidences({ev});
+  PeptideIdentification unassigned;
+  unassigned.setHits({hit});
+  consensus.getUnassignedPeptideIdentifications().push_back(unassigned);
+
+  auto quantify = [&](const std::string& exclude_counterparts)
+  {
+    auto quantifier = quantify_with(consensus, design,
+                                    {{"top:N", 0}, {"top:aggregate", "sum"}, {"modifications:exclude", oxidation}, {"modifications:exclude_counterparts", exclude_counterparts}});
+    const auto& pd = quantifier.getProteinResults().at("Prot");
+    TEST_EQUAL(pd.psm_count, 3)
+    TEST_REAL_SIMILAR(pd.channel_level_abundances.at("fileA").at(1), pd.fraction_group_abundances.at(1).at(1))
+    return pd.fraction_group_abundances.at(1).at(1);
+  };
+
+  // The peptide is known to occur oxidized, so its unmodified counterpart is left out ...
+  TEST_REAL_SIMILAR(quantify("true"), 1000.0)
+  // ... unless only the forms carrying the modification themselves are to be left out.
+  TEST_REAL_SIMILAR(quantify("false"), 1100.0)
+}
+END_SECTION
+
+START_SECTION(([EXTRA] modifications:exclude: a protein without remaining peptides is identified, but not quantified))
+{
+  ConsensusMap consensus;
+  ExperimentalDesign design;
+  make_detailed_input({"fileA"},
+                      {{0, "PEPTIDEMK", 2, 100.0},
+                       {0, "PEPTIDEM(Oxidation)K", 2, 900.0}},
+                      "Prot", consensus, design);
+
+  auto quantifier = quantify_with(consensus, design,
+                                  {{"top:N", 0}, {"top:aggregate", "sum"}, {"top:include_all", "true"}, {"modifications:exclude", oxidation}});
+
+  const auto& quant = quantifier.getProteinResults();
+  TEST_TRUE(quant.find("Prot") != quant.end())
+  const auto& pd = quant.at("Prot");
+  TEST_EQUAL(pd.psm_count, 2)
+  TEST_TRUE(pd.peptide_fraction_group_abundances.empty())
+  TEST_TRUE(pd.fraction_group_abundances.empty())
+  TEST_TRUE(pd.channel_level_abundances.empty())
+  TEST_EQUAL(quantifier.getStatistics().quant_proteins, 0)
+  TEST_EQUAL(quantifier.getStatistics().quant_peptides, 2)
+}
+END_SECTION
+
+START_SECTION(([EXTRA] modifications:exclude applies to both granularities of a fractionated multi-channel design, also under best_charge))
+{
+  // One fraction group of two fractions, two channels. PEPTIDEMK is oxidized in fraction 1 and
+  // unmodified in fraction 2; AAAAAK is seen in both fractions, in two charge states in the first.
+  ConsensusMap consensus;
+  ExperimentalDesign design;
+  make_fractionated_input({"frac1", "frac2"}, 2,
+                          {{0, 1, "PEPTIDEM(Oxidation)K", 2, 900.0},
+                           {0, 2, "PEPTIDEM(Oxidation)K", 2, 90.0},
+                           {1, 1, "PEPTIDEMK", 2, 100.0},
+                           {1, 2, "PEPTIDEMK", 2, 10.0},
+                           {0, 1, "AAAAAK", 2, 500.0},
+                           {0, 2, "AAAAAK", 2, 50.0},
+                           {0, 1, "AAAAAK", 3, 5.0},
+                           {1, 1, "AAAAAK", 2, 300.0},
+                           {1, 2, "AAAAAK", 2, 30.0}},
+                          "Prot", consensus, design);
+
+  for (const char* best_charge : {"false", "true"})
+  {
+    // charge 3 of AAAAAK (5.0 in frac1/ch1) only contributes without 'best_charge'
+    const double z3 = (std::string(best_charge) == "false") ? 5.0 : 0.0;
+
+    {
+      auto quantifier = quantify_with(consensus, design,
+                                      {{"top:N", 0}, {"top:aggregate", "sum"}, {"best_charge", best_charge}});
+      const auto& pd = quantifier.getProteinResults().at("Prot");
+      TEST_REAL_SIMILAR(pd.fraction_group_abundances.at(1).at(1), 1800.0 + z3)
+      TEST_REAL_SIMILAR(pd.fraction_group_abundances.at(1).at(2), 180.0)
+      TEST_REAL_SIMILAR(pd.channel_level_abundances.at("frac1").at(1), 1400.0 + z3)
+      TEST_REAL_SIMILAR(pd.channel_level_abundances.at("frac2").at(1), 400.0)
+    }
+
+    // Leaving PEPTIDEMK out removes it from the assays and from every (file, channel) cell -
+    // from frac2 as well, where only its unmodified form was measured.
+    {
+      auto quantifier = quantify_with(consensus, design,
+                                      {{"top:N", 0}, {"top:aggregate", "sum"}, {"best_charge", best_charge},
+                                       {"modifications:exclude", oxidation}});
+      const auto& pd = quantifier.getProteinResults().at("Prot");
+      TEST_REAL_SIMILAR(pd.fraction_group_abundances.at(1).at(1), 800.0 + z3)
+      TEST_REAL_SIMILAR(pd.fraction_group_abundances.at(1).at(2), 80.0)
+      TEST_REAL_SIMILAR(pd.channel_level_abundances.at("frac1").at(1), 500.0 + z3)
+      TEST_REAL_SIMILAR(pd.channel_level_abundances.at("frac1").at(2), 50.0)
+      TEST_REAL_SIMILAR(pd.channel_level_abundances.at("frac2").at(1), 300.0)
+      TEST_REAL_SIMILAR(pd.channel_level_abundances.at("frac2").at(2), 30.0)
+    }
+
+    // Keeping the counterparts leaves the unmodified form of frac2 in.
+    {
+      auto quantifier = quantify_with(consensus, design,
+                                      {{"top:N", 0}, {"top:aggregate", "sum"}, {"best_charge", best_charge},
+                                       {"modifications:exclude", oxidation}, {"modifications:exclude_counterparts", "false"}});
+      const auto& pd = quantifier.getProteinResults().at("Prot");
+      TEST_REAL_SIMILAR(pd.fraction_group_abundances.at(1).at(1), 900.0 + z3)
+      TEST_REAL_SIMILAR(pd.fraction_group_abundances.at(1).at(2), 90.0)
+      TEST_REAL_SIMILAR(pd.channel_level_abundances.at("frac1").at(1), 500.0 + z3)
+      TEST_REAL_SIMILAR(pd.channel_level_abundances.at("frac2").at(1), 400.0)
+      TEST_REAL_SIMILAR(pd.channel_level_abundances.at("frac2").at(2), 40.0)
+    }
+  }
+}
+END_SECTION
+
+START_SECTION(([EXTRA] modifications:exclude: iBAQ keeps a left-out peptide in the theoretical peptide count))
+{
+  // iBAQ divides by the number of theoretically observable peptides of the protein sequence.
+  // A peptide that is left out of the sum is still theoretically observable: it counts like a
+  // peptide that was not detected, so the divisor does not depend on the data.
+  // The protein below has three theoretical peptides: PEPTIDEMK, AAAAAK and CCCCCK.
+  ProteinHit prot_hit;
+  prot_hit.setAccession("Prot");
+  prot_hit.setSequence("PEPTIDEMKAAAAAKCCCCCK");
+  ProteinIdentification proteins;
+  proteins.setHits({prot_hit});
+
+  auto ibaq = [&](ConsensusMap& consensus, const ExperimentalDesign& design,
+                          const std::vector<std::string>& exclude, const std::string& exclude_counterparts)
+  {
+    auto quantifier = quantify_with(consensus, design,
+                                    {{"method", "iBAQ"}, {"modifications:exclude", exclude}, {"modifications:exclude_counterparts", exclude_counterparts}}, proteins);
+    const auto& pd = quantifier.getProteinResults().at("Prot");
+    // the file+channel level is normalized by the same count
+    TEST_REAL_SIMILAR(pd.channel_level_abundances.at("fileA").at(1), pd.fraction_group_abundances.at(1).at(1))
+    return pd.fraction_group_abundances.at(1).at(1);
+  };
+
+  // PEPTIDEMK measured unmodified (100) and oxidized (900)
+  {
+    ConsensusMap consensus;
+    ExperimentalDesign design;
+    make_detailed_input({"fileA"},
+                        {{0, "PEPTIDEMK", 2, 100.0},
+                         {0, "PEPTIDEM(Oxidation)K", 2, 900.0},
+                         {0, "AAAAAK", 2, 500.0},
+                         {0, "CCCCCK", 2, 300.0}},
+                        "Prot", consensus, design);
+
+    // nothing left out: (1000 + 500 + 300) / 3
+    TEST_REAL_SIMILAR(ibaq(consensus, design, {}, "true"), 600.0)
+    // PEPTIDEMK left out with both forms: (500 + 300) / 3, still three theoretical peptides
+    TEST_REAL_SIMILAR(ibaq(consensus, design, {"Oxidation (M)"}, "true"), 800.0 / 3.0)
+    // only the oxidized form left out: (100 + 500 + 300) / 3
+    TEST_REAL_SIMILAR(ibaq(consensus, design, {"Oxidation (M)"}, "false"), 300.0)
+  }
+
+  // PEPTIDEMK seen oxidized only: without the counterparts, too, none of its forms is left;
+  // the divisor stays 3
+  {
+    ConsensusMap consensus;
+    ExperimentalDesign design;
+    make_detailed_input({"fileA"},
+                        {{0, "PEPTIDEM(Oxidation)K", 2, 900.0},
+                         {0, "AAAAAK", 2, 500.0},
+                         {0, "CCCCCK", 2, 300.0}},
+                        "Prot", consensus, design);
+    TEST_REAL_SIMILAR(ibaq(consensus, design, {}, "false"), 1700.0 / 3.0)
+    TEST_REAL_SIMILAR(ibaq(consensus, design, {"Oxidation (M)"}, "false"), 800.0 / 3.0)
+  }
+
+  // Every theoretical peptide left out, while a peptide with a missed cleavage (not a
+  // theoretical one) is still quantified: divided by the two theoretical peptides as usual.
+  {
+    ConsensusMap consensus;
+    ExperimentalDesign design;
+    make_detailed_input({"fileA"},
+                        {{0, "PEPTIDEM(Oxidation)K", 2, 900.0},
+                         {0, "AAAAAM(Oxidation)K", 2, 90.0},
+                         {0, "PEPTIDEMKAAAAAMK", 2, 50.0}},
+                        "Prot", consensus, design);
+    prot_hit.setSequence("PEPTIDEMKAAAAAMK");
+    proteins.setHits({prot_hit});
+    TEST_REAL_SIMILAR(ibaq(consensus, design, {}, "true"), 1040.0 / 2.0)
+    TEST_REAL_SIMILAR(ibaq(consensus, design, {"Oxidation (M)"}, "true"), 50.0 / 2.0)
+  }
+}
+END_SECTION
+
+START_SECTION(([EXTRA] modifications:exclude rejects names that are not modifications))
+{
+  PeptideAndProteinQuant quantifier;
+  Param p = quantifier.getDefaults();
+  p.setValue("modifications:exclude", std::vector<std::string>{"Oxidation (M)", "Oxidized (M)"});
+  TEST_EXCEPTION(Exception::InvalidParameter, quantifier.setParameters(p))
 }
 END_SECTION
 

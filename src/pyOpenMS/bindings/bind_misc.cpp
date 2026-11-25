@@ -599,7 +599,7 @@ Usage:
     exp = MSExperiment()
     MzMLFile().load(path_to_file, exp)
     ff = FeatureFinderAlgorithmMetaboIdent()
-    ff.setMSData(exp)
+    ff.setFromMS1Data(exp)
 
     fm = FeatureMap() # detected features will be stored here
 
@@ -623,8 +623,8 @@ Usage:
 )doc")
         .def(nb::init<>())
         .def("getMSData", [](OpenMS::FeatureFinderAlgorithmMetaboIdent& self) -> OpenMS::MSExperiment { return self.getMSData(); }, "Returns spectra")
-        .def("setMSData", [](OpenMS::FeatureFinderAlgorithmMetaboIdent& self, const OpenMS::MSExperiment& m) { return self.setMSData(m); }, "m"_a, "Sets spectra")
-        .def("setMSData", [](OpenMS::FeatureFinderAlgorithmMetaboIdent& self, OpenMS::MSExperiment& m) { return self.setMSData(m); }, "m"_a, "Sets spectra")
+        .def("setFromMS1Data", [](OpenMS::FeatureFinderAlgorithmMetaboIdent& self, const OpenMS::MSExperiment& m) { return self.setFromMS1Data(m); }, "m"_a, "Sets the spectra, keeping only the MS1 spectra")
+        .def("setFromMS1Data", [](OpenMS::FeatureFinderAlgorithmMetaboIdent& self, OpenMS::MSExperiment& m) { return self.setFromMS1Data(m); }, "m"_a, "Sets the spectra, keeping only the MS1 spectra")
         .def("getChromatograms", [](OpenMS::FeatureFinderAlgorithmMetaboIdent& self) -> OpenMS::MSExperiment { return self.getChromatograms(); }, "Retrieves chromatograms (empty if run was not executed)")
         .def("getLibrary", [](const OpenMS::FeatureFinderAlgorithmMetaboIdent& self) -> OpenMS::TargetedExperiment { return self.getLibrary(); }, "Retrieves the assay library (e.g., to store as TraML, empty if run was not executed)")
         .def("getTransformations", [](const OpenMS::FeatureFinderAlgorithmMetaboIdent& self) -> OpenMS::TransformationDescription { return self.getTransformations(); }, "Retrieves deviations between provided coordinates and extacted ones (e.g., to store as TrafoXML or for plotting)")
@@ -677,7 +677,7 @@ Usage:
 
   exp = MSExperiment()
   mzml.load("FeatureFinderIdentification_1_input.mzML", exp)
-  ffid_algo.setMSData(exp)
+  ffid_algo.setFromMS1Data(exp)
   # annotate mzML file
   features = FeatureMap()
   features.setPrimaryMSRunPath([b"FeatureFinderIdentification_1_input.idXML"], ffid_algo.getMSData())
@@ -707,9 +707,9 @@ Run feature detection
 )doc")
         .def("runOnCandidates", [](OpenMS::FeatureFinderIdentificationAlgorithm& self, OpenMS::FeatureMap& features) { return self.runOnCandidates(features); }, "features"_a, "Run feature detection on identified features (e.g. loaded from an IdXML file)")
         .def("getMSData", [](OpenMS::FeatureFinderIdentificationAlgorithm& self) -> OpenMS::MSExperiment { return self.getMSData(); }, "Returns ms data as MSExperiment")
-        .def("setMSData", [](OpenMS::FeatureFinderIdentificationAlgorithm& self, const OpenMS::MSExperiment& ms_data) { return self.setMSData(ms_data); }, "ms_data"_a, "Sets ms data")
-        .def("setMSData", [](OpenMS::FeatureFinderIdentificationAlgorithm& self, OpenMS::MSExperiment& ms_data) { return self.setMSData(ms_data); }, "ms_data"_a, "Sets ms data")
-        .def("getChromatograms", [](OpenMS::FeatureFinderIdentificationAlgorithm& self) -> OpenMS::MSExperiment { return self.getChromatograms(); }, "Returns chromatogram data as MSExperiment")
+        .def("setFromMS1Data", [](OpenMS::FeatureFinderIdentificationAlgorithm& self, const OpenMS::MSExperiment& ms_data) { return self.setFromMS1Data(ms_data); }, "ms_data"_a, "Sets the MS data, keeping only its MS1 spectra")
+        .def("setFromMS1Data", [](OpenMS::FeatureFinderIdentificationAlgorithm& self, OpenMS::MSExperiment& ms_data) { return self.setFromMS1Data(ms_data); }, "ms_data"_a, "Sets the MS data, keeping only its MS1 spectra")
+        .def("getChromatograms", [](OpenMS::FeatureFinderIdentificationAlgorithm& self) -> OpenMS::MSExperiment { return self.getChromatograms(); }, "Returns chromatogram data as MSExperiment (empty unless the parameter keep_chromatograms is 'true')")
         .def("getLibrary", [](OpenMS::FeatureFinderIdentificationAlgorithm& self) -> OpenMS::TargetedExperiment { return self.getLibrary(); }, "Returns constructed assay library")
         ;
 

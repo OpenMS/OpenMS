@@ -7,6 +7,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/ClassTest.h>
+#include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/test_config.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
@@ -285,7 +286,9 @@ START_SECTION((void applyPickedProteinFDR(ProteinIdentification& id, std::string
     ProteinIdentification run = picked_run(false,
       {{"A", 0.01}, {"DECOY_A", 0.02}, {"B", 0.05}, {"DECOY_B", 0.04}, {"C", 0.02}},
       {{0.01, {"A"}}, {0.02, {"DECOY_A"}}, {0.05, {"B"}}, {0.04, {"DECOY_B"}}, {0.02, {"C"}}});
+    IDFilter::recordGroupScoreThreshold(run, 0.045); // applies to the old group scores only
     fdr.applyPickedProteinFDR(run, "DECOY_", true);
+    TEST_EQUAL(run.metaValueExists(Constants::UserParam::PROTEIN_GROUP_SCORE_THRESHOLD), false)
     vector<double> qs = group_qvalues(run);
     TEST_REAL_SIMILAR(qs[0], 0.5)
     TEST_REAL_SIMILAR(qs[1], 0.5)
@@ -471,6 +474,9 @@ START_SECTION((void applyBasic(ProteinIdentification & id, bool groups_too = tru
     grp.accessions = {acc};
     run.getIndistinguishableProteins().push_back(grp);
   }
+  // a group score cutoff recorded before (e.g. by IDFilter) applies to the old group scores only
+  IDFilter::recordGroupScoreThreshold(run, 0.015);
+  ProteinIdentification proteins_only = run;
   FalseDiscoveryRate fdr;
   fdr.applyBasic(run, true);
   TOLERANCE_ABSOLUTE(1e-6)
@@ -479,6 +485,12 @@ START_SECTION((void applyBasic(ProteinIdentification & id, bool groups_too = tru
   TEST_REAL_SIMILAR(grps[1].probability, 0.5)
   TEST_REAL_SIMILAR(grps[2].probability, 2.0 / 3.0)
   TEST_REAL_SIMILAR(grps[3].probability, 2.0 / 3.0)
+  TEST_EQUAL(run.metaValueExists(Constants::UserParam::PROTEIN_GROUP_SCORE_THRESHOLD), false)
+  TEST_EQUAL(run.metaValueExists(Constants::UserParam::PROTEIN_GROUP_SCORE_THRESHOLD_TYPE), false)
+  // without group FDR, the group scores and the cutoff stay
+  fdr.applyBasic(proteins_only, false);
+  TEST_REAL_SIMILAR(proteins_only.getIndistinguishableProteins()[0].probability, 0.01)
+  TEST_REAL_SIMILAR(proteins_only.getMetaValue(Constants::UserParam::PROTEIN_GROUP_SCORE_THRESHOLD, 0.0), 0.015)
 }
 END_SECTION
 

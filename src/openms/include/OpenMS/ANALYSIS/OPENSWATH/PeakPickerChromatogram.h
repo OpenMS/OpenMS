@@ -20,10 +20,6 @@
 
 #include <OpenMS/PROCESSING/CENTROIDING/PeakPickerHiRes.h>
 
-#ifdef WITH_CRAWDAD
-#include <CrawdadWrapper.h>
-#endif
-
 namespace OpenMS
 {
 
@@ -83,8 +79,6 @@ public:
     void pickChromatogram(const MSChromatogram& chromatogram, MSChromatogram& picked_chrom, MSChromatogram& smoothed_chrom);
 
 protected:
-
-    void pickChromatogramCrawdad_(const MSChromatogram& chromatogram, MSChromatogram& picked_chrom);
 
     void pickChromatogram_(const MSChromatogram& chromatogram, MSChromatogram& picked_chrom);
 

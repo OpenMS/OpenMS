@@ -349,6 +349,79 @@ START_SECTION([EXTRA] digestUnmodified honors SPEC_NONE / SPEC_SEMI (pair output
 }
 END_SECTION
 
+START_SECTION([EXTRA] digestUnmodified on a fully empty sequence must not crash or throw (SPEC_FULL / SPEC_SEMI, pair and string_view output))
+{
+  // Regression test: an empty protein sequence (e.g. a malformed FASTA entry with a header but no
+  // residues) combined with min_length == 0 must yield zero peptides, not undefined behaviour.
+  // (min_length == 0 is a valid, user-settable value, e.g. FragmentIndex's 'peptide:min_size' only
+  // enforces >= 0; it is also exactly the case the existing "sequence.size() < min_length" guard
+  // does NOT catch, since 0 < 0 is false.)
+  //
+  // Two distinct bugs used to live in this corner (both only reachable via an *empty* sequence with
+  // min_length == 0, since tokenize_() returns at least one position for any non-empty sequence, and
+  // any min_length >= 1 is already caught by the pre-existing "too short" guard):
+  //  1) digestAfterTokenize_()'s "no cleavage site" branch computed `sequence.size() - 1` as the
+  //     *length* of the one reported span. For an empty sequence (size() == 0), that underflowed to
+  //     SIZE_MAX. Real caller impact: OpenMS::FragmentIndex (used by the ProSE TOPP tool) takes the
+  //     reported (start, length) span and constructs
+  //     std::string_view(protein.sequence.data() + start, length) directly from it (FragmentIndex.cpp,
+  //     the digestUnmodified() call in its "else" branch for proteins with an empty sequence) - an
+  //     out-of-bounds read of ~2^64 bytes, i.e. a crash.
+  //  2) For SPEC_SEMI, digestUnmodified() always appends sequence.size() as an extra "cleavage
+  //     position" and hands the result to semiSpecificDigestion_(), which throws
+  //     Exception::InvalidValue if fewer than two positions are given. For an empty sequence this is
+  //     exactly one position, so once min_length == 0 lets execution reach that call, the exception
+  //     fires. FragmentIndex calls digestUnmodified() from inside an '#pragma omp parallel for' loop
+  //     over all FASTA entries, where an escaping exception is undefined behaviour (typically
+  //     std::terminate()).
+  // Neither bug is visible in operator== or any existing assertion above: both earlier SPEC_NONE /
+  // SPEC_SEMI tests in this section use either a non-empty sequence or min_length >= 1 on an empty
+  // one, and the only existing empty-sequence test (above) uses SPEC_NONE with min_length == 1, which
+  // takes a different, unaffected code path.
+  std::string empty_s;
+
+  // Bug (1): SPEC_FULL, min_length == 0, pair output.
+  EnzymaticDigestion ed_full_empty;
+  ed_full_empty.setEnzyme(ProteaseDB::getInstance()->getEnzyme("Trypsin"));
+  ed_full_empty.setSpecificity(EnzymaticDigestion::SPEC_FULL);
+  std::vector<std::pair<size_t, size_t>> out_pairs_empty;
+  ed_full_empty.digestUnmodified(empty_s, out_pairs_empty, 0, 10);
+  TEST_EQUAL(out_pairs_empty.size(), 0)
+  // defensive: if a span were (incorrectly) reported, its length must never exceed the input.
+  for (const auto& p : out_pairs_empty)
+  {
+    TEST_EQUAL(p.second <= empty_s.size(), true)
+  }
+
+  // Bug (2): SPEC_SEMI must not throw for an empty sequence when min_length == 0.
+  EnzymaticDigestion ed_semi_empty;
+  ed_semi_empty.setEnzyme(ProteaseDB::getInstance()->getEnzyme("Trypsin"));
+  ed_semi_empty.setSpecificity(EnzymaticDigestion::SPEC_SEMI);
+
+  std::vector<std::pair<size_t, size_t>> out_pairs_semi;
+  ed_semi_empty.digestUnmodified(empty_s, out_pairs_semi, 0, 10); // must not throw
+  TEST_EQUAL(out_pairs_semi.size(), 0)
+
+  // Same scenario through the std::string_view-output overload, used directly by most production
+  // call sites (SimpleSearchEngineAlgorithm, OpenSwathLibraryPreparation, FragmentIndex's
+  // 'clip_nterm_methionine_' branch, ...).
+  std::vector<std::string_view> out_views;
+  ed_semi_empty.digestUnmodified(empty_s, out_views, 0, 10); // must not throw
+  TEST_EQUAL(out_views.size(), 0)
+
+  // SPEC_FULL on the string_view overload never underflowed (its "no cleavage site" branch already
+  // pushed 'sequence' itself rather than computing size() - 1), but it used to report one spurious
+  // zero-length "peptide" for an empty sequence with min_length == 0; the fix (treating an empty
+  // sequence as "too short" up front, for every specificity) removes that too.
+  EnzymaticDigestion ed_full_empty_sv;
+  ed_full_empty_sv.setEnzyme(ProteaseDB::getInstance()->getEnzyme("Trypsin"));
+  ed_full_empty_sv.setSpecificity(EnzymaticDigestion::SPEC_FULL);
+  out_views.clear();
+  ed_full_empty_sv.digestUnmodified(empty_s, out_views, 0, 10);
+  TEST_EQUAL(out_views.size(), 0)
+}
+END_SECTION
+
 START_SECTION((Size semiSpecificDigestion_(const std::vector<int>& cleavage_positions, std::vector<std::pair<Size, Size>>& output, Size min_length, Size max_length) const))
 {
     class TempChild : public EnzymaticDigestion

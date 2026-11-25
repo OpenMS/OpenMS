@@ -24,21 +24,50 @@
  *   2020      Evan Nemerson <evan@nemerson.com>
  *   2021      Zhi An Ng <zhin@google.com> (Copyright owned by Google, LLC)
  *   2021      Décio Luiz Gazzoni Filho <decio@decpp.net>
+ *   2023      Yi-Yen Chung <eric681@andestech.com> (Copyright owned by Andes Technology)
+ *   2023      Chi-Wei Chu <wewe5215@gapp.nthu.edu.tw> (Copyright owned by NTHU pllab)
+ *   2025      Michael R. Crusoe <crusoe@debian.org>
  */
 
 #if !defined(SIMDE_ARM_NEON_LD1Q_X4_H)
 #define SIMDE_ARM_NEON_LD1Q_X4_H
 
 #include "types.h"
+#include "ld1.h"
 
 HEDLEY_DIAGNOSTIC_PUSH
 SIMDE_DISABLE_UNWANTED_DIAGNOSTICS
 #if HEDLEY_GCC_VERSION_CHECK(7,0,0)
-  SIMDE_DIAGNOSTIC_DISABLE_MAYBE_UNINITIAZILED_
+  SIMDE_DIAGNOSTIC_DISABLE_MAYBE_UNINITIALIZED_
 #endif
 SIMDE_BEGIN_DECLS_
 
 #if !defined(SIMDE_BUG_INTEL_857088)
+
+SIMDE_FUNCTION_ATTRIBUTES
+simde_float16x8x4_t
+simde_vld1q_f16_x4(simde_float16_t const ptr[HEDLEY_ARRAY_PARAM(32)]) {
+  #if \
+      defined(SIMDE_ARM_NEON_A32V7_NATIVE) && defined(SIMDE_ARM_NEON_FP16) && \
+      (!defined(HEDLEY_GCC_VERSION) || (HEDLEY_GCC_VERSION_CHECK(8,0,0) && defined(SIMDE_ARM_NEON_A64V8_NATIVE))) && \
+      (!defined(__clang__) || (SIMDE_DETECT_CLANG_VERSION_CHECK(7,0,0) && defined(SIMDE_ARM_NEON_A64V8_NATIVE)))
+    return vld1q_f16_x4(ptr);
+  #else
+    simde_float16x8_t a_[4];
+    for (size_t i = 0; i < 4; i++) {
+      a_[i] = simde_vld1q_f16(ptr + 8*i);
+    }
+    simde_float16x8x4_t s_ = { { a_[0], a_[1], a_[2], a_[3] } };
+    return s_;
+  #endif
+}
+#if defined(SIMDE_ARM_NEON_A32V7_ENABLE_NATIVE_ALIASES) || (defined(SIMDE_ENABLE_NATIVE_ALIASES) && \
+  !(defined(SIMDE_ARM_NEON_FP16) && \
+      (!defined(HEDLEY_GCC_VERSION) || (HEDLEY_GCC_VERSION_CHECK(8,0,0) && defined(SIMDE_ARM_NEON_A64V8_NATIVE))) && \
+      (!defined(__clang__) || (SIMDE_DETECT_CLANG_VERSION_CHECK(7,0,0) && defined(SIMDE_ARM_NEON_A64V8_NATIVE)))))
+  #undef vld1q_f16_x4
+  #define vld1q_f16_x4(a) simde_vld1q_f16_x4((a))
+#endif
 
 SIMDE_FUNCTION_ATTRIBUTES
 simde_float32x4x4_t
@@ -49,18 +78,17 @@ simde_vld1q_f32_x4(simde_float32 const ptr[HEDLEY_ARRAY_PARAM(16)]) {
       (!defined(__clang__) || (SIMDE_DETECT_CLANG_VERSION_CHECK(7,0,0) && defined(SIMDE_ARM_NEON_A64V8_NATIVE)))
     return vld1q_f32_x4(ptr);
   #else
-    simde_float32x4_private a_[4];
-    for (size_t i = 0; i < 16; i++) {
-      a_[i / 4].values[i % 4] = ptr[i];
+    simde_float32x4_t a_[4];
+    for (size_t i = 0; i < 4; i++) {
+      a_[i] = simde_vld1q_f32(ptr + 4*i);
     }
-    simde_float32x4x4_t s_ = { { simde_float32x4_from_private(a_[0]),
-                                 simde_float32x4_from_private(a_[1]),
-                                 simde_float32x4_from_private(a_[2]),
-                                 simde_float32x4_from_private(a_[3]) } };
+    simde_float32x4x4_t s_ = { { a_[0], a_[1], a_[2], a_[3] } };
     return s_;
   #endif
 }
-#if defined(SIMDE_ARM_NEON_A32V7_ENABLE_NATIVE_ALIASES)
+#if defined(SIMDE_ARM_NEON_A32V7_ENABLE_NATIVE_ALIASES) || (defined(SIMDE_ENABLE_NATIVE_ALIASES) && \
+  !((!defined(HEDLEY_GCC_VERSION) || (HEDLEY_GCC_VERSION_CHECK(8,0,0) && defined(SIMDE_ARM_NEON_A64V8_NATIVE))) && \
+      (!defined(__clang__) || (SIMDE_DETECT_CLANG_VERSION_CHECK(7,0,0) && defined(SIMDE_ARM_NEON_A64V8_NATIVE)))))
   #undef vld1q_f32_x4
   #define vld1q_f32_x4(a) simde_vld1q_f32_x4((a))
 #endif
@@ -74,18 +102,17 @@ simde_vld1q_f64_x4(simde_float64 const ptr[HEDLEY_ARRAY_PARAM(8)]) {
       (!defined(__clang__) || SIMDE_DETECT_CLANG_VERSION_CHECK(7,0,0))
     return vld1q_f64_x4(ptr);
   #else
-    simde_float64x2_private a_[4];
-    for (size_t i = 0; i < 8; i++) {
-      a_[i / 2].values[i % 2] = ptr[i];
+    simde_float64x2_t a_[4];
+    for (size_t i = 0; i < 4; i++) {
+      a_[i] = simde_vld1q_f64(ptr + 2*i);
     }
-    simde_float64x2x4_t s_ = { { simde_float64x2_from_private(a_[0]),
-                                 simde_float64x2_from_private(a_[1]),
-                                 simde_float64x2_from_private(a_[2]),
-                                 simde_float64x2_from_private(a_[3]) } };
+    simde_float64x2x4_t s_ = { { a_[0], a_[1], a_[2], a_[3] } };
     return s_;
   #endif
 }
-#if defined(SIMDE_ARM_NEON_A64V8_ENABLE_NATIVE_ALIASES)
+#if defined(SIMDE_ARM_NEON_A32V7_ENABLE_NATIVE_ALIASES) || (defined(SIMDE_ENABLE_NATIVE_ALIASES) && \
+  !((!defined(HEDLEY_GCC_VERSION) || HEDLEY_GCC_VERSION_CHECK(8,0,0)) && \
+      (!defined(__clang__) || SIMDE_DETECT_CLANG_VERSION_CHECK(7,0,0))))
   #undef vld1q_f64_x4
   #define vld1q_f64_x4(a) simde_vld1q_f64_x4((a))
 #endif
@@ -99,18 +126,17 @@ simde_vld1q_s8_x4(int8_t const ptr[HEDLEY_ARRAY_PARAM(64)]) {
       (!defined(__clang__) || (SIMDE_DETECT_CLANG_VERSION_CHECK(7,0,0) && defined(SIMDE_ARM_NEON_A64V8_NATIVE)))
     return vld1q_s8_x4(ptr);
   #else
-    simde_int8x16_private a_[4];
-    for (size_t i = 0; i < 64; i++) {
-      a_[i / 16].values[i % 16] = ptr[i];
+    simde_int8x16_t a_[4];
+    for (size_t i = 0; i < 4; i++) {
+      a_[i] = simde_vld1q_s8(ptr + 16*i);
     }
-    simde_int8x16x4_t s_ = { { simde_int8x16_from_private(a_[0]),
-                               simde_int8x16_from_private(a_[1]),
-                               simde_int8x16_from_private(a_[2]),
-                               simde_int8x16_from_private(a_[3]) } };
+    simde_int8x16x4_t s_ = { { a_[0], a_[1], a_[2], a_[3] } };
     return s_;
   #endif
 }
-#if defined(SIMDE_ARM_NEON_A32V7_ENABLE_NATIVE_ALIASES)
+#if defined(SIMDE_ARM_NEON_A32V7_ENABLE_NATIVE_ALIASES) || (defined(SIMDE_ENABLE_NATIVE_ALIASES) && \
+  !((!defined(HEDLEY_GCC_VERSION) || (HEDLEY_GCC_VERSION_CHECK(8,0,0) && defined(SIMDE_ARM_NEON_A64V8_NATIVE))) && \
+      (!defined(__clang__) || (SIMDE_DETECT_CLANG_VERSION_CHECK(7,0,0) && defined(SIMDE_ARM_NEON_A64V8_NATIVE)))))
   #undef vld1q_s8_x4
   #define vld1q_s8_x4(a) simde_vld1q_s8_x4((a))
 #endif
@@ -124,18 +150,17 @@ simde_vld1q_s16_x4(int16_t const ptr[HEDLEY_ARRAY_PARAM(32)]) {
       (!defined(__clang__) || (SIMDE_DETECT_CLANG_VERSION_CHECK(7,0,0) && defined(SIMDE_ARM_NEON_A64V8_NATIVE)))
     return vld1q_s16_x4(ptr);
   #else
-    simde_int16x8_private a_[4];
-    for (size_t i = 0; i < 32; i++) {
-      a_[i / 8].values[i % 8] = ptr[i];
+    simde_int16x8_t a_[4];
+    for (size_t i = 0; i < 4; i++) {
+      a_[i] = simde_vld1q_s16(ptr + 8*i);
     }
-    simde_int16x8x4_t s_ = { { simde_int16x8_from_private(a_[0]),
-                               simde_int16x8_from_private(a_[1]),
-                               simde_int16x8_from_private(a_[2]),
-                               simde_int16x8_from_private(a_[3]) } };
+    simde_int16x8x4_t s_ = { { a_[0], a_[1], a_[2], a_[3] } };
     return s_;
   #endif
 }
-#if defined(SIMDE_ARM_NEON_A32V7_ENABLE_NATIVE_ALIASES)
+#if defined(SIMDE_ARM_NEON_A32V7_ENABLE_NATIVE_ALIASES) || (defined(SIMDE_ENABLE_NATIVE_ALIASES) && \
+  !((!defined(HEDLEY_GCC_VERSION) || (HEDLEY_GCC_VERSION_CHECK(8,0,0) && defined(SIMDE_ARM_NEON_A64V8_NATIVE))) && \
+      (!defined(__clang__) || (SIMDE_DETECT_CLANG_VERSION_CHECK(7,0,0) && defined(SIMDE_ARM_NEON_A64V8_NATIVE)))))
   #undef vld1q_s16_x4
   #define vld1q_s16_x4(a) simde_vld1q_s16_x4((a))
 #endif
@@ -149,18 +174,17 @@ simde_vld1q_s32_x4(int32_t const ptr[HEDLEY_ARRAY_PARAM(16)]) {
       (!defined(__clang__) || (SIMDE_DETECT_CLANG_VERSION_CHECK(7,0,0) && defined(SIMDE_ARM_NEON_A64V8_NATIVE)))
     return vld1q_s32_x4(ptr);
   #else
-    simde_int32x4_private a_[4];
-    for (size_t i = 0; i < 16; i++) {
-      a_[i / 4].values[i % 4] = ptr[i];
+    simde_int32x4_t a_[4];
+    for (size_t i = 0; i < 4; i++) {
+      a_[i] = simde_vld1q_s32(ptr + 4*i);
     }
-    simde_int32x4x4_t s_ = { { simde_int32x4_from_private(a_[0]),
-                               simde_int32x4_from_private(a_[1]),
-                               simde_int32x4_from_private(a_[2]),
-                               simde_int32x4_from_private(a_[3]) } };
+    simde_int32x4x4_t s_ = { { a_[0], a_[1], a_[2], a_[3] } };
     return s_;
   #endif
 }
-#if defined(SIMDE_ARM_NEON_A32V7_ENABLE_NATIVE_ALIASES)
+#if defined(SIMDE_ARM_NEON_A32V7_ENABLE_NATIVE_ALIASES) || (defined(SIMDE_ENABLE_NATIVE_ALIASES) && \
+  !((!defined(HEDLEY_GCC_VERSION) || (HEDLEY_GCC_VERSION_CHECK(8,0,0) && defined(SIMDE_ARM_NEON_A64V8_NATIVE))) && \
+      (!defined(__clang__) || (SIMDE_DETECT_CLANG_VERSION_CHECK(7,0,0) && defined(SIMDE_ARM_NEON_A64V8_NATIVE)))))
   #undef vld1q_s32_x4
   #define vld1q_s32_x4(a) simde_vld1q_s32_x4((a))
 #endif
@@ -174,18 +198,17 @@ simde_vld1q_s64_x4(int64_t const ptr[HEDLEY_ARRAY_PARAM(8)]) {
       (!defined(__clang__) || (SIMDE_DETECT_CLANG_VERSION_CHECK(7,0,0) && defined(SIMDE_ARM_NEON_A64V8_NATIVE)))
     return vld1q_s64_x4(ptr);
   #else
-    simde_int64x2_private a_[4];
-    for (size_t i = 0; i < 8; i++) {
-      a_[i / 2].values[i % 2] = ptr[i];
+    simde_int64x2_t a_[4];
+    for (size_t i = 0; i < 4; i++) {
+      a_[i] = simde_vld1q_s64(ptr + 2*i);
     }
-    simde_int64x2x4_t s_ = { { simde_int64x2_from_private(a_[0]),
-                               simde_int64x2_from_private(a_[1]),
-                               simde_int64x2_from_private(a_[1]),
-                               simde_int64x2_from_private(a_[1]) } };
+    simde_int64x2x4_t s_ = { { a_[0], a_[1], a_[2], a_[3] } };
     return s_;
   #endif
 }
-#if defined(SIMDE_ARM_NEON_A32V7_ENABLE_NATIVE_ALIASES)
+#if defined(SIMDE_ARM_NEON_A32V7_ENABLE_NATIVE_ALIASES) || (defined(SIMDE_ENABLE_NATIVE_ALIASES) && \
+  !((!defined(HEDLEY_GCC_VERSION) || (HEDLEY_GCC_VERSION_CHECK(8,0,0) && defined(SIMDE_ARM_NEON_A64V8_NATIVE))) && \
+      (!defined(__clang__) || (SIMDE_DETECT_CLANG_VERSION_CHECK(7,0,0) && defined(SIMDE_ARM_NEON_A64V8_NATIVE)))))
   #undef vld1q_s64_x4
   #define vld1q_s64_x4(a) simde_vld1q_s64_x4((a))
 #endif
@@ -199,18 +222,17 @@ simde_vld1q_u8_x4(uint8_t const ptr[HEDLEY_ARRAY_PARAM(64)]) {
       (!defined(__clang__) || (SIMDE_DETECT_CLANG_VERSION_CHECK(7,0,0) && defined(SIMDE_ARM_NEON_A64V8_NATIVE)))
     return vld1q_u8_x4(ptr);
   #else
-    simde_uint8x16_private a_[4];
-    for (size_t i = 0; i < 64; i++) {
-      a_[i / 16].values[i % 16] = ptr[i];
+    simde_uint8x16_t a_[4];
+    for (size_t i = 0; i < 4; i++) {
+      a_[i] = simde_vld1q_u8(ptr + 16*i);
     }
-    simde_uint8x16x4_t s_ = { { simde_uint8x16_from_private(a_[0]),
-                                simde_uint8x16_from_private(a_[1]),
-                                simde_uint8x16_from_private(a_[2]),
-                                simde_uint8x16_from_private(a_[3]) } };
+    simde_uint8x16x4_t s_ = { { a_[0], a_[1], a_[2], a_[3] } };
     return s_;
   #endif
 }
-#if defined(SIMDE_ARM_NEON_A32V7_ENABLE_NATIVE_ALIASES)
+#if defined(SIMDE_ARM_NEON_A32V7_ENABLE_NATIVE_ALIASES) || (defined(SIMDE_ENABLE_NATIVE_ALIASES) && \
+  !((!defined(HEDLEY_GCC_VERSION) || (HEDLEY_GCC_VERSION_CHECK(8,0,0) && defined(SIMDE_ARM_NEON_A64V8_NATIVE))) && \
+      (!defined(__clang__) || (SIMDE_DETECT_CLANG_VERSION_CHECK(7,0,0) && defined(SIMDE_ARM_NEON_A64V8_NATIVE)))))
   #undef vld1q_u8_x4
   #define vld1q_u8_x4(a) simde_vld1q_u8_x4((a))
 #endif
@@ -224,18 +246,17 @@ simde_vld1q_u16_x4(uint16_t const ptr[HEDLEY_ARRAY_PARAM(32)]) {
       (!defined(__clang__) || (SIMDE_DETECT_CLANG_VERSION_CHECK(7,0,0) && defined(SIMDE_ARM_NEON_A64V8_NATIVE)))
     return vld1q_u16_x4(ptr);
   #else
-    simde_uint16x8_private a_[4];
-    for (size_t i = 0; i < 32; i++) {
-      a_[i / 8].values[i % 8] = ptr[i];
+    simde_uint16x8_t a_[4];
+    for (size_t i = 0; i < 4; i++) {
+      a_[i] = simde_vld1q_u16(ptr + 8*i);
     }
-    simde_uint16x8x4_t s_ = { { simde_uint16x8_from_private(a_[0]),
-                                simde_uint16x8_from_private(a_[1]),
-                                simde_uint16x8_from_private(a_[2]),
-                                simde_uint16x8_from_private(a_[3]) } };
+    simde_uint16x8x4_t s_ = { { a_[0], a_[1], a_[2], a_[3] } };
     return s_;
   #endif
 }
-#if defined(SIMDE_ARM_NEON_A32V7_ENABLE_NATIVE_ALIASES)
+#if defined(SIMDE_ARM_NEON_A32V7_ENABLE_NATIVE_ALIASES) || (defined(SIMDE_ENABLE_NATIVE_ALIASES) && \
+  !((!defined(HEDLEY_GCC_VERSION) || (HEDLEY_GCC_VERSION_CHECK(8,0,0) && defined(SIMDE_ARM_NEON_A64V8_NATIVE))) && \
+      (!defined(__clang__) || (SIMDE_DETECT_CLANG_VERSION_CHECK(7,0,0) && defined(SIMDE_ARM_NEON_A64V8_NATIVE)))))
   #undef vld1q_u16_x4
   #define vld1q_u16_x4(a) simde_vld1q_u16_x4((a))
 #endif
@@ -249,18 +270,17 @@ simde_vld1q_u32_x4(uint32_t const ptr[HEDLEY_ARRAY_PARAM(16)]) {
       (!defined(__clang__) || (SIMDE_DETECT_CLANG_VERSION_CHECK(7,0,0) && defined(SIMDE_ARM_NEON_A64V8_NATIVE)))
     return vld1q_u32_x4(ptr);
   #else
-    simde_uint32x4_private a_[4];
-    for (size_t i = 0; i < 16; i++) {
-      a_[i / 4].values[i % 4] = ptr[i];
+    simde_uint32x4_t a_[4];
+    for (size_t i = 0; i < 4; i++) {
+      a_[i] = simde_vld1q_u32(ptr + 4*i);
     }
-    simde_uint32x4x4_t s_ = { { simde_uint32x4_from_private(a_[0]),
-                                simde_uint32x4_from_private(a_[1]),
-                                simde_uint32x4_from_private(a_[2]),
-                                simde_uint32x4_from_private(a_[3]) } };
+    simde_uint32x4x4_t s_ = { { a_[0], a_[1], a_[2], a_[3] } };
     return s_;
   #endif
 }
-#if defined(SIMDE_ARM_NEON_A32V7_ENABLE_NATIVE_ALIASES)
+#if defined(SIMDE_ARM_NEON_A32V7_ENABLE_NATIVE_ALIASES) || (defined(SIMDE_ENABLE_NATIVE_ALIASES) && \
+  !((!defined(HEDLEY_GCC_VERSION) || (HEDLEY_GCC_VERSION_CHECK(8,0,0) && defined(SIMDE_ARM_NEON_A64V8_NATIVE))) && \
+      (!defined(__clang__) || (SIMDE_DETECT_CLANG_VERSION_CHECK(7,0,0) && defined(SIMDE_ARM_NEON_A64V8_NATIVE)))))
   #undef vld1q_u32_x4
   #define vld1q_u32_x4(a) simde_vld1q_u32_x4((a))
 #endif
@@ -274,20 +294,108 @@ simde_vld1q_u64_x4(uint64_t const ptr[HEDLEY_ARRAY_PARAM(8)]) {
       (!defined(__clang__) || (SIMDE_DETECT_CLANG_VERSION_CHECK(7,0,0) && defined(SIMDE_ARM_NEON_A64V8_NATIVE)))
     return vld1q_u64_x4(ptr);
   #else
-    simde_uint64x2_private a_[4];
-    for (size_t i = 0; i < 8; i++) {
-      a_[i / 2].values[i % 2] = ptr[i];
+    simde_uint64x2_t a_[4];
+    for (size_t i = 0; i < 4; i++) {
+      a_[i] = simde_vld1q_u64(ptr + 2*i);
     }
-    simde_uint64x2x4_t s_ = { { simde_uint64x2_from_private(a_[0]),
-                                simde_uint64x2_from_private(a_[1]),
-                                simde_uint64x2_from_private(a_[2]),
-                                simde_uint64x2_from_private(a_[3]) } };
+    simde_uint64x2x4_t s_ = { { a_[0], a_[1], a_[2], a_[3] } };
     return s_;
   #endif
 }
-#if defined(SIMDE_ARM_NEON_A32V7_ENABLE_NATIVE_ALIASES)
+#if defined(SIMDE_ARM_NEON_A32V7_ENABLE_NATIVE_ALIASES) || (defined(SIMDE_ENABLE_NATIVE_ALIASES) && \
+  !((!defined(HEDLEY_GCC_VERSION) || (HEDLEY_GCC_VERSION_CHECK(8,0,0) && defined(SIMDE_ARM_NEON_A64V8_NATIVE))) && \
+      (!defined(__clang__) || (SIMDE_DETECT_CLANG_VERSION_CHECK(7,0,0) && defined(SIMDE_ARM_NEON_A64V8_NATIVE)))))
   #undef vld1q_u64_x4
   #define vld1q_u64_x4(a) simde_vld1q_u64_x4((a))
+#endif
+
+SIMDE_FUNCTION_ATTRIBUTES
+simde_poly8x16x4_t
+simde_vld1q_p8_x4(simde_poly8_t const ptr[HEDLEY_ARRAY_PARAM(64)]) {
+  #if \
+      defined(SIMDE_ARM_NEON_A32V7_NATIVE) && \
+      (!defined(HEDLEY_GCC_VERSION) || (HEDLEY_GCC_VERSION_CHECK(8,5,0) && defined(SIMDE_ARM_NEON_A64V8_NATIVE)))
+    return vld1q_p8_x4(ptr);
+  #else
+    simde_poly8x16_t a_[4];
+    for (size_t i = 0; i < 4; i++) {
+      a_[i] = simde_vld1q_p8(ptr + 8*i);
+    }
+    simde_poly8x16x4_t s_ = { { a_[0], a_[1], a_[2], a_[3] } };
+    return s_;
+  #endif
+}
+#if defined(SIMDE_ARM_NEON_A32V7_ENABLE_NATIVE_ALIASES) || (defined(SIMDE_ENABLE_NATIVE_ALIASES) && \
+  !(!defined(HEDLEY_GCC_VERSION) || (HEDLEY_GCC_VERSION_CHECK(8,5,0) && defined(SIMDE_ARM_NEON_A64V8_NATIVE))))
+  #undef vld1q_p8_x4
+  #define vld1q_p8_x4(a) simde_vld1q_p8_x4((a))
+#endif
+
+SIMDE_FUNCTION_ATTRIBUTES
+simde_poly16x8x4_t
+simde_vld1q_p16_x4(simde_poly16_t const ptr[HEDLEY_ARRAY_PARAM(32)]) {
+  #if \
+      defined(SIMDE_ARM_NEON_A32V7_NATIVE) && \
+      (!defined(HEDLEY_GCC_VERSION) || (HEDLEY_GCC_VERSION_CHECK(8,5,0) && defined(SIMDE_ARM_NEON_A64V8_NATIVE)))
+    return vld1q_p16_x4(ptr);
+  #else
+    simde_poly16x8_t a_[4];
+    for (size_t i = 0; i < 4; i++) {
+      a_[i] = simde_vld1q_p16(ptr + 4*i);
+    }
+    simde_poly16x8x4_t s_ = { { a_[0], a_[1], a_[2], a_[3] } };
+    return s_;
+  #endif
+}
+#if defined(SIMDE_ARM_NEON_A32V7_ENABLE_NATIVE_ALIASES) || (defined(SIMDE_ENABLE_NATIVE_ALIASES) && \
+  !(!defined(HEDLEY_GCC_VERSION) || (HEDLEY_GCC_VERSION_CHECK(8,5,0) && defined(SIMDE_ARM_NEON_A64V8_NATIVE))))
+  #undef vld1q_p16_x4
+  #define vld1q_p16_x4(a) simde_vld1q_p16_x4((a))
+#endif
+
+SIMDE_FUNCTION_ATTRIBUTES
+simde_poly64x2x4_t
+simde_vld1q_p64_x4(simde_poly64_t const ptr[HEDLEY_ARRAY_PARAM(8)]) {
+  #if \
+      defined(SIMDE_ARM_NEON_A32V8_NATIVE) && \
+      (!defined(HEDLEY_GCC_VERSION) || (HEDLEY_GCC_VERSION_CHECK(8,5,0) && defined(SIMDE_ARM_NEON_A64V8_NATIVE)))
+    return vld1q_p64_x4(ptr);
+  #else
+    simde_poly64x2_t a_[4];
+    for (size_t i = 0; i < 4; i++) {
+      a_[i] = simde_vld1q_p64(ptr + 2*i);
+    }
+    simde_poly64x2x4_t s_ = { { a_[0], a_[1], a_[2], a_[3] } };
+    return s_;
+  #endif
+}
+#if defined(SIMDE_ARM_NEON_A32V8_ENABLE_NATIVE_ALIASES) || (defined(SIMDE_ENABLE_NATIVE_ALIASES) && \
+  !(!defined(HEDLEY_GCC_VERSION) || (HEDLEY_GCC_VERSION_CHECK(8,5,0) && defined(SIMDE_ARM_NEON_A64V8_NATIVE))))
+  #undef vld1q_p64_x4
+  #define vld1q_p64_x4(a) simde_vld1q_p64_x4((a))
+#endif
+
+SIMDE_FUNCTION_ATTRIBUTES
+simde_bfloat16x8x4_t
+simde_vld1q_bf16_x4(simde_bfloat16 const ptr[HEDLEY_ARRAY_PARAM(32)]) {
+  #if defined(SIMDE_ARM_NEON_A32V8_NATIVE) && defined(SIMDE_ARM_NEON_BF16)
+    return vld1q_bf16_x4(ptr);
+  #else
+    simde_bfloat16x8_private a_[4];
+    for (size_t i = 0; i < 32; i++) {
+      a_[i / 8].values[i % 8] = ptr[i];
+    }
+    simde_bfloat16x8x4_t s_ = { { simde_bfloat16x8_from_private(a_[0]),
+                                 simde_bfloat16x8_from_private(a_[1]),
+                                 simde_bfloat16x8_from_private(a_[2]),
+                                 simde_bfloat16x8_from_private(a_[3]) } };
+    return s_;
+  #endif
+}
+#if defined(SIMDE_ARM_NEON_A32V8_ENABLE_NATIVE_ALIASES) || (defined(SIMDE_ENABLE_NATIVE_ALIASES) && \
+  !(defined(SIMDE_ARM_NEON_BF16)))
+  #undef vld1q_bf16_x4
+  #define vld1q_bf16_x4(a) simde_vld1q_bf16_x4((a))
 #endif
 
 #endif /* !defined(SIMDE_BUG_INTEL_857088) */

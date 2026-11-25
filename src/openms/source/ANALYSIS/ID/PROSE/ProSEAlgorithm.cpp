@@ -417,9 +417,10 @@ namespace OpenMS
                        "model on the sampled spectra of the other folds only, and scores every PSM with the model of its "
                        "own fold, which never saw its spectrum. 'out_of_fold_avg': the same, but the PSMs of the spectra "
                        "outside the sample (which no model saw) are scored by the average of the fold models. "
-                       "'in_sample' = the percolator executable's --subset-max-train: cross-validation on the sample and "
-                       "all PSMs scored by the average of the fold models (the sampled PSMs by two models that trained on "
-                       "them). 'learning_curve' (also without a cap): out-of-fold training on nested samples of "
+                       "'in_sample' = the percolator executable's --subset-max-train: cross-validation on the sample; each "
+                       "sampled PSM is scored by the model of the fold in which it was a test PSM (each fold's scores mapped "
+                       "to the mean and standard deviation of the other PSMs' scores), the other PSMs by the average of the "
+                       "fold models (after a failed direction check all PSMs). 'learning_curve' (also without a cap): out-of-fold training on nested samples of "
                        "'rescoring:curve_start', twice, four times ... as many PSMs, up to 'percolator:max_train_psms' (0: "
                        "1,000,000) or the whole run but the validation spectra (the end of the random order, at most "
                        "250,000 PSMs or 20 %); each fold's model stops at the first doubling that adds less than "
@@ -441,13 +442,26 @@ namespace OpenMS
                        {"advanced"});
     defaults_.setMinInt("rescoring:iterations", 1);
     defaults_.setValue("rescoring:tron_epsilon", 1e-7,
-                       "Stopping tolerance of the SVM solver (TRON) of Percolator's training (Percolator: 1e-7). Larger "
-                       "values (e.g. 1e-3) train much faster on large runs; the results differ.",
+                       "Stopping tolerance of the SVM solves of Percolator's training with rescore_solver 'tron' and "
+                       "'newton' (Percolator: 1e-7). Larger values (e.g. 1e-3) train much faster on large runs; the "
+                       "results differ.",
                        {"advanced"});
     defaults_.setMinFloat("rescoring:tron_epsilon", 1e-15);
+    defaults_.setValue("rescoring:classic_training", "false",
+                       "'false' (default): Percolator's current training: each SVM starts from its weights of the "
+                       "previous iteration, each fold's (Cpos, Cneg) pair is fixed after three iterations, and the "
+                       "training stops when it gains less than 0.1% over two iterations. 'true': Percolator trains as up "
+                       "to its version 3.09 (Percolator's parameter 'classic_training'), as ProSE did with the earlier copy of "
+                       "Percolator in OpenMS: all 'rescoring:iterations' iterations, every (Cpos, Cneg) pair in every "
+                       "iteration, each SVM from zero weights (rescore_solver 'tron'; 'newton' and 'lda' start from the "
+                       "weights of the iteration before); slower, for the results of that copy. Both are deterministic: "
+                       "the same input and seed give the same results with any number of threads.",
+                       {"advanced"});
+    defaults_.setValidStrings("rescoring:classic_training", {"true", "false"});
     defaults_.setValue("rescoring:warm_start", "false",
-                       "Each SVM training of an iteration starts from the weights of the previous iteration instead of "
-                       "0 (faster; the results differ).",
+                       "With 'rescoring:classic_training': each SVM training of an iteration starts from the weights of "
+                       "the previous iteration instead of 0 (faster; the results differ). Without it (and with the "
+                       "solvers 'newton' and 'lda') every training starts so.",
                        {"advanced"});
     defaults_.setValidStrings("rescoring:warm_start", {"true", "false"});
     defaults_.setValue("rescoring:single_cneg", "false",
@@ -1044,6 +1058,7 @@ namespace OpenMS
     percolator_training_.iterations = static_cast<int>(param_.getValue("rescoring:iterations"));
     percolator_training_.tron_epsilon = static_cast<double>(param_.getValue("rescoring:tron_epsilon"));
     percolator_training_.warm_start = param_.getValue("rescoring:warm_start").toString() == "true";
+    percolator_training_.classic_training = param_.getValue("rescoring:classic_training").toString() == "true";
     percolator_training_.single_cneg = param_.getValue("rescoring:single_cneg").toString() == "true";
     percolator_training_.solver = param_.getValue("rescore_solver").toString();
     percolator_training_.use_pi0 = param_.getValue("rescoring:use_pi0").toString();

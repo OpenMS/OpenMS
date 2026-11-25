@@ -99,6 +99,10 @@ Both backends write the pin file of @p -out_pin and the weights of the cross-val
 in-process backend in the format of the executable, see Percolator::storeWeights()). @p -verbose sets the verbosity
 of the executable only.
 
+The in-process backend trains as the percolator executables up to version 3.09 do, e.g. the one that comes with
+OpenMS; with @p -classic_training @p false it trains as Percolator does since its training was reworked (faster, see
+Percolator).
+
 The in-process backend needs enough decoys to train its model, roughly 100 or more. If the training fails,
 PercolatorAdapter stops with an error.
 
@@ -233,7 +237,8 @@ protected:
   /// metadata on every ProteinIdentification (Percolator::markRescoredRuns()):
   /// search_engine, version, the "percolator" marker UserParam, and the 23
   /// Percolator:* SearchParameter UserParams recording the adapter's CLI
-  /// configuration. Both backends (in-process and subprocess) must produce
+  /// configuration (24 on the in-process path, which adds classic_training).
+  /// Both backends (in-process and subprocess) must produce otherwise
   /// equivalent metadata so that downstream tools see the same provenance
   /// regardless of which path ran.
   ///
@@ -245,11 +250,14 @@ protected:
   ///                        PEP from Percolator's protein-level results to
   ///                        be stamped back onto each ProteinHit). nullptr
   ///                        on the in-process path skips that block.
+  /// @param in_process      the in-process backend ran: records -classic_training
+  ///                        (the subprocess path removes it; the option does not apply there)
   void stampPercolatorAdapterMetadata_(
     vector<ProteinIdentification>& prot_ids,
     bool peptide_level_fdrs,
     bool protein_level_fdrs,
     const std::string& version_string,
+    bool in_process,
     map<std::string, PercolatorProteinResult>* protein_map = nullptr) const
   {
     // Guard: it would be a silent metadata lie to stamp
@@ -331,7 +339,9 @@ protected:
       {"fasta",               getStringOption_("fasta")},
       {"decoy_pattern",       getStringOption_("decoy_pattern")},
       {"post_processing_tdc", static_cast<int>(getFlag_("post_processing_tdc"))},
-      {"train_best_positive", static_cast<int>(getFlag_("train_best_positive"))}};
+      {"train_best_positive", static_cast<int>(getFlag_("train_best_positive"))},
+      // the training schedule of the in-process backend ("true" or "false", explicitly: its default differs from ProSE's)
+      {"classic_training",    in_process ? DataValue(getStringOption_("classic_training")) : DataValue::EMPTY}};
     Percolator::markRescoredRuns(prot_ids, "PercolatorAdapter", settings, version_string);
   }
 
@@ -457,6 +467,8 @@ protected:
     registerStringOption_("decoy_pattern", "<value>", "random", "Define the text pattern to identify the decoy proteins and/or PSMs, set this up if the label that identifies the decoys in the database is not the default (Only valid if option -protein_level_fdrs is active).", !is_required, is_advanced_option);
     registerFlag_("post_processing_tdc", "Use target-decoy competition to assign q-values and PEPs.", is_advanced_option);
     registerFlag_("train_best_positive", "Enforce that, for each spectrum, at most one PSM is included in the positive set during each training iteration. If the user only provides one PSM per spectrum, this filter will have no effect.", is_advanced_option);
+    registerStringOption_("classic_training", "<choice>", "true", "In-process backend: 'true' (default): the training schedule of Percolator 3.09 and earlier, e.g. the percolator executable that comes with OpenMS (all -maxiter iterations, every (Cpos, Cneg) pair in every iteration; the SVMs are solved with the in-process default solver, Newton, which starts from the weights of the iteration before). 'false': train as Percolator trains since (each SVM starts from its weights of the previous iteration, the (Cpos, Cneg) pair of each fold is fixed after three iterations, the training stops once it gains less than 0.1%); faster, the results differ within the spread of the training. The percolator executable trains as its version does.", !is_required, is_advanced_option);
+    setValidStrings_("classic_training", {"true", "false"});
 
     //OSW/IPF parameters
     registerDoubleOption_("ipf_max_peakgroup_pep", "<value>", 0.7, "OSW/IPF: Assess transitions only for candidate peak groups until maximum posterior error probability.", !is_required, is_advanced_option);
@@ -1025,6 +1037,7 @@ protected:
         pp.setValue("subset_max_train", getIntOption_("subset_max_train"));
         pp.setValue("initial_direction", getStringOption_("default_direction"));
         pp.setValue("pep_method", "nonparametric");  // match external percolator binary's PEP algorithm
+        pp.setValue("classic_training", getStringOption_("classic_training"));
         {
           // Percolator trains one model per cross-validation fold, so more than 3
           // threads do not help. -threads 0 ("all cores") gets 3, which is also what
@@ -1065,11 +1078,12 @@ protected:
         }
 
         // Stamp PercolatorAdapter provenance metadata (search engine identity +
-        // 23 SearchParameter UserParams) so the in-process output matches the
-        // historical subprocess output's metadata contract downstream tools rely on.
+        // the SearchParameter UserParams of the options) so the in-process output matches the
+        // historical subprocess output's metadata contract downstream tools rely on
+        // (plus Percolator:classic_training, which only the in-process backend has).
         stampPercolatorAdapterMetadata_(all_protein_ids,
           peptide_level_fdrs, protein_level_fdrs,
-          /*version_string=*/"3.08-vendored");
+          /*version_string=*/Percolator::VENDORED_VERSION, /*in_process=*/true);
 
         // Apply the same post-filters the subprocess path uses, so the two
         // backends produce equivalent output for -score:fdr / -best_per_spectrum_only.
@@ -1409,7 +1423,7 @@ protected:
       stampPercolatorAdapterMetadata_(all_protein_ids,
         peptide_level_fdrs, protein_level_fdrs,
         /*version_string=*/"3.07",  // TODO: read from percolator binary --version
-        protein_level_fdrs ? &protein_map : nullptr);
+        /*in_process=*/false, protein_level_fdrs ? &protein_map : nullptr);
 
       applyPostFilters_(all_peptide_ids);
 

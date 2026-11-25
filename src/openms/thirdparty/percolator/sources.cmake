@@ -10,7 +10,6 @@ set(OpenMS_percolator_sources
   FeatureNames.cpp
   Globals.cpp
   IsotonicPEP.cpp
-  Logger.cpp
   LogisticRegression.cpp
   MassHandler.cpp
   MonotoneRegressor.cpp
@@ -18,14 +17,11 @@ set(OpenMS_percolator_sources
   NoNormalizer.cpp
   Normalizer.cpp
   Numerical.cpp
-  PackedMatrix.cpp
   PackedVector.cpp
   PosteriorEstimator.cpp
   PSMDescription.cpp
   PseudoRandom.cpp
-  ResultHolder.cpp
   SanityCheck.cpp
-  ScoreHolder.cpp
   Scores.cpp
   Set.cpp
   SetHandler.cpp

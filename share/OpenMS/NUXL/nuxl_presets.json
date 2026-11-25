@@ -3,6 +3,7 @@
     "target_nucleotides": ["A=C10H14N5O7P", "C=C9H14N3O8P", "G=C10H14N5O8P", "U=C9H13N2O9P"],
     "mapping": ["A->A", "C->C", "G->G", "U->U"],
     "can_cross_link": "U",
+    "oligo_fragment_adducts": "U",
     "modifications": [
       "U:", 
       "U:-H2O", 
@@ -61,6 +62,7 @@
     "target_nucleotides": ["A=C10H14N5O7P", "C=C9H14N3O8P", "G=C10H14N5O8P", "U=C9H13N2O9P"],
     "mapping": ["A->A", "C->C", "G->G", "U->U"],
     "can_cross_link": "UCGA",
+    "oligo_fragment_adducts": "U",
     "modifications": [
       "U:", 
       "U:-H2O", 
@@ -119,6 +121,7 @@
     "target_nucleotides": ["A=C10H14N5O7P", "C=C9H14N3O8P", "G=C10H14N5O8P", "U=C9H13N2O9P"],
     "mapping": ["A->A", "C->C", "G->G", "U->U"],
     "can_cross_link": "U",
+    "oligo_fragment_adducts": "U",
     "modifications": [
       "U:", 
       "U:-H2O", 
@@ -196,6 +199,7 @@
     "target_nucleotides": ["A=C10H14N5O7P", "C=C9H14N3O8P", "G=C10H14N5O8P", "U=C9H13N2O9P"],
     "mapping": ["A->A", "C->C", "G->G", "U->U"],
     "can_cross_link": "UCGA",
+    "oligo_fragment_adducts": "U",
     "modifications": [
       "U:", 
       "U:-H2O", 

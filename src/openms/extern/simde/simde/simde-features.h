@@ -22,6 +22,7 @@
  *
  * Copyright:
  *   2020      Evan Nemerson <evan@nemerson.com>
+ *   2023      Ju-Hung Li <jhlee@pllab.cs.nthu.edu.tw> (Copyright owned by NTHU pllab)
  */
 
 /* simde-arch.h is used to determine which features are available according
@@ -38,9 +39,6 @@
   #if defined(SIMDE_ARCH_X86_SVML)
     #define SIMDE_X86_SVML_NATIVE
   #endif
-#endif
-#if defined(SIMDE_X86_SVML_NATIVE) && !defined(SIMDE_X86_AVX512F_NATIVE)
-  #define SIMDE_X86_AVX512F_NATIVE
 #endif
 
 #if !defined(SIMDE_X86_AVX512VP2INTERSECT_NATIVE) && !defined(SIMDE_X86_AVX512VP2INTERSECT_NO_NATIVE) && !defined(SIMDE_NO_NATIVE)
@@ -241,6 +239,15 @@
   #define SIMDE_X86_SSE2_NATIVE
 #endif
 
+#if !defined(SIMDE_X86_AES_NATIVE) && !defined(SIMDE_X86_AES_NO_NATIVE) && !defined(SIMDE_NO_NATIVE)
+  #if defined(SIMDE_ARCH_X86_AES)
+    #define SIMDE_X86_AES_NATIVE
+  #endif
+#endif
+#if defined(SIMDE_X86_AES_NATIVE) && !defined(SIMDE_X86_SSE2_NATIVE)
+  #define SIMDE_X86_SSE2_NATIVE
+#endif
+
 #if !defined(SIMDE_X86_SSE2_NATIVE) && !defined(SIMDE_X86_SSE2_NO_NATIVE) && !defined(SIMDE_NO_NATIVE)
   #if defined(SIMDE_ARCH_X86_SSE2)
     #define SIMDE_X86_SSE2_NATIVE
@@ -287,8 +294,20 @@
 #endif
 
 #if !defined(SIMDE_X86_SVML_NATIVE) && !defined(SIMDE_X86_SVML_NO_NATIVE) && !defined(SIMDE_NO_NATIVE)
-  #if defined(__INTEL_COMPILER)
+  #if defined(SIMDE_ARCH_X86) && (defined(__INTEL_COMPILER) || (HEDLEY_MSVC_VERSION_CHECK(14, 20, 0) && !defined(__clang__)))
     #define SIMDE_X86_SVML_NATIVE
+  #endif
+#endif
+
+#if !defined(SIMDE_X86_BMI1_NATIVE) && !defined(SIMDE_X86_BMI1_NO_NATIVE) && !defined(SIMDE_NO_NATIVE)
+  #if defined(SIMDE_ARCH_X86_BMI1)
+    #define SIMDE_X86_BMI1_NATIVE
+  #endif
+#endif
+
+#if !defined(SIMDE_X86_BMI2_NATIVE) && !defined(SIMDE_X86_BMI2_NO_NATIVE) && !defined(SIMDE_NO_NATIVE)
+  #if defined(SIMDE_ARCH_X86_BMI2)
+    #define SIMDE_X86_BMI2_NATIVE
   #endif
 #endif
 
@@ -298,7 +317,7 @@
 #endif
 
 #if \
-    defined(SIMDE_X86_AVX_NATIVE) || defined(SIMDE_X86_GFNI_NATIVE)
+    defined(SIMDE_X86_AVX_NATIVE) || defined(SIMDE_X86_GFNI_NATIVE) || defined(SIMDE_X86_SVML_NATIVE)
   #include <immintrin.h>
 #elif defined(SIMDE_X86_SSE4_2_NATIVE)
   #include <nmmintrin.h>
@@ -324,6 +343,10 @@
   #endif
 #endif
 
+#if defined(SIMDE_X86_AES_NATIVE)
+  #include <wmmintrin.h>
+#endif
+
 #if defined(HEDLEY_MSVC_VERSION)
   #pragma warning(pop)
 #endif
@@ -338,9 +361,12 @@
 #endif
 
 #if !defined(SIMDE_ARM_NEON_A32V8_NATIVE) && !defined(SIMDE_ARM_NEON_A32V8_NO_NATIVE) && !defined(SIMDE_NO_NATIVE)
-  #if defined(SIMDE_ARCH_ARM_NEON) && SIMDE_ARCH_ARM_CHECK(8,0) && (__ARM_NEON_FP & 0x02)
+  #if defined(SIMDE_ARCH_ARM_NEON) && SIMDE_ARCH_ARM_CHECK(8,0) && defined (__ARM_NEON_FP) && (__ARM_NEON_FP & 0x02)
     #define SIMDE_ARM_NEON_A32V8_NATIVE
   #endif
+#endif
+#if defined(__ARM_ACLE)
+  #include <arm_acle.h>
 #endif
 #if defined(SIMDE_ARM_NEON_A32V8_NATIVE) && !defined(SIMDE_ARM_NEON_A32V7_NATIVE)
   #define SIMDE_ARM_NEON_A32V7_NATIVE
@@ -353,7 +379,7 @@
 #endif
 #if defined(SIMDE_ARM_NEON_A32V7_NATIVE)
   #include <arm_neon.h>
-  #if defined(__ARM_FEATURE_FP16_VECTOR_ARITHMETIC)
+  #if defined(SIMDE_ARCH_ARM_NEON_FP16)
     #include <arm_fp16.h>
   #endif
 #endif
@@ -365,12 +391,34 @@
   #endif
 #endif
 
+#if !defined(SIMDE_ARM_SVE2_NATIVE) && !defined(SIMDE_ARM_SVE2_NO_NATIVE) && !defined(SIMDE_NO_NATIVE)
+  #if defined(SIMDE_ARCH_ARM_SVE2)
+    #define SIMDE_ARM_SVE2_NATIVE
+    #include <arm_sve.h>
+  #endif
+#endif
+
+#if !defined(SIMDE_RISCV_V_NATIVE) && !defined(SIMDE_RISCV_V_NO_NATIVE) && !defined(SIMDE_NO_NATIVE)
+  #if defined(SIMDE_ARCH_RISCV_V) && defined(__riscv_v_fixed_vlen)
+    #define SIMDE_RISCV_V_NATIVE
+  #endif
+#endif
+#if defined(SIMDE_RISCV_V_NATIVE)
+  #include <riscv_vector.h>
+#endif
+
 #if !defined(SIMDE_WASM_SIMD128_NATIVE) && !defined(SIMDE_WASM_SIMD128_NO_NATIVE) && !defined(SIMDE_NO_NATIVE)
   #if defined(SIMDE_ARCH_WASM_SIMD128)
     #define SIMDE_WASM_SIMD128_NATIVE
   #endif
 #endif
-#if defined(SIMDE_WASM_SIMD128_NATIVE)
+
+#if !defined(SIMDE_WASM_RELAXED_SIMD_NATIVE) && !defined(SIMDE_WASM_RELAXED_SIMD_NO_NATIVE) && !defined(SIMDE_NO_NATIVE)
+  #if defined(SIMDE_ARCH_WASM_RELAXED_SIMD)
+    #define SIMDE_WASM_RELAXED_SIMD_NATIVE
+  #endif
+#endif
+#if defined(SIMDE_WASM_SIMD128_NATIVE) || defined(SIMDE_WASM_RELAXED_SIMD_NATIVE)
   #include <wasm_simd128.h>
 #endif
 
@@ -524,12 +572,16 @@
       defined(SIMDE_WASM_SIMD128_NATIVE) || \
       defined(SIMDE_POWER_ALTIVEC_P5_NATIVE) || \
       defined(SIMDE_ZARCH_ZVECTOR_13_NATIVE) || \
-      defined(SIMDE_MIPS_MSA_NATIVE)
+      defined(SIMDE_MIPS_MSA_NATIVE) || \
+      defined(SIMDE_LOONGARCH_LSX_NATIVE)
     #define SIMDE_NATURAL_VECTOR_SIZE (128)
   #elif defined(SIMDE_X86_SSE_NATIVE)
     #define SIMDE_NATURAL_FLOAT_VECTOR_SIZE (128)
     #define SIMDE_NATURAL_INT_VECTOR_SIZE (64)
     #define SIMDE_NATURAL_DOUBLE_VECTOR_SIZE (0)
+  #elif defined(SIMDE_RISCV_V_NATIVE) && defined(__riscv_v_fixed_vlen)
+        //FIXME : SIMDE_NATURAL_VECTOR_SIZE == __riscv_v_fixed_vlen
+        #define SIMDE_NATURAL_VECTOR_SIZE (128)
   #endif
 
   #if !defined(SIMDE_NATURAL_VECTOR_SIZE)
@@ -626,6 +678,9 @@
   #if !defined(SIMDE_X86_AVX512VPOPCNTDQ_NATIVE)
     #define SIMDE_X86_AVX512VPOPCNTDQ_ENABLE_NATIVE_ALIASES
   #endif
+  #if !defined(SIMDE_X86_AVX512VP2INTERSECT_NATIVE)
+    #define SIMDE_X86_AVX512VP2INTERSECT_ENABLE_NATIVE_ALIASES
+  #endif
   #if !defined(SIMDE_X86_AVX512DQ_NATIVE)
     #define SIMDE_X86_AVX512DQ_ENABLE_NATIVE_ALIASES
   #endif
@@ -644,8 +699,20 @@
   #if !defined(SIMDE_X86_VPCLMULQDQ_NATIVE)
     #define SIMDE_X86_VPCLMULQDQ_ENABLE_NATIVE_ALIASES
   #endif
+  #if !defined(SIMDE_X86_BMI1_NATIVE)
+    #define SIMDE_X86_BMI1_ENABLE_NATIVE_ALIASES
+  #endif
+  #if !defined(SIMDE_X86_BMI2_NATIVE)
+    #define SIMDE_X86_BMI2_ENABLE_NATIVE_ALIASES
+  #endif
   #if !defined(SIMDE_X86_F16C_NATIVE)
     #define SIMDE_X86_F16C_ENABLE_NATIVE_ALIASES
+  #endif
+  #if !defined(SIMDE_X86_AES_NATIVE)
+    #define SIMDE_X86_AES_ENABLE_NATIVE_ALIASES
+  #endif
+  #if !defined(SIMDE_X86_SVML_NATIVE)
+    #define SIMDE_X86_SVML_ENABLE_NATIVE_ALIASES
   #endif
 
   #if !defined(SIMDE_ARM_NEON_A32V7_NATIVE)
@@ -660,6 +727,14 @@
 
   #if !defined(SIMDE_ARM_SVE_NATIVE)
     #define SIMDE_ARM_SVE_ENABLE_NATIVE_ALIASES
+  #endif
+
+  #if !defined(SIMDE_RISCV_V_NATIVE)
+    #define SIMDE_RISCV_V_ENABLE_NATIVE_ALIASES
+  #endif
+
+  #if !defined(SIMDE_MIPS_MSA_NATIVE)
+    #define SIMDE_MIPS_MSA_ENABLE_NATIVE_ALIASES
   #endif
 
   #if !defined(SIMDE_WASM_SIMD128_NATIVE)
@@ -692,6 +767,10 @@
 
 #if defined(SIMDE_ARCH_ARM_NEON_FP16)
   #define SIMDE_ARM_NEON_FP16
+#endif
+
+#if defined(SIMDE_ARCH_ARM_NEON_BF16)
+  #define SIMDE_ARM_NEON_BF16
 #endif
 
 #if !defined(SIMDE_LOONGARCH_LASX_NATIVE) && !defined(SIMDE_LOONGARCH_LASX_NO_NATIVE) && !defined(SIMDE_NO_NATIVE)

@@ -1,6 +1,6 @@
 # SIMD Everywhere
 <!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
-[![All Contributors](https://img.shields.io/badge/all_contributors-63-orange.svg?style=flat-square)](#contributors-)
+[![All Contributors](https://img.shields.io/badge/all_contributors-78-orange.svg?style=flat-square)](#contributors-)
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
 [![Chat](https://badges.gitter.im/gitterHQ/gitter.png)](https://matrix.to/#/#simd-everywhere_community:gitter.im)
 [![codecov](https://codecov.io/gh/simd-everywhere/simde/branch/master/graph/badge.svg?token=jcMBoRk0ui)](https://codecov.io/gh/simd-everywhere/simde)
@@ -65,25 +65,33 @@ If you have any questions, please feel free to use the
 There are currently complete implementations of the following instruction
 set extensions:
 
+* ARM
+  * [NEON](https://en.wikipedia.org/wiki/ARM_architecture_family#Advanced_SIMD_(Neon)) [List](https://developer.arm.com/architectures/instruction-sets/intrinsics/#f:@navigationhierarchiessimdisa=[Neon])
 * x86 / x86_64
-  * [MMX](https://en.wikipedia.org/wiki/MMX_(instruction_set))
-  * [SSE](https://en.wikipedia.org/wiki/Streaming_SIMD_Extensions)
-  * [SSE2](https://en.wikipedia.org/wiki/SSE2)
-  * [SSE3](https://en.wikipedia.org/wiki/SSE3)
-  * [SSSE3](https://en.wikipedia.org/wiki/SSSE3)
-  * [SSE4.1](https://en.wikipedia.org/wiki/SSE4#SSE4.1)
-  * [AVX](https://en.wikipedia.org/wiki/Advanced_Vector_Extensions)
-  * [AVX2](https://en.wikipedia.org/wiki/Advanced_Vector_Extensions#Advanced_Vector_Extensions_2)
-  * [F16C](https://en.wikipedia.org/wiki/F16C)
-  * [FMA](https://en.wikipedia.org/wiki/FMA_instruction_set)
-  * [GFNI](https://en.wikipedia.org/wiki/AVX-512#GFNI)
-  * [CLMUL](https://en.wikipedia.org/wiki/CLMUL_instruction_set)
+  * [MMX](https://en.wikipedia.org/wiki/MMX_(instruction_set)) [List](https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#techs=MMX)
+  * [SSE](https://en.wikipedia.org/wiki/Streaming_SIMD_Extensions) [List](https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#ssetechs=SSE)
+  * [SSE2](https://en.wikipedia.org/wiki/SSE2) [List](https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#ssetechs=SSE2)
+  * [SSE3](https://en.wikipedia.org/wiki/SSE3) [List](https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#ssetechs=SSE3)
+  * [SSSE3](https://en.wikipedia.org/wiki/SSSE3) [List](https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#ssetechs=SSSE3)
+  * [SSE4.1](https://en.wikipedia.org/wiki/SSE4#SSE4.1) [List](https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#ssetechs=SSE4_1)
+  * [CRC32](https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#ig_expand=7131&othertechs=CRC32)
+  * [AVX](https://en.wikipedia.org/wiki/Advanced_Vector_Extensions) [List](https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#avxnewtechs=AVX)
+  * [AVX2](https://en.wikipedia.org/wiki/Advanced_Vector_Extensions#Advanced_Vector_Extensions_2) [List](https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#avxnewtechs=AVX2)
+  * [F16C](https://en.wikipedia.org/wiki/F16C) [List](https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#avxnewtechs=F16C)
+  * [FMA](https://en.wikipedia.org/wiki/FMA_instruction_set) [List](https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#avxnewtechs=FMA)
+  * [GFNI](https://en.wikipedia.org/wiki/AVX-512#GFNI) [List](https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#othertechs=GFNI)
   * [XOP](https://en.wikipedia.org/wiki/XOP_instruction_set)
-  * [SVML](https://software.intel.com/content/www/us/en/develop/documentation/cpp-compiler-developer-guide-and-reference/top/compiler-reference/intrinsics/intrinsics-for-intel-advanced-vector-extensions-512-intel-avx-512-instructions/intrinsics-for-arithmetic-operations-1/intrinsics-for-short-vector-math-library-svml-operations.html)
+  * [SVML](https://software.intel.com/content/www/us/en/develop/documentation/cpp-compiler-developer-guide-and-reference/top/compiler-reference/intrinsics/intrinsics-for-intel-advanced-vector-extensions-512-intel-avx-512-instructions/intrinsics-for-arithmetic-operations-1/intrinsics-for-short-vector-math-library-svml-operations.html) [List](https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#ig_expand=770&techs=SVML)
+  * [AVX512VPOPCNTDQ](https://en.wikipedia.org/wiki/AVX-512#VPOPCNTDQ_and_BITALG) [List](https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#ig_expand=7131&avx512techs=AVX512VPOPCNTDQ)
+  * [AVX512_BITALG](https://en.wikipedia.org/wiki/AVX-512#VPOPCNTDQ_and_BITALG) [List](https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#ig_expand=7131&avx512techs=AVX512_BITALG)
+  * [AVX512_VBMI](https://en.wikipedia.org/wiki/AVX-512#Permute) [List](https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#ig_expand=7131&avx512techs=AVX512_VBMI)
+  * [AVX512_VNNI](https://en.wikipedia.org/wiki/AVX-512#VNNI) [List](https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#ig_expand=7131&avx512techs=AVX512_VNNI)
+  * [AVX512_VP2INTERSECT](https://en.wikipedia.org/wiki/AVX-512#VP2INTERSECT) [List](https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#ig_expand=7131&avx512techs=AVX512_VP2INTERSECT)
+  * [VPCLMULQDQ](https://en.wikipedia.org/wiki/AVX-512#VPCLMULQDQ) [List](https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#othertechs=VPCLMULQDQ)
 * WebAssembly
   * [SIMD128](https://github.com/WebAssembly/simd)
 
-As well as partial support for many others, including NEON and SVE in
+As well as partial support for many others, including AES-ni, [CLMUL](https://en.wikipedia.org/wiki/CLMUL_instruction_set), SSE4.2, SVE, [MSA](https://en.wikipedia.org/wiki/MIPS_architecture#Application-specific_extensions) in
 addition to several AVX-512 extensions.  See the
 [instruction-set-support](https://github.com/simd-everywhere/simde/issues?q=is%3Aissue+is%3Aopen+label%3Ainstruction-set-support+sort%3Aupdated-desc)
 label in the issue tracker for details on progress.  If you'd like to
@@ -106,7 +114,7 @@ make sense since they will always be green, but here are the links:
 * [Azure Pipelines](https://dev.azure.com/simd-everywhere/SIMDe/_build)
 * [Drone CI](https://cloud.drone.io/simd-everywhere/simde/)
 * [Travis CI](https://app.travis-ci.com/github/simd-everywhere/simde/)
-* [Packit CI](https://dashboard.packit.dev/pipelines)
+* [Packit CI](https://dashboard.packit.dev/projects/github.com/simd-everywhere/simde)
 
 If you're adding a new build I suggest Cirrus CI, which is where we
 currently have the most room given the number of builds currently on
@@ -267,13 +275,18 @@ isn't an option then other CI platforms can be added.
 
 The following architectures are tested in CI for every commit:
 
- * x86_64
+ * x86_64/amd64
  * x86
  * AArch64
  * ARMv8
- * ARMv7
+ * ARMv7 with VFPv3-D16 floating point
+ * ARMv5 EABI
  * PPC64
- * MIPS Loongson
+ * z/Architecture (with "-mzvector")
+ * MIPS Loongson 64
+ * RISC-V 64
+ * emscripten 32- & 64-bit; regular and relaxed
+ * LoongArch64
 
 We would love to add more, so patches are extremely welcome!
 
@@ -307,6 +320,10 @@ We would love to add more, so patches are extremely welcome!
      [powerveclib](https://www.ibm.com/developerworks/community/groups/community/powerveclib/)
    * [SSE-to-NEON](https://github.com/otim/SSE-to-NEON) — implementing
      SSE with NEON.  Non-free, C++.
+   * [AvxToNeon](https://github.com/kunpengcompute/AvxToNeon) — Popular
+      AVX+ intrinsincs implemented in NEON. C, Apache 2.0 license.
+   * [neon2rvv](https://github.com/howjmay/neon2rvv) - A C/C++ header file that converts Arm/Aarch64 NEON intrinsics to RISC-V Vector (RVV) Extension, MIT license
+   * [sse2rvv](https://github.com/pattonkan/sse2rvv) - A C/C++ header file that converts Intel SSE intrinsics to RISCV-V Extension intrinsics, MIT license.
  * [arm-neon-tests](https://github.com/christophe-lyon/arm-neon-tests)
    contains tests to verify NEON implementations.
 
@@ -395,7 +412,7 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
 <table>
   <tr>
     <td align="center"><a href="https://nemequ.github.io/"><img src="https://avatars0.githubusercontent.com/u/1151?v=4" width="100px;" alt=""/><br /><sub><b>Evan Nemerson</b></sub></a><br /><a href="https://github.com/nemequ/simde/commits?author=nemequ" title="Code">💻</a> <a href="#content-nemequ" title="Content">🖋</a> <a href="https://github.com/nemequ/simde/commits?author=nemequ" title="Documentation">📖</a> <a href="#example-nemequ" title="Examples">💡</a> <a href="#ideas-nemequ" title="Ideas, Planning, & Feedback">🤔</a> <a href="#question-nemequ" title="Answering Questions">💬</a> <a href="https://github.com/nemequ/simde/pulls?q=is%3Apr+reviewed-by%3Anemequ" title="Reviewed Pull Requests">👀</a> <a href="https://github.com/nemequ/simde/commits?author=nemequ" title="Tests">⚠️</a> <a href="#tutorial-nemequ" title="Tutorials">✅</a> <a href="#talk-nemequ" title="Talks">📢</a> <a href="https://github.com/nemequ/simde/issues?q=author%3Anemequ" title="Bug reports">🐛</a> <a href="#infra-nemequ" title="Infrastructure (Hosting, Build-Tools, etc)">🚇</a> <a href="#maintenance-nemequ" title="Maintenance">🚧</a> <a href="#projectManagement-nemequ" title="Project Management">📆</a></td>
-    <td align="center"><a href="https://orcid.org/0000-0002-2961-9670"><img src="https://avatars3.githubusercontent.com/u/1330696?v=4" width="100px;" alt=""/><br /><sub><b>Michael R. Crusoe</b></sub></a><br /><a href="https://github.com/nemequ/simde/issues?q=author%3Amr-c" title="Bug reports">🐛</a> <a href="https://github.com/nemequ/simde/commits?author=mr-c" title="Code">💻</a> <a href="#eventOrganizing-mr-c" title="Event Organizing">📋</a> <a href="#fundingFinding-mr-c" title="Funding Finding">🔍</a> <a href="#ideas-mr-c" title="Ideas, Planning, & Feedback">🤔</a> <a href="#infra-mr-c" title="Infrastructure (Hosting, Build-Tools, etc)">🚇</a> <a href="#platform-mr-c" title="Packaging/porting to new platform">📦</a> <a href="https://github.com/nemequ/simde/commits?author=mr-c" title="Tests">⚠️</a></td>
+    <td align="center"><a href="https://orcid.org/0000-0002-2961-9670"><img src="https://avatars3.githubusercontent.com/u/1330696?v=4" width="100px;" alt=""/><br /><sub><b>Michael R. Crusoe</b></sub></a><br /><a href="https://github.com/nemequ/simde/issues?q=author%3Amr-c" title="Bug reports">🐛</a> <a href="https://github.com/nemequ/simde/commits?author=mr-c" title="Code">💻</a> <a href="#eventOrganizing-mr-c" title="Event Organizing">📋</a> <a href="#fundingFinding-mr-c" title="Funding Finding">🔍</a> <a href="#ideas-mr-c" title="Ideas, Planning, & Feedback">🤔</a> <a href="#infra-mr-c" title="Infrastructure (Hosting, Build-Tools, etc)">🚇</a> <a href="#platform-mr-c" title="Packaging/porting to new platform">📦</a> <a href="https://github.com/nemequ/simde/commits?author=mr-c" title="Tests">⚠️</a> <a href="#maintenance-mr-c" title="Maintenance">🚧</a> <a href="#projectManagement-mr-c" title="Project Management">📆</a> <a href="https://github.com/nemequ/simde/pulls?q=is%3Apr+reviewed-by%3Amr-c" title="Reviewed Pull Requests">👀</a></td>
     <td align="center"><a href="https://github.com/himanshi18037"><img src="https://avatars1.githubusercontent.com/u/43923076?v=4" width="100px;" alt=""/><br /><sub><b>HIMANSHI MATHUR</b></sub></a><br /><a href="https://github.com/nemequ/simde/commits?author=himanshi18037" title="Code">💻</a> <a href="https://github.com/nemequ/simde/commits?author=himanshi18037" title="Tests">⚠️</a></td>
     <td align="center"><a href="https://github.com/masterchef2209"><img src="https://avatars0.githubusercontent.com/u/27916352?v=4" width="100px;" alt=""/><br /><sub><b>Hidayat Khan</b></sub></a><br /><a href="https://github.com/nemequ/simde/commits?author=masterchef2209" title="Code">💻</a> <a href="https://github.com/nemequ/simde/commits?author=masterchef2209" title="Tests">⚠️</a></td>
     <td align="center"><a href="https://github.com/rosbif"><img src="https://avatars1.githubusercontent.com/u/553899?v=4" width="100px;" alt=""/><br /><sub><b>rosbif</b></sub></a><br /><a href="https://github.com/nemequ/simde/commits?author=rosbif" title="Code">💻</a> <a href="https://github.com/nemequ/simde/commits?author=rosbif" title="Tests">⚠️</a> <a href="https://github.com/nemequ/simde/issues?q=author%3Arosbif" title="Bug reports">🐛</a> <a href="#ideas-rosbif" title="Ideas, Planning, & Feedback">🤔</a> <a href="https://github.com/nemequ/simde/commits?author=rosbif" title="Documentation">📖</a></td>
@@ -473,6 +490,27 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
     <td align="center"><a href="https://github.com/Cheney-W"><img src="https://avatars.githubusercontent.com/u/38240633?v=4" width="100px;" alt=""/><br /><sub><b>Cheney Wang</b></sub></a><br /><a href="#platform-Cheney-W" title="Packaging/porting to new platform">📦</a></td>
     <td align="center"><a href="http://myd7349.github.io/"><img src="https://avatars.githubusercontent.com/u/5435649?v=4" width="100px;" alt=""/><br /><sub><b>myd7349 </b></sub></a><br /><a href="#platform-myd7349" title="Packaging/porting to new platform">📦</a></td>
     <td align="center"><a href="https://github.com/chausner"><img src="https://avatars.githubusercontent.com/u/15180557?v=4" width="100px;" alt=""/><br /><sub><b>chausner</b></sub></a><br /><a href="#platform-chausner" title="Packaging/porting to new platform">📦</a></td>
+  </tr>
+  <tr>
+    <td align="center"><a href="https://github.com/yyctw"><img src="https://avatars.githubusercontent.com/u/45251297?v=4" width="100px;" alt=""/><br /><sub><b>Yi-Yen Chung</b></sub></a><br /><a href="https://github.com/nemequ/simde/commits?author=yyctw" title="Code">💻</a> <a href="https://github.com/nemequ/simde/commits?author=yyctw" title="Tests">⚠️</a></td>
+    <td align="center"><a href="https://github.com/wewe5215"><img src="https://avatars.githubusercontent.com/u/76145143?v=4" width="100px;" alt=""/><br /><sub><b>Chi-Wei Chu</b></sub></a><br /><a href="https://github.com/nemequ/simde/commits?author=wewe5215" title="Code">💻</a> <a href="https://github.com/nemequ/simde/commits?author=wewe5215" title="Tests">⚠️</a></td>
+    <td align="center"><a href="https://github.com/M-HT"><img src="https://avatars.githubusercontent.com/u/12173952?v=4" width="100px;" alt=""/><br /><sub><b>M-HT</b></sub></a><br /><a href="https://github.com/nemequ/simde/commits?author=M-HT" title="Code">💻</a></td>
+    <td align="center"><a href="https://gottliebtfreitag.de"><img src="https://avatars.githubusercontent.com/u/456045?v=4" width="100px;" alt=""/><br /><sub><b>Simon Gene Gottlieb</b></sub></a><br /><a href="https://github.com/nemequ/simde/commits?author=SGSSGene" title="Code">💻</a></td>
+    <td align="center"><a href="http://bsc.fu-berlin.de"><img src="https://avatars.githubusercontent.com/u/6008722?v=4" width="100px;" alt=""/><br /><sub><b>Chris Bielow</b></sub></a><br /><a href="https://github.com/nemequ/simde/commits?author=cbielow" title="Code">💻</a></td>
+    <td align="center"><a href="https://github.com/XiWeiGu"><img src="https://avatars.githubusercontent.com/u/41367273?v=4" width="100px;" alt=""/><br /><sub><b>gu xiwei</b></sub></a><br /><a href="#platform-XiWeiGu" title="Packaging/porting to new platform">📦</a> <a href="https://github.com/nemequ/simde/commits?author=XiWeiGu" title="Tests">⚠️</a></td>
+    <td align="center"><a href="https://github.com/Vineg"><img src="https://avatars.githubusercontent.com/u/1757455?v=4" width="100px;" alt=""/><br /><sub><b>George Vinokhodov</b></sub></a><br /><a href="https://github.com/nemequ/simde/commits?author=Vineg" title="Code">💻</a></td>
+  </tr>
+  <tr>
+    <td align="center"><a href="https://github.com/Coeur"><img src="https://avatars.githubusercontent.com/u/839992?v=4" width="100px;" alt=""/><br /><sub><b>Cœur</b></sub></a><br /><a href="https://github.com/nemequ/simde/commits?author=Coeur" title="Code">💻</a></td>
+    <td align="center"><a href="https://github.com/Proudsalsa"><img src="https://avatars.githubusercontent.com/u/103449548?v=4" width="100px;" alt=""/><br /><sub><b>Florian @Proudsalsa</b></sub></a><br /><a href="https://github.com/nemequ/simde/commits?author=Proudsalsa" title="Code">💻</a></td>
+    <td align="center"><a href="https://github.com/thomas-schlichter"><img src="https://avatars.githubusercontent.com/u/106664923?v=4" width="100px;" alt=""/><br /><sub><b>Thomas Schlichter</b></sub></a><br /><a href="https://github.com/nemequ/simde/issues?q=author%3Athomas-schlichter" title="Bug reports">🐛</a> <a href="https://github.com/nemequ/simde/commits?author=thomas-schlichter" title="Code">💻</a></td>
+    <td align="center"><a href="https://github.com/AymenQ"><img src="https://avatars.githubusercontent.com/u/3706283?v=4" width="100px;" alt=""/><br /><sub><b>Aymen Qader</b></sub></a><br /><a href="https://github.com/nemequ/simde/commits?author=AymenQ" title="Code">💻</a></td>
+    <td align="center"><a href="https://github.com/eric900115"><img src="https://avatars.githubusercontent.com/u/77781328?v=4" width="100px;" alt=""/><br /><sub><b>Eric Su</b></sub></a><br /><a href="https://github.com/nemequ/simde/commits?author=eric900115" title="Code">💻</a> <a href="#platform-eric900115" title="Packaging/porting to new platform">📦</a></td>
+    <td align="center"><a href="https://github.com/Torinde"><img src="https://avatars.githubusercontent.com/u/97228894?v=4" width="100px;" alt=""/><br /><sub><b>Torinde</b></sub></a><br /><a href="https://github.com/nemequ/simde/issues?q=author%3ATorinde" title="Bug reports">🐛</a> <a href="https://github.com/nemequ/simde/commits?author=Torinde" title="Documentation">📖</a> <a href="#ideas-Torinde" title="Ideas, Planning, & Feedback">🤔</a></td>
+    <td align="center"><a href="https://www.linkedin.com/in/yanghauyuan/"><img src="https://avatars.githubusercontent.com/u/13924801?v=4" width="100px;" alt=""/><br /><sub><b>Yang Hau</b></sub></a><br /><a href="https://github.com/nemequ/simde/commits?author=howjmay" title="Code">💻</a> <a href="#ideas-howjmay" title="Ideas, Planning, & Feedback">🤔</a></td>
+  </tr>
+  <tr>
+    <td align="center"><a href="https://github.com/zengdage"><img src="https://avatars.githubusercontent.com/u/16076103?v=4" width="100px;" alt=""/><br /><sub><b>Zhijin Zeng</b></sub></a><br /><a href="https://github.com/nemequ/simde/commits?author=zengdage" title="Code">💻</a></td>
   </tr>
 </table>
 

@@ -35,7 +35,8 @@ void NuXLDeisotoper::deisotopeAndSingleCharge(MSSpectrum& spec,
                       bool add_up_intensity,
                       bool annotate_features,
                       bool preserve_high_intensity_peaks,
-                      double preserve_low_mz_peaks_threshold)
+                      double preserve_low_mz_peaks_threshold,
+                      double first_isotope_check_max_mass)
 {
   OPENMS_PRECONDITION(spec.isSorted(), "Spectrum must be sorted.");
 
@@ -160,6 +161,8 @@ void NuXLDeisotoper::deisotopeAndSingleCharge(MSSpectrum& spec,
         {
           bool has_min_isopeaks = true;
           const double tolerance_dalton = fragment_unit_ppm ? Math::ppmToMass(fragment_tolerance, current_mz) : fragment_tolerance;
+          // light fragment: its first isotopic peak can't be more intense than the monoisotopic one
+          const bool check_first_isotope = (current_mz - Constants::PROTON_MASS_U) * q < first_isotope_check_max_mass;
 
           // do not bother testing charges q (and masses m) with: m/q > precursor_mass/q (or m > precursor_mass)
           if (has_precursor_data)
@@ -189,7 +192,7 @@ void NuXLDeisotoper::deisotopeAndSingleCharge(MSSpectrum& spec,
               // if start_intensity_check = 0 or 1, start checking by comparing monoisotopic and second isotopic peak
               // if start_intensity_check = 2, start checking by comparing second isotopic peak with the third, etc.
               // Note: this is a common approach used in several other search engines
-              if (use_decreasing_model && (i >= start_intensity_check) && (old_spectrum[p].getIntensity() > old_spectrum[extensions.back()].getIntensity()))
+              if (use_decreasing_model && (i >= start_intensity_check || (i == 1 && check_first_isotope)) && (old_spectrum[p].getIntensity() > old_spectrum[extensions.back()].getIntensity()))
               {
                 has_min_isopeaks = (i >= min_isopeaks);
                 break;
@@ -260,6 +263,8 @@ void NuXLDeisotoper::deisotopeAndSingleCharge(MSSpectrum& spec,
       {
         bool has_min_isopeaks = true;
         const double tolerance_dalton = fragment_unit_ppm ? Math::ppmToMass(fragment_tolerance, current_mz) : fragment_tolerance;
+        // light fragment: its first isotopic peak can't be more intense than the monoisotopic one
+        const bool check_first_isotope = (current_mz - Constants::PROTON_MASS_U) * q < first_isotope_check_max_mass;
 
         // do not bother testing charges q (and masses m) with: m/q > precursor_mass/q (or m > precursor_mass)
         if (has_precursor_data)
@@ -289,7 +294,7 @@ void NuXLDeisotoper::deisotopeAndSingleCharge(MSSpectrum& spec,
             // if start_intensity_check = 0 or 1, start checking by comparing monoisotopic and second isotopic peak
             // if start_intensity_check = 2, start checking by comparing second isotopic peak with the third, etc.
             // Note: this is a common approach used in several other search engines
-            if (use_decreasing_model && (i >= start_intensity_check) && (old_spectrum[p].getIntensity() > old_spectrum[extensions.back()].getIntensity()))
+            if (use_decreasing_model && (i >= start_intensity_check || (i == 1 && check_first_isotope)) && (old_spectrum[p].getIntensity() > old_spectrum[extensions.back()].getIntensity()))
             {
               has_min_isopeaks = (i >= min_isopeaks);
               break;
