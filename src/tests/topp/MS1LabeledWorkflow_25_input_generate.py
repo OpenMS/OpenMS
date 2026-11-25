@@ -15,8 +15,8 @@ intensity-weighted m/z), others are not recorded. Peaks below 'FLOOR' are not re
   SAGLDFVEEK 1:0:0, weak like LVNELTEFAK (light M+1 above the floor in two spectra only), nothing at the medium and heavy m/z.
   ADLTVEFGNK 1:0:6, the light weak as above, the heavy strong; identified in the light as ADLTVEFGNK (better score) and in the heavy
     as its isomer DALTVEFGNK, one signal.
-  GSAEVTLDFK 1:1:1, in the two spectra at 700 and 701 s only (no other spectrum within 'algorithm:rt_typical', 40 s), identified in
-    the light at 700.5 s.
+  GSAEVTLDFK 1:1:1, in the two spectra at 700 and 701 s only (no other spectrum within 'algorithm:rt_typical', 40 s), apex at
+    700.3 s, identified in the light at 700.5 s.
 The isotope distributions are computed from the elemental formulas, as CoarseIsotopePatternGenerator does.
 
 Usage: python3 MS1LabeledWorkflow_25_input_generate.py (writes the three files next to this script)
@@ -45,9 +45,10 @@ PEPTIDES = [("SVEDLAFGNYQGEDVTALFEK", "A", 130.0, 5.0, 1.0e8),
             ("YVNDLAGHEK", 4.0, 430.5, 3.0, 1.1e6),
             ("SAGLDFVEEK", 1.0, 530.5, 3.0, None),
             ("ADLTVEFGNK", 1.0, 630.5, 3.0, None),
-            ("GSAEVTLDFK", 1.0, 700.5, 3.0, 1.0e7)]
+            ("GSAEVTLDFK", 1.0, 700.3, 3.0, 1.0e7)]
 # medium and heavy amounts where they are not 1 (relative to the light : medium unit)
 AMOUNTS = {"SAGLDFVEEK": (0.0, 0.0), "ADLTVEFGNK": (0.0, 6.0)}
+SPECTRUM_RTS = list(range(100, 661)) + [700, 701]
 # identifications: (sequence, RT, labelled channel shift, PEP)
 IDS = [("SVEDLAFGNYQGEDVTALFEK", 130.0, 0.0, "1.0e-03"), ("TALFEQLSVEDLAFGNYQGDK", 230.0, 0.0, "1.0e-03"),
        ("LVNELTEFAK", 330.5, 0.0, "1.0e-03"), ("YVNDLAGHEK(Label:2H(4))", 427.5, LYS4, "1.0e-03"), ("YVNDLAGHEK", 432.5, 0.0, "1.0e-03"),
@@ -164,7 +165,7 @@ def peaks_at(rt):
 
 
 def write_mzml(path):
-    spectra = [spectrum_xml(index, rt, peaks_at(float(rt))) for index, rt in enumerate(list(range(100, 661)) + [700, 701])]
+    spectra = [spectrum_xml(index, rt, peaks_at(float(rt))) for index, rt in enumerate(SPECTRUM_RTS)]
     with open(path, "w") as out:
         out.write(f"""<?xml version="1.0" encoding="ISO-8859-1"?>
 <mzML xmlns="http://psi.hupo.org/ms/mzml" version="1.1.0">
@@ -204,7 +205,7 @@ def write_mzml(path):
 
 def write_idxml(path):
     protein = {seq: i for i, seq in enumerate(PROTEIN_SEQUENCES)}
-    entries = "".join(f"""		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0.0" MZ="{mz(seq.split('(')[0]) + shift / 2:.15f}" RT="{rt}" spectrum_reference="scan={int(rt) - 99}" >
+    entries = "".join(f"""		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0.0" MZ="{mz(seq.split('(')[0]) + shift / 2:.15f}" RT="{rt}" spectrum_reference="scan={SPECTRUM_RTS.index(int(rt)) + 1}" >
 			<PeptideHit score="{pep}" sequence="{seq}" charge="2" protein_refs="PH_{protein[seq.split('(')[0]]}" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 			</PeptideHit>

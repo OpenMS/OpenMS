@@ -2282,7 +2282,8 @@ protected:
                                                        lowerIsotopeBound_(candidate.lower_bounds, c));
       const vector<double> channel_profile = profile(intensity[c]);
       const double correlation = Math::pearsonCorrelationCoefficient(channel_profile.begin(), channel_profile.end(), reference_profile.begin(), reference_profile.end());
-      if (paired.intensity > 0.0 && paired.pattern >= min_pattern_spectra_ && correlation >= peptide_similarity)
+      // co-elution needs three spectra: the correlation of two is +/-1 whatever the channel's course
+      if (paired.intensity > 0.0 && paired.pattern >= min_pattern_spectra_ && last - first >= 2 && correlation >= peptide_similarity)
       {
         peak.intensities[c] = paired.intensity;
         continue;
@@ -2362,7 +2363,9 @@ protected:
     taken for that channel): its peaks are then used as measured, and its own intensity is not quantifiable. Every other channel
     is measured against it from paired peaks (pairedIntensity_), and reported if its peaks show its isotope pattern paired with the
     reference in at least min_pattern_spectra_ spectra (first two isotopes, no strong peak one isotope below, as for the
-    reference) and it co-elutes (Pearson of the isotope-summed profiles >= 'algorithm:peptide_similarity'). Otherwise it is
+    reference) and it co-elutes (Pearson of the isotope-summed profiles >= 'algorithm:peptide_similarity', over at least three
+    spectra: with two, the correlation is +/-1 whatever the channel's course, which an elution peak from a reference of two
+    spectra can have). Otherwise it is
     absent (0) only if none of its isotopic peaks read (M+0 to M+2) is seen within the boundaries; it is not quantifiable (left
     out) if its peaks there do not form its isotope pattern, or if something else, or a peak left out above, is at any of them.
 

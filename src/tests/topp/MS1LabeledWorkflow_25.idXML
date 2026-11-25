@@ -66,7 +66,7 @@
 				<UserParam type="string" name="target_decoy" value="target"/>
 			</PeptideHit>
 		</PeptideIdentification>
-		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0.0" MZ="533.774396462097002" RT="700.5" spectrum_reference="scan=601" >
+		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0.0" MZ="533.774396462097002" RT="700.5" spectrum_reference="scan=562" >
 			<PeptideHit score="1.0e-03" sequence="GSAEVTLDFK" charge="2" protein_refs="PH_7" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 			</PeptideHit>

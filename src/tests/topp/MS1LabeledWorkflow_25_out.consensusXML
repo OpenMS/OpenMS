@@ -401,11 +401,11 @@
 			<UserParam type="intList" name="MS1Label:peptide_ratio_targeted_count" value="[1, 1]"/>
 		</consensusElement>
 		<consensusElement id="e_15916652588957785155" quality="0.0" charge="2">
-			<centroid rt="700.5" mz="533.774399663020972" it="1.5420603e07"/>
+			<centroid rt="700.494444677318711" mz="533.774399663020972" it="1.5387324e07"/>
 			<groupedElementList>
-				<element map="0" id="0" rt="700.5" mz="533.774399663020972" it="1.5420603e07" charge="2"/>
+				<element map="0" id="0" rt="700.494444677318711" mz="533.774399663020972" it="1.5387324e07" charge="2"/>
 			</groupedElementList>
-			<PeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="533.774396462097" RT="700.5" spectrum_reference="scan=601" >
+			<PeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="533.774396462097" RT="700.5" spectrum_reference="scan=562" >
 				<PeptideHit score="0.111111111111111" sequence="GSAEVTLDFK" charge="2" aa_before="K" aa_after="G" start="2" end="11" protein_refs="PH_1">
 					<UserParam type="string" name="target_decoy" value="target"/>
 					<UserParam type="int" name="map_index" value="0"/>
