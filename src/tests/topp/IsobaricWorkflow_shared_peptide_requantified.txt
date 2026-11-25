@@ -1,0 +1,6 @@
+# Protein abundances computed from file 'IsobaricWorkflow_shared_peptide_out.consensusXML'
+# Parameters (relevant only): method=top, top:N=3, top:aggregate=median, top:include_all=true
+# Runs per fraction group: fgroup1: 'TMTTenPlexMethod_test'
+"protein"	"n_proteins"	"protein_score"	"n_peptides"	"abundance_fgroup1_label1"	"abundance_fgroup1_label2"	"abundance_fgroup1_label3"	"abundance_fgroup1_label4"	"abundance_fgroup1_label5"	"abundance_fgroup1_label6"	"abundance_fgroup1_label7"	"abundance_fgroup1_label8"	"abundance_fgroup1_label9"	"abundance_fgroup1_label10"
+"PROTA"	1	0.333333333333333	2	1.58439697265625e04	1.532905419921875e04	1.22351796875e04	1.145210986328125e04	1.091565478515625e04	1.261706396484375e04	1.219031787109375e04	1.31605400390625e04	1.401256884765625e04	1.319177392578125e04
+"PROTB"	1	0.333333333333333	1	0.0	3090.578125	0.0	2050.12060546875	2126.5126953125	0.0	0.0	2188.385986328125	0.0	0.0

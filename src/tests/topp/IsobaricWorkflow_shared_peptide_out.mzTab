@@ -1,0 +1,89 @@
+MTD	mzTab-version	1.0.0
+MTD	mzTab-mode	Summary
+MTD	mzTab-type	Quantification
+MTD	title	ConsensusMap export from OpenMS
+MTD	description	OpenMS export from consensusXML
+MTD	protein_search_engine_score[1]	[MS, MS:1003117, OpenMS:Target-decoy protein q-value, ]
+MTD	peptide_search_engine_score[1]	[MS, MS:1003114, OpenMS:Best PSM Score, ]
+MTD	psm_search_engine_score[1]	[MS, MS:1003115, OpenMS:Target-decoy PSM q-value, ]
+MTD	software[1]	[MS, MS:1000752, TOPP software, 3.7.0-pre-disabled-20261123]
+MTD	software[2]	[MS, MS:1002203, TOPP ProteinInference, 3.7.0-pre-disabled-20261123]
+MTD	software[3]	null
+MTD	software[3]-setting[1]	db:null
+MTD	software[3]-setting[2]	db_version:null
+MTD	software[3]-setting[3]	fragment_mass_tolerance:20.0
+MTD	software[3]-setting[4]	fragment_mass_tolerance_unit:ppm
+MTD	software[3]-setting[5]	precursor_mass_tolerance:10.0
+MTD	software[3]-setting[6]	precursor_mass_tolerance_unit:ppm
+MTD	software[3]-setting[7]	enzyme:Trypsin/P
+MTD	software[3]-setting[8]	enzyme_term_specificity:unknown
+MTD	software[3]-setting[9]	charges:1:5
+MTD	software[3]-setting[10]	missed_cleavages:1
+MTD	software[3]-setting[11]	fixed_modifications:null
+MTD	software[3]-setting[12]	variable_modifications:null
+MTD	quantification_method	[MS, MS:1001834, LC-MS label-free quantitation analysis, ]
+MTD	protein-quantification_unit	[, , Abundance, ]
+MTD	peptide-quantification_unit	[, , Abundance, ]
+MTD	ms_run[1]-format	[MS, MS:1000584, mzML file, ]
+MTD	ms_run[1]-location	file://TMTTenPlexMethod_test.mzML
+MTD	ms_run[1]-id_format	[MS, MS:1000768, Thermo nativeID format, ]
+MTD	assay[1]-quantification_reagent	[MS, MS:1002038, unlabeled sample, ]
+MTD	assay[1]-ms_run_ref	ms_run[1]
+MTD	assay[2]-quantification_reagent	[MS, MS:1002038, unlabeled sample, ]
+MTD	assay[2]-ms_run_ref	ms_run[1]
+MTD	assay[3]-quantification_reagent	[MS, MS:1002038, unlabeled sample, ]
+MTD	assay[3]-ms_run_ref	ms_run[1]
+MTD	assay[4]-quantification_reagent	[MS, MS:1002038, unlabeled sample, ]
+MTD	assay[4]-ms_run_ref	ms_run[1]
+MTD	assay[5]-quantification_reagent	[MS, MS:1002038, unlabeled sample, ]
+MTD	assay[5]-ms_run_ref	ms_run[1]
+MTD	assay[6]-quantification_reagent	[MS, MS:1002038, unlabeled sample, ]
+MTD	assay[6]-ms_run_ref	ms_run[1]
+MTD	assay[7]-quantification_reagent	[MS, MS:1002038, unlabeled sample, ]
+MTD	assay[7]-ms_run_ref	ms_run[1]
+MTD	assay[8]-quantification_reagent	[MS, MS:1002038, unlabeled sample, ]
+MTD	assay[8]-ms_run_ref	ms_run[1]
+MTD	assay[9]-quantification_reagent	[MS, MS:1002038, unlabeled sample, ]
+MTD	assay[9]-ms_run_ref	ms_run[1]
+MTD	assay[10]-quantification_reagent	[MS, MS:1002038, unlabeled sample, ]
+MTD	assay[10]-ms_run_ref	ms_run[1]
+MTD	study_variable[1]-assay_refs	assay[1]
+MTD	study_variable[1]-description	no description given
+MTD	study_variable[2]-assay_refs	assay[2]
+MTD	study_variable[2]-description	no description given
+MTD	study_variable[3]-assay_refs	assay[3]
+MTD	study_variable[3]-description	no description given
+MTD	study_variable[4]-assay_refs	assay[4]
+MTD	study_variable[4]-description	no description given
+MTD	study_variable[5]-assay_refs	assay[5]
+MTD	study_variable[5]-description	no description given
+MTD	study_variable[6]-assay_refs	assay[6]
+MTD	study_variable[6]-description	no description given
+MTD	study_variable[7]-assay_refs	assay[7]
+MTD	study_variable[7]-description	no description given
+MTD	study_variable[8]-assay_refs	assay[8]
+MTD	study_variable[8]-description	no description given
+MTD	study_variable[9]-assay_refs	assay[9]
+MTD	study_variable[9]-description	no description given
+MTD	study_variable[10]-assay_refs	assay[10]
+MTD	study_variable[10]-description	no description given
+
+PRH	accession	description	taxid	species	database	database_version	search_engine	best_search_engine_score[1]	ambiguity_members	modifications	protein_coverage	protein_abundance_assay[1]	protein_abundance_assay[2]	protein_abundance_assay[3]	protein_abundance_assay[4]	protein_abundance_assay[5]	protein_abundance_assay[6]	protein_abundance_assay[7]	protein_abundance_assay[8]	protein_abundance_assay[9]	protein_abundance_assay[10]	protein_abundance_study_variable[1]	protein_abundance_stdev_study_variable[1]	protein_abundance_std_error_study_variable[1]	protein_abundance_study_variable[2]	protein_abundance_stdev_study_variable[2]	protein_abundance_std_error_study_variable[2]	protein_abundance_study_variable[3]	protein_abundance_stdev_study_variable[3]	protein_abundance_std_error_study_variable[3]	protein_abundance_study_variable[4]	protein_abundance_stdev_study_variable[4]	protein_abundance_std_error_study_variable[4]	protein_abundance_study_variable[5]	protein_abundance_stdev_study_variable[5]	protein_abundance_std_error_study_variable[5]	protein_abundance_study_variable[6]	protein_abundance_stdev_study_variable[6]	protein_abundance_std_error_study_variable[6]	protein_abundance_study_variable[7]	protein_abundance_stdev_study_variable[7]	protein_abundance_std_error_study_variable[7]	protein_abundance_study_variable[8]	protein_abundance_stdev_study_variable[8]	protein_abundance_std_error_study_variable[8]	protein_abundance_study_variable[9]	protein_abundance_stdev_study_variable[9]	protein_abundance_std_error_study_variable[9]	protein_abundance_study_variable[10]	protein_abundance_stdev_study_variable[10]	protein_abundance_std_error_study_variable[10]	opt_global_Posterior_Probability_score	opt_global_nr_found_peptides	opt_global_cv_PRIDE:0000303_decoy_hit	opt_global_result_type
+PRT	PROTA	null	null	null	null	null	null	0.333333333333333	null	null	null	null	null	null	null	null	null	null	null	null	null	null	null	null	null	null	null	null	null	null	null	null	null	null	null	null	null	null	null	null	null	null	null	null	null	null	null	null	null	null	null	null	2	0	protein_details
+PRT	PROTB	null	null	null	null	null	null	0.333333333333333	null	null	null	null	null	null	null	null	null	null	null	null	null	null	null	null	null	null	null	null	null	null	null	null	null	null	null	null	null	null	null	null	null	null	null	null	null	null	null	null	null	null	null	null	2	0	protein_details
+PRT	PROTD	null	null	null	null	null	null	0.333333333333333	null	null	null	null	null	null	null	null	null	null	null	null	null	null	null	null	null	null	null	null	null	null	null	null	null	null	null	null	null	null	null	null	null	null	null	null	null	null	null	null	null	null	null	null	1	0	protein_details
+PRT	PROTA	null	null	null	null	null	null	0.333333333333333	PROTA	null	null	1.58439697265625e04	1.53290546875e04	1.22351796875e04	1.1452109375e04	1.0915654296875e04	1.2617064453125e04	1.2190318359375e04	1.31605400390625e04	1.4012568359375e04	1.31917734375e04	1.58439697265625e04	null	null	1.53290546875e04	null	null	1.22351796875e04	null	null	1.1452109375e04	null	null	1.0915654296875e04	null	null	1.2617064453125e04	null	null	1.2190318359375e04	null	null	1.31605400390625e04	null	null	1.4012568359375e04	null	null	1.31917734375e04	null	null	null	null	null	single_protein
+PRT	PROTB	null	null	null	null	null	null	0.333333333333333	PROTB	null	null	0.0	3090.578125	0.0	2050.12060546875	2126.5126953125	0.0	0.0	2188.385986328125	0.0	0.0	0.0	null	null	3090.578125	null	null	0.0	null	null	2050.12060546875	null	null	2126.5126953125	null	null	0.0	null	null	0.0	null	null	2188.385986328125	null	null	0.0	null	null	0.0	null	null	null	null	null	single_protein
+PRT	PROTD	null	null	null	null	null	null	0.333333333333333	PROTD	null	null	null	null	null	null	null	null	null	null	null	null	null	null	null	null	null	null	null	null	null	null	null	null	null	null	null	null	null	null	null	null	null	null	null	null	null	null	null	null	null	null	null	null	null	single_protein
+
+PEH	sequence	accession	unique	database	database_version	search_engine	best_search_engine_score[1]	search_engine_score[1]_ms_run[1]	modifications	retention_time	retention_time_window	charge	mass_to_charge	spectra_ref	peptide_abundance_study_variable[1]	peptide_abundance_stdev_study_variable[1]	peptide_abundance_std_error_study_variable[1]	peptide_abundance_study_variable[2]	peptide_abundance_stdev_study_variable[2]	peptide_abundance_std_error_study_variable[2]	peptide_abundance_study_variable[3]	peptide_abundance_stdev_study_variable[3]	peptide_abundance_std_error_study_variable[3]	peptide_abundance_study_variable[4]	peptide_abundance_stdev_study_variable[4]	peptide_abundance_std_error_study_variable[4]	peptide_abundance_study_variable[5]	peptide_abundance_stdev_study_variable[5]	peptide_abundance_std_error_study_variable[5]	peptide_abundance_study_variable[6]	peptide_abundance_stdev_study_variable[6]	peptide_abundance_std_error_study_variable[6]	peptide_abundance_study_variable[7]	peptide_abundance_stdev_study_variable[7]	peptide_abundance_std_error_study_variable[7]	peptide_abundance_study_variable[8]	peptide_abundance_stdev_study_variable[8]	peptide_abundance_std_error_study_variable[8]	peptide_abundance_study_variable[9]	peptide_abundance_stdev_study_variable[9]	peptide_abundance_std_error_study_variable[9]	peptide_abundance_study_variable[10]	peptide_abundance_stdev_study_variable[10]	peptide_abundance_std_error_study_variable[10]	opt_global_precursor_intensity	opt_global_precursor_purity	opt_global_quant_precursor_purity	opt_global_scan_id	opt_global_cv_MS:1002217_decoy_peptide	opt_global_cv_MS:1000889_peptidoform_sequence
+PEP	ELEFANTK	PROTA	1	null	null	null	0.25	0.25	null	4881.494759999999587	null	2	436.70350000000002	ms_run[1]:controllerType=0 controllerNumber=1 scan=24221	1.183592578125e04	null	null	1.23241123046875e04	null	null	9583.5234375	null	null	8719.3994140625	null	null	1.07447060546875e04	null	null	8983.4970703125	null	null	6531.5205078125	null	null	9318.28125	null	null	8690.8388671875	null	null	1.21863515625e04	null	null	3.4732815625e05	1.0	1.0	controllerType=0 controllerNumber=1 scan=24221	0	ELEFANTK
+PEP	IMTELLERK	PROTA	1	null	null	null	0.25	0.25	null	4880.568540000000212	null	2	768.950003899738022	ms_run[1]:controllerType=0 controllerNumber=1 scan=24217	1.9852013671875e04	null	null	1.833399609375e04	null	null	1.48868359375e04	null	null	1.41848203125e04	null	null	1.1086603515625e04	null	null	1.6250630859375e04	null	null	1.7849115234375e04	null	null	1.7002798828125e04	null	null	1.9334298828125e04	null	null	1.41971962890625e04	null	null	2.6571885e06	1.0	1.0	controllerType=0 controllerNumber=1 scan=24217	0	IMTELLERK
+PEP	MYFINGERK	PROTB	1	null	null	null	0.25	0.25	null	4880.800140000000283	null	2	544.812999999999988	ms_run[1]:controllerType=0 controllerNumber=1 scan=24218	0.0	null	null	3090.578125	null	null	0.0	null	null	2050.12060546875	null	null	2126.5126953125	null	null	0.0	null	null	0.0	null	null	2188.385986328125	null	null	0.0	null	null	0.0	null	null	2.60765953125e05	1.0	1.0	controllerType=0 controllerNumber=1 scan=24218	0	MYFINGERK
+PEP	GIRAFFERK	PROTB	0	null	null	null	0.25	0.25	null	4881.031619999999748	null	2	489.278535890616979	ms_run[1]:controllerType=0 controllerNumber=1 scan=24219	1.73015e04	null	null	1.18140791015625e04	null	null	8584.0458984375	null	null	1.05072724609375e04	null	null	1.6388078125e04	null	null	1.3124208984375e04	null	null	1.07423837890625e04	null	null	7489.01318359375	null	null	1.5770388671875e04	null	null	1.19306630859375e04	null	null	5.108075625e05	1.0	1.0	controllerType=0 controllerNumber=1 scan=24219	0	GIRAFFERK
+
+PSH	sequence	PSM_ID	accession	unique	database	database_version	search_engine	search_engine_score[1]	modifications	retention_time	charge	exp_mass_to_charge	calc_mass_to_charge	spectra_ref	pre	post	start	end	opt_global_Posterior_Error_Probability_score	opt_global_cv_MS:1002217_decoy_peptide	opt_global_cv_MS:1000889_peptidoform_sequence
+PSM	ELEFANTK	0	PROTA	1	null	null	null	0.25	null	4881.494759999999587	2	436.70350000000002	476.242735019470956	ms_run[1]:controllerType=0 controllerNumber=1 scan=24221	-	I	1	8	0.01	0	ELEFANTK
+PSM	IMTELLERK	1	PROTA	1	null	null	null	0.25	null	4880.568540000000212	2	768.950003899738022	566.823369251320969	ms_run[1]:controllerType=0 controllerNumber=1 scan=24217	K	M	9	17	0.02	0	IMTELLERK
+PSM	MYFINGERK	2	PROTB	1	null	null	null	0.25	null	4880.800140000000283	2	544.812999999999988	579.292236107771032	ms_run[1]:controllerType=0 controllerNumber=1 scan=24218	K	[	18	26	0.03	0	MYFINGERK
+PSM	GIRAFFERK	3	PROTB,PROTD	0	null	null	null	0.25	null	4881.031619999999748	2	489.278535890616979	562.322184774671086	ms_run[1]:controllerType=0 controllerNumber=1 scan=24219	K,K	M,M	1,1	9,9	0.04	0	GIRAFFERK
