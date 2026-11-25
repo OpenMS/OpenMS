@@ -1547,6 +1547,18 @@ namespace OpenMS::Internal
           }
         }
       }
+      if (psms_with_foreign_evidence_ > 0)
+      {
+        OPENMS_LOG_WARN << psms_with_foreign_evidence_ << " 'SpectrumIdentificationItem's reference the 'PeptideEvidence' of a peptide "
+                        << "with another sequence. These references were ignored." << endl;
+        psms_with_foreign_evidence_ = 0;
+      }
+      if (psms_with_missing_evidence_ > 0)
+      {
+        OPENMS_LOG_WARN << psms_with_missing_evidence_ << " 'SpectrumIdentificationItem's reference a 'PeptideEvidence' that is not "
+                        << "in the file. These references were ignored." << endl;
+        psms_with_missing_evidence_ = 0;
+      }
     }
 
     void MzIdentMLDOMHandler::parseSpectrumIdentificationItemSetXLMS(set<std::string>::const_iterator set_it, std::multimap<std::string, int> xl_val_map, xmlNode* element_res, const std::string& spectrumID)
@@ -2321,15 +2333,54 @@ namespace OpenMS::Internal
         hit.setMetaValue("pass_threshold", pass); //TODO @ mths do not write metavalue pass_threshold
 
         //connect the PeptideHit with PeptideEvidences (for AABefore/After) and subsequently with DBSequence (for ProteinAccession)
-        pair<multimap<std::string, std::string>::iterator, multimap<std::string, std::string>::iterator> pev_its;
-        pev_its = p_pv_map_.equal_range(peptide_ref);
-        for (multimap<std::string, std::string>::iterator pev_it = pev_its.first; pev_it != pev_its.second; ++pev_it)
+        // The PeptideEvidences of this PSM are its PeptideEvidenceRefs; the PSMs of a peptide can have different ones (e.g. in
+        // runs with different databases). Only without (usable) references, use all PeptideEvidences of the peptide.
+        std::vector<std::string> pev_ids;
+        std::set<std::string> referenced;
+        const auto own_peptide = pep_map_.find(peptide_ref);
+        bool foreign_reference = false, missing_reference = false;
+        for (xmlNode* child : children_(spectrumIdentificationItemElement))
+        {
+          if (!equal_(name_(child), "PeptideEvidenceRef")) continue;
+          std::string pev_id = attribute_(child, "peptideEvidence_ref");
+          if (!referenced.insert(pev_id).second) continue; // listed twice
+          if (!pe_ev_map_.contains(pev_id)) // no PeptideEvidence element with this id
+          {
+            missing_reference = true;
+            continue;
+          }
+          // The evidence of a peptide with another sequence (an error in the file) has the wrong protein, position and flanking
+          // residues. Another Peptide element with the same sequence is fine, and so is an item without peptide_ref.
+          if (const auto pev_peptide = pv_p_map_.find(pev_id);
+              own_peptide != pep_map_.end() && !own_peptide->second.empty() && pev_peptide != pv_p_map_.end() && pev_peptide->second != peptide_ref)
+          {
+            const auto other_peptide = pep_map_.find(pev_peptide->second);
+            if (other_peptide != pep_map_.end() && !other_peptide->second.empty() &&
+                other_peptide->second.toUnmodifiedString() != own_peptide->second.toUnmodifiedString())
+            {
+              foreign_reference = true;
+              continue;
+            }
+          }
+          pev_ids.push_back(std::move(pev_id));
+        }
+        if (foreign_reference) ++psms_with_foreign_evidence_;
+        if (missing_reference) ++psms_with_missing_evidence_;
+        if (pev_ids.empty())
+        {
+          const auto [first, last] = p_pv_map_.equal_range(peptide_ref);
+          for (auto pev_it = first; pev_it != last; ++pev_it)
+          {
+            pev_ids.push_back(pev_it->second);
+          }
+        }
+        for (const std::string& pev_id : pev_ids)
         {
           bool idec = false;
           OpenMS::PeptideEvidence pev;
-          if (pe_ev_map_.contains(pev_it->second))
+          if (pe_ev_map_.contains(pev_id))
           {
-            MzIdentMLDOMHandler::PeptideEvidence& pv = pe_ev_map_[pev_it->second];
+            MzIdentMLDOMHandler::PeptideEvidence& pv = pe_ev_map_[pev_id];
             if (pv.pre != '-') pev.setAABefore(pv.pre);
             if (pv.post != '-') pev.setAAAfter(pv.post);
 
@@ -2380,9 +2431,9 @@ namespace OpenMS::Internal
             }
           }
 
-          if (pv_db_map_.contains(pev_it->second))
+          if (pv_db_map_.contains(pev_id))
           {
-            std::string& dpv = pv_db_map_[pev_it->second];
+            std::string& dpv = pv_db_map_[pev_id];
             DBSequence& db = db_sq_map_[dpv];
             pev.setProteinAccession(db.accession);
 
