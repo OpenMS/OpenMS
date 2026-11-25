@@ -155,15 +155,17 @@ test("FeatureFindingMetabo reproduces the native result", () => {
       const t = split.toArray()[0];
       assert.ok(t.mz > 0 && t.rt > 0 && t.intensity > 0);
 
-      // FeatureFindingMetabo_test: 83 features with 13C isotope scoring, 81 with the default
+      // FeatureFindingMetabo_test: 80 features with 13C isotope scoring, 78 with the default (the same pipeline with
+      // default parameters; ElutionPeakDetection no longer extrapolates its smoothing, #2777, and the isotope assembly
+      // defaults of #1942)
       ffm.setParameterValues({ mz_scoring_13C: true });
       ffm.run(split, features);
-      assert.equal(features.size(), 83);
+      assert.equal(features.size(), 80);
       ffm.setParameterValues({ mz_scoring_13C: false, report_convex_hulls: true });
       ffm.run(split, features);
-      assert.equal(features.size(), 81);
+      assert.equal(features.size(), 78);
       const table = features.getFeatureTable();
-      assert.equal(table.mz.length, 81);
+      assert.equal(table.mz.length, 78);
       using([features.get(0)], (f) => assert.ok(f.getMassTraceBoundingBoxes().length >= 1));
     });
 });
