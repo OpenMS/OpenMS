@@ -26,11 +26,6 @@ using namespace std;
 
 namespace OpenMS
 {
-  bool cmpFirstDimension(const TransformationModel::DataPoint& x, const TransformationModel::DataPoint& y)
-  {
-    return (x.first < y.first);
-  }
-
   TransformationModelLowess::TransformationModelLowess(
       const TransformationModel::DataPoints& data_,
       const Param& params) : model_(nullptr)
@@ -50,8 +45,9 @@ namespace OpenMS
     // TODO copy ... 
     TransformationModel::DataPoints data(data_);
 
-    // sort data
-    std::sort(data.begin(), data.end(), cmpFirstDimension);
+    // sort data by x, and points with the same x by y: a sort by x only leaves the order of tied points to the
+    // (unstable) std::sort of the platform, and that order decides the CV folds of 'auto_span'
+    std::sort(data.begin(), data.end());
 
     vector<double> x(data.size()), y(data.size()), result(data.size());
     double xmin_ = data[0].first;

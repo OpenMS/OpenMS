@@ -216,6 +216,32 @@ START_SECTION((auto span selection with repeated x values))
 }
 END_SECTION
 
+START_SECTION((auto span selection does not depend on the input order of points with the same x))
+{
+  using OpenMS::TransformationModel;
+  using OpenMS::TransformationModelLowess;
+  using OpenMS::Param;
+
+  // 300 points, every x four times (features from the same scan), near-linear drift: the candidate spans score
+  // about the same, so a different order of tied points (which decides the CV folds) could change the choice
+  TransformationModel::DataPoints data;
+  for (int i = 0; i < 300; ++i)
+  {
+    const double x = 100.0 + 5.0 * (i / 4);
+    data.push_back(std::make_pair(x, 1.02 * x + 3.0 * std::sin(12.9898 * i + 78.233 * 2)));
+  }
+  TransformationModel::DataPoints reversed(data.rbegin(), data.rend());
+  Param p;
+  TransformationModelLowess::getDefaultParameters(p);
+  p.setValue("auto_span", "true");
+  TransformationModelLowess tm(data, p);
+  TransformationModelLowess tm_reversed(reversed, p);
+  TEST_REAL_SIMILAR(static_cast<double>(tm.getParameters().getValue("span")),
+                    static_cast<double>(tm_reversed.getParameters().getValue("span")))
+  TEST_REAL_SIMILAR(tm.evaluate(500.0), tm_reversed.evaluate(500.0))
+}
+END_SECTION
+
 START_SECTION((auto span selection keeps the fixed span if no candidate can be evaluated))
 {
   using OpenMS::TransformationModel;

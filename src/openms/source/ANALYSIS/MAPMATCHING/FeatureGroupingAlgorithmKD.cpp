@@ -75,6 +75,8 @@ namespace OpenMS
     // and the leftover drift then competes with the RT differences used to rank link candidates (e.g. isomers).
     // (Set before tagging: overwriting an entry replaces its tags.)
     lowess_defaults.setValue("auto_span", "true");
+    lowess_defaults.setValue("span", lowess_defaults.getValue("span"),
+                             lowess_defaults.getDescription("span") + " Only used if 'auto_span' is false.");
     for (Param::ParamIterator it = lowess_defaults.begin(); it != lowess_defaults.end(); ++it)
     {
       const_cast<Param::ParamEntry&>(*it).tags.insert("advanced");
