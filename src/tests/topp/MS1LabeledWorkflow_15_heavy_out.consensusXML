@@ -136,12 +136,18 @@
 			<UserParam type="stringList" name="indistinguishable_proteins_3_file_channel_level_filename" value="[MS1LabeledWorkflow_15_input,MS1LabeledWorkflow_15_input,MS1LabeledWorkflow_15_input]"/>
 			<UserParam type="stringList" name="indistinguishable_proteins_3_quantified_proteins" value="[PROT_D]"/>
 			<UserParam type="string" name="indistinguishable_proteins_4" value="0.111111111111111,PH_2"/>
-			<UserParam type="floatList" name="indistinguishable_proteins_4_fraction_group_level_ratio" value="[1.0, 2.005524873733521]"/>
-			<UserParam type="floatList" name="indistinguishable_proteins_4_fraction_group_level_ratio_normalized" value="[1.0, 1.985904455184937]"/>
-			<UserParam type="intList" name="indistinguishable_proteins_4_fraction_group_level_ratio_fraction_group" value="[1, 1]"/>
-			<UserParam type="intList" name="indistinguishable_proteins_4_fraction_group_level_ratio_label" value="[1, 2]"/>
-			<UserParam type="intList" name="indistinguishable_proteins_4_fraction_group_level_ratio_count" value="[1, 1]"/>
-			<UserParam type="intList" name="indistinguishable_proteins_4_fraction_group_level_ratio_targeted_count" value="[1, 1]"/>
+			<UserParam type="floatList" name="indistinguishable_proteins_4_file_channel_level_abundance" value="[1.3247825e06, 2.65688425e06, 1.33891275e06]"/>
+			<UserParam type="floatList" name="indistinguishable_proteins_4_fraction_group_level_abundance" value="[1.3247825e06, 2.65688425e06, 1.33891275e06]"/>
+			<UserParam type="floatList" name="indistinguishable_proteins_4_fraction_group_level_ratio" value="[1.0, 2.005524873733521, 1.010666131973267]"/>
+			<UserParam type="floatList" name="indistinguishable_proteins_4_fraction_group_level_ratio_normalized" value="[1.0, 1.985904455184937, 1.000773549079895]"/>
+			<UserParam type="intList" name="indistinguishable_proteins_4_file_channel_level_channel" value="[1, 2, 3]"/>
+			<UserParam type="intList" name="indistinguishable_proteins_4_fraction_group_level_fraction_group" value="[1, 1, 1]"/>
+			<UserParam type="intList" name="indistinguishable_proteins_4_fraction_group_level_label" value="[1, 2, 3]"/>
+			<UserParam type="intList" name="indistinguishable_proteins_4_fraction_group_level_ratio_fraction_group" value="[1, 1, 1]"/>
+			<UserParam type="intList" name="indistinguishable_proteins_4_fraction_group_level_ratio_label" value="[1, 2, 3]"/>
+			<UserParam type="intList" name="indistinguishable_proteins_4_fraction_group_level_ratio_count" value="[1, 1, 1]"/>
+			<UserParam type="intList" name="indistinguishable_proteins_4_fraction_group_level_ratio_targeted_count" value="[1, 1, 1]"/>
+			<UserParam type="stringList" name="indistinguishable_proteins_4_file_channel_level_filename" value="[MS1LabeledWorkflow_15_input,MS1LabeledWorkflow_15_input,MS1LabeledWorkflow_15_input]"/>
 			<UserParam type="stringList" name="indistinguishable_proteins_4_quantified_proteins" value="[PROT_E]"/>
 			<UserParam type="string" name="indistinguishable_proteins_5" value="0.111111111111111,PH_1"/>
 			<UserParam type="string" name="indistinguishable_proteins_6" value="0.111111111111111,PH_0"/>
@@ -396,6 +402,7 @@
 			<groupedElementList>
 				<element map="0" id="0" rt="529.999999999999886" mz="1201.087160470921162" it="1.3247825e06" charge="2"/>
 				<element map="1" id="0" rt="529.999999999999886" mz="1203.09971397092113" it="2.6568842e06" charge="2"/>
+				<element map="2" id="0" rt="529.999999999999886" mz="1205.109345470921198" it="1.3389128e06" charge="2"/>
 			</groupedElementList>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="1205.109339" RT="530.5" spectrum_reference="scan=431" >
 				<PeptideHit score="0.111111111111111" sequence="TALFEQLSVEDLAFGNYQGDR" charge="2" aa_before="K" aa_after="G" start="2" end="22" protein_refs="PH_2">
@@ -415,15 +422,15 @@
 			<UserParam type="string" name="MS1Label:labeled_sequence" value=".(Dimethyl:2H(6)13C(2))TALFEQLSVEDLAFGNYQGDR"/>
 			<UserParam type="string" name="MS1Label:removed_labels" value="Dimethyl8"/>
 			<UserParam type="int" name="MS1Label:channel" value="3"/>
-			<UserParam type="stringList" name="MS1Label:evidence_ratio_run" value="[MS1LabeledWorkflow_15_input.mzML,MS1LabeledWorkflow_15_input.mzML]"/>
-			<UserParam type="intList" name="MS1Label:evidence_ratio_channel" value="[1, 2]"/>
-			<UserParam type="floatList" name="MS1Label:evidence_ratio" value="[1.0, 2.005524869176639]"/>
-			<UserParam type="intList" name="MS1Label:peptide_ratio_fraction_group" value="[1, 1]"/>
-			<UserParam type="intList" name="MS1Label:peptide_ratio_channel" value="[1, 2]"/>
-			<UserParam type="floatList" name="MS1Label:peptide_ratio" value="[1.0, 2.005524869176639]"/>
-			<UserParam type="floatList" name="MS1Label:peptide_ratio_normalized" value="[1.0, 1.985904490829037]"/>
-			<UserParam type="intList" name="MS1Label:peptide_ratio_count" value="[1, 1]"/>
-			<UserParam type="intList" name="MS1Label:peptide_ratio_targeted_count" value="[1, 1]"/>
+			<UserParam type="stringList" name="MS1Label:evidence_ratio_run" value="[MS1LabeledWorkflow_15_input.mzML,MS1LabeledWorkflow_15_input.mzML,MS1LabeledWorkflow_15_input.mzML]"/>
+			<UserParam type="intList" name="MS1Label:evidence_ratio_channel" value="[1, 2, 3]"/>
+			<UserParam type="floatList" name="MS1Label:evidence_ratio" value="[1.0, 2.005524869176639, 1.010666090471455]"/>
+			<UserParam type="intList" name="MS1Label:peptide_ratio_fraction_group" value="[1, 1, 1]"/>
+			<UserParam type="intList" name="MS1Label:peptide_ratio_channel" value="[1, 2, 3]"/>
+			<UserParam type="floatList" name="MS1Label:peptide_ratio" value="[1.0, 2.005524869176639, 1.010666090471455]"/>
+			<UserParam type="floatList" name="MS1Label:peptide_ratio_normalized" value="[1.0, 1.985904490829037, 1.000773571717547]"/>
+			<UserParam type="intList" name="MS1Label:peptide_ratio_count" value="[1, 1, 1]"/>
+			<UserParam type="intList" name="MS1Label:peptide_ratio_targeted_count" value="[1, 1, 1]"/>
 		</consensusElement>
 		<consensusElement id="e_16907355690727166316" quality="0.0" charge="2">
 			<centroid rt="600.0" mz="1056.515839167871036" it="1.4167222e06"/>

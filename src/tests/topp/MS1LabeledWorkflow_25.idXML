@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<IdXML version="1.5" xsi:noNamespaceSchemaLocation="https://www.openms.de/xml-schema/IdXML_1_5.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<SearchParameters id="SP_0" db="MS1LabeledWorkflow_25.fasta" db_version="" taxonomy="" mass_type="monoisotopic" charges="" enzyme="trypsin" missed_cleavages="0" precursor_peak_tolerance="0" precursor_peak_tolerance_ppm="false" peak_mass_tolerance="0" peak_mass_tolerance_ppm="false" >
+		<VariableModification name="Label:2H(4) (K)" />
+		<VariableModification name="Label:13C(6) (R)" />
+		<VariableModification name="Label:13C(6)15N(2) (K)" />
+		<VariableModification name="Label:13C(6)15N(4) (R)" />
+	</SearchParameters>
+	<IdentificationRun date="0000-00-00T00:00:00" search_engine="synthetic" search_engine_version="" search_parameters_ref="SP_0" >
+		<ProteinIdentification score_type="" higher_score_better="true" significance_threshold="0.0" >
+			<ProteinHit id="PH_0" accession="PROT_0" score="0.0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_1" accession="PROT_1" score="0.0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_2" accession="PROT_2" score="0.0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_3" accession="PROT_3" score="0.0" sequence="" >
+			</ProteinHit>
+			<UserParam type="stringList" name="spectra_data" value="[MS1LabeledWorkflow_25_input.mzML]"/>
+		</ProteinIdentification>
+		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0.0" MZ="1166.552612455662029" RT="130.0" spectrum_reference="scan=31" >
+			<PeptideHit score="1.0e-03" sequence="SVEDLAFGNYQGEDVTALFEK" charge="2" protein_refs="PH_0" >
+				<UserParam type="string" name="target_decoy" value="target"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0.0" MZ="1173.068429696387057" RT="230.0" spectrum_reference="scan=131" >
+			<PeptideHit score="1.0e-03" sequence="TALFEQLSVEDLAFGNYQGDK" charge="2" protein_refs="PH_1" >
+				<UserParam type="string" name="target_decoy" value="target"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0.0" MZ="582.318971140882013" RT="330.5" spectrum_reference="scan=231" >
+			<PeptideHit score="1.0e-03" sequence="LVNELTEFAK" charge="2" protein_refs="PH_2" >
+				<UserParam type="string" name="target_decoy" value="target"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0.0" MZ="575.295473485331968" RT="427.5" spectrum_reference="scan=328" >
+			<PeptideHit score="1.0e-03" sequence="YVNDLAGHEK(Label:2H(4))" charge="2" protein_refs="PH_3" >
+				<UserParam type="string" name="target_decoy" value="target"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0.0" MZ="573.282919985332001" RT="432.5" spectrum_reference="scan=333" >
+			<PeptideHit score="1.0e-03" sequence="YVNDLAGHEK" charge="2" protein_refs="PH_3" >
+				<UserParam type="string" name="target_decoy" value="target"/>
+			</PeptideHit>
+		</PeptideIdentification>
+	</IdentificationRun>
+</IdXML>
