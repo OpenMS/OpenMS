@@ -135,7 +135,7 @@ namespace OpenMS
     void setPrecursorPeakGroup(const PeakGroup& pg);
 
     /// mass of the decoy precursor (with report_FDR): the MS1 decoy mass (noise or signal decoy) of the isolation window that beat the
-    /// precursor by the fragments (precursor_by_fragments), or the one of the highest charge SNR without it; -1 if none
+    /// precursor by the fragments (precursor_FDR), or the one of the highest charge SNR without it; -1 if none
     double getDecoyPrecursorMass() const
     {
       return decoy_precursor_mass_;

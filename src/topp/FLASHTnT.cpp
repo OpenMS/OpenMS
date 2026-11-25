@@ -102,8 +102,9 @@ protected:
                        "would (-in_raw is then not needed and not read): the same results as FLASHDeconv and FLASHTnT -in_raw run one after "
                        "the other, without reading the raw file twice or writing the deconvolved mzML. A Thermo .raw file (recognised by its "
                        "extension) is a raw input too: it is read with Thermo's peak picking, so centroided, as ThermoRawFileParser converts it "
-                       "by default (needs OpenMS built with WITH_THERMO_RAW and the .NET 8 runtime).", true);
-    setValidFormats_("in", ListUtils::create<std::string>("mzML,raw"));
+                       "by default (needs OpenMS built with WITH_THERMO_RAW and the .NET 8 runtime). "
+                       "A Bruker timsTOF .d directory, or a zipped one (.d.zip), is recognised by its name and read with OpenMS's timsTOF reader (DDA-PASEF or DIA-PASEF): the spectra are summed over the ion mobility scans and centroided, the spectra are numbered by retention time (scan=1, 2, ...), and the ion mobility values are not kept (needs OpenMS built with WITH_OPENTIMS, the default). It is a raw input too.", true);
+    setValidFormats_("in", ListUtils::create<std::string>("mzML,raw,d"));
 
     registerInputFile_("db", "<file>", "",
                        "Protein database. Three formats, recognised from the file content (else from the file name):\n"
@@ -160,11 +161,11 @@ protected:
                         false);
 
     registerInputFile_("in_raw", "<file>", "",
-                       "Raw mzML file (profile or centroid) FLASHDeconv was run on. With it, every PrSM (targets and decoys) is annotated on its raw "
+                       "Raw mzML file (profile or centroid), Thermo .raw file or Bruker .d directory FLASHDeconv was run on, read as -in reads it. With it, every PrSM (targets and decoys) is annotated on its raw "
                        "spectrum (fragment isotope envelopes at every charge, as FLASHAnnotator) before the FDR, and ranked by its extension score "
                        "plus 8 times its raw score. The raw annotation columns are written in the PrSM and proteoform files.",
                        false);
-    setValidFormats_("in_raw", ListUtils::create<std::string>("mzML,raw"));
+    setValidFormats_("in_raw", ListUtils::create<std::string>("mzML,raw,d"));
 
     registerOutputFile_("out_pro", "<file>", "", "Output proteoform-level tsv file containing proteoform IDs. ", true);
     setValidFormats_("out_pro", ListUtils::create<std::string>("tsv"));
@@ -189,7 +190,7 @@ protected:
     registerSubsection_("tag", "Tag algorithm parameters");
     registerSubsection_("ex", "Extension algorithm parameters");
     registerSubsection_("fd", "FLASHDeconv parameters, used when -in is a raw mzML (FLASHDeconv's FD: and SD: parameters; its feature tracing and "
-                              "isobaric quantification keep their defaults, and decoy masses are made with -decoy_precursor)");
+                              "isobaric quantification keep their defaults, and decoy masses and decoy precursors are made with -precursor_FDR)");
   }
 
   Param getSubsectionDefaults_(const std::string& prefix) const override
@@ -208,7 +209,7 @@ protected:
   }
 
   // FLASHDeconv's parameters as FLASHTnT exposes them. Kept at their defaults: feature tracing (ft:), isobaric quantification (iq:), the
-  // RNA averagine and the beta isotope error tolerance of FLASHDeconv's mass FDR; report_FDR is set by FLASHTnT (with -decoy_precursor).
+  // RNA averagine and the beta isotope error tolerance of FLASHDeconv's mass FDR; report_FDR and precursor_FDR are set by FLASHTnT (-precursor_FDR).
   static Param fdDefaults_()
   {
     Param p = FLASHDeconvAlgorithm().getDefaults();
@@ -217,6 +218,7 @@ protected:
     p.remove("use_RNA_averagine");
     p.remove("allowed_isotope_error");
     p.remove("report_FDR");
+    p.remove("precursor_FDR");
     return p;
   }
 
@@ -340,8 +342,10 @@ protected:
       }
       FLASHDeconvAlgorithm fd;
       Param fd_param = getParam_().copy("fd:", true);
-      // the decoy precursor masses of the isolation windows (FLASHDeconv's report_FDR) are needed for -decoy_precursor only
-      fd_param.setValue("report_FDR", getParam_().getValue("decoy_precursor").toString() == "true" ? "true" : "false");
+      // FLASHDeconv's precursor_FDR (the decoy precursors of the isolation windows) with -precursor_FDR
+      const std::string precursor_fdr = getParam_().getValue("precursor_FDR").toString() == "true" ? "true" : "false";
+      fd_param.setValue("report_FDR", "false");
+      fd_param.setValue("precursor_FDR", precursor_fdr);
       fd.setParameters(fd_param);
       std::vector<DeconvolvedSpectrum> deconvolved_spectra;
       std::vector<FLASHHelperClasses::MassFeature> deconvolved_features;
@@ -537,14 +541,12 @@ protected:
 
     if (! out_prsm_file.empty())
     {
-      out_prsm_stream = fstream(out_prsm_file, fstream::out);
-      FLASHTnTFile::writePrSMHeader(out_prsm_stream, chimeric, with_targets);
+      out_prsm_stream = fstream(out_prsm_file, fstream::out); // the header after the run: its IonTypes column depends on the ion types
     }
 
     if (! out_pro_file.empty())
     {
       out_pro_stream = fstream(out_pro_file, fstream::out);
-      FLASHTnTFile::writeProHeader(out_pro_stream, chimeric, with_targets);
     }
 
     if (! out_protein_file.empty())
@@ -584,12 +586,14 @@ protected:
     }
     if (! out_prsm_file.empty())
     {
-      FLASHTnTFile::writePrSMs(proteoform_hits, out_prsm_stream, chimeric, with_targets);
+      FLASHTnTFile::writePrSMHeader(out_prsm_stream, chimeric, with_targets, tnt.getIonTypesFromFragmentation());
+      FLASHTnTFile::writePrSMs(proteoform_hits, out_prsm_stream, chimeric, with_targets, tnt.getIonTypesFromFragmentation());
       out_prsm_stream.close();
     }
     if (! out_pro_file.empty())
     {
-      FLASHTnTFile::writeProteoforms(proteoform_hits, out_pro_stream, pro_fdr, chimeric, with_targets);
+      FLASHTnTFile::writeProHeader(out_pro_stream, chimeric, with_targets, tnt.getIonTypesFromFragmentation());
+      FLASHTnTFile::writeProteoforms(proteoform_hits, out_pro_stream, pro_fdr, chimeric, with_targets, tnt.getIonTypesFromFragmentation());
       out_pro_stream.close();
     }
     if (! out_protein_file.empty())

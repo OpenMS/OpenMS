@@ -433,6 +433,7 @@ private:
   double p1_ = 0.3;
   bool report_decoys_ = false;
   bool detect_ion_types_ = false;
+  bool loss_check_ = false; ///< ion_type_detection_loss_check: until c is kept, z forms must exceed the y - H2O losses
   bool internal_on_ = true;
   int internal_max_length_ = 150;
   /// pieces in a ladder that make a cleavage authentic: after Asp, elsewhere, and before Pro (tag length + 1)

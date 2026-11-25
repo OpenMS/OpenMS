@@ -12,7 +12,10 @@
 #include <OpenMS/CHEMISTRY/ResidueModification.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
+#include <OpenMS/IONMOBILITY/IMTypes.h>
 #include <algorithm>
+#include <cmath>
+#include <limits>
 #include <cctype>
 #include <cstdio>
 #include <map>
@@ -262,6 +265,79 @@ namespace OpenMS
   {
   }
 
+  namespace
+  {
+    // a Bruker .d directory, also with a trailing separator as shell completion adds it, or a zipped one (.d.zip)
+    std::string stripTrailingSeparators(std::string file)
+    {
+      while (file.size() > 1 && (file.back() == '/' || file.back() == '\\')) file.pop_back();
+      return file;
+    }
+
+#ifdef WITH_OPENTIMS
+    // One spectrum of a timsTOF frame with a peak per ion mobility scan (the MS1 frames; DIA MSn frames) as one m/z spectrum, centroided
+    // as BrukerTimsFile centroids the DDA MSn spectra: the intensities of each TOF bin summed over the ion mobility scans, every bin
+    // given the intensities of its neighbouring bins, and the bins that are no lower than their neighbours kept. Adjacent TOF bins are
+    // equally spaced in sqrt(m/z), so two bins are neighbours when their sqrt(m/z) differ by at most 1.5 times the smallest difference of
+    // the spectrum (one bin). A spectrum without a per-peak ion mobility array (DDA MSn) is already centroided and stays as it is.
+    void centroidTimsFrame(MSSpectrum& spec)
+    {
+      if (spec.getFloatDataArrays().empty()) return;
+      std::vector<std::pair<double, double>> bins; // m/z, intensity
+      bins.reserve(spec.size());
+      for (const auto& p : spec)
+        bins.emplace_back(p.getMZ(), p.getIntensity());
+      std::sort(bins.begin(), bins.end());
+      Size n = 0;
+      for (Size i = 0; i < bins.size(); i++)
+      {
+        // the same TOF bin in several ion mobility scans: the same m/z
+        if (n > 0 && bins[i].first - bins[n - 1].first <= 1e-9 * bins[i].first)
+        {
+          bins[n - 1].second += bins[i].second;
+          continue;
+        }
+        bins[n++] = bins[i];
+      }
+      bins.resize(n);
+
+      std::vector<bool> adjacent(n, false); // adjacent[i]: bins i and i + 1 are neighbouring TOF bins
+      double step = std::numeric_limits<double>::max();
+      for (Size i = 0; i + 1 < n; i++)
+      {
+        const double d = std::sqrt(bins[i + 1].first) - std::sqrt(bins[i].first);
+        if (d > 0) step = std::min(step, d);
+      }
+      for (Size i = 0; i + 1 < n; i++)
+        adjacent[i] = std::sqrt(bins[i + 1].first) - std::sqrt(bins[i].first) <= 1.5 * step;
+
+      std::vector<double> smoothed(n);
+      for (Size i = 0; i < n; i++)
+      {
+        smoothed[i] = bins[i].second;
+        if (i > 0 && adjacent[i - 1]) smoothed[i] += bins[i - 1].second;
+        if (i + 1 < n && adjacent[i]) smoothed[i] += bins[i + 1].second;
+      }
+      std::vector<bool> keep(n, true);
+      for (Size i = 0; i + 1 < n; i++)
+      {
+        if (! adjacent[i]) continue;
+        if (smoothed[i] < smoothed[i + 1]) keep[i] = false;
+        else keep[i + 1] = false;
+      }
+
+      spec.clear(false);
+      spec.getFloatDataArrays().clear();
+      for (Size i = 0; i < n; i++)
+      {
+        if (keep[i]) spec.emplace_back(bins[i].first, (float)smoothed[i]);
+      }
+      spec.setType(SpectrumSettings::SpectrumType::CENTROID);
+      spec.setIMPeakType(IMPeakType::UNKNOWN);
+    }
+#endif
+  } // namespace
+
   void FLASHHelperClasses::loadExperiment(const std::string& file, PeakMap& map, const PeakFileOptions& options, ProgressLogger::LogType log)
   {
     if (FileHandler::getTypeByFileName(file) == FileTypes::RAW)
@@ -277,10 +353,180 @@ namespace OpenMS
                                         "convert it to mzML first, e.g. with ThermoRawFileParser.");
 #endif
     }
+    if (isBrukerTims(file))
+    {
+#ifdef WITH_OPENTIMS
+      // All spectra are read, so that the scan numbers (below) do not depend on the options; the options are applied after.
+      PeakMap all;
+      FileHandler file_handler;
+      file_handler.loadExperiment(stripTrailingSeparators(file), all, {FileTypes::BRUKER_TDF}, log);
+      all.sortSpectra(false); // BrukerTimsFile sorts by RT already
+
+      // The native IDs of a .d file ("frame=F scan=S precursor=P") hold no scan number: their scan= is the first ion mobility scan of a
+      // precursor, shared by the precursors of a frame. The spectra are numbered by their order in RT instead (as in a converted mzML
+      // without scan numbers), and the native ID of the file is kept as the meta value bruker_native_id.
+      map.clear(true);
+      static_cast<ExperimentalSettings&>(map) = static_cast<const ExperimentalSettings&>(all);
+      for (auto& sf : map.getSourceFiles())
+      {
+        sf.setNativeIDType("scan number only nativeID format");
+        sf.setNativeIDTypeAccession("MS:1000776");
+      }
+      for (Size i = 0; i < all.size(); i++)
+      {
+        auto& spec = all[i];
+        spec.setMetaValue("bruker_native_id", spec.getNativeID());
+        spec.setNativeID("scan=" + std::to_string(i + 1));
+        if (options.hasMSLevels() && ! options.containsMSLevel((int)spec.getMSLevel())) continue;
+        if (options.hasRTRange() && ! options.getRTRange().encloses(DPosition<1>(spec.getRT()))) continue;
+        centroidTimsFrame(spec);
+        if (options.hasMZRange())
+        {
+          const auto& range = options.getMZRange();
+          spec.erase(std::remove_if(spec.begin(), spec.end(), [&range](const Peak1D& p) { return ! range.encloses(DPosition<1>(p.getMZ())); }),
+                     spec.end());
+        }
+        if (options.hasIntensityRange())
+        {
+          const auto& range = options.getIntensityRange();
+          spec.erase(std::remove_if(spec.begin(), spec.end(), [&range](const Peak1D& p) { return ! range.encloses(DPosition<1>(p.getIntensity())); }),
+                     spec.end());
+        }
+        map.addSpectrum(std::move(spec));
+      }
+      map.updateRanges();
+      return;
+#else
+      throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                        "'" + file + "' is a Bruker timsTOF .d directory, which this build cannot read (OpenMS built without "
+                                        "WITH_OPENTIMS): convert it to mzML first, e.g. with msconvert.");
+#endif
+    }
     MzMLFile mzml;
     mzml.setLogType(log);
     mzml.setOptions(options);
     mzml.load(file, map);
+  }
+
+  const std::vector<std::string>& FLASHHelperClasses::fragmentationMethods()
+{
+  static const std::vector<std::string> methods {"HCD", "CID", "ETD", "ECD", "EThcD", "EChcD", "ECD-HCD", "UVPD"};
+  return methods;
+}
+
+std::vector<std::string> FLASHHelperClasses::ionTypesOf(const std::string& method)
+{
+  if (method == "EThcD" || method == "EChcD" || method == "ECD-HCD") return {"b", "c", "y", "z", "zp1"};
+  if (method == "ETD" || method == "ECD") return {"c", "zp1", "y"};
+  if (method == "UVPD") return {"a", "b", "c", "x", "y", "z"};
+  return {"b", "y"}; // HCD, CID, and an unknown method
+}
+
+std::string FLASHHelperClasses::fragmentationOf(const MSSpectrum& spectrum)
+{
+  if (spectrum.getPrecursors().empty()) return "";
+  const Precursor& precursor = spectrum.getPrecursors()[0];
+  using AM = Precursor::ActivationMethod;
+  const auto& methods = precursor.getActivationMethods();
+  auto has = [&methods](AM m) { return methods.find(m) != methods.end(); };
+  const bool collisional = has(AM::HCD) || has(AM::CID) || has(AM::TRAP) || has(AM::HCID) || has(AM::LCID) || has(AM::PQD);
+  if (has(AM::EThcD) || has(AM::ETciD) || (has(AM::ETD) && collisional)) return "EThcD";
+  if (has(AM::ECD) && collisional) return "ECD-HCD";
+  if (has(AM::ETD)) return "ETD";
+  if (has(AM::ECD)) return "ECD";
+  std::string thermo = precursor.metaValueExists("Thermo activation type") ? precursor.getMetaValue("Thermo activation type").toString() : std::string();
+  std::transform(thermo.begin(), thermo.end(), thermo.begin(), [](unsigned char ch) { return (char)std::tolower(ch); });
+  if (has(AM::PHD) || precursor.metaValueExists("ultraviolet photodissociation") || thermo.find("ultraviolet") != std::string::npos
+      || thermo.find("uvpd") != std::string::npos)
+  {
+    return "UVPD";
+  }
+  if (has(AM::HCD)) return "HCD";
+  if (collisional) return "CID";
+  return "";
+}
+
+std::map<std::string, Size> FLASHHelperClasses::countFragmentation(const MSExperiment& map)
+{
+  std::map<std::string, Size> counts;
+  for (const auto& spec : map)
+  {
+    if (spec.getMSLevel() >= 2) counts[fragmentationOf(spec)]++;
+  }
+  return counts;
+}
+
+std::vector<std::string> FLASHHelperClasses::resolveIonTypes(const std::vector<std::string>& ion_types, const std::string& fragmentation,
+                                                             const std::map<std::string, Size>& counts, bool allow_mixed, std::string& summary)
+{
+  auto joined = [](const std::vector<std::string>& v) {
+    std::string s;
+    for (const auto& x : v) s += (s.empty() ? "" : " ") + x;
+    return s;
+  };
+  if (std::find(ion_types.begin(), ion_types.end(), "auto") == ion_types.end())
+  {
+    summary = "ion types " + joined(ion_types) + " (given)";
+    return ion_types;
+  }
+  if (ion_types.size() > 1)
+  {
+    throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "ion_type: 'auto' cannot be combined with ion types");
+  }
+  if (fragmentation != "auto")
+  {
+    const auto pool = ionTypesOf(fragmentation);
+    summary = "ion types " + joined(pool) + " (fragmentation " + fragmentation + ", given)";
+    return pool;
+  }
+  std::map<std::vector<std::string>, std::string> pools; // ion types -> the methods that give them
+  std::string methods;
+  for (const auto& [method, n] : counts)
+  {
+    const std::string name = method.empty() ? std::string("unknown") : method;
+    methods += (methods.empty() ? "" : ", ") + name + ": " + std::to_string(n);
+    auto& names = pools[ionTypesOf(method)];
+    names += (names.empty() ? "" : "/") + name;
+  }
+  if (counts.count("") > 0)
+  {
+    OPENMS_LOG_WARN << "fragmentation auto: " << counts.at("") << " MSn spectra without a known activation in the file; their ion types are b y"
+                    << " (give -fragmentation to set the method)" << std::endl;
+  }
+  if (pools.empty())
+  {
+    summary = "ion types b y (fragmentation auto: no MSn spectrum)";
+    return {"b", "y"};
+  }
+  if (pools.size() > 1)
+  {
+    if (allow_mixed)
+    {
+      summary = "ion types per spectrum (fragmentation auto: " + methods + ")";
+      return {};
+    }
+    // one set of ion types per run (FLASHTnT): the union of the methods' ion types, in a fixed order
+    static const std::vector<std::string> order {"a", "b", "c", "x", "y", "z", "zp1", "zp2"};
+    std::set<std::string> all;
+    for (const auto& [types, names] : pools) all.insert(types.begin(), types.end());
+    std::vector<std::string> united;
+    for (const auto& t : order)
+      if (all.erase(t)) united.push_back(t);
+    united.insert(united.end(), all.begin(), all.end());
+    OPENMS_LOG_WARN << "fragmentation auto: the MSn spectra have fragmentation methods with different ion types (" << methods
+                    << "); every spectrum is searched with their union " << joined(united)
+                    << " (give -fragmentation or -ion_type, or split the file by method, to search fewer)" << std::endl;
+    summary = "ion types " + joined(united) + " (fragmentation auto, union: " + methods + ")";
+    return united;
+  }
+  summary = "ion types " + joined(pools.begin()->first) + " (fragmentation auto: " + methods + ")";
+  return pools.begin()->first;
+}
+
+bool FLASHHelperClasses::isBrukerTims(const std::string& file)
+  {
+    const std::string f = stripTrailingSeparators(file);
+    return FileHandler::getTypeByFileName(f) == FileTypes::BRUKER_TDF;
   }
 
   const ResidueModification* FLASHHelperClasses::resolveVariableModification(const std::string& spec_in, bool& protein_n_term)

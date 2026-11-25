@@ -30,7 +30,7 @@ void FLASHTnTFile::writeTagHeader(std::fstream& fs)
 }
 
 /// write header line for PrSM file
-void FLASHTnTFile::writePrSMHeader(std::fstream& fs, bool chimeric, bool targets)
+void FLASHTnTFile::writePrSMHeader(std::fstream& fs, bool chimeric, bool targets, const std::string& ion_types)
 {
   fs << "PrSMIndex\tScan\tRetentionTime\tNumMass\tProteinAccession\tProteinDescription\tPrecursorMass\tProteoformMass\tProteoformMassFromComplementaryFragmentIonPairs\tDatabaseSequence\tProteinSequence\tProf"
         "orma\tProteoformLevel\tMatchingFragments\tCoverage(%)\tStartPosition\tEndPosition"
@@ -38,17 +38,18 @@ void FLASHTnTFile::writePrSMHeader(std::fstream& fs, bool chimeric, bool targets
         "\tProteoformIndex\tCandidateSource\tFDRClass\tModVariable\tDecoyPrecursorWeight\tProteinLevelQvalue"
         "\tExtensionScore\tRawScore\tRawMatchedFragments\tRawFragmentHypotheses\tRawCoverage(%)"
      << (chimeric ? "\tChimericRound\tMatchedMasses\tRemovedMasses\tResidualNullScore\tResidualScoreRatio\tUniqueMasses\tUniqueScore" : "")
-     << (targets ? "\tTargetProtein\tDecoyMargin" : "") << "\n";
+     << (targets ? "\tTargetProtein\tDecoyMargin" : "") << (ion_types.empty() ? "" : "\tIonTypes") << "\n";
 }
 
 /// write header line for Proteoform file
-void FLASHTnTFile::writeProHeader(std::fstream& fs, bool chimeric, bool targets)
+void FLASHTnTFile::writeProHeader(std::fstream& fs, bool chimeric, bool targets, const std::string& ion_types)
 {
   fs << "ProteoformIndex\tPrSMIndices\tScan\tRetentionTime\tNumMass\tProteinAccession\tProteinDescription\tPrecursorMass\tProteoformMass\tProteoformMassFromComplementaryFragmentIonPairs\tDatabaseSequence\tProteinSequence\tProf"
         "orma\tProteoformLevel\tMatchingFragments\tCoverage(%)\tStartPosition\tEndPosition"
         "\tTagCount\tTagIndices\tModCount\tModMass\tModID\tModAccession\tModStart\tModEnd\tPrecursorQscore\tPrecursorSNR\tScore\tProteoformLevelQvalue\tCandidateSource\tFDRClass\tModVariable\tProteinLevelQvalue"
         "\tExtensionScore\tRawScore\tRawMatchedFragments\tRawFragmentHypotheses\tRawCoverage(%)"
-     << (chimeric ? "\tChimericRound\tMatchedMasses\tRemovedMasses\tResidualNullScore\tResidualScoreRatio\tUniqueMasses\tUniqueScore" : "") << "\tCombinedPrSMs\tCombinedCoverage(%)\tCombinedCoverageChance(%)" << (targets ? "\tTargetProtein\tDecoyMargin" : "") << "\n";
+     << (chimeric ? "\tChimericRound\tMatchedMasses\tRemovedMasses\tResidualNullScore\tResidualScoreRatio\tUniqueMasses\tUniqueScore" : "") << "\tCombinedPrSMs\tCombinedCoverage(%)\tCombinedCoverageChance(%)" << (targets ? "\tTargetProtein\tDecoyMargin" : "")
+     << (ion_types.empty() ? "" : "\tIonTypes") << "\n";
 }
 
 /// write the features in regular file output
@@ -482,7 +483,7 @@ std::string FLASHTnTFile::getProFormaString(const ProteinHit& hit)
 }
 
 
-void OpenMS::FLASHTnTFile::writePrSMs(const std::vector<ProteinHit>& hits, std::fstream& fs, bool chimeric, bool targets)
+void OpenMS::FLASHTnTFile::writePrSMs(const std::vector<ProteinHit>& hits, std::fstream& fs, bool chimeric, bool targets, const std::string& ion_types)
 {
   // the rows formatted in parallel, each into its own string, written in input order; an error is rethrown before anything is written, as
   // by the serial loop
@@ -552,7 +553,8 @@ void OpenMS::FLASHTnTFile::writePrSMs(const std::vector<ProteinHit>& hits, std::
        << (hit.metaValueExists(prsmKey("FDRClass")) ? hit.getMetaValue(prsmKey("FDRClass")).toString() : std::string()) << "\t" << modVariable(hit) << "\t"
        << (hit.metaValueExists(prsmKey("DecoyPrecursor")) ? (double)hit.getMetaValue(prsmKey("DecoyPrecursor")) : 0.0) << "\t"
        << std::to_string(hit.metaValueExists(prsmKey("ProteinQvalue")) ? (double)hit.getMetaValue(prsmKey("ProteinQvalue")) : -1) << rawColumns(hit)
-       << (chimeric ? chimericColumns(hit) : std::string()) << (targets ? targetColumns(hit) : std::string()) << "\n";
+       << (chimeric ? chimericColumns(hit) : std::string()) << (targets ? targetColumns(hit) : std::string())
+       << (ion_types.empty() ? std::string() : "\t" + ion_types) << "\n";
     rows[h] = ss.str();
     }
     catch (...)
@@ -567,7 +569,8 @@ void OpenMS::FLASHTnTFile::writePrSMs(const std::vector<ProteinHit>& hits, std::
   for (const auto& row : rows) fs << row;
 }
 
-void OpenMS::FLASHTnTFile::writeProteoforms(const std::vector<ProteinHit>& hits, std::fstream& fs, double pro_fdr, bool chimeric, bool targets)
+void OpenMS::FLASHTnTFile::writeProteoforms(const std::vector<ProteinHit>& hits, std::fstream& fs, double pro_fdr, bool chimeric, bool targets,
+                                            const std::string& ion_types)
 {
   std::stringstream ss;
   int pro_index = 0;
@@ -639,7 +642,8 @@ void OpenMS::FLASHTnTFile::writeProteoforms(const std::vector<ProteinHit>& hits,
        << (hit.metaValueExists("ProteoformFDRClass") ? hit.getMetaValue("ProteoformFDRClass").toString()
           : hit.metaValueExists("FDRClass") ? hit.getMetaValue("FDRClass").toString() : std::string()) << "\t" << modVariable(hit) << "\t"
        << std::to_string(hit.metaValueExists("ProteinQvalue") ? (double)hit.getMetaValue("ProteinQvalue") : -1) << rawColumns(hit)
-       << (chimeric ? chimericColumns(hit) : std::string()) << combinedColumns(hit) << (targets ? targetColumns(hit) : std::string()) << "\n";
+       << (chimeric ? chimericColumns(hit) : std::string()) << combinedColumns(hit) << (targets ? targetColumns(hit) : std::string())
+       << (ion_types.empty() ? std::string() : "\t" + ion_types) << "\n";
   }
   fs << ss.str();
 }

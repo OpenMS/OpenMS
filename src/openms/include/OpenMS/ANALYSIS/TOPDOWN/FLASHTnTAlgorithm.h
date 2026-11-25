@@ -98,6 +98,12 @@ public:
   }
   /// free the results (PrSMs, protein hits, tags) with all threads; they are empty afterwards
   void releaseResults();
+  /// the ion types of the last run, comma-separated, when ion_type was auto (from the fragmentation method); empty when they were given
+  const std::string& getIonTypesFromFragmentation() const
+  {
+    return ion_types_from_fragmentation_;
+  }
+
   double getMaxTotalModificationMass() const
   {
     return max_total_mod_mass_;
@@ -137,6 +143,8 @@ protected:
   void setDefaultParams_();
 
 private:
+  /// the ion types resolved from the fragmentation method in run() (ion_type auto), comma-separated; empty when given
+  std::string ion_types_from_fragmentation_;
 
   Param tagger_param_, extender_param_, gapped_param_, annotator_param_;
   RawSpectrumLoader raw_loader_;
@@ -187,8 +195,6 @@ private:
   void traceCandidates_(const std::vector<ProteinHit>& hits, const char* file) const;
   /// learned PrSM scoring (scoring_model): its choice weights and confidence trees; null when off
   std::shared_ptr<const LearnedScoringModel> scoring_model_;
-  /// protein q-values: open-terminus PrSMs scored with the model of "undetermined, both termini"
-  bool protein_open_terminus_model_ = false;
   /// protein q-values from the two best PrSMs of each protein (protein_ranking top_two_prsms) instead of its best proteoform
   bool protein_top_two_ = false;
   /// protein_ranking best_score: a protein ranked by the score of its best proteoform, targets and decoys in one list
@@ -245,6 +251,8 @@ private:
   static bool areConsistent_(const ProteinHit& a, const ProteinHit& b, double tol) ;
   /// number of blind modifications of a proteoform hit (variable modifications excluded)
   static Size blindModCount_(const ProteinHit& hit);
+  /// precursor_FDR: the group of a PrSM for the decoy precursors (0: no blind modification, 1: common ones only, 2: others)
+  static int precursorGroup_(const ProteinHit& hit);
   /// Groups the PrSMs of each protein into proteoforms (areConsistent_ with the representative) and marks the representatives
   /// (meta values Index, Representative, PrSMIndices). With @p by_qvalue, only PrSMs in an FDR class (@p hit_class >= 0) take part, and a
   /// determined PrSM with PrSM q-value (@p qvalues) <= @p rep_q, then the lowest q-value, comes first as representative; otherwise every

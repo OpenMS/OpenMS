@@ -720,14 +720,50 @@ namespace OpenMS
     static const ResidueModification* resolveVariableModification(const std::string& spec, bool& protein_n_term);
 
     /**
-      @brief Read the spectra of an input run: an mzML file, or a Thermo .raw file.
+      @brief Read the spectra of an input run: an mzML file, a Thermo .raw file, or a Bruker timsTOF .d directory.
 
       An mzML file is read as MzMLFile reads it, with @p options. A .raw file (recognised by its extension) is read with Thermo's
       peak picking, so its spectra are centroided as ThermoRawFileParser and FileConverter convert them by default; the MS levels and
       the retention time range of @p options are applied while reading, the m/z and intensity ranges after it. Reading a .raw file
       needs OpenMS built with WITH_THERMO_RAW and the .NET 8 runtime; otherwise it stops with a message to convert the file to mzML.
+
+      A .d directory or a zipped one (.d.zip; recognised by its name, see isBrukerTims) is read with OpenMS's timsTOF reader
+      (BrukerTimsFile, DDA-PASEF or DIA-PASEF detected). Every spectrum is centroided over the ion mobility axis: a DDA MSn spectrum is
+      one precursor summed over its frames and ion mobility scans and centroided in TOF space by the reader; an MS1 frame (and a DIA
+      MSn frame) is summed over its ion mobility scans and centroided here in the same way. The ion mobility arrays are not kept. The
+      spectra are numbered by their order in retention time (native IDs scan=1, 2, ...; the reader's native ID is kept as the meta value
+      bruker_native_id), and @p options are applied after the numbering, so that the scan numbers are the same for every reading.
+      Needs OpenMS built with WITH_OPENTIMS (the default); otherwise it stops with a message to convert the data to mzML.
     */
     static void loadExperiment(const std::string& file, PeakMap& map, const PeakFileOptions& options, ProgressLogger::LogType log);
+
+    /// true if @p file is a Bruker timsTOF .d directory or a zipped one (.d.zip), by its name (a trailing separator allowed)
+    static bool isBrukerTims(const std::string& file);
+
+    /**
+      @brief Fragmentation methods and the ion types the top-down tools search for them (the -fragmentation option of FLASHTnT and
+      FLASHAnnotator, used when -ion_type is auto).
+
+      fragmentationMethods: the method names the option takes after 'auto': HCD, CID, ETD, ECD, EThcD, EChcD, ECD-HCD, UVPD.
+      ionTypesOf: the ion types of a method: HCD, CID: b y; EThcD, EChcD, ECD-HCD: b c y z zp1; ETD, ECD: c zp1 y; UVPD: a b c x y z;
+      any other name (an unknown method): b y.
+      fragmentationOf: the method of a spectrum from the activation of its first precursor as the file records it (mzML activation terms;
+      a Thermo .raw file's activation type, its supplemental activation as EThcD/ETciD): ETD or ECD with a collisional activation (or
+      EThcD, ETciD) is EThcD or ECD-HCD, ETD and ECD alone are ETD and ECD, beam-type CID is HCD, the other collisional activations
+      (CID, trap-type, high- and low-energy CID, PQD) are CID, photodissociation (and a Thermo UVPD activation) is UVPD; "" if there is
+      no precursor or the activation is none of these. Add-on ExD cells are recorded as the collisional activation they replace (HCD).
+      countFragmentation: the MSn spectra of @p map per method ("" for unknown).
+      resolveIonTypes: the ion types to search. @p ion_types other than {"auto"} are returned as given. With {"auto"}, a @p fragmentation
+      other than "auto" gives its ion types; "auto" gives the ion types of the methods counted in @p counts (unknown as b y, with a
+      warning naming the count); if they need different ion types, the union of them (with a warning), or with @p allow_mixed {}, and the
+      caller resolves each spectrum. @p summary describes the choice for the log.
+    */
+    static const std::vector<std::string>& fragmentationMethods();
+    static std::vector<std::string> ionTypesOf(const std::string& method);
+    static std::string fragmentationOf(const MSSpectrum& spectrum);
+    static std::map<std::string, Size> countFragmentation(const MSExperiment& map);
+    static std::vector<std::string> resolveIonTypes(const std::vector<std::string>& ion_types, const std::string& fragmentation,
+                                                    const std::map<std::string, Size>& counts, bool allow_mixed, std::string& summary);
 
     /**
       @brief A modification of a proteoform as the top-down tools read and write it in ProForma 2.0 (HUPO-PSI): its site, its residues and

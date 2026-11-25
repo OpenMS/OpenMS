@@ -119,8 +119,10 @@ protected:
     registerInputFileList_("in", "<files>", {},
                            "The runs as given to FLASHDeconv: mzML files (centroided), or Thermo .raw files (recognised by their extension; read "
                            "with Thermo's peak picking, as ThermoRawFileParser converts them by default; needs OpenMS built with WITH_THERMO_RAW and "
-                           "the .NET 8 runtime).", true);
-    setValidFormats_("in", ListUtils::create<std::string>("mzML,raw"));
+                           "the .NET 8 runtime), or Bruker timsTOF .d directories or zipped ones (.d.zip; recognised by their names; read with "
+                           "OpenMS's timsTOF reader, summed over the ion mobility scans and centroided, as FLASHDeconv reads them; needs OpenMS "
+                           "built with WITH_OPENTIMS, the default).", true);
+    setValidFormats_("in", ListUtils::create<std::string>("mzML,raw,d"));
     registerInputFileList_("in_feature", "<files>", {}, "FLASHDeconv feature tsv files (-out) of the runs, in the order of -in.", true);
     setValidFormats_("in_feature", ListUtils::create<std::string>("tsv"));
     registerOutputFile_("out", "<file>", "", "Consensus feature tsv: per feature its mass, aligned apex and charges, and per run (named by the base name of its "
