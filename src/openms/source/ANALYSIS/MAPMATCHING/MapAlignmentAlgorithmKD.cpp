@@ -8,6 +8,8 @@
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmKD.h>
 #include <OpenMS/CONCEPT/LogStream.h>
+
+#include <algorithm>
 #include <queue>
 
 using namespace std;
@@ -78,6 +80,8 @@ void MapAlignmentAlgorithmKD::addRTFitData(const KDTreeFeatureMaps& kd_data)
 
 void MapAlignmentAlgorithmKD::fitLOWESS()
 {
+  // with LOWESS:auto_span, the span is selected on at most this many points per map (see below)
+  const Size max_span_selection_points = 5000;
   Size num_maps = fit_data_.size();
   for (Size i = 0; i < num_maps; ++i)
   {
@@ -94,7 +98,28 @@ void MapAlignmentAlgorithmKD::fitLOWESS()
     }
     else
     {
-      transformations_[i] = new TransformationModelLowess(fit_data_[i], lowess_param);
+      Param fit_param = lowess_param;
+      // Cross-validating the span fits ~10 candidate spans x 5 folds, so its cost grows with the number of points.
+      // On large maps, select the span on evenly spaced (in RT order) points, then fit all points with that span.
+      if (fit_param.getValue("auto_span").toBool() && n > max_span_selection_points)
+      {
+        TransformationModel::DataPoints sorted(fit_data_[i]);
+        sort(sorted.begin(), sorted.end(),
+             [](const TransformationModel::DataPoint& a, const TransformationModel::DataPoint& b)
+             {
+               return a.first < b.first;
+             });
+        TransformationModel::DataPoints subset;
+        subset.reserve(max_span_selection_points);
+        for (Size k = 0; k < max_span_selection_points; ++k)
+        {
+          subset.push_back(sorted[k * n / max_span_selection_points]);
+        }
+        TransformationModelLowess span_selection(subset, fit_param);
+        fit_param.setValue("span", span_selection.getParameters().getValue("span"));
+        fit_param.setValue("auto_span", "false");
+      }
+      transformations_[i] = new TransformationModelLowess(fit_data_[i], fit_param);
     }
   }
 }
