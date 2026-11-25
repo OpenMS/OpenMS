@@ -1,0 +1,27 @@
+Pushed approval commit: c409adb65be0c53ccda1478375173cef88c27c20
+775a7bcd493820b513abee1b4f81b2f7e692e5862649009e583fd0be17092e1f  /home/singjc/.jcode/scratch/rt2-20261125/container/opendia-rt2-20261125.sif
+/nfs/research/juan/singj/opendia/opendia-rt2-20261125.sif.partial: OK
+JCODE_PROGRESS {"message":"unique Codon SIF transferred and hash verified"}
+JCODE_PROGRESS {"message":"frozen bundle transferred into fresh Codon directory"}
+run.sbatch: OK
+evaluate.sbatch: OK
+submit.sh: OK
+compare_resources.py: OK
+PLAN_RT2.md: OK
+PREFLIGHT_APPROVED.md: OK
+source_provenance.txt: OK
+test_compare_resources.py: OK
+runtime.sha256: OK
+/nfs/research/juan/singj/opendia/opendia-rt2-20261125.sif: OK
+/nfs/research/juan/singj/opendia/astral-parquet-20261124/library/search6.opendia.parquet: OK
+/nfs/research/juan/singj/opendia/astral-parquet-20261124/library/scoring12.opendia.parquet: OK
+/nfs/research/juan/singj/opendia/proteobench-astral-entrapment/transfer/raw/LFQ_Astral_DIA_15min_50ng_Human_01.raw: OK
+/nfs/research/juan/singj/opendia/proteobench-astral-entrapment/transfer/raw/LFQ_Astral_DIA_15min_50ng_Human_02.raw: OK
+/nfs/research/juan/singj/opendia/proteobench-astral-entrapment/transfer/raw/LFQ_Astral_DIA_15min_50ng_Human_03.raw: OK
+run.sbatch: OK
+evaluate.sbatch: OK
+submit.sh: OK
+compare_resources.py: OK
+library/search6.opendia.parquet: OK
+library/scoring12.opendia.parquet: OK
+primary=42535684 evaluation=42535685
