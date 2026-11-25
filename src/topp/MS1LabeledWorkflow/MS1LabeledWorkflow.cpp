@@ -2156,7 +2156,7 @@ protected:
       }
       for (Size c = 0; c < n_channels; ++c) { lower_peaks[c].push_back(lower_is_channel[c] ? 0.0 : lowerPeak_(*it, candidate.mzs[c] - spacing)); }
     }
-    if (rts.size() < min_reference_spectra) { return TargetedOutcome_::NO_SIGNAL; }
+    if (rts.size() < min_pattern_spectra_) { return TargetedOutcome_::NO_SIGNAL; }
 
     // The elution peaks of the sum over the channels' first two isotopes, smoothed and split at minima as ElutionPeakDetection does
     // (its detectPeaks() would also build sub-traces, which fails for one of zeros only), each trimmed to where the smoothed sum is

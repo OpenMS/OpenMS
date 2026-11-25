@@ -2,7 +2,7 @@
 """Write MS1LabeledWorkflow_25_input.mzML, MS1LabeledWorkflow_25.idXML and MS1LabeledWorkflow_25.fasta (synthetic triple SILAC,
 [][Lys4,Arg6][Lys8,Arg10], targeted quantification).
 
-Centroided MS1 spectra, one per second from 100 to 660 s, 2+ peptides eluting as Gaussians, light identifications. Only the first two
+Centroided MS1 spectra, one per second from 100 to 660 s and at 700 and 701 s, 2+ peptides eluting as Gaussians, light identifications. Only the first two
 isotopes of every channel are recorded (so the detection, which needs three, finds no multiplet); an isotope of another channel that
 lies closer to a recorded peak than the FWHM at a resolution of 120,000 at m/z 200 adds to it (unresolved, one centroid at the
 intensity-weighted m/z), others are not recorded. Peaks below 'FLOOR' are not recorded either.
@@ -15,6 +15,8 @@ intensity-weighted m/z), others are not recorded. Peaks below 'FLOOR' are not re
   SAGLDFVEEK 1:0:0, weak like LVNELTEFAK (light M+1 above the floor in two spectra only), nothing at the medium and heavy m/z.
   ADLTVEFGNK 1:0:6, the light weak as above, the heavy strong; identified in the light as ADLTVEFGNK (better score) and in the heavy
     as its isomer DALTVEFGNK, one signal.
+  GSAEVTLDFK 1:1:1, in the two spectra at 700 and 701 s only (no other spectrum within 'algorithm:rt_typical', 40 s), identified in
+    the light at 700.5 s.
 The isotope distributions are computed from the elemental formulas, as CoarseIsotopePatternGenerator does.
 
 Usage: python3 MS1LabeledWorkflow_25_input_generate.py (writes the three files next to this script)
@@ -42,14 +44,15 @@ PEPTIDES = [("SVEDLAFGNYQGEDVTALFEK", "A", 130.0, 5.0, 1.0e8),
             ("LVNELTEFAK", 0.5, 330.5, 3.0, 2.0e6),
             ("YVNDLAGHEK", 4.0, 430.5, 3.0, 1.1e6),
             ("SAGLDFVEEK", 1.0, 530.5, 3.0, None),
-            ("ADLTVEFGNK", 1.0, 630.5, 3.0, None)]
+            ("ADLTVEFGNK", 1.0, 630.5, 3.0, None),
+            ("GSAEVTLDFK", 1.0, 700.5, 3.0, 1.0e7)]
 # medium and heavy amounts where they are not 1 (relative to the light : medium unit)
 AMOUNTS = {"SAGLDFVEEK": (0.0, 0.0), "ADLTVEFGNK": (0.0, 6.0)}
 # identifications: (sequence, RT, labelled channel shift, PEP)
 IDS = [("SVEDLAFGNYQGEDVTALFEK", 130.0, 0.0, "1.0e-03"), ("TALFEQLSVEDLAFGNYQGDK", 230.0, 0.0, "1.0e-03"),
        ("LVNELTEFAK", 330.5, 0.0, "1.0e-03"), ("YVNDLAGHEK(Label:2H(4))", 427.5, LYS4, "1.0e-03"), ("YVNDLAGHEK", 432.5, 0.0, "1.0e-03"),
        ("SAGLDFVEEK", 530.5, 0.0, "1.0e-03"), ("ADLTVEFGNK", 630.5, 0.0, "1.0e-04"),
-       ("DALTVEFGNK(Label:13C(6)15N(2))", 631.5, LYS8, "1.0e-03")]
+       ("DALTVEFGNK(Label:13C(6)15N(2))", 631.5, LYS8, "1.0e-03"), ("GSAEVTLDFK", 700.5, 0.0, "1.0e-03")]
 PROTEIN_SEQUENCES = list(dict.fromkeys(seq.split("(")[0] for seq, _, _, _ in IDS))
 TARGET_FRACTION = {"A": 0.3, "B": 0.65}  # the light M+4's share of the medium M0
 
@@ -161,7 +164,7 @@ def peaks_at(rt):
 
 
 def write_mzml(path):
-    spectra = [spectrum_xml(index, rt, peaks_at(float(rt))) for index, rt in enumerate(range(100, 661))]
+    spectra = [spectrum_xml(index, rt, peaks_at(float(rt))) for index, rt in enumerate(list(range(100, 661)) + [700, 701])]
     with open(path, "w") as out:
         out.write(f"""<?xml version="1.0" encoding="ISO-8859-1"?>
 <mzML xmlns="http://psi.hupo.org/ms/mzml" version="1.1.0">
