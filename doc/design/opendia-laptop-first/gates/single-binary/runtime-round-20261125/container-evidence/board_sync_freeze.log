@@ -1,0 +1,5 @@
+create draft "R-WP6: Output-identical memory and runtime round (OpenMS a11a95ec05, bdb0159ff4): scoring state released early, vectorised scorer forward pass, parallel readout, compact calibration scan; 19 tests pass" [Done]
+  status -> Done
+create draft "R-WP6: Full predicted-library identity and resource experiment for that round, unchanged three raws x five seeds, direct Parquet" [In progress]
+  status -> In progress
+4 actions

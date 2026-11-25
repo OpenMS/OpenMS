@@ -1,0 +1,4 @@
+1587283d3c6fe1d705d145576b44d60ec2d9803a4a8eca1061419dc7515b6794  /home/singjc/Documents/github/OpenMS-r1-full-ninja-build/bin/OpenDIA
+stty: 'standard input': Inappropriate ioctl for device
+
+OpenDIA -- Complete OpenDIA analysis of DIA runs: raw spectra to precursor q-values.

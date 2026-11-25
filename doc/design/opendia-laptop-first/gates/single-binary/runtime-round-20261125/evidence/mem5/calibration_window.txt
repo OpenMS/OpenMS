@@ -1,0 +1,9 @@
+    66.80%  [.] OpenMS::OpenDIA::CalibrationCollector::consumeSpectrum(OpenMS::MSSpectrum&) [clone ._omp_fn.0]                                                            
+     6.59%  [.] OpenMS::OpenDIA::CalibrationCollector::consumeSpectrum(OpenMS::MSSpectrum&)                                                                               
+     2.00%  [.] 0x00000000000128b6                                                                                                                                        
+     1.75%  [.] _int_malloc                                                                                                                                               
+     1.65%  [.] __memset_avx2_unaligned_erms                                                                                                                              
+    44.84%  [.] OpenMS::OpenDIA::CalibrationCollector::consumeSpectrum(OpenMS::MSSpectrum&) [clone ._omp_fn.0]                                                            
+     7.57%  [.] OpenMS::OpenDIA::CalibrationCollector::consumeSpectrum(OpenMS::MSSpectrum&)                                                                               
+     3.57%  [.] _int_malloc                                                                                                                                               
+     1.82%  [.] __memmove_avx_unaligned_erms                                                                                                                              

@@ -1,0 +1,28 @@
+    14.49%  [.] OpenMS::OpenDIA::TraceCollector::consumeMS1_(OpenMS::MSSpectrum&) [clone ._omp_fn.0]                                                                      
+     9.15%  [.] OpenMS::OpenDIA::TraceCollector::consumeSpectrum(OpenMS::MSSpectrum&) [clone ._omp_fn.0]                                                                  
+     7.44%  [.] OpenMS::OpenDIA::FragmentGridCollector::consumeSpectrum(OpenMS::MSSpectrum&) [clone ._omp_fn.0]                                                           
+     6.83%  [.] OpenMS::OpenDIA::stage2MatchedFilterFeatures(float const*, std::array<double, 6ul> const&, std::array<double, 6ul> const&, OpenMS::OpenDIA::TraceEvidence 
+     5.01%  [.] OpenMS::MSSpectrum::MZBegin(double) const                                                                                                                 
+     4.46%  [.] cfree@GLIBC_2.2.5                                                                                                                                         
+     4.09%  [.] malloc                                                                                                                                                    
+     3.51%  [.] _int_free                                                                                                                                                 
+     2.72%  [.] OpenMS::OpenDIA::FragmentGridCollector::consumeSpectrum(OpenMS::MSSpectrum&)                                                                              
+     2.71%  [.] OpenMS::OpenDIA::(anonymous namespace)::mfMedian(std::vector<double, std::allocator<double> >)                                                            
+     2.49%  [.] OpenMS::OpenDIA::stage2BoundaryFeatures(float const*, std::array<double, 6ul> const&, std::array<double, 6ul> const&, OpenMS::OpenDIA::TraceEvidence const
+     2.36%  [.] OpenMS::OpenDIA::pickPeakGroup(float const*, unsigned long, unsigned long, unsigned long, unsigned long, unsigned long, OpenMS::OpenDIA::PeakPickerOptions
+     2.30%  [.] OpenMS::OpenDIA::stage2Features(float const*, std::array<double, 6ul> const&, std::array<double, 6ul> const&, OpenMS::OpenDIA::TraceEvidence const&, OpenM
+     2.07%  [.] OpenMS::OpenDIA::pickXicPeaks(float const*, unsigned long, unsigned long, double const*, OpenMS::OpenDIA::XicPickerOptions const&, unsigned long&, std::ve
+     2.06%  [.] OpenMS::OpenDIA::stage2ExtraFeatures(float const*, std::array<double, 6ul> const&, std::array<double, 6ul> const&, OpenMS::OpenDIA::TraceEvidence const&, 
+     1.55%  [.] OpenMS::OpenDIA::StreamSearch::matchChunk_(OpenMS::OpenDIA::StreamSearch::GridCell const&, OpenMS::OpenDIA::StreamSearch::Chunk const&, std::vector<OpenMS
+    11.21%  [.] OpenMS::OpenDIA::FragmentGridCollector::consumeSpectrum(OpenMS::MSSpectrum&)                                                                              
+    10.50%  [.] OpenMS::OpenDIA::FragmentGridCollector::consumeSpectrum(OpenMS::MSSpectrum&) [clone ._omp_fn.0]                                                           
+     8.12%  [.] OpenMS::OpenDIA::TraceCollector::consumeSpectrum(OpenMS::MSSpectrum&) [clone ._omp_fn.0]                                                                  
+     6.53%  [.] OpenMS::OpenDIA::TraceCollector::consumeMS1_(OpenMS::MSSpectrum&) [clone ._omp_fn.0]                                                                      
+     5.46%  [.] OpenMS::MSSpectrum::MZBegin(double) const                                                                                                                 
+     2.36%  [.] malloc                                                                                                                                                    
+     2.02%  [.] OpenMS::OpenDIA::stage2MatchedFilterFeatures(float const*, std::array<double, 6ul> const&, std::array<double, 6ul> const&, OpenMS::OpenDIA::TraceEvidence 
+     1.96%  [.] OpenMS::OpenDIA::SpectrumMzIndex::build(OpenMS::MSSpectrum const&)                                                                                        
+     1.90%  [.] _int_free                                                                                                                                                 
+     1.71%  [.] cfree@GLIBC_2.2.5                                                                                                                                         
+     1.70%  [.] OpenMS::OpenDIA::TraceCollector::countByIons_(OpenMS::MSSpectrum const&, unsigned long, double)                                                           
+     1.61%  [.] OpenMS::OpenDIA::FragmentGridCollector::lane_(double, double)                                                                                             

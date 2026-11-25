@@ -1,0 +1,23 @@
+	Command being timed: "/home/singjc/.jcode/scratch/rt1-20261125/OpenDIA.rt1 -in /home/singjc/Documents/datasets/proteobench-astral-entrapment/raw/LFQ_Astral_DIA_15min_50ng_Human_01.raw -lib /home/singjc/.jcode/scratch/perf/lib/search.opendia.parquet -scoring_lib /home/singjc/.jcode/scratch/perf/lib/scoring.opendia.parquet -out_dir /home/singjc/.jcode/scratch/rt1-20261125/out_rt1 -threads 16 -seed 0"
+	User time (seconds): 2883.20
+	System time (seconds): 214.34
+	Percent of CPU this job got: 402%
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 12:49.40
+	Average shared text size (kbytes): 0
+	Average unshared data size (kbytes): 0
+	Average stack size (kbytes): 0
+	Average total size (kbytes): 0
+	Maximum resident set size (kbytes): 16325128
+	Average resident set size (kbytes): 0
+	Major (requiring I/O) page faults: 2
+	Minor (reclaiming a frame) page faults: 5511266
+	Voluntary context switches: 28211113
+	Involuntary context switches: 298887
+	Swaps: 0
+	File system inputs: 351832
+	File system outputs: 127584
+	Socket messages sent: 0
+	Socket messages received: 0
+	Signals delivered: 0
+	Page size (bytes): 4096
+	Exit status: 0
