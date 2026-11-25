@@ -1,0 +1,22 @@
+combo      gbm  mean   min   net  w.25
+run                                   
+raw01_s0  2124  2042  2117  1913  2091
+raw01_s1  2275  2010  2152  1857  2068
+raw01_s2  2206  2113  2034  1897  2153
+raw02_s0  2174  2270  2257  2277  2208
+raw02_s1  2215  2272   658  2174  2265
+raw02_s2  2144  2236  2150  2261  2174
+combo       gbm   mean    min    net   w.25
+run                                        
+raw01_s0 0.0177 0.0098 0.0104 0.0104 0.0114
+raw01_s1 0.0081 0.0113 0.0141 0.0108 0.0119
+raw01_s2 0.0117 0.0096 0.0146 0.0080 0.0142
+raw02_s0 0.0155 0.0057 0.0122 0.0040 0.0108
+raw02_s1 0.0085 0.0042 0.0033 0.0044 0.0093
+raw02_s2 0.0077 0.0060 0.0067 0.0062 0.0049
+pooled:
+  net    N 11464 E 42 combined 0.0073 worst 0.0108 runs>1% 2 | N@FDP_c1% median 2044 sum 12379
+  gbm    N 12515 E 74 combined 0.0118 worst 0.0177 runs>1% 3 | N@FDP_c1% median 2190 sum 13138
+  mean   N 12272 E 48 combined 0.0078 worst 0.0113 runs>1% 1 | N@FDP_c1% median 2174 sum 12943
+  min    N 11555 E 65 combined 0.0113 worst 0.0146 runs>1% 4 | N@FDP_c1% median 2134 sum 11368
+  w.25   N 12725 E 67 combined 0.0105 worst 0.0142 runs>1% 4 | N@FDP_c1% median 2164 sum 12959

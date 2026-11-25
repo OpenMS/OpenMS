@@ -1,0 +1,22 @@
+== raw01_s0: same window kept by both scores for 0.305 of precursors
+  GBM shift in decoy-tail units (log10), by network tail bin; mean and n for D and E (2E/D excess = rows above that bin moving up):
+    net u [1,1.5): D n 11501 mean -0.743 | E n  5684 mean -0.742 | diff E-D +0.001
+    net u [1.5,2): D n  3637 mean -1.089 | E n  1742 mean -1.113 | diff E-D -0.024
+    net u [2,2.5): D n  1150 mean -1.132 | E n   558 mean -1.153 | diff E-D -0.022
+    net u [2.5,3): D n   363 mean -0.834 | E n   162 mean -1.009 | diff E-D -0.176
+    net u [3,6): D n   167 mean -0.492 | E n   101 mean -0.580 | diff E-D -0.087
+  network tail u>=2: decoys 1680, paired target is a q<=0.01 ID: 0.021; entrapments 821
+  GBM tail u>=2: decoys 1680, paired target is a q<=0.01 ID: 0.025; entrapments 727
+  tail (net u>=1.5) decoy 5317 vs entrapment 2563: cross-fitted AUC 0.502
+  tail SMD entrapment minus decoy: f12_extra_share +0.08, f12_libcos -0.06, d_max +0.05, f12_extra_coelution +0.05, boundary_log_fwhm +0.05, i_libcos_resid -0.05, mt_llr -0.05, byion_b -0.04, i_explained +0.04, mt_cos -0.04, mt_dom +0.04, d_lib +0.04, transition_support -0.04, x_ms1_isotope +0.04
+== raw02_s0: same window kept by both scores for 0.301 of precursors
+  GBM shift in decoy-tail units (log10), by network tail bin; mean and n for D and E (2E/D excess = rows above that bin moving up):
+    net u [1,1.5): D n 10976 mean -0.740 | E n  5424 mean -0.732 | diff E-D +0.008
+    net u [1.5,2): D n  3470 mean -1.071 | E n  1772 mean -1.064 | diff E-D +0.007
+    net u [2,2.5): D n  1098 mean -1.183 | E n   544 mean -1.187 | diff E-D -0.004
+    net u [2.5,3): D n   347 mean -0.697 | E n   158 mean -0.732 | diff E-D -0.035
+    net u [3,6): D n   159 mean -0.481 | E n    82 mean -0.592 | diff E-D -0.112
+  network tail u>=2: decoys 1604, paired target is a q<=0.01 ID: 0.024; entrapments 784
+  GBM tail u>=2: decoys 1604, paired target is a q<=0.01 ID: 0.021; entrapments 762
+  tail (net u>=1.5) decoy 5074 vs entrapment 2556: cross-fitted AUC 0.507
+  tail SMD entrapment minus decoy: x_ms1_log_area +0.08, log_peak_width +0.07, x_ms1_isotope +0.07, log_matched_scans +0.06, boundary_log_width +0.05, x_ms2_log_area +0.04, d_lib +0.04, x_ms1_coelution +0.04, i_dlibcos -0.03, d_max +0.03, i_libcos_resid -0.03, s_co -0.03, x_ms1_abs_ppm -0.03, boundary_log_fwhm +0.03

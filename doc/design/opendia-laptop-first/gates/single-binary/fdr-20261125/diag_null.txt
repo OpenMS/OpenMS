@@ -1,0 +1,48 @@
+
+== raw01_s0/LFQ_Astral_DIA_15min_50ng_Human_01.features.tsv
+net: N@FDP_c1% 1913
+gbm: N@FDP_c1% 2136
+decoy winners 168192, null target winners 82780 (of which entrapment 0.508)
+feature: null-target minus decoy (bulk) | entrapment minus decoy (near threshold), SD units
+  s_best                       +0.13 | -0.04
+  s_co                         +0.09 | -0.04
+  mt_loo_med                   +0.08 | +0.09
+  s_best_d                     -0.07 | -0.01
+  d_max                        +0.07 | +0.12
+  mt_z_med                     +0.07 | +0.04
+  d6_max                       +0.07 | +0.23
+  transition_support           +0.07 | +0.02
+  x_fragment_fraction          +0.06 | +0.00
+  x_ms2_log_area               +0.06 | +0.15
+  f12_extra_coelution          +0.06 | -0.13
+  byion_y                      -0.06 | -0.02
+  i_dlibcos                    -0.06 | -0.07
+  mt_n_z2                      +0.06 | +0.02
+  mt_z_trim                    +0.05 | +0.02
+correlation over 49 features: 0.18
+cross-fitted AUC decoy vs null target: 0.538
+single-feature AUC (decoy vs null target): mt_loo_med 0.479, s_best 0.479, d_max 0.480, mt_z_med 0.480, d6_max 0.480, transition_support 0.481, mt_z_trim 0.482, x_fragment_fraction 0.482, x_ms2_log_area 0.483, byion_y 0.517
+
+== raw02_s0/LFQ_Astral_DIA_15min_50ng_Human_02.features.tsv
+net: N@FDP_c1% 2277
+gbm: N@FDP_c1% 2170
+decoy winners 160516, null target winners 78653 (of which entrapment 0.506)
+feature: null-target minus decoy (bulk) | entrapment minus decoy (near threshold), SD units
+  s_best                       +0.13 | -0.01
+  d_max                        +0.09 | +0.17
+  d6_max                       +0.09 | +0.18
+  byion_y                      -0.08 | -0.22
+  s_co                         +0.08 | +0.00
+  s_best_d                     -0.08 | -0.08
+  d_lib                        +0.06 | +0.07
+  f12_extra_coelution          -0.06 | +0.26
+  f12_extra_support            -0.06 | +0.25
+  x_ms1_abs_ppm                -0.05 | +0.13
+  i_libcos_resid               -0.05 | -0.05
+  x_ms1_isotope                +0.05 | -0.05
+  i_dlibcos                    -0.05 | +0.01
+  mt_loo_med                   +0.05 | +0.01
+  boundary_log_width           +0.05 | -0.05
+correlation over 49 features: 0.05
+cross-fitted AUC decoy vs null target: 0.553
+single-feature AUC (decoy vs null target): d6_max 0.474, d_max 0.474, byion_y 0.525, s_best 0.479, f12_extra_coelution 0.516, x_ms1_abs_ppm 0.515, i_dlibcos 0.514, f12_extra_share 0.514, boundary_log_width 0.486, f12_extra_support 0.514

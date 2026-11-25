@@ -1,0 +1,10 @@
+== raw01_s0
+  network_score : accepted entrapments 10, isobaric human parent is an ID 0.20, parent ID co-eluting <=5 s 0 (0.00); top-200 decoys with an isobaric co-eluting human ID 2
+      entrapments with an ID parent 1569, co-eluting 162; acceptance rate co-eluting 0.000, not co-eluting 0.0014, no ID parent 0.0001
+  score         : accepted entrapments 20, isobaric human parent is an ID 0.20, parent ID co-eluting <=5 s 1 (0.05); top-200 decoys with an isobaric co-eluting human ID 2
+      entrapments with an ID parent 1861, co-eluting 165; acceptance rate co-eluting 0.006, not co-eluting 0.0018, no ID parent 0.0002
+== raw02_s0
+  network_score : accepted entrapments 4, isobaric human parent is an ID 0.25, parent ID co-eluting <=5 s 0 (0.00); top-200 decoys with an isobaric co-eluting human ID 1
+      entrapments with an ID parent 1595, co-eluting 183; acceptance rate co-eluting 0.000, not co-eluting 0.0007, no ID parent 0.0000
+  score         : accepted entrapments 18, isobaric human parent is an ID 0.17, parent ID co-eluting <=5 s 0 (0.00); top-200 decoys with an isobaric co-eluting human ID 1
+      entrapments with an ID parent 1860, co-eluting 180; acceptance rate co-eluting 0.000, not co-eluting 0.0018, no ID parent 0.0002

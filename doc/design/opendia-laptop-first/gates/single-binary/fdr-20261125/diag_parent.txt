@@ -1,0 +1,6 @@
+raw01_s0 network_score : accepted entrapments 10; parent same charge is an ID 0.00; ID and co-eluting 0.00 (of those other fold nan); median positional identity nan
+raw01_s0 score         : accepted entrapments 20; parent same charge is an ID 0.00; ID and co-eluting 0.00 (of those other fold nan); median positional identity nan
+   all entrapments with an ID parent: 0, co-eluting with parent nan
+raw02_s0 network_score : accepted entrapments 4; parent same charge is an ID 0.00; ID and co-eluting 0.00 (of those other fold nan); median positional identity nan
+raw02_s0 score         : accepted entrapments 18; parent same charge is an ID 0.00; ID and co-eluting 0.00 (of those other fold nan); median positional identity nan
+   all entrapments with an ID parent: 0, co-eluting with parent nan

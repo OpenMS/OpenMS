@@ -1,0 +1,9 @@
+pairs with an isobaric human parent: 150477 of 150478
+overlap distribution (of 6 library fragments), E: [125040, 14368, 7953, 2050, 788, 238, 40]  DE: [138044, 10517, 1657, 235, 22, 2, 0]
+E vs DE above the k-th decoy of the (E, DE) set, pooled, by fragment overlap with the isobaric human parent:
+  network_score  top40   none: E 0 DE 0  0-1: E 56 DE 76  2: E 11 DE 4  3+: E 8 DE 0
+  network_score  top160  none: E 0 DE 0  0-1: E 259 DE 315  2: E 31 DE 5  3+: E 23 DE 0
+  network_score  top640  none: E 0 DE 0  0-1: E 1063 DE 1267  2: E 83 DE 12  3+: E 54 DE 1
+  score          top40   none: E 0 DE 0  0-1: E 64 DE 77  2: E 11 DE 3  3+: E 6 DE 0
+  score          top160  none: E 0 DE 0  0-1: E 224 DE 313  2: E 27 DE 5  3+: E 19 DE 2
+  score          top640  none: E 0 DE 1  0-1: E 948 DE 1256  2: E 85 DE 16  3+: E 65 DE 7

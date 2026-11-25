@@ -1,0 +1,6 @@
+== raw01_s0 (confident targets 1917)
+  network_score : top200 D 11/200 (0.055, other fold 9); E above D200 10/114 (0.088, other fold 5); accepted E 1/10 (0.100, other fold 0); random E 195/3000 (0.065, other fold 138); random D 158/3000 (0.053, other fold 107)
+  score         : top200 D 12/200 (0.060, other fold 8); E above D200 9/85 (0.106, other fold 4); accepted E 2/20 (0.100, other fold 0); random E 172/3000 (0.057, other fold 121); random D 154/3000 (0.051, other fold 106)
+== raw02_s0 (confident targets 2016)
+  network_score : top200 D 16/200 (0.080, other fold 13); E above D200 16/98 (0.163, other fold 12); accepted E 1/4 (0.250, other fold 1); random E 192/3000 (0.064, other fold 124); random D 203/3000 (0.068, other fold 129)
+  score         : top200 D 15/200 (0.075, other fold 10); E above D200 12/96 (0.125, other fold 8); accepted E 2/18 (0.111, other fold 1); random E 173/3000 (0.058, other fold 107); random D 200/3000 (0.067, other fold 135)

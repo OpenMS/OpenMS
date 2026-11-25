@@ -1,0 +1,9 @@
+raw01_s0: base N 2257 E 20 c 0.0177 N@1% 2124 | shadow N 2255 E 19 c 0.0169 N@1% 2123 | removed 32
+raw01_s1: base N 2231 E 9 c 0.0081 N@1% 2275 | shadow N 2228 E 8 c 0.0072 N@1% 2280 | removed 26
+raw01_s2: base N 2214 E 13 c 0.0117 N@1% 2206 | shadow N 2212 E 13 c 0.0118 N@1% 2207 | removed 30
+raw02_s0: base N 2329 E 18 c 0.0155 N@1% 2174 | shadow N 2329 E 18 c 0.0155 N@1% 2174 | removed 29
+raw02_s1: base N 1412 E 6 c 0.0085 N@1% 2215 | shadow N 1411 E 5 c 0.0071 N@1% 2218 | removed 30
+raw02_s2: base N 2072 E 8 c 0.0077 N@1% 2144 | shadow N 2072 E 8 c 0.0077 N@1% 2145 | removed 40
+TOL 10.0 ppm, DT 3.0 s, K 2; removed totals: {'T acc': 3, 'E acc': 3, 'D': 141, 'T': 14, 'E': 32}
+  base: N 12515 E 74 combined 0.0118 N@FDP_c1% sum 13138
+  shadow: N 12507 E 71 combined 0.0114 N@FDP_c1% sum 13147

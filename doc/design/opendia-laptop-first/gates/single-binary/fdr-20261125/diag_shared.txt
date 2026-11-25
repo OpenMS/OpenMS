@@ -1,0 +1,14 @@
+== raw01_s0
+  network_score  accepted E     n   10: parent has a window at the apex   2; ov2+   5 (of those parent window 1)
+  network_score  DE above D200  n  108: parent has a window at the apex   2; ov2+   2 (of those parent window 0)
+  network_score  E above D200   n  114: parent has a window at the apex  24; ov2+  20 (of those parent window 10)
+  score          accepted E     n   22: parent has a window at the apex   4; ov2+   7 (of those parent window 2)
+  score          DE above D200  n   94: parent has a window at the apex   4; ov2+   2 (of those parent window 0)
+  score          E above D200   n   85: parent has a window at the apex  18; ov2+  13 (of those parent window 7)
+== raw02_s0
+  network_score  accepted E     n    4: parent has a window at the apex   1; ov2+   1 (of those parent window 0)
+  network_score  DE above D200  n  101: parent has a window at the apex  10; ov2+   3 (of those parent window 0)
+  network_score  E above D200   n   98: parent has a window at the apex  25; ov2+  21 (of those parent window 13)
+  score          accepted E     n   18: parent has a window at the apex   6; ov2+   5 (of those parent window 3)
+  score          DE above D200  n  114: parent has a window at the apex  10; ov2+   3 (of those parent window 0)
+  score          E above D200   n   96: parent has a window at the apex  22; ov2+  18 (of those parent window 13)

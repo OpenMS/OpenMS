@@ -36,6 +36,7 @@ Current state on 23 November 2026: the HeLa diaPASEF entrapment at r ≈ 7. The 
 | Re-measure Astral on the current default, laptop profile (16 threads, 32 GB): median N@FDP_c 1 % 2124 / 2144 / 2246 (16 Nov 1804 / 1909 / 1907), 96 / 91 / 99 % of DIA-NN (.raw); about 6-7 min uncontended, about 17 GB | R-WP5 | Done (diagnostic) | [RESULT_ASTRAL_LAPTOP.md](gates/single-binary/astral-laptop/RESULT_ASTRAL_LAPTOP.md) |
 | Own q ≤ 0.01 loose on Astral: FDP_c above 1 % on 10 of 15 runs (medians 1.17 / 0.95 / 1.32 %, max 1.77 %; 16 Nov never above 1 %); one low seed (raw02_s4). PRECHECK_ASTQ ladder: **the GBM rescore is the cause** (pooled combined bound 1.17 to 0.73 % without it, 73 % of the total drop; fairness not raised); GBM on Astral +9.9 % raw 01, -6.1 % raw 02 | R-WP4 | Done (diagnostic); GBM fix needs a new precheck (decision) | [RESULT_ASTQ.md](gates/single-binary/astral-laptop/RESULT_ASTQ.md) |
 | PRECHECK_GBMFIX: `-gbm_rounds 1` and `-gbm_positive_q 0.005` (OpenMS 17430ba8eb, opt-in). Astral pooled combined bound 1.12 % / 0.81 % (worst run 1.77 % / 2.94 %) against the 1.00 % bar; HeLa D G1 keeps IDs (0.999x) and tightens the bound to 1.16 %; GQ -3.7 % | R-WP4 | Done (fail); next: gate the GBM on the positive count (decision) | [RESULT_GBMFIX.md](gates/single-binary/astral-laptop/RESULT_GBMFIX.md) |
+| DIAG_FDR (local, Astral raw 01/02 x 5 seeds, dev only): GBM excess is confined to q ≤ 0.01 (2E/D 1.07 vs network 0.76, below 1 deeper); decoys and entrapments exchangeable (AUC 0.51); excess sits in entrapments sharing ≥ 2 fragments with an isobaric human (bound 3.3 % GBM, 2.0 % network; decoys almost never have such a partner). Offline blend w = 0.5 of network and GBM calibrated scores: pooled bound 1.17 to 0.75 %, own-q N +0.8 %, median N@FDP_c 1 % +1.4 %. Opt-in `-gbm_blend` (OpenMS b3391c92e8): flag off byte-identical, binary equals simulation on raw01_s0 | R-WP4 | Done (diagnostic); next: frozen precheck (Astral 01/02 dev, raw 03 + HeLa D/H held out) | [DIAG_FDR.md](gates/single-binary/fdr-20261125/DIAG_FDR.md) |
 | Push OpenMS commits (bcb156e036 to 88e5da3023) to singjc/OpenMS and OpenMS/OpenMS `feature/opendia-clean-rewrite`; epic #10661 body and status comment updated | R-WP6 | Done (23 Nov) | [#10661](https://github.com/OpenMS/OpenMS/issues/10661) |
 
 ## R-WP1: Streaming search
@@ -114,6 +115,7 @@ Current state on 23 November 2026: the HeLa diaPASEF entrapment at r ≈ 7. The 
 | Calibrated q at q ≤ 0.05 (now 0.065 / 0.074) | Open | |
 | Pass rule change to a paired bootstrap rule | Blocked: needs user approval | |
 | Predicted decoys (`-predict_decoys`) remove the entrapment excess (rule 1c passes) | Done (pass) | [RESULT_DECOYGEN.md](gates/extraction-parity/decoygen/RESULT_DECOYGEN.md) |
+| DIAG_FDR: Astral GBM own-q excess localised to near-isomer entrapments at q ≤ 0.01; opt-in `-gbm_blend` (network/GBM blend, b3391c92e8), offline w = 0.5 pooled bound 1.17 to 0.75 % with IDs kept on dev data | Done (diagnostic); next: frozen precheck | [DIAG_FDR.md](gates/single-binary/fdr-20261125/DIAG_FDR.md) |
 
 ## R-WP5: ID gap
 

@@ -1,0 +1,20 @@
+== raw01_s0
+  D: precursors 168192, windows mean 4.978, median 5, P(1) 0.001, P(>=5) 0.989
+  E: precursors 83886, windows mean 4.977, median 5, P(1) 0.001, P(>=5) 0.989
+  T: precursors 84531, windows mean 4.979, median 5, P(1) 0.001, P(>=5) 0.989
+  network_score  top D20: D windows mean 5.00, E n 10 windows mean 5.00
+  network_score  top D80: D windows mean 5.00, E n 47 windows mean 5.00
+  network_score  top D320: D windows mean 4.99, E n 171 windows mean 5.00
+  score          top D20: D windows mean 5.00, E n 15 windows mean 5.00
+  score          top D80: D windows mean 5.00, E n 45 windows mean 5.00
+  score          top D320: D windows mean 5.00, E n 126 windows mean 5.00
+== raw02_s0
+  D: precursors 160516, windows mean 4.968, median 5, P(1) 0.002, P(>=5) 0.984
+  E: precursors 80109, windows mean 4.968, median 5, P(1) 0.002, P(>=5) 0.984
+  T: precursors 80645, windows mean 4.968, median 5, P(1) 0.001, P(>=5) 0.984
+  network_score  top D20: D windows mean 4.90, E n 4 windows mean 5.00
+  network_score  top D80: D windows mean 4.97, E n 33 windows mean 5.00
+  network_score  top D320: D windows mean 4.99, E n 152 windows mean 5.00
+  score          top D20: D windows mean 5.00, E n 16 windows mean 5.00
+  score          top D80: D windows mean 5.00, E n 35 windows mean 5.00
+  score          top D320: D windows mean 4.99, E n 157 windows mean 5.00

@@ -1,0 +1,18 @@
+raw01_s0 all windows: n decoy 837269 entrapment 417540; cross-fitted AUC decoy vs entrapment 0.517
+raw01_s0 best windows: n decoy 168192 entrapment 83886; cross-fitted AUC decoy vs entrapment 0.513
+   single-feature AUC: i_explained 0.493, boundary_log_fwhm 0.495, i_nclaim 0.495, log_matched_scans 0.495, f12_extra_share 0.495, f12_extra_coelution 0.496, d_max 0.496, x_ms2_log_area 0.496, log_peak_width 0.496, i_libcos_resid 0.504, byion_y 0.497, x_ms2_abs_ppm 0.503
+   without ['i_explained']: AUC 0.510
+   without ['boundary_log_fwhm']: AUC 0.511
+   without ['i_nclaim']: AUC 0.511
+   without ['log_matched_scans']: AUC 0.512
+   without ['f12_extra_share']: AUC 0.513
+   without ['f12_extra_coelution']: AUC 0.512
+raw02_s0 all windows: n decoy 797441 entrapment 398018; cross-fitted AUC decoy vs entrapment 0.516
+raw02_s0 best windows: n decoy 160516 entrapment 80109; cross-fitted AUC decoy vs entrapment 0.512
+   single-feature AUC: f12_extra_coelution 0.495, i_explained 0.495, i_dlibcos 0.505, f12_extra_share 0.495, i_nclaim 0.496, byion_y 0.496, x_ms2_abs_ppm 0.504, d_max 0.496, d_lib 0.497, i_libcos_resid 0.503, x_ms2_log_area 0.497, log_matched_scans 0.497
+   without ['f12_extra_coelution']: AUC 0.511
+   without ['i_explained']: AUC 0.511
+   without ['i_dlibcos']: AUC 0.512
+   without ['f12_extra_share']: AUC 0.511
+   without ['i_nclaim']: AUC 0.510
+   without ['byion_y']: AUC 0.512

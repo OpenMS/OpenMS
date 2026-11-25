@@ -1,0 +1,43 @@
+library targets 302479, entrapment ratio r = 1.0000, k = 2.0000
+
+== raw01_s0/LFQ_Astral_DIA_15min_50ng_Human_01.features.tsv: windows 1675700
+net: q<=0.01 N 1927 E 10 combined 0.0104
+   top 500 targets: decoys above threshold 2, entrapment-estimated false 4, ratio 2.00
+   top 1000 targets: decoys above threshold 10, entrapment-estimated false 8, ratio 0.80
+   top 1500 targets: decoys above threshold 13, entrapment-estimated false 12, ratio 0.92
+   top 2000 targets: decoys above threshold 21, entrapment-estimated false 22, ratio 1.05
+   top 2500 targets: decoys above threshold 87, entrapment-estimated false 102, ratio 1.17
+   top 3000 targets: decoys above threshold 291, entrapment-estimated false 318, ratio 1.09
+gbm: q<=0.01 N 2257 E 20 combined 0.0177
+   top 500 targets: decoys above threshold 1, entrapment-estimated false 0, ratio 0.00
+   top 1000 targets: decoys above threshold 2, entrapment-estimated false 0, ratio 0.00
+   top 1500 targets: decoys above threshold 4, entrapment-estimated false 0, ratio 0.00
+   top 2000 targets: decoys above threshold 9, entrapment-estimated false 12, ratio 1.33
+   top 2500 targets: decoys above threshold 55, entrapment-estimated false 70, ratio 1.27
+   top 3000 targets: decoys above threshold 295, entrapment-estimated false 240, ratio 0.81
+gbm-only: 348 targets, E 10, combined 0.0575
+net-only: 18 targets, E 0, combined 0.0000
+both: 1909 targets, E 10, combined 0.0105
+near threshold (net q<=0.05): entrapment 87, decoy 133, real targets 2594
+features, entrapment minus decoy (pooled SD units): boundary_coelution +0.32, abs_library_rt_error -0.32, boundary_log_width +0.25, d6_max +0.23, byion_b +0.22, x_fragment_coelution +0.21, s_n -0.20, mt_loo_n +0.17, f12_support +0.17, log_matched_scans +0.15, x_ms2_log_area +0.15, boundary_log_fwhm +0.15
+
+== raw02_s0/LFQ_Astral_DIA_15min_50ng_Human_02.features.tsv: windows 1596140
+net: q<=0.01 N 2020 E 4 combined 0.0040
+   top 500 targets: decoys above threshold 1, entrapment-estimated false 0, ratio 0.00
+   top 1000 targets: decoys above threshold 7, entrapment-estimated false 4, ratio 0.57
+   top 1500 targets: decoys above threshold 11, entrapment-estimated false 8, ratio 0.73
+   top 2000 targets: decoys above threshold 19, entrapment-estimated false 8, ratio 0.42
+   top 2500 targets: decoys above threshold 63, entrapment-estimated false 58, ratio 0.92
+   top 3000 targets: decoys above threshold 230, entrapment-estimated false 238, ratio 1.03
+gbm: q<=0.01 N 2329 E 18 combined 0.0155
+   top 500 targets: decoys above threshold 1, entrapment-estimated false 0, ratio 0.00
+   top 1000 targets: decoys above threshold 2, entrapment-estimated false 4, ratio 2.00
+   top 1500 targets: decoys above threshold 5, entrapment-estimated false 4, ratio 0.80
+   top 2000 targets: decoys above threshold 11, entrapment-estimated false 14, ratio 1.27
+   top 2500 targets: decoys above threshold 40, entrapment-estimated false 56, ratio 1.40
+   top 3000 targets: decoys above threshold 196, entrapment-estimated false 174, ratio 0.89
+gbm-only: 369 targets, E 15, combined 0.0813
+net-only: 60 targets, E 1, combined 0.0333
+both: 1960 targets, E 3, combined 0.0031
+near threshold (net q<=0.05): entrapment 64, decoy 137, real targets 2702
+features, entrapment minus decoy (pooled SD units): boundary_log_fwhm -0.34, f12_support +0.32, f12_extra_coelution +0.26, f12_extra_support +0.25, byion_b +0.25, mt_z_trim +0.25, log_matched_scans -0.24, f12_coelution +0.22, byion_y -0.22, x_ms1_coelution +0.21, log_peak_width -0.20, f12_extra_share +0.19

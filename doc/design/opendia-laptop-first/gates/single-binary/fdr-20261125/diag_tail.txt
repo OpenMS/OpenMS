@@ -1,0 +1,6 @@
+== raw01_s0/LFQ_Astral_DIA_15min_50ng_Human_01.features.tsv
+  network_score: AUC entrapment vs decoy 0.499; 0.010: entrapment 0.0098 (0.98x); 0.003: entrapment 0.0031 (1.03x); 0.001: entrapment 0.0012 (1.20x)
+  score: AUC entrapment vs decoy 0.500; 0.010: entrapment 0.0087 (0.87x); 0.003: entrapment 0.0023 (0.75x); 0.001: entrapment 0.0009 (0.92x)
+== raw02_s0/LFQ_Astral_DIA_15min_50ng_Human_02.features.tsv
+  network_score: AUC entrapment vs decoy 0.501; 0.010: entrapment 0.0098 (0.98x); 0.003: entrapment 0.0028 (0.94x); 0.001: entrapment 0.0010 (1.04x)
+  score: AUC entrapment vs decoy 0.501; 0.010: entrapment 0.0095 (0.95x); 0.003: entrapment 0.0028 (0.94x); 0.001: entrapment 0.0008 (0.84x)

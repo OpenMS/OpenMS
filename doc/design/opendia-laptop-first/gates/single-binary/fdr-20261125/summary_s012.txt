@@ -1,0 +1,18 @@
+share of entrapments with ov<=1: 0.9570, r' = 0.9570
+     run score    N  E  E_hi   N1  N_lo  E_lo  N1_lo  lower  combined  combined_lo
+raw01_s0   net 1927 10     5 1913  1922     5   2167 0.0052    0.0104       0.0053
+raw01_s0   gbm 2257 20     7 2136  2250    13   2237 0.0089    0.0177       0.0118
+raw01_s1   net 2032 11     5 1857  2027     6   2194 0.0054    0.0108       0.0061
+raw01_s1   gbm 2231  9     5 2270  2226     4   2366 0.0040    0.0081       0.0037
+raw01_s2   net 1740  7     3 1897  1737     4   2216 0.0040    0.0080       0.0047
+raw01_s2   gbm 2214 13     5 2208  2209     8   2227 0.0059    0.0117       0.0074
+raw02_s0   net 2020  4     1 2277  2019     3   2311 0.0020    0.0040       0.0030
+raw02_s0   gbm 2329 18     5 2170  2324    13   2286 0.0077    0.0155       0.0114
+raw02_s1   net 1808  4     1 2174  1807     3   2219 0.0022    0.0044       0.0034
+raw02_s1   gbm 1412  6     4 2215  1408     2   2267 0.0042    0.0085       0.0029
+raw02_s2   net 1937  6     2 2261  1935     4   2332 0.0031    0.0062       0.0042
+raw02_s2   gbm 2072  8     3 2146  2069     5   2251 0.0039    0.0077       0.0049
+
+pooled:
+  gbm: runs 6 N 12515 E 74 (ov2+ 29) lower 0.0059 combined 0.0118 | without ov2+: combined 0.0074 | median N@FDP_c1% 2189, runs over 1 % combined 3, worst 0.0177
+  net: runs 6 N 11464 E 42 (ov2+ 17) lower 0.0037 combined 0.0073 | without ov2+: combined 0.0045 | median N@FDP_c1% 2044, runs over 1 % combined 2, worst 0.0108

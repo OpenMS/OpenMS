@@ -1,0 +1,4 @@
+entrapment share by overlap class 0/1/2+: 0.8318 0.0950 0.0732
+runs 10
+  net: N 18674 E 68 all-class bound 0.0073 | ov0: E 23 bound 0.0027 | ov1: E 19 bound 0.0117 | ov2+: E 26 bound 0.0204
+  gbm: N 20121 E 118 all-class bound 0.0117 | ov0: E 49 bound 0.0054 | ov1: E 24 bound 0.0137 | ov2+: E 45 bound 0.0328

@@ -1,0 +1,17 @@
+runs: 2
+network_score acceptance set, by network tail units u (log10 decoy survival under the network):
+   u (-9.0, 1.0]  targets      0  decoys above    0  2E    0
+   u (1.0, 2.0]   targets      0  decoys above    0  2E    0
+   u (2.0, 2.5]   targets      0  decoys above    0  2E    0
+   u (2.5, 3.0]   targets      0  decoys above    0  2E    0
+   u (3.0, 3.5]   targets      0  decoys above    0  2E    0
+   u (3.5, 99.0]  targets   3948  decoys above   38  2E   28
+   total targets 3948, decoys 38, 2E 28: TDC FDP est 0.0096, entrapment est 0.0071
+score acceptance set, by network tail units u (log10 decoy survival under the network):
+   u (-9.0, 1.0]  targets      2  decoys above    0  2E    2
+   u (1.0, 2.0]   targets      2  decoys above    1  2E    0
+   u (2.0, 2.5]   targets     13  decoys above    1  2E    2
+   u (2.5, 3.0]   targets     41  decoys above    1  2E    4
+   u (3.0, 3.5]   targets    199  decoys above    8  2E   20
+   u (3.5, 99.0]  targets   4357  decoys above   38  2E   52
+   total targets 4614, decoys 49, 2E 80: TDC FDP est 0.0106, entrapment est 0.0173

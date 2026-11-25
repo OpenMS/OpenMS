@@ -1,0 +1,15 @@
+== raw01_s0: hard decoys 3364; network-tail (u>=1) rows 25065
+   D cross-fold hard relative=False: n  16763 mean GBM shift -0.844 | net u>=2: n  1670 shift -1.003, GBM u>=2.5 kept 293
+   D cross-fold hard relative=True : n     55 mean GBM shift -0.759 | net u>=2: n    10 shift -1.095, GBM u>=2.5 kept 2
+   E cross-fold hard relative=False: n   8237 mean GBM shift -0.851 | net u>=2: n   818 shift -1.055, GBM u>=2.5 kept 130
+   E cross-fold hard relative=True : n     10 mean GBM shift -0.735 | net u>=2: n     3 shift -0.906, GBM u>=2.5 kept 0
+== raw02_s0: hard decoys 3211; network-tail (u>=1) rows 24030
+   D cross-fold hard relative=False: n  15988 mean GBM shift -0.838 | net u>=2: n  1596 shift -1.007, GBM u>=2.5 kept 271
+   D cross-fold hard relative=True : n     62 mean GBM shift -0.877 | net u>=2: n     8 shift -1.217, GBM u>=2.5 kept 1
+   E cross-fold hard relative=False: n   7967 mean GBM shift -0.835 | net u>=2: n   784 shift -1.033, GBM u>=2.5 kept 132
+   E cross-fold hard relative=True : n     13 mean GBM shift -0.866 | net u>=2: n     0 shift +nan, GBM u>=2.5 kept 0
+pooled, network u>=2:
+   ('D', False): n 3266 mean shift -1.005 GBM u>=2.5 564 (0.173)
+   ('D', True): n 18 mean shift -1.149 GBM u>=2.5 3 (0.167)
+   ('E', False): n 1602 mean shift -1.044 GBM u>=2.5 262 (0.164)
+   ('E', True): n 3 mean shift -0.906 GBM u>=2.5 0 (0.000)

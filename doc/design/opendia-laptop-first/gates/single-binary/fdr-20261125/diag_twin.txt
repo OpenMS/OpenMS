@@ -1,0 +1,26 @@
+== raw01_s0
+  network_score:
+    twin is an ID          pairs   1562  E beats DE 0.499  above D80: E   6 DE   1  above D320: E  24 DE   8  E q<=0.01 2
+      twin |dt|<=10 s      pairs    224  E beats DE 0.482  above D80: E   2 DE   1  above D320: E   8 DE   5  E q<=0.01 0
+      twin 10<|dt|<=60 s   pairs    562  E beats DE 0.498  above D80: E   3 DE   0  above D320: E   9 DE   0  E q<=0.01 2
+      twin |dt|>60 s       pairs    776  E beats DE 0.505  above D80: E   1 DE   0  above D320: E   7 DE   3  E q<=0.01 0
+    no twin ID             pairs  82117  E beats DE 0.498  above D80: E  40 DE  41  above D320: E 145 DE 160  E q<=0.01 8
+  score:
+    twin is an ID          pairs   1562  E beats DE 0.510  above D80: E   6 DE   3  above D320: E  14 DE   7  E q<=0.01 3
+      twin |dt|<=10 s      pairs    191  E beats DE 0.592  above D80: E   1 DE   0  above D320: E   3 DE   1  E q<=0.01 1
+      twin 10<|dt|<=60 s   pairs    637  E beats DE 0.510  above D80: E   4 DE   2  above D320: E   7 DE   3  E q<=0.01 2
+      twin |dt|>60 s       pairs    734  E beats DE 0.489  above D80: E   1 DE   1  above D320: E   4 DE   3  E q<=0.01 0
+    no twin ID             pairs  82117  E beats DE 0.495  above D80: E  39 DE  33  above D320: E 111 DE 154  E q<=0.01 17
+== raw02_s0
+  network_score:
+    twin is an ID          pairs   1593  E beats DE 0.502  above D80: E   6 DE   5  above D320: E  19 DE  15  E q<=0.01 1
+      twin |dt|<=10 s      pairs    250  E beats DE 0.520  above D80: E   4 DE   2  above D320: E   9 DE   2  E q<=0.01 0
+      twin 10<|dt|<=60 s   pairs    636  E beats DE 0.505  above D80: E   2 DE   2  above D320: E   4 DE   5  E q<=0.01 1
+      twin |dt|>60 s       pairs    707  E beats DE 0.494  above D80: E   0 DE   1  above D320: E   6 DE   8  E q<=0.01 0
+    no twin ID             pairs  78283  E beats DE 0.503  above D80: E  26 DE  44  above D320: E 132 DE 148  E q<=0.01 3
+  score:
+    twin is an ID          pairs   1593  E beats DE 0.499  above D80: E   6 DE   4  above D320: E  14 DE  19  E q<=0.01 3
+      twin |dt|<=10 s      pairs    233  E beats DE 0.519  above D80: E   2 DE   1  above D320: E   5 DE   3  E q<=0.01 0
+      twin 10<|dt|<=60 s   pairs    649  E beats DE 0.499  above D80: E   2 DE   3  above D320: E   4 DE   9  E q<=0.01 2
+      twin |dt|>60 s       pairs    711  E beats DE 0.492  above D80: E   2 DE   0  above D320: E   5 DE   7  E q<=0.01 1
+    no twin ID             pairs  78283  E beats DE 0.497  above D80: E  29 DE  41  above D320: E 143 DE 162  E q<=0.01 15

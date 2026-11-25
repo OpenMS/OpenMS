@@ -1,0 +1,9 @@
+raw01_s0  |  net pooled N 1927 E 10 c 0.0104 N@1% 1913  |  net perfold N 1608 E 11 c 0.0137 N@1% 902  |  net per-fold D/2E above pooled thr f0:6/6 f1:4/12 f2:8/2  |  sco pooled N 2225 E 16 c 0.0144 N@1% 2154  |  sco perfold N 2223 E 17 c 0.0153 N@1% 2148  |  sco per-fold D/2E above pooled thr f0:7/6 f1:6/14 f2:8/12
+raw02_s0  |  net pooled N 2020 E 4 c 0.0040 N@1% 2277  |  net perfold N 2012 E 5 c 0.0050 N@1% 2263  |  net per-fold D/2E above pooled thr f0:6/2 f1:7/4 f2:6/2  |  sco pooled N 2334 E 18 c 0.0154 N@1% 2170  |  sco perfold N 2293 E 14 c 0.0122 N@1% 2161  |  sco per-fold D/2E above pooled thr f0:7/2 f1:9/14 f2:6/20
+raw01_s1  |  net pooled N 2032 E 11 c 0.0108 N@1% 1857  |  net perfold N 1877 E 12 c 0.0128 N@1% 1828  |  net per-fold D/2E above pooled thr f0:8/12 f1:4/8 f2:7/2  |  sco pooled N 2231 E 10 c 0.0090 N@1% 2270  |  sco perfold N 2218 E 10 c 0.0090 N@1% 2249  |  sco per-fold D/2E above pooled thr f0:10/10 f1:7/8 f2:4/2
+raw02_s1  |  net pooled N 1808 E 4 c 0.0044 N@1% 2174  |  net perfold N 1563 E 5 c 0.0064 N@1% 2151  |  net per-fold D/2E above pooled thr f0:5/2 f1:5/4 f2:7/2  |  sco pooled N 2006 E 6 c 0.0060 N@1% 2075  |  sco perfold N 1961 E 4 c 0.0041 N@1% 2072  |  sco per-fold D/2E above pooled thr f0:9/4 f1:5/8 f2:5/0
+pooled over runs (sum N, sum E, mean combined, sum N@1%):
+  network_score  pooled   N 7787 E 29 combined 0.0074  N@FDP_c1% 8221 (mean 2055)
+  network_score  perfold  N 7060 E 33 combined 0.0093  N@FDP_c1% 7144 (mean 1786)
+  score          pooled   N 8796 E 50 combined 0.0114  N@FDP_c1% 8669 (mean 2167)
+  score          perfold  N 8695 E 45 combined 0.0104  N@FDP_c1% 8630 (mean 2158)

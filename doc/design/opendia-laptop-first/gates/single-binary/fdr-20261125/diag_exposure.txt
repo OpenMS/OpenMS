@@ -1,0 +1,4 @@
+human targets          n 40000: has isobaric human 0.0959  shares >=1 0.0803  >=2 0.0698  >=3 0.0594
+entrapment targets     n 40000: has isobaric human 1.0000  shares >=1 0.1755  >=2 0.0778  >=3 0.0222
+decoys of human        n 40000: has isobaric human 0.0077  shares >=1 0.0042  >=2 0.0023  >=3 0.0006
+decoys of entrapment   n 40000: has isobaric human 0.0076  shares >=1 0.0042  >=2 0.0025  >=3 0.0009

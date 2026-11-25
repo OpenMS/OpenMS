@@ -1,0 +1,3 @@
+   [warn] fold 0: decoy MAD 0 (n 56371, unique 1); using SD
+   [warn] fold 1: decoy MAD 0 (n 55534, unique 1); using SD
+raw01_s0  net 1927/10/0.0104/1913  tool 2257/20/0.0177/2124  base 657/2/0.0061/720

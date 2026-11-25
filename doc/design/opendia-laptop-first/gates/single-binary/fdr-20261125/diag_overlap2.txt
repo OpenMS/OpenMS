@@ -1,0 +1,7 @@
+runs 2
+network_score  q<=0.01  N 3948  E ov0-1 8  E ov2+ 6  DE ov0-1 23  DE ov2+ 2  DH 13
+network_score  D50      N 4717  E ov0-1 32  E ov2+ 14  DE ov0-1 57  DE ov2+ 3  DH 40
+network_score  D200     N 5753  E ov0-1 171  E ov2+ 41  DE ov0-1 204  DE ov2+ 5  DH 191
+score          q<=0.01  N 4614  E ov0-1 28  E ov2+ 12  DE ov0-1 28  DE ov2+ 1  DH 20
+score          D50      N 5010  E ov0-1 46  E ov2+ 16  DE ov0-1 50  DE ov2+ 3  DH 47
+score          D200     N 5890  E ov0-1 150  E ov2+ 31  DE ov0-1 203  DE ov2+ 5  DH 192

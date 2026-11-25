@@ -1,0 +1,10 @@
+== raw01_s0/LFQ_Astral_DIA_15min_50ng_Human_01.features.tsv
+  network_score  precursor winners  D5:2E=6  D10:2E=8  D20:2E=20  D40:2E=38  D80:2E=94  D160:2E=198
+  network_score  pair winners       D5:2E=6  D10:2E=12  D20:2E=22  D40:2E=38  D80:2E=98  D160:2E=196
+  score          precursor winners  D5:2E=4  D10:2E=18  D20:2E=30  D40:2E=58  D80:2E=90  D160:2E=152
+  score          pair winners       D5:2E=4  D10:2E=18  D20:2E=30  D40:2E=58  D80:2E=96  D160:2E=152
+== raw02_s0/LFQ_Astral_DIA_15min_50ng_Human_02.features.tsv
+  network_score  precursor winners  D5:2E=4  D10:2E=6  D20:2E=8  D40:2E=32  D80:2E=66  D160:2E=164
+  network_score  pair winners       D5:2E=4  D10:2E=6  D20:2E=8  D40:2E=32  D80:2E=66  D160:2E=166
+  score          precursor winners  D5:2E=4  D10:2E=14  D20:2E=32  D40:2E=56  D80:2E=70  D160:2E=134
+  score          pair winners       D5:2E=4  D10:2E=14  D20:2E=32  D40:2E=56  D80:2E=70  D160:2E=142

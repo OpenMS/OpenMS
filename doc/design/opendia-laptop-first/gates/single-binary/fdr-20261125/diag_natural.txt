@@ -1,0 +1,2 @@
+human targets 151239: with an isobaric human (same composition) 0.0981; sharing >=1 fragment 0.0819; >=2 0.0715
+entrapments vs their parent: >=1 0.1682; >=2 0.0732

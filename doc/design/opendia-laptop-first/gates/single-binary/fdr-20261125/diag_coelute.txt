@@ -1,0 +1,17 @@
+runs 2; E = entrapments, DE = their own decoys; co = isobaric human parent co-elutes within 3 s
+network_score
+   all       co: E   5608 DE   3357   not co: E 158387 DE 160426
+   D10       co: E      0 DE      0   not co: E      7 DE     10
+   D20       co: E      0 DE      0   not co: E     14 DE     25
+   D40       co: E      3 DE      1   not co: E     32 DE     44
+   D80       co: E     14 DE      2   not co: E     66 DE     89
+   D160      co: E     25 DE      3   not co: E    156 DE    172
+   accepted  co: E      0 DE      0   not co: E     14 DE     25
+score
+   all       co: E   4481 DE   3341   not co: E 159514 DE 160442
+   D10       co: E      1 DE      1   not co: E     15 DE      9
+   D20       co: E      4 DE      2   not co: E     27 DE     23
+   D40       co: E      6 DE      2   not co: E     51 DE     41
+   D80       co: E      7 DE      2   not co: E     73 DE     79
+   D160      co: E     13 DE      4   not co: E    130 DE    159
+   accepted  co: E      4 DE      2   not co: E     36 DE     27
