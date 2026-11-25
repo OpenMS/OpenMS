@@ -1589,6 +1589,40 @@ START_SECTION(([EXTRA] chromatograms are stored with a precursor or product only
 }
 END_SECTION
 
+START_SECTION(([EXTRA] the MALDI spot is stored as the spotID attribute))
+{
+  // The reader keeps the spotID attribute as the MetaValue maldi_spot_id, which used to be written back as a userParam
+  // that other readers do not find
+  PeakMap exp;
+  MSSpectrum spot;
+  spot.setNativeID("spectrum=1");
+  spot.setMetaValue("maldi_spot_id", "R00X019Y012 <\"&'>");
+  spot.push_back(Peak1D(100.0, 1.0));
+  MSSpectrum no_spot(spot);
+  no_spot.setNativeID("spectrum=2");
+  no_spot.removeMetaValue("maldi_spot_id");
+  exp.addSpectrum(spot);
+  exp.addSpectrum(no_spot);
+
+  std::string tmp_filename;
+  NEW_TMP_FILE(tmp_filename);
+  MzMLFile().store(tmp_filename, exp);
+  std::ifstream is(tmp_filename);
+  std::string out((std::istreambuf_iterator<char>(is)), std::istreambuf_iterator<char>());
+  TEST_TRUE(StringUtils::hasSubstring(out, "spotID=\"R00X019Y012 &lt;&quot;&amp;&apos;&gt;\""))
+  TEST_TRUE(out.find("spotID=") == out.rfind("spotID=")) // only for the spectrum with a spot
+  TEST_FALSE(StringUtils::hasSubstring(out, "maldi_spot_id"))
+  std::ostringstream errors;
+  TEST_TRUE(MzMLFile().isValid(tmp_filename, errors)) // spotID is an attribute of <spectrum> in the mzML 1.1 schema
+
+  PeakMap reloaded;
+  MzMLFile().load(tmp_filename, reloaded);
+  TEST_EQUAL(reloaded.size(), 2)
+  TEST_STRING_EQUAL(reloaded[0].getMetaValue("maldi_spot_id").toString(), "R00X019Y012 <\"&'>")
+  TEST_FALSE(reloaded[1].metaValueExists("maldi_spot_id"))
+}
+END_SECTION
+
 START_SECTION(([EXTRA] scan attributes are stored in the scan, also those kept under their accession))
 {
   // The reader keeps some scan attributes with the spectrum, as MSSpectrum has no member for them, but mzML allows them

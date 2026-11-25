@@ -735,6 +735,7 @@ namespace OpenMS
     proteinIDs.setInferenceEngine("Epifany");
     proteinIDs.setInferenceEngineVersion(VersionInfo::getVersion());
     proteinIDs.setHigherScoreBetter(true);
+    IDFilter::removeGroupScoreThreshold(proteinIDs); // a cutoff on the old group scores does not apply to the new groups
   }
 
   void BayesianProteinInferenceAlgorithm::inferPosteriorProbabilities(

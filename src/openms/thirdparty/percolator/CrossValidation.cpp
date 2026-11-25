@@ -16,117 +16,50 @@
  *******************************************************************************/
 
 #include "CrossValidation.h"
-#include "OpenMPTasks.h"  // OpenMS: PERCOLATOR_OMP_TASKS, PERCOLATOR_TASK_PRAGMA
+#include "PosteriorEstimator.h"
+#include "Timer.h"
 
 #include <algorithm>
-#include <exception>
-
+#include <cmath>
 #ifdef _OPENMP
 #include <omp.h>
 #endif
+#include "OpenMPThreads.h"  // OpenMS: maxThreads()
+#include "OpenMPTasks.h"    // OpenMS: PERCOLATOR_OMP_TASKS, PERCOLATOR_TASK_PRAGMA (trainFoldChains)
+
+#include <atomic>
+#include <memory>
+#include <mutex>
 
 namespace OpenMS { namespace Internal { namespace Percolator {
 
 // checks cross validation convergence in case of quickValidation_
 const double CrossValidation::requiredIncreaseOver2Iterations_ = 0.01;
+// checks convergence in normal (not classic) training
+const double CrossValidation::requiredIncreaseOver2IterationsDefault_ = 0.001;
+// number of iterations in which Cpos and Cneg are selected; afterwards each
+// fold keeps its pair (not in classic training)
+const unsigned int CrossValidation::gridSearchIterations_ = 3u;
 
-// OpenMS: the cross-validation loops run on at most numThreads threads, and never on
-// more than OpenMP allows here (a TOPP tool's -threads). Upstream calls
-// omp_set_num_threads() instead, which would change the count for the whole process.
-// Without an OpenMP runtime (e.g. -fopenmp-simd, which still parses the clauses) 1.
-// A loop over the folds (or pairs) uses no more threads than it has iterations. Without tasks
-// (OpenMP 2.0, cl.exe) the pairs of a chain run as a nested loop on the chain's share of the
-// threads, rounded up, so the training may use up to two threads more than numThreads (4 threads:
-// 3 chains of 2); each nested team is capped by the pairs of its pass. The loops
-// whose iterations sort (Scores, see SortLikeStd.h) run them as tasks of a parallel region on
-// more threads instead (numTeamThreads): the threads without an iteration of their own run
-// the tasks of the sorts.
-[[maybe_unused]] static int numLoopThreads(unsigned int numThreads,
-                                           std::size_t iterations = std::size_t(-1)) {
-#ifdef _OPENMP
-  const std::size_t threads = std::min<std::size_t>(
-      std::min(std::max(numThreads, 1u),
-               static_cast<unsigned int>(omp_get_max_threads())),
-      std::max<std::size_t>(iterations, 1));
-  return static_cast<int>(threads);
-#else
-  (void)numThreads;
-  (void)iterations;
-  return 1;
-#endif
-}
-
-// OpenMS: the parallel regions whose iterations run as tasks (with the tasks of their sorts,
-// see SortLikeStd.h) use at most kMaxTeamThreads threads: more threads would mostly wait for
-// tasks, polling the team's task queue.
-constexpr unsigned int kMaxTeamThreads = 12;
-// OpenMS: Newton and LDA (setSolver) cut the rows of large training sets into blocks that run as
-// tasks (newton_svm.h): the fold chains of training sets of at least kSolverAllThreadsPsms PSMs
-// then run on all threads (numLoopThreads), not kMaxTeamThreads.
-constexpr std::size_t kSolverAllThreadsPsms = std::size_t(1) << 17;
-// OpenMS: Newton's tolerance (as TRON's, the gradient norm relative to that at 0) in the steps
-// before the last one, which solves to EPSILON: the earlier steps only choose the positives
-// of the next.
+// OpenMS: Newton's tolerance (as TRON's, the gradient norm relative to that at 0) in the iterations before the last
+// one of classic training without quick validation, which solves to the tolerance of the options: the earlier
+// iterations only choose the positives of the next. (A training that can stop early does not know its last iteration.)
 constexpr double kNewtonEarlyEpsilon = 1e-4;
-[[maybe_unused]] static int numTeamThreads(unsigned int numThreads) {
-  return numLoopThreads(std::min(numThreads, kMaxTeamThreads));
-}
-// OpenMS: from training sets of kLargeTrainingSet PSMs on, the tasks of a fold chain's own passes
-// (the scoring, sorting and q-values of its sets, the scoring of its validations) are large enough
-// for more threads: the fold chains then get all threads.
-constexpr std::size_t kLargeTrainingSet = std::size_t(1) << 18;
-[[maybe_unused]] static int numChainTeamThreads(unsigned int numThreads,
-                                                const std::vector<Scores>& trainScores) {
-  std::size_t largest = 0;
-  for (const Scores& set : trainScores) largest = std::max<std::size_t>(largest, set.size());
-  return largest >= kLargeTrainingSet ? numLoopThreads(numThreads) : numTeamThreads(numThreads);
-}
-// OpenMS: the set-up of the folds (preIterationSetup: the folds' sets and initial directions,
-// whose 31 sorts per fold run one after the other) gains from more threads for the tasks of its
-// sorts: at most kMaxSetupTeamThreads (the initial directions of a timsTOF HeLa run with 1.1
-// million PSMs: 0.78 s with 16 threads, 0.45 s with 64).
-constexpr unsigned int kMaxSetupTeamThreads = 64;
-[[maybe_unused]] static int numSetupTeamThreads(unsigned int numThreads) {
-  return numLoopThreads(std::min(numThreads, kMaxSetupTeamThreads));
-}
-#if !PERCOLATOR_OMP_TASKS
-// OpenMS: without tasks (OpenMPTasks.h), the (cpos, cneg) pairs of a fold chain run as a nested
-// parallel loop (trainFoldChains). Nested parallel regions are off by default, and the setting is
-// process-global (as omp_set_num_threads would be): enableNestedParallel switches them on and
-// returns the previous setting, restoreNestedParallel puts it back. OpenMP 2.0 (MSVC) has only
-// omp_set_nested, deprecated from OpenMP 5.0; from OpenMP 3.0 on, omp_set_max_active_levels(2)
-// does it (with OpenMP 5.0's rules, as libgomp and LLVM's libomp have them, the active levels
-// alone decide).
-static int enableNestedParallel() {
-#if !defined(_OPENMP)
-  return 0;
-#elif _OPENMP >= 200805
-  const int levels = omp_get_max_active_levels();
-  if (levels < 2) omp_set_max_active_levels(2);
-  return levels;
-#else
-  const int nested = omp_get_nested();
-  omp_set_nested(1);
-  return nested;
-#endif
-}
-static void restoreNestedParallel(int previous) {
-#if !defined(_OPENMP)
-  (void)previous;
-#elif _OPENMP >= 200805
-  omp_set_max_active_levels(previous);
-#else
-  omp_set_nested(previous);
-#endif
-}
-#endif
 
-// OpenMS: rethrows the first error, in iteration order, caught in the iterations of a
-// parallel loop (an exception must not leave an OpenMP region).
-static void rethrowFirstError(const std::vector<std::exception_ptr>& errors) {
-  for (const std::exception_ptr& error : errors) {
-    if (error) std::rethrow_exception(error);
-  }
+// the number of threads a parallel region can have, and the number of the
+// calling thread in its region
+// OpenMS: maxThreads() (OpenMPThreads.h), omp_get_max_threads() at most the cap of the calling thread; the regions
+// below get it as num_threads, so that the thread numbers stay below it
+static std::size_t maxNumThreads() {
+  return static_cast<std::size_t>(maxThreads());
+}
+
+static std::size_t threadNum() {
+#ifdef _OPENMP
+  return static_cast<std::size_t>(omp_get_thread_num());
+#else
+  return 0u;
+#endif
 }
 
 CrossValidation::CrossValidation(bool quickValidation,
@@ -141,12 +74,12 @@ CrossValidation::CrossValidation(bool quickValidation,
                                  unsigned int nestedXvalBins,
                                  bool trainBestPositive,
                                  unsigned int numThreads,
-                                 bool skipNormalizeScores,
                                  double decoyFractionTraining,
                                  unsigned int numFolds)
     : quickValidation_(quickValidation),
       usePi0_(usePi0),
       reportPerformanceEachIteration_(reportPerformanceEachIteration),
+      numThreads_(numThreads),
       testFdr_(testFdr),
       selectionFdr_(selectionFdr),
       initialSelectionFdr_(initialSelectionFdr),
@@ -155,8 +88,6 @@ CrossValidation::CrossValidation(bool quickValidation,
       niter_(niter),
       nestedXvalBins_(nestedXvalBins),
       trainBestPositive_(trainBestPositive),
-      numThreads_(numThreads),
-      skipNormalizeScores_(skipNormalizeScores),
       decoyFractionTraining_(decoyFractionTraining),
       numFolds_(numFolds) {
   // initialize selectionFdr_ and initialSelectionFdr_ if they have not been set
@@ -167,15 +98,7 @@ CrossValidation::CrossValidation(bool quickValidation,
       initialSelectionFdr_ = testFdr_;
     }
   }
-}
-
-CrossValidation::~CrossValidation() {
-  for (unsigned int set = 0; set < numFolds_ * nestedXvalBins_; ++set) {
-    if (svmInputs_[set]) {
-      delete svmInputs_[set];
-    }
-    svmInputs_[set] = NULL;
-  }
+  mergePlan_.fdr = selectionFdr_;
 }
 
 /**
@@ -189,50 +112,78 @@ CrossValidation::~CrossValidation() {
  * - `weights_`
  * - `candidatesCpos_`, `candidatesCfrac_` and `classWeightsPerFold_` (in
  * `initializeGridSearch`)
+ * - empties `fullset`, whose PSMs are then held by the folds
  *
  * @param w_ vector of SVM weights
  * @return number of positives for initial setup
  */
 int CrossValidation::preIterationSetup(Scores& fullset,
-                                       SanityCheck* pCheck,
-                                       const Normalizer* pNorm,
-                                       FeatureMemoryPool& featurePool) {
+                                       SanityCheck& check,
+                                       const Normalizer* pNorm) {
   assert(nestedXvalBins_ >= 1u);
-  trainScoresOfWeights_ = false;
-  nestedSeedBase_ = PseudoRandom::getSeed();  // OpenMS: see doStep (fixed folds)
-  nestedSteps_ = 0;
-  // One input set per (nested) cross validation bin, to be reused multiple
-  // times
-  for (unsigned int set = 0; set < numFolds_ * nestedXvalBins_; ++set) {
-    svmInputs_.push_back(new AlgIn(
-        fullset.size(), static_cast<int>(FeatureNames::getNumFeatures()) + 1));
-    assert(svmInputs_.back());
+  // The SVM inputs are made by svmInputsOfPass when they are first needed.
+  if (VERB > 1 && !svmRowsInPlace_ && foldsAtOnce() < numFolds_) {
+    cerr << "Training the SVMs on copies of the feature rows of "
+         << foldsAtOnce() << " of the " << numFolds_ << " folds at a time"
+         << (singleSolvesInPlace_
+                 ? ", and on the rows in place where a fold trains one SVM"
+                 : "")
+         << " (--folds-in-memory)." << endl;
   }
 
   unsigned int decoysPerTarget = 1u;  // TODO: make this a command line argument
-  // OpenMS: in a parallel region, whose threads run the tasks of the sort (see SortLikeStd.h)
-  std::exception_ptr xvalError;
-  PERCOLATOR_TASK_PRAGMA(omp parallel num_threads(numSetupTeamThreads(numThreads_)))
-  PERCOLATOR_TASK_PRAGMA(omp single)
-  try {
+  double targetDecoySizeRatio = 1.0;
+  const size_t numPsms = fullset.size();
+  {
+    StageTimer stageTimer("cross-validation split");
+    nestedSeedBase_ = PseudoRandom::getSeed();  // OpenMS: see doStep (fixed folds)
     fullset.createXvalSetsBySpectrum(trainScores_, testScores_, numFolds_,
-                                     featurePool, decoyFractionTraining_,
-                                     decoysPerTarget, &fixedFold_);
-  } catch (...) {
-    xvalError = std::current_exception();
+                                     decoyFractionTraining_, decoysPerTarget,
+                                     &fixedFold_);
+    // the folds hold copies of all PSMs; postIterationProcessing merges them
+    // back into fullset
+    targetDecoySizeRatio = fullset.getTargetDecoySizeRatio();
+    fullset.reset();
   }
-  if (xvalError) std::rethrow_exception(xvalError);
+  // A fold without PSMs cannot be scored or merged; this happens when the
+  // input has about as many spectra as folds, or fewer.
+  for (unsigned int set = 0; set < numFolds_; ++set) {
+    if (testScores_[set].size() == 0u) {
+      ostringstream oss;
+      oss << "Error: cross-validation fold " << set + 1 << " of " << numFolds_
+          << " received no PSMs, the input has too few spectra for "
+          << numFolds_ << " folds. Use fewer folds (--num-folds).\n";
+      Globals::failUnlessNoTerminate(oss.str(),
+                                     "No-terminate flag set: ignoring error.");
+      break;
+    }
+  }
+  // With very few spectra all of them can fall into the test set of one
+  // split, whose SVM then has nothing to train on. With two or more folds
+  // the other test sets are then empty, so this is only reached with the
+  // no-terminate flag; one fold trains on all PSMs.
+  for (unsigned int set = 0; set < numFolds_; ++set) {
+    if (trainScores_[set].size() == 0 && numPsms > 0 && VERB > 0) {
+      cerr << "Warning: cross validation split " << set + 1 << " of "
+           << numFolds_ << " has no PSMs to train on, as all "
+           << numPsms << " PSMs fall into its test set. The input "
+           << "has too few spectra for " << numFolds_ << "-fold cross "
+           << "validation." << endl;
+    }
+  }
 
   // initialize weights vector for all folds
   weights_ = vector<vector<double> >(
       numFolds_, vector<double>(FeatureNames::getNumFeatures() + 1));
-  pCheck->setNumThreads(static_cast<unsigned int>(numSetupTeamThreads(numThreads_)));
+  StageTimer stageTimer("initial direction");
+  // the merged counts of the direction check merge the test bins as
+  // postIterationProcessing does
+  check.setMergePlan(mergePlan_);
   int numPositive =
-      pCheck->getInitDirection(testScores_, trainScores_, pNorm, weights_,
+      check.getInitDirection(testScores_, trainScores_, pNorm, weights_,
                                testFdr_, initialSelectionFdr_);
 
-  initializeGridSearch(fullset.getTargetDecoySizeRatio());
-
+  initializeGridSearch(targetDecoySizeRatio);
   return numPositive;
 }
 
@@ -265,8 +216,8 @@ void CrossValidation::initializeGridSearch(double targetDecoySizeRatio) {
     if (VERB > 0) {
       cerr << "Selecting Cneg by cross-validation." << endl;
     }
-    // OpenMS: with fixed folds (out-of-fold capped training), each fold's candidates from the
-    // target/decoy ratio of its own training set (the ratio of fullset counts the fold's labels)
+    // OpenMS: with fixed folds (out-of-fold capped training), each fold's candidates from the target/decoy ratio of
+    // its own training set (the ratio of fullset counts the fold's own labels)
     if (fixedFold_) {
       for (unsigned int set = 0; set < numFolds_; ++set) {
         const double ratio = trainScores_[set].getTargetDecoySizeRatio();
@@ -279,19 +230,22 @@ void CrossValidation::initializeGridSearch(double targetDecoySizeRatio) {
     }
   }
 
+  // Quick validation trains only Cpos = Cneg = 1. The candidate lists are
+  // replaced as well, since the selection after nested cross validation
+  // loops over them and would otherwise pick a pair that was never trained.
+  if (quickValidation_) {
+    candidatesCpos_.assign(1, 1.0);
+    candidatesCfrac_.assign(1, 1.0);
+    candidatesCfracPerFold_.clear();  // OpenMS
+  }
+
   // Form cpos, cneg pairs per nested CV fold
   CandidateCposCfrac cpCnFold;
   for (unsigned int set = 0; set < numFolds_; ++set) {
-    for (int nestedSet = 0; nestedSet < nestedXvalBins_; nestedSet++) {
-      std::vector<double> candidatesCpos = candidatesCpos_;
-      std::vector<double> candidatesCfrac =
-          candidatesCfracPerFold_.empty() ? candidatesCfrac_ : candidatesCfracPerFold_[set];
-      if (quickValidation_) {  // in quick validation,
-        candidatesCpos = std::vector<double>(1, 1);
-        candidatesCfrac = std::vector<double>(1, 1);
-      }
-      for (double cpos : candidatesCpos) {
-        for (double cfrac : candidatesCfrac) {
+    for (unsigned int nestedSet = 0; nestedSet < nestedXvalBins_; nestedSet++) {
+      for (double cpos : candidatesCpos_) {
+        // OpenMS: the fold's own Cneg candidates with fixed folds
+        for (double cfrac : candidatesCfracPerFold_.empty() ? candidatesCfrac_ : candidatesCfracPerFold_[set]) {
           cpCnFold.cpos = cpos;
           cpCnFold.cfrac = cfrac;
           cpCnFold.set = set;
@@ -314,8 +268,8 @@ void CrossValidation::initializeGridSearch(double targetDecoySizeRatio) {
  * @param pNorm Normalization object
  */
 void CrossValidation::train(const Normalizer* pNorm) {
-  // OpenMS: the solves of the training reuse their buffers (see ssl.h)
-  TronWorkspaceHold holdTronWorkspaces;
+  // OpenMS: the solves of the training reuse the buffers of TRON's workspaces (ssl.h), also the large ones
+  TronWorkspaceHold tronWorkspaceHold;
   if (VERB > 0) {
     cerr << "---Training with Cpos";
     if (selectedCpos_ > 0) {
@@ -332,15 +286,22 @@ void CrossValidation::train(const Normalizer* pNorm) {
     cerr << ", initial_fdr=" << initialSelectionFdr_;
     cerr << ", fdr=" << selectionFdr_ << endl;
   }
-  if (!quickValidation_ && !reportPerformanceEachIteration_ && nestedXvalBins_ == 1 &&
-      VERB <= 2) {
-    trainFoldChains();
-    return;
-  }
 
   // iterate
   int foundPositivesOldOld = 0, foundPositivesOld = 0, foundPositives = 0;
-  for (unsigned int i = 0; i < niter_; i++) {
+  // OpenMS: with fixed folds (out-of-fold capped training), each fold stops by the rule below on its own count, the
+  // targets with q < test FDR in its training set: the training sets of the other folds hold its PSMs, so their
+  // sum would let the fold's held-out labels decide when its model stops training. A stopped fold keeps its weights.
+  const bool stopPerFold = static_cast<bool>(fixedFold_);
+  std::vector<int> foldPositivesOld(numFolds_, 0), foldPositivesOldOld(numFolds_, 0);
+  stoppedFolds_.assign(numFolds_, 0);
+  foldPositives_.assign(numFolds_, 0);
+  // OpenMS: the folds as chains of tasks (trainFoldChains), with the results and reports of this loop
+  const bool foldChains = trainsFoldChains();
+  if (foldChains) {
+    trainFoldChains();
+  }
+  for (unsigned int i = 0; !foldChains && i < niter_; i++) {
     if (VERB > 1) {
       cerr << "Iteration " << i + 1 << ":\t";
     }
@@ -372,9 +333,39 @@ void CrossValidation::train(const Normalizer* pNorm) {
     if (VERB > 3) {
       printAllRawWeightsColumns(cerr, pNorm);
     }
-    if (foundPositives > 0 && foundPositivesOldOld > 0 && quickValidation_ &&
+    // stop when the estimated positives grew by less than a fraction over the
+    // last two iterations; classic training runs all iterations unless
+    // quick validation is used
+    const double requiredIncrease = quickValidation_
+                                        ? requiredIncreaseOver2Iterations_
+                                        : requiredIncreaseOver2IterationsDefault_;
+    if (stopPerFold) {
+      bool allStopped = true;
+      for (unsigned int set = 0; set < numFolds_; ++set) {
+        if (!isActiveFold(set)) continue;
+        const int positives = foldPositives_[set];
+        if (positives > 0 && foldPositivesOldOld[set] > 0 &&
+            (quickValidation_ || !classicTraining_) &&
+            (static_cast<double>(positives - foldPositivesOldOld[set]) <=
+             foldPositivesOldOld[set] * requiredIncrease)) {
+          stoppedFolds_[set] = 1;
+          if (VERB > 1) {
+            std::cerr << "Split " << set + 1 << " has converged (" << positives
+                      << " vs " << foldPositivesOldOld[set] << ")" << std::endl;
+          }
+        } else {
+          allStopped = false;
+        }
+        foldPositivesOldOld[set] = foldPositivesOld[set];
+        foldPositivesOld[set] = positives;
+      }
+      if (allStopped) break;
+      continue;
+    }
+    if (foundPositives > 0 && foundPositivesOldOld > 0 &&
+        (quickValidation_ || !classicTraining_) &&
         (static_cast<double>(foundPositives - foundPositivesOldOld) <=
-         foundPositivesOldOld * requiredIncreaseOver2Iterations_)) {
+         foundPositivesOldOld * requiredIncrease)) {
       if (VERB > 0) {
         std::cerr << "Performance increase over the last two iterations "
                   << "indicate that the algorithm has converged\n"
@@ -392,28 +383,11 @@ void CrossValidation::train(const Normalizer* pNorm) {
   if (VERB == 3) {
     printAllRawWeightsColumns(cerr, pNorm);
   }
-  // OpenMS: the folds in parallel; the counts are added up in fold order
-  vector<int> testPositives(numFolds_);
-  vector<std::exception_ptr> testErrors(numFolds_);
-#if PERCOLATOR_OMP_TASKS
-#pragma omp parallel num_threads(numTeamThreads(numThreads_))
-#pragma omp single
-#pragma omp taskloop grainsize(1)
-#else
-#pragma omp parallel for schedule(dynamic, 1) num_threads(numTeamThreads(numThreads_))
-#endif
-  for (int set = 0; set < static_cast<int>(numFolds_); ++set) {
-    try {
-      testPositives[set] =
-          testScores_[set].calcScoresAndQvals(weights_[set], testFdr_);
-    } catch (...) {
-      testErrors[set] = std::current_exception();
-    }
-  }
-  rethrowFirstError(testErrors);
+  checkWeightsFinite();
   foundPositives = 0;
   for (size_t set = 0; set < numFolds_; ++set) {
-    foundPositives += testPositives[set];
+    foundPositives +=
+        testScores_[set].calcScoresAndQvals(weights_[set], testFdr_);
   }
   if (VERB > 0) {
     std::cerr << "Found " << foundPositives << " test set PSMs with q<"
@@ -421,227 +395,57 @@ void CrossValidation::train(const Normalizer* pNorm) {
   }
 }
 
-/**
- * OpenMS: train() without quick validation (it stops when the sum over the folds of a step has
- * not grown enough), nested cross-validation (it draws the nested sets at random) and the reports
- * of each step's training sets and weights (VERB > 2, reportPerformanceEachIteration_). Then a
- * fold depends on no other fold until the end of the training, and each fold runs its steps
- * (scoring its training set, its SVM inputs, its (cpos, cneg) pairs as tasks, the choice of its
- * best pair, scoring its training set with the chosen weights: what doStep and mergeCpCnPairs do
- * for it, in the same order) and then the scoring of its test set as one task, instead of waiting
- * for the other folds at each stage. The counts are added up in fold order afterwards, and the
- * reports printed as train() prints them. An error ends its fold's task; the error train() would
- * have thrown (the first by step, then by stage, then by fold) is rethrown after the reports of
- * the steps before it.
- */
-void CrossValidation::trainFoldChains() {
-  options pOptions;
-  pOptions.lambda = 1.0;
-  pOptions.lambda_u = 1.0;
-  pOptions.epsilon = tronEpsilon_;
-  pOptions.cgitermax = CGITERMAX;
-  pOptions.mfnitermax = MFNITERMAX;
-  // OpenMS: the pairs use the weights only (not the SVM outputs or convergence flag)
-  pOptions.weightsOnly = true;
-  // the decoys+1 of doStep's training sets and validations, see there
-  const bool skipDecoysPlusOne = true;
-  const bool skipDecoysPlusOneValidation = true;
-  const std::size_t numCpCnPairsPerSet = classWeightsPerFold_.size() / numFolds_;
-  // the rows are collected (and sorted) once per fold: worth it when a fold validates a few pairs
-  const bool useRows = static_cast<std::size_t>(niter_) * numCpCnPairsPerSet >= 3u;
-  // positives of each step and fold (as in mergeCpCnPairs), and of each fold's test set
-  vector<vector<int> > stepPositives(niter_, vector<int>(numFolds_, 0));
-  vector<int> testPositives(numFolds_);
-  vector<int> pairTruePoses(classWeightsPerFold_.size());
-  // the step and stage of each fold's error (stages of a step: 0 scoring, 1 SVM inputs, 2 pairs,
-  // 3 choice, 4 scoring with the chosen weights; the test sets: step niter_, stage 0)
-  struct FoldError {
-    unsigned int step = 0;
-    int stage = 0;
-    std::exception_ptr error;
-  };
-  vector<FoldError> foldErrors(numFolds_);
-  const bool scored = trainScoresOfWeights_;
-  trainScoresOfWeights_ = false;
-#if PERCOLATOR_OMP_TASKS
-  // OpenMS: all threads for the fold chains of large training sets: with TRON from
-  // kLargeTrainingSet PSMs on (numChainTeamThreads), with Newton/LDA from kSolverAllThreadsPsms on
-  std::size_t largestTrainSet = 0;
-  for (const Scores& trainScores : trainScores_) {
-    largestTrainSet = std::max<std::size_t>(largestTrainSet, trainScores.size());
-  }
-  const int teamThreads = solver_ != kSolverTron && largestTrainSet >= kSolverAllThreadsPsms
-                              ? numLoopThreads(numThreads_)
-                              : numChainTeamThreads(numThreads_, trainScores_);
-#pragma omp parallel num_threads(teamThreads)
-#pragma omp single
-#pragma omp taskloop grainsize(1)
-#else
-  // OpenMS: without tasks, one thread per fold chain, and the (cpos, cneg) pairs of a chain as a
-  // nested parallel loop (below) on the chain's share of the threads, rounded up (8 threads: 3
-  // chains of 3; 16: 3 chains of 6). The results are those of the tasks: each pair computes the
-  // same, whichever thread runs it.
-  const int chainThreads = numLoopThreads(numThreads_, numFolds_);
-  const int pairThreads = (numLoopThreads(numThreads_) + chainThreads - 1) / chainThreads;
-  const int nestedParallelBefore = enableNestedParallel();
-#pragma omp parallel for schedule(dynamic, 1) num_threads(chainThreads)
-#endif
-  for (int set = 0; set < static_cast<int>(numFolds_); ++set) {
-    // OpenMS: a fold set inactive (setActiveFolds) is not trained; its weights stay the initial ones
-    if (!activeFolds_.empty() && !activeFolds_[static_cast<std::size_t>(set)]) continue;
-    unsigned int step = 0;
-    int stage = 0;
-    // the feature rows of the training set (its PSMs and labels do not change during the training;
-    // its test sets of the pairs hold the same PSMs), for counting the positives of the pairs
-    std::vector<std::pair<const double*, bool> > rows;
-    // OpenMS: the scores of each pair's weights on the rows (from its validation), so that the
-    // step's rescoring with the chosen pair's weights does not score the PSMs again
-    std::vector<std::vector<double> > pairRowScores(numCpCnPairsPerSet);
-    try {
-      for (; step < niter_; ++step) {
-        const double selectionFdr = step == 0u ? initialSelectionFdr_ : selectionFdr_;
-        stage = 0;
-        // the scores of the training set are those of its weights after the first step (doStep)
-        if (scored || step > 0u) {
-          trainScores_[set].sortScoresAndCalcQvals(selectionFdr, skipDecoysPlusOne);
-        } else {
-          trainScores_[set].calcScoresAndQvals(weights_[set], selectionFdr, skipDecoysPlusOne);
-        }
-        stage = 1;
-        std::vector<Scores> nestedTestScores;
-        const Scores* testSet = nullptr;
-        setupFoldInputs(set, selectionFdr, nestedTestScores, &testSet);
-        stage = 2;
-        if (step == 0u && useRows) trainScores_[set].getFeatureRows(rows);
-        // Newton solves the steps before the last one to a looser tolerance
-        options stepOptions = pOptions;
-        if (solver_ == kSolverNewton && step + 1u < niter_) stepOptions.epsilon = kNewtonEarlyEpsilon;
-        // the ranking of LDA's weights does not depend on the costs: if the first pair's weights
-        // are LDA's, they serve the others; otherwise the others are trained as well
-        std::size_t pairsBegin = 0;
-        std::size_t numPairsTrained = solver_ == kSolverLda ? 1u : numCpCnPairsPerSet;
-        vector<std::exception_ptr> pairErrors(numCpCnPairsPerSet);
-        vector<char> pairCostIndependent(numCpCnPairsPerSet, 0);
-        // OpenMS: the TRON solves of the pairs (same training set, at the same time) share one copy of the
-        // features in the solver's layout, built once (ssl.h); the results are those of solves alone
-        TronPairGroup tronGroup(*svmInputs_[set]);
-        while (true) {
-#if PERCOLATOR_OMP_TASKS
-          for (std::size_t k = pairsBegin; k < numPairsTrained; ++k) {
-#else
-          // OpenMS: the pairs of the chain as a nested parallel loop on no more threads than the pass has
-          // pairs (LDA's first pass has one); the loop variable is an int, MSVC's OpenMP 2.0 takes signed ones only
-          const int pairTeam = std::min(pairThreads, static_cast<int>(numPairsTrained - pairsBegin));
-#pragma omp parallel for schedule(dynamic, 1) num_threads(pairTeam) if (pairTeam > 1)
-          for (int k = static_cast<int>(pairsBegin); k < static_cast<int>(numPairsTrained); ++k) {
-#endif
-            PERCOLATOR_TASK_PRAGMA(omp task default(shared) firstprivate(k))
-            {
-              try {
-                const std::size_t pairIdx = set * numCpCnPairsPerSet + k;
-                CandidateCposCfrac& cpCnFold = classWeightsPerFold_[pairIdx];
-                pairCostIndependent[k] =
-                    trainCpCnPair(cpCnFold, stepOptions, svmInputs_[cpCnFold.set], &tronGroup);
-                pairTruePoses[pairIdx] =
-                    useRows ? testSet->countPositives(cpCnFold.ww, testFdr_,
-                                                      skipDecoysPlusOneValidation, rows,
-                                                      testSet == &trainScores_[set] ? &pairRowScores[k] : nullptr)
-                            : testSet->countPositives(cpCnFold.ww, testFdr_,
-                                                      skipDecoysPlusOneValidation);
-              } catch (...) {
-                pairErrors[k] = std::current_exception();
-              }
-            }
-          }
-          PERCOLATOR_TASK_PRAGMA(omp taskwait)
-          rethrowFirstError(pairErrors);
-          if (numPairsTrained == numCpCnPairsPerSet || pairCostIndependent[0]) break;
-          pairsBegin = numPairsTrained;
-          numPairsTrained = numCpCnPairsPerSet;
-        }
-        for (std::size_t k = numPairsTrained; k < numCpCnPairsPerSet; ++k) {
-          const std::size_t first = set * numCpCnPairsPerSet;
-          classWeightsPerFold_[first + k].ww = classWeightsPerFold_[first].ww;
-          pairTruePoses[first + k] = pairTruePoses[first];
-        }
-        stage = 3;
-        // mergeCpCnPairs without nested cross-validation, for this fold
-        int bestTruePoses = 0;
-        std::size_t bestPair = numCpCnPairsPerSet;
-        for (std::size_t k = 0; k < numCpCnPairsPerSet; ++k) {
-          const std::size_t pairIdx = set * numCpCnPairsPerSet + k;
-          CandidateCposCfrac& cpCnFold = classWeightsPerFold_[pairIdx];
-          const int tp = pairTruePoses[pairIdx];
-          cpCnFold.tp = tp;
-          if (tp >= bestTruePoses) {
-            bestTruePoses = tp;
-            weights_[set] = cpCnFold.ww;
-            bestPair = k;
-          }
-        }
-        // the pairs that were not trained have the weights of the first (LDA)
-        if (bestPair >= numPairsTrained) bestPair = 0;
-        stage = 4;
-        stepPositives[step][set] =
-            bestPair < numCpCnPairsPerSet && useRows && !pairRowScores[bestPair].empty() &&
-                    testSet == &trainScores_[set]
-                ? trainScores_[set].calcScoresOfRowsAndQvals(weights_[set], rows,
-                                                             pairRowScores[bestPair], testFdr_)
-                : trainScores_[set].calcScoresAndQvals(weights_[set], testFdr_);
-      }
-      stage = 0;
-      testPositives[set] = testScores_[set].calcScoresAndQvals(weights_[set], testFdr_);
-    } catch (...) {
-      foldErrors[set].step = step;
-      foldErrors[set].stage = stage;
-      foldErrors[set].error = std::current_exception();
+void CrossValidation::checkWeightsFinite() const {
+  for (size_t set = 0; set < weights_.size(); ++set) {
+    for (size_t ix = 0; ix < weights_[set].size(); ++ix) {
+      if (std::isfinite(weights_[set][ix])) continue;
+      ostringstream oss;
+      oss << "ERROR: The SVM weight of "
+          << (ix < FeatureNames::getNumFeatures()
+                  ? "feature " + DataSet::getFeatureNames().describeFeature(ix)
+                  : std::string("the bias term m0"))
+          << " in cross validation split " << set + 1 << " is "
+          << weights_[set][ix] << " after training." << std::endl;
+      Globals::failUnlessNoTerminate(
+          oss.str(), "No-terminate flag set: ignoring the error.",
+          "Terminating.\n");
+      return;
     }
   }
-#if !PERCOLATOR_OMP_TASKS
-  restoreNestedParallel(nestedParallelBefore);
-#endif
-  const FoldError* firstError = nullptr;
-  for (const FoldError& foldError : foldErrors) {
-    if (foldError.error &&
-        (!firstError || foldError.step < firstError->step ||
-         (foldError.step == firstError->step && foldError.stage < firstError->stage))) {
-      firstError = &foldError;
+}
+
+unsigned int CrossValidation::foldsHeldAtOnce(unsigned int foldsAtOnce,
+                                              unsigned int numFolds) {
+  if (foldsAtOnce == 0u) {
+    return numFolds > kMaxFoldsAllAtOnce ? 1u : numFolds;
+  }
+  return (std::min)(foldsAtOnce, numFolds);
+}
+
+std::vector<AlgIn>& CrossValidation::svmInputsOfPass(
+    bool singleSolves,
+    unsigned int& foldsPerPass) {
+  const int n = static_cast<int>(FeatureNames::getNumFeatures()) + 1;
+  // row pointers need no copies, so all folds are held at once
+  foldsPerPass = svmRowsInPlace_ ? numFolds_ : foldsAtOnce();
+  assert(foldsPerPass >= 1u);
+  if (singleSolvesInPlace_ && singleSolves && foldsPerPass < numFolds_) {
+    // Solves that would run one after the other on the copies of a fold at
+    // a time: all folds in parallel on the rows in place.
+    foldsPerPass = numFolds_;
+    if (gridFixed_) {
+      std::vector<AlgIn>().swap(svmInputs_);  // no further solves on copies
     }
-  }
-  const unsigned int stepsDone = firstError ? firstError->step : niter_;
-  // as after the last mergeCpCnPairs (unchanged without steps); false after an error in a step
-  trainScoresOfWeights_ = stepsDone == niter_ && (niter_ > 0u || scored);
-  for (unsigned int i = 0; i < niter_; i++) {
-    if (VERB > 1) {
-      cerr << "Iteration " << i + 1 << ":\t";
+    if (svmRowLists_.empty()) {
+      svmRowLists_.assign(numFolds_ * nestedXvalBins_, AlgIn(n, true));
     }
-    if (i == stepsDone) {
-      std::rethrow_exception(firstError->error);
-    }
-    double bestTruePos = 0;
-    for (std::size_t set = 0; set < numFolds_; ++set) {
-      bestTruePos += stepPositives[i][set];
-    }
-    const int foundPositives = static_cast<int>(bestTruePos / (numFolds_ - 1));
-    if (VERB > 1) {
-      cerr << "Estimated " << foundPositives << " PSMs with q<" << testFdr_
-           << endl;
-    }
+    return svmRowLists_;
   }
-  if (VERB == 2) {
-    printAllWeightsColumns(cerr);
+  const std::size_t numInputs = foldsPerPass * nestedXvalBins_;
+  if (svmInputs_.size() != numInputs) {
+    svmInputs_.assign(numInputs, AlgIn(n, svmRowsInPlace_));
   }
-  if (firstError) {
-    std::rethrow_exception(firstError->error);
-  }
-  int foundPositives = 0;
-  for (size_t set = 0; set < numFolds_; ++set) {
-    foundPositives += testPositives[set];
-  }
-  if (VERB > 0) {
-    std::cerr << "Found " << foundPositives << " test set PSMs with q<"
-              << testFdr_ << "." << std::endl;
-  }
+  return svmInputs_;
 }
 
 /**
@@ -650,48 +454,39 @@ void CrossValidation::trainFoldChains() {
  *        hyperplane from SVM
  * @return Estimation of number of true positives
  */
-int CrossValidation::doStep(const Normalizer* pNorm, double selectionFdr) {
+int CrossValidation::doStep(const Normalizer* /* pNorm */, double selectionFdr) {
   // Setup
   options pOptions;
   pOptions.lambda = 1.0;
   pOptions.lambda_u = 1.0;
-  pOptions.epsilon = tronEpsilon_;
+  pOptions.epsilon = tronEpsilon_;  // OpenMS: setTrainingOptions (default EPSILON)
   pOptions.cgitermax = CGITERMAX;
   pOptions.mfnitermax = MFNITERMAX;
-  // OpenMS: the pairs use the weights only (not the SVM outputs or convergence flag)
+  pOptions.directSolve = !classicTraining_;
+  // OpenMS: the training uses the weights of the solves only (tron() then skips the outputs and the convergence check)
   pOptions.weightsOnly = true;
+  // OpenMS: Newton solves the iterations before the last one of classic training to a looser tolerance (not with
+  // quick validation: its training can stop after any iteration)
+  if (solver_ == kSolverNewton && classicTraining_ && !quickValidation_ && iteration_ + 1u < niter_) {
+    pOptions.epsilon = kNewtonEarlyEpsilon;
+  }
   int estTruePos = 0;
 
   // for determining an appropriate positive training set, the decoys+1 in the
   // FDR estimates is too restrictive for small datasets
   bool skipDecoysPlusOne = true;
-  // OpenMS: the folds in parallel; each scores and sorts only its own training set. The scores
-  // of the training sets are those of their weights already if mergeCpCnPairs of the previous
-  // step set them (neither has changed since): then they are only sorted again (as calcScores
-  // would after scoring them again, to the same values) and get their q-values.
-  const bool scored = trainScoresOfWeights_;
-  trainScoresOfWeights_ = false;
-  vector<std::exception_ptr> trainErrors(numFolds_);
-#if PERCOLATOR_OMP_TASKS
-#pragma omp parallel num_threads(numTeamThreads(numThreads_))
-#pragma omp single
-#pragma omp taskloop grainsize(1)
-#else
-#pragma omp parallel for schedule(dynamic, 1) num_threads(numTeamThreads(numThreads_))
-#endif
-  for (int set = 0; set < static_cast<int>(numFolds_); ++set) {
-    try {
-      if (scored) {
-        trainScores_[set].sortScoresAndCalcQvals(selectionFdr, skipDecoysPlusOne);
+  {
+    StageTimer stageTimer("rescore training sets");
+    for (std::size_t set = 0; set < numFolds_; ++set) {
+      if (trainScoresCurrent_) {
+        // already scored and sorted with weights_ at the end of the last step
+        trainScores_[set].calcQvals(selectionFdr, skipDecoysPlusOne);
       } else {
         trainScores_[set].calcScoresAndQvals(weights_[set], selectionFdr,
                                              skipDecoysPlusOne);
       }
-    } catch (...) {
-      trainErrors[set] = std::current_exception();
     }
   }
-  rethrowFirstError(trainErrors);
 
   // Below implements the series of speedups detailed in the following:
   // ////////////////////////////////
@@ -708,143 +503,601 @@ int CrossValidation::doStep(const Normalizer* pNorm, double selectionFdr) {
   //   learned SVM parameters
   // ////
 
-  // Create SVM input data for parallelization
-  // OpenMS: the folds in parallel (each fills its own SVM inputs from its own training set),
-  // unless nested cross-validation draws the nested sets at random. Without nested
-  // cross-validation, the SVMs of a fold are trained and validated on copies of its training
-  // set; where Scores::generateTrainingSetsOfSortedSet can, it generates the SVM inputs from the
-  // set itself, and the pairs are validated on the set itself (it does not change until the
-  // next step), without the copies.
-  std::vector<AlgIn*> svmInputsVec(numFolds_ * nestedXvalBins_);
+  // Create SVM input data for parallelization: the training sets of
+  // foldsPerPass folds at a time, whose pairs are then trained in parallel.
+  // The folds are built in the same order and every pair is trained on the
+  // same rows for any number of folds per pass.
   std::vector<std::vector<Scores> > nestedTestScoresVec(numFolds_);
-  std::vector<const Scores*> pairTestScores(numFolds_ * nestedXvalBins_);
-  vector<std::exception_ptr> setupErrors(numFolds_);
-  const auto setupFold = [&](int set) {
-    try {
-      setupFoldInputs(set, selectionFdr, nestedTestScoresVec[set],
-                      &pairTestScores[set * nestedXvalBins_]);
-      for (std::size_t nestedFold = 0; nestedFold < nestedXvalBins_; ++nestedFold) {
-        svmInputsVec[set * nestedXvalBins_ + nestedFold] =
-            svmInputs_[set * nestedXvalBins_ + nestedFold];
+  const unsigned int pairsPerFold =
+      static_cast<unsigned int>(classWeightsPerFold_.size() / numFolds_);
+  // whether every training set serves a single solve, as it does once the
+  // grid is fixed or with a single candidate pair
+  const bool singleSolves = gridFixed_ || pairsPerFold == nestedXvalBins_;
+  unsigned int foldsPerPass = 0u;
+  std::vector<AlgIn>& svmInputs = svmInputsOfPass(singleSolves, foldsPerPass);
+  {
+    // the buffers of the threads are released before the grid evaluation
+    std::vector<SvmTrainingBuffers> buffers(maxNumThreads());
+    for (unsigned int firstSet = 0; firstSet < numFolds_;
+         firstSet += foldsPerPass) {
+      const unsigned int endSet =
+          (std::min)(numFolds_, firstSet + foldsPerPass);
+      {
+        StageTimer stageTimer("build SVM input");
+        for (unsigned int set = firstSet; set < endSet; ++set) {
+          // Without nested cross validation, the training set is also used
+          // for validation (sub-optimal cross validation).
+          std::vector<Scores> nestedTrainScores, nestedTestScores;
+          if (!isActiveFold(set)) continue;  // OpenMS: setActiveFolds
+          if (nestedXvalBins_ > 1) {
+            // OpenMS: with fixed folds, each fold draws its nested sets from a generator state of its own (from the
+            // state at preIterationSetup, the iteration and the fold), so the draws of the other folds, whose
+            // training sets hold this fold's PSMs, do not reach it
+            if (fixedFold_) {
+              uint64_t x = nestedSeedBase_ ^ (static_cast<uint64_t>(iteration_) << 8) ^ static_cast<uint64_t>(set);
+              x += 0x9E3779B97F4A7C15ULL;
+              x = (x ^ (x >> 30)) * 0xBF58476D1CE4E5B9ULL;
+              x = (x ^ (x >> 27)) * 0x94D049BB133111EBULL;
+              x ^= x >> 31;
+              PseudoRandom::setSeed(static_cast<unsigned long>(1u + x % (PseudoRandom::kRandMax - 1u)));
+            }
+            trainScores_[set].createXvalSetsBySpectrum(
+                nestedTrainScores, nestedTestScores, nestedXvalBins_);
+          }
+          nestedTestScoresVec[set] = std::move(nestedTestScores);
+          // Set SVM input data for L2-SVM-MFN
+          for (std::size_t nestedFold = 0; nestedFold < nestedXvalBins_;
+               ++nestedFold) {
+            AlgIn& svmInput =
+                svmInputs[(set - firstSet) * nestedXvalBins_ + nestedFold];
+            Scores& nestedTrainSet = nestedTrainScores.empty()
+                                         ? trainScores_[set]
+                                         : nestedTrainScores[nestedFold];
+            nestedTrainSet.reserveTrainingSet(svmInput, selectionFdr);
+            nestedTrainSet.generateNegativeTrainingSet(svmInput, 1.0);
+            nestedTrainSet.generatePositiveTrainingSet(
+                svmInput, selectionFdr, 1.0, trainBestPositive_);
+            // with nested cross validation, the training set of the whole
+            // fold is reported when it is built, in mergeCpCnPairs
+            if (VERB > 2) {
+              cerr << "Split " << set + 1;
+              if (nestedXvalBins_ > 1u) {
+                cerr << " nested fold " << nestedFold;
+              }
+              cerr << ": Training with " << svmInput.positives
+                   << " positives and " << svmInput.negatives << " negatives"
+                   << std::endl;
+            }
+          }
+        }
       }
-    } catch (...) {
-      setupErrors[set] = std::current_exception();
-    }
-  };
-  if (nestedXvalBins_ > 1) {
-    // nested cross-validation draws the nested sets at random: the folds in their order
-    for (int set = 0; set < static_cast<int>(numFolds_); ++set) {
-      // OpenMS: with fixed folds, each fold draws its nested sets from a generator state of its own
-      // (from the state at preIterationSetup, the step and the fold), so the draws of the other
-      // folds, whose training sets hold this fold's PSMs, do not reach it
-      if (fixedFold_) {
-        uint64_t x = nestedSeedBase_ ^ (static_cast<uint64_t>(nestedSteps_) << 8) ^ static_cast<uint64_t>(set);
-        x += 0x9E3779B97F4A7C15ULL;
-        x = (x ^ (x >> 30)) * 0xBF58476D1CE4E5B9ULL;
-        x = (x ^ (x >> 27)) * 0x94D049BB133111EBULL;
-        x ^= x >> 31;
-        PseudoRandom::setSeed(static_cast<unsigned long>(1u + x % (PseudoRandom::kRandMax - 1u)));
-      }
-      setupFold(set);
-    }
-    ++nestedSteps_;
-  } else {
-#if PERCOLATOR_OMP_TASKS
-#pragma omp parallel num_threads(numTeamThreads(numThreads_))
-#pragma omp single
-#pragma omp taskloop grainsize(1)
-#else
-#pragma omp parallel for schedule(dynamic, 1) num_threads(numTeamThreads(numThreads_))
-#endif
-    for (int set = 0; set < static_cast<int>(numFolds_); ++set) setupFold(set);
-  }
-  rethrowFirstError(setupErrors);
 
-  // OpenMS: the (cpos, cneg) pairs as tasks of one parallel region (see numTeamThreads). Each
-  // task then validates its pair: the positives of the pair's weights on the pair's test set,
-  // counted without changing the set (Scores::countPositives), so that the pairs of a fold can
-  // do so at the same time (the set is not used afterwards). The results do not depend on the
-  // number of threads.
-  // for determining the number of positives, the decoys+1 in the FDR estimates
-  // is too restrictive for small datasets
-  const bool skipDecoysPlusOneValidation = true;
-  vector<int> pairTruePoses(classWeightsPerFold_.size());
-  vector<std::exception_ptr> pairErrors(classWeightsPerFold_.size());
-#if PERCOLATOR_OMP_TASKS
-#pragma omp parallel num_threads(numTeamThreads(numThreads_))
-#pragma omp single
-#else
-#pragma omp parallel for schedule(dynamic, 1) num_threads(numTeamThreads(numThreads_))
-#endif
-  for (int pairIdx = 0; pairIdx < static_cast<int>(classWeightsPerFold_.size()); pairIdx++) {
-    PERCOLATOR_TASK_PRAGMA(omp task firstprivate(pairIdx) shared(pairErrors, pairTruePoses, svmInputsVec, pairTestScores, pOptions))
-    {
-      try {
+      StageTimer stageTimer("SVM training");
+      // OpenMS: the TRON solves of the pairs of a training set, which run at the same time, share one copy of the
+      // set in the solver's layout (ssl.h), instead of one per solve and thread
+      std::vector<std::unique_ptr<TronPairGroup> > tronGroups;
+      if (!singleSolves) {
+        tronGroups.resize(static_cast<std::size_t>(endSet - firstSet) * nestedXvalBins_);
+        for (std::size_t k = 0; k < tronGroups.size(); ++k) {
+          tronGroups[k] = std::make_unique<TronPairGroup>(svmInputs[k]);
+        }
+      }
+      // the pairs are ordered by fold
+      const int firstPair = static_cast<int>(firstSet * pairsPerFold);
+      const int endPair = static_cast<int>(endSet * pairsPerFold);
+      LoopErrors pairErrors(static_cast<std::size_t>(endPair - firstPair));  // OpenMS
+#pragma omp parallel for schedule(dynamic, 1) num_threads(static_cast<int>(maxNumThreads()))
+      for (int pairIdx = firstPair; pairIdx < endPair; pairIdx++) {
+        try {  // OpenMS: LoopErrors
         CandidateCposCfrac* cpCnFold = &classWeightsPerFold_[pairIdx];
-        AlgIn* svmInput =
-            svmInputsVec[cpCnFold->set * nestedXvalBins_ +
-                         static_cast<unsigned int>(cpCnFold->nestedSet)];
-        trainCpCnPair(*cpCnFold, pOptions, svmInput);
-        pairTruePoses[pairIdx] =
-            pairTestScores[cpCnFold->set * nestedXvalBins_ +
-                           static_cast<unsigned int>(cpCnFold->nestedSet)]
-                ->countPositives(cpCnFold->ww, testFdr_, skipDecoysPlusOneValidation);
-      } catch (...) {
-        pairErrors[pairIdx] = std::current_exception();
+        if (!isSelectedPair(*cpCnFold) || !isActiveFold(cpCnFold->set)) {  // OpenMS: setActiveFolds
+          continue;
+        }
+        const std::size_t input =
+            (cpCnFold->set - firstSet) * nestedXvalBins_ +
+            static_cast<unsigned int>(cpCnFold->nestedSet);
+        trainCpCnPair(*cpCnFold, pOptions, svmInputs[input], buffers[threadNum()],
+                      tronGroups.empty() ? nullptr : tronGroups[input].get());
+        } catch (...) {
+          pairErrors.capture(static_cast<std::size_t>(pairIdx - firstPair));
+        }
       }
+      pairErrors.rethrowFirst();
     }
   }
-  rethrowFirstError(pairErrors);
 
-  estTruePos = mergeCpCnPairs(selectionFdr, pOptions, pairTruePoses,
+  StageTimer stageTimer("grid evaluation");
+  estTruePos = mergeCpCnPairs(selectionFdr, pOptions, nestedTestScoresVec,
                               candidatesCpos_, candidatesCfrac_);
   return estTruePos;
 }
 
+bool CrossValidation::trainsFoldChains() const {
+#if PERCOLATOR_OMP_TASKS
+  return maxNumThreads() > 1u && numFolds_ > 1u && niter_ > 0u && nestedXvalBins_ == 1u &&
+         !reportPerformanceEachIteration_ && VERB <= 2 && activeFolds_.empty() &&
+         (svmRowsInPlace_ || foldsAtOnce() == numFolds_);
+#else
+  return false;
+#endif
+}
+
 /**
- * OpenMS: sets up the SVM inputs of fold set (svmInputs_[set * nestedXvalBins_ + nestedFold])
- * from its training set, as doStep did: testSets[nestedFold] is the set the (cpos, cneg) pairs of
- * the nested fold are validated on, the training set itself or one of nestedTestScores.
+ * OpenMS: the iterations of train() as one chain of tasks per fold. A step of a fold is what doStep and
+ * mergeCpCnPairs do for it, in the same order: its training set scored with its weights (rescored in the first
+ * step), its SVM input, the solves of its (Cpos, Cneg) pairs (one task each, with the count of the pair's positives
+ * right after its solve), the choice of the best pair and the count of the fold's positives with its weights. The
+ * last pair of a step to finish runs the rest of it and starts the fold's next step. A fold thus waits only for its
+ * own pairs, not for the other folds at each stage, and the threads run whatever task is ready: no task waits for other
+ * tasks of the chains (a task waits only at the end of the taskloops it runs itself, the row loops of Scores and
+ * Newton's blocks, and the solves of a step's pairs while they finish building their shared copy of the SVM input,
+ * TronPairGroup). The per-thread buffers of the solves and counts and the TaskLoopScope rely on the tasks being tied:
+ * at the waits of a pair task a thread runs only tasks of the loop it waits for (a step that waited in a thread's list
+ * runs in the thread's outermost step, whose pair tasks may run at the waits of its row loops: these hold no per-thread
+ * buffers). Only the stop rule of
+ * the training on the sum of the folds (new training without fixed folds) waits for all folds of an iteration: the
+ * last fold to finish it decides and starts the next steps. With fixed folds each fold stops on its own count, and
+ * classic training runs all iterations, so the chains never wait for each other.
+ *
+ * The results are those of the loop of train(): a step of a fold reads and writes only the fold's own data, and its
+ * computations do not depend on the threads (the scores of a sorted set, its order and its q-values are the same on
+ * one thread). The reports of the iterations are printed afterwards as the loop prints them (the header of the first
+ * one before, as messages of the first solves follow it). After an error no fold starts a step beyond the iteration of
+ * the first error, and the first error (by iteration, then stage in the order in which the loop runs the stages for all
+ * folds, then fold and pair) is rethrown after the reports of the iterations before it, as the loop throws it: e.g. a
+ * failed solve of one fold before a failed count of another, as the loop solves all pairs before it counts. The
+ * bookkeeping grows with the iterations that run, not with the iteration cap. A runtime may run a task at once, nested
+ * in the task that starts it (a team of one thread): beyond a few steps nested on a thread's stack, a step that a step
+ * starts waits until the thread's outermost step has finished its own, so the stack does not grow with the iterations.
  */
-void CrossValidation::setupFoldInputs(int set, double selectionFdr,
-                                      std::vector<Scores>& nestedTestScores,
-                                      const Scores** testSets) {
-  if (VERB > 2) {
-    const AlgIn* svmInput = svmInputs_[set * nestedXvalBins_];
-    cerr << "Split " << set + 1 << ": Training with " << svmInput->positives
-         << " positives and " << svmInput->negatives << " negatives"
-         << std::endl;
+void CrossValidation::trainFoldChains() {
+  const unsigned int numPairsPerFold =
+      static_cast<unsigned int>(classWeightsPerFold_.size() / numFolds_);
+  const bool stopPerFold = static_cast<bool>(fixedFold_);
+  const bool stopsEarly = quickValidation_ || !classicTraining_;
+  // the stop rule on the sum of the folds (train)
+  const bool coupled = !stopPerFold && stopsEarly;
+  const double requiredIncrease = quickValidation_ ? requiredIncreaseOver2Iterations_
+                                                   : requiredIncreaseOver2IterationsDefault_;
+  const bool canFixGrid = !classicTraining_ && classWeightsPerFold_.size() > numFolds_ * nestedXvalBins_;
+  const bool skipDecoysPlusOne = true;  // as doStep and mergeCpCnPairs
+  const int numValues = static_cast<int>(FeatureNames::getNumFeatures()) + 1;
+  if (svmInputs_.size() != numFolds_) {
+    svmInputs_.assign(numFolds_, AlgIn(numValues, svmRowsInPlace_));
   }
-  if (nestedXvalBins_ == 1 &&
-      trainScores_[set].generateTrainingSetsOfSortedSet(*svmInputs_[set], selectionFdr,
-                                                        trainBestPositive_)) {
-    testSets[0] = &trainScores_[set];
-    return;
-  }
-  std::vector<Scores> nestedTrainScores(nestedXvalBins_, usePi0_);
-  nestedTestScores.assign(nestedXvalBins_, Scores(usePi0_));
-  if (nestedXvalBins_ > 1) {
-    FeatureMemoryPool featurePool;
-    trainScores_[set].createXvalSetsBySpectrum(
-        nestedTrainScores, nestedTestScores, nestedXvalBins_, featurePool);
-  } else {
-    // sub-optimal cross validation
-    nestedTrainScores[0] = trainScores_[set];
-    nestedTestScores[0] = trainScores_[set];
-  }
-  // Set SVM input data for L2-SVM-MFN
-  for (std::size_t nestedFold = 0; nestedFold < nestedXvalBins_;
-       ++nestedFold) {
-    AlgIn* svmInput = svmInputs_[set * nestedXvalBins_ + nestedFold];
-    nestedTrainScores[nestedFold].generateNegativeTrainingSet(*svmInput, 1.0);
-    nestedTrainScores[nestedFold].generatePositiveTrainingSet(
-        *svmInput, selectionFdr, 1.0, trainBestPositive_);
-    if ((VERB > 2) && (nestedXvalBins_ > 1u)) {
-      cerr << "Split " << set + 1 << " nested fold " << nestedFold
-           << ": Training with " << svmInput->positives << " positives and "
-           << svmInput->negatives << " negatives" << std::endl;
+  const std::size_t teamThreads = maxNumThreads();
+
+  // The stages of a step in the order in which the loop runs them for all folds: an error of an earlier stage is thrown
+  // before any of a later one, and within a stage the error of the first fold (and of its first pair).
+  enum Stage : int {
+    kRescore = 0,     // the training set's scores and q-values (doStep)
+    kInput = 1,       // its SVM input (doStep)
+    kPairGroup = 2,   // the shared copy of the input for the pairs' solves (doStep)
+    kSolve = 3,       // the solves of the pairs (doStep)
+    kRows = 4,        // the feature rows of the training set for the counts (mergeCpCnPairs)
+    kCount = 5,       // the counts of the pairs' positives (mergeCpCnPairs)
+    kChoice = 6,      // the choice of the best pair (mergeCpCnPairs)
+    kFoldCount = 7    // the count of the fold's positives with its weights (mergeCpCnPairs)
+  };
+  struct Fold {
+    unsigned int iteration = 0;  // the step that runs
+    options stepOptions;
+    bool needCounts = false;
+    bool fixed = false;  // the grid of the fold is fixed (after gridSearchIterations_ steps)
+    std::pair<double, double> selected{1.0, 1.0};  // the pair chosen when the grid was fixed
+    std::unique_ptr<TronPairGroup> group;
+    Scores::FeatureRows rows;
+    std::exception_ptr rowsError;  // (the solves still run, as in the loop)
+    std::vector<int> pairPositives;
+    std::vector<std::exception_ptr> pairErrors;
+    std::vector<int> pairErrorStages;  // kSolve or kCount
+    std::atomic<unsigned int> pendingPairs{0u};
+    // per iteration that ran (grown with the steps, not sized by the iteration cap): the positives of the fold
+    // (-1: no count)
+    std::vector<int> positives;
+    int positivesOld = 0, positivesOldOld = 0;
+    int stoppedAt = -1;  // the iteration after which the fold stopped (fixed folds)
+    std::exception_ptr error;
+    unsigned int errorIteration = 0;
+    int errorStage = 0;
+  };
+  std::vector<Fold> folds(numFolds_);
+  std::vector<SvmTrainingBuffers> svmBuffers(teamThreads);
+  std::vector<Scores::CountBuffers> countBuffers(teamThreads);
+  std::atomic<unsigned int> foldsFixed{0u};  // the folds whose grid is fixed (they count no more pairs)
+  // the stop rule on the sum of the folds: all folds are in the same iteration
+  std::mutex decisionMutex;
+  unsigned int foldsDone = 0u;  // the folds done with the current iteration
+  int foundOld = 0, foundOldOld = 0;
+  int stoppedAfter = -1;  // the iteration after which the rule stopped the training
+  int foundAtStop = 0, foundBeforeStop = 0;  // (its report)
+
+  // the first iteration with an error: no fold starts a step after it
+  std::atomic<unsigned int> firstErrorIteration{niter_};
+  auto noteError = [&](unsigned int i) {
+    unsigned int current = firstErrorIteration.load(std::memory_order_relaxed);
+    while (i < current &&
+           !firstErrorIteration.compare_exchange_weak(current, i, std::memory_order_acq_rel)) {
     }
-    testSets[nestedFold] = &nestedTestScores[nestedFold];
+  };
+  auto failedWith = [&](Fold& fold, std::exception_ptr error, int stage) {
+    fold.error = std::move(error);
+    fold.errorIteration = fold.iteration;
+    fold.errorStage = stage;
+    noteError(fold.iteration);
+  };
+  std::function<void(unsigned int)> runStep;     // the first part of a step
+  std::function<void(unsigned int)> finishStep;  // the second part
+  std::function<void(unsigned int)> startStep;   // a step on this thread (runStep, then the steps that wait)
+  std::function<void(unsigned int)> spawnStep;   // a step as a task (or in the thread's list of waiting steps)
+
+  // A step that a step starts (the fold's next step, or the next steps of all folds) is a task, which the runtime may
+  // run at once on the thread that starts it, nested in the starting task (in a team of one thread, e.g. a nested
+  // parallel region without nested parallelism, or with a full task queue). The steps would then nest without bound,
+  // one more on the stack per iteration. Beyond kMaxNestedSteps steps on a thread's stack a step waits in the thread's
+  // list instead, and the thread's outermost step runs the waiting steps after its own.
+  constexpr int kMaxNestedSteps = 4;
+  std::vector<int> nestedSteps(teamThreads, 0);
+  std::vector<std::vector<unsigned int>> waitingSteps(teamThreads);
+  for (std::vector<unsigned int>& waiting : waitingSteps) {
+    waiting.reserve(numFolds_);  // (a fold has at most one step to start: the tasks do not allocate here)
+  }
+  startStep = [&](unsigned int set) {
+    const std::size_t thread = threadNum();
+    ++nestedSteps[thread];
+    runStep(set);
+    if (--nestedSteps[thread] == 0) {
+      std::vector<unsigned int>& waiting = waitingSteps[thread];
+      while (!waiting.empty()) {
+        const unsigned int next = waiting.back();
+        waiting.pop_back();
+        ++nestedSteps[thread];
+        runStep(next);
+        --nestedSteps[thread];
+      }
+    }
+  };
+  spawnStep = [&](unsigned int set) {
+    const std::size_t thread = threadNum();
+    if (nestedSteps[thread] >= kMaxNestedSteps) {
+      waitingSteps[thread].push_back(set);
+      return;
+    }
+    PERCOLATOR_TASK_PRAGMA(omp task default(shared) firstprivate(set))
+    startStep(set);
+  };
+
+  // the second part of a step: after the solves of the fold's pairs
+  finishStep = [&](unsigned int set) {
+    const TaskLoopScope taskLoops;  // its scoring of the training set as a taskloop
+    Fold& fold = folds[set];
+    const unsigned int i = fold.iteration;
+    fold.group.reset();
+    // the fold's first error in the loop's order: a solve (first pair), the feature rows, a count (first pair)
+    std::exception_ptr stepError;
+    int stepErrorStage = kSolve;
+    for (int stage : {static_cast<int>(kSolve), static_cast<int>(kRows), static_cast<int>(kCount)}) {
+      if (stage == kRows) {
+        stepError = fold.rowsError;
+      } else {
+        for (unsigned int k = 0; k < numPairsPerFold && !stepError; ++k) {
+          if (fold.pairErrors[k] && fold.pairErrorStages[k] == stage) stepError = fold.pairErrors[k];
+        }
+      }
+      if (stepError) {
+        stepErrorStage = stage;
+        break;
+      }
+    }
+    int stage = kChoice;
+    try {
+      if (stepError) {
+        stage = stepErrorStage;
+        std::rethrow_exception(stepError);
+      }
+      // mergeCpCnPairs without nested cross validation, for this fold
+      int bestTruePoses = 0;
+      double bestCpos = 1.0, bestCfrac = 1.0;
+      for (unsigned int k = 0; k < numPairsPerFold; ++k) {
+        CandidateCposCfrac& cpCnFold = classWeightsPerFold_[set * numPairsPerFold + k];
+        const int tp = fold.pairPositives[k];
+        cpCnFold.tp = tp;
+        if (tp >= bestTruePoses) {
+          bestTruePoses = tp;
+          weights_[set] = cpCnFold.ww;
+          bestCpos = cpCnFold.cpos;
+          bestCfrac = cpCnFold.cfrac;
+        }
+      }
+      if (canFixGrid && !fold.fixed && i + 1u >= gridSearchIterations_) {
+        fold.fixed = true;
+        fold.selected = std::make_pair(bestCpos, bestCfrac);
+        Scores::FeatureRows().swap(fold.rows);  // (only the counts of the pairs read them, which end with the grid)
+        // once the grids of all folds are fixed, no count runs again: the per-thread buffers of the counts are free
+        // (the counts of the other folds ended before their grids were fixed, which this acquires)
+        if (foldsFixed.fetch_add(1u, std::memory_order_acq_rel) + 1u == numFolds_) {
+          for (Scores::CountBuffers& buffers : countBuffers) {
+            buffers = Scores::CountBuffers();
+          }
+        }
+      }
+      stage = kFoldCount;
+      const int positives = trainScores_[set].calcScoresAndQvals(weights_[set], testFdr_);
+      foldPositives_[set] = positives;
+      fold.positives[i] = positives;
+    } catch (...) {
+      failedWith(fold, std::current_exception(), stage);
+      if (!coupled) return;
+    }
+    if (!coupled) {
+      bool stop = i + 1u >= niter_;
+      if (stopPerFold) {
+        const int positives = fold.positives[i];
+        if (positives > 0 && fold.positivesOldOld > 0 && stopsEarly &&
+            (static_cast<double>(positives - fold.positivesOldOld) <=
+             fold.positivesOldOld * requiredIncrease)) {
+          stoppedFolds_[set] = 1;
+          fold.stoppedAt = static_cast<int>(i);
+          stop = true;
+        }
+        fold.positivesOldOld = fold.positivesOld;
+        fold.positivesOld = positives;
+      }
+      if (!stop && i + 1u <= firstErrorIteration.load(std::memory_order_acquire)) {
+        fold.iteration = i + 1u;
+        spawnStep(set);
+      }
+      return;
+    }
+    // the stop rule of train() on the sum of the folds, by the last fold to finish the iteration
+    bool next = false;
+    {
+      std::lock_guard<std::mutex> lock(decisionMutex);
+      if (++foldsDone < numFolds_) return;
+      for (const Fold& other : folds) {
+        if (other.error) return;
+      }
+      double positives = 0.0;
+      for (const Fold& other : folds) {
+        positives += other.positives[i];
+      }
+      // each PSM is in numFolds_ - 1 training sets (doStep)
+      const int found = static_cast<int>(positives / std::max(1u, numFolds_ - 1u));
+      if (found > 0 && foundOldOld > 0 &&
+          (static_cast<double>(found - foundOldOld) <= foundOldOld * requiredIncrease)) {
+        stoppedAfter = static_cast<int>(i);
+        foundAtStop = found;
+        foundBeforeStop = foundOldOld;
+      } else {
+        foundOldOld = foundOld;
+        foundOld = found;
+        next = i + 1u < niter_;
+        foldsDone = 0u;  // (before the steps of the next iteration start)
+      }
+    }
+    if (next) {
+      for (unsigned int other = 0; other < numFolds_; ++other) {
+        folds[other].iteration = i + 1u;
+        spawnStep(other);
+      }
+    }
+  };
+
+  // the first part of a step: the training set, the SVM input and the solves of the pairs (as tasks)
+  runStep = [&](unsigned int set) {
+    const TaskLoopScope taskLoops;  // its scoring and the copies of the training rows as taskloops
+    Fold& fold = folds[set];
+    const unsigned int i = fold.iteration;
+    if (i > firstErrorIteration.load(std::memory_order_acquire)) {
+      return;  // (not in the coupled mode: its next steps start only after an iteration without errors)
+    }
+    fold.rowsError = nullptr;
+    int stage = kRescore;
+    std::vector<unsigned int> pairs;
+    try {
+      // (only this fold's chain writes it; the other folds read it in the coupled mode only after this step)
+      fold.positives.resize(i + 1u, -1);
+      const double selectionFdr = i == 0u ? initialSelectionFdr_ : selectionFdr_;
+      // doStep's options for the step
+      options& pOptions = fold.stepOptions;
+      pOptions.lambda = 1.0;
+      pOptions.lambda_u = 1.0;
+      pOptions.epsilon = tronEpsilon_;
+      pOptions.cgitermax = CGITERMAX;
+      pOptions.mfnitermax = MFNITERMAX;
+      pOptions.directSolve = !classicTraining_;
+      pOptions.weightsOnly = true;
+      if (solver_ == kSolverNewton && classicTraining_ && !quickValidation_ && i + 1u < niter_) {
+        pOptions.epsilon = kNewtonEarlyEpsilon;
+      }
+      if (i > 0u || trainScoresCurrent_) {
+        // scored and sorted with weights_ at the end of the fold's last step
+        trainScores_[set].calcQvals(selectionFdr, skipDecoysPlusOne);
+      } else {
+        trainScores_[set].calcScoresAndQvals(weights_[set], selectionFdr, skipDecoysPlusOne);
+      }
+      stage = kInput;
+      AlgIn& svmInput = svmInputs_[set];
+      trainScores_[set].reserveTrainingSet(svmInput, selectionFdr);
+      trainScores_[set].generateNegativeTrainingSet(svmInput, 1.0);
+      trainScores_[set].generatePositiveTrainingSet(svmInput, selectionFdr, 1.0, trainBestPositive_);
+      fold.needCounts = !fold.fixed && numPairsPerFold > nestedXvalBins_;
+      if (fold.needCounts) {
+        // the loop takes the rows after all solves (mergeCpCnPairs): an error here comes after theirs, so the solves
+        // still run (their counts do not)
+        try {
+          trainScores_[set].getFeatureRows(fold.rows);
+        } catch (...) {
+          fold.rowsError = std::current_exception();
+          noteError(i);
+        }
+      }
+      stage = kPairGroup;
+      const bool singleSolves = fold.fixed || numPairsPerFold == nestedXvalBins_;
+      if (!singleSolves) {
+        fold.group = std::make_unique<TronPairGroup>(svmInput);
+      }
+      stage = kSolve;
+      // the pairs of the step (isSelectedPair); a pair that is not trained counts -1 (mergeCpCnPairs)
+      fold.pairPositives.assign(numPairsPerFold, -1);
+      fold.pairErrors.assign(numPairsPerFold, nullptr);
+      fold.pairErrorStages.assign(numPairsPerFold, kSolve);
+      for (unsigned int k = 0; k < numPairsPerFold; ++k) {
+        const CandidateCposCfrac& cpCnFold = classWeightsPerFold_[set * numPairsPerFold + k];
+        if (!fold.fixed || (cpCnFold.cpos == fold.selected.first && cpCnFold.cfrac == fold.selected.second)) {
+          pairs.push_back(k);
+        }
+      }
+    } catch (...) {
+      failedWith(fold, std::current_exception(), stage);
+      fold.group.reset();
+      if (coupled) {
+        std::lock_guard<std::mutex> lock(decisionMutex);
+        ++foldsDone;
+      }
+      return;
+    }
+    if (pairs.empty()) {  // (not reached: a fixed grid keeps one of the fold's pairs)
+      finishStep(set);
+      return;
+    }
+    fold.pendingPairs.store(static_cast<unsigned int>(pairs.size()), std::memory_order_relaxed);
+    for (unsigned int k : pairs) {
+      PERCOLATOR_TASK_PRAGMA(omp task default(shared) firstprivate(set, k))
+      {
+        Fold& pairFold = folds[set];
+        CandidateCposCfrac& cpCnFold = classWeightsPerFold_[set * numPairsPerFold + k];
+        try {
+          trainCpCnPair(cpCnFold, pairFold.stepOptions, svmInputs_[set], svmBuffers[threadNum()],
+                        pairFold.group.get());
+        } catch (...) {
+          pairFold.pairErrors[k] = std::current_exception();
+          pairFold.pairErrorStages[k] = kSolve;
+          noteError(pairFold.iteration);
+        }
+        if (!pairFold.pairErrors[k]) {
+          if (!pairFold.needCounts) {
+            pairFold.pairPositives[k] = 0;  // the only trained pair of its fold
+          } else if (!pairFold.rowsError) {
+            try {
+              pairFold.pairPositives[k] = trainScores_[set].countTargetsBelowFdr(
+                  pairFold.rows, cpCnFold.ww, testFdr_, skipDecoysPlusOne, countBuffers[threadNum()]);
+            } catch (...) {
+              pairFold.pairErrors[k] = std::current_exception();
+              pairFold.pairErrorStages[k] = kCount;
+              noteError(pairFold.iteration);
+            }
+          }
+        }
+        if (pairFold.pendingPairs.fetch_sub(1u, std::memory_order_acq_rel) == 1u) {
+          finishStep(set);
+        }
+      }
+    }
+  };
+
+  // the header of the first iteration's report, which messages of its solves follow (train)
+  if (VERB > 1) {
+    cerr << "Iteration " << 1 << ":\t";
+  }
+#if PERCOLATOR_OMP_TASKS  // (trainsFoldChains: only with tasks)
+#pragma omp parallel num_threads(static_cast<int>(teamThreads))
+#pragma omp single
+#endif
+  {
+    for (unsigned int set = 0; set < numFolds_; ++set) {
+      spawnStep(set);
+    }
+  }
+
+  // the first error by iteration, stage (the loop's order of the stages) and fold
+  const Fold* first = nullptr;
+  for (const Fold& fold : folds) {
+    if (fold.error && (!first || fold.errorIteration < first->errorIteration ||
+                       (fold.errorIteration == first->errorIteration && fold.errorStage < first->errorStage))) {
+      first = &fold;
+    }
+  }
+
+  // the steps that ran: all folds for the iterations up to the last one (before the first error)
+  unsigned int iterations = 0;
+  for (const Fold& fold : folds) {
+    for (unsigned int i = 0; i < fold.positives.size(); ++i) {
+      if (fold.positives[i] >= 0) iterations = std::max(iterations, i + 1u);
+    }
+  }
+  if (first) {
+    iterations = first->errorIteration;
+  }
+
+  // the reports of the iterations, as train() prints them (the header of the first one is printed already)
+  for (unsigned int i = 0; i < iterations; ++i) {
+    if (VERB > 1 && i > 0u) {
+      cerr << "Iteration " << i + 1 << ":\t";
+    }
+    if (canFixGrid && i + 1u == gridSearchIterations_ && VERB > 1) {
+      for (unsigned int set = 0; set < numFolds_; ++set) {
+        const std::pair<double, double>& best = folds[set].selected;
+        std::cerr << "Split " << set + 1 << ": using Cpos=" << best.first
+                  << ", Cneg=" << best.first * best.second
+                  << " in the remaining iterations" << std::endl;
+      }
+    }
+    double positives = 0.0;
+    for (const Fold& fold : folds) {
+      if (i < fold.positives.size() && fold.positives[i] >= 0) positives += fold.positives[i];
+    }
+    const int foundPositives = static_cast<int>(positives / std::max(1u, numFolds_ - 1u));
+    if (VERB > 1) {
+      cerr << "Estimated " << foundPositives << " PSMs with q<" << testFdr_ << endl;
+    }
+    if (stopPerFold) {
+      for (unsigned int set = 0; set < numFolds_; ++set) {
+        if (folds[set].stoppedAt == static_cast<int>(i) && VERB > 1) {
+          const int before = i >= 2u ? folds[set].positives[i - 2u] : 0;
+          std::cerr << "Split " << set + 1 << " has converged (" << folds[set].positives[i]
+                    << " vs " << before << ")" << std::endl;
+        }
+      }
+    } else if (stoppedAfter == static_cast<int>(i) && VERB > 0) {
+      std::cerr << "Performance increase over the last two iterations "
+                << "indicate that the algorithm has converged\n"
+                << "(" << foundAtStop << " vs " << foundBeforeStop << ")" << std::endl;
+    }
+  }
+  if (first) {
+    // as doStep throws it: after the header of its iteration and, for an error in the last stage, the choice of the
+    // pairs that mergeCpCnPairs prints before
+    const unsigned int i = first->errorIteration;
+    if (VERB > 1 && i > 0u) {
+      cerr << "Iteration " << i + 1 << ":\t";
+    }
+    if (first->errorStage == kFoldCount && canFixGrid && i + 1u == gridSearchIterations_ && VERB > 1) {
+      for (unsigned int set = 0; set < numFolds_; ++set) {
+        const std::pair<double, double>& best = folds[set].selected;
+        std::cerr << "Split " << set + 1 << ": using Cpos=" << best.first
+                  << ", Cneg=" << best.first * best.second
+                  << " in the remaining iterations" << std::endl;
+      }
+    }
+    std::rethrow_exception(first->error);
+  }
+
+  // the state of the loop after the iterations
+  iteration_ = iterations;
+  if (canFixGrid && iterations >= gridSearchIterations_) {
+    gridFixed_ = true;
+    selectedPairs_.resize(numFolds_);
+    for (unsigned int set = 0; set < numFolds_; ++set) {
+      selectedPairs_[set] = folds[set].selected;
+    }
+  }
+  trainScoresCurrent_ = true;
+  // a fold that stopped before the last iteration had its q-values recalculated in the iterations after (doStep)
+  for (unsigned int set = 0; set < numFolds_; ++set) {
+    if (folds[set].stoppedAt >= 0 && static_cast<unsigned int>(folds[set].stoppedAt) + 1u < iterations) {
+      trainScores_[set].calcQvals(selectionFdr_, skipDecoysPlusOne);
+    }
   }
 }
 
@@ -853,69 +1106,48 @@ void CrossValidation::setupFoldInputs(int set, double selectionFdr,
  * @param cpCnFold contains cpos, cneg pair and SVM learned weights
  * @param pOptions options for the SVM algorithm
  * @param svmInput training data for this particular nested CV fold
+ * @param buffers buffers of the calling thread
  */
-bool CrossValidation::trainCpCnPair(CandidateCposCfrac& cpCnFold,
-                                    options& pOptions,
-                                    AlgIn* svmInput,
-                                    TronPairGroup* tronGroup) {
-  vector_double pWeights;
-  pWeights.d = static_cast<int>(FeatureNames::getNumFeatures()) + 1;
-  pWeights.vec = new double[pWeights.d];
-
+void CrossValidation::trainCpCnPair(CandidateCposCfrac& cpCnFold,
+                                    const options& pOptions,
+                                    const AlgIn& svmInput,
+                                    SvmTrainingBuffers& buffers,
+                                    TronPairGroup* group) {
   double cpos = cpCnFold.cpos;
   double cfrac = cpCnFold.cfrac;
-
-  // Create storage vector for SVM algorithm
-  vector_double Outputs;
-  size_t numInputs =
-      static_cast<std::size_t>(svmInput->positives + svmInput->negatives);
-  Outputs.vec = new double[numInputs];
-  Outputs.d = static_cast<int>(numInputs);
 
   if (VERB > 3)
     cerr << "- cross-validation with Cpos=" << cpos << ", Cneg=" << cfrac * cpos
          << endl;
-  // OpenMS: Newton and LDA (solver_) start from the pair's weights of the step before (0 at the
-  // first step); so does TRON with warmStart_ (and no nested cross-validation)
-  for (int ix = 0; ix < pWeights.d; ix++) {
-    pWeights.vec[ix] = solver_ != kSolverTron || (warmStart_ && nestedXvalBins_ == 1)
-                           ? cpCnFold.ww[static_cast<std::size_t>(ix)]
-                           : 0;
+  // The SVM algorithm (see ssl.cpp) starts from the weights this pair had
+  // after the previous iteration (zero in the first one), which are close
+  // to the new solution, or from zero with classic training.
+  // OpenMS: TRON (ssl.h) starts from the weights alone, so the outputs X w of upstream's solver are not computed.
+  // With classic training, TRON starts from the previous weights as well with warmStart_ (and no nested
+  // cross-validation); Newton and LDA (setSolver) always do.
+  std::vector<double>& weights = cpCnFold.ww;
+  if (classicTraining_ && solver_ == kSolverTron && !(warmStart_ && nestedXvalBins_ == 1u)) {
+    std::fill(weights.begin(), weights.end(), 0.0);
   }
-  for (int ix = 0; ix < Outputs.d; ix++) {
-    Outputs.vec[ix] = 0;
-  }
-
-  // Call SVM algorithm (see ssl.cpp)
-  const bool costIndependent =
-      trainSvm(*svmInput, pOptions, cpos, cfrac * cpos, pWeights, Outputs, tronGroup);
-
-  for (std::size_t i = FeatureNames::getNumFeatures() + 1; i--;) {
-    cpCnFold.ww[i] = pWeights.vec[i];
-  }
-  return costIndependent;
+  trainSvm(svmInput, pOptions, cpos, cfrac * cpos, weights, buffers.outputs, group);
 }
 
-// OpenMS: the solver of the SVMs (setSolver). Newton (newton_svm.h) and LDA start from the
-// weights in w; LDA needs two rows of each class, Newton at most kNewtonMaxColumns columns:
-// otherwise, and if Newton fails or does not converge, TRON solves the SVM from 0. With
-// kSolverTron, TRON starts from w as given (0, or the pair's previous weights with warmStart_).
-// Returns whether LDA gave the weights (their ranking does not depend on the costs).
-bool CrossValidation::trainSvm(const AlgIn& svmInput, options& pOptions, double cpos,
-                               double cneg, vector_double& w, vector_double& outputs,
-                               TronPairGroup* tronGroup) {
-  if (solver_ == kSolverLda && ldaSvm(svmInput, pOptions, cpos, cneg, w.vec)) return true;
-  if (solver_ != kSolverTron) {
-    if (newtonSvm(svmInput, pOptions, cpos, cneg, pOptions.epsilon, w.vec, nullptr) == 1) {
-      return false;
-    }
-    // the fallback of Newton and LDA: TRON from 0
-    for (int ix = 0; ix < w.d; ix++) {
-      w.vec[ix] = 0;
-    }
+// OpenMS: the solver of setSolver. Newton (newton_svm.h) and LDA start from the weights in w; LDA needs two rows of
+// each class, Newton at most kNewtonMaxColumns columns: otherwise, and if Newton fails or does not converge, TRON
+// solves the SVM from 0. TRON (kSolverTron) starts from w as given.
+void CrossValidation::trainSvm(const AlgIn& svmInput, const options& pOptions,
+                               double cpos, double cneg, std::vector<double>& w,
+                               std::vector<double>& outputs, TronPairGroup* group) const {
+  if (solver_ == kSolverLda && ldaSvm(svmInput, pOptions, cpos, cneg, w.data())) {
+    return;
   }
-  L2_SVM_MFN(svmInput, pOptions, w, outputs, cpos, cneg, tronGroup);
-  return false;
+  if (solver_ != kSolverTron) {
+    if (newtonSvm(svmInput, pOptions, cpos, cneg, pOptions.epsilon, w.data(), nullptr) == 1) {
+      return;
+    }
+    std::fill(w.begin(), w.end(), 0.0);  // the fallback: TRON from 0
+  }
+  L2_SVM_MFN(svmInput, pOptions, w, outputs, cpos, cneg, group);
 }
 
 /**
@@ -923,147 +1155,229 @@ bool CrossValidation::trainSvm(const AlgIn& svmInput, options& pOptions, double 
  * CV fold
  * @param pWeights results vector from the SVM algorithm
  * @param pOptions options for the SVM algorithm
- * @param pairTruePoses positives per (cpos,cneg) pair per nested CV fold per
- * CV fold, on its test set (OpenMS: computed by doStep)
+ * @param nestedTestScoresVec 2D vector, test sets per nested CV fold per CV
+ * fold
  */
 int CrossValidation::mergeCpCnPairs(
     double selectionFdr,
-    options& pOptions,
-    const vector<int>& pairTruePoses,
+    const options& pOptions,
+    vector<vector<Scores> >& nestedTestScoresVec,
     const vector<double>& cposCandidates,
     const vector<double>& cfracCandidates) {
-  trainScoresOfWeights_ = false;
+  // for determining the number of positives, the decoys+1 in the FDR estimates
+  // is too restrictive for small datasets
+  bool skipDecoysPlusOne = true;
+
   vector<int> bestTruePoses(numFolds_, 0);
   vector<double> bestCposes(numFolds_, 1);
   vector<double> bestCfracs(numFolds_, 1);
   
   // Validate learned parameters per (cpos,cneg) pair per nested CV fold
-  // OpenMS: the positives of the pairs are validated in doStep, in the pairs' tasks;
-  // the pairs are merged here in their order, as before.
+  // Note: this cannot be done in trainCpCnPair without setting a critical
+  // pragma, due to the
+  //       scoring calculation in calcScores.
   unsigned int numCpCnPairsPerSet =
       static_cast<unsigned int>(classWeightsPerFold_.size() / numFolds_);
-  vector<std::exception_ptr> mergeErrors(numFolds_);
-#pragma omp parallel for schedule(dynamic, 1) ordered num_threads(numLoopThreads(std::min(numThreads_, kMaxTeamThreads), numFolds_))
+
+  // The validation counts of all pairs are independent, so they are computed
+  // in parallel. Without nested cross validation the training sets are the
+  // validation sets.
+  auto testSet = [&](unsigned int set,
+                     unsigned int nestedSet) -> const Scores& {
+    const std::vector<Scores>& nestedTestScores = nestedTestScoresVec[set];
+    return nestedTestScores.empty() ? trainScores_[set]
+                                    : nestedTestScores[nestedSet];
+  };
+  // When a fold trains only one pair per nested fold, as it does once the
+  // grid is fixed or with a single candidate pair, the selection below
+  // picks that pair for any count >= 0, with and without nested cross
+  // validation. The counts are then not computed, and the pair gets 0.
+  const bool needCounts = !gridFixed_ && numCpCnPairsPerSet > nestedXvalBins_;
+  const int numTestSets =
+      needCounts ? static_cast<int>(numFolds_ * nestedXvalBins_) : 0;
+  std::vector<Scores::FeatureRows> testRows(numTestSets);
+  LoopErrors rowErrors(static_cast<std::size_t>(numTestSets));  // OpenMS
+#pragma omp parallel for schedule(dynamic, 1) num_threads(static_cast<int>(maxNumThreads()))
+  for (int idx = 0; idx < numTestSets; ++idx) {
+    try {  // OpenMS: LoopErrors
+    if (!isActiveFold(idx / nestedXvalBins_)) continue;  // OpenMS: setActiveFolds
+    testSet(idx / nestedXvalBins_, idx % nestedXvalBins_)
+        .getFeatureRows(testRows[idx]);
+    } catch (...) {
+      rowErrors.capture(static_cast<std::size_t>(idx));
+    }
+  }
+  rowErrors.rethrowFirst();
+
+  std::vector<int> truePositives(classWeightsPerFold_.size());
+  LoopErrors countErrors(classWeightsPerFold_.size());  // OpenMS
+#pragma omp parallel num_threads(static_cast<int>(maxNumThreads()))
+  {
+    Scores::CountBuffers buffers;  // one per thread, for all its pairs
+#pragma omp for schedule(dynamic, 1)
+    for (int pairIdx = 0;
+         pairIdx < static_cast<int>(classWeightsPerFold_.size()); ++pairIdx) {
+      try {  // OpenMS: LoopErrors
+      const CandidateCposCfrac& cpCnPair = classWeightsPerFold_[pairIdx];
+      const unsigned int nestedSet =
+          static_cast<unsigned int>(cpCnPair.nestedSet);
+      if (!isSelectedPair(cpCnPair) || !isActiveFold(cpCnPair.set)) {  // OpenMS: setActiveFolds
+        truePositives[pairIdx] = -1;  // not trained in this iteration
+        continue;
+      }
+      if (!needCounts) {
+        truePositives[pairIdx] = 0;  // the only trained pair of its fold
+        continue;
+      }
+      truePositives[pairIdx] =
+          testSet(cpCnPair.set, nestedSet)
+              .countTargetsBelowFdr(
+                  testRows[cpCnPair.set * nestedXvalBins_ + nestedSet],
+                  cpCnPair.ww, testFdr_, skipDecoysPlusOne, buffers);
+      } catch (...) {
+        countErrors.capture(static_cast<std::size_t>(pairIdx));
+      }
+    }
+  }
+  countErrors.rethrowFirst();
+
   for (int set = 0; set < static_cast<int>(numFolds_); ++set) {
-    try {
-      unsigned int a = set * numCpCnPairsPerSet;
-      unsigned int b = (set + 1) * numCpCnPairsPerSet;
-      int tp = 0;
-      std::vector<CandidateCposCfrac>::iterator itCpCnPair;
-      std::map<std::pair<double, double>, int> intermediateResults;
-      for (itCpCnPair = classWeightsPerFold_.begin() + a;
-           itCpCnPair < classWeightsPerFold_.begin() + b; itCpCnPair++) {
-        tp = pairTruePoses[static_cast<std::size_t>(itCpCnPair - classWeightsPerFold_.begin())];
-        intermediateResults[std::pair<double,double>{itCpCnPair->cpos,
-                                                     itCpCnPair->cfrac}] += tp;
-        itCpCnPair->tp = tp;
-        if (nestedXvalBins_ <= 1) {
-          if (tp >= bestTruePoses[set]) {
-            bestTruePoses[set] = tp;
-            weights_[set] = itCpCnPair->ww;
-            bestCposes[set] = itCpCnPair->cpos;
-            bestCfracs[set] = itCpCnPair->cfrac;
-          }
+    if (!isActiveFold(static_cast<unsigned int>(set))) continue;  // OpenMS: keeps its weights
+    unsigned int a = set * numCpCnPairsPerSet;
+    unsigned int b = (set + 1) * numCpCnPairsPerSet;
+    int tp = 0;
+    std::vector<CandidateCposCfrac>::iterator itCpCnPair;
+    std::map<std::pair<double, double>, int> intermediateResults;
+    for (itCpCnPair = classWeightsPerFold_.begin() + a;
+         itCpCnPair < classWeightsPerFold_.begin() + b; itCpCnPair++) {
+      tp = truePositives[itCpCnPair - classWeightsPerFold_.begin()];
+      intermediateResults[std::pair<double,double>{itCpCnPair->cpos,
+                                                   itCpCnPair->cfrac}] += tp;
+      itCpCnPair->tp = tp;
+      if (nestedXvalBins_ <= 1) {
+        if (tp >= bestTruePoses[set]) {
+          bestTruePoses[set] = tp;
+          weights_[set] = itCpCnPair->ww;
+          bestCposes[set] = itCpCnPair->cpos;
+          bestCfracs[set] = itCpCnPair->cfrac;
         }
       }
-      if (nestedXvalBins_ > 1) {  // Check nestedXvalBins, which collapse
-                                  // (accumulate) tp estimated for each CV bin
-        // Now check which achieved best performance among cpos, cneg pairs
+    }
+    if (nestedXvalBins_ > 1) {  // Check nestedXvalBins, which collapse
+                                // (accumulate) tp estimated for each CV bin
+      // Now check which achieved best performance among cpos, cneg pairs
+      std::vector<double>::const_iterator itCpos = cposCandidates.begin();
+      for (; itCpos != cposCandidates.end(); ++itCpos) {
+        double cpos = *itCpos;
         // OpenMS: the fold's own Cneg candidates with fixed folds (initializeGridSearch)
         const vector<double>& setCfracCandidates =
             candidatesCfracPerFold_.empty() ? cfracCandidates : candidatesCfracPerFold_[set];
-        std::vector<double>::const_iterator itCpos = cposCandidates.begin();
-        for (; itCpos != cposCandidates.end(); ++itCpos) {
-          double cpos = *itCpos;
-          std::vector<double>::const_iterator itCfrac = setCfracCandidates.begin();
-          for (; itCfrac != setCfracCandidates.end(); ++itCfrac) {
-            double cfrac = *itCfrac;
-            tp = intermediateResults[std::pair<double,double>{cpos, cfrac}];
-            if (tp >= bestTruePoses[set]) {
-              bestTruePoses[set] = tp;
-              bestCposes[set] = cpos;
-              bestCfracs[set] = cfrac;
-            }
+        std::vector<double>::const_iterator itCfrac = setCfracCandidates.begin();
+        for (; itCfrac != setCfracCandidates.end(); ++itCfrac) {
+          double cfrac = *itCfrac;
+          tp = intermediateResults[std::pair<double,double>{cpos, cfrac}];
+          if (tp >= bestTruePoses[set]) {
+            bestTruePoses[set] = tp;
+            bestCposes[set] = cpos;
+            bestCfracs[set] = cfrac;
           }
         }
       }
-    } catch (...) {
-      mergeErrors[set] = std::current_exception();
     }
   }
-  rethrowFirstError(mergeErrors);
 
   if (nestedXvalBins_ > 1) {
-    vector<std::exception_ptr> refitErrors(numFolds_);
-#pragma omp parallel for schedule(dynamic, 1) ordered num_threads(numLoopThreads(std::min(numThreads_, kMaxTeamThreads), numFolds_))
-    for (int set = 0; set < static_cast<int>(numFolds_); ++set) {
-      try {
-        vector_double pWeights;
-        pWeights.d = static_cast<int>(FeatureNames::getNumFeatures()) + 1;
-        pWeights.vec = new double[pWeights.d];
+    // one solve per fold on its whole training set, for foldsPerPass folds
+    // at a time as in doStep
+    unsigned int foldsPerPass = 0u;
+    std::vector<AlgIn>& svmInputs = svmInputsOfPass(true, foldsPerPass);
+    for (unsigned int firstSet = 0; firstSet < numFolds_;
+         firstSet += foldsPerPass) {
+      const unsigned int endSet =
+          (std::min)(numFolds_, firstSet + foldsPerPass);
+      LoopErrors refitErrors(numFolds_);  // OpenMS
+#pragma omp parallel for schedule(dynamic, 1) num_threads(static_cast<int>(maxNumThreads()))
+      for (int set = static_cast<int>(firstSet);
+           set < static_cast<int>(endSet); ++set) {
+        try {  // OpenMS: LoopErrors
+        if (!isActiveFold(static_cast<unsigned int>(set))) continue;  // OpenMS: setActiveFolds
+        AlgIn& svmInput = svmInputs[
+            (static_cast<unsigned int>(set) - firstSet) * nestedXvalBins_];
+        trainScores_[set].reserveTrainingSet(svmInput, selectionFdr);
+        trainScores_[set].generateNegativeTrainingSet(svmInput, 1.0);
+        trainScores_[set].generatePositiveTrainingSet(
+            svmInput, selectionFdr, 1.0, trainBestPositive_);
 
-        AlgIn* svmInput = svmInputs_[set * nestedXvalBins_];
-        trainScores_[set].generateNegativeTrainingSet(*svmInput, 1.0);
-        trainScores_[set].generatePositiveTrainingSet(*svmInput, selectionFdr,
-                                                      1.0, trainBestPositive_);
-
-        // Create storage vector for SVM algorithm
-        vector_double Outputs;
-        size_t numInputs =
-            static_cast<std::size_t>(svmInput->positives + svmInput->negatives);
-        Outputs.vec = new double[numInputs];
-        Outputs.d = static_cast<int>(numInputs);
-
-        for (int ix = 0; ix < pWeights.d; ix++) {
-          pWeights.vec[ix] = 0;
+        // The SVM algorithm (see ssl.cpp) starts from the fold's weights of
+        // the previous iteration, which are close to the new solution, as
+        // the grid solves do; in the first iteration, which holds the
+        // initial direction, and with classic training it starts from zero.
+        // OpenMS: TRON (ssl.h) starts from the weights alone (no outputs X w); the solver of setSolver
+        std::vector<double> outputs;
+        if (classicTraining_ || iteration_ == 0u) {
+          std::fill(weights_[set].begin(), weights_[set].end(), 0.0);
         }
-        for (int ix = 0; ix < Outputs.d; ix++) {
-          Outputs.vec[ix] = 0;
+        trainSvm(svmInput, pOptions, bestCposes[set],
+                 bestCposes[set] * bestCfracs[set], weights_[set], outputs);
+        } catch (...) {
+          refitErrors.capture(static_cast<std::size_t>(set));
         }
-        // Call SVM algorithm (see ssl.cpp)
-        trainSvm(*svmInput, pOptions, bestCposes[set], bestCposes[set] * bestCfracs[set],
-                 pWeights, Outputs);
-
-        for (std::size_t i = FeatureNames::getNumFeatures() + 1; i--;) {
-          weights_[set][i] = pWeights.vec[i];
+      }
+      refitErrors.rethrowFirst();
+      if (VERB > 2) {
+        for (unsigned int set = firstSet; set < endSet; ++set) {
+          const AlgIn& svmInput =
+              svmInputs[(set - firstSet) * nestedXvalBins_];
+          cerr << "Split " << set + 1 << ": Training with "
+               << svmInput.positives << " positives and "
+               << svmInput.negatives << " negatives" << std::endl;
         }
-      } catch (...) {
-        refitErrors[set] = std::current_exception();
       }
     }
-    rethrowFirstError(refitErrors);
   }
 
-  // OpenMS: the folds in parallel; the counts are added up in fold order
-  vector<int> truePoses(numFolds_);
-  vector<std::exception_ptr> foldErrors(numFolds_);
-#if PERCOLATOR_OMP_TASKS
-#pragma omp parallel num_threads(numTeamThreads(numThreads_))
-#pragma omp single
-#pragma omp taskloop grainsize(1)
-#else
-#pragma omp parallel for schedule(dynamic, 1) num_threads(numTeamThreads(numThreads_))
-#endif
-  for (int set = 0; set < static_cast<int>(numFolds_); ++set) {
-    try {
-      truePoses[set] =
-          trainScores_[set].calcScoresAndQvals(weights_[set], testFdr_);
-    } catch (...) {
-      foldErrors[set] = std::current_exception();
+  // After the first iterations the selected pairs hardly change, and their
+  // number of positives differs from the other pairs' only by noise. From
+  // then on only the selected pair of each fold is trained.
+  ++iteration_;
+  if (!classicTraining_ && !gridFixed_ && iteration_ >= gridSearchIterations_ &&
+      classWeightsPerFold_.size() > numFolds_ * nestedXvalBins_) {
+    gridFixed_ = true;
+    selectedPairs_.resize(numFolds_);
+    for (unsigned int set = 0; set < numFolds_; ++set) {
+      selectedPairs_[set] = std::make_pair(bestCposes[set], bestCfracs[set]);
+      if (VERB > 1) {
+        std::cerr << "Split " << set + 1 << ": using Cpos=" << bestCposes[set]
+                  << ", Cneg=" << bestCposes[set] * bestCfracs[set]
+                  << " in the remaining iterations" << std::endl;
+      }
     }
   }
-  rethrowFirstError(foldErrors);
-  trainScoresOfWeights_ = true;
+
   double bestTruePos = 0;
   for (int set = 0; set < static_cast<int>(numFolds_); ++set) {
-    bestTruePos += truePoses[set];
+    if (!isActiveFold(static_cast<unsigned int>(set))) continue;  // OpenMS: the counts of the active folds
+    const int positives = trainScores_[set].calcScoresAndQvals(weights_[set], testFdr_);
+    if (static_cast<std::size_t>(set) < foldPositives_.size()) {
+      foldPositives_[static_cast<std::size_t>(set)] = positives;  // OpenMS: see train
+    }
+    bestTruePos += positives;
   }
-  return static_cast<int>(bestTruePos / (numFolds_ - 1));
+  trainScoresCurrent_ = true;
+  // each PSM is in numFolds_ - 1 training sets, or in the only one
+  return static_cast<int>(bestTruePos / std::max(1u, numFolds_ - 1));
 }
 
+/**
+ * Scores the test sets with the trained weights and merges them into
+ * fullset. Releases the training data, so train() cannot be called again.
+ */
 void CrossValidation::postIterationProcessing(Scores& fullset,
-                                              SanityCheck* pCheck) {
-  trainScoresOfWeights_ = false;  // OpenMS: Scores::merge changes weights_
+                                              SanityCheck& check) {
+  // The training is done. Its data are released before the merge, which
+  // copies all PSMs once more and would otherwise set the peak memory.
+  std::vector<AlgIn>().swap(svmInputs_);
+  std::vector<AlgIn>().swap(svmRowLists_);
   if (decoyFractionTraining_ < 1.0) {
     // with RESET 1 decoy: decoysPerTarget = 1 and decoyFractionTraining = 0.5,
     // then factor = 1.5 and testNullTargetWinProb = 2/3 (and decoyFactor = 2)
@@ -1094,44 +1408,73 @@ void CrossValidation::postIterationProcessing(Scores& fullset,
     fullset.setNullTargetWinProb(testNullTargetWinProb);
   }
 
-  if (!pCheck->validateDirection(weights_)) {
-    if (VERB > 3) {
-      // (prints the scores of each sort: one set after the other)
-      for (std::size_t set = 0; set < numFolds_; ++set) {
-        testScores_[set].calcScoresAndQvals(weights_[0], selectionFdr_);
-      }
-    } else {
-      // OpenMS: the test sets as tasks of a parallel region, whose threads also run the tasks of
-      // their scoring, sorts and q-values (see Scores::calcScores and SortLikeStd.h): each test
-      // set gets the same scores, order and q-values as in a loop over the sets.
-      std::vector<std::exception_ptr> resetErrors(numFolds_);
-#if PERCOLATOR_OMP_TASKS
-#pragma omp parallel num_threads(numTeamThreads(numThreads_))
-#pragma omp single
-#pragma omp taskloop grainsize(1) shared(resetErrors)
-#else
-#pragma omp parallel for schedule(dynamic, 1) num_threads(numTeamThreads(numThreads_))
-#endif
-      for (int set = 0; set < static_cast<int>(numFolds_); ++set) {
-        try {
-          testScores_[static_cast<std::size_t>(set)].calcScoresAndQvals(weights_[0], selectionFdr_);
-        } catch (...) {
-          resetErrors[static_cast<std::size_t>(set)] = std::current_exception();
-        }
-      }
-      rethrowFirstError(resetErrors);
+  directionOutcome_ =
+      check.validateDirection(testScores_, trainScores_, weights_);
+  const bool directionValid =
+      directionOutcome_ != SanityCheck::DirectionOutcome::FAILED;
+  // When the second chance of the direction check kept the trained SVMs,
+  // whose test bins were too small for the per-bin count, the bins are
+  // merged as it counted them, with the training-set decoys, unless the
+  // caller chose another scheme for this case, whose list the second chance
+  // has then checked as well (MergePlan::usedScheme).
+  usedMergeNormalization_ = mergePlan_.usedScheme(
+      directionOutcome_ ==
+      SanityCheck::DirectionOutcome::KEPT_BY_SECOND_CHANCE);
+  if (!directionValid) {
+    // Each test bin is scored with its own fold's vector: after a reset the
+    // vector the fallback chose for that fold (under --init-weights the given
+    // vector or the fold's default direction, whichever gives more targets
+    // on the fold's training set; otherwise the fold's default vector, and
+    // with --static the given vector in every fold); with --override the
+    // trained vector, since the other folds' vectors were trained on the
+    // bin. The weights written with -w then describe the scores, but for
+    // the exception that follows.
+    //
+    // Except with -N under test, after a reset and with --override: -N then
+    // scores all PSMs with the averaged weights (see below), so the merged
+    // scores of the bins are not reported, and the merge rescales each
+    // fold's vector by the anchors of a bin before they are averaged. A bin
+    // with no target at q < fdr is anchored at its best score, so with its
+    // own fold's vector a real score with a long tail got a smaller factor
+    // than another fold's noise feature, which then dominated the average.
+    // All bins are scored with the first fold's vector instead, as before
+    // the folds kept their own vectors, so that the folds' vectors get
+    // nearly the same factor and count alike in the average.
+    const bool averagedUnderTest =
+        recordTestFolds_ &&
+        usedMergeNormalization_ == MergeNormalization::TEST;
+    for (std::size_t set = 0; set < numFolds_; ++set) {
+      testScores_[set].calcScoresAndQvals(
+          averagedUnderTest ? weights_[0] : weights_[set], selectionFdr_);
     }
   }
-  // OpenMS: in a parallel region, whose threads run the tasks of the sorts (see SortLikeStd.h)
-  std::exception_ptr mergeError;
-  PERCOLATOR_TASK_PRAGMA(omp parallel num_threads(numTeamThreads(numThreads_)))
-  PERCOLATOR_TASK_PRAGMA(omp single)
-  try {
-    fullset.merge(testScores_, selectionFdr_, skipNormalizeScores_, weights_);
-  } catch (...) {
-    mergeError = std::current_exception();
-  }
-  if (mergeError) std::rethrow_exception(mergeError);
+
+  // With the TRAIN and TRAIN_DECOYS schemes, each test bin is rescaled by
+  // anchors taken from its fold's training set, scored with the same final
+  // weights as the test bin. The training set holds (numFolds_ - 1) times
+  // as many PSMs as the test bin, or the same PSMs with one fold, so the
+  // anchors exist and are less noisy for small test bins.
+  const std::vector<ScoreScale> binScales = Scores::calcBinScales(
+      trainScores_, weights_, usedMergeNormalization_, mergePlan_.fdr,
+      mergePlan_.skipNormalizeScores);
+  // the default direction of validateDirection and the anchors above were
+  // the last use of the training sets; merge empties the test sets
+  std::vector<Scores>().swap(trainScores_);
+  // After a reset the weights of each fold are a fallback picked per fold,
+  // e.g. the best single feature of its training set, which can be a noise
+  // feature in one fold and the real score in another; all PSMs are then
+  // scored with the averaged weights, as without the test folds. So they
+  // are after a failed check with --override, whose trained vectors the
+  // check did not accept.
+  if (recordTestFolds_ && directionValid) recordTestFolds();
+  fullset.merge(testScores_, mergePlan_.fdr, mergePlan_.skipNormalizeScores,
+                weights_, usedMergeNormalization_, binScales);
+}
+
+MergeNormalization CrossValidation::defaultMergeNormalization(
+    unsigned int numFolds) {
+  return numFolds <= 3u ? MergeNormalization::TEST
+                        : MergeNormalization::TRAIN_DECOYS;
 }
 
 /**
@@ -1196,6 +1539,16 @@ void CrossValidation::getAvgWeights(std::vector<double>& weights,
   }
 }
 
+void CrossValidation::getRawFoldWeights(
+    std::vector<std::vector<double> >& weights,
+    const Normalizer* pNorm) {
+  weights.assign(weights_.size(),
+                 vector<double>(FeatureNames::getNumFeatures() + 1));
+  for (size_t set = 0; set < weights_.size(); ++set) {
+    pNorm->unnormalizeweight(weights_[set], weights[set]);
+  }
+}
+
 void CrossValidation::getTrainingPsms(
     std::size_t set, std::vector<const PSMDescription*>& psms) const {
   psms.clear();
@@ -1204,6 +1557,27 @@ void CrossValidation::getTrainingPsms(
   for (const ScoreHolder& sh : trainScores_[set]) {
     psms.push_back(sh.pPSM);
   }
+}
+
+void CrossValidation::getTestFolds(
+    std::vector<std::pair<unsigned int, unsigned int> >& lineFolds) {
+  lineFolds.clear();
+  lineFolds.swap(testFolds_);
+}
+
+void CrossValidation::recordTestFolds() {
+  testFolds_.clear();
+  size_t numPsms = 0;
+  for (const Scores& testSet : testScores_) {
+    numPsms += testSet.size();
+  }
+  testFolds_.reserve(numPsms);
+  for (unsigned int set = 0; set < testScores_.size(); ++set) {
+    for (const ScoreHolder& sh : testScores_[set]) {
+      testFolds_.emplace_back(sh.pPSM->getLineNr(), set);
+    }
+  }
+  std::sort(testFolds_.begin(), testFolds_.end());
 }
 
 void CrossValidation::printAllWeightsColumns(

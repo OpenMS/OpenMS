@@ -10,6 +10,8 @@
 
 #include <OpenMS/FORMAT/BrukerTimsFile.h>
 #include <OpenMS/FORMAT/BrukerTimsImagingFile.h>
+#include <OpenMS/FORMAT/ImzMLFile.h>
+#include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/SqliteConnector.h>
 #include <OpenMS/FORMAT/ZipArchiveFile.h>
 #include <OpenMS/FORMAT/ZstdCompression.h>
@@ -23,6 +25,7 @@
 #include <cstring>
 #include <filesystem>
 #include <fstream>
+#include <map>
 
 using namespace OpenMS;
 using namespace std;
@@ -339,6 +342,62 @@ START_SECTION([EXTRA] TSF data: the metadata is read from analysis.tsf)
   const std::string mixed = mixed_dir + ".d.zip";
   ZipArchiveFile::zipDirectory(mixed_dir, mixed);
   TEST_TRUE(BrukerTimsImagingFile::isImagingDataset(mixed)) // outer/b.d
+}
+END_SECTION
+
+START_SECTION([EXTRA] the MALDI spots survive the conversion to imzML and mzML)
+{
+  // The spectra get the spot names of MaldiFrameInfo as the MetaValue maldi_spot_id; the imzML writer used to drop it,
+  // the mzML writer wrote it as a userParam instead of the spotID attribute
+  const std::string d = createFakeD(tmp.getPath(), "tsf_spots", "Imaging", {{1, 12, 11, 0}, {2, 13, 11, 0}, {3, 12, 12, 0}},
+                                    false, "20", "analysis.tsf");
+  addTsfFrames(d, 3);
+  {
+    SqliteConnector conn(d + "/analysis.tsf", SqliteConnector::SqlOpenMode::READWRITE);
+    conn.executeStatement("ALTER TABLE MaldiFrameInfo ADD COLUMN SpotName TEXT;");
+    conn.executeStatement("UPDATE MaldiFrameInfo SET SpotName = 'R00X0' || XIndexPos || 'Y0' || YIndexPos;");
+  }
+  // the spot names of the spectra by native ID
+  const auto spots = [](const MSExperiment& exp)
+  {
+    std::map<std::string, std::string> result;
+    for (const MSSpectrum& s : exp) result[s.getNativeID()] = s.getMetaValue("maldi_spot_id", "").toString();
+    return result;
+  };
+  const std::map<std::string, std::string> expected = {{"frame=1", "R00X012Y011"}, {"frame=2", "R00X013Y011"},
+                                                       {"frame=3", "R00X012Y012"}};
+  MSImagingExperiment img;
+  BrukerTimsImagingFile().load(d, img);
+  TEST_TRUE(spots(img.getMSExperiment()) == expected)
+
+  // imzML: written as the spotID attribute, read back by the reader
+  std::string imzml;
+  NEW_TMP_FILE_EXT(imzml, ".imzML");
+  ImzMLFile().store(imzml, img);
+  MSImagingExperiment img_reloaded;
+  ImzMLFile().load(imzml, img_reloaded);
+  TEST_TRUE(spots(img_reloaded.getMSExperiment()) == expected)
+  // imzML -> imzML
+  std::string imzml_again;
+  NEW_TMP_FILE_EXT(imzml_again, ".imzML");
+  ImzMLFile().store(imzml_again, img_reloaded);
+  MSImagingExperiment img_again;
+  ImzMLFile().load(imzml_again, img_again);
+  TEST_TRUE(spots(img_again.getMSExperiment()) == expected)
+
+  // mzML: the spectra as they are, also mzML -> mzML
+  std::string mzml;
+  NEW_TMP_FILE(mzml);
+  MzMLFile().store(mzml, img.getMSExperiment());
+  MSExperiment mzml_reloaded;
+  MzMLFile().load(mzml, mzml_reloaded);
+  TEST_TRUE(spots(mzml_reloaded) == expected)
+
+  // NEW_TMP_FILE_EXT only tracks the .imzML, so drop the companion .ibd files
+  for (const std::string& written : {imzml, imzml_again})
+  {
+    std::filesystem::remove(written.substr(0, written.size() - 6) + ".ibd");
+  }
 }
 END_SECTION
 

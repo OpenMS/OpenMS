@@ -207,6 +207,11 @@ class NuXLAnnotatedHit
   std::string localization_method; ///< how the site was chosen with NHS localization (see NuXLSiteLocalization::Site); empty otherwise
   int localization_range_begin = -1; ///< first residue supported by the fragment ions with NHS localization; -1 if none
   int localization_range_end = -1; ///< last residue supported by the fragment ions with NHS localization (inclusive); -1 if none
+  float localization_delta = 0; ///< loss-aware localization: score distance of the localized residue to the best one not tied with it
+  int secondary_localization_position = -1; ///< loss-aware localization: a second, distinguishable cross-link site (two cross-linked forms); -1 if none
+  int secondary_localization_range_begin = -1; ///< loss-aware localization: first residue tied with the secondary site; -1 if none
+  int secondary_localization_range_end = -1; ///< loss-aware localization: last residue tied with the secondary site (inclusive); -1 if none
+  float secondary_localization_gain = 0; ///< loss-aware localization: how much the secondary site improves the explanation of the fragment ions; 0 if none
   std::vector<PeptideHit::PeakAnnotation> fragment_annotations;
 
   size_t tag_unshifted = 0;

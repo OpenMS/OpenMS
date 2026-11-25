@@ -130,7 +130,9 @@ public:
     std::string getToolPrefix() const;
 
     /// Returns a link to the documentation of the tool (accessible on our servers and only after inclusion in the nightly branch or a release).
-    std::string getDocumentationURL() const;
+    /// Virtual so that a tool outside the OpenMS release can point --help and its CTD at its own documentation:
+    /// the default URL is the OpenMS documentation page of the tool, which does not exist for it.
+    virtual std::string getDocumentationURL() const;
 
     /// The latest and greatest OpenMS citation
     static const Citation cite_openms;

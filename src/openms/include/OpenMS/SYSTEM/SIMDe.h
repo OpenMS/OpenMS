@@ -22,7 +22,7 @@
 #include <simde/x86/ssse3.h> 
 
 // these operators are defined for GCC/clang, but not in MSVC (TODO: maybe use SFINAE, but that is overkill for the moment)
-#ifdef _MSC_VER
+#if defined(_MSC_VER) && !defined(__clang__)   // clang-cl has the vector operators built in, and rejects these
 inline simde__m128i operator|(const simde__m128i& left, const simde__m128i& right)
 {
   return simde_mm_or_si128(left, right);

@@ -44,10 +44,12 @@ target_compile_features(OpenMS_Percolator PRIVATE cxx_std_23)
 target_include_directories(OpenMS_Percolator PUBLIC
                            "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>")
 
-# External dependencies used by the vendored code: Eigen + Boost (header-only
-# here) and OpenMP for the #pragma omp regions. PRIVATE: these are build-time
-# usage requirements of this lib, not part of anything it exposes.
-target_link_libraries(OpenMS_Percolator PRIVATE Eigen3::Eigen Boost::boost)
+# External dependencies used by the vendored code: Eigen (header-only; only the
+# OpenMS-local TRON and Newton solvers use it, upstream Percolator needs neither
+# Eigen nor Boost since 3.09) and OpenMP for the #pragma omp regions. PRIVATE:
+# these are build-time usage requirements of this lib, not part of anything it
+# exposes.
+target_link_libraries(OpenMS_Percolator PRIVATE Eigen3::Eigen)
 if (OPENMP_FOUND)
   target_link_libraries(OpenMS_Percolator PRIVATE OpenMP::OpenMP_CXX)
 endif()

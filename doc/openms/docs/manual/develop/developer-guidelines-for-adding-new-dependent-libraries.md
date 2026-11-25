@@ -56,7 +56,7 @@ The library therefore needs a vcpkg port that builds on every triplet OpenMS use
 
 1. **Add it to the vcpkg manifest.** Add the port to `vcpkg.json`. If the dependency is optional, add it as a feature
    under `"features"` instead of to the top-level `"dependencies"`, and pair it with a CMake option `WITH_<NAME>`
-   (see e.g. the `hdf5` feature and `WITH_HDF5`). Enabling such a dependency needs both
+   (see e.g. the `onnxruntime` feature and `WITH_ONNX`). Enabling such a dependency needs both
    `-DWITH_<NAME>=ON` and `-DVCPKG_MANIFEST_FEATURES="...;<feature>"`. If CI should build with it, add the feature to
    `VCPKG_MANIFEST_FEATURES` of the `*-ci` presets in `CMakePresets.json`.
 

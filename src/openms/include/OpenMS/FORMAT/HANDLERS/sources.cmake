@@ -16,6 +16,7 @@ IndexedMzMLHandler.h
 MascotXMLHandler.h
 MzDataHandler.h
 MzIdentMLHandler.h
+MzIdentMLProteinDetection.h
 MzMLHandler.h
 MzMLHandlerHelper.h
 MzMLSpectrumDecoder.h

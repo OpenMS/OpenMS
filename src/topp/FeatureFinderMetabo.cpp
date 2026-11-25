@@ -153,12 +153,21 @@ protected:
       }
       else
       {
-        m_traces_final = splitted_mtraces;
+        m_traces_final = std::move(splitted_mtraces);
+      }
+
+      if (!ffm_param.getValue("use_smoothed_intensities").toBool())
+      {
+        // feature finding only uses the raw intensities from here on
+        for (MassTrace& mt : m_traces_final)
+        {
+          mt.clearSmoothedIntensities();
+        }
       }
     }
     else
     {
-      m_traces_final = m_traces;
+      m_traces_final = std::move(m_traces);
       for (Size i = 0; i < m_traces_final.size(); ++i)
       {
         m_traces_final[i].estimateFWHM(false);

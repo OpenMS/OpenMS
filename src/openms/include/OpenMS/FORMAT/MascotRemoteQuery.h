@@ -38,10 +38,10 @@ public:
     OPENMS_DLLAPI MascotRemoteQuery();
 
     /// assignment operator
-    OPENMS_DLLAPI MascotRemoteQuery& operator=(const MascotRemoteQuery& rhs) = delete;
+    MascotRemoteQuery& operator=(const MascotRemoteQuery& rhs) = delete;
 
     /// copy constructor
-    OPENMS_DLLAPI MascotRemoteQuery(const MascotRemoteQuery& rhs) = delete;
+    MascotRemoteQuery(const MascotRemoteQuery& rhs) = delete;
 
     /// destructor
     OPENMS_DLLAPI ~MascotRemoteQuery() override;

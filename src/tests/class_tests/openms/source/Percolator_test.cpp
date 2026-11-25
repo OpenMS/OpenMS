@@ -91,6 +91,25 @@ static OpenMS::RescoreInput makePortableModeratelySeparableInput_(std::size_t n_
   return makeModeratelySeparableRows_(n_per_class, [&gen]() { return static_cast<double>(gen()) / 4294967296.0; });
 }
 
+// makePortableModeratelySeparableInput_() with an informative second feature ("signal2", as "signal": targets
+// ~N(+1.0, 0.6^2), decoys ~N(0.0, 0.6^2); from a second std::mt19937) instead of the noise: the trained direction then
+// finds far more targets than either feature alone (the initial direction), so Percolator's direction check keeps it.
+// With one informative feature the trained direction can only beat that feature by chance.
+static OpenMS::RescoreInput makePortableTwoSignalInput_(std::size_t n_per_class, unsigned seed)
+{
+  OpenMS::RescoreInput input = makePortableModeratelySeparableInput_(n_per_class, seed);
+  input.feature_names = OpenMS::StringList{"signal", "signal2"};
+  std::mt19937 gen(seed + 1000);
+  auto rand01 = [&gen]() { return static_cast<double>(gen()) / 4294967296.0; };
+  for (std::size_t i = 0; i < input.features.size(); ++i)
+  {
+    const double u1 = std::max(1e-9, rand01());
+    const double randn = std::sqrt(-2.0 * std::log(u1)) * std::cos(2.0 * M_PI * rand01());
+    input.features[i][1] = (input.is_decoy[i] ? 0.0 : 1.0) + 0.6 * randn;
+  }
+  return input;
+}
+
 static bool medianTargetBeatsDecoy_(const OpenMS::RescoreOutput& out,
                                     const OpenMS::RescoreInput& in)
 {
@@ -224,21 +243,32 @@ END_SECTION
 
 START_SECTION([EXTRA] warm_start: TRON starts each pair from its weights of the previous iteration)
 {
-  // With warm_start, TRON (the default solver) starts every (Cpos, Cneg) pair from the weights it learned in the previous
-  // iteration instead of 0. At a loose tolerance the solves stop early, so a warm start must change the result (if the
-  // start weights were discarded, warm and cold runs would be identical); repeated warm runs are reproducible, and the
-  // default (no warm start) is the cold training.
-  const RescoreInput input = makeModeratelySeparableInput_(500, 11);
+  // With classic_training and warm_start, TRON (solver 'tron') starts every (Cpos, Cneg) pair from the weights it
+  // learned in the previous iteration instead of 0 (without classic_training every pair starts so anyway). At a loose
+  // tolerance the solves stop early, so a warm start must change the result (if the start weights were discarded, warm
+  // and cold runs would be identical); repeated warm runs are reproducible, and the default (no warm start) is the
+  // cold training. Both runs must keep their trained weights: if the direction check fell back to the default
+  // direction, both would score with it (its bias is 0 since Percolator 3.09; before, it kept the trained bias, which
+  // differed between the runs). The rows are the same on every platform (std::mt19937, not std::rand()), with two
+  // informative features, and the FDR is 0.05: there the trained weights find far more targets than the initial
+  // direction (cold and warm: 318 and 314 targets at q <= 0.05, the better feature alone 197).
+  const RescoreInput input = makePortableTwoSignalInput_(500, 11);
   auto run = [&](bool warm, double eps)
   {
     Percolator p;
     Param par = p.getDefaults();
     par.setValue("seed", 17);
     par.setValue("num_threads", 3);
+    par.setValue("classic_training", "true");
+    par.setValue("solver", "tron");
+    par.setValue("test_fdr", 0.05);
+    par.setValue("train_fdr", 0.05);
     par.setValue("tron_epsilon", eps);
     par.setValue("warm_start", warm ? "true" : "false");
     p.setParameters(par);
-    return p.rescore(input);
+    RescoreOutput out = p.rescore(input);
+    TEST_EQUAL(p.usedDefaultDirection(), false)
+    return out;
   };
   const RescoreOutput cold = run(false, 0.3), warm = run(true, 0.3);
   TEST_EQUAL(cold.scores == warm.scores, false)
@@ -277,7 +307,7 @@ START_SECTION([EXTRA] the large-set paths do not depend on the number of threads
 {
   // 420000 rows, all of them training (subset_max_train 0): the training sets of the folds (280000 rows) and the sorts
   // of the whole set are above the thresholds of the large-set paths: the validations scored in tasks and Newton on
-  // all threads (2^17 rows), the fold chains on all threads (2^18), SortLikeStd's parallel partitions (2^18).
+  // all threads (2^17 rows), the fold chains on all threads (2^18), the parallel sorts (ParallelSort.h).
   // The OpenMP threads change (as with a TOPP tool's -threads), not only num_threads. (The nonparametric PEP: the
   // I-spline PEP's matrix products are split by Eigen by the number of threads.)
   const RescoreInput input = makePortableModeratelySeparableInput_(210000, 23);
@@ -308,6 +338,178 @@ START_SECTION([EXTRA] the large-set paths do not depend on the number of threads
     TEST_EQUAL(outs[0].scores == outs[1].scores, true)
     TEST_EQUAL(outs[0].q_values == outs[1].q_values, true)
     TEST_EQUAL(outs[0].peps == outs[1].peps, true)
+  }
+}
+END_SECTION
+
+START_SECTION([EXTRA] fold chains: the early stops of the new training give the results of one thread)
+{
+  // With more than one thread, CrossValidation::train runs each fold as a chain of OpenMP tasks (trainFoldChains); with
+  // one thread it runs its loop over the iterations. The new training (classic_training false) can stop before
+  // num_iterations: in_sample on the sum over the folds (the last fold to finish an iteration decides for all of them),
+  // out_of_fold (fixed folds) on each fold's own count. Both stops must give the loop's results, and they must actually
+  // happen here: the vendored code reports them on std::cerr at its default verbosity (2).
+  struct CerrCapture
+  {
+    std::ostringstream text;
+    std::streambuf* previous;
+    CerrCapture() : previous(std::cerr.rdbuf(text.rdbuf())) {}
+    ~CerrCapture() { std::cerr.rdbuf(previous); }
+  };
+  const RescoreInput input = makePortableTwoSignalInput_(5000, 29);
+  for (const std::string mode : {"in_sample", "out_of_fold"})
+  {
+    std::vector<RescoreOutput> outs;
+    std::vector<std::string> logs;
+    for (const int threads : {1, 3})
+    {
+#ifdef _OPENMP
+      const int max_threads = omp_get_max_threads();
+      omp_set_num_threads(threads);
+#endif
+      Percolator p;
+      Param par = p.getDefaults();
+      par.setValue("seed", 11);
+      par.setValue("num_threads", threads);
+      par.setValue("classic_training", "false");
+      par.setValue("subset_mode", mode);
+      par.setValue("subset_max_train", mode == "out_of_fold" ? 6000 : 0);
+      par.setValue("pep_method", "nonparametric");
+      p.setParameters(par);
+      {
+        CerrCapture capture;
+        outs.push_back(p.rescore(input));
+        logs.push_back(capture.text.str());
+      }
+#ifdef _OPENMP
+      omp_set_num_threads(max_threads);
+#endif
+    }
+    // the stop of the mode: on the sum over the folds (train), or a fold on its own count
+    const std::string stopped = mode == "in_sample" ? "indicate that the algorithm has converged" : " has converged (";
+    TEST_TRUE(logs[0].find(stopped) != std::string::npos)
+    TEST_TRUE(logs[1].find(stopped) != std::string::npos)
+    TEST_TRUE(outs[0].scores == outs[1].scores)
+    TEST_TRUE(outs[0].q_values == outs[1].q_values)
+    TEST_TRUE(outs[0].peps == outs[1].peps)
+  }
+}
+END_SECTION
+
+START_SECTION([EXTRA] capped in_sample training (-N) scores as the percolator executable)
+{
+  // With subset_mode in_sample and a cap, each PSM of the training sample is scored by the model of the fold in which
+  // it was a test PSM (rescaled per fold), the other PSMs by the average of the fold models: the executable's -N since
+  // upstream a3527fac/94154bd2. The reference holds the targets that the a9783ee8 executable accepts at q <= 0.01 and
+  // 0.05 on this fixture (how it was made: see the file). The fixture is the same on every platform: std::mt19937
+  // uniforms combined by exact additions only (Irwin-Hall sums), one PSM per spectrum; the learned direction finds far
+  // more targets than any single feature, so the direction check keeps it and the fold scoring runs. The in-process
+  // results match the executable exactly here (identical sets, score correlation 1.0); scoring every PSM with the
+  // average of the fold models (as before) accepted 2458 instead of 2247 targets at 1% (231 differ; 63 at 5%). A few
+  // differing rows are allowed for the last bits of the solves on other platforms.
+  RescoreInput input;
+  {
+    const std::size_t n_per_class = 10000;
+    std::mt19937 gen(7);
+    auto u = [&gen]() { return static_cast<double>(gen()) / 4294967296.0; };
+    auto irwin_hall = [&u]()
+    {
+      const double a = u();
+      const double b = u();
+      const double c = u();
+      const double d = u();
+      return ((a + b) + (c + d)) - 2.0;
+    };
+    for (int j = 0; j < 10; ++j) input.feature_names.push_back("f" + std::to_string(j));
+    for (std::size_t i = 0; i < 2 * n_per_class; ++i)
+    {
+      const bool decoy = i >= n_per_class;
+      const bool correct = !decoy && i % 2 == 0;  // half of the targets are correct
+      std::vector<double> row(10);
+      for (double& v : row) v = irwin_hall() + (correct ? 0.5 : 0.0);
+      input.features.push_back(row);
+      input.is_decoy.push_back(decoy);
+      input.scan_numbers.push_back(static_cast<int>(i + 1));
+      input.spec_file_numbers.push_back(0);
+      input.exp_masses.push_back(1000.0);
+      input.calc_masses.push_back(1000.0);
+    }
+  }
+  // the reference: training, q-value threshold, accepted target rows
+  std::map<std::pair<std::string, std::string>, std::set<size_t>> reference;
+  {
+    std::ifstream is(OPENMS_GET_TEST_DATA_PATH("Percolator_test_capped_in_sample_ref.txt"));
+    std::string line;
+    while (std::getline(is, line))
+    {
+      if (line.empty() || line[0] == '#') continue;
+      std::istringstream ls(line);
+      std::string training, fdr;
+      ls >> training >> fdr;
+      std::set<size_t>& rows = reference[{training, fdr}];
+      for (size_t row; ls >> row;) rows.insert(row);
+    }
+  }
+  TEST_EQUAL(reference.size(), 4)
+  for (const std::string training : {"new", "classic"})
+  {
+    Percolator p;
+    Param par = p.getDefaults();
+    par.setValue("seed", 1);                // -S 1
+    par.setValue("num_threads", 2);
+    par.setValue("solver", "tron");          // the optimum of the executable's solver, along its path
+    par.setValue("classic_training", training == "classic" ? "true" : "false");
+    par.setValue("subset_max_train", 5000);  // -N 5000 (subset_mode in_sample: the default)
+    par.setValue("c_pos", 0.1);              // -p 0.1
+    par.setValue("post_processing_tdc", "false");  // as the executable without -Y and --train-best-positive
+    par.setValue("train_best_positive", "false");
+    p.setParameters(par);
+    const RescoreOutput out = p.rescore(input);
+    TEST_EQUAL(p.usedDefaultDirection(), false)
+    for (const auto& [fdr_text, fdr] : {std::pair<std::string, double>{"0.01", 0.01}, {"0.05", 0.05}})
+    {
+      std::set<size_t> accepted;
+      for (size_t i = 0; i < out.q_values.size(); ++i)
+      {
+        if (!input.is_decoy[i] && out.q_values[i] <= fdr) accepted.insert(i);
+      }
+      const std::set<size_t>& expected = reference[{training, fdr_text}];
+      std::vector<size_t> differing;
+      std::set_symmetric_difference(accepted.begin(), accepted.end(), expected.begin(), expected.end(),
+                                    std::back_inserter(differing));
+      STATUS(training << " training, q <= " << fdr_text << ": " << accepted.size() << " targets (executable: "
+                      << expected.size() << "), " << differing.size() << " differ")
+      TEST_TRUE(expected.size() > 2000)
+      TEST_TRUE(differing.size() <= 5)
+    }
+  }
+}
+END_SECTION
+
+START_SECTION([EXTRA] train_fdr 0 is test_fdr also in the passes after a capped training)
+{
+  // The cross-validation selects its positives at test_fdr if train_fdr is 0; the scoring of all rows after a capped
+  // training (in_sample: the scale of the scores; out_of_fold: the merge of the folds) must use the same FDR.
+  const RescoreInput input = makePortableModeratelySeparableInput_(3000, 31);
+  for (const std::string mode : {"in_sample", "out_of_fold"})
+  {
+    auto run = [&](double train_fdr)
+    {
+      Percolator p;
+      Param par = p.getDefaults();
+      par.setValue("seed", 3);
+      par.setValue("num_threads", 1);
+      par.setValue("test_fdr", 0.02);
+      par.setValue("train_fdr", train_fdr);
+      par.setValue("subset_max_train", 2000);
+      par.setValue("subset_mode", mode);
+      p.setParameters(par);
+      return p.rescore(input);
+    };
+    const RescoreOutput zero = run(0.0), explicit_fdr = run(0.02);
+    TEST_EQUAL(zero.scores == explicit_fdr.scores, true)
+    TEST_EQUAL(zero.q_values == explicit_fdr.q_values, true)
+    TEST_EQUAL(zero.peps == explicit_fdr.peps, true)
   }
 }
 END_SECTION
@@ -475,7 +677,7 @@ START_SECTION([EXTRA] subset_mode out_of_fold: no row is scored by a model that 
     {"default", {}},
     {"nested_xval_bins 3", [](Param& par) { par.setValue("nested_xval_bins", 3); }},
     {"warm_start", [](Param& par) { par.setValue("warm_start", "true"); }},
-    {"newton", [](Param& par) { par.setValue("solver", "newton"); }},
+    {"tron", [](Param& par) { par.setValue("solver", "tron"); }},
     {"lda", [](Param& par) { par.setValue("solver", "lda"); }}};
   for (const auto& config : configs)
   {
@@ -744,6 +946,81 @@ START_SECTION([EXTRA] subset_mode out_of_fold: no row is scored by a model that 
   TEST_EQUAL(info_two.fold.size(), 0)
   TEST_TRUE(two.scores == uncapped.scores && two.q_values == uncapped.q_values)
   TEST_TRUE(fallback.scores == fallback_ref.scores && fallback.q_values == fallback_ref.q_values)
+}
+END_SECTION
+
+START_SECTION([EXTRA] a feature that is not finite is 0 in every scoring path)
+{
+  // The wrapper scores the rows of a RescoreInput itself in out_of_fold (the second pass), in learning_curve (the
+  // validation counts) and in score(input, model, reference): a value that is not finite counts there as 0, as in
+  // the PSMs that Percolator trains and scores. Rows with NaN or infinite values give the results of rows with 0.
+  RescoreInput zeros;
+  zeros.feature_names = StringList{"signal", "signal2", "noise"};
+  std::mt19937 gen(5);
+  std::normal_distribution<double> nd(0.0, 0.6);
+  std::uniform_real_distribution<double> ud(0.0, 1.0);
+  const std::size_t n_spectra = 6000;
+  for (std::size_t s = 0; s < n_spectra; ++s)
+  {
+    const bool correct = ud(gen) < 0.5;
+    zeros.features.push_back({(correct ? 1.0 : 0.0) + nd(gen), (correct ? 0.8 : 0.0) + nd(gen), ud(gen)});
+    zeros.is_decoy.push_back(false);
+    zeros.features.push_back({nd(gen), nd(gen), ud(gen)});
+    zeros.is_decoy.push_back(true);
+    for (int k = 0; k < 2; ++k)
+    {
+      zeros.scan_numbers.push_back(static_cast<int>(s));
+      zeros.exp_masses.push_back(500.0 + 0.01 * static_cast<double>(s));
+    }
+  }
+  RescoreInput non_finite = zeros;
+  const double values[3] = {std::numeric_limits<double>::quiet_NaN(), std::numeric_limits<double>::infinity(),
+                            -std::numeric_limits<double>::infinity()};
+  for (std::size_t r = 3; r < zeros.features.size(); r += 97)
+  {
+    const std::size_t j = (r / 97) % 3;
+    zeros.features[r][j] = 0.0;
+    non_finite.features[r][j] = values[(r / 97) % 3];
+  }
+  auto sameOutput = [](const RescoreOutput& a, const RescoreOutput& b)
+  {
+    bool same = a.scores.size() == b.scores.size() && a.q_values.size() == b.q_values.size() && a.peps.size() == b.peps.size();
+    for (std::size_t i = 0; same && i < a.scores.size(); ++i)
+    {
+      same = a.scores[i] == b.scores[i] && a.q_values[i] == b.q_values[i] && a.peps[i] == b.peps[i];
+    }
+    return same;
+  };
+  for (const std::string mode : {"out_of_fold", "learning_curve"})
+  {
+    auto run = [&mode](const RescoreInput& in)
+    {
+      Percolator p;
+      Param par = p.getDefaults();
+      par.setValue("seed", 3);
+      par.setValue("subset_mode", mode);
+      par.setValue("subset_max_train", mode == "out_of_fold" ? 3000 : 0);
+      par.setValue("subset_curve_start", 2000);
+      p.setParameters(par);
+      return p.rescore(in);
+    };
+    const RescoreOutput with_zeros = run(zeros);
+    const RescoreOutput with_non_finite = run(non_finite);
+    bool finite = true;
+    for (double score : with_non_finite.scores) finite = finite && std::isfinite(score);
+    STATUS(mode)
+    TEST_TRUE(finite)
+    TEST_TRUE(sameOutput(with_non_finite, with_zeros))
+  }
+  {
+    Percolator p;
+    Param par = p.getDefaults();
+    par.setValue("seed", 3);
+    p.setParameters(par);
+    const PercolatorModel model = p.train(zeros);
+    TEST_TRUE(sameOutput(p.score(non_finite, model, zeros), p.score(zeros, model, zeros)))
+    TEST_TRUE(sameOutput(p.score(non_finite, model), p.score(zeros, model)))
+  }
 }
 END_SECTION
 
@@ -1320,8 +1597,8 @@ START_SECTION([EXTRA] nonparametric PEP with fewer than 4 distinct scores)
   // A feature that does not separate targets from decoys and takes only two
   // values yields fewer than 4 PEP bins, which are padded to 4 for the PEP
   // spline. They used to be padded with tied scores, so the spline asserted
-  // (BaseSpline::initiateQR: dx > 0) in Debug builds and divided by zero in
-  // Release builds. Seen with ProSE -rescore, which uses these settings.
+  // (dx > 0) in Debug builds and divided by zero in Release builds (Percolator
+  // before upstream #408). Seen with ProSE -rescore, which uses these settings.
   RescoreInput input;
   input.feature_names = StringList{"f0"};
   for (size_t i = 0; i < 200; ++i)
@@ -1745,7 +2022,7 @@ START_SECTION((static void markRescoredRuns(std::vector<ProteinIdentification>& 
   for (const ProteinIdentification& run : runs)
   {
     TEST_EQUAL(run.getSearchEngine(), "Percolator")
-    TEST_EQUAL(run.getSearchEngineVersion(), "3.08-vendored")
+    TEST_EQUAL(run.getSearchEngineVersion(), "3.09-vendored")
     TEST_EQUAL(run.getMetaValue("percolator").toString(), "SomeTool")
     const ProteinIdentification::SearchParameters& sp = run.getSearchParameters();
     TEST_REAL_SIMILAR(static_cast<double>(sp.getMetaValue("Percolator:markRescoredRuns_test_b")), 0.05)
@@ -2805,8 +3082,12 @@ START_SECTION((Size rescorePSMs(PeptideIdentificationList& peptide_ids, const St
       all[i].sort();
       best[i].sort();
       same = same && all[i].getHits()[0] == best[i].getHits()[0];
-      // a tie for the best score: the original (first) of the two tied hits is the best one
-      if (all[i].getHits()[0].getScore() == all[i].getHits()[1].getScore())
+      // a tie for the best score between the original and its copy: the original (first) of the two is the best one.
+      // (Not every tie at the top is theirs: in target-decoy competition the original, whose row comes first, wins the
+      // tie with its copy, which Percolator breaks by the input line since 3.09; the hits that lose get an SVM score of 0
+      // and a q-value of 1, so with a winner below 0 or at a q-value of 1 the copy can tie with another losing hit.)
+      if (all[i].getHits()[0].getScore() == all[i].getHits()[1].getScore() &&
+          all[i].getHits()[0].getSequence() == all[i].getHits()[1].getSequence())
       {
         ++tied;
         original_first = original_first && !best[i].getHits()[0].metaValueExists("tie_marker");

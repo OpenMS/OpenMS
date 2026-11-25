@@ -17,7 +17,6 @@
 #ifndef MASSHANDLER_H_
 #define MASSHANDLER_H_
 
-
 #include<string>
 
 namespace OpenMS { namespace Internal { namespace Percolator {
