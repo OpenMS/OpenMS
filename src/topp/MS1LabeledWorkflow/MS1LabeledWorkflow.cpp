@@ -194,7 +194,7 @@ the modifications implied by @p labels and refuses to run if they are missing (u
      and one whose other channel is not quantifiable is left out of the abundances. They take no part in the alignment, and
      they are linked among themselves only, after the detected multiplets, so that alignment, linking and match between runs
      stay as they are without them. One exception, with @p match_between_runs: a targeted feature replaces the unidentified
-     multiplet kept for match between runs that it is measured from, so that run gets the targeted value instead of the one
+     multiplet kept for match between runs whose peaks entered one of its values, so that run gets the targeted value instead of the one
      that linking would have given the multiplet (and that value no longer enters the run's normalization factors).
      Multiplets without identification are dropped,
      unless @p match_between_runs is set (see below). Once the resolver has used the labels, every identification
@@ -431,8 +431,8 @@ protected:
       "give (see 'ratios:min_ratio_count') does not change, and a feature whose other channel is not quantifiable is left out of the abundances.\n"
       "They take no part in the alignment and are linked among themselves only. The number of targeted ratios behind every peptide and protein\n"
       "group ratio is reported ('MS1Label:peptide_ratio_targeted_count', 'fraction_group_level_ratio_targeted_count', QPX 'ratio_targeted_count').\n"
-      "Exception with 'match_between_runs': a targeted feature replaces the unidentified multiplet kept for match between runs that it is\n"
-      "measured from, so that run gets the targeted value instead of the one linking would have given that multiplet.\n"
+      "Exception with 'match_between_runs': a targeted feature replaces the unidentified multiplet kept for match between runs whose peaks\n"
+      "entered one of its values, so that run gets the targeted value instead of the one linking would have given that multiplet.\n"
       "false: such identifications are kept for protein inference only.", false);
     setValidStrings_("targeted_quantification", {"true", "false"});
 
@@ -2299,12 +2299,14 @@ protected:
     }
     peak.rt_lo = rts[first];
     peak.rt_hi = rts[last];
-    // the owners of the reserved peaks that entered a reported intensity (the reference, or a channel measured from paired peaks)
+    // the owners of the reserved peaks that entered a reported intensity (the reference, if any channel is reported, or a channel
+    // measured from paired peaks)
+    const bool reported = std::any_of(peak.intensities.begin(), peak.intensities.end(), [](double v) { return v > 0.0; });
     for (const ReadOwner& read : read_owners)
     {
       const Size i = read.spectrum;
       if (i >= first && i <= last && read.owner != UniqueIdInterface::INVALID && reference[read.isotope][i] > 0.0
-          && intensity[read.channel][read.isotope][i] > 0.0 && (read.channel == own || peak.intensities[read.channel] > 0.0))
+          && intensity[read.channel][read.isotope][i] > 0.0 && (read.channel == own ? reported : peak.intensities[read.channel] > 0.0))
       {
         peak.owners.push_back(read.owner);
       }
