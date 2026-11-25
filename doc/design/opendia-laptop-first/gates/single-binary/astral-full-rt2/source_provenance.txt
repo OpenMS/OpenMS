@@ -1,0 +1,20 @@
+Source repository: singjc/OpenMS
+Source branch: feature/opendia-clean-rewrite
+Source commit: bdb0159ff440a46d47990c6a7fb29273cbe2edcc
+Source working tree clean at container construction: yes
+Source pushed before container construction: yes
+Frozen plan commit: 6533717a83405fc2a5fbed6a7db9dbf2b8ba2e12
+Container construction: 2026-11-25 08:09:57 to 08:11:17 UTC, before the plan push (08:15 UTC). The plan does not order these, no remote action had started, and the container holds the identity-tested binary unchanged.
+Container filename: opendia-rt2-20261125.sif
+Container SHA256: 775a7bcd493820b513abee1b4f81b2f7e692e5862649009e583fd0be17092e1f
+Local, Docker image and SIF OpenDIA SHA256: 1587283d3c6fe1d705d145576b44d60ec2d9803a4a8eca1061419dc7515b6794
+Docker image: opendia-rt2-20261125:tools
+Build flags: -O3 -std=gnu++23 -ffp-contract=off
+Local executable: /home/singjc/Documents/github/OpenMS-r1-full-ninja-build/bin/OpenDIA (byte-identical to the rt2 identity-run copy)
+Actual Docker and SIF OpenDIA --help exit: 0
+Container-native OpenDIAWorkflow_test: passed
+Container-native OpenDIALibraryParquet_test: passed
+Container-native OpenDIAScorer_test: passed
+Local OpenDIA CTest: 19/19 passed
+Local raw01 seed0 output identity: mem5 3/3, rt1 3/3, rt2 3/3 (direct Parquet)
+Container construction and smoke evidence: ../runtime-round-20261125/container-evidence/
