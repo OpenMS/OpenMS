@@ -16,6 +16,12 @@
 			</ProteinHit>
 			<ProteinHit id="PH_3" accession="PROT_3" score="0.0" sequence="" >
 			</ProteinHit>
+			<ProteinHit id="PH_4" accession="PROT_4" score="0.0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_5" accession="PROT_5" score="0.0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_6" accession="PROT_6" score="0.0" sequence="" >
+			</ProteinHit>
 			<UserParam type="stringList" name="spectra_data" value="[MS1LabeledWorkflow_25_input.mzML]"/>
 		</ProteinIdentification>
 		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0.0" MZ="1166.552612455662029" RT="130.0" spectrum_reference="scan=31" >
@@ -40,6 +46,21 @@
 		</PeptideIdentification>
 		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0.0" MZ="573.282919985332001" RT="432.5" spectrum_reference="scan=333" >
 			<PeptideHit score="1.0e-03" sequence="YVNDLAGHEK" charge="2" protein_refs="PH_3" >
+				<UserParam type="string" name="target_decoy" value="target"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0.0" MZ="547.771853771876977" RT="530.5" spectrum_reference="scan=431" >
+			<PeptideHit score="1.0e-03" sequence="SAGLDFVEEK" charge="2" protein_refs="PH_4" >
+				<UserParam type="string" name="target_decoy" value="target"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0.0" MZ="547.279845980531945" RT="630.5" spectrum_reference="scan=531" >
+			<PeptideHit score="1.0e-04" sequence="ADLTVEFGNK" charge="2" protein_refs="PH_5" >
+				<UserParam type="string" name="target_decoy" value="target"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0.0" MZ="551.286945480531926" RT="631.5" spectrum_reference="scan=532" >
+			<PeptideHit score="1.0e-03" sequence="DALTVEFGNK(Label:13C(6)15N(2))" charge="2" protein_refs="PH_6" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 			</PeptideHit>
 		</PeptideIdentification>

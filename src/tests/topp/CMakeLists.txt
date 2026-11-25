@@ -6072,6 +6072,11 @@ set_tests_properties("TOPP_MS1LabeledWorkflow_23_out1" PROPERTIES DEPENDS "TOPP_
 #   YVNDLAGHEK 4:1:1, identified in its weak medium (first two isotopes in two spectra) 3 s before the apex and in the light 2 s
 #     after it: the light identification, measured first with three spectra, gives the feature (L 4.59e7, M/L 0.25), not the earlier
 #     medium one from two spectra (L 6.97e6).
+#   SAGLDFVEEK 1:0:0, weak like LVNELTEFAK, nothing at the medium and heavy m/z: both not quantifiable, not absent (a reference from
+#     two spectra cannot tell a weaker channel's absence).
+#   ADLTVEFGNK 1:0:6, the light weak, the heavy strong, identified in the light (PEP 1e-4) and as its isomer DALTVEFGNK in the heavy
+#     (PEP 1e-3): one signal; the heavy identification's peak, from more spectra, is kept despite its worse score (H/L 6.0,
+#     L 1.23e7; the light one's from two spectra: L 1.74e6), medium absent.
 add_test("TOPP_MS1LabeledWorkflow_25" ${TOPP_BIN_PATH}/MS1LabeledWorkflow -test
   -in ${DATA_DIR_TOPP}/MS1LabeledWorkflow_25_input.mzML
   -ids ${DATA_DIR_TOPP}/MS1LabeledWorkflow_25.idXML
@@ -6080,7 +6085,7 @@ add_test("TOPP_MS1LabeledWorkflow_25" ${TOPP_BIN_PATH}/MS1LabeledWorkflow -test
   -proteinFDR 1.0
   -ratios:min_ratio_count 1
   -out_cxml ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_25.tmp.consensusXML)
-set_tests_properties("TOPP_MS1LabeledWorkflow_25" PROPERTIES PASS_REGULAR_EXPRESSION "Targeted quantification: 4 feature.s. for 5 identification.s. of peptides without a multiplet in this run .7 other channel.s. measured against the identified one, 0 absent, 1 not quantifiable.; not quantified: 0 identification.s. of peptides quantified in this run, 0 on a channel of another peptide's multiplet, 0 on the signal of a better identification of another peptide, 0 without a clean elution peak")
+set_tests_properties("TOPP_MS1LabeledWorkflow_25" PROPERTIES PASS_REGULAR_EXPRESSION "Targeted quantification: 6 feature.s. for 7 identification.s. of peptides without a multiplet in this run .8 other channel.s. measured against the identified one, 1 absent, 3 not quantifiable.; not quantified: 0 identification.s. of peptides quantified in this run, 0 on a channel of another peptide's multiplet, 1 on the signal of a better identification of another peptide, 0 without a clean elution peak")
 add_test("TOPP_MS1LabeledWorkflow_25_out1" ${DIFF} -whitelist "spectra_data" "map id=" "InferenceEngineVersion" -in1 ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_25.tmp.consensusXML -in2 ${DATA_DIR_TOPP}/MS1LabeledWorkflow_25_out.consensusXML )
 set_tests_properties("TOPP_MS1LabeledWorkflow_25_out1" PROPERTIES DEPENDS "TOPP_MS1LabeledWorkflow_25")
 

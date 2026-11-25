@@ -2,7 +2,7 @@
 """Write MS1LabeledWorkflow_25_input.mzML, MS1LabeledWorkflow_25.idXML and MS1LabeledWorkflow_25.fasta (synthetic triple SILAC,
 [][Lys4,Arg6][Lys8,Arg10], targeted quantification).
 
-Centroided MS1 spectra, one per second from 100 to 460 s, 2+ peptides eluting as Gaussians, light identifications. Only the first two
+Centroided MS1 spectra, one per second from 100 to 660 s, 2+ peptides eluting as Gaussians, light identifications. Only the first two
 isotopes of every channel are recorded (so the detection, which needs three, finds no multiplet); an isotope of another channel that
 lies closer to a recorded peak than the FWHM at a resolution of 120,000 at m/z 200 adds to it (unresolved, one centroid at the
 intensity-weighted m/z), others are not recorded. Peaks below 'FLOOR' are not recorded either.
@@ -12,6 +12,9 @@ intensity-weighted m/z), others are not recorded. Peaks below 'FLOOR' are not re
     heavy's M0 and M+1 in eight or more).
   YVNDLAGHEK 4:1:1, identified twice: in the weak medium channel (M+1 above the floor in two spectra only) 3 s before the apex,
     and in the light channel 2 s after it.
+  SAGLDFVEEK 1:0:0, weak like LVNELTEFAK (light M+1 above the floor in two spectra only), nothing at the medium and heavy m/z.
+  ADLTVEFGNK 1:0:6, the light weak as above, the heavy strong; identified in the light as ADLTVEFGNK (better score) and in the heavy
+    as its isomer DALTVEFGNK, one signal.
 The isotope distributions are computed from the elemental formulas, as CoarseIsotopePatternGenerator does.
 
 Usage: python3 MS1LabeledWorkflow_25_input_generate.py (writes the three files next to this script)
@@ -37,10 +40,17 @@ ABUNDANCE = {"C": [0.9893, 0.0107], "H": [0.999885, 0.000115], "N": [0.99636, 0.
 PEPTIDES = [("SVEDLAFGNYQGEDVTALFEK", "A", 130.0, 5.0, 1.0e8),
             ("TALFEQLSVEDLAFGNYQGDK", "B", 230.0, 5.0, 1.0e8),
             ("LVNELTEFAK", 0.5, 330.5, 3.0, 2.0e6),
-            ("YVNDLAGHEK", 4.0, 430.5, 3.0, 1.1e6)]
-# identifications: (sequence, RT, labelled channel shift); all score 1e-3
-IDS = [("SVEDLAFGNYQGEDVTALFEK", 130.0, 0.0), ("TALFEQLSVEDLAFGNYQGDK", 230.0, 0.0), ("LVNELTEFAK", 330.5, 0.0),
-       ("YVNDLAGHEK(Label:2H(4))", 427.5, LYS4), ("YVNDLAGHEK", 432.5, 0.0)]
+            ("YVNDLAGHEK", 4.0, 430.5, 3.0, 1.1e6),
+            ("SAGLDFVEEK", 1.0, 530.5, 3.0, None),
+            ("ADLTVEFGNK", 1.0, 630.5, 3.0, None)]
+# medium and heavy amounts where they are not 1 (relative to the light : medium unit)
+AMOUNTS = {"SAGLDFVEEK": (0.0, 0.0), "ADLTVEFGNK": (0.0, 6.0)}
+# identifications: (sequence, RT, labelled channel shift, PEP)
+IDS = [("SVEDLAFGNYQGEDVTALFEK", 130.0, 0.0, "1.0e-03"), ("TALFEQLSVEDLAFGNYQGDK", 230.0, 0.0, "1.0e-03"),
+       ("LVNELTEFAK", 330.5, 0.0, "1.0e-03"), ("YVNDLAGHEK(Label:2H(4))", 427.5, LYS4, "1.0e-03"), ("YVNDLAGHEK", 432.5, 0.0, "1.0e-03"),
+       ("SAGLDFVEEK", 530.5, 0.0, "1.0e-03"), ("ADLTVEFGNK", 630.5, 0.0, "1.0e-04"),
+       ("DALTVEFGNK(Label:13C(6)15N(2))", 631.5, LYS8, "1.0e-03")]
+PROTEIN_SEQUENCES = list(dict.fromkeys(seq.split("(")[0] for seq, _, _, _ in IDS))
 TARGET_FRACTION = {"A": 0.3, "B": 0.65}  # the light M+4's share of the medium M0
 
 
@@ -127,20 +137,23 @@ def spectrum_xml(index, rt, peaks):
 def peaks_at(rt):
     peaks = []
     for sequence, ratio, apex, sigma, height in PEPTIDES:
+        medium, heavy = AMOUNTS.get(sequence, (1.0, 1.0))
+        if height is None:  # light M+1 at 0.93 x the floor at the apex: above it in the two spectra next to the apex only
+            height = FLOOR / (light_to_medium(sequence, ratio) * isotopes(sequence)[1] * 0.93)
         scale = height * math.exp(-((rt - apex) ** 2) / (2 * sigma ** 2))
         if scale * min(1.0, light_to_medium(sequence, ratio)) < FLOOR / 10:
             continue
         dist = isotopes(sequence)
         light = mz(sequence)
         r = light_to_medium(sequence, ratio)
-        channels = [(light, r), (light + LYS4 / 2, 1.0), (light + LYS8 / 2, 1.0)]
+        channels = [(light, r), (light + LYS4 / 2, medium), (light + LYS8 / 2, heavy)]
         recorded = [[c_mz + k * C13 / 2, scale * amount * dist[k]] for c_mz, amount in channels for k in range(2)]
         for c_mz, amount in channels:
             for k in range(2, len(dist)):
                 position = c_mz + k * C13 / 2
                 nearest = min(recorded, key=lambda p: abs(p[0] - position))
-                if abs(nearest[0] - position) < fwhm(position):
-                    added = scale * amount * dist[k]
+                added = scale * amount * dist[k]
+                if added > 0.0 and abs(nearest[0] - position) < fwhm(position):
                     nearest[0] = (nearest[0] * nearest[1] + position * added) / (nearest[1] + added)
                     nearest[1] += added
         peaks += [(p[0], round(p[1])) for p in recorded if p[1] >= FLOOR]
@@ -148,7 +161,7 @@ def peaks_at(rt):
 
 
 def write_mzml(path):
-    spectra = [spectrum_xml(index, rt, peaks_at(float(rt))) for index, rt in enumerate(range(100, 461))]
+    spectra = [spectrum_xml(index, rt, peaks_at(float(rt))) for index, rt in enumerate(range(100, 661))]
     with open(path, "w") as out:
         out.write(f"""<?xml version="1.0" encoding="ISO-8859-1"?>
 <mzML xmlns="http://psi.hupo.org/ms/mzml" version="1.1.0">
@@ -187,16 +200,16 @@ def write_mzml(path):
 
 
 def write_idxml(path):
-    protein = {seq: i for i, (seq, _, _, _, _) in enumerate(PEPTIDES)}
+    protein = {seq: i for i, seq in enumerate(PROTEIN_SEQUENCES)}
     entries = "".join(f"""		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0.0" MZ="{mz(seq.split('(')[0]) + shift / 2:.15f}" RT="{rt}" spectrum_reference="scan={int(rt) - 99}" >
-			<PeptideHit score="1.0e-03" sequence="{seq}" charge="2" protein_refs="PH_{protein[seq.split('(')[0]]}" >
+			<PeptideHit score="{pep}" sequence="{seq}" charge="2" protein_refs="PH_{protein[seq.split('(')[0]]}" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 			</PeptideHit>
 		</PeptideIdentification>
-""" for seq, rt, shift in IDS)
+""" for seq, rt, shift, pep in IDS)
     proteins = "".join(f"""			<ProteinHit id="PH_{i}" accession="PROT_{i}" score="0.0" sequence="" >
 			</ProteinHit>
-""" for i in range(len(PEPTIDES)))
+""" for i in range(len(PROTEIN_SEQUENCES)))
     with open(path, "w") as out:
         out.write(f"""<?xml version="1.0" encoding="UTF-8"?>
 <IdXML version="1.5" xsi:noNamespaceSchemaLocation="https://www.openms.de/xml-schema/IdXML_1_5.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
@@ -217,7 +230,7 @@ def write_idxml(path):
 
 def write_fasta(path):
     with open(path, "w") as out:
-        for i, (seq, _, _, _, _) in enumerate(PEPTIDES):
+        for i, seq in enumerate(PROTEIN_SEQUENCES):
             out.write(f">PROT_{i}\nMK{seq}GGSGGSGGR\n")
 
 
