@@ -2311,7 +2311,8 @@ protected:
     {
       const Size i = read.spectrum;
       if (i >= first && i <= last && read.owner != UniqueIdInterface::INVALID && reference[read.isotope][i] > 0.0
-          && intensity[read.channel][read.isotope][i] > 0.0 && (read.channel == own ? reported : peak.intensities[read.channel] > 0.0))
+          && (read.channel == own ? own_peaks : intensity[read.channel])[read.isotope][i] > 0.0
+          && (read.channel == own ? reported : peak.intensities[read.channel] > 0.0))
       {
         peak.owners.push_back(read.owner);
       }
