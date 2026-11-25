@@ -481,11 +481,10 @@ void FLASHTnTAlgorithm::setDefaultParams_()
                      "Needs decoys in the database (DECOY prefix); without them, the candidates are chosen as without the option.");
   defaults_.setValidStrings("native", {"true", "false"});
   defaults_.setValue("precursor_FDR", "false",
-                     "Error control of MS1 precursor masses (FLASHDeconv -FD:precursor_FDR). With false (the default), the precursor mass is "
-                     "taken as given, as in other tools. With true, the precursor of each spectrum is chosen among the masses of its isolation "
-                     "window by the fragment pairs (per spectrum), and spectra whose PrSM took its mass from MS1 are searched again with the decoy "
-                     "precursor mass of their window instead (with a raw mzML as -in, FLASHTnT has FLASHDeconv do both; a deconvolved mzML must "
-                     "come from FLASHDeconv -FD:precursor_FDR true). When that search gives a PrSM reporting the decoy mass, the decoy precursor "
+                     "Error control of MS1 precursor masses by decoy precursors (FLASHDeconv -FD:precursor_FDR). With false (the default), no "
+                     "decoy precursors. With true, spectra whose PrSM took its mass from MS1 are searched again with the decoy precursor mass of "
+                     "their isolation window instead (with a raw mzML as -in, FLASHTnT has FLASHDeconv make them; a deconvolved mzML must come "
+                     "from FLASHDeconv -FD:precursor_FDR true). When that search gives a PrSM reporting the decoy mass, the decoy precursor "
                      "wins if its precursor score (FLASHDeconv's Qscore) is higher than the precursor's; the winning decoy PrSM replaces the "
                      "spectrum's MS1-based PrSMs of its blind-modification group and counts as a decoy in the FDR, at the proteoform level only "
                      "against proteoforms whose mass came from MS1. PrSMs with masses from fragment pairs or without a mass are not affected.");

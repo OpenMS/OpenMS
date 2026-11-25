@@ -76,17 +76,17 @@ FLASHDeconvAlgorithm::FLASHDeconvAlgorithm(): DefaultParamHandler("FLASHDeconvAl
   defaults_.setMinInt("precursor_rescue_window", 0);
   defaults_.addTag("precursor_rescue_window", "advanced");
   defaults_.setValue("precursor_FDR", "false",
-                     "Error control of MS1 precursor masses. With false (the default), the precursor of an MSn spectrum is the deconvolved target "
-                     "mass of its isolation window with the highest charge SNR, as in other tools. With true, two controls run together. (1) Per "
-                     "spectrum: the precursor is chosen among the target masses of the window by the complementary fragment pairs (b + y, c + z) "
-                     "of each mass beyond chance (the mean count at shifted masses): the spectrum is deconvolved once within the bounds of all of "
-                     "them (the heaviest mass and the highest charge), the mass of the highest charge SNR stays the precursor unless another mass "
-                     "has at least two pairs beyond chance and two more than it, and the spectrum is then deconvolved with the chosen precursor's "
-                     "own bounds. (2) Decoy precursors: decoy masses are made as with report_FDR (which this turns on, so the mass q-values are "
-                     "reported too), and every MSn spectrum with a decoy mass in its window gets a decoy precursor, chosen among them by the same "
-                     "rule on the same fragment masses (a decoy mass that beats the precursor by the fragment pairs, else the decoy of the highest "
-                     "charge SNR unless the fragments single out another). FLASHTnT -precursor_FDR searches the spectrum again with it and "
-                     "counts a winning decoy precursor in the FDR of the proteoforms whose mass came from MS1.");
+                     "Decoy precursors for the error control of MS1 precursor masses (FLASHTnT -precursor_FDR). The precursor of an MSn spectrum "
+                     "is always chosen among the deconvolved target masses of its isolation window by the complementary fragment pairs (b + y, "
+                     "c + z) of each mass beyond chance (the mean count at shifted masses): the spectrum is deconvolved once within the bounds of "
+                     "all of them (the heaviest mass and the highest charge), the mass of the highest charge SNR stays the precursor unless "
+                     "another mass has at least two pairs beyond chance and two more than it, and the spectrum is then deconvolved with the "
+                     "chosen precursor's own bounds. With true, decoy masses are made as with report_FDR (which this turns on, so the mass "
+                     "q-values are reported too), and every MSn spectrum with a decoy mass in its window (not within three isotopes of a "
+                     "target mass of the window) gets a decoy precursor, chosen among them by the same rule on the same fragment masses (a "
+                     "decoy mass that beats the precursor by the fragment pairs, else the decoy of the highest charge SNR unless the "
+                     "fragments single out another). FLASHTnT -precursor_FDR searches the spectrum again with it and counts a winning decoy "
+                     "precursor in the FDR of the proteoforms whose mass came from MS1.");
   defaults_.setValidStrings("precursor_FDR", {"true", "false"});
 
   auto sd_defaults = SpectralDeconvolution().getDefaults();
@@ -121,9 +121,9 @@ void FLASHDeconvAlgorithm::updateMembers_()
   min_cos_ = param_.getValue("SD:min_cos");
   //precursor_MS1_window_ = param_.getValue("precursor_MS1_window");
   use_RNA_averagine_ = param_.getValue("use_RNA_averagine") != "false";
-  // precursor_FDR needs the decoy masses (its decoy precursors), so it turns report_FDR on
-  precursor_by_fragments_ = param_.getValue("precursor_FDR").toString() == "true";
-  report_decoy_ = param_.getValue("report_FDR") != "false" || precursor_by_fragments_;
+  // the precursor by the fragments always; precursor_FDR needs the decoy masses (its decoy precursors), so it turns report_FDR on
+  precursor_by_fragments_ = true;
+  report_decoy_ = param_.getValue("report_FDR") != "false" || param_.getValue("precursor_FDR").toString() == "true";
 
   isolation_window_size_ = param_.getValue("isolation_window");
   scan_commands_file_ = param_.getValue("scan_commands").toString();

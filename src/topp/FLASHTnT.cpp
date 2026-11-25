@@ -190,7 +190,7 @@ protected:
     registerSubsection_("tag", "Tag algorithm parameters");
     registerSubsection_("ex", "Extension algorithm parameters");
     registerSubsection_("fd", "FLASHDeconv parameters, used when -in is a raw mzML (FLASHDeconv's FD: and SD: parameters; its feature tracing and "
-                              "isobaric quantification keep their defaults, and decoy masses and the precursor by the fragments are made with -precursor_FDR)");
+                              "isobaric quantification keep their defaults, and decoy masses and decoy precursors are made with -precursor_FDR)");
   }
 
   Param getSubsectionDefaults_(const std::string& prefix) const override
@@ -342,7 +342,7 @@ protected:
       }
       FLASHDeconvAlgorithm fd;
       Param fd_param = getParam_().copy("fd:", true);
-      // FLASHDeconv's precursor_FDR (the precursor by the fragments and the decoy precursors of the isolation windows) with -precursor_FDR
+      // FLASHDeconv's precursor_FDR (the decoy precursors of the isolation windows) with -precursor_FDR
       const std::string precursor_fdr = getParam_().getValue("precursor_FDR").toString() == "true" ? "true" : "false";
       fd_param.setValue("report_FDR", "false");
       fd_param.setValue("precursor_FDR", precursor_fdr);
