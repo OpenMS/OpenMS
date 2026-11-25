@@ -195,8 +195,6 @@ private:
   void traceCandidates_(const std::vector<ProteinHit>& hits, const char* file) const;
   /// learned PrSM scoring (scoring_model): its choice weights and confidence trees; null when off
   std::shared_ptr<const LearnedScoringModel> scoring_model_;
-  /// protein q-values: open-terminus PrSMs scored with the model of "undetermined, both termini"
-  bool protein_open_terminus_model_ = false;
   /// protein q-values from the two best PrSMs of each protein (protein_ranking top_two_prsms) instead of its best proteoform
   bool protein_top_two_ = false;
   /// protein_ranking best_score: a protein ranked by the score of its best proteoform, targets and decoys in one list

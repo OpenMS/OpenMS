@@ -512,12 +512,6 @@ void FLASHTnTAlgorithm::setDefaultParams_()
                      "as CombinedScore). 'default': the model shipped with OpenMS (share/OpenMS/TOPDOWN/FLASHTnT_scoring_model.txt; not used with "
                      "-native); 'none' (default): no model, the PrSM with the lowest q-value among the PrSMs of its own FDR class (then the determined one, then the combined score); otherwise a model file.",
                      {"advanced"});
-  defaults_.setValue("protein_open_terminus_model", "false",
-                     "Protein q-values: score an undetermined PrSM with an open terminus with the model of the class \"undetermined, both "
-                     "termini\" (its decoy null, share of false targets and target density), as precursor-ladder PrSMs and determined PrSMs "
-                     "that are not the whole protein already are. PrSM and proteoform q-values are unchanged.",
-                     {"advanced"});
-  defaults_.setValidStrings("protein_open_terminus_model", {"true", "false"});
   defaults_.setValue("protein_ranking", "best_score",
                      "Protein q-values (without -native): 'best_score' ranks a protein by the score of its best proteoform, targets and decoys in one list; 'model' (with the learned scoring) ranks a protein by its best PrSM's confidence and "
                      "takes the FDR at a cut as the mean chance, from that confidence, that the proteins above it are wrong (no decoy counting: a "
@@ -660,7 +654,6 @@ void FLASHTnTAlgorithm::updateMembers_()
   annotator_param_.setValue("tol", param_.getValue("raw:tol"));
   annotator_param_.setValue("ion_type", param_.getValue("ion_type"));
   gapped_mode_ = param_.getValue("gapped_tags").toString();
-  protein_open_terminus_model_ = param_.getValue("protein_open_terminus_model").toString() == "true";
   protein_top_two_ = param_.getValue("protein_ranking").toString() == "top_two_prsms";
   protein_best_score_ = param_.getValue("protein_ranking").toString() == "best_score";
   protein_model_fdr_ = param_.getValue("protein_ranking").toString() == "model";
@@ -1003,10 +996,7 @@ void FLASHTnTAlgorithm::setProteinQvalues_(const std::vector<int>& hit_class, co
         if (end == form_end && (start == form_start || (form_start == 1 && start == 2))) whole_protein = isDetermined(hit);
       }
     }
-    // protein_open_terminus_model: an open-terminus PrSM too (its own class has almost no decoys at the top, so its own model gave a single
-    // such PrSM a local FDR near 0 and carried one-PrSM proteins: 10 of 29 shuffled-entrapment proteins at 1% on the development runs)
-    protein_class[i] = (c == fdr_class_precursor_ladder || (c <= fdr_class_max_blind && ! whole_protein) || (protein_open_terminus_model_ && c == fdr_class_open_terminus))
-                         ? c3_model : c;
+    protein_class[i] = (c == fdr_class_precursor_ladder || (c <= fdr_class_max_blind && ! whole_protein)) ? c3_model : c;
   }
 
   // null of the PrSM score per class
