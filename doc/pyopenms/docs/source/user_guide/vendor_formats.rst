@@ -115,6 +115,10 @@ forces the per-precursor layout and ``FRAME`` returns the raw frames. Other fiel
 recalibration, frame aggregation and centroiding along the ion mobility axis.
 :py:class:`~.FileHandler` reads ``.d`` directories with the default configuration.
 
+MALDI imaging runs are not read as a list of spectra, which would lose the pixel positions.
+:py:class:`~.BrukerTimsImagingFile` loads them into an :py:class:`~.MSImagingExperiment`; see
+`Mass Spectrometry Imaging <ms_imaging.html>`_.
+
 Bruker's SDK is not needed: m/z and ion mobility are computed from the calibration stored in the
 file. If Bruker's SDK library (``timsdata.dll`` or ``libtimsdata.so``) is installed, set
 ``config.bruker_sdk_path``, or the environment variable ``OPENMS_BRUKER_SDK_PATH``, to its path
