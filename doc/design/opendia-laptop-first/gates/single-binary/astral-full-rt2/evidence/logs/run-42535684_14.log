@@ -1,0 +1,6 @@
+run.sbatch: OK
+evaluate.sbatch: OK
+submit.sh: OK
+compare_resources.py: OK
+library/search6.opendia.parquet: OK
+library/scoring12.opendia.parquet: OK

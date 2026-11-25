@@ -1,0 +1,487 @@
+{
+  "denominator": 15,
+  "passed": 15,
+  "interpretation": "Matched descriptive resources only. Hardware and cache variability apply. No FDR or quantification claim.",
+  "runs": [
+    {
+      "raw": 1,
+      "seed": 0,
+      "status": "PASS",
+      "exit_code": "0",
+      "baseline_exit_ok": true,
+      "job_id": "42535684_0",
+      "accounting": {
+        "JobID": "42535684_0",
+        "State": "COMPLETED",
+        "ExitCode": "0:0",
+        "Elapsed": "00:38:06",
+        "TotalCPU": "06:43:02",
+        "MaxRSS": "",
+        "ReqMem": "268435456K",
+        "AllocCPUS": "16",
+        "NodeList": "hl-codon-cn-059"
+      },
+      "files": {
+        "precursors.tsv": "SAME",
+        "LFQ_Astral_DIA_15min_50ng_Human_01.precursors.tsv": "SAME",
+        "LFQ_Astral_DIA_15min_50ng_Human_01.calibration.json": "SAME"
+      },
+      "candidate": {
+        "wall_seconds": 2283.73,
+        "max_rss_kib": 54198136
+      },
+      "baseline": {
+        "wall_seconds": 2207.05,
+        "max_rss_kib": 66236992
+      }
+    },
+    {
+      "raw": 1,
+      "seed": 1,
+      "status": "PASS",
+      "exit_code": "0",
+      "baseline_exit_ok": true,
+      "job_id": "42535684_1",
+      "accounting": {
+        "JobID": "42535684_1",
+        "State": "COMPLETED",
+        "ExitCode": "0:0",
+        "Elapsed": "00:38:11",
+        "TotalCPU": "06:52:56",
+        "MaxRSS": "",
+        "ReqMem": "268435456K",
+        "AllocCPUS": "16",
+        "NodeList": "hl-codon-cn-063"
+      },
+      "files": {
+        "precursors.tsv": "SAME",
+        "LFQ_Astral_DIA_15min_50ng_Human_01.precursors.tsv": "SAME",
+        "LFQ_Astral_DIA_15min_50ng_Human_01.calibration.json": "SAME"
+      },
+      "candidate": {
+        "wall_seconds": 2288.02,
+        "max_rss_kib": 54653776
+      },
+      "baseline": {
+        "wall_seconds": 2160.13,
+        "max_rss_kib": 66117892
+      }
+    },
+    {
+      "raw": 1,
+      "seed": 2,
+      "status": "PASS",
+      "exit_code": "0",
+      "baseline_exit_ok": true,
+      "job_id": "42535684_2",
+      "accounting": {
+        "JobID": "42535684_2",
+        "State": "COMPLETED",
+        "ExitCode": "0:0",
+        "Elapsed": "00:33:36",
+        "TotalCPU": "05:50:43",
+        "MaxRSS": "",
+        "ReqMem": "268435456K",
+        "AllocCPUS": "16",
+        "NodeList": "hl-codon-cn-065"
+      },
+      "files": {
+        "precursors.tsv": "SAME",
+        "LFQ_Astral_DIA_15min_50ng_Human_01.precursors.tsv": "SAME",
+        "LFQ_Astral_DIA_15min_50ng_Human_01.calibration.json": "SAME"
+      },
+      "candidate": {
+        "wall_seconds": 2013.44,
+        "max_rss_kib": 53693040
+      },
+      "baseline": {
+        "wall_seconds": 2182.45,
+        "max_rss_kib": 66239368
+      }
+    },
+    {
+      "raw": 1,
+      "seed": 3,
+      "status": "PASS",
+      "exit_code": "0",
+      "baseline_exit_ok": true,
+      "job_id": "42535684_3",
+      "accounting": {
+        "JobID": "42535684_3",
+        "State": "COMPLETED",
+        "ExitCode": "0:0",
+        "Elapsed": "00:34:16",
+        "TotalCPU": "05:33:55",
+        "MaxRSS": "",
+        "ReqMem": "268435456K",
+        "AllocCPUS": "16",
+        "NodeList": "hl-codon-cn-087"
+      },
+      "files": {
+        "precursors.tsv": "SAME",
+        "LFQ_Astral_DIA_15min_50ng_Human_01.precursors.tsv": "SAME",
+        "LFQ_Astral_DIA_15min_50ng_Human_01.calibration.json": "SAME"
+      },
+      "candidate": {
+        "wall_seconds": 2052.84,
+        "max_rss_kib": 54471660
+      },
+      "baseline": {
+        "wall_seconds": 2173.84,
+        "max_rss_kib": 66527952
+      }
+    },
+    {
+      "raw": 1,
+      "seed": 4,
+      "status": "PASS",
+      "exit_code": "0",
+      "baseline_exit_ok": true,
+      "job_id": "42535684_4",
+      "accounting": {
+        "JobID": "42535684_4",
+        "State": "COMPLETED",
+        "ExitCode": "0:0",
+        "Elapsed": "00:38:55",
+        "TotalCPU": "06:32:42",
+        "MaxRSS": "",
+        "ReqMem": "268435456K",
+        "AllocCPUS": "16",
+        "NodeList": "hl-codon-cn-041"
+      },
+      "files": {
+        "precursors.tsv": "SAME",
+        "LFQ_Astral_DIA_15min_50ng_Human_01.precursors.tsv": "SAME",
+        "LFQ_Astral_DIA_15min_50ng_Human_01.calibration.json": "SAME"
+      },
+      "candidate": {
+        "wall_seconds": 2331.71,
+        "max_rss_kib": 54495440
+      },
+      "baseline": {
+        "wall_seconds": 2185.56,
+        "max_rss_kib": 66418076
+      }
+    },
+    {
+      "raw": 2,
+      "seed": 0,
+      "status": "PASS",
+      "exit_code": "0",
+      "baseline_exit_ok": true,
+      "job_id": "42535684_5",
+      "accounting": {
+        "JobID": "42535684_5",
+        "State": "COMPLETED",
+        "ExitCode": "0:0",
+        "Elapsed": "00:39:14",
+        "TotalCPU": "06:41:04",
+        "MaxRSS": "",
+        "ReqMem": "268435456K",
+        "AllocCPUS": "16",
+        "NodeList": "hl-codon-cn-052"
+      },
+      "files": {
+        "precursors.tsv": "SAME",
+        "LFQ_Astral_DIA_15min_50ng_Human_02.precursors.tsv": "SAME",
+        "LFQ_Astral_DIA_15min_50ng_Human_02.calibration.json": "SAME"
+      },
+      "candidate": {
+        "wall_seconds": 2351.31,
+        "max_rss_kib": 55612032
+      },
+      "baseline": {
+        "wall_seconds": 2257.49,
+        "max_rss_kib": 69156972
+      }
+    },
+    {
+      "raw": 2,
+      "seed": 1,
+      "status": "PASS",
+      "exit_code": "0",
+      "baseline_exit_ok": true,
+      "job_id": "42535684_6",
+      "accounting": {
+        "JobID": "42535684_6",
+        "State": "COMPLETED",
+        "ExitCode": "0:0",
+        "Elapsed": "00:34:51",
+        "TotalCPU": "05:46:24",
+        "MaxRSS": "",
+        "ReqMem": "268435456K",
+        "AllocCPUS": "16",
+        "NodeList": "hl-codon-cn-075"
+      },
+      "files": {
+        "precursors.tsv": "SAME",
+        "LFQ_Astral_DIA_15min_50ng_Human_02.precursors.tsv": "SAME",
+        "LFQ_Astral_DIA_15min_50ng_Human_02.calibration.json": "SAME"
+      },
+      "candidate": {
+        "wall_seconds": 2087.96,
+        "max_rss_kib": 55909336
+      },
+      "baseline": {
+        "wall_seconds": 2385.12,
+        "max_rss_kib": 68772676
+      }
+    },
+    {
+      "raw": 2,
+      "seed": 2,
+      "status": "PASS",
+      "exit_code": "0",
+      "baseline_exit_ok": true,
+      "job_id": "42535684_7",
+      "accounting": {
+        "JobID": "42535684_7",
+        "State": "COMPLETED",
+        "ExitCode": "0:0",
+        "Elapsed": "00:35:18",
+        "TotalCPU": "05:56:08",
+        "MaxRSS": "",
+        "ReqMem": "268435456K",
+        "AllocCPUS": "16",
+        "NodeList": "hl-codon-cn-118"
+      },
+      "files": {
+        "precursors.tsv": "SAME",
+        "LFQ_Astral_DIA_15min_50ng_Human_02.precursors.tsv": "SAME",
+        "LFQ_Astral_DIA_15min_50ng_Human_02.calibration.json": "SAME"
+      },
+      "candidate": {
+        "wall_seconds": 2115.01,
+        "max_rss_kib": 55406476
+      },
+      "baseline": {
+        "wall_seconds": 2555.05,
+        "max_rss_kib": 68426216
+      }
+    },
+    {
+      "raw": 2,
+      "seed": 3,
+      "status": "PASS",
+      "exit_code": "0",
+      "baseline_exit_ok": true,
+      "job_id": "42535684_8",
+      "accounting": {
+        "JobID": "42535684_8",
+        "State": "COMPLETED",
+        "ExitCode": "0:0",
+        "Elapsed": "00:37:45",
+        "TotalCPU": "06:43:22",
+        "MaxRSS": "",
+        "ReqMem": "268435456K",
+        "AllocCPUS": "16",
+        "NodeList": "hl-codon-cn-052"
+      },
+      "files": {
+        "precursors.tsv": "SAME",
+        "LFQ_Astral_DIA_15min_50ng_Human_02.precursors.tsv": "SAME",
+        "LFQ_Astral_DIA_15min_50ng_Human_02.calibration.json": "SAME"
+      },
+      "candidate": {
+        "wall_seconds": 2261.89,
+        "max_rss_kib": 55524372
+      },
+      "baseline": {
+        "wall_seconds": 4195.0,
+        "max_rss_kib": 68668516
+      }
+    },
+    {
+      "raw": 2,
+      "seed": 4,
+      "status": "PASS",
+      "exit_code": "0",
+      "baseline_exit_ok": true,
+      "job_id": "42535684_9",
+      "accounting": {
+        "JobID": "42535684_9",
+        "State": "COMPLETED",
+        "ExitCode": "0:0",
+        "Elapsed": "00:34:07",
+        "TotalCPU": "05:42:46",
+        "MaxRSS": "",
+        "ReqMem": "268435456K",
+        "AllocCPUS": "16",
+        "NodeList": "hl-codon-cn-071"
+      },
+      "files": {
+        "precursors.tsv": "SAME",
+        "LFQ_Astral_DIA_15min_50ng_Human_02.precursors.tsv": "SAME",
+        "LFQ_Astral_DIA_15min_50ng_Human_02.calibration.json": "SAME"
+      },
+      "candidate": {
+        "wall_seconds": 2043.69,
+        "max_rss_kib": 56351668
+      },
+      "baseline": {
+        "wall_seconds": 2491.91,
+        "max_rss_kib": 68277000
+      }
+    },
+    {
+      "raw": 3,
+      "seed": 0,
+      "status": "PASS",
+      "exit_code": "0",
+      "baseline_exit_ok": true,
+      "job_id": "42535684_10",
+      "accounting": {
+        "JobID": "42535684_10",
+        "State": "COMPLETED",
+        "ExitCode": "0:0",
+        "Elapsed": "00:33:36",
+        "TotalCPU": "05:36:51",
+        "MaxRSS": "",
+        "ReqMem": "268435456K",
+        "AllocCPUS": "16",
+        "NodeList": "hl-codon-cn-037"
+      },
+      "files": {
+        "precursors.tsv": "SAME",
+        "LFQ_Astral_DIA_15min_50ng_Human_03.precursors.tsv": "SAME",
+        "LFQ_Astral_DIA_15min_50ng_Human_03.calibration.json": "SAME"
+      },
+      "candidate": {
+        "wall_seconds": 2013.8,
+        "max_rss_kib": 55157800
+      },
+      "baseline": {
+        "wall_seconds": 2267.66,
+        "max_rss_kib": 67905188
+      }
+    },
+    {
+      "raw": 3,
+      "seed": 1,
+      "status": "PASS",
+      "exit_code": "0",
+      "baseline_exit_ok": true,
+      "job_id": "42535684_11",
+      "accounting": {
+        "JobID": "42535684_11",
+        "State": "COMPLETED",
+        "ExitCode": "0:0",
+        "Elapsed": "00:33:51",
+        "TotalCPU": "05:43:00",
+        "MaxRSS": "",
+        "ReqMem": "268435456K",
+        "AllocCPUS": "16",
+        "NodeList": "hl-codon-cn-039"
+      },
+      "files": {
+        "precursors.tsv": "SAME",
+        "LFQ_Astral_DIA_15min_50ng_Human_03.precursors.tsv": "SAME",
+        "LFQ_Astral_DIA_15min_50ng_Human_03.calibration.json": "SAME"
+      },
+      "candidate": {
+        "wall_seconds": 2028.27,
+        "max_rss_kib": 55327208
+      },
+      "baseline": {
+        "wall_seconds": 2274.29,
+        "max_rss_kib": 67958356
+      }
+    },
+    {
+      "raw": 3,
+      "seed": 2,
+      "status": "PASS",
+      "exit_code": "0",
+      "baseline_exit_ok": true,
+      "job_id": "42535684_12",
+      "accounting": {
+        "JobID": "42535684_12",
+        "State": "COMPLETED",
+        "ExitCode": "0:0",
+        "Elapsed": "00:41:39",
+        "TotalCPU": "07:39:11",
+        "MaxRSS": "",
+        "ReqMem": "268435456K",
+        "AllocCPUS": "16",
+        "NodeList": "hl-codon-cn-011"
+      },
+      "files": {
+        "precursors.tsv": "SAME",
+        "LFQ_Astral_DIA_15min_50ng_Human_03.precursors.tsv": "SAME",
+        "LFQ_Astral_DIA_15min_50ng_Human_03.calibration.json": "SAME"
+      },
+      "candidate": {
+        "wall_seconds": 2496.53,
+        "max_rss_kib": 55856404
+      },
+      "baseline": {
+        "wall_seconds": 2317.38,
+        "max_rss_kib": 67605624
+      }
+    },
+    {
+      "raw": 3,
+      "seed": 3,
+      "status": "PASS",
+      "exit_code": "0",
+      "baseline_exit_ok": true,
+      "job_id": "42535684_13",
+      "accounting": {
+        "JobID": "42535684_13",
+        "State": "COMPLETED",
+        "ExitCode": "0:0",
+        "Elapsed": "00:35:08",
+        "TotalCPU": "06:06:47",
+        "MaxRSS": "",
+        "ReqMem": "268435456K",
+        "AllocCPUS": "16",
+        "NodeList": "hl-codon-cn-028"
+      },
+      "files": {
+        "precursors.tsv": "SAME",
+        "LFQ_Astral_DIA_15min_50ng_Human_03.precursors.tsv": "SAME",
+        "LFQ_Astral_DIA_15min_50ng_Human_03.calibration.json": "SAME"
+      },
+      "candidate": {
+        "wall_seconds": 2105.53,
+        "max_rss_kib": 55795936
+      },
+      "baseline": {
+        "wall_seconds": 2567.85,
+        "max_rss_kib": 67520824
+      }
+    },
+    {
+      "raw": 3,
+      "seed": 4,
+      "status": "PASS",
+      "exit_code": "0",
+      "baseline_exit_ok": true,
+      "job_id": "42535684_14",
+      "accounting": {
+        "JobID": "42535684_14",
+        "State": "COMPLETED",
+        "ExitCode": "0:0",
+        "Elapsed": "00:33:48",
+        "TotalCPU": "05:50:15",
+        "MaxRSS": "",
+        "ReqMem": "268435456K",
+        "AllocCPUS": "16",
+        "NodeList": "hl-codon-cn-039"
+      },
+      "files": {
+        "precursors.tsv": "SAME",
+        "LFQ_Astral_DIA_15min_50ng_Human_03.precursors.tsv": "SAME",
+        "LFQ_Astral_DIA_15min_50ng_Human_03.calibration.json": "SAME"
+      },
+      "candidate": {
+        "wall_seconds": 2024.87,
+        "max_rss_kib": 55839952
+      },
+      "baseline": {
+        "wall_seconds": 2227.33,
+        "max_rss_kib": 67541208
+      }
+    }
+  ]
+}

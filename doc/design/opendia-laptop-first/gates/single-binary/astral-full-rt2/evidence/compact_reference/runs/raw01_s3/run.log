@@ -1,0 +1,41 @@
+Reading library /nfs/research/juan/singj/opendia/astral-parquet-20261124/library/search6.opendia.parquet
+Library: precursors=17161813 pairs=8588443 rss_mb=10820
+Run 1/1: /nfs/research/juan/singj/opendia/proteobench-astral-entrapment/transfer/raw/LFQ_Astral_DIA_15min_50ng_Human_01.raw
+  Calibration: pass 1 collected panel=80000 read_s=6.095330 consume_s=32.152270 spectra=292883 peaks=133484467 rss_mb=14398 peak_mb=21865
+  Calibration: whole-run pass failed (Calibration found only 0 anchors at the anchor FDR (stage1 kept 105, stage1 sigma 22.241791 s, EM peak responsibility 0.593361, stage3 half window 88.967165 s, scored 6622, decoys in top 100 1)); windowed pass with up to 300000 targets. rss_mb=14398 peak_mb=21865
+  Calibration: pass 2 collected panel=600000 read_s=11.335015 consume_s=26.230418 spectra=292883 peaks=133484467 rss_mb=21115 peak_mb=23852
+  Calibration: passes=2 used anchors=599 rss_mb=19285 peak_mb=23852
+  Calibration: rt_tolerance_s=114.984790 ms2_offset_ppm=-3.260761 ms2_tolerance_ppm=6.770642 boundary_half_widths=1.694105 seconds=102.625988 rss_mb=19285 peak_mb=23852
+  Search: candidates=50939480 seconds=97.948838 read_s=9.950885 consume_s=52.163419 spectra=292883 peaks=133484467 finish_s=0.001951 rss_mb=24511 peak_mb=33585
+  Extraction: windows=30654737 precursors=6158605 isolation_windows=300 peak_open_grids=1774097 peak_held_tensors=1800395 seconds=469.837035 read_s=10.038453 consume_s=423.326074 spectra=295811 peaks=140986439 rss_mb=46466 peak_mb=50316
+  Features: 45 per window, noise=1090.042542 seconds=126.866595 interference_seconds=122.854986 rss_mb=51728 peak_mb=53758
+  Seeds: positives=599 negatives=6596 rss_mb=56990 peak_mb=56970
+  Scorer fold 0: r0 4869 21 ep crit 9811.624891 | r1 pos 53768 neg 2049397 26 ep crit 2740.853734 | r2 pos 49996 neg 2049397 26 ep crit 3549.437483 rss_mb=62253 peak_mb=63044
+  Scorer fold 1: r0 4789 30 ep crit 10502.129387 | r1 pos 54257 neg 2050884 29 ep crit 2850.833969 | r2 pos 50245 neg 2050884 19 ep crit 3358.768577 rss_mb=62253 peak_mb=63045
+  Scorer fold 2: r0 4732 20 ep crit 7012.966785 | r1 pos 49671 neg 2050945 30 ep crit 3549.897926 | r2 pos 50429 neg 2050945 27 ep crit 4314.742308 rss_mb=62253 peak_mb=63045
+  Scorer fold 0: r0 4869 30 ep crit 14166.769807 | r1 pos 63312 neg 2049397 24 ep crit 4386.862018 | r2 pos 59564 neg 2049397 23 ep crit 5615.850260 rss_mb=64124 peak_mb=64968
+  Scorer fold 1: r0 4789 30 ep crit 13499.115920 | r1 pos 64854 neg 2050884 30 ep crit 4765.111428 | r2 pos 58983 neg 2050884 28 ep crit 6242.741791 rss_mb=64124 peak_mb=64968
+  Scorer fold 2: r0 4732 30 ep crit 10369.172296 | r1 pos 61531 neg 2050945 30 ep crit 4418.093170 | r2 pos 59102 neg 2050945 30 ep crit 5180.388667 rss_mb=64124 peak_mb=64968
+  Sibling features: windows with a co-eluting sibling target=1608590 decoy=1584325; rescored rss_mb=58394 peak_mb=64968
+  GBM rescore r1: pos 73517 neg 306908 (hard precursors 61513) trees 300/283/300 rss_mb=57928 peak_mb=64968
+  GBM rescore r2: pos 79431 neg 307166 (hard precursors 61513) trees 300/300/300 rss_mb=57928 peak_mb=64968
+  GBM rescore r3: pos 82022 neg 307281 (hard precursors 61513) trees 300/300/300 rss_mb=57928 peak_mb=64968
+  Scoring: target precursors at q <= 0.01: 82944 seconds=255.114007; run total seconds=1055.849566 rss_mb=57928 peak_mb=64968
+  RT refine: training IDs=82944, alpha=10.000000, p95 |residual| base=61.203466 s refined=51.142994 s, rt_tolerance_s 114.984790 -> 96.083878 rss_mb=29295 peak_mb=64968
+  Search: candidates=50028217 seconds=92.486386 read_s=8.594675 consume_s=46.173306 spectra=292883 peaks=133484467 finish_s=0.000309 rss_mb=24096 peak_mb=64968
+  Extraction: windows=29157978 precursors=5869685 isolation_windows=300 peak_open_grids=1760577 peak_held_tensors=1786301 seconds=439.756708 read_s=10.090120 consume_s=395.852164 spectra=295811 peaks=140986439 rss_mb=44313 peak_mb=64968
+  Features: 45 per window, noise=1083.279175 seconds=118.630721 interference_seconds=114.700268 rss_mb=49318 peak_mb=64968
+  Seeds: positives=599 negatives=6596 rss_mb=54324 peak_mb=64968
+  Scorer fold 0: r0 4861 30 ep crit 7335.862405 | r1 pos 53114 neg 1953069 26 ep crit 2580.591214 | r2 pos 49776 neg 1953069 30 ep crit 3460.787352 rss_mb=59329 peak_mb=64968
+  Scorer fold 1: r0 4787 28 ep crit 9769.892677 | r1 pos 55768 neg 1954609 27 ep crit 2822.115338 | r2 pos 51788 neg 1954609 29 ep crit 3638.033468 rss_mb=59329 peak_mb=64968
+  Scorer fold 2: r0 4742 25 ep crit 8239.554199 | r1 pos 53823 neg 1954840 23 ep crit 3133.879791 | r2 pos 52671 neg 1954840 25 ep crit 3854.621440 rss_mb=59329 peak_mb=64968
+  Scorer fold 0: r0 4861 18 ep crit 12827.325127 | r1 pos 66649 neg 1953069 29 ep crit 4277.376107 | r2 pos 61954 neg 1953069 21 ep crit 4845.035783 rss_mb=61183 peak_mb=64968
+  Scorer fold 1: r0 4787 25 ep crit 13484.816856 | r1 pos 65808 neg 1954609 25 ep crit 4902.189806 | r2 pos 58563 neg 1954609 30 ep crit 6531.152484 rss_mb=61183 peak_mb=64968
+  Scorer fold 2: r0 4742 28 ep crit 11621.817238 | r1 pos 66298 neg 1954840 30 ep crit 4164.032626 | r2 pos 60253 neg 1954840 25 ep crit 5000.427615 rss_mb=61183 peak_mb=64968
+  Sibling features: windows with a co-eluting sibling target=1699374 decoy=1674099; rescored rss_mb=55992 peak_mb=64968
+  GBM rescore r1: pos 76307 neg 291608 (hard precursors 58626) trees 300/300/300 rss_mb=55547 peak_mb=64968
+  GBM rescore r2: pos 81872 neg 292598 (hard precursors 58626) trees 300/300/300 rss_mb=55547 peak_mb=64968
+  GBM rescore r3: pos 84105 neg 292668 (hard precursors 58626) trees 248/300/300 rss_mb=55547 peak_mb=64968
+  Scoring: target precursors at q <= 0.01: 84934 seconds=247.901452; run total seconds=1977.893946 rss_mb=55214 peak_mb=64968
+Combined: 84934 target precursors at global q <= 0.010000, 84934 run-level rows; seconds=2162.588286
+OpenDIA took 36:05 m (wall), 06:16:55 h (CPU), 02:00 m (system), 06:14:55 h (user); Peak Memory Usage: 64968 MB.
