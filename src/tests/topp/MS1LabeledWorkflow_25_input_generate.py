@@ -15,6 +15,8 @@ intensity-weighted m/z), others are not recorded. Peaks below 'FLOOR' are not re
   SAGLDFVEEK 1:0:0, weak like LVNELTEFAK (light M+1 above the floor in two spectra only), nothing at the medium and heavy m/z.
   ADLTVEFGNK 1:0:6, the light weak as above, the heavy strong; identified in the light as ADLTVEFGNK (better score) and in the heavy
     as its isomer DALTVEFGNK, one signal.
+  NEFLGSVDYK 1:1:1, eluting so narrowly (sigma 0.5 s, apex 580.3 s) that all its peaks are above the floor in the two spectra at 580
+    and 581 s only, amid spectra every second; identified in the light at 580.5 s.
   GSAEVTLDFK 1:1:1, in the two spectra at 700 and 701 s only (no other spectrum within 'algorithm:rt_typical', 40 s), apex at
     700.3 s, identified in the light at 700.5 s.
 The isotope distributions are computed from the elemental formulas, as CoarseIsotopePatternGenerator does.
@@ -45,6 +47,7 @@ PEPTIDES = [("SVEDLAFGNYQGEDVTALFEK", "A", 130.0, 5.0, 1.0e8),
             ("YVNDLAGHEK", 4.0, 430.5, 3.0, 1.1e6),
             ("SAGLDFVEEK", 1.0, 530.5, 3.0, None),
             ("ADLTVEFGNK", 1.0, 630.5, 3.0, None),
+            ("NEFLGSVDYK", 1.0, 580.3, 0.5, 1.0e7),
             ("GSAEVTLDFK", 1.0, 700.3, 3.0, 1.0e7)]
 # medium and heavy amounts where they are not 1 (relative to the light : medium unit)
 AMOUNTS = {"SAGLDFVEEK": (0.0, 0.0), "ADLTVEFGNK": (0.0, 6.0)}
@@ -53,7 +56,7 @@ SPECTRUM_RTS = list(range(100, 661)) + [700, 701]
 IDS = [("SVEDLAFGNYQGEDVTALFEK", 130.0, 0.0, "1.0e-03"), ("TALFEQLSVEDLAFGNYQGDK", 230.0, 0.0, "1.0e-03"),
        ("LVNELTEFAK", 330.5, 0.0, "1.0e-03"), ("YVNDLAGHEK(Label:2H(4))", 427.5, LYS4, "1.0e-03"), ("YVNDLAGHEK", 432.5, 0.0, "1.0e-03"),
        ("SAGLDFVEEK", 530.5, 0.0, "1.0e-03"), ("ADLTVEFGNK", 630.5, 0.0, "1.0e-04"),
-       ("DALTVEFGNK(Label:13C(6)15N(2))", 631.5, LYS8, "1.0e-03"), ("GSAEVTLDFK", 700.5, 0.0, "1.0e-03")]
+       ("DALTVEFGNK(Label:13C(6)15N(2))", 631.5, LYS8, "1.0e-03"), ("GSAEVTLDFK", 700.5, 0.0, "1.0e-03"), ("NEFLGSVDYK", 580.5, 0.0, "1.0e-03")]
 PROTEIN_SEQUENCES = list(dict.fromkeys(seq.split("(")[0] for seq, _, _, _ in IDS))
 TARGET_FRACTION = {"A": 0.3, "B": 0.65}  # the light M+4's share of the medium M0
 
