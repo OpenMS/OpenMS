@@ -239,7 +239,8 @@ protected:
     Param tmp_fd_param = getParam_().copy("FD:", true);
     Param fd_param;
     fd_param.insert("", tmp_fd_param);
-    bool report_decoy = tmp_fd_param.getValue("report_FDR") != "false";
+    // precursor_FDR makes the decoy masses (its decoy precursors) and turns report_FDR on
+    bool report_decoy = tmp_fd_param.getValue("report_FDR") != "false" || tmp_fd_param.getValue("precursor_FDR") == "true";
 
     tmp_fd_param = getParam_().copy("SD:", false);
     fd_param.insert("", tmp_fd_param);

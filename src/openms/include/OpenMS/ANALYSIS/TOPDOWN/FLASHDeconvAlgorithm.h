@@ -121,7 +121,7 @@ namespace OpenMS
     /// precursors switched from the charge-SNR choice to a window mass with at least 3x its raw intensity, in this run
     Size switched_precursors_ = 0;
     /// choose the precursor of an MSn spectrum by the complementary fragment pairs among the target masses in its isolation window and,
-    /// with report_FDR, its decoy precursor among the decoy masses of the window against the chosen precursor (precursor_by_fragments)
+    /// with report_FDR, its decoy precursor among the decoy masses of the window against the chosen precursor (precursor_FDR)
     bool precursor_by_fragments_ = true;
     /// MSn spectra with several target masses in the isolation window and those whose precursor the fragments changed, in this run
     int spectra_with_several_window_masses_ = 0, precursors_by_fragments_ = 0;
@@ -153,12 +153,12 @@ namespace OpenMS
     /// a map from native ID to precursor peak group
     std::map<std::string, PeakGroup> native_id_precursor_peak_group_map_;
     /// per MSn native id, every target mass in the isolation window: its peak group and its precursor ion (the most intense peak of the
-    /// mass in the window, at the charge the window implies). The candidates among which precursor_by_fragments chooses; kept only with
-    /// precursor_by_fragments and several masses in the window
+    /// mass in the window, at the charge the window implies). The candidates among which precursor_FDR chooses; kept only with
+    /// precursor_FDR and several masses in the window
     std::map<std::string, std::vector<std::pair<PeakGroup, Precursor>>> native_id_window_candidates_;
     /// per MSn native id, every MS1 decoy mass in the isolation window as FLASHDeconv generated it (with a peak at the charge the window
     /// implies), and whether it is a noise decoy: the challengers of the chosen precursor for the decoy precursor; kept only with
-    /// report_FDR and precursor_by_fragments
+    /// precursor_FDR
     std::map<std::string, std::vector<std::pair<double, bool>>> native_id_window_decoys_;
     /// per MSn spectrum: the precursor score (2D Qscore) of each window decoy mass, as scored when the window was scanned
     std::map<std::string, std::map<double, double>> native_id_window_decoy_qscores_;
@@ -168,7 +168,7 @@ namespace OpenMS
     std::map<std::string, double> native_id_decoy_precursor_qscore_map_;
     /// and its 1D Qscore
     std::map<std::string, double> native_id_decoy_precursor_qscore1d_map_;
-    /// per MSn native id, the decoy precursor mass (with report_FDR). With precursor_by_fragments, the decoy mass of the isolation window
+    /// per MSn native id, the decoy precursor mass (with report_FDR). With precursor_FDR, the decoy mass of the isolation window
     /// that beat the chosen precursor by the fragments (no entry if none did); otherwise the decoy mass of the window of the highest charge
     /// SNR
     std::map<std::string, double> native_id_decoy_precursor_mass_map_;

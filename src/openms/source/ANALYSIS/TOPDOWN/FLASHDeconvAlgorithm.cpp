@@ -75,19 +75,19 @@ FLASHDeconvAlgorithm::FLASHDeconvAlgorithm(): DefaultParamHandler("FLASHDeconvAl
                      "window wins). 0 turns the rescue off, e.g. for native or targeted data.");
   defaults_.setMinInt("precursor_rescue_window", 0);
   defaults_.addTag("precursor_rescue_window", "advanced");
-  defaults_.setValue("precursor_by_fragments", "true",
-                     "The precursor of an MSn spectrum is chosen among the deconvolved target masses in its isolation window by the complementary "
-                     "fragment pairs (b + y, c + z) of each mass beyond chance (the mean count at shifted masses): the spectrum is deconvolved once "
-                     "with the bounds of all of them (the heaviest mass and the highest charge), and the mass of the highest charge SNR stays the "
-                     "precursor unless another mass has at least two pairs beyond chance and two more than it; the spectrum is then deconvolved "
-                     "with the chosen precursor's own bounds. With report_FDR, the decoy masses of the window then compete in the same way against "
-                     "the chosen precursor, on the same fragment masses (with a single target mass in the window, those of its own deconvolution), "
-                     "i.e., within the bounds of the target masses: a decoy mass heavier than all of them pairs only fragments up to the heaviest "
-                     "one and can hardly win. A decoy mass that beats the precursor becomes the decoy precursor of the spectrum (FLASHTnT "
-                     "-decoy_precursor); otherwise the decoy precursor is chosen among the window's decoy masses by the same rule (the one of the highest charge SNR unless the fragments single out another), so every MSn spectrum with a decoy mass in its window has one. With false, the precursor is the target mass and the decoy precursor the "
-                     "decoy mass of the window of the highest charge SNR (unchecked: every MSn spectrum with a decoy mass in its window has one).");
-  defaults_.setValidStrings("precursor_by_fragments", {"true", "false"});
-  defaults_.addTag("precursor_by_fragments", "advanced");
+  defaults_.setValue("precursor_FDR", "false",
+                     "Error control of MS1 precursor masses. With false (the default), the precursor of an MSn spectrum is the deconvolved target "
+                     "mass of its isolation window with the highest charge SNR, as in other tools. With true, two controls run together. (1) Per "
+                     "spectrum: the precursor is chosen among the target masses of the window by the complementary fragment pairs (b + y, c + z) "
+                     "of each mass beyond chance (the mean count at shifted masses): the spectrum is deconvolved once within the bounds of all of "
+                     "them (the heaviest mass and the highest charge), the mass of the highest charge SNR stays the precursor unless another mass "
+                     "has at least two pairs beyond chance and two more than it, and the spectrum is then deconvolved with the chosen precursor's "
+                     "own bounds. (2) Decoy precursors: decoy masses are made as with report_FDR (which this turns on, so the mass q-values are "
+                     "reported too), and every MSn spectrum with a decoy mass in its window gets a decoy precursor, chosen among them by the same "
+                     "rule on the same fragment masses (a decoy mass that beats the precursor by the fragment pairs, else the decoy of the highest "
+                     "charge SNR unless the fragments single out another). FLASHTnT -precursor_FDR searches the spectrum again with it and "
+                     "counts a winning decoy precursor in the FDR of the proteoforms whose mass came from MS1.");
+  defaults_.setValidStrings("precursor_FDR", {"true", "false"});
 
   auto sd_defaults = SpectralDeconvolution().getDefaults();
   sd_defaults.remove("allowed_isotope_error");
@@ -121,12 +121,13 @@ void FLASHDeconvAlgorithm::updateMembers_()
   min_cos_ = param_.getValue("SD:min_cos");
   //precursor_MS1_window_ = param_.getValue("precursor_MS1_window");
   use_RNA_averagine_ = param_.getValue("use_RNA_averagine") != "false";
-  report_decoy_ = param_.getValue("report_FDR") != "false";
+  // precursor_FDR needs the decoy masses (its decoy precursors), so it turns report_FDR on
+  precursor_by_fragments_ = param_.getValue("precursor_FDR").toString() == "true";
+  report_decoy_ = param_.getValue("report_FDR") != "false" || precursor_by_fragments_;
 
   isolation_window_size_ = param_.getValue("isolation_window");
   scan_commands_file_ = param_.getValue("scan_commands").toString();
   precursor_rescue_window_ = param_.getValue("precursor_rescue_window");
-  precursor_by_fragments_ = param_.getValue("precursor_by_fragments").toString() == "true";
   current_min_ms_level_ = max_ms_level_;
   current_max_ms_level_ = 0;
 }
@@ -373,7 +374,7 @@ void FLASHDeconvAlgorithm::deconvolveSpectrum_(const MSExperiment& map, Spectrum
     {
       // No decoy beats the precursor. The spectrum still gets a decoy precursor, chosen among the window's decoy masses by the rule
       // that chose the precursor among its target masses (the decoy of the highest charge SNR unless the fragments single out
-      // another), so that every spectrum with a precursor from MS1 also has a decoy spectrum downstream (FLASHTnT -decoy_precursor):
+      // another), so that every spectrum with a precursor from MS1 also has a decoy spectrum downstream (FLASHTnT -precursor_FDR):
       // with only the decoys that win here (1-3 of ~4100 spectra per E. coli lysate run), FLASHTnT saw almost no wrong precursor.
       std::vector<double> decoy_masses(cand_masses.begin() + 1, cand_masses.end());
       // (choosePrecursorByFragments_ returns -1 when the default, the first decoy, stays)
@@ -406,7 +407,7 @@ void FLASHDeconvAlgorithm::deconvolveSpectrum_(const MSExperiment& map, Spectrum
       const auto pit = native_id_precursor_peak_map_.find(native_id);
       deconvolved_spectrum.setDeconvolvedPrecursor(pit != native_id_precursor_peak_map_.end() ? pit->second : Precursor());
     }
-    // the decoy precursor: of round 2, else as registered with the precursor (without precursor_by_fragments)
+    // the decoy precursor: of round 2, else as registered with the precursor (without precursor_FDR)
     bool has_decoy = job.window_decoys;
     double decoy_mass = job.decoy_mass, decoy_qscore = job.decoy_qscore, decoy_qscore1d = job.decoy_qscore1d;
     bool decoy_noise = job.decoy_noise;
@@ -1249,8 +1250,8 @@ void FLASHDeconvAlgorithm::findPrecursorPeakGroupsForMSnSpectra_(const MSExperim
     // SNR (at the charge the window implies); for a located scan the COMMANDED mass wins when the survey holds it (ADR-0046: same
     // isotope only, so an isotope-off call competes as an ordinary candidate). With commit, it is registered for this MSn spectrum
     // together with the masses in the window and their intensities, the window bounds, and the target masses of the window as the
-    // candidates for the choice by the fragments (with precursor_by_fragments). With decoy reporting, the decoy masses of the window are
-    // registered as the challengers of the chosen precursor for the decoy precursor (with precursor_by_fragments, see
+    // candidates for the choice by the fragments (with precursor_FDR). With decoy reporting, the decoy masses of the window are
+    // registered as the challengers of the chosen precursor for the decoy precursor (with precursor_FDR, see
     // runSpectralDeconvolution_), or else the one of the highest charge SNR as the decoy precursor. Returns the SNR of the best target
     // (0 or more), or -1 if the window holds none.
     // The raw intensity of a mass's isotope comb at charge c in the isolation window of a survey spectrum (the nearest raw peak within
@@ -1312,7 +1313,7 @@ void FLASHDeconvAlgorithm::findPrecursorPeakGroupsForMSnSpectra_(const MSExperim
       double decoy_mass = 0, decoy_qscore = 0, decoy_qscore1d = 0;
       bool decoy_noise = false;
       // the window bounds (the heaviest target mass and the highest charge at which a target mass has a peak in the window), and, only
-      // with commit and precursor_by_fragments, the precursor candidates (the target masses in the window) and their challengers for
+      // with commit and precursor_FDR, the precursor candidates (the target masses in the window) and their challengers for
       // the decoy precursor (the decoy masses in the window with their noise flags; they do not widen the window bounds)
       double window_max_mass = 0;
       int window_max_charge = 0;
@@ -1327,9 +1328,9 @@ void FLASHDeconvAlgorithm::findPrecursorPeakGroupsForMSnSpectra_(const MSExperim
       {
         if (pg[0].mz > end_mz || pg[pg.size() - 1].mz < start_mz) { continue; }
         // With decoy reporting the survey spectrum also holds decoy masses (noise and signal decoys), each in the window if it has a
-        // peak there at the charge the window implies. With precursor_by_fragments, all of them challenge the precursor the fragments
+        // peak there at the charge the window implies. With precursor_FDR, all of them challenge the precursor the fragments
         // chose, and one that beats it becomes the decoy precursor of the MSn spectrum (a decoy spectrum with that mass instead of the
-        // precursor mass, e.g. for FLASHTnT -decoy_precursor); without, the one of the highest charge SNR becomes it unchecked. Only
+        // precursor mass, e.g. for FLASHTnT -precursor_FDR); without, the one of the highest charge SNR becomes it unchecked. Only
         // target masses are precursors.
         if (pg.getTargetDecoyType() != PeakGroup::target)
         {
@@ -1684,7 +1685,7 @@ void FLASHDeconvAlgorithm::runFeatureFinding_(std::vector<DeconvolvedSpectrum>& 
   {
     updatePrecursorQScores_(deconvolved_spectra, ms_level);
     // An MSn precursor that belongs to a feature of the lowest MS level gets the feature's mass, at the isotope label the precursor has
-    // (chosen with the fragments: precursor_by_fragments). The feature mass is the centroid of the masses of all its survey spectra, so it
+    // (chosen with the fragments: precursor_FDR). The feature mass is the centroid of the masses of all its survey spectra, so it
     // scatters less than the mass of the one survey spectrum the precursor was found in; TopFD likewise gives an MS2 spectrum its
     // feature's mass. Three E. coli lysates, 1% PrSMs whose precursor mass equals the sequence mass: 2.5-97.5 % of the error -0.96..+2.23
     // ppm with the survey mass, -0.48..+1.71 ppm with the feature mass (TopFD -0.41..+1.45); identifications unchanged (5106 -> 5108

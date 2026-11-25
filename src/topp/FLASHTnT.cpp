@@ -190,7 +190,7 @@ protected:
     registerSubsection_("tag", "Tag algorithm parameters");
     registerSubsection_("ex", "Extension algorithm parameters");
     registerSubsection_("fd", "FLASHDeconv parameters, used when -in is a raw mzML (FLASHDeconv's FD: and SD: parameters; its feature tracing and "
-                              "isobaric quantification keep their defaults, and decoy masses are made with -decoy_precursor)");
+                              "isobaric quantification keep their defaults, and decoy masses and the precursor by the fragments are made with -precursor_FDR)");
   }
 
   Param getSubsectionDefaults_(const std::string& prefix) const override
@@ -209,7 +209,7 @@ protected:
   }
 
   // FLASHDeconv's parameters as FLASHTnT exposes them. Kept at their defaults: feature tracing (ft:), isobaric quantification (iq:), the
-  // RNA averagine and the beta isotope error tolerance of FLASHDeconv's mass FDR; report_FDR is set by FLASHTnT (with -decoy_precursor).
+  // RNA averagine and the beta isotope error tolerance of FLASHDeconv's mass FDR; report_FDR and precursor_FDR are set by FLASHTnT (-precursor_FDR).
   static Param fdDefaults_()
   {
     Param p = FLASHDeconvAlgorithm().getDefaults();
@@ -218,6 +218,7 @@ protected:
     p.remove("use_RNA_averagine");
     p.remove("allowed_isotope_error");
     p.remove("report_FDR");
+    p.remove("precursor_FDR");
     return p;
   }
 
@@ -341,8 +342,10 @@ protected:
       }
       FLASHDeconvAlgorithm fd;
       Param fd_param = getParam_().copy("fd:", true);
-      // the decoy precursor masses of the isolation windows (FLASHDeconv's report_FDR) are needed for -decoy_precursor only
-      fd_param.setValue("report_FDR", getParam_().getValue("decoy_precursor").toString() == "true" ? "true" : "false");
+      // FLASHDeconv's precursor_FDR (the precursor by the fragments and the decoy precursors of the isolation windows) with -precursor_FDR
+      const std::string precursor_fdr = getParam_().getValue("precursor_FDR").toString() == "true" ? "true" : "false";
+      fd_param.setValue("report_FDR", "false");
+      fd_param.setValue("precursor_FDR", precursor_fdr);
       fd.setParameters(fd_param);
       std::vector<DeconvolvedSpectrum> deconvolved_spectra;
       std::vector<FLASHHelperClasses::MassFeature> deconvolved_features;

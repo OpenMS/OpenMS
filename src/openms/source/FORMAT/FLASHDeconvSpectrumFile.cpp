@@ -171,7 +171,7 @@ namespace OpenMS
     std::stringstream precursor_ss;
     if (dspec.getOriginalSpectrum().getMSLevel() > 1)
     {
-      // the decoy precursor mass of the isolation window (FLASHTnT -decoy_precursor) and its weight in the FDR
+      // the decoy precursor mass of the isolation window (FLASHTnT -precursor_FDR) and its weight in the FDR
       const std::string decoy_precursor = dspec.getDecoyPrecursorMass() > 0
                                        ? std::to_string(dspec.getDecoyPrecursorMass()) + "\t" + StringUtils::toStr(dspec.getDecoyPrecursorWeight()) + "\t"
                                        : std::string("NaN\tNaN\t");

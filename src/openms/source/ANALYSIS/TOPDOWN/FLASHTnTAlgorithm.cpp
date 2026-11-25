@@ -480,15 +480,16 @@ void FLASHTnTAlgorithm::setDefaultParams_()
                      "(UniqueScore), so that a homolog of the spectrum's protein, which matches that protein's fragments, is not reported beside it. "
                      "Needs decoys in the database (DECOY prefix); without them, the candidates are chosen as without the option.");
   defaults_.setValidStrings("native", {"true", "false"});
-  defaults_.setValue("decoy_precursor", "false",
-                     "Decoy precursors: spectra whose PrSM took its mass from MS1 are searched again with the decoy precursor mass of their isolation "
-                     "window instead of the precursor mass (with a raw mzML as -in, FLASHTnT has FLASHDeconv choose it; a deconvolved mzML must "
-                     "come from FLASHDeconv -FD:report_FDR true, which writes it and its score). When that search gives a PrSM "
-                     "reporting the decoy mass, the decoy precursor wins if its precursor score (FLASHDeconv's 2D Qscore) is higher than the "
-                     "precursor's; the winning decoy PrSM replaces the spectrum's MS1-based PrSMs and counts as a decoy in the FDR, at the "
-                     "proteoform level only against proteoforms whose mass came from MS1. Controls wrong MS1 precursor masses; PrSMs with masses "
-                     "from fragment pairs or without a mass are not affected.");
-  defaults_.setValidStrings("decoy_precursor", {"true", "false"});
+  defaults_.setValue("precursor_FDR", "false",
+                     "Error control of MS1 precursor masses (FLASHDeconv -FD:precursor_FDR). With false (the default), the precursor mass is "
+                     "taken as given, as in other tools. With true, the precursor of each spectrum is chosen among the masses of its isolation "
+                     "window by the fragment pairs (per spectrum), and spectra whose PrSM took its mass from MS1 are searched again with the decoy "
+                     "precursor mass of their window instead (with a raw mzML as -in, FLASHTnT has FLASHDeconv do both; a deconvolved mzML must "
+                     "come from FLASHDeconv -FD:precursor_FDR true). When that search gives a PrSM reporting the decoy mass, the decoy precursor "
+                     "wins if its precursor score (FLASHDeconv's Qscore) is higher than the precursor's; the winning decoy PrSM replaces the "
+                     "spectrum's MS1-based PrSMs of its blind-modification group and counts as a decoy in the FDR, at the proteoform level only "
+                     "against proteoforms whose mass came from MS1. PrSMs with masses from fragment pairs or without a mass are not affected.");
+  defaults_.setValidStrings("precursor_FDR", {"true", "false"});
   defaults_.setValue("chimeric_rounds", 0,
                      "Residual search of chimeric spectra: rounds after the first search (0: off). In each round, every spectrum with a PrSM (target or "
                      "decoy alike) loses the deconvolved masses its best PrSM matched (the masses on the path, also those one or two isotope "
@@ -680,7 +681,7 @@ void FLASHTnTAlgorithm::updateMembers_()
   terminal_ladders_ = param_.getValue("terminal_ladders").toString() == "true";
   precursor_ladders_ = param_.getValue("precursor_ladders").toString() == "true";
   search_cascade_ = param_.getValue("search_cascade").toString() == "true";
-  decoy_precursor_ = param_.getValue("decoy_precursor").toString() == "true";
+  decoy_precursor_ = param_.getValue("precursor_FDR").toString() == "true";
   one_proteoform_per_feature_ = param_.getValue("one_proteoform_per_feature").toString() == "true";
   chimeric_rounds_ = param_.getValue("chimeric_rounds");
   pro_fdr_ = param_.getValue("pro_fdr");
@@ -1833,7 +1834,7 @@ void FLASHTnTAlgorithm::run(const MSExperiment& map, const std::vector<FASTAFile
   // the precursor tolerance of the windows: the MS1 tolerance of the input, else (no MS1 spectra) the fragment tolerance
   const double pl_precursor_tol = precursor_tol > 0 ? precursor_tol : protein_tol;
   // per spectrum: the windows that fit its precursor mass (hypotheses), and the candidates; the same at the decoy precursor mass
-  // (decoy_precursor), so that the decoy copy of a spectrum has this source as its target does
+  // (precursor_FDR), so that the decoy copy of a spectrum has this source as its target does
   std::vector<std::vector<ProteinHit>> spec_pl_hits(dspecs.size()), spec_decoy_pl_hits(dspecs.size());
   std::vector<ProteinHit> pl_candidates, decoy_pl_candidates;
   std::vector<std::pair<Size, Size>> pl_ranges(dspecs.size(), {0, 0}), decoy_pl_ranges(dspecs.size(), {0, 0});
@@ -2463,7 +2464,7 @@ void FLASHTnTAlgorithm::run(const MSExperiment& map, const std::vector<FASTAFile
     // (getBestMassShift_), not at the window it is given: the window is stored on the candidate (PrecursorLadderStart and End, 1-based as
     // StartPosition and EndPosition, and PrecursorLadderIsotope), and the log line after the extension counts the PrSMs at its ends. Kept
     // apart from the other candidates; searched before the check for tag candidates, so spectra without any are searched too. The same at
-    // the decoy precursor mass (decoy_precursor).
+    // the decoy precursor mass (precursor_FDR).
     if (with_precursor_ladders && ! dspec.empty() && dspec.getPrecursorPeakGroup().getMonoMass() > 0)
     {
       std::vector<double> precursor_masses {dspec.getPrecursorPeakGroup().getMonoMass()};
@@ -3486,7 +3487,7 @@ void FLASHTnTAlgorithm::run(const MSExperiment& map, const std::vector<FASTAFile
       }
     };
     // The extension of spectrum d's candidates. With decoy_mass, the spectrum is the decoy copy at the decoy precursor mass
-    // (decoy_precursor), and its precursor-ladder candidates are those of the windows that fit that mass.
+    // (precursor_FDR), and its precursor-ladder candidates are those of the windows that fit that mass.
     auto extendSpectrumInto = [&](int d, const Param& eparam, const DeconvolvedSpectrum& dspec, std::vector<ProteinHit>& out, bool decoy_mass) {
       extendCandidatesInto(eparam, dspec, protein_hits_, candidate_ranges[d], ladder_candidates, ladder_ranges[d],
                            decoy_mass ? decoy_pl_candidates : pl_candidates, decoy_mass ? decoy_pl_ranges[d] : pl_ranges[d], out,
@@ -3568,7 +3569,7 @@ void FLASHTnTAlgorithm::run(const MSExperiment& map, const std::vector<FASTAFile
         copies = (int)todo.size();
         if (copies == 0 && first_stage)
         {
-          OPENMS_LOG_WARN << "Decoy precursors: the input has no decoy precursor masses; run FLASHDeconv with -FD:report_FDR true" << std::endl;
+          OPENMS_LOG_WARN << "Decoy precursors: the input has no decoy precursor masses; run FLASHDeconv with -FD:precursor_FDR true" << std::endl;
         }
   #pragma omp parallel for schedule(dynamic) if (extend_over_spectra)
         for (int k = 0; k < (int)todo.size(); k++)
