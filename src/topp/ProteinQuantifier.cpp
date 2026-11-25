@@ -79,6 +79,16 @@ Similarly, only proteotypic peptides (i.e. those matching to exactly one protein
 
 Peptides with the same sequence, but with different modifications are quantified separately on the peptide level, but treated as one peptide for the protein quantification (i.e. the contributions of differently-modified variants of the same peptide are accumulated).
 
+<B>Leaving modified peptides out of the protein quantification</B>
+
+The accumulated value stands for the amount of a peptide irrespective of how much of it carries a modification in a given sample. That is what is wanted where a modification merely splits the signal of a peptide (e.g. methionine oxidation), but not where the modification is itself regulated (e.g. phosphorylation): then neither the modified variants nor the unmodified one follow the abundance of the protein. Such peptides can be left out with @p modifications:exclude, a list of modification names as @ref TOPP_IDFilter uses them (e.g. <tt>-modifications:exclude "Phospho (S)" "Phospho (T)" "Phospho (Y)"</tt>). The list is empty by default, i.e. nothing is left out.
+
+- By default (@p modifications:exclude_counterparts @p true) a peptide is left out with <em>all</em> of its variants - the unmodified one and those carrying other modifications included - as soon as one variant with a listed modification was identified (quantified or not). The abundance of these counterparts depends on the share of the peptide that is modified, so they are no better a measure of the protein than the modified variant.
+- With @p modifications:exclude_counterparts @p false only the variants that carry a listed modification themselves are left out; the remaining ones are still accumulated.
+- Modifications are matched by their full name, specificity included, and only listed ones have an effect. Fixed modifications and labels (carbamidomethylation, TMT, SILAC labels, ...) therefore need no special treatment.
+- Only protein quantities change. The peptide-level output still reports every variant, and @p consensus:normalize, a peptide-level step, still uses all of them. A peptide that is left out does not count towards @p top:N and is not included in the @p n_peptides column of @p out. With @p method @p iBAQ it still counts as theoretically observable, like a peptide that was not detected: the divisor depends only on the protein sequence.
+- The identifications are not touched. Unlike after removing them beforehand (@ref TOPP_IDFilter, @p blacklist:modifications), the peptides still support the identification of their protein: the quantification does not change the protein inference results or the PSM counts. A protein all of whose peptides are left out is not quantified. Like every protein that this tool does not quantify, it is then absent from the protein-level outputs: @p out, the protein rows of @p mztab and the protein group view of @p out_qpx.
+
 <B>Output granularity: assays vs. files and channels</B>
 
 By default one protein and peptide abundance is reported per assay. An assay is the experimental-design pair @c (fraction_group, @c label): it spans every fraction file of that fraction group at that label, and its reported value aggregates over those files. Columns are named @c abundance_fgroupF_labelL, where F is the design's Fraction_Group and L its Label. The SampleSection remains metadata and may group several assays as technical or biological replicates; ProteinQuantifier does not sum those replicates.
@@ -111,7 +121,7 @@ More information below the parameter specification.
 
 <B>Optional output: QPX Parquet (@p out_qpx)</B>
 
-@p out_qpx writes the quantification as a QPX collection - @c quantms.feature.parquet, @c quantms.psm.parquet and @c quantms.pg.parquet - for consensusXML input. QPX is an interchange format with a strict value contract, and OpenMS refuses to write a table it cannot represent rather than emit one that will not join. A refusal aborts the tool and leaves no files behind, including any view already written.
+@p out_qpx writes the quantification as a QPX collection - @c quantms.feature.parquet, @c quantms.psm.parquet and @c quantms.pg.parquet - for consensusXML input. QPX is an interchange format with a strict value contract, and OpenMS refuses to write a table it cannot represent rather than emit one that will not join. A refusal ends the tool with an error and removes the QPX files that this run has written, including any view already written. QPX files that were in the directory before the run are kept, so a failed run into a directory that holds an earlier collection can leave files of that collection behind, or a mix of old and new views. The other outputs (@p out, @p peptide_out, @p mztab) are written before the export and are not affected. The export is also refused if no protein is quantified, because no protein group is left for the protein-group view.
 
 Consensus maps produced by @ref TOPP_ProteomicsLFQ and @ref TOPP_IsobaricWorkflow satisfy the contract by construction; those two are the supported producers. A map assembled by a different pipeline may not. What the contract requires, and how to satisfy it, is documented in one place: on OpenMS::QPXValueValidation, the class that enforces it.
 
@@ -130,7 +140,7 @@ The output files produced by this tool have a table format, with columns as desc
 - @b protein: Protein accession(s) (as in the annotations in the input file; separated by "/" if more than one).
 - @b n_proteins: Number of indistinguishable proteins quantified (usually "1").
 - @b protein_score: Protein score, e.g. ProteinProphet probability (if available).
-- @b n_peptides: Number of proteotypic peptides observed for this protein (or group of indistinguishable proteins) across all assays. Note that not necessarily all of these peptides contribute to the protein abundance (depending on parameter @p top).
+- @b n_peptides: Number of proteotypic peptides observed for this protein (or group of indistinguishable proteins) across all assays, not counting peptides that @p modifications:exclude leaves out. Note that not necessarily all of these peptides contribute to the protein abundance (depending on parameter @p top).
 - @b abundance_fgroupF_labelL: Computed protein abundance for assay @c (F, @c L). There is one self-describing column per assay in the experimental design.
 
 <b>Peptide output</b> (one peptide or - if @p best_charge is set - one charge state and fraction of a peptide per line):
@@ -755,13 +765,20 @@ protected:
     }
 
     std::string params;
+    const auto add_param = [&](const std::string& name) { params += name + "=" + algo_params_.getValue(name).toString() + ", "; };
     for (const std::string& str : relevant_params)
     {
-      std::string value = algo_params_.getValue(str).toString();
-      if (value != "false")
-      {
-        params += str + "=" + value + ", ";
-      }
+      // flags are named only when set
+      if (algo_params_.getValue(str).toString() != "false") { add_param(str); }
+    }
+
+    // Only protein quantities are affected, and only once the list names a modification: the
+    // header of every run with the default (empty) list stays as it was. Both are named with their
+    // value: 'exclude_counterparts' is on by default, so its 'false' is what a reader has to be told.
+    if (proteins && !algo_params_.getValue("modifications:exclude").toStringVector().empty())
+    {
+      add_param("modifications:exclude");
+      add_param("modifications:exclude_counterparts");
     }
     if (params.empty())
     {
@@ -959,10 +976,13 @@ protected:
   }
 
   /// Process ConsensusXML input and perform quantification
+  /// Loads @p in into @p consensus, quantifies it and writes the mzTab file. With @p annotate_proteins
+  /// (needed for the mzTab file and for exportQPX_()), the protein quantities are annotated to the
+  /// protein groups of the first identification run of @p consensus.
   ExperimentalDesign processConsensusXMLInput_(const std::string& in, const std::string& design_file, const std::string& mztab,
-                                              const std::string& out_qpx, PeptideAndProteinQuant& quantifier)
+                                              const bool annotate_proteins, PeptideAndProteinQuant& quantifier,
+                                              ConsensusMap& consensus)
   {
-    ConsensusMap consensus;
     FileHandler().loadConsensusFeatures(in, consensus, {FileTypes::CONSENSUSXML});
 
     // Drop features whose peptide identifications disagree on the top sequence. They already
@@ -1007,10 +1027,9 @@ protected:
     quantifier.quantifyPeptides(peptides_);
     quantifier.quantifyProteins(proteins_);
 
-    // write mzTab file
-    if (!mztab.empty())
+    if (annotate_proteins)
     {
-      // annotate quants to protein(groups) for easier export in mzTab
+      // annotate quants to protein(groups) for easier export in mzTab and QPX
       auto const & protein_quants = quantifier.getProteinResults();
       quantifier.annotateQuantificationsToProteins(protein_quants, proteins_);
       if (!inference_in_cxml)
@@ -1022,7 +1041,11 @@ protected:
       {
         std::swap(consensus.getProteinIdentifications()[0], proteins_);
       }
+    }
 
+    // write mzTab file
+    if (!mztab.empty())
+    {
       // fill MzTab with meta data and quants annotated in identification data structure
       const bool report_unmapped(true);
       const bool report_unidentified_features(false);
@@ -1035,93 +1058,91 @@ protected:
         report_subfeatures);
     }
 
-    if (!out_qpx.empty())
+    return ed;
+  }
+
+  /**
+    @brief Writes the three QPX views of @p consensus
+
+    The protein quantities have to be annotated already (see processConsensusXMLInput_()).
+
+    @param[in] protein_quantified Whether the run quantified any protein; names the likely cause if the export is refused
+    @throws Exception::UnableToCreateFile if the collection cannot be written in full. The QPX files written by this export are removed then; files that were in the directory before are kept.
+  */
+  void exportQPX_(const ConsensusMap& consensus, const ExperimentalDesign& ed, const std::string& out_qpx,
+                  const bool protein_quantified)
+  {
+    OPENMS_LOG_INFO << "Exporting QPX Parquet files to: " << out_qpx << std::endl;
+
+    // Validate the whole collection before the first write. Each view refuses input it
+    // cannot represent, but only before its OWN file, so a refusal in the psm or pg view
+    // would leave the earlier files behind as a partial collection.
+    if (!QPXCollectionExport::requireExportable(consensus, ed))
     {
-      OPENMS_LOG_INFO << "Exporting QPX Parquet files to: " << out_qpx << std::endl;
-
-      // Ensure protein quants are annotated (if not already done for mzTab)
-      if (mztab.empty())
+      std::string reason = "the QPX collection cannot be written in full";
+      if (!protein_quantified)
       {
-        auto const& protein_quants = quantifier.getProteinResults();
-        quantifier.annotateQuantificationsToProteins(protein_quants, proteins_);
-        if (!inference_in_cxml)
-        {
-          auto& prots = consensus.getProteinIdentifications();
-          prots.insert(prots.begin(), proteins_);
-        }
-        else
-        {
-          std::swap(consensus.getProteinIdentifications()[0], proteins_);
-        }
+        // without a quantified protein no protein group is left, which is what the check reports
+        reason += "; note that no protein was quantified with the current settings";
       }
+      throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, out_qpx, reason);
+    }
 
-      // Validate the whole collection before the first write. Each view refuses input it
-      // cannot represent, but only before its OWN file, so a refusal in the psm or pg view
-      // would leave the earlier files behind as a partial collection.
-      if (!QPXCollectionExport::requireExportable(consensus, ed))
-      {
-        throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                            out_qpx, "the QPX collection cannot be written in full");
-      }
+    // Whatever the preflight cannot decide up front - a row-level refusal, an I/O error - is
+    // undone here: the throws below unwind through this guard, which removes every file
+    // already written unless the commit at the end is reached.
+    QPXCollectionExport::Transaction qpx_collection(out_qpx);
 
-      // Whatever the preflight cannot decide up front - a row-level refusal, an I/O error - is
-      // undone here: the throws below unwind through this guard, which removes every file
-      // already written unless the commit at the end is reached.
-      QPXCollectionExport::Transaction qpx_collection(out_qpx);
+    // Collected while the feature rows are built, then handed to the psm view so it can fill
+    // psm.feature_id. One pass produces both directions, which is what keeps them reciprocal.
+    QPXIdentity::FeatureLinks feature_links;
 
-      // Collected while the feature rows are built, then handed to the psm view so it can fill
-      // psm.feature_id. One pass produces both directions, which is what keeps them reciprocal.
-      QPXIdentity::FeatureLinks feature_links;
+    // Feature-level export
+    if (!ConsensusMapArrowExport::exportToParquet(consensus, out_qpx + "/quantms.feature.parquet",
+                                                  ParquetWriteConfig{}, &feature_links))
+    {
+      // Abort rather than log and continue: a partial QPX collection written with a zero
+      // exit code looks like a successful export.
+      throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                          out_qpx, "failed to write the features Parquet file");
+    }
 
-      // Feature-level export
-      if (!ConsensusMapArrowExport::exportToParquet(consensus, out_qpx + "/quantms.feature.parquet",
-                                                    ParquetWriteConfig{}, &feature_links))
-      {
-        // Abort rather than log and continue: a partial QPX collection written with a zero
-        // exit code looks like a successful export.
-        throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                            out_qpx, "failed to write the features Parquet file");
-      }
-
-      // PSM-level export
-      PeptideIdentificationList all_pepids;
-      for (const auto& feature : consensus)
-      {
-        for (const auto& pepid : feature.getPeptideIdentifications())
-        {
-          all_pepids.push_back(pepid);
-        }
-      }
-      for (const auto& pepid : consensus.getUnassignedPeptideIdentifications())
+    // PSM-level export
+    PeptideIdentificationList all_pepids;
+    for (const auto& feature : consensus)
+    {
+      for (const auto& pepid : feature.getPeptideIdentifications())
       {
         all_pepids.push_back(pepid);
       }
-      if (!QPXFile::exportToParquet(consensus.getProteinIdentifications(), all_pepids,
-                                    out_qpx + "/quantms.psm.parquet", /*export_all_psms=*/false,
-                                    ParquetWriteConfig{}, &feature_links))
-      {
-        // Abort rather than log and continue: a partial QPX collection written with a zero
-        // exit code looks like a successful export.
-        throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                            out_qpx, "failed to write the PSM Parquet file");
-      }
-
-      // Protein group export
-      // Pass the design that drove quantification: QPX 1.1 keys the pg view on the set of
-      // files aggregated into one quantity, and the design defines each fraction-group/label
-      // assay represented by the protein abundance arrays.
-      if (!ProteinGroupArrowExport::exportToParquet(consensus, ed, out_qpx + "/quantms.pg.parquet"))
-      {
-        // Abort rather than log and continue: a partial QPX collection written with a zero
-        // exit code looks like a successful export.
-        throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                            out_qpx, "failed to write the protein groups Parquet file");
-      }
-
-      qpx_collection.commit(); // all three views written
+    }
+    for (const auto& pepid : consensus.getUnassignedPeptideIdentifications())
+    {
+      all_pepids.push_back(pepid);
+    }
+    if (!QPXFile::exportToParquet(consensus.getProteinIdentifications(), all_pepids,
+                                  out_qpx + "/quantms.psm.parquet", /*export_all_psms=*/false,
+                                  ParquetWriteConfig{}, &feature_links))
+    {
+      // Abort rather than log and continue: a partial QPX collection written with a zero
+      // exit code looks like a successful export.
+      throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                          out_qpx, "failed to write the PSM Parquet file");
     }
 
-    return ed;
+    // Protein group export
+    // Pass the design that drove quantification: QPX 1.1 keys the pg view on the set of
+    // files aggregated into one quantity, and the design defines each fraction-group/label
+    // assay represented by the protein abundance arrays.
+    if (!ProteinGroupArrowExport::exportToParquet(consensus, ed, out_qpx + "/quantms.pg.parquet"))
+    {
+      // Abort rather than log and continue: a partial QPX collection written with a zero
+      // exit code looks like a successful export.
+      throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                          out_qpx, "failed to write the protein groups Parquet file");
+    }
+
+    qpx_collection.commit(); // all three views written
   }
 
   ExitCodes main_(int, const char**) override
@@ -1190,6 +1211,7 @@ protected:
     }
 
     ExperimentalDesign ed;
+    ConsensusMap consensus; // kept after processing: the QPX export reads it once the tables are written
 
     // Validate QPX export is only used with consensusXML
     if (!out_qpx.empty() && in_type != FileTypes::CONSENSUSXML)
@@ -1216,7 +1238,8 @@ protected:
     }
     else // consensusXML
     {
-      ed = processConsensusXMLInput_(in, design_file, mztab, out_qpx, quantifier);
+      const bool annotate_proteins = !mztab.empty() || !out_qpx.empty();
+      ed = processConsensusXMLInput_(in, design_file, mztab, annotate_proteins, quantifier, consensus);
     }
 
     // output:
@@ -1258,6 +1281,13 @@ protected:
     }
 
     writeStatistics_(quantifier.getStatistics());
+
+    // QPX comes last: the export refuses input that it cannot represent in full and ends the run
+    // with an error. That must not keep the tables and the statistics above from being written.
+    if (!out_qpx.empty() && in_type == FileTypes::CONSENSUSXML)
+    {
+      exportQPX_(consensus, ed, out_qpx, quantifier.getStatistics().quant_proteins > 0);
+    }
 
     return EXECUTION_OK;
   }

@@ -1177,6 +1177,14 @@ namespace OpenMS
     */
     static void filterPeptidesByRTPredictPValue(PeptideIdentificationList& peptides, const std::string& metavalue_key, double threshold = 0.05);
 
+    /**
+       @brief Does @p seq carry at least one of the given modifications, on a residue or on a terminus?
+
+       Modifications are compared by their full name (ResidueModification::getFullId(), e.g.
+       "Oxidation (M)"). An empty set matches nothing.
+    */
+    static bool hasMatchingModification(const AASequence& seq, const std::set<std::string>& modifications);
+
     /// Removes all peptide hits that have at least one of the given modifications
     static void removePeptidesWithMatchingModifications(PeptideIdentificationList& peptides, const std::set<std::string>& modifications);
 
