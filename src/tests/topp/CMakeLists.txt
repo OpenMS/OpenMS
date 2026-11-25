@@ -4304,6 +4304,38 @@ add_test("TOPP_ProteinQuantifier_29" ${TOPP_BIN_PATH}/ProteinQuantifier -test -i
 add_test("TOPP_ProteinQuantifier_29_out1" ${DIFF} -in1 ${TESTS_TEMP_DIR}/ProteinQuantifier_29_output.tmp -in2 ${DATA_DIR_TOPP}/ProteinQuantifier_29_output.txt -whitelist "computed from file" )
 set_tests_properties("TOPP_ProteinQuantifier_29_out1" PROPERTIES DEPENDS "TOPP_ProteinQuantifier_29")
 
+# 30-32: 'modifications:exclude' on the peptidoform input of _23. In sample1 PEPTIDEMK is measured
+#     unmodified (100) and oxidized (900) next to AAAAAK (500) and CCCCCK (300); sample2 has
+#     AAAAAK (20) only. Summing everything gives 1800 for sample1.
+# 30: leaving out 'Oxidation (M)' takes PEPTIDEMK out with both forms (the default
+#     'modifications:exclude_counterparts'): 800, from 2 instead of 3 peptides. The header names
+#     the setting. The peptide table is unaffected and still lists both forms.
+add_test("TOPP_ProteinQuantifier_30" ${TOPP_BIN_PATH}/ProteinQuantifier -test -in ${DATA_DIR_TOPP}/ProteinQuantifier_23_input.consensusXML -design ${DATA_DIR_TOPP}/ProteinQuantifier_23_input.tsv -out ${TESTS_TEMP_DIR}/ProteinQuantifier_30_output1.tmp -peptide_out ${TESTS_TEMP_DIR}/ProteinQuantifier_30_output2.tmp -top:N 0 -top:aggregate sum -modifications:exclude "Oxidation (M)")
+add_test("TOPP_ProteinQuantifier_30_out1" ${DIFF} -in1 ${TESTS_TEMP_DIR}/ProteinQuantifier_30_output1.tmp -in2 ${DATA_DIR_TOPP}/ProteinQuantifier_30_output1.txt -whitelist "computed from file" )
+set_tests_properties("TOPP_ProteinQuantifier_30_out1" PROPERTIES DEPENDS "TOPP_ProteinQuantifier_30")
+add_test("TOPP_ProteinQuantifier_30_out2" ${DIFF} -in1 ${TESTS_TEMP_DIR}/ProteinQuantifier_30_output2.tmp -in2 ${DATA_DIR_TOPP}/ProteinQuantifier_30_output2.txt -whitelist "computed from file" )
+set_tests_properties("TOPP_ProteinQuantifier_30_out2" PROPERTIES DEPENDS "TOPP_ProteinQuantifier_30")
+
+# 31: the same decision at the file+channel level
+add_test("TOPP_ProteinQuantifier_31" ${TOPP_BIN_PATH}/ProteinQuantifier -test -in ${DATA_DIR_TOPP}/ProteinQuantifier_23_input.consensusXML -design ${DATA_DIR_TOPP}/ProteinQuantifier_23_input.tsv -file_and_channel_level_output "true" -out ${TESTS_TEMP_DIR}/ProteinQuantifier_31_output.tmp -top:N 0 -top:aggregate sum -modifications:exclude "Oxidation (M)")
+add_test("TOPP_ProteinQuantifier_31_out1" ${DIFF} -in1 ${TESTS_TEMP_DIR}/ProteinQuantifier_31_output.tmp -in2 ${DATA_DIR_TOPP}/ProteinQuantifier_31_output.txt -whitelist "computed from file" )
+set_tests_properties("TOPP_ProteinQuantifier_31_out1" PROPERTIES DEPENDS "TOPP_ProteinQuantifier_31")
+
+# 32: without the counterparts only the oxidized form (900) is left out: 900, from 3 peptides
+add_test("TOPP_ProteinQuantifier_32" ${TOPP_BIN_PATH}/ProteinQuantifier -test -in ${DATA_DIR_TOPP}/ProteinQuantifier_23_input.consensusXML -design ${DATA_DIR_TOPP}/ProteinQuantifier_23_input.tsv -out ${TESTS_TEMP_DIR}/ProteinQuantifier_32_output.tmp -top:N 0 -top:aggregate sum -modifications:exclude "Oxidation (M)" -modifications:exclude_counterparts false)
+add_test("TOPP_ProteinQuantifier_32_out1" ${DIFF} -in1 ${TESTS_TEMP_DIR}/ProteinQuantifier_32_output.tmp -in2 ${DATA_DIR_TOPP}/ProteinQuantifier_32_output.txt -whitelist "computed from file" )
+set_tests_properties("TOPP_ProteinQuantifier_32_out1" PROPERTIES DEPENDS "TOPP_ProteinQuantifier_32")
+
+# 33: a protein that loses ALL of its peptides. The input adds "Protein2" to that of _23, whose
+#     single peptide is observed oxidized only. With 'Oxidation (M)' left out it is not quantified:
+#     it is absent from the protein table and from the protein group rows of the mzTab file, while
+#     its protein row and the peptide and PSM sections (the identifications) stay as they are.
+add_test("TOPP_ProteinQuantifier_33" ${TOPP_BIN_PATH}/ProteinQuantifier -test -in ${DATA_DIR_TOPP}/ProteinQuantifier_33_input.consensusXML -design ${DATA_DIR_TOPP}/ProteinQuantifier_23_input.tsv -out ${TESTS_TEMP_DIR}/ProteinQuantifier_33_output.tmp -mztab ${TESTS_TEMP_DIR}/ProteinQuantifier_33_output_mztab.tmp.mzTab -top:N 0 -top:aggregate sum -modifications:exclude "Oxidation (M)")
+add_test("TOPP_ProteinQuantifier_33_out1" ${DIFF} -in1 ${TESTS_TEMP_DIR}/ProteinQuantifier_33_output.tmp -in2 ${DATA_DIR_TOPP}/ProteinQuantifier_33_output.txt -whitelist "computed from file" )
+set_tests_properties("TOPP_ProteinQuantifier_33_out1" PROPERTIES DEPENDS "TOPP_ProteinQuantifier_33")
+add_test("TOPP_ProteinQuantifier_33_out2" ${DIFF} -in1 ${TESTS_TEMP_DIR}/ProteinQuantifier_33_output_mztab.tmp.mzTab -in2 ${DATA_DIR_TOPP}/ProteinQuantifier_33_output_mztab.mzTab -whitelist "software")
+set_tests_properties("TOPP_ProteinQuantifier_33_out2" PROPERTIES DEPENDS "TOPP_ProteinQuantifier_33")
+
 #------------------------------------------------------------------------------
 # QPX value references (#9864 Phase 0.1, phases 1-2)
 #
