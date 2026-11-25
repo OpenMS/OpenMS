@@ -62,96 +62,96 @@
 		<AdditionalSearchParams>
 			<cvParam accession="MS:1001211" cvRef="PSI-MS" name="parent mass type mono"/>
 			<cvParam accession="MS:1001256" cvRef="PSI-MS" name="fragment mass type mono"/>
-			<userParam name="ChargeCarrierMass" unitName="xsd:string" value="1.00727649"/>
-			<userParam name="FragmentMethod" unitName="xsd:string" value="As written in the spectrum or CID if no info"/>
-			<userParam name="Instrument" unitName="xsd:string" value="HighRes"/>
-			<userParam name="MaxIsotopeError" unitName="xsd:string" value="1"/>
-			<userParam name="MaxNumModifications" unitName="xsd:string" value="2"/>
-			<userParam name="MaxPepLength" unitName="xsd:string" value="40"/>
-			<userParam name="MinIsotopeError" unitName="xsd:string" value="0"/>
-			<userParam name="MinPepLength" unitName="xsd:string" value="6"/>
-			<userParam name="NumMatchesPerSpec" unitName="xsd:string" value="1"/>
-			<userParam name="Protocol" unitName="xsd:string" value="Standard"/>
-			<userParam name="TargetDecoyApproach" unitName="xsd:string" value="false"/>
-			<userParam name="MSGFPlusAdapter:1:in" unitName="xsd:string" value="/home/sachsenb/Development/OpenMS/src/tests/topp/THIRDPARTY/spectra.mzML"/>
-			<userParam name="MSGFPlusAdapter:1:out" unitName="xsd:string" value="MSGFPlusAdapter_1_out1.tmp.idXML"/>
-			<userParam name="MSGFPlusAdapter:1:mzid_out" unitName="xsd:string" value="MSGFPlusAdapter_1_out2.tmp.mzid"/>
-			<userParam name="MSGFPlusAdapter:1:executable" unitName="xsd:string" value="/mnt/c/Program Files/OpenMS-3.1.0-pre-nightly-2024-02-02/share/OpenMS/THIRDPARTY/MSGFPlus/MSGFPlus.jar"/>
-			<userParam name="MSGFPlusAdapter:1:database" unitName="xsd:string" value="/home/sachsenb/Development/OpenMS/src/tests/topp/THIRDPARTY/proteins.fasta"/>
-			<userParam name="MSGFPlusAdapter:1:precursor_mass_tolerance" unitName="xsd:double" value="10.0"/>
-			<userParam name="MSGFPlusAdapter:1:precursor_error_units" unitName="xsd:string" value="ppm"/>
-			<userParam name="MSGFPlusAdapter:1:isotope_error_range" unitName="xsd:string" value="0,1"/>
-			<userParam name="MSGFPlusAdapter:1:fragment_method" unitName="xsd:string" value="from_spectrum"/>
-			<userParam name="MSGFPlusAdapter:1:instrument" unitName="xsd:string" value="high_res"/>
-			<userParam name="MSGFPlusAdapter:1:enzyme" unitName="xsd:string" value="Trypsin/P"/>
-			<userParam name="MSGFPlusAdapter:1:protocol" unitName="xsd:string" value="none"/>
-			<userParam name="MSGFPlusAdapter:1:tryptic" unitName="xsd:string" value="fully"/>
-			<userParam name="MSGFPlusAdapter:1:min_precursor_charge" unitName="xsd:integer" value="1"/>
-			<userParam name="MSGFPlusAdapter:1:max_precursor_charge" unitName="xsd:integer" value="3"/>
-			<userParam name="MSGFPlusAdapter:1:min_peptide_length" unitName="xsd:integer" value="6"/>
-			<userParam name="MSGFPlusAdapter:1:max_peptide_length" unitName="xsd:integer" value="40"/>
-			<userParam name="MSGFPlusAdapter:1:matches_per_spec" unitName="xsd:integer" value="1"/>
-			<userParam name="MSGFPlusAdapter:1:min_peaks" unitName="xsd:integer" value="10"/>
-			<userParam name="MSGFPlusAdapter:1:add_features" unitName="xsd:string" value="false"/>
-			<userParam name="MSGFPlusAdapter:1:max_mods" unitName="xsd:integer" value="2"/>
-			<userParam name="MSGFPlusAdapter:1:max_missed_cleavages" unitName="xsd:integer" value="-1"/>
-			<userParam name="MSGFPlusAdapter:1:tasks" unitName="xsd:integer" value="0"/>
-			<userParam name="MSGFPlusAdapter:1:fixed_modifications" unitName="xsd:string" value="[]"/>
-			<userParam name="MSGFPlusAdapter:1:variable_modifications" unitName="xsd:string" value="[Oxidation (M)]"/>
-			<userParam name="MSGFPlusAdapter:1:allow_dense_centroided_peaks" unitName="xsd:string" value="false"/>
-			<userParam name="MSGFPlusAdapter:1:legacy_conversion" unitName="xsd:string" value="false"/>
-			<userParam name="MSGFPlusAdapter:1:conf" unitName="xsd:string" value=""/>
-			<userParam name="MSGFPlusAdapter:1:java_executable" unitName="xsd:string" value="java"/>
-			<userParam name="MSGFPlusAdapter:1:java_memory" unitName="xsd:integer" value="512"/>
-			<userParam name="MSGFPlusAdapter:1:java_permgen" unitName="xsd:integer" value="0"/>
-			<userParam name="MSGFPlusAdapter:1:reindex" unitName="xsd:string" value="true"/>
-			<userParam name="MSGFPlusAdapter:1:log" unitName="xsd:string" value=""/>
-			<userParam name="MSGFPlusAdapter:1:debug" unitName="xsd:integer" value="0"/>
-			<userParam name="MSGFPlusAdapter:1:threads" unitName="xsd:integer" value="1"/>
-			<userParam name="MSGFPlusAdapter:1:no_progress" unitName="xsd:string" value="false"/>
-			<userParam name="MSGFPlusAdapter:1:force" unitName="xsd:string" value="false"/>
-			<userParam name="MSGFPlusAdapter:1:test" unitName="xsd:string" value="true"/>
-			<userParam name="MSGFPlusAdapter:1:decoy_string" unitName="xsd:string" value=""/>
-			<userParam name="MSGFPlusAdapter:1:decoy_string_position" unitName="xsd:string" value="prefix"/>
-			<userParam name="MSGFPlusAdapter:1:missing_decoy_action" unitName="xsd:string" value="warn"/>
-			<userParam name="MSGFPlusAdapter:1:write_protein_sequence" unitName="xsd:string" value="false"/>
-			<userParam name="MSGFPlusAdapter:1:write_protein_description" unitName="xsd:string" value="false"/>
-			<userParam name="MSGFPlusAdapter:1:keep_unreferenced_proteins" unitName="xsd:string" value="false"/>
-			<userParam name="MSGFPlusAdapter:1:unmatched_action" unitName="xsd:string" value="error"/>
-			<userParam name="MSGFPlusAdapter:1:aaa_max" unitName="xsd:integer" value="3"/>
-			<userParam name="MSGFPlusAdapter:1:mismatches_max" unitName="xsd:integer" value="0"/>
-			<userParam name="MSGFPlusAdapter:1:IL_equivalent" unitName="xsd:string" value="false"/>
-			<userParam name="MSGFPlusAdapter:1:allow_nterm_protein_cleavage" unitName="xsd:string" value="true"/>
-			<userParam name="MSGFPlusAdapter:1:name" unitName="xsd:string" value="auto"/>
-			<userParam name="MSGFPlusAdapter:1:specificity" unitName="xsd:string" value="auto"/>
-			<userParam name="PeptideIndexer:decoy_string" unitName="xsd:string" value="_rev"/>
-			<userParam name="PeptideIndexer:decoy_string_position" unitName="xsd:string" value="suffix"/>
-			<userParam name="PeptideIndexer:enzyme" unitName="xsd:string" value="Trypsin/P"/>
-			<userParam name="PeptideIndexer:enzyme_specificity" unitName="xsd:string" value="full"/>
-			<userParam name="PeptideIndexer:aaa_max" unitName="xsd:integer" value="3"/>
-			<userParam name="PeptideIndexer:mismatches_max" unitName="xsd:integer" value="0"/>
-			<userParam name="PeptideIndexer:IL_equivalent" unitName="xsd:string" value="false"/>
-			<userParam name="PeptideIndexer:allow_nterm_protein_cleavage" unitName="xsd:string" value="true"/>
-			<userParam name="PeptideIndexer:unmatched_action" unitName="xsd:string" value="error"/>
-			<userParam name="PeptideIndexer:missing_decoy_action" unitName="xsd:string" value="warn"/>
-			<userParam name="extra_features" unitName="xsd:string" value="MS:1002049,MS:1002050,MS:1002052,MS:1002053,isotope_error"/>
-			<userParam name="EnzymeTermSpecificity" unitName="xsd:string" value="full"/>
-			<userParam name="SE:MS-GF+" unitName="xsd:string" value="Release (v2023.01.12)"/>
-			<userParam name="MS-GF+:db" unitName="xsd:string" value="/home/sachsenb/Development/OpenMS/src/tests/topp/THIRDPARTY/proteins.fasta"/>
-			<userParam name="MS-GF+:db_version" unitName="xsd:string" value=""/>
-			<userParam name="MS-GF+:taxonomy" unitName="xsd:string" value=""/>
-			<userParam name="MS-GF+:charges" unitName="xsd:string" value="1-3"/>
-			<userParam name="MS-GF+:fixed_modifications" unitName="xsd:string" value=""/>
-			<userParam name="MS-GF+:variable_modifications" unitName="xsd:string" value="Oxidation (M)"/>
-			<userParam name="MS-GF+:missed_cleavages" unitName="xsd:integer" value="1000"/>
-			<userParam name="MS-GF+:fragment_mass_tolerance" unitName="xsd:double" value="0.0"/>
-			<userParam name="MS-GF+:fragment_mass_tolerance_unit" unitName="xsd:string" value="Da"/>
-			<userParam name="MS-GF+:precursor_mass_tolerance" unitName="xsd:double" value="10.0"/>
-			<userParam name="MS-GF+:precursor_mass_tolerance_unit" unitName="xsd:string" value="ppm"/>
-			<userParam name="MS-GF+:digestion_enzyme" unitName="xsd:string" value="Trypsin/P"/>
-			<userParam name="MS-GF+:enzyme_term_specificity" unitName="xsd:integer" value="2"/>
-			<userParam name="feature_extractor" unitName="xsd:string" value="TOPP_PSMFeatureExtractor"/>
-			<userParam name="charges" unitName="xsd:string" value="1-3"/>
+			<userParam name="ChargeCarrierMass" type="xsd:string" value="1.00727649"/>
+			<userParam name="FragmentMethod" type="xsd:string" value="As written in the spectrum or CID if no info"/>
+			<userParam name="Instrument" type="xsd:string" value="HighRes"/>
+			<userParam name="MaxIsotopeError" type="xsd:string" value="1"/>
+			<userParam name="MaxNumModifications" type="xsd:string" value="2"/>
+			<userParam name="MaxPepLength" type="xsd:string" value="40"/>
+			<userParam name="MinIsotopeError" type="xsd:string" value="0"/>
+			<userParam name="MinPepLength" type="xsd:string" value="6"/>
+			<userParam name="NumMatchesPerSpec" type="xsd:string" value="1"/>
+			<userParam name="Protocol" type="xsd:string" value="Standard"/>
+			<userParam name="TargetDecoyApproach" type="xsd:string" value="false"/>
+			<userParam name="MSGFPlusAdapter:1:in" type="xsd:string" value="/home/sachsenb/Development/OpenMS/src/tests/topp/THIRDPARTY/spectra.mzML"/>
+			<userParam name="MSGFPlusAdapter:1:out" type="xsd:string" value="MSGFPlusAdapter_1_out1.tmp.idXML"/>
+			<userParam name="MSGFPlusAdapter:1:mzid_out" type="xsd:string" value="MSGFPlusAdapter_1_out2.tmp.mzid"/>
+			<userParam name="MSGFPlusAdapter:1:executable" type="xsd:string" value="/mnt/c/Program Files/OpenMS-3.1.0-pre-nightly-2024-02-02/share/OpenMS/THIRDPARTY/MSGFPlus/MSGFPlus.jar"/>
+			<userParam name="MSGFPlusAdapter:1:database" type="xsd:string" value="/home/sachsenb/Development/OpenMS/src/tests/topp/THIRDPARTY/proteins.fasta"/>
+			<userParam name="MSGFPlusAdapter:1:precursor_mass_tolerance" type="xsd:double" value="10.0"/>
+			<userParam name="MSGFPlusAdapter:1:precursor_error_units" type="xsd:string" value="ppm"/>
+			<userParam name="MSGFPlusAdapter:1:isotope_error_range" type="xsd:string" value="0,1"/>
+			<userParam name="MSGFPlusAdapter:1:fragment_method" type="xsd:string" value="from_spectrum"/>
+			<userParam name="MSGFPlusAdapter:1:instrument" type="xsd:string" value="high_res"/>
+			<userParam name="MSGFPlusAdapter:1:enzyme" type="xsd:string" value="Trypsin/P"/>
+			<userParam name="MSGFPlusAdapter:1:protocol" type="xsd:string" value="none"/>
+			<userParam name="MSGFPlusAdapter:1:tryptic" type="xsd:string" value="fully"/>
+			<userParam name="MSGFPlusAdapter:1:min_precursor_charge" type="xsd:integer" value="1"/>
+			<userParam name="MSGFPlusAdapter:1:max_precursor_charge" type="xsd:integer" value="3"/>
+			<userParam name="MSGFPlusAdapter:1:min_peptide_length" type="xsd:integer" value="6"/>
+			<userParam name="MSGFPlusAdapter:1:max_peptide_length" type="xsd:integer" value="40"/>
+			<userParam name="MSGFPlusAdapter:1:matches_per_spec" type="xsd:integer" value="1"/>
+			<userParam name="MSGFPlusAdapter:1:min_peaks" type="xsd:integer" value="10"/>
+			<userParam name="MSGFPlusAdapter:1:add_features" type="xsd:string" value="false"/>
+			<userParam name="MSGFPlusAdapter:1:max_mods" type="xsd:integer" value="2"/>
+			<userParam name="MSGFPlusAdapter:1:max_missed_cleavages" type="xsd:integer" value="-1"/>
+			<userParam name="MSGFPlusAdapter:1:tasks" type="xsd:integer" value="0"/>
+			<userParam name="MSGFPlusAdapter:1:fixed_modifications" type="xsd:string" value="[]"/>
+			<userParam name="MSGFPlusAdapter:1:variable_modifications" type="xsd:string" value="[Oxidation (M)]"/>
+			<userParam name="MSGFPlusAdapter:1:allow_dense_centroided_peaks" type="xsd:string" value="false"/>
+			<userParam name="MSGFPlusAdapter:1:legacy_conversion" type="xsd:string" value="false"/>
+			<userParam name="MSGFPlusAdapter:1:conf" type="xsd:string" value=""/>
+			<userParam name="MSGFPlusAdapter:1:java_executable" type="xsd:string" value="java"/>
+			<userParam name="MSGFPlusAdapter:1:java_memory" type="xsd:integer" value="512"/>
+			<userParam name="MSGFPlusAdapter:1:java_permgen" type="xsd:integer" value="0"/>
+			<userParam name="MSGFPlusAdapter:1:reindex" type="xsd:string" value="true"/>
+			<userParam name="MSGFPlusAdapter:1:log" type="xsd:string" value=""/>
+			<userParam name="MSGFPlusAdapter:1:debug" type="xsd:integer" value="0"/>
+			<userParam name="MSGFPlusAdapter:1:threads" type="xsd:integer" value="1"/>
+			<userParam name="MSGFPlusAdapter:1:no_progress" type="xsd:string" value="false"/>
+			<userParam name="MSGFPlusAdapter:1:force" type="xsd:string" value="false"/>
+			<userParam name="MSGFPlusAdapter:1:test" type="xsd:string" value="true"/>
+			<userParam name="MSGFPlusAdapter:1:decoy_string" type="xsd:string" value=""/>
+			<userParam name="MSGFPlusAdapter:1:decoy_string_position" type="xsd:string" value="prefix"/>
+			<userParam name="MSGFPlusAdapter:1:missing_decoy_action" type="xsd:string" value="warn"/>
+			<userParam name="MSGFPlusAdapter:1:write_protein_sequence" type="xsd:string" value="false"/>
+			<userParam name="MSGFPlusAdapter:1:write_protein_description" type="xsd:string" value="false"/>
+			<userParam name="MSGFPlusAdapter:1:keep_unreferenced_proteins" type="xsd:string" value="false"/>
+			<userParam name="MSGFPlusAdapter:1:unmatched_action" type="xsd:string" value="error"/>
+			<userParam name="MSGFPlusAdapter:1:aaa_max" type="xsd:integer" value="3"/>
+			<userParam name="MSGFPlusAdapter:1:mismatches_max" type="xsd:integer" value="0"/>
+			<userParam name="MSGFPlusAdapter:1:IL_equivalent" type="xsd:string" value="false"/>
+			<userParam name="MSGFPlusAdapter:1:allow_nterm_protein_cleavage" type="xsd:string" value="true"/>
+			<userParam name="MSGFPlusAdapter:1:name" type="xsd:string" value="auto"/>
+			<userParam name="MSGFPlusAdapter:1:specificity" type="xsd:string" value="auto"/>
+			<userParam name="PeptideIndexer:decoy_string" type="xsd:string" value="_rev"/>
+			<userParam name="PeptideIndexer:decoy_string_position" type="xsd:string" value="suffix"/>
+			<userParam name="PeptideIndexer:enzyme" type="xsd:string" value="Trypsin/P"/>
+			<userParam name="PeptideIndexer:enzyme_specificity" type="xsd:string" value="full"/>
+			<userParam name="PeptideIndexer:aaa_max" type="xsd:integer" value="3"/>
+			<userParam name="PeptideIndexer:mismatches_max" type="xsd:integer" value="0"/>
+			<userParam name="PeptideIndexer:IL_equivalent" type="xsd:string" value="false"/>
+			<userParam name="PeptideIndexer:allow_nterm_protein_cleavage" type="xsd:string" value="true"/>
+			<userParam name="PeptideIndexer:unmatched_action" type="xsd:string" value="error"/>
+			<userParam name="PeptideIndexer:missing_decoy_action" type="xsd:string" value="warn"/>
+			<userParam name="extra_features" type="xsd:string" value="MS:1002049,MS:1002050,MS:1002052,MS:1002053,isotope_error"/>
+			<userParam name="EnzymeTermSpecificity" type="xsd:string" value="full"/>
+			<userParam name="SE:MS-GF+" type="xsd:string" value="Release (v2023.01.12)"/>
+			<userParam name="MS-GF+:db" type="xsd:string" value="/home/sachsenb/Development/OpenMS/src/tests/topp/THIRDPARTY/proteins.fasta"/>
+			<userParam name="MS-GF+:db_version" type="xsd:string" value=""/>
+			<userParam name="MS-GF+:taxonomy" type="xsd:string" value=""/>
+			<userParam name="MS-GF+:charges" type="xsd:string" value="1-3"/>
+			<userParam name="MS-GF+:fixed_modifications" type="xsd:string" value=""/>
+			<userParam name="MS-GF+:variable_modifications" type="xsd:string" value="Oxidation (M)"/>
+			<userParam name="MS-GF+:missed_cleavages" type="xsd:integer" value="1000"/>
+			<userParam name="MS-GF+:fragment_mass_tolerance" type="xsd:double" value="0.0"/>
+			<userParam name="MS-GF+:fragment_mass_tolerance_unit" type="xsd:string" value="Da"/>
+			<userParam name="MS-GF+:precursor_mass_tolerance" type="xsd:double" value="10.0"/>
+			<userParam name="MS-GF+:precursor_mass_tolerance_unit" type="xsd:string" value="ppm"/>
+			<userParam name="MS-GF+:digestion_enzyme" type="xsd:string" value="Trypsin/P"/>
+			<userParam name="MS-GF+:enzyme_term_specificity" type="xsd:integer" value="2"/>
+			<userParam name="feature_extractor" type="xsd:string" value="TOPP_PSMFeatureExtractor"/>
+			<userParam name="charges" type="xsd:string" value="1-3"/>
 		</AdditionalSearchParams>
 		<ModificationParams>
 			<SearchModification fixedMod="false" massDelta="15.994915000000001" residues="M">
@@ -214,17 +214,17 @@
 				<SpectrumIdentificationItem passThreshold="1" rank="1" peptide_ref="PEP_12999979801269632061" calculatedMassToCharge="1063.209272414671204" experimentalMassToCharge="1063.2098388671875" chargeState="3" id="SII_2927519776102075938">
 					<PeptideEvidenceRef peptideEvidence_ref="PEV_17413765565443951891"/>
 					<cvParam accession="MS:1001143" cvRef="PSI-MS" name="PSM-level search engine specific statistic"/>
-					<userParam name="SpecEValue" unitName="xsd:double" value="2.3492372e-26"/>
+					<userParam name="SpecEValue" type="xsd:double" value="2.3492372e-26"/>
 					<cvParam accession="MS:1002049" cvRef="PSI-MS" name="MS-GF:RawScore" value="164"/>
 					<cvParam accession="MS:1002050" cvRef="PSI-MS" name="MS-GF:DeNovoScore" value="199"/>
 					<cvParam accession="MS:1002052" cvRef="PSI-MS" name="MS-GF:SpecEValue" value="2.3492372e-26"/>
 					<cvParam accession="MS:1002053" cvRef="PSI-MS" name="MS-GF:EValue" value="9.678857e-24"/>
-					<userParam name="AssumedDissociationMethod" unitName="xsd:string" value="HCD"/>
-					<userParam name="pass_threshold" unitName="xsd:integer" value="1"/>
-					<userParam name="start" unitName="xsd:integer" value="1"/>
-					<userParam name="end" unitName="xsd:integer" value="28"/>
-					<userParam name="isotope_error" unitName="xsd:string" value="0"/>
-					<userParam name="protein_references" unitName="xsd:string" value="unique"/>
+					<userParam name="AssumedDissociationMethod" type="xsd:string" value="HCD"/>
+					<userParam name="pass_threshold" type="xsd:integer" value="1"/>
+					<userParam name="start" type="xsd:integer" value="1"/>
+					<userParam name="end" type="xsd:integer" value="28"/>
+					<userParam name="isotope_error" type="xsd:string" value="0"/>
+					<userParam name="protein_references" type="xsd:string" value="unique"/>
 				</SpectrumIdentificationItem>
 				<cvParam accession="MS:1000894" cvRef="PSI-MS" name="retention time" value="4587.668999999999869" unitAccession="UO:0000010" unitCvRef="UO"/>
 			</SpectrumIdentificationResult>
@@ -232,17 +232,17 @@
 				<SpectrumIdentificationItem passThreshold="1" rank="1" peptide_ref="PEP_10306100746905639127" calculatedMassToCharge="775.385461437637673" experimentalMassToCharge="775.38720703125" chargeState="3" id="SII_1755235105885170967">
 					<PeptideEvidenceRef peptideEvidence_ref="PEV_12524258085768770586"/>
 					<cvParam accession="MS:1001143" cvRef="PSI-MS" name="PSM-level search engine specific statistic"/>
-					<userParam name="SpecEValue" unitName="xsd:double" value="1.6242718e-19"/>
+					<userParam name="SpecEValue" type="xsd:double" value="1.6242718e-19"/>
 					<cvParam accession="MS:1002049" cvRef="PSI-MS" name="MS-GF:RawScore" value="151"/>
 					<cvParam accession="MS:1002050" cvRef="PSI-MS" name="MS-GF:DeNovoScore" value="188"/>
 					<cvParam accession="MS:1002052" cvRef="PSI-MS" name="MS-GF:SpecEValue" value="1.6242718e-19"/>
 					<cvParam accession="MS:1002053" cvRef="PSI-MS" name="MS-GF:EValue" value="6.513329300000001e-17"/>
-					<userParam name="AssumedDissociationMethod" unitName="xsd:string" value="HCD"/>
-					<userParam name="pass_threshold" unitName="xsd:integer" value="1"/>
-					<userParam name="start" unitName="xsd:integer" value="1"/>
-					<userParam name="end" unitName="xsd:integer" value="23"/>
-					<userParam name="isotope_error" unitName="xsd:string" value="0"/>
-					<userParam name="protein_references" unitName="xsd:string" value="unique"/>
+					<userParam name="AssumedDissociationMethod" type="xsd:string" value="HCD"/>
+					<userParam name="pass_threshold" type="xsd:integer" value="1"/>
+					<userParam name="start" type="xsd:integer" value="1"/>
+					<userParam name="end" type="xsd:integer" value="23"/>
+					<userParam name="isotope_error" type="xsd:string" value="0"/>
+					<userParam name="protein_references" type="xsd:string" value="unique"/>
 				</SpectrumIdentificationItem>
 				<cvParam accession="MS:1000894" cvRef="PSI-MS" name="retention time" value="4923.777299999999741" unitAccession="UO:0000010" unitCvRef="UO"/>
 			</SpectrumIdentificationResult>
@@ -250,17 +250,17 @@
 				<SpectrumIdentificationItem passThreshold="1" rank="1" peptide_ref="PEP_2684106197423007927" calculatedMassToCharge="520.263553895337623" experimentalMassToCharge="520.2628173828125" chargeState="3" id="SII_17314619952666245179">
 					<PeptideEvidenceRef peptideEvidence_ref="PEV_8119044117483804262"/>
 					<cvParam accession="MS:1001143" cvRef="PSI-MS" name="PSM-level search engine specific statistic"/>
-					<userParam name="SpecEValue" unitName="xsd:double" value="4.652130499999999e-19"/>
+					<userParam name="SpecEValue" type="xsd:double" value="4.652130499999999e-19"/>
 					<cvParam accession="MS:1002049" cvRef="PSI-MS" name="MS-GF:RawScore" value="123"/>
 					<cvParam accession="MS:1002050" cvRef="PSI-MS" name="MS-GF:DeNovoScore" value="125"/>
 					<cvParam accession="MS:1002052" cvRef="PSI-MS" name="MS-GF:SpecEValue" value="4.652130499999999e-19"/>
 					<cvParam accession="MS:1002053" cvRef="PSI-MS" name="MS-GF:EValue" value="1.63755e-16"/>
-					<userParam name="AssumedDissociationMethod" unitName="xsd:string" value="HCD"/>
-					<userParam name="pass_threshold" unitName="xsd:integer" value="1"/>
-					<userParam name="start" unitName="xsd:integer" value="1"/>
-					<userParam name="end" unitName="xsd:integer" value="14"/>
-					<userParam name="isotope_error" unitName="xsd:string" value="0"/>
-					<userParam name="protein_references" unitName="xsd:string" value="unique"/>
+					<userParam name="AssumedDissociationMethod" type="xsd:string" value="HCD"/>
+					<userParam name="pass_threshold" type="xsd:integer" value="1"/>
+					<userParam name="start" type="xsd:integer" value="1"/>
+					<userParam name="end" type="xsd:integer" value="14"/>
+					<userParam name="isotope_error" type="xsd:string" value="0"/>
+					<userParam name="protein_references" type="xsd:string" value="unique"/>
 				</SpectrumIdentificationItem>
 				<cvParam accession="MS:1000894" cvRef="PSI-MS" name="retention time" value="2655.095699999999852" unitAccession="UO:0000010" unitCvRef="UO"/>
 			</SpectrumIdentificationResult>

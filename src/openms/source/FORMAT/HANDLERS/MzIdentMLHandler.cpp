@@ -39,11 +39,36 @@ namespace OpenMS::Internal
   {
     namespace
     {
+      /// The value of a number @p score for a cvParam of @p term: a whole number without decimals for terms with integer
+      /// values (e.g. "102" for MS-GF:RawScore, not "102.0", which readers reject), else @p score_string
+      std::string cvValue_(const ControlledVocabulary::CVTerm& term, double score, const std::string& score_string)
+      {
+        switch (term.xref_type)
+        {
+          case ControlledVocabulary::CVTerm::XRefType::XSD_INTEGER:
+          case ControlledVocabulary::CVTerm::XRefType::XSD_NEGATIVE_INTEGER:
+          case ControlledVocabulary::CVTerm::XRefType::XSD_POSITIVE_INTEGER:
+          case ControlledVocabulary::CVTerm::XRefType::XSD_NON_NEGATIVE_INTEGER:
+          case ControlledVocabulary::CVTerm::XRefType::XSD_NON_POSITIVE_INTEGER:
+            if (std::isfinite(score) && score == std::trunc(score) && std::fabs(score) <= double(std::numeric_limits<Int>::max()))
+            {
+              return StringUtils::toStr(static_cast<Int>(score));
+            }
+            break;
+          default:
+            break;
+        }
+        return score_string;
+      }
+
       /// A cvParam of @p term (of the CV with the id @p ref in the document) with @p value, with the unit of the value if it has
-      /// one: accession, CV and name of the unit (readers, including OpenMS, need the name to read the unit)
+      /// one: accession, CV and name of the unit (readers, including OpenMS, need the name to read the unit). A whole number of
+      /// a term with integer values is written without decimals (e.g. a missing MS-GF:RawScore set to 0.0).
       std::string cvParamWithUnit_(const ControlledVocabulary::CVTerm& term, const std::string& ref, const DataValue& value)
       {
-        std::string s = term.toXMLString(ref, StringUtils::toStr(value)); // an empty value (e.g. of a flag term) is left out
+        const std::string value_string = value.valueType() == DataValue::DOUBLE_VALUE ? cvValue_(term, double(value), StringUtils::toStr(value))
+                                                                                       : StringUtils::toStr(value);
+        std::string s = term.toXMLString(ref, value_string); // an empty value (e.g. of a flag term) is left out
         if (!value.hasUnit() || !StringUtils::hasSuffix(s, "/>"))
         {
           return s;
@@ -680,8 +705,8 @@ namespace OpenMS::Internal
         ProteinIdentification::SearchParameters search_params = it->getSearchParameters();
         search_params.removeMetaValue("MS:1001029");
         writeMetaInfos_(sip, search_params, 3);
-        sip +=std::string(3, '\t') + R"(<userParam name="charges" unitName="xsd:string" value=")" + search_params.charges + "\"/>\n";
-//        sip +=std::string(3, '\t') + "<userParam name=\"" + "missed_cleavages" + "\" unitName=\"" + "xsd:integer" + "\" value=\"" + StringUtils::toStr(it->getSearchParameters().missed_cleavages) + "\"/>" + "\n";
+        sip +=std::string(3, '\t') + R"(<userParam name="charges" type="xsd:string" value=")" + search_params.charges + "\"/>\n";
+//        sip +=std::string(3, '\t') + "<userParam name=\"" + "missed_cleavages" + "\" type=\"" + "xsd:integer" + "\" value=\"" + StringUtils::toStr(it->getSearchParameters().missed_cleavages) + "\"/>" + "\n";
         sip += "\t\t</AdditionalSearchParams>\n";
         // modifications:
         if (search_params.fixed_modifications.empty() &&
@@ -1553,7 +1578,7 @@ namespace OpenMS::Internal
         }
         else
         {
-          s +=std::string(indent, '\t') + "<userParam name=\"" + writeXMLEscape(keys[i]) + "\" unitName=\"";
+          s +=std::string(indent, '\t') + "<userParam name=\"" + writeXMLEscape(keys[i]) + "\" type=\"";
 
           const DataValue& d = meta.getMetaValue(keys[i]);
           //determine type
@@ -1725,9 +1750,9 @@ namespace OpenMS::Internal
                     + " values=\"" + ListUtils::concatenate(j->second[2], " ") + "\"/>\n";
           if (is_ppxl)
           {
-              s +=std::string(indent+2, '\t') + "<userParam name=\"cross-link_chain\"" + " unitName=\"xsd:string\""
+              s +=std::string(indent+2, '\t') + "<userParam name=\"cross-link_chain\"" + " type=\"xsd:string\""
                         + " value=\"" + ListUtils::concatenate(j->second[3], " ") + "\"/>\n";
-              s +=std::string(indent+2, '\t') + "<userParam name=\"cross-link_ioncategory\"" + " unitName=\"xsd:string\""
+              s +=std::string(indent+2, '\t') + "<userParam name=\"cross-link_ioncategory\"" + " type=\"xsd:string\""
                         + " value=\"" + ListUtils::concatenate(j->second[4], " ") + "\"/>\n";
           }
           s +=std::string(indent+2, '\t') + cv_.getTermByName(j->first).toXMLString("PSI-MS") + "\n";
@@ -1967,6 +1992,8 @@ namespace OpenMS::Internal
           sc = "NA";
           OPENMS_LOG_WARN << "No score assigned to this PSM: " /*<< hit.getSequence().toString()*/ << '\n';
         }
+        // the cvParam of the score
+        auto score_param = [&](const ControlledVocabulary::CVTerm& term) { return term.toXMLString(cv_ns, cvValue_(term, hit.getScore(), sc)); };
         std::string c = StringUtils::toStr(hit.getCharge()); //charge
 
         std::string pte;
@@ -2025,61 +2052,61 @@ namespace OpenMS::Internal
         if (const auto* term = cv_.checkAndGetTermByName(st);
             term != nullptr && peptide_result_details_.contains(term->id))
         {
-          (sii_tmp += "\t\t\t\t\t") += term->toXMLString(cv_ns, sc);
+          (sii_tmp += "\t\t\t\t\t") += score_param(*term);
           copy_hit.removeMetaValue(term->id);
         }
         else if (cv_.exists(st) && peptide_result_details_.contains(st))
         {
           const auto& term = cv_.getTerm(st);
-          (sii_tmp += "\t\t\t\t\t") += term.toXMLString(cv_ns, sc);
+          (sii_tmp += "\t\t\t\t\t") += score_param(term);
           copy_hit.removeMetaValue(term.id);
         }
         else if (st == "q-value" || st == "FDR")
         {
           const auto& term = cv_.getTermByName("PSM-level q-value");
-          (sii_tmp += "\t\t\t\t\t") += term.toXMLString(cv_ns, sc);
+          (sii_tmp += "\t\t\t\t\t") += score_param(term);
           copy_hit.removeMetaValue(term.id);
         }
         else if (st == "Posterior Error Probability")
         {
           const auto& term = cv_.getTermByName("percolator:PEP"); // 'percolaror' was not a typo in the code but in the cv.
-          (sii_tmp += "\t\t\t\t\t") += term.toXMLString(cv_ns, sc);
+          (sii_tmp += "\t\t\t\t\t") += score_param(term);
           copy_hit.removeMetaValue(term.id);
         }
         else if (st == "OMSSA")
         {
           const auto& term = cv_.getTermByName("OMSSA:evalue");
-          (sii_tmp += "\t\t\t\t\t") += term.toXMLString(cv_ns, sc);
+          (sii_tmp += "\t\t\t\t\t") += score_param(term);
           copy_hit.removeMetaValue(term.id);
         }
         else if (st == "Mascot")
         {
           const auto& term = cv_.getTermByName("Mascot:score");
-          (sii_tmp += "\t\t\t\t\t") += term.toXMLString(cv_ns, sc);
+          (sii_tmp += "\t\t\t\t\t") += score_param(term);
           copy_hit.removeMetaValue(term.id);
         }
         else if (st == "XTandem")
         {
           const auto& term = cv_.getTermByName("X\\!Tandem:hyperscore");
-          (sii_tmp += "\t\t\t\t\t") += term.toXMLString(cv_ns, sc);
+          (sii_tmp += "\t\t\t\t\t") += score_param(term);
           copy_hit.removeMetaValue(term.id);
         }
         else if (st == "SEQUEST")
         {
           const auto& term = cv_.getTermByName("Sequest:xcorr");
-          (sii_tmp += "\t\t\t\t\t") += term.toXMLString(cv_ns, sc);
+          (sii_tmp += "\t\t\t\t\t") += score_param(term);
           copy_hit.removeMetaValue(term.id);
         }
         else if (st == "MS-GF+")
         {
           const auto& term = cv_.getTermByName("MS-GF:RawScore");
-          (sii_tmp += "\t\t\t\t\t") += term.toXMLString(cv_ns, sc);
+          (sii_tmp += "\t\t\t\t\t") += score_param(term);
           copy_hit.removeMetaValue(term.id);
         }
         else if (st == Constants::UserParam::OPENPEPXL_SCORE)
         {
           const auto& term = cv_.getTermByName(st);
-          (sii_tmp += "\t\t\t\t\t") += term.toXMLString(cv_ns, sc);
+          (sii_tmp += "\t\t\t\t\t") += score_param(term);
           copy_hit.removeMetaValue(term.id);
         }
         else
@@ -2087,7 +2114,7 @@ namespace OpenMS::Internal
           std::string score_name_placeholder = st.empty()?"PSM-level search engine specific statistic":st;
           sii_tmp +=std::string(5, '\t') + cv_.getTermByName("PSM-level search engine specific statistic").toXMLString(cv_ns);
           sii_tmp += "\n" + std::string(5, '\t') + "<userParam name=\"" + score_name_placeholder
-                       + "\" unitName=\"" + "xsd:double" + "\" value=\"" + sc + "\"/>";
+                       + "\" type=\"" + "xsd:double" + "\" value=\"" + sc + "\"/>";
           OPENMS_LOG_WARN << "Converting unknown score type to PSM-level search engine specific statistic from PSI controlled vocabulary.\n";
         }
         sii_tmp += "\n";
@@ -2608,6 +2635,8 @@ namespace OpenMS::Internal
         sc = "NA";
         OPENMS_LOG_WARN << "No score assigned to this PSM: " /*<< hit.getSequence().toString()*/ << '\n';
       }
+      // the cvParam of the score
+      auto score_param = [&](const ControlledVocabulary::CVTerm& term) { return term.toXMLString(cv_ns, cvValue_(term, hit.getScore(), sc)); };
       std::string c = StringUtils::toStr(hit.getCharge()); //charge
 
       std::string pte;
@@ -2664,31 +2693,31 @@ namespace OpenMS::Internal
       if (const auto* term = cv_.checkAndGetTermByName(st);
           term != nullptr && peptide_result_details_.contains(term->id))
       {
-        (sii_tmp += "\t\t\t\t\t") += term->toXMLString(cv_ns, sc);
+        (sii_tmp += "\t\t\t\t\t") += score_param(*term);
         copy_hit.removeMetaValue(term->id);
       }
       else if (cv_.exists(st) && peptide_result_details_.contains(st))
       {
         const auto& term = cv_.getTerm(st);
-        (sii_tmp += "\t\t\t\t\t") += term.toXMLString(cv_ns, sc);
+        (sii_tmp += "\t\t\t\t\t") += score_param(term);
         copy_hit.removeMetaValue(term.id);
       }
       else if (st == "q-value" || st == "FDR")
       {
         const auto& term = cv_.getTermByName("PSM-level q-value");
-        (sii_tmp += "\t\t\t\t\t") += term.toXMLString(cv_ns, sc);
+        (sii_tmp += "\t\t\t\t\t") += score_param(term);
         copy_hit.removeMetaValue(term.id);
       }
       else if (st == "Posterior Error Probability")
       {
         const auto& term = cv_.getTermByName("percolator:PEP"); // 'percolaror' was not a typo in the code but in the cv.
-        (sii_tmp += "\t\t\t\t\t") += term.toXMLString(cv_ns, sc);
+        (sii_tmp += "\t\t\t\t\t") += score_param(term);
         copy_hit.removeMetaValue(term.id);
       }
       else if (st == Constants::UserParam::OPENPEPXL_SCORE)
       {
         const auto& term = cv_.getTermByName(st);
-        (sii_tmp += "\t\t\t\t\t") += term.toXMLString(cv_ns, sc);
+        (sii_tmp += "\t\t\t\t\t") += score_param(term);
         copy_hit.removeMetaValue(term.id);
       }
       else
@@ -2696,7 +2725,7 @@ namespace OpenMS::Internal
         std::string score_name_placeholder = st.empty()?"PSM-level search engine specific statistic":st;
         sii_tmp +=std::string(5, '\t') + cv_.getTermByName("PSM-level search engine specific statistic").toXMLString(cv_ns);
         sii_tmp += "\n" + std::string(5, '\t') + "<userParam name=\"" + score_name_placeholder
-                     + "\" unitName=\"" + "xsd:double" + "\" value=\"" + sc + "\"/>";
+                     + "\" type=\"" + "xsd:double" + "\" value=\"" + sc + "\"/>";
         OPENMS_LOG_WARN << "Converting unknown score type to PSM-level search engine specific statistic from PSI controlled vocabulary.\n";
       }
       sii_tmp += "\n";

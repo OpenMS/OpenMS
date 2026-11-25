@@ -12,6 +12,7 @@
 ///////////////////////////
 
 #include <OpenMS/FORMAT/MzIdentMLFile.h>
+#include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/FORMAT/TextFile.h>
 #include <OpenMS/CONCEPT/FuzzyStringComparator.h>
@@ -127,6 +128,20 @@ static std::string readFile(const std::string& filename)
   std::stringstream buffer;
   buffer << in.rdbuf();
   return buffer.str();
+}
+
+// the first PeptideHit with the meta value @p key as @p value (the order of the runs in a written file follows their generated
+// ids, so a PSM is not always the first one after a round trip)
+static const PeptideHit* hitWith(const PeptideIdentificationList& ids, const std::string& key, const std::string& value)
+{
+  for (const PeptideIdentification& id : ids)
+  {
+    for (const PeptideHit& hit : id.getHits())
+    {
+      if (hit.metaValueExists(key) && hit.getMetaValue(key).toString() == value) return &hit;
+    }
+  }
+  return nullptr;
 }
 
 START_TEST(MzIdentMLFile, "$Id")
@@ -2168,6 +2183,177 @@ START_SECTION(([EXTRA] read PeptideEvidenceRefs: listed twice, or to the evidenc
   TEST_EQUAL(evidences_of["scan=2"], "P2 KG;") // no usable reference: the evidence of its peptide
   TEST_EQUAL(evidences_of["scan=3"], "P1 KA;")
   TEST_EQUAL(evidences_of["scan=4"], "P2 KA;")
+}
+END_SECTION
+
+START_SECTION(([EXTRA] store and load integer score terms, e.g. MS-GF:RawScore (issue #10980)))
+{
+  std::vector<ProteinIdentification> proteins;
+  PeptideIdentificationList peptides;
+  MzIdentMLFile().load(OPENMS_GET_TEST_DATA_PATH("MzIdentMLFile_msgf_mini.mzid"), proteins, peptides);
+  ABORT_IF(peptides.empty() || peptides[0].getHits().empty())
+  TEST_EQUAL(peptides[0].getScoreType(), "MS-GF:RawScore")
+  // another term with integer values, as a double (e.g. as PercolatorFeatureSetHelper sets missing values)
+  peptides[0].getHits()[0].setMetaValue("MS:1002050", 230.0);
+
+  std::string filename;
+  NEW_TMP_FILE_EXT(filename, ".mzid")
+  MzIdentMLFile().store(filename, proteins, peptides);
+  const std::string text = readFile(filename);
+  // the main score: MS-GF:RawScore has integer values, so no decimals
+  TEST_EQUAL(countOf(text, "name=\"MS-GF:RawScore\" value=\"195\""), 1)
+  TEST_EQUAL(countOf(text, "name=\"MS-GF:RawScore\" value=\"195.0\""), 0)
+  // ... nor for other values of terms with integer values
+  TEST_EQUAL(countOf(text, "name=\"MS-GF:DeNovoScore\" value=\"230\""), 1)
+  TEST_EQUAL(countOf(text, "name=\"MS-GF:DeNovoScore\" value=\"230.0\""), 0)
+  std::vector<ProteinIdentification> proteins2;
+  PeptideIdentificationList peptides2;
+  MzIdentMLFile().load(filename, proteins2, peptides2);
+  const PeptideHit* read_hit = hitWith(peptides2, "MS:1002050", "230");
+  ABORT_IF(read_hit == nullptr)
+  TEST_REAL_SIMILAR(read_hit->getScore(), 195)
+  TEST_EQUAL(read_hit->getMetaValue("MS:1002049").valueType(), DataValue::INT_VALUE)
+  TEST_EQUAL(int(read_hit->getMetaValue("MS:1002049")), 195)
+
+  // files written by older versions have decimals: read as the integer
+  std::string legacy = text;
+  StringUtils::substitute(legacy, "name=\"MS-GF:RawScore\" value=\"195\"", "name=\"MS-GF:RawScore\" value=\"195.0\"");
+  // a value that does not fit the type of its term is kept as it is, not as an empty value (which breaks writing idXML)
+  StringUtils::substitute(legacy, "name=\"MS-GF:DeNovoScore\" value=\"230\"", "name=\"MS-GF:DeNovoScore\" value=\"many\"");
+  // ... also one that would only be a whole number after a conversion to double
+  StringUtils::substitute(legacy, "name=\"MS-GF:DeNovoScore\" value=\"204\"", "name=\"MS-GF:DeNovoScore\" value=\"0.99999999999999999\"");
+  TEST_EQUAL(countOf(legacy, "value=\"195.0\""), 1)
+  TEST_EQUAL(countOf(legacy, "value=\"many\""), 1)
+  TEST_EQUAL(countOf(legacy, "value=\"0.99999999999999999\""), 1)
+  std::string legacy_file;
+  NEW_TMP_FILE_EXT(legacy_file, ".mzid")
+  std::ofstream(legacy_file) << legacy;
+  MzIdentMLFile().load(legacy_file, proteins2, peptides2);
+  ABORT_IF(hitWith(peptides2, "MS:1002050", "many") == nullptr)
+  const PeptideHit& hit = *hitWith(peptides2, "MS:1002050", "many");
+  TEST_REAL_SIMILAR(hit.getScore(), 195)
+  TEST_EQUAL(hit.getMetaValue("MS:1002049").valueType(), DataValue::INT_VALUE)
+  TEST_EQUAL(int(hit.getMetaValue("MS:1002049")), 195)
+  TEST_EQUAL(hit.getMetaValue("MS:1002050").valueType(), DataValue::STRING_VALUE)
+  TEST_EQUAL(hit.getMetaValue("MS:1002050").toString(), "many")
+  Size not_whole = 0;
+  for (const PeptideIdentification& id : peptides2)
+  {
+    for (const PeptideHit& other : id.getHits())
+    {
+      if (other.getMetaValue("MS:1002050", "").toString() == "0.99999999999999999")
+      {
+        ++not_whole;
+        TEST_EQUAL(other.getMetaValue("MS:1002050").valueType(), DataValue::STRING_VALUE)
+      }
+    }
+  }
+  TEST_EQUAL(not_whole, 1)
+  std::string idxml_file;
+  NEW_TMP_FILE_EXT(idxml_file, ".idXML")
+  IdXMLFile().store(idxml_file, proteins2, peptides2);
+  TEST_EQUAL(countOf(readFile(idxml_file), "name=\"MS:1002050\" value=\"many\""), 1)
+}
+END_SECTION
+
+START_SECTION(([EXTRA] store and load the value types of userParams (issue #10982)))
+{
+  std::vector<ProteinIdentification> proteins;
+  PeptideIdentificationList peptides;
+  MzIdentMLFile().load(OPENMS_GET_TEST_DATA_PATH("MzIdentMLFile_msgf_mini.mzid"), proteins, peptides);
+  ABORT_IF(peptides.empty() || peptides[0].getHits().empty())
+  PeptideHit& hit = peptides[0].getHits()[0];
+  hit.setMetaValue("an integer", 7);
+  hit.setMetaValue("a double", 0.25);
+  hit.setMetaValue("a string", "text");
+
+  std::string filename;
+  NEW_TMP_FILE_EXT(filename, ".mzid")
+  MzIdentMLFile().store(filename, proteins, peptides);
+  const std::string text = readFile(filename);
+  // the value type is the 'type' of a userParam; 'unitName' is the name of a unit
+  TEST_EQUAL(countOf(text, "<userParam name=\"an integer\" type=\"xsd:integer\" value=\"7\"/>"), 1)
+  TEST_EQUAL(countOf(text, "<userParam name=\"a double\" type=\"xsd:double\" value=\"0.25\"/>"), 1)
+  TEST_EQUAL(countOf(text, "<userParam name=\"a string\" type=\"xsd:string\" value=\"text\"/>"), 1)
+  TEST_EQUAL(countOf(text, "unitName=\"xsd:"), 0)
+
+  auto check_types = [](const std::string& file)
+  {
+    std::vector<ProteinIdentification> proteins2;
+    PeptideIdentificationList peptides2;
+    MzIdentMLFile().load(file, proteins2, peptides2);
+    const PeptideHit* found = hitWith(peptides2, "a string", "text");
+    TEST_EQUAL(found == nullptr, false)
+    if (found == nullptr) return; // ABORT_IF does not work in a lambda
+    const PeptideHit& hit2 = *found;
+    TEST_EQUAL(hit2.getMetaValue("an integer").valueType(), DataValue::INT_VALUE)
+    TEST_EQUAL(int(hit2.getMetaValue("an integer")), 7)
+    TEST_EQUAL(hit2.getMetaValue("a double").valueType(), DataValue::DOUBLE_VALUE)
+    TEST_REAL_SIMILAR(double(hit2.getMetaValue("a double")), 0.25)
+    TEST_EQUAL(hit2.getMetaValue("a string").valueType(), DataValue::STRING_VALUE)
+    TEST_EQUAL(hit2.getMetaValue("a string").toString(), "text")
+  };
+  check_types(filename);
+
+  // files written by older versions have the value type in 'unitName'
+  std::string legacy = text;
+  StringUtils::substitute(legacy, " type=\"xsd:", " unitName=\"xsd:");
+  TEST_EQUAL(countOf(legacy, "unitName=\"xsd:integer\" value=\"7\""), 1)
+  std::string legacy_file;
+  NEW_TMP_FILE_EXT(legacy_file, ".mzid")
+  std::ofstream(legacy_file) << legacy;
+  check_types(legacy_file);
+
+  // a value that does not fit its type is kept as a string (and the file still loads)
+  StringUtils::substitute(legacy, "unitName=\"xsd:integer\" value=\"7\"", "unitName=\"xsd:integer\" value=\"none\"");
+  TEST_EQUAL(countOf(legacy, "value=\"none\""), 1)
+  std::ofstream(legacy_file) << legacy;
+  std::vector<ProteinIdentification> proteins3;
+  PeptideIdentificationList peptides3;
+  MzIdentMLFile().load(legacy_file, proteins3, peptides3);
+  const PeptideHit* hit3 = hitWith(peptides3, "an integer", "none");
+  ABORT_IF(hit3 == nullptr)
+  TEST_EQUAL(hit3->getMetaValue("an integer").valueType(), DataValue::STRING_VALUE)
+  TEST_EQUAL(hit3->getMetaValue("a double").valueType(), DataValue::DOUBLE_VALUE)
+}
+END_SECTION
+
+START_SECTION(([EXTRA] XL-MS userParams: value types from type or unitName, optional values (issue #10982)))
+{
+  // the cross-linking test file was written by an older version: value types in unitName
+  std::string text = readFile(OPENMS_GET_TEST_DATA_PATH("MzIdentML_XLMS_unlabelled.mzid"));
+  TEST_EQUAL(countOf(text, "<userParam name=\"isotope_error\" unitName=\"xsd:integer\""), 4)
+  // a userParam may have no value
+  const Size prescores = countOf(text, "<userParam name=\"OpenPepXL:prescore\" unitName=\"xsd:double\"");
+  TEST_EQUAL(prescores > 0, true)
+  text = std::regex_replace(text, std::regex(R"(<userParam name="OpenPepXL:prescore" unitName="xsd:double" value="[^"]*"/>)"),
+                            R"(<userParam name="OpenPepXL:prescore" type="xsd:double"/>)");
+  TEST_EQUAL(countOf(text, "<userParam name=\"OpenPepXL:prescore\" type=\"xsd:double\"/>"), prescores)
+  // a value that does not fit its type is kept as a string
+  text = std::regex_replace(text, std::regex(R"(<userParam name="isotope_error" unitName="xsd:integer" value="[^"]*"/>)"),
+                            R"(<userParam name="isotope_error" type="xsd:integer" value="none"/>)");
+  TEST_EQUAL(countOf(text, "<userParam name=\"isotope_error\" type=\"xsd:integer\" value=\"none\"/>"), 4)
+  std::string filename;
+  NEW_TMP_FILE_EXT(filename, ".mzid")
+  std::ofstream(filename) << text;
+  std::vector<ProteinIdentification> proteins;
+  PeptideIdentificationList peptides;
+  MzIdentMLFile().load(filename, proteins, peptides);
+  Size xl_hits = 0;
+  for (const PeptideIdentification& id : peptides)
+  {
+    for (const PeptideHit& hit : id.getHits())
+    {
+      if (!hit.metaValueExists("OpenPepXL:prescore")) continue;
+      ++xl_hits;
+      TEST_EQUAL(hit.getMetaValue("isotope_error").valueType(), DataValue::STRING_VALUE)
+      TEST_EQUAL(hit.getMetaValue("isotope_error").toString(), "none")
+      TEST_EQUAL(hit.getMetaValue("matched_xlink_alpha").valueType(), DataValue::INT_VALUE) // unitName="xsd:integer"
+      TEST_EQUAL(hit.getMetaValue("OpenPepXL:prescore").valueType(), DataValue::STRING_VALUE)
+      TEST_EQUAL(hit.getMetaValue("OpenPepXL:prescore").toString(), "")
+    }
+  }
+  TEST_EQUAL(xl_hits > 0, true)
 }
 END_SECTION
 

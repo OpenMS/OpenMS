@@ -395,6 +395,45 @@ namespace OpenMS::Internal
       return s.empty() ? 0.0 : StringUtils::toDouble(s);
     }
 
+    // The value type of a userParam (e.g. "xsd:double"): its 'type' attribute. Files written by older OpenMS versions have it
+    // in 'unitName' instead.
+    std::string userParamType_(const std::string& type, const std::string& unit_name)
+    {
+      return type.empty() && StringUtils::hasPrefix(unit_name, "xsd:") ? unit_name : type;
+    }
+
+    // A value of a CV term with integer values that is written as a whole-number decimal (e.g. "102.0" for MS-GF:RawScore, as
+    // older OpenMS versions wrote the main PSM score) as an integer ("102"); any other value unchanged
+    std::string wholeNumberAsInteger_(const ControlledVocabulary::CVTerm& term, const std::string& value)
+    {
+      switch (term.xref_type)
+      {
+        case ControlledVocabulary::CVTerm::XRefType::XSD_INTEGER:
+        case ControlledVocabulary::CVTerm::XRefType::XSD_NEGATIVE_INTEGER:
+        case ControlledVocabulary::CVTerm::XRefType::XSD_POSITIVE_INTEGER:
+        case ControlledVocabulary::CVTerm::XRefType::XSD_NON_NEGATIVE_INTEGER:
+        case ControlledVocabulary::CVTerm::XRefType::XSD_NON_POSITIVE_INTEGER:
+        {
+          // only an integer followed by a point and zeros, judged by the text: as a double, e.g. "0.99999999999999999" would be 1
+          const std::string::size_type point = value.find('.');
+          if (point != std::string::npos && point > 0 && value.find_first_not_of('0', point + 1) == std::string::npos)
+          {
+            try
+            {
+              return StringUtils::toStr(StringUtils::toInt32(value.substr(0, point)));
+            }
+            catch (const Exception::ConversionError&)
+            {
+            }
+          }
+          break;
+        }
+        default:
+          break;
+      }
+      return value;
+    }
+
     // The numeric value of a cvParam/userParam value; false if it has none (e.g. a flag term, a non-numeric string or a
     // non-finite number). @p result is only changed on success.
     bool numericValue_(const DataValue& value, double& result)
@@ -1128,12 +1167,21 @@ namespace OpenMS::Internal
         std::string unitAcc = attribute_(param, "unitAccession");
         std::string unitName = attribute_(param, "unitName");
         std::string unitCvRef = attribute_(param, "unitCvRef");
-        std::string type = attribute_(param, "type");
+        std::string type = userParamType_(attribute_(param, "type"), unitName);
 
         DataValue dv = DataValue::EMPTY;
         if (has_value)
         {
-          dv = XMLHandler::fromXSDString(type, value);
+          try
+          {
+            dv = XMLHandler::fromXSDString(type, value);
+          }
+          catch (const Exception::ConversionError&) // does not fit its type: keep it as it is
+          {
+            OPENMS_LOG_WARN << "The value '" << value << "' of userParam '" << name << "' is not of type '" << type
+                            << "'. It is read as a string." << endl;
+            dv = DataValue(value);
+          }
         }
 
         // Add unit *after* creating the term
@@ -1993,7 +2041,7 @@ namespace OpenMS::Internal
       double wTIC = 0;
       vector< vector<std::string> > userParamNameLists;
       vector< vector<std::string> > userParamValueLists;
-      vector< vector<std::string> > userParamUnitLists;
+      vector< vector<std::string> > userParamTypeLists;
 
       for (std::multimap<std::string, int>::iterator it=range.first; it!=range.second; ++it)
       {
@@ -2066,7 +2114,7 @@ namespace OpenMS::Internal
         // userParams
         vector<std::string> userParamNames;
         vector<std::string> userParamValues;
-        vector<std::string> userParamUnits;
+        vector<std::string> userParamTypes;
 
         std::vector<MzIdentMLNode*> sii_up = descendants_(cl_sii, "userParam");
         const  Size up_count = sii_up.size();
@@ -2075,11 +2123,11 @@ namespace OpenMS::Internal
           MzIdentMLNode* element_sii_up = sii_up[i];
           userParamNames.push_back(attribute_(element_sii_up, "name"));
           userParamValues.push_back(attribute_(element_sii_up, "value"));
-          userParamUnits.push_back(attribute_(element_sii_up, "unitName"));
+          userParamTypes.push_back(userParamType_(attribute_(element_sii_up, "type"), attribute_(element_sii_up, "unitName")));
         }
         userParamNameLists.push_back(userParamNames);
         userParamValueLists.push_back(userParamValues);
-        userParamUnitLists.push_back(userParamUnits);
+        userParamTypeLists.push_back(userParamTypes);
 
         RTs.push_back(rt);
         if (!has_rt)
@@ -2403,11 +2451,24 @@ namespace OpenMS::Internal
 
       vector<std::string> userParamNames_alpha = userParamNameLists[alpha[0]];
       vector<std::string> userParamValues_alpha = userParamValueLists[alpha[0]];
-      vector<std::string> userParamUnits_alpha = userParamUnitLists[alpha[0]];
+      vector<std::string> userParamTypes_alpha = userParamTypeLists[alpha[0]];
 
       for (Size i = 0; i < userParamNames_alpha.size(); ++i)
       {
-        ph_alpha.setMetaValue(userParamNames_alpha[i], XMLHandler::fromXSDString(userParamUnits_alpha[i], userParamValues_alpha[i]));
+        // no value (it is optional): an empty string, not a number
+        const std::string type = userParamValues_alpha[i].empty() ? std::string() : userParamTypes_alpha[i];
+        DataValue value;
+        try
+        {
+          value = XMLHandler::fromXSDString(type, userParamValues_alpha[i]);
+        }
+        catch (const Exception::ConversionError&) // does not fit its type: keep it as it is
+        {
+          OPENMS_LOG_WARN << "The value '" << userParamValues_alpha[i] << "' of userParam '" << userParamNames_alpha[i]
+                          << "' is not of type '" << type << "'. It is read as a string." << std::endl;
+          value = userParamValues_alpha[i];
+        }
+        ph_alpha.setMetaValue(userParamNames_alpha[i], value);
       }
 
       ph_alpha.setPeakAnnotations(frag_annotations);
@@ -2716,7 +2777,17 @@ namespace OpenMS::Internal
             }
             else
             { // value may be empty, e.g. <cvParam accession="MS:1001363" name="peptide unique to one protein" cvRef="PSI-MS" />
-              auto value = xml_handler_->cvParamToValue(cv_, cv);
+              OpenMS::CVTerm term = cv;
+              const std::string raw = cv.getValue().valueType() == DataValue::STRING_VALUE ? cv.getValue().toString() : std::string();
+              if (!raw.empty() && cv_.exists(cvs.first))
+              {
+                term.setValue(wholeNumberAsInteger_(cv_.getTerm(cvs.first), raw));
+              }
+              DataValue value = xml_handler_->cvParamToValue(cv_, term);
+              if (value.isEmpty() && !raw.empty())
+              {
+                value = raw; // does not fit the value type of its term (see the warning): keep it as it is
+              }
               hit.setMetaValue(cvs.first, value);
             }
           }
