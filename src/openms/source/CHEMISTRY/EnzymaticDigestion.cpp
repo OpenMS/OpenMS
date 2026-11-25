@@ -345,7 +345,11 @@ namespace OpenMS
     {
       if (sequence.size() >= min_length && sequence.size() <= max_length)
       {
-        output.emplace_back(0, sequence.size() - 1);
+        // (start, length) convention, as in the loop below — NOT (start, end). sequence.size() - 1
+        // would underflow to SIZE_MAX for an empty sequence (count == 0 is only reachable at all
+        // when 'sequence' is empty; see the string_view overload's "no cleavage sites" case, which
+        // correctly pushes the (zero-length) sequence itself rather than size() - 1).
+        output.emplace_back(0, sequence.size());
       }
       return wrong_size;
     }
@@ -474,7 +478,17 @@ namespace OpenMS
     }
 
     // Sequence too short to yield any peptides — also guards against unsigned underflow below.
-    if (sequence.size() < min_length)
+    // An empty sequence needs an explicit check of its own: tokenize_() returns zero cleavage
+    // positions only for an empty input, and without this check that would only be caught by
+    // "sequence.size() < min_length" above when min_length >= 1. For min_length == 0 (a valid,
+    // user-settable value: FragmentIndex's 'peptide:min_size' only enforces >= 0) that guard does not
+    // fire (0 < 0 is false), and the special-cased "no cleavage site" branches further down are not
+    // safe with zero positions: digestAfterTokenize_()'s count==0 case computes sequence.size() - 1,
+    // which underflows to SIZE_MAX for an empty sequence (callers such as FragmentIndex then build an
+    // unbounded std::string_view straight from that length), and SPEC_SEMI's call into
+    // semiSpecificDigestion_() throws "Too few cleavage positions" once it is reached with an empty
+    // sequence, which is UB if it happens inside an OpenMP parallel region.
+    if (sequence.empty() || sequence.size() < min_length)
     {
       return 0;
     }
@@ -534,7 +548,13 @@ namespace OpenMS
     // Sequence too short to yield any peptides — also guards against unsigned underflow below.
     // Important for immunopeptidomics-style non-specific digestion of FASTA files that contain
     // very short entries (signal peptides, fragments, ORF stubs).
-    if (sequence.size() < min_length)
+    // An empty sequence needs an explicit check of its own (see the std::string_view overload above
+    // for the full explanation): for min_length == 0, "sequence.size() < min_length" does not fire,
+    // and the count==0 branch of digestAfterTokenize_() below then underflows sequence.size() - 1 to
+    // SIZE_MAX (callers such as FragmentIndex build an unbounded std::string_view straight from that
+    // length), while SPEC_SEMI's call into semiSpecificDigestion_() throws "Too few cleavage
+    // positions" for the empty sequence, which is UB if it happens inside an OpenMP parallel region.
+    if (sequence.empty() || sequence.size() < min_length)
     {
       return 0;
     }
