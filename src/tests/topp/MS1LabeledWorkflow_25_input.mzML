@@ -12078,7 +12078,7 @@
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</spectrum>
-			<spectrum id="scan=483" index="482" defaultArrayLength="0">
+			<spectrum id="scan=483" index="482" defaultArrayLength="1">
 				<cvParam cvRef="MS" accession="MS:1000127" name="centroid spectrum" />
 				<cvParam cvRef="MS" accession="MS:1000511" name="ms level" value="1" />
 				<cvParam cvRef="MS" accession="MS:1000294" name="mass spectrum" />
@@ -12089,17 +12089,17 @@
 					</scan>
 				</scanList>
 				<binaryDataArrayList count="2">
-					<binaryDataArray encodedLength="0">
+					<binaryDataArray encodedLength="12">
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
 						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-						<binary></binary>
+						<binary>Wp5b8UdSgkA=</binary>
 					</binaryDataArray>
-					<binaryDataArray encodedLength="0">
+					<binaryDataArray encodedLength="8">
 						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
 						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS" />
-						<binary></binary>
+						<binary>AHwSSQ==</binary>
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</spectrum>

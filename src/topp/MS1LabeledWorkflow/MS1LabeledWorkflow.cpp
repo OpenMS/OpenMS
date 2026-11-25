@@ -193,8 +193,8 @@ the modifications implied by @p labels and refuses to run if they are missing (u
      multiplet, so they only add ratios and never change one that is reported without them (see <b>Ratios</b> below),
      and one whose other channel is not quantifiable is left out of the abundances. They take no part in the alignment, and
      they are linked among themselves only, after the detected multiplets, so that alignment, linking and match between runs
-     stay as they are without them. One exception, with @p match_between_runs: a targeted feature replaces the unidentified
-     multiplet kept for match between runs whose peaks entered one of its values, so that run gets the targeted value instead of the one
+     stay as they are without them. One exception, with @p match_between_runs: a targeted feature that gives a ratio
+     replaces the unidentified multiplet kept for match between runs whose peaks entered one of its values, so that run gets the targeted value instead of the one
      that linking would have given the multiplet (and that value no longer enters the run's normalization factors).
      Multiplets without identification are dropped,
      unless @p match_between_runs is set (see below). Once the resolver has used the labels, every identification
@@ -422,7 +422,7 @@ protected:
       "not show its isotope pattern in at least two spectra paired with the identified channel). The identified channel has to show its first two isotopes\n"
       "in at least three spectra and an isotope pattern that fits the peptide ('algorithm:averagine_similarity'); where no identification of the peptide\n"
       "gives a peak that way, two spectra suffice, but then a channel without a peak is not quantifiable instead of absent, and every other channel is\n"
-      "not quantifiable if the identified one has peaks in fewer than three spectra (co-elution cannot be told). A lower channel's isotope in a\n"
+      "not quantifiable if the identified one has signal (10 % of its height or more) in fewer than three spectra. A lower channel's isotope in a\n"
       "channel's peak (unresolved: the same centroid, e.g. the light M+4 in a Dimethyl4 or Lys4 channel) is subtracted, estimated from that channel's\n"
       "monoisotopic peak; a channel whose peaks are mostly (half or more) such isotopes is not quantifiable. Such features and their identifications\n"
       "carry the meta value 'quantification_method' = 'targeted'. Peptides quantified by a multiplet in the run, identifications on a channel of\n"
@@ -432,8 +432,8 @@ protected:
       "give (see 'ratios:min_ratio_count') does not change, and a feature whose other channel is not quantifiable is left out of the abundances.\n"
       "They take no part in the alignment and are linked among themselves only. The number of targeted ratios behind every peptide and protein\n"
       "group ratio is reported ('MS1Label:peptide_ratio_targeted_count', 'fraction_group_level_ratio_targeted_count', QPX 'ratio_targeted_count').\n"
-      "Exception with 'match_between_runs': a targeted feature replaces the unidentified multiplet kept for match between runs whose peaks\n"
-      "entered one of its values, so that run gets the targeted value instead of the one linking would have given that multiplet.\n"
+      "Exception with 'match_between_runs': a targeted feature that gives a ratio replaces the unidentified multiplet kept for match between\n"
+      "runs whose peaks entered one of its values, so that run gets the targeted value instead of the one linking would have given that multiplet.\n"
       "false: such identifications are kept for protein inference only.", false);
     setValidStrings_("targeted_quantification", {"true", "false"});
 
@@ -2020,10 +2020,14 @@ protected:
   /// Spectra in which the identified channel needs its first two isotopes for a targeted feature; an identification that gets no
   /// feature that way, and lies in no feature of another identification of its peptide, needs them in min_pattern_spectra_
   static constexpr Size min_targeted_reference_spectra_ = 3;
-  /// Spectra of the elution peak in which the identified channel has a peak, for another channel's co-elution with it to be tested:
-  /// over two, the correlation is +/-1, and with the empty spectra the smoothed elution peak adds around them it barely depends on the
-  /// channel's course
+  /// Spectra of the elution peak in which the identified channel has signal (coelution_height_fraction_), for another channel's
+  /// co-elution with it to be tested: over two, the correlation is +/-1, and with empty spectra or low peaks around them it barely
+  /// depends on the channel's course
   static constexpr Size min_coelution_spectra_ = 3;
+  /// A spectrum counts towards min_coelution_spectra_ if the identified channel's isotope-summed profile there is at least this
+  /// fraction of its maximum, i.e. within the elution peak's width at 10 % of its height (where chromatography measures a peak's
+  /// asymmetry): a low peak next to two spectra of signal does not count
+  static constexpr double coelution_height_fraction_ = 0.1;
   /// A channel's peak is left out (the identified channel's: its intensity is not reported) if isotopes of other channels are expected to
   /// make up at least this fraction of it, i.e. if no more of it is left than is subtracted
   static constexpr double targeted_other_isotope_fraction_ = 0.5;
@@ -2271,7 +2275,9 @@ protected:
       return summed;
     };
     const vector<double> reference_profile = profile(own_peaks);
-    const Size reference_spectra = static_cast<Size>(std::count_if(reference_profile.begin(), reference_profile.end(), [](double v) { return v > 0.0; }));
+    const double reference_height = *std::max_element(reference_profile.begin(), reference_profile.end());
+    const Size reference_spectra = static_cast<Size>(std::count_if(reference_profile.begin(), reference_profile.end(), [&](double v)
+                                                                   { return v > 0.0 && v >= coelution_height_fraction_ * reference_height; }));
     peak.intensities.assign(n_channels, 0.0);
     peak.few_reference_spectra = min_reference_spectra < min_targeted_reference_spectra_;
     // not quantifiable itself if its peaks are mostly another channel's isotope (as another channel's would be left out)
@@ -2304,15 +2310,17 @@ protected:
     }
     peak.rt_lo = rts[first];
     peak.rt_hi = rts[last];
-    // the owners of the reserved peaks that entered a reported intensity (the reference, if any channel is reported, or a channel
-    // measured from paired peaks)
-    const bool reported = std::any_of(peak.intensities.begin(), peak.intensities.end(), [](double v) { return v > 0.0; });
+    // the owners of the reserved peaks that entered a reported intensity (the reference, or a channel measured from paired peaks), if
+    // the feature gives a ratio (two channels with a value, one of them > 0): one that does not gives neither a ratio nor an abundance
+    // (withholdIncompleteTargeted_), so it replaces no multiplet
+    const bool gives_ratio = std::count_if(peak.intensities.begin(), peak.intensities.end(), [](double v) { return !std::isnan(v); }) >= 2
+                             && std::any_of(peak.intensities.begin(), peak.intensities.end(), [](double v) { return v > 0.0; });
     for (const ReadOwner& read : read_owners)
     {
       const Size i = read.spectrum;
-      if (i >= first && i <= last && read.owner != UniqueIdInterface::INVALID && reference[read.isotope][i] > 0.0
+      if (gives_ratio && i >= first && i <= last && read.owner != UniqueIdInterface::INVALID && reference[read.isotope][i] > 0.0
           && (read.channel == own ? own_peaks : intensity[read.channel])[read.isotope][i] > 0.0
-          && (read.channel == own ? reported : peak.intensities[read.channel] > 0.0))
+          && (read.channel == own || peak.intensities[read.channel] > 0.0))
       {
         peak.owners.push_back(read.owner);
       }
@@ -2371,9 +2379,9 @@ protected:
     taken for that channel): its peaks are then used as measured, and its own intensity is not quantifiable. Every other channel
     is measured against it from paired peaks (pairedIntensity_), and reported if its peaks show its isotope pattern paired with the
     reference in at least min_pattern_spectra_ spectra (first two isotopes, no strong peak one isotope below, as for the
-    reference) and it co-elutes (Pearson of the isotope-summed profiles >= 'algorithm:peptide_similarity', with peaks of the
-    identified channel in at least min_coelution_spectra_ spectra of the elution peak, which a reference of two spectra may not
-    have). Otherwise it is
+    reference) and it co-elutes (Pearson of the isotope-summed profiles >= 'algorithm:peptide_similarity', with the identified
+    channel's profile at coelution_height_fraction_ of its maximum or more in at least min_coelution_spectra_ spectra of the
+    elution peak, which a reference of two spectra may not have). Otherwise it is
     absent (0) only if none of its isotopic peaks read (M+0 to M+2) is seen within the boundaries; it is not quantifiable (left
     out) if its peaks there do not form its isotope pattern, or if something else, or a peak left out above, is at any of them.
 
@@ -2387,7 +2395,8 @@ protected:
     m/z: the lightest channel's), onto which every identification of the peptide within the peak is moved, with the map index of
     its own channel. The feature and these identifications are marked with the meta value 'quantification_method' = 'targeted'
     (only the identifications' survives linking). An unidentified multiplet kept for match between runs whose reserved peaks
-    entered a feature's intensities is that feature's signal and is removed, so that linking cannot quantify it a second time.
+    entered the intensities of a feature that gives a ratio is that feature's signal and is removed, so that linking cannot
+    quantify it a second time.
   */
   void quantifyTargeted_(ConsensusMap& resolved, const ConsensusMap& multiplets, const FeatureMap& channels, const MultiplexResolverAlgorithm& resolver,
                          const MSExperiment& centroided, const MSExperiment& blacklist, const MultiplexResolverAlgorithm::OwnerPeptides* peptides) const

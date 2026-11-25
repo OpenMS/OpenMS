@@ -6080,9 +6080,11 @@ set_tests_properties("TOPP_MS1LabeledWorkflow_23_out1" PROPERTIES DEPENDS "TOPP_
 #   GSAEVTLDFK 1:1:1 in the two spectra at 700 and 701 s only (none other within 'algorithm:rt_typical'), apex at 700.3 s: the light
 #     is measured from two spectra (second pass); medium and heavy are not quantifiable, since the correlation of two spectra is 1
 #     whatever their course (accepted at 1:1:1 without the three-spectra condition on co-elution).
-#   NEFLGSVDYK 1:1:1, all its peaks in the two spectra at 580 and 581 s only, amid spectra every second: as GSAEVTLDFK (light
-#     L 9.88e6, medium and heavy not quantifiable), although the smoothed elution peak spans more spectra than the two with signal
-#     (accepted at 1:1:1 if the condition counts the spectra of the elution peak instead of those with the identified channel's peaks).
+#   NEFLGSVDYK 1:1:1, all its peaks in the two spectra at 580 and 581 s only, amid spectra every second, plus one low peak (4 % of
+#     the apex) at the light M0 at 582 s: as GSAEVTLDFK (light L 9.88e6, medium and heavy not quantifiable), although the smoothed
+#     elution peak spans more spectra than the two with signal and a third one holds a peak of the light (accepted at 1:1:1 if the
+#     condition counts the spectra of the elution peak, or those with any peak of the identified channel, instead of those where it
+#     reaches 10 % of its height).
 add_test("TOPP_MS1LabeledWorkflow_25" ${TOPP_BIN_PATH}/MS1LabeledWorkflow -test
   -in ${DATA_DIR_TOPP}/MS1LabeledWorkflow_25_input.mzML
   -ids ${DATA_DIR_TOPP}/MS1LabeledWorkflow_25.idXML

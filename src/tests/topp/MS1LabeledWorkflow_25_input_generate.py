@@ -16,7 +16,8 @@ intensity-weighted m/z), others are not recorded. Peaks below 'FLOOR' are not re
   ADLTVEFGNK 1:0:6, the light weak as above, the heavy strong; identified in the light as ADLTVEFGNK (better score) and in the heavy
     as its isomer DALTVEFGNK, one signal.
   NEFLGSVDYK 1:1:1, eluting so narrowly (sigma 0.5 s, apex 580.3 s) that all its peaks are above the floor in the two spectra at 580
-    and 581 s only, amid spectra every second; identified in the light at 580.5 s.
+    and 581 s only, amid spectra every second, plus one low peak (at the floor, 4 % of its summed isotopes at 580 s) at the light M0
+    at 582 s; identified in the light at 580.5 s.
   GSAEVTLDFK 1:1:1, in the two spectra at 700 and 701 s only (no other spectrum within 'algorithm:rt_typical', 40 s), apex at
     700.3 s, identified in the light at 700.5 s.
 The isotope distributions are computed from the elemental formulas, as CoarseIsotopePatternGenerator does.
@@ -51,6 +52,8 @@ PEPTIDES = [("SVEDLAFGNYQGEDVTALFEK", "A", 130.0, 5.0, 1.0e8),
             ("GSAEVTLDFK", 1.0, 700.3, 3.0, 1.0e7)]
 # medium and heavy amounts where they are not 1 (relative to the light : medium unit)
 AMOUNTS = {"SAGLDFVEEK": (0.0, 0.0), "ADLTVEFGNK": (0.0, 6.0)}
+# single low peaks at a peptide's light M0, no envelope: (RT, sequence, intensity)
+STRAY_PEAKS = [(582.0, "NEFLGSVDYK", FLOOR)]
 SPECTRUM_RTS = list(range(100, 661)) + [700, 701]
 # identifications: (sequence, RT, labelled channel shift, PEP)
 IDS = [("SVEDLAFGNYQGEDVTALFEK", 130.0, 0.0, "1.0e-03"), ("TALFEQLSVEDLAFGNYQGDK", 230.0, 0.0, "1.0e-03"),
@@ -164,6 +167,7 @@ def peaks_at(rt):
                     nearest[0] = (nearest[0] * nearest[1] + position * added) / (nearest[1] + added)
                     nearest[1] += added
         peaks += [(p[0], round(p[1])) for p in recorded if p[1] >= FLOOR]
+    peaks += [(mz(sequence), round(intensity)) for stray_rt, sequence, intensity in STRAY_PEAKS if stray_rt == rt]
     return sorted(peaks)
 
 
