@@ -287,6 +287,8 @@ private:
       std::map<std::string, std::string> pv_p_map_; ///< mapping PeptideEvidence id -> Peptide id
       std::map<std::string, DBSequence> db_sq_map_; ///< mapping DBSequence id -> Sequence
       std::unordered_map<Size, std::unordered_set<std::string>> protein_accessions_of_run_; ///< mapping run index in pro_id_ -> accessions of its protein hits
+      Size psms_with_foreign_evidence_ = 0; ///< PSMs with PeptideEvidenceRefs to the evidence of a peptide with another sequence (ignored)
+      Size psms_with_missing_evidence_ = 0; ///< PSMs with PeptideEvidenceRefs to a PeptideEvidence that is not in the file (ignored)
 
       std::list<std::list<std::string> > hit_pev_; ///< writing help only
 

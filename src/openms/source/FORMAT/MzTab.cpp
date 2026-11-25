@@ -23,6 +23,7 @@
 #include <OpenMS/FORMAT/FileHandler.h>
 
 #include <algorithm>
+#include <cctype>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/METADATA/PeptideIdentificationList.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
@@ -130,21 +131,40 @@ namespace OpenMS
     }
     else
     {
-      if (!StringUtils::hasSubstring(lower, "-")) // no positions? simply use s as mod identifier
+      std::string ss = s;
+      StringUtils::trim(ss);
+
+      // Position info, when present, is a digit (optionally a '|'-separated
+      // list, each with an optional bracketed parameter) immediately before
+      // the first '-' that sits outside any bracketed parameter and outside
+      // quotes. A CHEMMOD identifier's own mass can be negative, and a
+      // bracketed parameter can itself contain a '-' (scientific notation
+      // such as "5e-03", or a quoted value), so neither alone marks the
+      // split point -- only a digit right at the start of the string does,
+      // and the split itself must skip over any "[...]" and quoted text.
+      Size dash_pos = std::string::npos;
+      int depth = 0;
+      bool in_quotes = false;
+      for (Size i = 0; i < ss.size(); ++i)
       {
-        mod_identifier_.fromCellString(StringUtils::trimmed(s));
+        const char c = ss[i];
+        if (c == '"') { in_quotes = !in_quotes; }
+        else if (in_quotes) { continue; }
+        else if (c == '[') { ++depth; }
+        else if (c == ']') { --depth; }
+        else if (c == '-' && depth == 0) { dash_pos = i; break; }
+      }
+      bool has_position = dash_pos != std::string::npos && dash_pos > 0
+        && std::isdigit(static_cast<unsigned char>(ss[0]));
+
+      if (!has_position) // no positions? simply use s as mod identifier
+      {
+        mod_identifier_.fromCellString(ss);
       }
       else
       {
-        std::string ss = s;
-        StringUtils::trim(ss);
-        std::vector<std::string> fields;
-        StringUtils::split(ss, "-", fields);
+        std::vector<std::string> fields{ss.substr(0, dash_pos), ss.substr(dash_pos + 1)};
 
-        if (fields.size() != 2)
-        {
-          throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,std::string("Can't convert to MzTabModification from '") + s);
-        }
         mod_identifier_.fromCellString(StringUtils::trim(fields[1]));
 
         std::vector<std::string> position_fields;
