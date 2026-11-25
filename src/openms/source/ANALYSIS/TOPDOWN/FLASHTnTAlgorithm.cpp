@@ -797,6 +797,65 @@ Size FLASHTnTAlgorithm::blindModCount_(const ProteinHit& hit)
   return hit.getMetaValue("Modifications").toDoubleList().size();
 }
 
+int FLASHTnTAlgorithm::precursorGroup_(const ProteinHit& hit)
+{
+  // The group in which a decoy precursor competes and counts (precursor_FDR): 0 without a blind modification, 1 when every blind shift is a
+  // common modification (within 0.02 Da + 2 ppm of the proteoform mass), 2 otherwise. A wrong MS1 mass is absorbed by a blind shift of any
+  // value, so most decoy precursor PrSMs fall into group 2; a proteoform whose shift is a common modification is then not ranked against
+  // them (Eclip_1480: of 110 proteoforms whose shift was a common modification, 42 passed 1% without decoy precursors but not with them in
+  // one blind group, and one lost to a decoy precursor directly).
+  static const double common[] = {
+    42.010565,  // acetyl
+    14.015650,  // methyl
+    28.031300,  // dimethyl
+    42.046950,  // trimethyl
+    15.994915,  // oxidation
+    31.989829,  // dioxidation
+    79.966331,  // phospho
+    27.994915,  // formyl
+    0.984016,   // deamidation
+    -0.984016,  // amidation
+    43.005814,  // carbamyl
+    100.016044, // succinyl
+    188.032956, // lipoyl
+    226.077598, // biotin
+    238.229666, // palmitoyl
+    119.004099, // cysteinyl
+    305.068156, // glutathione
+    44.985078,  // nitro
+    -2.015650,  // disulfide
+    -18.010565, // dehydration
+    -17.026549, // ammonia loss
+    21.981943,  // sodium adduct
+    37.955882,  // potassium adduct
+    37.946941,  // calcium adduct
+    162.052824, // hexose
+    229.014009, // pyridoxal phosphate
+    340.085794, // phosphopantetheine
+    43.989829,  // carboxylation
+    68.026215,  // crotonyl
+    86.000394,  // malonyl
+    56.026215,  // propionyl
+    70.041865,  // butyryl
+    114.042927, // GlyGly
+    79.956815,  // sulfation
+    52.911464,  // iron adduct
+  };
+  if (blindModCount_(hit) == 0) return 0;
+  const auto masses = hit.getMetaValue("Modifications").toDoubleList();
+  std::vector<int> variable;
+  if (hit.metaValueExists("ModificationVariable")) variable = hit.getMetaValue("ModificationVariable").toIntList();
+  const double mass = std::max(0.0, (double)hit.getMetaValue("Mass", -1.0));
+  const double tol = 0.02 + 2e-6 * mass;
+  for (Size i = 0; i < masses.size(); i++)
+  {
+    if (i < variable.size() && variable[i] != 0) continue; // variable or fixed
+    const bool known = std::any_of(std::begin(common), std::end(common), [&](double c) { return std::abs(masses[i] - c) <= tol; });
+    if (! known) return 2;
+  }
+  return 1;
+}
+
 bool FLASHTnTAlgorithm::areConsistent_(const ProteinHit& a, const ProteinHit& b, double tol)
 {
   // Two PrSMs of one protein are counted as one proteoform when
@@ -3048,21 +3107,22 @@ void FLASHTnTAlgorithm::run(const MSExperiment& map, const std::vector<FASTAFile
         const auto proteoform_qvalues_no_dp = with_dp ? targetDecoyQvalues(ranked_no_dp, group_pseudo) : proteoform_qvalues;
         // and by blind group, as in the competition: a proteoform with an MS1 mass and no blind modification counts only the decoy
         // precursors without one, one with a blind modification only those with one (the targets and the database decoys as they are)
-        const auto blindGroup = [this, &clusters, &order](Size k) { return blindModCount_(proteoform_hits_[clusters[order[k]][0]]) > 0 ? 1 : 0; };
-        std::array<std::vector<RankedItem<double>>, 2> ranked_dp;
-        std::array<std::vector<Size>, 2> dp_pos {std::vector<Size>(order.size(), (Size)-1), std::vector<Size>(order.size(), (Size)-1)};
+        const auto blindGroup = [this, &clusters, &order](Size k) { return precursorGroup_(proteoform_hits_[clusters[order[k]][0]]); };
+        std::array<std::vector<RankedItem<double>>, 3> ranked_dp;
+        std::array<std::vector<Size>, 3> dp_pos {std::vector<Size>(order.size(), (Size)-1), std::vector<Size>(order.size(), (Size)-1),
+                                                 std::vector<Size>(order.size(), (Size)-1)};
         for (Size k = 0; with_dp && k < order.size(); k++)
         {
           const bool dp = no_dp_pos[k] == (Size)-1;
-          for (int g = 0; g < 2; g++)
+          for (int g = 0; g < 3; g++)
           {
             if (dp && blindGroup(k) != g) continue;
             dp_pos[g][k] = ranked_dp[g].size();
             ranked_dp[g].push_back(ranked[k]);
           }
         }
-        std::array<std::vector<double>, 2> proteoform_qvalues_dp;
-        for (int g = 0; with_dp && g < 2; g++) proteoform_qvalues_dp[g] = targetDecoyQvalues(ranked_dp[g], group_pseudo);
+        std::array<std::vector<double>, 3> proteoform_qvalues_dp;
+        for (int g = 0; with_dp && g < 3; g++) proteoform_qvalues_dp[g] = targetDecoyQvalues(ranked_dp[g], group_pseudo);
         auto& counts = class_counts[c];
         counts = {0, 0, 0};
         for (Size k = 0; k < order.size(); k++)
@@ -3601,8 +3661,8 @@ void FLASHTnTAlgorithm::run(const MSExperiment& map, const std::vector<FASTAFile
         // those without a blind modification matched their unmodified sequence mass within 10 ppm in 88-92% and were found in another lysate
         // in 58-72%, the ones with a blind modification in 22-31%).
         int decoy_wins = 0, decoy_tries = 0, decoy_by_fragments = 0;
-        std::array<int, 2> group_wins {0, 0}; // by blind group
-        const auto blindGroup = [](const ProteinHit& h) { return blindModCount_(h) > 0 ? 1 : 0; };
+        std::array<int, 3> group_wins {0, 0, 0}; // by precursor group (no blind modification, common ones, others)
+        const auto blindGroup = [](const ProteinHit& h) { return precursorGroup_(h); };
         for (int d : todo)
         {
           if (decoy_proteoforms[d].empty()) continue;
@@ -3616,14 +3676,14 @@ void FLASHTnTAlgorithm::run(const MSExperiment& map, const std::vector<FASTAFile
           else if (decoy_qscore >= 0) by_precursor = decoy_qscore > dspecs[d].getPrecursorPeakGroup().getQscore2D() ? 1 : 0;
           else decoy_by_fragments++;
           if (by_precursor == 0) continue;
-          std::array<double, 2> best_decoy {-1e10, -1e10};
+          std::array<double, 3> best_decoy {-1e10, -1e10, -1e10};
           for (const auto& h : decoy_proteoforms[d])
           {
             auto& best = best_decoy[blindGroup(h)];
             best = std::max(best, h.getScore());
           }
-          std::array<bool, 2> wins {false, false};
-          for (int g = 0; g < 2; g++)
+          std::array<bool, 3> wins {false, false, false};
+          for (int g = 0; g < 3; g++)
           {
             if (best_decoy[g] == -1e10) continue; // no decoy PrSM of the group
             if (by_precursor < 0)
@@ -3638,7 +3698,7 @@ void FLASHTnTAlgorithm::run(const MSExperiment& map, const std::vector<FASTAFile
             wins[g] = true;
             group_wins[g]++;
           }
-          if (! wins[0] && ! wins[1]) continue;
+          if (! wins[0] && ! wins[1] && ! wins[2]) continue;
           decoy_wins++;
           std::vector<ProteinHit> kept;
           for (auto& h : spec_proteoforms[d])
@@ -3654,7 +3714,7 @@ void FLASHTnTAlgorithm::run(const MSExperiment& map, const std::vector<FASTAFile
         }
         OPENMS_LOG_INFO << "Decoy precursors: " << copies << " spectra with an MS1-based PrSM and an MS1 decoy mass (" << without_decoy
                         << " without one); the decoy spectrum gave a PrSM with the decoy mass in " << decoy_tries << ", the decoy precursor wins in "
-                        << decoy_wins << " (against PrSMs without a blind modification in " << group_wins[0] << ", with one in " << group_wins[1] << ")"
+                        << decoy_wins << " (against PrSMs without a blind modification in " << group_wins[0] << ", with common ones in " << group_wins[1] << ", with others in " << group_wins[2] << ")"
                         << (decoy_by_fragments > 0 ? " (" + StringUtils::toStr(decoy_by_fragments) + " decided on the fragments: no decoy precursor score in the input)" : std::string(""))
                         << std::endl;
       }

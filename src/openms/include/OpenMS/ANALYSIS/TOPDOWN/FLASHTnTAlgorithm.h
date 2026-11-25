@@ -253,6 +253,8 @@ private:
   static bool areConsistent_(const ProteinHit& a, const ProteinHit& b, double tol) ;
   /// number of blind modifications of a proteoform hit (variable modifications excluded)
   static Size blindModCount_(const ProteinHit& hit);
+  /// precursor_FDR: the group of a PrSM for the decoy precursors (0: no blind modification, 1: common ones only, 2: others)
+  static int precursorGroup_(const ProteinHit& hit);
   /// Groups the PrSMs of each protein into proteoforms (areConsistent_ with the representative) and marks the representatives
   /// (meta values Index, Representative, PrSMIndices). With @p by_qvalue, only PrSMs in an FDR class (@p hit_class >= 0) take part, and a
   /// determined PrSM with PrSM q-value (@p qvalues) <= @p rep_q, then the lowest q-value, comes first as representative; otherwise every
