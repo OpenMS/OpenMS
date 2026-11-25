@@ -193,8 +193,8 @@ the modifications implied by @p labels and refuses to run if they are missing (u
      multiplet, so they only add ratios and never change one that is reported without them (see <b>Ratios</b> below),
      and one whose other channel is not quantifiable is left out of the abundances. They take no part in the alignment, and
      they are linked among themselves only, after the detected multiplets, so that alignment, linking and match between runs
-     stay as they are without them. One exception, with @p match_between_runs: a targeted feature that gives a ratio
-     replaces the unidentified multiplet kept for match between runs whose peaks entered one of its values, so that run gets the targeted value instead of the one
+     stay as they are without them. One exception, with @p match_between_runs: a targeted feature that gives a ratio or
+     abundances replaces the unidentified multiplet kept for match between runs whose peaks entered one of its values, so that run gets the targeted value instead of the one
      that linking would have given the multiplet (and that value no longer enters the run's normalization factors).
      Multiplets without identification are dropped,
      unless @p match_between_runs is set (see below). Once the resolver has used the labels, every identification
@@ -432,8 +432,8 @@ protected:
       "give (see 'ratios:min_ratio_count') does not change, and a feature whose other channel is not quantifiable is left out of the abundances.\n"
       "They take no part in the alignment and are linked among themselves only. The number of targeted ratios behind every peptide and protein\n"
       "group ratio is reported ('MS1Label:peptide_ratio_targeted_count', 'fraction_group_level_ratio_targeted_count', QPX 'ratio_targeted_count').\n"
-      "Exception with 'match_between_runs': a targeted feature that gives a ratio replaces the unidentified multiplet kept for match between\n"
-      "runs whose peaks entered one of its values, so that run gets the targeted value instead of the one linking would have given that multiplet.\n"
+      "Exception with 'match_between_runs': a targeted feature that gives a ratio or abundances replaces the unidentified multiplet kept for\n"
+      "match between runs whose peaks entered one of its values, so that run gets the targeted value instead of the one linking would have given that multiplet.\n"
       "false: such identifications are kept for protein inference only.", false);
     setValidStrings_("targeted_quantification", {"true", "false"});
 
@@ -2311,14 +2311,18 @@ protected:
     peak.rt_lo = rts[first];
     peak.rt_hi = rts[last];
     // the owners of the reserved peaks that entered a reported intensity (the reference, or a channel measured from paired peaks), if
-    // the feature gives a ratio (two channels with a value, one of them > 0): one that does not gives neither a ratio nor an abundance
-    // (withholdIncompleteTargeted_), so it replaces no multiplet
-    const bool gives_ratio = std::count_if(peak.intensities.begin(), peak.intensities.end(), [](double v) { return !std::isnan(v); }) >= 2
-                             && std::any_of(peak.intensities.begin(), peak.intensities.end(), [](double v) { return v > 0.0; });
+    // the feature contributes a ratio (its '-ratios:reference_channel' channel and another one > 0, see MS1LabeledRatioQuantifier) or
+    // abundances (every channel with a value, see withholdIncompleteTargeted_): one that contributes neither replaces no multiplet
+    const Size ratio_reference = static_cast<Size>(static_cast<int>(getParam_().getValue("ratios:reference_channel"))) - 1;
+    const auto positive = [](double v) { return v > 0.0; };
+    const bool gives_ratio = ratio_reference < n_channels && peak.intensities[ratio_reference] > 0.0
+                             && std::count_if(peak.intensities.begin(), peak.intensities.end(), positive) >= 2;
+    const bool gives_abundances = std::none_of(peak.intensities.begin(), peak.intensities.end(), [](double v) { return std::isnan(v); })
+                                  && std::any_of(peak.intensities.begin(), peak.intensities.end(), positive);
     for (const ReadOwner& read : read_owners)
     {
       const Size i = read.spectrum;
-      if (gives_ratio && i >= first && i <= last && read.owner != UniqueIdInterface::INVALID && reference[read.isotope][i] > 0.0
+      if ((gives_ratio || gives_abundances) && i >= first && i <= last && read.owner != UniqueIdInterface::INVALID && reference[read.isotope][i] > 0.0
           && (read.channel == own ? own_peaks : intensity[read.channel])[read.isotope][i] > 0.0
           && (read.channel == own || peak.intensities[read.channel] > 0.0))
       {
@@ -2395,7 +2399,7 @@ protected:
     m/z: the lightest channel's), onto which every identification of the peptide within the peak is moved, with the map index of
     its own channel. The feature and these identifications are marked with the meta value 'quantification_method' = 'targeted'
     (only the identifications' survives linking). An unidentified multiplet kept for match between runs whose reserved peaks
-    entered the intensities of a feature that gives a ratio is that feature's signal and is removed, so that linking cannot
+    entered the intensities of a feature that gives a ratio or abundances is that feature's signal and is removed, so that linking cannot
     quantify it a second time.
   */
   void quantifyTargeted_(ConsensusMap& resolved, const ConsensusMap& multiplets, const FeatureMap& channels, const MultiplexResolverAlgorithm& resolver,
