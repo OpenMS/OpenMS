@@ -271,7 +271,7 @@ namespace OpenMS
     defaults_.setValue("enable_RT_filtering", "true", "Require sufficient overlap in RT while assembling mass traces. Disable for direct injection data..");
     defaults_.setValidStrings("enable_RT_filtering", {"false","true"});
 
-    defaults_.setValue("isotope_rt_overlap_reference", "longer", "Reference trace the RT overlap is measured against when scoring two co-eluting mass traces (only used if 'enable_RT_filtering' is enabled): 'longer' measures the overlap against the longer trace (default, historic behavior); 'shorter' measures it against the shorter trace and additionally requires the apex of the longer trace to fall within the RT range of the shorter trace. Since low-intensity isotope traces are usually much shorter than the monoisotopic trace, 'shorter' better groups them (see issue #4483).", {"advanced"});
+    defaults_.setValue("isotope_rt_overlap_reference", "shorter", "Reference trace the RT overlap is measured against when scoring two co-eluting mass traces (only used if 'enable_RT_filtering' is enabled): 'shorter' (default) measures the overlap against the shorter trace and additionally requires the apex of the longer trace to fall within the RT range of the shorter trace. Low-intensity isotope traces are usually much shorter than the monoisotopic trace, so this groups them more reliably (see issues #1942 and #4483). 'longer' measures the overlap against the longer trace (historic behavior, as described in Kenar et al.).", {"advanced"});
     defaults_.setValidStrings("isotope_rt_overlap_reference", {"longer", "shorter"});
     defaults_.setValue("min_isotope_rt_overlap", 0.7, "Minimum fraction of the reference trace (see 'isotope_rt_overlap_reference') in RT (within FWHM) that must overlap the other trace so the two are scored as isotopes. Only used if 'enable_RT_filtering' is enabled.", {"advanced"});
     defaults_.setMinFloat("min_isotope_rt_overlap", 0.0);
@@ -279,6 +279,14 @@ namespace OpenMS
 
     defaults_.setValue("isotope_filtering_model", "metabolites (5% RMS)", "Remove/score candidate assemblies based on isotope intensities. SVM isotope models for metabolites were trained with either 2% or 5% RMS error. For peptides, an averagine cosine scoring is used. Select the appropriate noise model according to the quality of measurement or MS device.");
     defaults_.setValidStrings("isotope_filtering_model", {"metabolites (2% RMS)","metabolites (5% RMS)","peptides","none"});
+
+    defaults_.setValue("isotope_filtering_missing_traces", "unknown", "How isotope traces that were not detected enter the metabolite isotope filtering models (the models expect the monoisotopic and the first three isotopic traces; ignored for 'peptides' and 'none'): 'unknown' (default) regards the intensity of a missing trace as unknown but not higher than the weakest detected trace of the candidate assembly, and accepts the assembly if the model accepts any such intensity. 'zero' sets the intensity of a missing trace to zero (historic behavior). This rejects correct assemblies of larger molecules whose higher isotopic traces fall below the detection limit (see issue #1942).", {"advanced"});
+    defaults_.setValidStrings("isotope_filtering_missing_traces", {"unknown", "zero"});
+
+    defaults_.setValue("mz_scoring_trace_uncertainty", "standard_error", "Uncertainty of the m/z of a mass trace in the m/z score of two traces: 'standard_error' (default) is the standard error of the intensity-weighted mean m/z of the trace (the spread of its peaks divided by the square root of their effective number), combined with 'mz_scoring_min_ppm'. 'spread' is the intensity-weighted spread of the peaks of the trace (historic behavior). The spread does not shrink with the number of peaks, so it lets pairs with a wrong isotope spacing pass on data of lower mass accuracy (e.g. QTOF data with a low noise threshold).", {"advanced"});
+    defaults_.setValidStrings("mz_scoring_trace_uncertainty", {"standard_error", "spread"});
+    defaults_.setValue("mz_scoring_min_ppm", 2.0, "Minimum m/z uncertainty of a mass trace in ppm, combined (in quadrature) with the standard error of its m/z. It covers errors the spread of the peaks does not show, e.g. of the calibration across the m/z range. Only used if 'mz_scoring_trace_uncertainty' is 'standard_error'.", {"advanced"});
+    defaults_.setMinFloat("mz_scoring_min_ppm", 0.0);
 
     defaults_.setValue("mz_scoring_13C", "false", "Use the 13C isotope peak position (~1.003355 Da) as the expected shift in m/z for isotope mass traces (highly recommended for lipidomics!). Disable for general metabolites (as described in Kenar et al. 2014, MCP.).");
     defaults_.setValidStrings("mz_scoring_13C", {"false","true"});
@@ -327,6 +335,7 @@ namespace OpenMS
     isotope_rt_overlap_use_shorter_ = (param_.getValue("isotope_rt_overlap_reference") == "shorter");
     
     isotope_filtering_model_ = param_.getValue("isotope_filtering_model").toString();
+    isotope_filter_missing_unknown_ = (param_.getValue("isotope_filtering_missing_traces") == "unknown");
     use_smoothed_intensities_ = param_.getValue("use_smoothed_intensities").toBool();
     bool use_smoothed = param_.getValue("use_smoothed_intensities").toBool();
     bool report_smoothed = param_.getValue("report_smoothed_intensities").toBool();
@@ -337,6 +346,8 @@ namespace OpenMS
     use_smoothed_intensities_ = use_smoothed;
     report_smoothed_intensities_ = report_smoothed;
 
+    mz_scoring_trace_se_ = (param_.getValue("mz_scoring_trace_uncertainty") == "standard_error");
+    mz_scoring_min_ppm_ = (double)param_.getValue("mz_scoring_min_ppm");
     use_mz_scoring_C13_ = param_.getValue("mz_scoring_13C").toBool();
     report_convex_hulls_ = param_.getValue("report_convex_hulls").toBool();
     report_chromatograms_ = param_.getValue("report_chromatograms").toBool();
@@ -408,11 +419,9 @@ namespace OpenMS
 
     double mono_int(all_ints[0]); // monoisotopic intensity
 
-    // Dense, scaled feature vector for the SVM: index 0 is the mass, indexes 1..3
-    // are the (scaled) intensity ratios of the first three isotopic traces to the
-    // monoisotopic trace. Absent traces contribute a scaled ratio of 0.
+    // The SVM works on four features: the mass and the intensity ratios of the
+    // first three isotopic traces to the monoisotopic trace.
     const Size FEAT_NUM(4);
-    std::vector<double> features(FEAT_NUM);
 
     double act_mass(feat_hypo.getCentroidMZ() * feat_hypo.getCharge());
 
@@ -422,38 +431,86 @@ namespace OpenMS
       act_mass = 1000.0;
     }
 
+    // number of isotopic traces (without the monoisotopic one) the model looks at
+    const Size iso_num(std::min(feat_hypo.getSize(), FEAT_NUM) - 1);
+
+    // ratios of the isotopic traces to the monoisotopic trace; missing traces are zero
+    std::vector<double> ratios(FEAT_NUM - 1, 0.0);
+    for (Size i = 0; i < iso_num; ++i)
+    {
+      ratios[i] = all_ints[i + 1] / mono_int;
+    }
+
+    // Scale the mass and the given ratios and let the SVM model predict the
+    // category in which the trace group belongs.
+    std::vector<double> features(FEAT_NUM);
     features[0] = (act_mass - svm_feat_centers_[0]) / svm_feat_scales_[0];
-
-    // Iterate, start with first isotopic trace (skip monoisotopic)
-    Size i = 2;
-
-    Size feat_size(feat_hypo.getSize());
-
-    if (feat_size > FEAT_NUM)
+    auto is_legal = [&](const std::vector<double>& iso_ratios)
     {
-      feat_size = FEAT_NUM;
+      for (Size i = 1; i < FEAT_NUM; ++i)
+      {
+        features[i] = (iso_ratios[i - 1] - svm_feat_centers_[i]) / svm_feat_scales_[i];
+      }
+      return isotope_filt_svm_->predict(features) == 2.0;
+    };
+
+    if (is_legal(ratios))
+    {
+      return 1;
     }
 
-    for (; i - 1 < feat_size; ++i)
+    if (!isotope_filter_missing_unknown_ || iso_num == FEAT_NUM - 1)
     {
-      // compute ratio of trace to monoisotopic intensity
-      double ratio((all_ints[i - 1] / mono_int));
-
-      features[i - 1] = (ratio - svm_feat_centers_[i - 1]) / svm_feat_scales_[i - 1];
+      return 0;
     }
 
-    for (; i < FEAT_NUM + 1; ++i)
+    // The model was trained on complete patterns, so a zero for a trace that was
+    // merely not detected looks like an impossible pattern for larger molecules,
+    // whose second and third isotopic traces are not negligible. A missing trace
+    // has an unknown intensity that cannot exceed the one of the weakest trace
+    // that was detected (otherwise it would have been detected as well): accept
+    // the pattern if the model accepts any such intensity.
+    double max_missing_ratio(1.0); // ratio of the monoisotopic trace to itself
+    for (Size i = 0; i < iso_num; ++i)
     {
-      features[i - 1] = (-svm_feat_centers_[i - 1]) / svm_feat_scales_[i - 1];
+      max_missing_ratio = std::min(max_missing_ratio, ratios[i]);
+    }
+    if (max_missing_ratio <= 0.0) // a detected trace without intensity: nothing to try
+    {
+      return 0;
     }
 
-    // Use SVM model to predict the category in which the current trace group
-    // belongs ...
-    double predict = isotope_filt_svm_->predict(features);
+    const Size GRID_STEPS(8);
+    const double step(max_missing_ratio / GRID_STEPS);
+    if (iso_num == FEAT_NUM - 2) // only the third isotopic trace is missing
+    {
+      for (Size k = 1; k <= GRID_STEPS; ++k)
+      {
+        ratios[2] = k * step;
+        if (is_legal(ratios))
+        {
+          return 1;
+        }
+      }
+    }
+    else // the second and the third isotopic trace are missing
+    {
+      for (Size k = 1; k <= GRID_STEPS; ++k)
+      {
+        ratios[1] = k * step;
+        // the third isotopic trace: from absent up to as intense as the second one
+        for (Size l = 0; l <= k; ++l)
+        {
+          ratios[2] = l * step;
+          if (is_legal(ratios))
+          {
+            return 1;
+          }
+        }
+      }
+    }
 
-    // std::cout << "predict: " << predict << '\n';
-
-    return (predict == 2.0) ? 1 : 0;
+    return 0;
   }
 
   void FeatureFindingMetabo::loadIsotopeModel_(const std::string& model_name)
@@ -501,7 +558,34 @@ namespace OpenMS
     }
   }
 
-  double FeatureFindingMetabo::scoreMZ_(const MassTrace& tr1, const MassTrace& tr2, Size iso_pos, Size charge, Range isotope_window) const
+  double FeatureFindingMetabo::traceMZVariance_(const MassTrace& mt) const
+  {
+    // historic: spread of the peaks (exp/log form kept so results stay identical)
+    double spread_variance(std::exp(2 * std::log(mt.getCentroidSD())));
+    if (!mz_scoring_trace_se_)
+    {
+      return spread_variance;
+    }
+
+    // The centroid m/z is the intensity-weighted mean of the peaks, so its variance is the
+    // variance of the peaks divided by their effective number (sum w)^2 / sum w^2.
+    double sum_w(0.0), sum_w2(0.0);
+    for (const auto& p : mt)
+    {
+      const double w(p.getIntensity());
+      sum_w += w;
+      sum_w2 += w * w;
+    }
+    double variance(spread_variance);
+    if (sum_w > 0.0)
+    {
+      variance *= sum_w2 / (sum_w * sum_w);
+    }
+    const double min_sd(mz_scoring_min_ppm_ * 1e-6 * mt.getCentroidMZ());
+    return variance + min_sd * min_sd;
+  }
+
+  double FeatureFindingMetabo::scoreMZ_(const MassTrace& tr1, const MassTrace& tr2, double mt_variances, Size iso_pos, Size charge, Range isotope_window) const
   {
 
     double mz1(tr1.getCentroidMZ());
@@ -509,14 +593,6 @@ namespace OpenMS
 
     // double centered_mz(std::fabs(mz2 - mz1) - mu);
     double diff_mz(std::fabs(mz2 - mz1));
-
-    double mt_sigma1(tr1.getCentroidSD());
-    double mt_sigma2(tr2.getCentroidSD());
-    // double mt_variances1(mt_sigma1*mt_sigma1 + mt_sigma2*mt_sigma2);
-    double mt_variances(std::exp(2 * std::log(mt_sigma1)) + std::exp(2 * std::log(mt_sigma2)));
-    // std::cout << "mt1: " << mt_sigma1 << " mt2: " << mt_sigma2 << " mt_variances: " << mt_variances << " old " << mt_variances1 <<  std::endl;
-
-    // double score_sigma_old(std::sqrt(sd*sd + mt_variances));
 
     double mz_score(0.0);
 
@@ -756,7 +832,7 @@ namespace OpenMS
   }
 
 
-  void FeatureFindingMetabo::findLocalFeatures_(const std::vector<const MassTrace*>& candidates, const double total_intensity, std::vector<FeatureHypothesis>& output_hypotheses) const
+  void FeatureFindingMetabo::findLocalFeatures_(const std::vector<const MassTrace*>& candidates, const std::vector<double>& mz_variances, const double total_intensity, std::vector<FeatureHypothesis>& output_hypotheses) const
   {
     // single Mass trace hypothesis
     FeatureHypothesis tmp_hypo;
@@ -804,7 +880,7 @@ namespace OpenMS
 
           // Score current mass trace candidates against hypothesis
           double rt_score(scoreRT_(*candidates[0], *candidates[mt_idx]));
-          double mz_score(scoreMZ_(*candidates[0], *candidates[mt_idx], iso_pos, charge, isotope_window));
+          double mz_score(scoreMZ_(*candidates[0], *candidates[mt_idx], mz_variances[0] + mz_variances[mt_idx], iso_pos, charge, isotope_window));
 
           // disable intensity scoring for now...
           double int_score(1.0);
@@ -914,6 +990,13 @@ namespace OpenMS
       total_intensity += input_mtraces[i].getIntensity(use_smoothed_intensities_);
     }
 
+    // m/z uncertainty (variance) of each trace for the m/z score, in the order of input_mtraces
+    std::vector<double> trace_mz_variances(input_mtraces.size());
+    for (Size i = 0; i < input_mtraces.size(); ++i)
+    {
+      trace_mz_variances[i] = traceMZVariance_(input_mtraces[i]);
+    }
+
     // *********************************************************** //
     // Step 2 Iterate through all mass traces to find likely matches 
     // and generate isotopic / charge hypotheses
@@ -933,10 +1016,12 @@ namespace OpenMS
       ++progress;
 
       std::vector<const MassTrace*> local_traces;
+      std::vector<double> local_mz_variances;
       double ref_trace_mz(input_mtraces[i].getCentroidMZ());
       double ref_trace_rt(input_mtraces[i].getCentroidRT());
 
       local_traces.push_back(&input_mtraces[i]);
+      local_mz_variances.push_back(trace_mz_variances[i]);
 
       for (Size ext_idx = i + 1; ext_idx < input_mtraces.size(); ++ext_idx)
       {
@@ -951,9 +1036,10 @@ namespace OpenMS
             && (!has_im_data_ || std::fabs(input_mtraces[ext_idx].getCentroidIM() - input_mtraces[i].getCentroidIM()) <= local_im_range_))
         {
           local_traces.push_back(&input_mtraces[ext_idx]);
+          local_mz_variances.push_back(trace_mz_variances[ext_idx]);
         }
       }
-      findLocalFeatures_(local_traces, total_intensity, feat_hypos);
+      findLocalFeatures_(local_traces, local_mz_variances, total_intensity, feat_hypos);
     }
     this->endProgress();
 

@@ -1,0 +1,4 @@
+# Protein abundances computed from file 'ProteinQuantifier_34_input.consensusXML'
+# Parameters (relevant only): method=top, top:N=5, top:aggregate=sum
+# Runs per fraction group: fgroup1: 'TMTTenPlexMethod_test'
+"protein"	"n_proteins"	"protein_score"	"n_peptides"	"abundance_fgroup1_label1"	"abundance_fgroup1_label2"	"abundance_fgroup1_label3"	"abundance_fgroup1_label4"	"abundance_fgroup1_label5"	"abundance_fgroup1_label6"	"abundance_fgroup1_label7"	"abundance_fgroup1_label8"	"abundance_fgroup1_label9"	"abundance_fgroup1_label10"

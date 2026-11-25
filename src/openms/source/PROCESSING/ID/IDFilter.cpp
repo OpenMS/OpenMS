@@ -6,10 +6,14 @@
 // $Authors: Nico Pfeifer, Mathias Walzer, Hendrik Weisser $
 // --------------------------------------------------------------------------
 
+#include <OpenMS/ANALYSIS/ID/Scores.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
+#include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/CONCEPT/Exception.h>
+#include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <OpenMS/PROCESSING/ID/IDFilter.h>
+#include <algorithm>
 #include <regex>
 #include <cmath>
 
@@ -477,6 +481,51 @@ namespace OpenMS
     };
 
     grps.erase(std::remove_if(grps.begin(), grps.end(), pred), grps.end());
+  }
+
+  void IDFilter::recordGroupScoreThreshold(ProteinIdentification& protein_id, double threshold_score, bool keep_stricter)
+  {
+    double cutoff = threshold_score;
+    if (keep_stricter && protein_id.metaValueExists(Constants::UserParam::PROTEIN_GROUP_SCORE_THRESHOLD) &&
+        Scores::isSameScoreType(protein_id.getMetaValue(Constants::UserParam::PROTEIN_GROUP_SCORE_THRESHOLD_TYPE, "").toString(),
+                                protein_id.getScoreType()))
+    {
+      // groups have been filtered with a cutoff on this score type before: the stricter cutoff applies
+      const DataValue& previous = protein_id.getMetaValue(Constants::UserParam::PROTEIN_GROUP_SCORE_THRESHOLD);
+      double previous_cutoff = 0.0;
+      bool numeric = previous.valueType() == DataValue::DOUBLE_VALUE || previous.valueType() == DataValue::INT_VALUE;
+      if (numeric)
+      {
+        previous_cutoff = previous;
+      }
+      else if (previous.valueType() == DataValue::STRING_VALUE) // e.g. read from a file without the type
+      {
+        try
+        {
+          previous_cutoff = StringUtils::toDouble(StringUtils::trimmed(previous.toString()));
+          numeric = true;
+        }
+        catch (const Exception::ConversionError&)
+        {
+        }
+      }
+      if (numeric && std::isfinite(previous_cutoff))
+      {
+        cutoff = protein_id.isHigherScoreBetter() ? std::max(cutoff, previous_cutoff) : std::min(cutoff, previous_cutoff);
+      }
+      else
+      {
+        OPENMS_LOG_WARN << "Ignoring the non-numeric previous protein group score cutoff '" << previous.toString() << "'." << std::endl;
+      }
+    }
+    protein_id.setMetaValue(Constants::UserParam::PROTEIN_GROUP_SCORE_THRESHOLD, cutoff);
+    protein_id.setMetaValue(Constants::UserParam::PROTEIN_GROUP_SCORE_THRESHOLD_TYPE, protein_id.getScoreType());
+  }
+
+  void IDFilter::removeGroupScoreThreshold(ProteinIdentification& protein_id)
+  {
+    protein_id.removeMetaValue(Constants::UserParam::PROTEIN_GROUP_SCORE_THRESHOLD);
+    protein_id.removeMetaValue(Constants::UserParam::PROTEIN_GROUP_SCORE_THRESHOLD_TYPE);
   }
 
   void IDFilter::filterPeptidesByLength(PeptideIdentificationList& peptides, Size min_length, Size max_length)

@@ -17,6 +17,7 @@ set(sources_list
   MzDataHandler.cpp
   MzIdentMLHandler.cpp
   MzIdentMLDOMHandler.cpp
+  MzIdentMLProteinDetection.cpp
   MzMLHandler.cpp
   MzMLHandlerHelper.cpp
   MzMLSpectrumDecoder.cpp

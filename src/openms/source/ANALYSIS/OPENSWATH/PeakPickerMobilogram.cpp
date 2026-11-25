@@ -45,7 +45,7 @@ namespace OpenMS
         defaults_.setValidStrings("remove_overlapping_peaks", {"false","true"});
 
         defaults_.setValue("method", "corrected", "Which method to choose for mobilogram peak-picking (OpenSWATH legacy on raw data, corrected picking on smoothed mobilogram).");
-        defaults_.setValidStrings("method", {"legacy","corrected","crawdad"});
+        defaults_.setValidStrings("method", {"legacy","corrected"});
 
         // write defaults into Param object param_
         defaultsToParam_();

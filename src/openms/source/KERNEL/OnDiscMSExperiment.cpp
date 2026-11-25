@@ -9,6 +9,7 @@
 #include <OpenMS/KERNEL/OnDiscMSExperiment.h>
 
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/IONMOBILITY/IMTypes.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 
 namespace OpenMS
@@ -58,6 +59,18 @@ namespace OpenMS
       {
         throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
             "Spectrum meta data (RT, MS level, precursors) is not available: the file was opened with skipMetaData.");
+      }
+    }
+
+    /// Sets the IM peak type of a spectrum whose meta data and binary arrays are both read, as a full load does
+    /// (MzMLHandler): the meta data load decodes no arrays, so it cannot see an ion mobility array. A spectrum
+    /// with one is IM_PROFILE, unless the file declares its type (MS:1003441, ion mobility centroid frame),
+    /// which the meta data carries.
+    void setDefaultIMPeakType(MSSpectrum& spectrum)
+    {
+      if (spectrum.containsIMData() && spectrum.getIMPeakType() == IMPeakType::UNKNOWN)
+      {
+        spectrum.setIMPeakType(IMPeakType::IM_PROFILE);
       }
     }
   } // namespace
@@ -173,6 +186,7 @@ namespace OpenMS
 
     MSSpectrum spec = getMetaSpectrumById_(id);
     indexed_mzml_file_.getMSSpectrumByNativeId(id, spec);
+    setDefaultIMPeakType(spec);
     return spec;
   }
 
@@ -214,6 +228,7 @@ namespace OpenMS
 
       // Spectrum passes metadata filters, load peak data
       indexed_mzml_file_.getMSSpectrumById(int(id), spectrum);
+      setDefaultIMPeakType(spectrum);
     }
     else
     {

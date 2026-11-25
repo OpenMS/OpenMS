@@ -181,6 +181,7 @@ public:
   using ProSEAlgorithm::residualSpectrum_;
   using ProSEAlgorithm::transferSample_;
   using ProSEAlgorithm::tdcQValues_;
+  using ProSEAlgorithm::CandidatePoolStats_;
   using ProSEAlgorithm::collectRunStatistics_;
   using ProSEAlgorithm::measuredCoverage_;
 };
@@ -3952,6 +3953,98 @@ START_SECTION(([EXTRA] MzRecalibration_::fit models the error per RT chunk, the 
   TEST_EQUAL(std::fabs(linear.uncorrect(linear.correct(300.0, 0.0), 0.0) - 300.0) < 1e-9, true)
   TEST_EQUAL(std::fabs(da.uncorrect(da.correct(500.0, 1.0), 1.0) - 500.0) < 1e-9, true)
 
+  // Chunks whose calibration PSMs are mostly false matches take the model of their neighbours (OpenMS/OpenMS#10885):
+  // eight chunks of 60 points; in the first five 45 correct points near 0.2 ppm and 15 false ones spread over the
+  // +/- 20 ppm of the calibration pass, 5 of them decoy hits; in the last three 6 correct points and 54 false ones
+  // between +5 and +20 ppm (as PEG late in a run, matched to targets and decoys alike), 20 of them decoy hits
+  {
+    vector<double> e8, mz8, rt8;
+    vector<char> d8;
+    for (Size c = 0; c < 8; ++c)
+    {
+      const Size correct = c < 5 ? 45 : 6, decoys = c < 5 ? 5 : 20;
+      for (Size i = 0; i < 60; ++i)
+      {
+        const double u = std::fmod(0.6180339887 * static_cast<double>(60 * c + i + 1), 1.0); // spread over [0, 1)
+        e8.push_back(i < correct ? 0.2 + 0.5 * std::sin(static_cast<double>(i)) : (c < 5 ? -20.0 + 40.0 * u : 5.0 + 15.0 * u));
+        mz8.push_back(400.0 + 37.0 * static_cast<double>((7 * i) % 11));
+        rt8.push_back(static_cast<double>(60 * c + i));
+        d8.push_back(i >= 60 - decoys ? 1 : 0);
+      }
+    }
+    // without the decoys: the median of a chunk of false matches is theirs
+    const Model plain = Model::fit(e8, mz8, rt8, 8, 50, false, true);
+    for (Size c = 5; c < 8; ++c) { TEST_EQUAL(plain.chunks[c].intercept > 5.0, true) }
+    for (const bool lin : {false, true})
+    {
+      const Model m = Model::fit(e8, mz8, rt8, 8, 50, lin, true, &d8);
+      TEST_EQUAL(m.chunks.size(), 8)
+      for (Size c = 0; c < 8; ++c)
+      {
+        TEST_EQUAL(m.chunks[c].decoys, c < 5 ? 5 : 20)
+        TEST_EQUAL(m.chunks[c].from_neighbours, c >= 5)
+        TEST_EQUAL(std::fabs(m.chunks[c].intercept + m.chunks[c].slope * 550.0 - 0.2) < 1.0, true)
+      }
+      for (Size c = 5; c < 8; ++c) // at the end of the run: the model of the last chunk before them
+      {
+        TEST_REAL_SIMILAR(m.chunks[c].intercept, m.chunks[4].intercept)
+        TEST_REAL_SIMILAR(m.chunks[c].slope, m.chunks[4].slope)
+      }
+      TEST_EQUAL(m.toString().find(", 20 decoys: mostly false matches)") != std::string::npos, true)
+    }
+    // the same flags without such a chunk change nothing
+    const vector<char> few(d8.size(), 0);
+    const Model same = Model::fit(e8, mz8, rt8, 8, 50, false, true, &few);
+    for (Size c = 0; c < 8; ++c) { TEST_EQUAL(same.chunks[c].intercept, plain.chunks[c].intercept) }
+    TEST_EQUAL(same.toString(), plain.toString())
+  }
+
+  // ... while a drift of the instrument, of correct PSMs, is followed: -18 ppm in the last of ten chunks, 1 decoy hit
+  // among its 60 points; and a chunk inside the run takes the model interpolated between its neighbours at its RT
+  {
+    vector<double> ed, mzd, rtd;
+    vector<char> dd;
+    for (Size c = 0; c < 10; ++c)
+    {
+      for (Size i = 0; i < 60; ++i)
+      {
+        const bool false_match = c == 4 && i < 40; // chunk 4: 40 false matches at +12 ppm, 16 of them decoys
+        ed.push_back(c == 9 ? -18.0 + 0.5 * std::sin(static_cast<double>(i))
+                            : (false_match ? 12.0 : 0.1 * static_cast<double>(c)) + 0.3 * std::sin(static_cast<double>(i)));
+        mzd.push_back(500.0);
+        rtd.push_back(static_cast<double>(60 * c + i));
+        dd.push_back((c == 9 && i == 7) || (false_match && i % 5 < 2) ? 1 : 0);
+      }
+    }
+    const Model d = Model::fit(ed, mzd, rtd, 10, 50, false, true, &dd);
+    TEST_EQUAL(d.chunks.size(), 10)
+    TEST_EQUAL(d.chunks[9].from_neighbours, false)
+    TEST_EQUAL(d.chunks[9].decoys, 1)
+    TEST_EQUAL(std::fabs(d.chunks[9].intercept + 18.0) < 1.0, true)
+    TEST_EQUAL(d.chunks[4].from_neighbours, true)
+    TEST_EQUAL(d.chunks[4].decoys, 16)
+    const double w = (d.chunks[4].rt - d.chunks[3].rt) / (d.chunks[5].rt - d.chunks[3].rt);
+    TEST_REAL_SIMILAR(d.chunks[4].intercept, (1.0 - w) * d.chunks[3].intercept + w * d.chunks[5].intercept)
+    TEST_EQUAL(std::fabs(d.chunks[4].intercept - 0.4) < 0.3, true)
+  }
+
+  // every chunk mostly false matches: the median of all points, one offset for the run
+  {
+    const vector<double> e{1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0}, x(8, 500.0), t{1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0};
+    const vector<char> all_decoys{1, 0, 1, 0, 1, 0, 1, 0};
+    const Model a = Model::fit(e, x, t, 2, 4, true, true, &all_decoys);
+    TEST_EQUAL(a.chunks.size(), 2)
+    for (const auto& chunk : a.chunks)
+    {
+      TEST_EQUAL(chunk.from_neighbours, true)
+      TEST_REAL_SIMILAR(chunk.intercept, 4.5)
+      TEST_EQUAL(chunk.slope, 0.0)
+    }
+    // flags that do not match the points: inactive
+    const vector<char> short_flags(3, 0);
+    TEST_EQUAL(Model::fit(e, x, t, 2, 4, false, true, &short_flags).active(), false)
+  }
+
   // nothing to fit: inactive
   const Model none = Model::fit({}, {}, {}, 1, 1, true, true);
   TEST_EQUAL(none.active(), false)
@@ -4795,6 +4888,95 @@ START_SECTION(([EXTRA] peptidoform deduplication preserves protein evidence and 
       TEST_TRUE(file.peptide_ids[0].getHits() == reference)
     }
   }
+}
+END_SECTION
+
+START_SECTION(([EXTRA] every hit gets its own delta score and z-score, not those of the best hit of its spectrum))
+{
+  // The z-score of any score against the pool; zScore() is that of the best one. Pool 9, 6, 3: mean 6, population
+  // SD sqrt(6).
+  ProSEAlgorithm_test::CandidatePoolStats_ stats;
+  for (double score : {6.0, 9.0, 3.0}) stats.add(score);
+  TEST_REAL_SIMILAR(stats.zScore(), 3.0 / std::sqrt(6.0))
+  TEST_EQUAL(stats.zScore(), stats.zScore(stats.best))
+  TEST_EQUAL(stats.zScore(6.0), 0.0)
+  TEST_REAL_SIMILAR(stats.zScore(3.0), -3.0 / std::sqrt(6.0))
+  // fewer than two candidates, or all of them scored the same: 0 for every score
+  ProSEAlgorithm_test::CandidatePoolStats_ single;
+  single.add(5.0);
+  TEST_EQUAL(single.zScore(5.0), 0.0)
+  ProSEAlgorithm_test::CandidatePoolStats_ flat;
+  flat.add(5.0);
+  flat.add(5.0);
+  TEST_EQUAL(flat.zScore(5.0), 0.0)
+
+  // Three peptides of the same mass compete for one spectrum of the first; all three are reported (report:top_hits).
+  // The pool holds exactly these three candidates (decoys 'ignore'), so its statistics follow from their scores.
+  const AASequence peptide = AASequence::fromString("THQPSANLDIK");
+  const vector<FASTAFile::FASTAEntry> db = {{"P1", "", peptide.toString()}, {"P2", "", "THQPSALNDIK"},
+                                            {"P3", "", "THQPSADNLIK"}};
+  MSSpectrum spectrum;
+  TheoreticalSpectrumGenerator().getSpectrum(spectrum, peptide, 1, 1);
+  spectrum.setMSLevel(2);
+  spectrum.setNativeID("scan=1");
+  Precursor precursor;
+  precursor.setMZ(peptide.getMZ(2));
+  precursor.setCharge(2);
+  spectrum.setPrecursors({precursor});
+  ProSEAlgorithm algo;
+  Param p = algo.getParameters();
+  p.setValue("fragment:mass_tolerance", 20.0);
+  p.setValue("fragment:mass_tolerance_unit", "ppm");
+  p.setValue("fragment:deisotope", "false");
+  p.setValue("fragment:min_mz", 0);
+  p.setValue("fragment:min_ion_index", 0);
+  p.setValue("fragment:min_matched_ions", 3);
+  p.setValue("peptide:missed_cleavages", 0);
+  p.setValue("report:top_hits", 10);
+  p.setValue("rescore", "false");
+  p.setValue("decoys", "ignore");
+  p.setValue("calibration:enabled", "false");
+  p.setValue("FDR:PSM", 0.0);
+  p.setValue("FDR:protein", 0.0);
+  p.setValue("modifications:fixed", vector<string> {});
+  p.setValue("modifications:variable", vector<string> {});
+  p.setValue("annotate:PSM", vector<string> {"ALL"});
+  algo.setParameters(p);
+  PeakMap spectra;
+  spectra.addSpectrum(spectrum);
+  vector<ProteinIdentification> proteins;
+  PeptideIdentificationList ids;
+  algo.search(spectra, db, proteins, ids);
+  ABORT_IF(ids.size() != 1)
+  const vector<PeptideHit>& hits = ids[0].getHits();
+  ABORT_IF(hits.size() != 3)
+  TEST_EQUAL(hits[0].getSequence(), peptide)
+  TEST_TRUE(hits[0].getScore() > hits[1].getScore())
+  auto feature = [](const PeptideHit& hit, const std::string& name) { return static_cast<double>(hit.getMetaValue(name)); };
+  double sum = 0.0, sumsq = 0.0;
+  for (const PeptideHit& hit : hits)
+  {
+    sum += hit.getScore();
+    sumsq += hit.getScore() * hit.getScore();
+    // the size of the scored search space is one value per spectrum
+    TEST_REAL_SIMILAR(feature(hit, Constants::UserParam::LN_NUM_CANDIDATES), std::log1p(3.0))
+  }
+  const double mean = sum / 3.0;
+  const double sd = std::sqrt(sumsq / 3.0 - mean * mean);
+  // the best hit: best minus runner-up
+  TEST_REAL_SIMILAR(feature(hits[0], Constants::UserParam::DELTA_SCORE), hits[0].getScore() - hits[1].getScore())
+  for (Size rank = 0; rank < hits.size(); ++rank)
+  {
+    // a hit below the best: its own score minus the best (<= 0), as Sage's delta_best
+    if (rank > 0)
+    {
+      TEST_TRUE(feature(hits[rank], Constants::UserParam::DELTA_SCORE) <= 0.0)
+      TEST_REAL_SIMILAR(feature(hits[rank], Constants::UserParam::DELTA_SCORE), hits[rank].getScore() - hits[0].getScore())
+    }
+    // every hit: the z-score of its own score against the pool
+    TEST_REAL_SIMILAR(feature(hits[rank], Constants::UserParam::HYPERSCORE_ZSCORE), (hits[rank].getScore() - mean) / sd)
+  }
+  TEST_TRUE(feature(hits[1], Constants::UserParam::HYPERSCORE_ZSCORE) < feature(hits[0], Constants::UserParam::HYPERSCORE_ZSCORE))
 }
 END_SECTION
 
@@ -6383,7 +6565,7 @@ START_SECTION((static PercolatorRescoring rescoreWithPercolator(std::vector<Prot
   // the run is marked as post-processed by Percolator
   const ProteinIdentification& run = percolator_rescored_proteins[0];
   TEST_EQUAL(run.getSearchEngine(), "Percolator")
-  TEST_EQUAL(run.getSearchEngineVersion(), "3.08-vendored")
+  TEST_EQUAL(run.getSearchEngineVersion(), "3.09-vendored")
   TEST_EQUAL(run.getMetaValue("percolator").toString(), "ProSE")
   const ProteinIdentification::SearchParameters& sp = run.getSearchParameters();
   TEST_EQUAL(sp.getMetaValue("Percolator:peptide_level_fdrs").toString(), "false")
@@ -9798,13 +9980,15 @@ START_SECTION(([EXTRA] decoy_method keep_termini: the DecoyDatabase construction
 }
 END_SECTION
 
-START_SECTION(([EXTRA] decoy_method keep_termini: the segments without the regex are those of ProteaseDigestion))
+START_SECTION(([EXTRA] decoy_method keep_termini: every enzyme, the decoys have the cleavage sites of their targets))
 {
-  // Random proteins (with K, R, P, M and runs of them; also X and B) and every enzyme: the generated decoys equal
-  // the construction with ProteaseDigestion::digestUnmodified() (regex). Lys-N's rule is not of the simple form (regex
-  // path); 1000 proteins, so that the decoys are generated in parallel.
+  // Random proteins (with K, R, P, M and runs of them; also the ambiguity codes X, B, J and Z) and every enzyme: the
+  // generated decoys equal the construction with ProteaseDigestion::digestUnmodified() (regex; so the segments without
+  // the regex are the same) in which every residue the cleavage rule names and P stay in place, and they have the
+  // cleavage sites of their target. Lys-N's rule is not of the simple form (regex path); 1000 proteins, so that the
+  // decoys are generated in parallel.
   std::mt19937 rng(11);
-  const std::string letters = "ACDEFGHIKLMNPQRSTVWYKRPKRPXB";
+  const std::string letters = "ACDEFGHIKLMNPQRSTVWYKRPKRPXBJZ";
   vector<FASTAFile::FASTAEntry> fasta_db;
   for (int i = 0; i < 1000; ++i)
   {
@@ -9813,8 +9997,10 @@ START_SECTION(([EXTRA] decoy_method keep_termini: the segments without the regex
     for (int k = 0; k < length; ++k) sequence += letters[rng() % letters.size()];
     fasta_db.push_back({"P" + std::to_string(i), "", sequence});
   }
-  // boundaries: sites at 1 and at size - 1, consecutive sites, a blocked site, a site at the end
-  for (const std::string sequence : {"K", "AK", "KA", "KKA", "KP", "KRP", "MKR", "RPKA", "DEKKRRPPMD", "FWYLMDE"})
+  // boundaries: sites at 1 and at size - 1, consecutive sites, a blocked site, a site at the end; blocked sites of
+  // other enzymes (Chymotrypsin, Glu-C+P) and the paired sites of Formic_acid
+  for (const std::string sequence : {"K", "AK", "KA", "KKA", "KP", "KRP", "MKR", "RPKA", "DEKKRRPPMD", "FWYLMDE",
+                                     "AGFPDEKSTL", "GWPAYPSLTEPKD", "ADGDDSEDAK"})
   {
     fasta_db.push_back({"B" + std::to_string(fasta_db.size()), "", sequence});
   }
@@ -9843,20 +10029,75 @@ START_SECTION(([EXTRA] decoy_method keep_termini: the segments without the regex
     std::map<std::string, std::string> decoy_of;
     for (const auto& e : ctx.db) if (e.identifier.rfind("DECOY_", 0) == 0) decoy_of[e.identifier.substr(6)] = e.sequence;
     TEST_EQUAL(decoy_of.size(), fasta_db.size())
-    Size equal = 0;
+    // the residues that stay in place: the letters of the cleavage rule (no rule here has a range) and P
+    std::string fixed = "P";
+    for (const char c : ProteaseDB::getInstance()->getEnzyme(enzyme)->getRegEx())
+    {
+      if (c >= 'A' && c <= 'Z' && fixed.find(c) == std::string::npos) fixed += c;
+    }
+    Size equal = 0, same_sites = 0;
     for (const auto& target : fasta_db)
     {
-      std::vector<std::pair<Size, Size>> spans;
+      std::vector<std::pair<Size, Size>> spans, decoy_spans;
       digestion.digestUnmodified(target.sequence, spans, 1, 0);
       std::string expected = target.sequence;
       for (const auto& [start, length] : spans)
       {
-        expected.replace(start, length, MRMDecoy::reversePeptideLight(target.sequence.substr(start, length), {}, true, true, "KRP").first);
+        expected.replace(start, length, MRMDecoy::reversePeptideLight(target.sequence.substr(start, length), {}, true, true, fixed).first);
       }
-      equal += decoy_of[target.identifier] == expected ? 1 : 0;
+      const std::string& decoy = decoy_of[target.identifier];
+      equal += decoy == expected ? 1 : 0;
+      digestion.digestUnmodified(decoy, decoy_spans, 1, 0);
+      same_sites += decoy_spans == spans ? 1 : 0;
     }
     TEST_EQUAL(equal, fasta_db.size())
+    TEST_EQUAL(same_sites, fasta_db.size())
+    // Trypsin/P: the decoys of the fixed residues "KRP" (DecoyDatabase -Decoy:non_shuffle_pattern K,P,R) are unchanged
+    if (enzyme == "Trypsin/P")
+    {
+      Size krp = 0;
+      for (const auto& target : fasta_db)
+      {
+        std::vector<std::pair<Size, Size>> spans;
+        digestion.digestUnmodified(target.sequence, spans, 1, 0);
+        std::string expected = target.sequence;
+        for (const auto& [start, length] : spans)
+        {
+          expected.replace(start, length, MRMDecoy::reversePeptideLight(target.sequence.substr(start, length), {}, true, true, "KRP").first);
+        }
+        krp += decoy_of[target.identifier] == expected ? 1 : 0;
+      }
+      TEST_EQUAL(krp, fasta_db.size())
+    }
   }
+}
+END_SECTION
+
+START_SECTION(([EXTRA] decoy_method keep_termini with Chymotrypsin: F, Y, W, L before P stay in place))
+{
+  // Written by hand. Chymotrypsin cleaves after F, Y, W, L (and J, X) unless P follows. In AGFPDEKSTL the F before P
+  // lies inside the only segment: A, F, P and L stay, the rest is reversed. With the fixed residues K, R, P of Trypsin
+  // the F moved instead (ATSPEDKFGL, a new site after F). GWPAYPSLTEPKD, segments GWPAYPSL | TEPKD: W and Y before P
+  // stay, the decoy has the one site after L (K, R, P: GSPYAPWL, new sites after Y and W).
+  vector<FASTAFile::FASTAEntry> fasta_db = {{"P1", "", "AGFPDEKSTL"}, {"P2", "", "GWPAYPSLTEPKD"}, {"P3", "", "MSTYEAKFGWLDR"}};
+  ProSEAlgorithm algo;
+  Param p = algo.getParameters();
+  p.setValue("decoys", "generate");
+  p.setValue("decoy_method", "keep_termini");
+  p.setValue("enzyme", "Chymotrypsin");
+  p.setValue("peptide:min_size", 4);
+  p.setValue("modifications:fixed", std::vector<std::string>{});
+  p.setValue("modifications:variable", std::vector<std::string>{});
+  algo.setParameters(p);
+  ProSEAlgorithm::SearchContext ctx = algo.prepareContext(fasta_db);
+  std::map<std::string, std::string> seq;
+  for (const auto& e : ctx.db) seq[e.identifier] = e.sequence;
+  TEST_EQUAL(ctx.db.size(), 6)
+  TEST_STRING_EQUAL(seq["DECOY_P1"], "ATFPSKEDGL")
+  TEST_STRING_EQUAL(seq["DECOY_P2"], "GWPSYPALTKPED")
+  // segments MSTY | EAKF | GW | L | DR: the first and last residue of each stay; K is reversed like the residues other
+  // than F, Y, W, L, J, X and P (K, R, P kept it in place: MTSYEAKFGWLDR)
+  TEST_STRING_EQUAL(seq["DECOY_P3"], "MTSYEKAFGWLDR")
 }
 END_SECTION
 

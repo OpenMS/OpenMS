@@ -12,5 +12,5 @@
 # //
 >sp:P55555 \PName=(Isoform feature test protein) \GName=ISOF \NcbiTaxId=9606 \TaxName=Homo sapiens \Length=30 \SV=1 \EV=4 \PE=1 \ID=ISOF_HUMAN \ModResPsi=(0:14|MOD:00046|O-phospho-L-serine)(1:15|MOD:00047|O-phospho-L-threonine)
 MSEQCKTLDAPGRSTWEVQLKDNACYLRGE
->sp:P55555-2 \PName=(Isoform 2 of Isoform feature test protein) \GName=ISOF \NcbiTaxId=9606 \TaxName=Homo sapiens \Length=35 \ID=ISOF_HUMAN \ModResPsi=(0:11|MOD:00046|O-phospho-L-serine)(1:12|MOD:00798|half cystine)(2:30|MOD:00798|half cystine) \VariantSimple=(3:33|Q) \DisulfideBond=(4:1,2)
+>sp:P55555-2 \PName=(Isoform 2 of Isoform feature test protein) \GName=ISOF \NcbiTaxId=9606 \TaxName=Homo sapiens \Length=35 \ID=ISOF_HUMAN \ModResPsi=(0:11|MOD:00046|O-phospho-L-serine)(1:12|MOD:00798|half cystine)(2:19|MOD:00046|O-phospho-L-serine)(3:20|MOD:00047|O-phospho-L-threonine)(4:30|MOD:00798|half cystine) \VariantSimple=(5:33|Q) \DisulfideBond=(6:1,4)
 MSEQCKTLDASCHSKPGRSTWEVQLKDNACYLRGE

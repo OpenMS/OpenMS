@@ -183,17 +183,18 @@ namespace OpenMS
       "default; the ProSE tool's default is 'keep_termini'): "
       "every enzymatic segment of the protein is reversed except its last residue (the last segment entirely), an "
       "initial Met stays first with peptide:clip_nterm_methionine. 'keep_termini': the construction of OpenMS "
-      "DecoyDatabase (method reverse, Decoy:keepPeptideNTerm/keepPeptideCTerm true) with the search enzyme and "
-      "Decoy:non_shuffle_pattern 'KRP': in every segment of a digest without missed cleavages, the first and the last "
-      "residue and every K, R and P stay in place and the rest is reversed. For enzymes whose cleavage sites are fixed by "
-      "these residues (Trypsin, Trypsin/P, Lys-C, Arg-C and the like) every target peptide then has a decoy with the same "
-      "start, length, mass and cleavage sites: also every protein N-terminal and Met-clipped one, so that "
-      "peptide:clip_nterm_methionine and protein N-terminal modifications add the same number of target and decoy "
-      "candidates (except peptides that equal their decoy, e.g. made of short segments or of K, R and P only; and "
-      "modifications specific to a peptide's first residue, e.g. pyro-Glu on an N-terminal Q, apply to the target and "
-      "its decoy alike only where that residue is kept in place). Semi- or "
-      "non-specific digestion: as 'reverse'. Other enzymes: a warning names the decoys whose cleavage sites differ from the "
-      "target's. No effect on decoys taken from the database (decoys 'auto' with decoys in it). The results differ from "
+      "DecoyDatabase (method reverse, Decoy:keepPeptideNTerm/keepPeptideCTerm true) with the search enzyme and as "
+      "Decoy:non_shuffle_pattern the residues that the enzyme's cleavage rule names and P (K, R, X and P for Trypsin and "
+      "Trypsin/P, for Trypsin/P the decoys of 'K,P,R'; F, Y, W, L, J, X and P for Chymotrypsin): in every segment of a "
+      "digest without missed cleavages, the first and the last residue and every one of these residues stay in place and "
+      "the rest is reversed. The decoys then have the cleavage sites of their targets, and every target peptide has a "
+      "decoy with the same start, length, mass and cleavage sites: also every protein N-terminal and Met-clipped one, so "
+      "that peptide:clip_nterm_methionine and protein N-terminal modifications add the same number of target and decoy "
+      "candidates (except peptides that equal their decoy, e.g. made of short segments or of residues kept in place only; "
+      "and modifications specific to a peptide's first residue, e.g. pyro-Glu on an N-terminal Q, apply to the target and "
+      "its decoy alike only where that residue is kept in place). Semi- or non-specific digestion: as 'reverse'. A "
+      "warning names the decoys whose cleavage sites differ from the target's (none with the enzymes of OpenMS). No "
+      "effect on decoys taken from the database (decoys 'auto' with decoys in it). The results differ from "
       "'reverse'.", {"advanced"});
     defaults_.setValidStrings("decoy_method", {"reverse", "keep_termini"});
     defaults_.setValue("decoy_parity_report", "false",
@@ -416,9 +417,10 @@ namespace OpenMS
                        "model on the sampled spectra of the other folds only, and scores every PSM with the model of its "
                        "own fold, which never saw its spectrum. 'out_of_fold_avg': the same, but the PSMs of the spectra "
                        "outside the sample (which no model saw) are scored by the average of the fold models. "
-                       "'in_sample' = the percolator executable's --subset-max-train: cross-validation on the sample and "
-                       "all PSMs scored by the average of the fold models (the sampled PSMs by two models that trained on "
-                       "them). 'learning_curve' (also without a cap): out-of-fold training on nested samples of "
+                       "'in_sample' = the percolator executable's --subset-max-train: cross-validation on the sample; each "
+                       "sampled PSM is scored by the model of the fold in which it was a test PSM (each fold's scores mapped "
+                       "to the mean and standard deviation of the other PSMs' scores), the other PSMs by the average of the "
+                       "fold models (after a failed direction check all PSMs). 'learning_curve' (also without a cap): out-of-fold training on nested samples of "
                        "'rescoring:curve_start', twice, four times ... as many PSMs, up to 'percolator:max_train_psms' (0: "
                        "1,000,000) or the whole run but the validation spectra (the end of the random order, at most "
                        "250,000 PSMs or 20 %); each fold's model stops at the first doubling that adds less than "
@@ -440,13 +442,26 @@ namespace OpenMS
                        {"advanced"});
     defaults_.setMinInt("rescoring:iterations", 1);
     defaults_.setValue("rescoring:tron_epsilon", 1e-7,
-                       "Stopping tolerance of the SVM solver (TRON) of Percolator's training (Percolator: 1e-7). Larger "
-                       "values (e.g. 1e-3) train much faster on large runs; the results differ.",
+                       "Stopping tolerance of the SVM solves of Percolator's training with rescore_solver 'tron' and "
+                       "'newton' (Percolator: 1e-7). Larger values (e.g. 1e-3) train much faster on large runs; the "
+                       "results differ.",
                        {"advanced"});
     defaults_.setMinFloat("rescoring:tron_epsilon", 1e-15);
+    defaults_.setValue("rescoring:classic_training", "false",
+                       "'false' (default): Percolator's current training: each SVM starts from its weights of the "
+                       "previous iteration, each fold's (Cpos, Cneg) pair is fixed after three iterations, and the "
+                       "training stops when it gains less than 0.1% over two iterations. 'true': Percolator trains as up "
+                       "to its version 3.09 (Percolator's parameter 'classic_training'), as ProSE did with the earlier copy of "
+                       "Percolator in OpenMS: all 'rescoring:iterations' iterations, every (Cpos, Cneg) pair in every "
+                       "iteration, each SVM from zero weights (rescore_solver 'tron'; 'newton' and 'lda' start from the "
+                       "weights of the iteration before); slower, for the results of that copy. Both are deterministic: "
+                       "the same input and seed give the same results with any number of threads.",
+                       {"advanced"});
+    defaults_.setValidStrings("rescoring:classic_training", {"true", "false"});
     defaults_.setValue("rescoring:warm_start", "false",
-                       "Each SVM training of an iteration starts from the weights of the previous iteration instead of "
-                       "0 (faster; the results differ).",
+                       "With 'rescoring:classic_training': each SVM training of an iteration starts from the weights of "
+                       "the previous iteration instead of 0 (faster; the results differ). Without it (and with the "
+                       "solvers 'newton' and 'lda') every training starts so.",
                        {"advanced"});
     defaults_.setValidStrings("rescoring:warm_start", {"true", "false"});
     defaults_.setValue("rescoring:single_cneg", "false",
@@ -767,7 +782,9 @@ namespace OpenMS
       "Correct the m/z of the spectra by the mass errors the calibration pass measures, before the main search: "
       "'offset' subtracts the median error, 'linear' a line in m/z fitted to the errors (precursor errors against "
       "the precursor m/z, fragment errors against the fragment m/z), each per retention-time chunk "
-      "(calibration:recalibrate_rt_chunks) and interpolated between the chunks. The precursor m/z and the fragment "
+      "(calibration:recalibrate_rt_chunks) and interpolated between the chunks; a chunk of the precursor model whose "
+      "calibration PSMs are mostly false matches (more than a quarter of them decoy hits) takes the model of its "
+      "neighbours. The precursor m/z and the fragment "
       "peaks of the searched MS2 spectra are corrected in place (the candidate retrieval, the scoring and the PSMs' "
       "mass errors use the corrected values; a PeakMap passed to the library is corrected too); the PSMs report the "
       "observed precursor m/z and their fragment annotations the observed peak m/z. The windows are then derived from "
@@ -1041,6 +1058,7 @@ namespace OpenMS
     percolator_training_.iterations = static_cast<int>(param_.getValue("rescoring:iterations"));
     percolator_training_.tron_epsilon = static_cast<double>(param_.getValue("rescoring:tron_epsilon"));
     percolator_training_.warm_start = param_.getValue("rescoring:warm_start").toString() == "true";
+    percolator_training_.classic_training = param_.getValue("rescoring:classic_training").toString() == "true";
     percolator_training_.single_cneg = param_.getValue("rescoring:single_cneg").toString() == "true";
     percolator_training_.solver = param_.getValue("rescore_solver").toString();
     percolator_training_.use_pi0 = param_.getValue("rescoring:use_pi0").toString();
@@ -1310,7 +1328,8 @@ namespace OpenMS
       StopWatch sw_cal; sw_cal.start();
       {
         OnScopeExit end_progress([this]() { endProgress(); }); // also when the calibration loop rethrows
-        last_calibration_result_ = runCalibrationPass_(spectra, fragment_index_, db, query_ptr);
+        last_calibration_result_ = runCalibrationPass_(spectra, fragment_index_, db, query_ptr,
+          ctx.have_decoys ? ctx.decoy_string : std::string(), ctx.decoy_is_prefix);
       }
       sw_cal.stop();
       last_run_stats_.seconds_calibration = sw_cal.getClockTime();
@@ -2157,7 +2176,8 @@ namespace OpenMS
           OPENMS_LOG_INFO << "[ProSE] Calibration for " << in_spectra_files[i]
                           << " (strided sample, " << cal_db.size() << " proteins)" << std::endl;
           CalibrationResult_& cal = per_file_result[i];
-          cal = runCalibrationPass_(all_spectra[i], cal_fi, cal_db, query_raw_spectrum_ ? &all_query_spectra[i] : nullptr);
+          cal = runCalibrationPass_(all_spectra[i], cal_fi, cal_db, query_raw_spectrum_ ? &all_query_spectra[i] : nullptr,
+            strategy.have_decoys ? strategy.decoy_string : std::string(), strategy.is_prefix);
           if (cal.success)
           {
             applyRecalibration_(cal, all_spectra[i], query_raw_spectrum_ ? &all_query_spectra[i] : nullptr,

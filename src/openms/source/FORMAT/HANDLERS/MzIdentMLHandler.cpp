@@ -7,6 +7,8 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/HANDLERS/MzIdentMLHandler.h>
+#include <OpenMS/FORMAT/HANDLERS/MzIdentMLProteinDetection.h>
+#include <OpenMS/ANALYSIS/ID/Scores.h>
 
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/FORMAT/FileHandler.h>
@@ -25,6 +27,11 @@
 
 #include <boost/lexical_cast.hpp>
 #include <boost/regex.hpp>
+
+#include <cmath>
+#include <limits>
+#include <unordered_map>
+#include <unordered_set>
 
 using namespace std;
 
@@ -892,7 +899,7 @@ namespace OpenMS::Internal
         {
           if (!is_ppxl)
           {
-            MzIdentMLHandler::writePeptideHit(*jt, it, pep_ids, cv_ns, sen_set, sen_ids, pep_evis, pp_identifier_2_thresh, sidres);
+            MzIdentMLHandler::writePeptideHit(*jt, it, pep_ids, cv_ns, sen_set, sen_ids, pep_evis, pp_identifier_2_thresh, sidres, jt == it->getHits().begin());
           }
           else
           {
@@ -963,6 +970,13 @@ namespace OpenMS::Internal
         }
       }
 
+      // protein inference results (they reference the PSMs written above)
+      std::string pd_software, pd_detection, pd_protocol, pd_list;
+      if (!is_ppxl)
+      {
+        writeProteinDetection_(cv_ns, sen_ids, sof_ids, pd_software, pd_detection, pd_protocol, pd_list);
+      }
+
       //--------------------------------------------------------------------------------------------
       // XML header
       //--------------------------------------------------------------------------------------------
@@ -1003,6 +1017,7 @@ namespace OpenMS::Internal
       {
         os << *sof;
       }
+      os << pd_software;
 
       std::map<std::string, std::string>::iterator soit = sof_ids.find("TOPP software");
       if (soit == sof_ids.end())
@@ -1025,7 +1040,7 @@ namespace OpenMS::Internal
       //--------------------------------------------------------------------------------------------
       // AnalysisCollection:
       // + SpectrumIdentification
-      // TODO ProteinDetection
+      // + ProteinDetection
       //--------------------------------------------------------------------------------------------
       os << "<AnalysisCollection>\n";
       for (std::map<std::string, std::string>::const_iterator pp2sil_it = pp_identifier_2_sil_.begin(); pp2sil_it != pp_identifier_2_sil_.end(); ++pp2sil_it)
@@ -1040,6 +1055,7 @@ namespace OpenMS::Internal
                            + "\t</SpectrumIdentification>\n";
           os <<   entry;
       }
+      os << pd_detection;
       os << "</AnalysisCollection>\n";
 
       //--------------------------------------------------------------------------------------------
@@ -1051,6 +1067,7 @@ namespace OpenMS::Internal
       {
         os << *sip;
       }
+      os << pd_protocol;
       os << "</AnalysisProtocolCollection>\n";
 
       //--------------------------------------------------------------------------------------------
@@ -1088,12 +1105,405 @@ namespace OpenMS::Internal
         os << sil_it->second;
         os << "\t\t</SpectrumIdentificationList>\n";
       }
+      os << pd_list;
       os << "\t</AnalysisData>\n</DataCollection>\n";
 
       //--------------------------------------------------------------------------------------------
       // close XML header
       //--------------------------------------------------------------------------------------------
       os << "</MzIdentML>\n";
+    }
+
+    void MzIdentMLHandler::writeProteinDetection_(const std::string& cv_ns, const std::map<std::string, std::string>& sen_ids,
+                                                  const std::map<std::string, std::string>& sof_ids,
+                                                  std::string& software, std::string& detection, std::string& protocol, std::string& list) const
+    {
+      // mzIdentML allows only one list of inferred proteins: write the run with protein inference results
+      std::vector<const ProteinIdentification*> inference_runs;
+      for (const ProteinIdentification& run : *cpro_id_)
+      {
+        if (!run.getIndistinguishableProteins().empty() || !run.getProteinGroups().empty() || run.hasInferenceData())
+        {
+          inference_runs.push_back(&run);
+        }
+      }
+      if (inference_runs.empty())
+      {
+        return;
+      }
+      if (inference_runs.size() > 1)
+      {
+        std::string identifiers;
+        for (const ProteinIdentification* run : inference_runs)
+        {
+          identifiers += (identifiers.empty() ? "'" : ", '") + run->getIdentifier() + "'";
+        }
+        OPENMS_LOG_WARN << "mzIdentML allows only one list of inferred proteins, but " << inference_runs.size()
+                        << " identification runs have protein inference results (" << identifiers << "). "
+                        << "No protein groups are written. Merge the runs before protein inference (e.g. with IDMerger, "
+                        << "or use the merged mode of the inference tool), or store each run in a file of its own." << endl;
+        return;
+      }
+      const ProteinIdentification& run = *inference_runs.front();
+      const auto sil = pp_identifier_2_sil_.find(run.getIdentifier());
+      if (sil == pp_identifier_2_sil_.end())
+      {
+        return;
+      }
+
+      // the PSM evidence of each protein in this run: PeptideEvidence ids with their SpectrumIdentificationItems
+      using SIIRefs = std::vector<std::pair<std::string, bool>>;
+      std::unordered_map<std::string, std::vector<std::pair<const std::string*, const SIIRefs*>>> evidence_of;
+      const auto run_evidence = run_pev_2_sii_.find(run.getIdentifier());
+      if (run_evidence != run_pev_2_sii_.end())
+      {
+        for (const auto& [pev, siis] : run_evidence->second)
+        {
+          const auto acc = pev_2_acc_.find(pev);
+          if (acc != pev_2_acc_.end())
+          {
+            evidence_of[acc->second].emplace_back(&pev, &siis);
+          }
+        }
+      }
+      std::unordered_map<std::string, const ProteinHit*> hits;
+      for (const ProteinHit& hit : run.getHits())
+      {
+        hits.emplace(hit.getAccession(), &hit);
+      }
+
+      // the groups: the indistinguishable protein groups or - after inference without grouping - one per protein
+      std::vector<ProteinIdentification::ProteinGroup> groups = run.getIndistinguishableProteins();
+      if (groups.empty())
+      {
+        for (const ProteinHit& hit : run.getHits())
+        {
+          ProteinIdentification::ProteinGroup group;
+          group.probability = hit.getScore();
+          group.accessions.push_back(hit.getAccession());
+          groups.push_back(std::move(group));
+        }
+      }
+
+      // general protein groups become clusters of the groups they consist of
+      const std::vector<ProteinIdentification::ProteinGroup>& general = run.getProteinGroups();
+      const Size no_cluster = std::numeric_limits<Size>::max();
+      std::vector<Size> cluster_of(groups.size(), no_cluster);
+      bool write_clusters = !general.empty();
+      if (write_clusters)
+      {
+        std::unordered_map<std::string, Size> group_of;
+        for (Size g = 0; g < groups.size(); ++g)
+        {
+          for (const std::string& acc : groups[g].accessions)
+          {
+            group_of.emplace(acc, g);
+          }
+        }
+        Size n_ungrouped = 0;
+        for (Size c = 0; c < general.size() && write_clusters; ++c)
+        {
+          const std::unordered_set<std::string> members(general[c].accessions.begin(), general[c].accessions.end());
+          for (const std::string& acc : general[c].accessions)
+          {
+            const auto g = group_of.find(acc);
+            if (g == group_of.end())
+            {
+              ++n_ungrouped; // e.g. a sub-set protein: only proteins of (indistinguishable) groups are written
+              continue;
+            }
+            const bool complete = std::all_of(groups[g->second].accessions.begin(), groups[g->second].accessions.end(),
+                                              [&members](const std::string& a) { return members.contains(a); });
+            if (!complete || (cluster_of[g->second] != no_cluster && cluster_of[g->second] != c))
+            {
+              write_clusters = false;
+              break;
+            }
+            cluster_of[g->second] = c;
+          }
+        }
+        if (!write_clusters)
+        {
+          OPENMS_LOG_WARN << "The general protein groups do not consist of complete indistinguishable protein groups. "
+                          << "They are not written to mzIdentML (as clusters)." << endl;
+        }
+        else if (n_ungrouped > 0)
+        {
+          OPENMS_LOG_WARN << n_ungrouped << " protein(s) of general protein groups are in no indistinguishable protein group. "
+                          << "They are not written to mzIdentML, so their clusters are incomplete there." << endl;
+        }
+      }
+
+      // scores and threshold
+      const std::string& score_type = run.getScoreType();
+      const bool higher_better = run.isHigherScoreBetter();
+      const std::string protein_score_acc = MzIdentMLProteinDetection::proteinScoreAccession(score_type, run.getInferenceEngine());
+      const std::string group_score_acc = MzIdentMLProteinDetection::groupScoreAccession(score_type);
+      auto score_param = [&](const std::string& accession, double score, UInt indent) -> std::string
+      {
+        if (score_type.empty())
+        {
+          return "";
+        }
+        if (!accession.empty())
+        {
+          return std::string(indent, '\t') + cv_.getTerm(accession).toXMLString(cv_ns, StringUtils::toStr(score)) + "\n";
+        }
+        return std::string(indent, '\t') + "<userParam name=\"" + writeXMLEscape(score_type) + "\" type=\"xsd:double\" value=\""
+               + StringUtils::toStr(score) + "\"/>\n";
+      };
+      // the cutoff that the groups were filtered with (IDFilter::recordGroupScoreThreshold()), if it applies to their score.
+      // Without indistinguishable groups (one group per protein, see above), no group was filtered with it: the group
+      // scores are then the protein scores, which may have been recalculated since (e.g. by protein inference).
+      bool use_threshold = false;
+      double threshold = 0.0;
+      if (run.metaValueExists(Constants::UserParam::PROTEIN_GROUP_SCORE_THRESHOLD) && run.getIndistinguishableProteins().empty())
+      {
+        OPENMS_LOG_WARN << "The run has a protein group score threshold, but no protein groups. It is not written to mzIdentML." << endl;
+      }
+      else if (run.metaValueExists(Constants::UserParam::PROTEIN_GROUP_SCORE_THRESHOLD))
+      {
+        const std::string threshold_type = run.getMetaValue(Constants::UserParam::PROTEIN_GROUP_SCORE_THRESHOLD_TYPE, score_type).toString();
+        const DataValue& value = run.getMetaValue(Constants::UserParam::PROTEIN_GROUP_SCORE_THRESHOLD);
+        if (!Scores::isSameScoreType(threshold_type, score_type))
+        {
+          OPENMS_LOG_WARN << "The protein group score threshold was applied to scores of type '" << threshold_type
+                          << "', but the protein groups have scores of type '" << score_type << "'. It is not written to mzIdentML." << endl;
+        }
+        else if (value.valueType() == DataValue::DOUBLE_VALUE || value.valueType() == DataValue::INT_VALUE)
+        {
+          threshold = value;
+          use_threshold = std::isfinite(threshold);
+        }
+        else
+        {
+          try // e.g. read from a file without the type
+          {
+            threshold = StringUtils::toDouble(StringUtils::trimmed(value.toString()));
+            use_threshold = std::isfinite(threshold);
+          }
+          catch (const Exception::ConversionError&)
+          {
+          }
+          if (!use_threshold)
+          {
+            OPENMS_LOG_WARN << "Ignoring the non-numeric protein group score threshold '" << value.toString() << "'." << endl;
+          }
+        }
+      }
+      auto is_decoy = [](const ProteinHit& hit)
+      {
+        return hit.getTargetDecoyType() == ProteinHit::TargetDecoyType::DECOY ||
+               (hit.metaValueExists("isDecoy") && hit.getMetaValue("isDecoy").toString() == "true"); // as read from mzIdentML
+      };
+      auto failed = [](const ProteinHit& hit) // e.g. read from a group that did not pass the threshold
+      {
+        if (!hit.metaValueExists("pass_threshold"))
+        {
+          return false;
+        }
+        const std::string pass = hit.getMetaValue("pass_threshold").toString();
+        return pass == "false" || pass == "0";
+      };
+
+      // the ProteinAmbiguityGroups
+      std::string pags;
+      Size n_pags = 0, n_pdhs = 0, n_passing = 0, n_dropped_proteins = 0, n_dropped_groups = 0;
+      std::set<Size> passing_clusters;
+      Size next_cluster_id = general.size() + 1; // for groups without cluster
+      for (Size g = 0; g < groups.size(); ++g)
+      {
+        const ProteinIdentification::ProteinGroup& group = groups[g];
+        struct Hypothesis
+        {
+          std::string id;
+          std::string dbsequence_ref;
+          std::string evidence;
+          const ProteinHit* hit;
+        };
+        std::vector<Hypothesis> hypotheses;
+        for (const std::string& acc : group.accessions)
+        {
+          const auto hit = hits.find(acc);
+          const auto dbsequence = sen_ids.find(acc);
+          std::string evidence;
+          if (hit != hits.end() && dbsequence != sen_ids.end())
+          {
+            const auto pevs = evidence_of.find(acc);
+            // the evidence: the top PSMs of each spectrum (as used by the inference tools), or all PSMs if there are none
+            for (bool top_only : {true, false})
+            {
+              if (pevs == evidence_of.end())
+              {
+                break;
+              }
+              for (const auto& [pev, siis] : pevs->second)
+              {
+                std::string refs;
+                for (const auto& [sii, top] : *siis)
+                {
+                  if (top || !top_only)
+                  {
+                    refs += "\t\t\t\t\t\t<SpectrumIdentificationItemRef spectrumIdentificationItem_ref=\"" + sii + "\"/>\n";
+                  }
+                }
+                if (!refs.empty())
+                {
+                  evidence += "\t\t\t\t\t<PeptideHypothesis peptideEvidence_ref=\"" + *pev + "\">\n" + refs + "\t\t\t\t\t</PeptideHypothesis>\n";
+                }
+              }
+              if (!evidence.empty())
+              {
+                break;
+              }
+            }
+          }
+          if (evidence.empty()) // a protein must have PSM evidence in mzIdentML
+          {
+            ++n_dropped_proteins;
+            continue;
+          }
+          hypotheses.push_back({"PDH_" + StringUtils::toStr(++n_pdhs), dbsequence->second, std::move(evidence), hit->second});
+        }
+        if (hypotheses.empty())
+        {
+          ++n_dropped_groups;
+          continue;
+        }
+
+        // reported as identified: groups with a target protein that reach the threshold (if one was applied)
+        const bool decoy = std::all_of(hypotheses.begin(), hypotheses.end(), [&is_decoy](const Hypothesis& h) { return is_decoy(*h.hit); });
+        const bool not_passed = std::all_of(hypotheses.begin(), hypotheses.end(), [&failed](const Hypothesis& h) { return failed(*h.hit); });
+        const bool reaches_threshold = !use_threshold || (higher_better ? group.probability > threshold : group.probability <= threshold); // as IDFilter::filterGroupsByScore
+        const bool pass = !decoy && !not_passed && reaches_threshold;
+        const std::string pass_str = pass ? "true" : "false";
+
+        std::string pag = "\t\t\t<ProteinAmbiguityGroup id=\"PAG_" + StringUtils::toStr(++n_pags) + "\">\n";
+        for (Size h = 0; h < hypotheses.size(); ++h)
+        {
+          const Hypothesis& hypothesis = hypotheses[h];
+          pag += "\t\t\t\t<ProteinDetectionHypothesis id=\"" + hypothesis.id + "\" dBSequence_ref=\"" + hypothesis.dbsequence_ref
+                 + "\" passThreshold=\"" + pass_str + "\">\n" + hypothesis.evidence;
+          // all proteins of an indistinguishable group are leading proteins; the group leader is its representative
+          pag += "\t\t\t\t\t" + cv_.getTerm("MS:1002401").toXMLString(cv_ns) + "\n"; // leading protein
+          if (h == 0)
+          {
+            pag += "\t\t\t\t\t" + cv_.getTerm("MS:1002403").toXMLString(cv_ns) + "\n"; // group representative
+          }
+          if (hypotheses.size() > 1)
+          {
+            std::string same_set;
+            for (const Hypothesis& other : hypotheses)
+            {
+              if (&other != &hypothesis)
+              {
+                same_set += (same_set.empty() ? "" : " ") + other.id;
+              }
+            }
+            pag += "\t\t\t\t\t" + cv_.getTerm("MS:1001594").toXMLString(cv_ns, same_set) + "\n"; // sequence same-set protein
+          }
+          pag += score_param(protein_score_acc, hypothesis.hit->getScore(), 5);
+          if (hypothesis.hit->getCoverage() != ProteinHit::COVERAGE_UNKNOWN)
+          {
+            pag += "\t\t\t\t\t" + cv_.getTerm("MS:1001093").toXMLString(cv_ns, StringUtils::toStr(hypothesis.hit->getCoverage())) + "\n"; // sequence coverage
+          }
+          MetaInfoInterface meta = *hypothesis.hit;
+          meta.removeMetaValue("pass_threshold"); // given by "protein group passes threshold"
+          writeMetaInfos_(pag, meta, 5);
+          pag += "\t\t\t\t</ProteinDetectionHypothesis>\n";
+        }
+        pag += "\t\t\t\t" + cv_.getTerm("MS:1002415").toXMLString(cv_ns, pass_str) + "\n"; // protein group passes threshold
+        pag += score_param(group_score_acc, group.probability, 4);
+        if (write_clusters)
+        {
+          const bool clustered = cluster_of[g] != no_cluster;
+          const Size cluster_id = clustered ? cluster_of[g] + 1 : next_cluster_id++;
+          pag += "\t\t\t\t" + cv_.getTerm("MS:1002407").toXMLString(cv_ns, StringUtils::toStr(cluster_id)) + "\n"; // cluster identifier
+          if (clustered)
+          {
+            pag += "\t\t\t\t<userParam name=\"" + MzIdentMLProteinDetection::CLUSTER_SCORE_PARAM + "\" type=\"xsd:double\" value=\""
+                   + StringUtils::toStr(general[cluster_of[g]].probability) + "\"/>\n";
+          }
+          if (pass)
+          {
+            passing_clusters.insert(cluster_id);
+          }
+        }
+        pag += "\t\t\t</ProteinAmbiguityGroup>\n";
+        pags += pag;
+        if (pass)
+        {
+          ++n_passing;
+        }
+      }
+      if (n_dropped_proteins > 0)
+      {
+        OPENMS_LOG_WARN << n_dropped_proteins << " protein(s) of protein groups have no PSMs in the identification run and are not written to mzIdentML"
+                        << (n_dropped_groups > 0 ? " (" + StringUtils::toStr(n_dropped_groups) + " group(s) without any)." : std::string(".")) << endl;
+      }
+      if (n_pags == 0)
+      {
+        return;
+      }
+
+      // the inference engine (or, e.g. for protXML imports, the search engine that reported the groups)
+      std::string engine = run.getInferenceEngine();
+      std::string version = run.getInferenceEngineVersion();
+      const bool from_search_engine = engine.empty();
+      if (from_search_engine)
+      {
+        engine = run.getSearchEngine();
+        version = run.getSearchEngineVersion();
+      }
+      const std::string uid = StringUtils::toStr(UniqueIdGenerator::getUniqueId());
+      const std::string list_id = "PDL_" + uid, protocol_id = "PDP_" + uid;
+      // the search engine is already in the AnalysisSoftwareList (for the SpectrumIdentificationProtocol)
+      const auto search_software = from_search_engine ? sof_ids.find(engine) : sof_ids.end();
+      const std::string software_id = search_software != sof_ids.end() ? search_software->second : "SOF_" + uid;
+
+      list = "\t\t<ProteinDetectionList id=\"" + list_id + "\">\n" + pags;
+      DataValue n_identified(static_cast<int>(n_passing));
+      n_identified.setUnit(189); // UO:0000189 (count unit), required by the term
+      n_identified.setUnitType(DataValue::UnitType::UNIT_ONTOLOGY);
+      list += "\t\t\t" + cv_.getTerm("MS:1002404").toXMLString(cv_ns, n_identified) + "\n"; // count of identified proteins
+      if (write_clusters)
+      {
+        list += "\t\t\t" + cv_.getTerm("MS:1002406").toXMLString(cv_ns, StringUtils::toStr(passing_clusters.size())) + "\n"; // count of identified clusters
+      }
+      list += "\t\t</ProteinDetectionList>\n";
+
+      detection = "\t<ProteinDetection id=\"PD_" + uid + "\" proteinDetectionProtocol_ref=\"" + protocol_id
+                  + "\" proteinDetectionList_ref=\"" + list_id + "\">\n"
+                  + "\t\t<InputSpectrumIdentifications spectrumIdentificationList_ref=\"" + sil->second + "\"/>\n"
+                  + "\t</ProteinDetection>\n";
+
+      protocol = "\t<ProteinDetectionProtocol id=\"" + protocol_id + "\" analysisSoftware_ref=\"" + software_id + "\">\n";
+      if (!score_type.empty())
+      {
+        protocol += "\t\t<AnalysisParams>\n"
+                    "\t\t\t<userParam name=\"" + MzIdentMLProteinDetection::SCORE_TYPE_PARAM + "\" type=\"xsd:string\" value=\"" + writeXMLEscape(score_type) + "\"/>\n"
+                    "\t\t\t<userParam name=\"" + MzIdentMLProteinDetection::HIGHER_SCORE_BETTER_PARAM + "\" type=\"xsd:boolean\" value=\"" + (higher_better ? "true" : "false") + "\"/>\n"
+                    "\t\t</AnalysisParams>\n";
+      }
+      protocol += "\t\t<Threshold>\n\t\t\t";
+      protocol += use_threshold ? cv_.getTerm(MzIdentMLProteinDetection::groupThresholdAccession(score_type)).toXMLString(cv_ns, StringUtils::toStr(threshold))
+                                : cv_.getTermByName("no threshold").toXMLString(cv_ns);
+      protocol += "\n\t\t</Threshold>\n\t</ProteinDetectionProtocol>\n";
+
+      if (search_software != sof_ids.end())
+      {
+        return;
+      }
+      std::string term = MzIdentMLProteinDetection::softwareTermName(engine);
+      if (term.empty() && cv_.hasTermWithName(engine))
+      {
+        term = engine;
+      }
+      software = "\t<AnalysisSoftware version=\"" + writeXMLEscape(version.empty() ? std::string("unknown") : version)
+                 + "\" name=\"" + writeXMLEscape(engine) + "\" id=\"" + software_id + "\">\n\t\t<SoftwareName>\n\t\t\t";
+      software += term.empty() ? "<userParam name=\"" + writeXMLEscape(engine.empty() ? std::string("unknown") : engine) + "\"/>"
+                               : cv_.getTermByName(term).toXMLString(cv_ns);
+      software += "\n\t\t</SoftwareName>\n\t</AnalysisSoftware>\n";
     }
 
     void MzIdentMLHandler::writeMetaInfos_(std::string& s, const MetaInfoInterface& meta, UInt indent) const
@@ -1115,7 +1525,7 @@ namespace OpenMS::Internal
         }
         else
         {
-          s +=std::string(indent, '\t') + "<userParam name=\"" + keys[i] + "\" unitName=\"";
+          s +=std::string(indent, '\t') + "<userParam name=\"" + writeXMLEscape(keys[i]) + "\" unitName=\"";
 
           const DataValue& d = meta.getMetaValue(keys[i]);
           //determine type
@@ -1131,7 +1541,7 @@ namespace OpenMS::Internal
           {
             s += "xsd:string";
           }
-          s += "\" value=\"" + StringUtils::toStr(d) + "\"/>\n";
+          s += "\" value=\"" + writeXMLEscape(StringUtils::toStr(d)) + "\"/>\n";
         }
       }
     }
@@ -1331,7 +1741,7 @@ namespace OpenMS::Internal
                                                 std::map<std::string, std::string>& sen_ids,
                                                 std::map<std::string, std::vector<std::string> >& pep_evis,
                                                 std::map<std::string, double>& pp_identifier_2_thresh,
-                                                std::string& sidres)
+                                                std::string& sidres, bool top_hit)
     {
         std::string pepid =  "PEP_" + StringUtils::toStr(UniqueIdGenerator::getUniqueId());
         std::string pepi = hit.getSequence().toString();
@@ -1488,6 +1898,7 @@ namespace OpenMS::Internal
             e += "/>\n";
             sen_set.insert(e);
             pevid_ids.push_back(pevid);
+            pev_2_acc_.emplace(pevid, pe->getProteinAccession());
           }
           pep_evis.insert(make_pair(pepi, pevid_ids));
         }
@@ -1542,9 +1953,11 @@ namespace OpenMS::Internal
         {
           OPENMS_LOG_WARN << "PSM without peptide evidence registered in the given search database found. This will cause an invalid mzIdentML file (which OpenMS can still consume).\n";
         }
+        auto& run_pevs = run_pev_2_sii_[it->getIdentifier()]; // the PSM evidence of the proteins (for the ProteinDetectionList)
         for (std::vector<std::string>::const_iterator pevref = pevid_ids.begin(); pevref != pevid_ids.end(); ++pevref)
         {
           sii_tmp += "\t\t\t\t\t<PeptideEvidenceRef peptideEvidence_ref=\"" +  std::string(*pevref) + "\"/>\n";
+          run_pevs[*pevref].emplace_back(sii, top_hit);
         }
 
         if (! hit.getPeakAnnotations().empty())
@@ -1630,6 +2043,8 @@ namespace OpenMS::Internal
 
         copy_hit.removeMetaValue("calcMZ");
         copy_hit.removeMetaValue(Constants::UserParam::TARGET_DECOY);
+        // the rank is the 'rank' attribute; as userParam it would be read back as string and break PeptideHit::getRank()
+        copy_hit.removeMetaValue(Constants::UserParam::RANK);
         writeMetaInfos_(sii_tmp, copy_hit, 5);
 
         //~ sidres += "<cvParam accession=\"MS:1000796\" cvRef=\"PSI-MS\" value=\"55.835.842.3.dta\" name=\"spectrum title\"/>";

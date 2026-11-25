@@ -1806,6 +1806,145 @@ START_SECTION((void annotateQuantificationsToProteins(const ProteinQuant& protei
 }
 END_SECTION
 
+START_SECTION((void annotateQuantificationsToProteins(const ProteinQuant& protein_quants, ProteinIdentification& proteins, bool remove_unquantified) removes the quantities of an earlier annotation))
+{
+  // Protein groups read from a consensusXML that a workflow wrote already carry the quantities
+  // of that run. The exporters (mzTab, QPX) write every array of a group, so no group may keep
+  // them: a protein that is not quantified now would be reported with the abundance it had then.
+  // Three groups, all with stored quantities:
+  //   ProtA - a single peptide, so with 'top:N 2' it is not quantified now
+  //   ProtB - two peptides, quantified now (1000 + 3000)
+  //   ProtC - no peptide at all in the current data
+  ConsensusMap consensus;
+  ExperimentalDesign design;
+  make_detailed_input({"fileA"}, {{0, "AAAAAK", 2, 100.0}}, "ProtA", consensus, design);
+  make_detailed_input({"fileA"}, {{0, "CCCCCK", 2, 1000.0}, {0, "EEEEEK", 2, 3000.0}}, "ProtB", consensus, design);
+
+  const std::string abundance_array = "fraction_group_level_abundance";
+  const std::string legacy_abundance_array = "abundances";
+  const std::string foreign_array = "written_by_another_annotator";
+  auto add_array = [](auto& arrays, const std::string& name, const auto& value)
+  {
+    arrays.emplace_back();
+    arrays.back().setName(name);
+    arrays.back().push_back(value);
+  };
+  auto make_proteins = [&](bool foreign_array_on_prot_a)
+  {
+    ProteinIdentification proteins;
+    std::vector<ProteinHit> hits;
+    for (const char* accession : {"ProtA", "ProtB", "ProtC"})
+    {
+      ProteinHit hit;
+      hit.setAccession(accession);
+      hits.push_back(hit);
+
+      ProteinIdentification::ProteinGroup group;
+      group.accessions = {accession};
+      group.probability = 1.0;
+
+      // quantities of an earlier run, in the sample-level layout of older versions (which the
+      // exporters still read) and in the current layout
+      add_array(group.getFloatDataArrays(), legacy_abundance_array, 54321.0f);
+      add_array(group.getFloatDataArrays(), abundance_array, 12345.0f);
+      add_array(group.getIntegerDataArrays(), "fraction_group_level_label", 1);
+      add_array(group.getStringDataArrays(), "file_channel_level_filename", "fileA");
+
+      // an array that the quantifier does not write and must not touch
+      if (foreign_array_on_prot_a && (std::string(accession) == "ProtA"))
+      {
+        add_array(group.getFloatDataArrays(), foreign_array, 1.5f);
+      }
+      proteins.getIndistinguishableProteins().push_back(group);
+    }
+    proteins.setHits(hits);
+    return proteins;
+  };
+
+  auto find_group = [](const ProteinIdentification& proteins, const std::string& accession) -> const ProteinIdentification::ProteinGroup*
+  {
+    for (const auto& group : proteins.getIndistinguishableProteins())
+    {
+      if (group.accessions[0] == accession) { return &group; }
+    }
+    return nullptr;
+  };
+
+  // quantify with 'top:N 2' and annotate @p proteins
+  auto annotate = [&](ProteinIdentification& proteins, bool remove_unquantified)
+  {
+    PeptideAndProteinQuant quantifier;
+    Param p = quantifier.getDefaults();
+    p.setValue("top:N", 2);
+    p.setValue("top:aggregate", "sum");
+    quantifier.setParameters(p);
+    quantifier.readQuantData(consensus, design);
+    quantifier.quantifyPeptides();
+    quantifier.quantifyProteins(proteins);
+
+    const auto& quant = quantifier.getProteinResults();
+    TEST_TRUE(quant.at("ProtA").fraction_group_abundances.empty())
+    TEST_REAL_SIMILAR(quant.at("ProtB").fraction_group_abundances.at(1).at(1), 4000.0)
+    TEST_TRUE(quant.find("ProtC") == quant.end())
+    quantifier.annotateQuantificationsToProteins(quant, proteins, remove_unquantified);
+  };
+
+  // the only float array of ProtA that may survive is the one of the other annotator
+  auto has_only_foreign_array = [&](const ProteinIdentification::ProteinGroup& group)
+  {
+    return (group.getFloatDataArrays().size() == 1) && (group.getFloatDataArrays()[0].getName() == foreign_array)
+           && group.getIntegerDataArrays().empty() && group.getStringDataArrays().empty();
+  };
+
+  // keeping unquantified groups: they stay, but without the stored quantities
+  {
+    ProteinIdentification proteins = make_proteins(true);
+    annotate(proteins, false);
+    TEST_EQUAL(proteins.getIndistinguishableProteins().size(), 3)
+
+    const auto* prot_a = find_group(proteins, "ProtA");
+    TEST_TRUE(prot_a != nullptr)
+    TEST_TRUE(has_only_foreign_array(*prot_a))
+    TEST_REAL_SIMILAR(prot_a->getFloatDataArrays()[0][0], 1.5)
+
+    const auto* prot_c = find_group(proteins, "ProtC");
+    TEST_TRUE(prot_c != nullptr)
+    TEST_TRUE(prot_c->getFloatDataArrays().empty())
+    TEST_TRUE(prot_c->getIntegerDataArrays().empty())
+    TEST_TRUE(prot_c->getStringDataArrays().empty())
+
+    // the quantified group reports this run's value, not the stored one - in either layout
+    const auto* prot_b = find_group(proteins, "ProtB");
+    TEST_TRUE(prot_b != nullptr)
+    const auto abundance = getDataArrayByName(prot_b->getFloatDataArrays(), abundance_array);
+    TEST_TRUE(abundance != prot_b->getFloatDataArrays().end())
+    TEST_EQUAL(abundance->size(), 1)
+    TEST_REAL_SIMILAR((*abundance)[0], 4000.0)
+    TEST_TRUE(getDataArrayByName(prot_b->getFloatDataArrays(), legacy_abundance_array) == prot_b->getFloatDataArrays().end())
+  }
+
+  // removing unquantified groups: without their stored quantities they are recognized as such
+  {
+    ProteinIdentification proteins = make_proteins(false);
+    annotate(proteins, true);
+    TEST_EQUAL(proteins.getIndistinguishableProteins().size(), 1)
+    TEST_STRING_EQUAL(proteins.getIndistinguishableProteins()[0].accessions[0], "ProtB")
+  }
+
+  // ... while a group that carries the array of another annotator is kept, as before - but
+  // without quantities
+  {
+    ProteinIdentification proteins = make_proteins(true);
+    annotate(proteins, true);
+    TEST_EQUAL(proteins.getIndistinguishableProteins().size(), 2)
+    const auto* prot_a = find_group(proteins, "ProtA");
+    TEST_TRUE(prot_a != nullptr)
+    TEST_TRUE(has_only_foreign_array(*prot_a))
+    TEST_TRUE(find_group(proteins, "ProtB") != nullptr)
+  }
+}
+END_SECTION
+
 START_SECTION((const ProteinQuant& getProteinResults() file+channel level must sum all peptidoforms))
 {
   // Two peptidoforms of the same unmodified sequence, in one file/channel.

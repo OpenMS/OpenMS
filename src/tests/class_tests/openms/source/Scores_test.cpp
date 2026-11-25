@@ -150,4 +150,17 @@ END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
+START_SECTION((static bool isSameScoreType(const std::string& score_name1, const std::string& score_name2)))
+{
+  TEST_EQUAL(Scores::isSameScoreType("q-value", "q-value"), true)
+  TEST_EQUAL(Scores::isSameScoreType("q-value", "qvalue"), true)
+  TEST_EQUAL(Scores::isSameScoreType("qvalue_score", "MS:1001491"), true)
+  TEST_EQUAL(Scores::isSameScoreType("PEP", "Posterior Error Probability"), true)
+  TEST_EQUAL(Scores::isSameScoreType("q-value", "PEP"), false)
+  TEST_EQUAL(Scores::isSameScoreType("Posterior Probability", "Posterior Error Probability"), false)
+  TEST_EQUAL(Scores::isSameScoreType("XTandem", "OMSSA"), false) // raw scores are only equal by name
+  TEST_EQUAL(Scores::isSameScoreType("MOWSE", "MOWSE"), true)
+}
+END_SECTION
+
 END_TEST

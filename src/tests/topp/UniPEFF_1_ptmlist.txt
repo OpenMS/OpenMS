@@ -24,3 +24,9 @@ ID   Test palmitoyl cysteine
 AC   PTM-9003
 DR   PSI-MOD; MOD:00999.
 //
+ID   N-acetylalanine
+AC   PTM-0199
+PP   N-terminal.
+DR   PSI-MOD; MOD:00050.
+DR   Unimod; 1.
+//
