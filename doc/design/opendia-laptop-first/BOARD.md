@@ -117,6 +117,8 @@ Current state on 23 November 2026: the HeLa diaPASEF entrapment at r ≈ 7. The 
 | Predicted decoys (`-predict_decoys`) remove the entrapment excess (rule 1c passes) | Done (pass) | [RESULT_DECOYGEN.md](gates/extraction-parity/decoygen/RESULT_DECOYGEN.md) |
 | DIAG_FDR: Astral GBM own-q excess localised to near-isomer entrapments at q ≤ 0.01; opt-in `-gbm_blend` (network/GBM blend, b3391c92e8), offline w = 0.5 pooled bound 1.17 to 0.75 % with IDs kept on dev data | Done (diagnostic) | [DIAG_FDR.md](gates/single-binary/fdr-20261125/DIAG_FDR.md) |
 | PRECHECK_BLEND (frozen): `-gbm_blend 0.5` vs the default on Astral 01/02/03 (03 held out) and HeLa D/H r ≈ 7 (held out), 5 seeds each. **FAIL**: Astral pooled combined 1.18 to 0.81 % (raw 03 held out 1.20 to 0.75 %, IDs 1.02x), but raw 01 IDs 0.953x and HeLa N@FDP_c 1 % D 0.948x / H 0.950x (lower bound D 1.11 to 1.03 %, H 1.29 to 1.16 %). B5 stays opt-in; next needs a targeted near-isomer fix (decision) | Done (fail) | [RESULT_BLEND.md](gates/single-binary/fdr-20261125/RESULT_BLEND.md) |
+| DIAG_STEPA: 2,648 HeLa "entrapment" peptides are exact human sequences (re-digest of foreign entries); with corrected labels HeLa lower bounds drop by about 0.15 pp (network only D 0.94 %, H 0.98 %; default D 0.94 %, H 1.12 %). The remaining excess on both instruments is borrowing from co-isolated IDs (4+ shared fragments), amplified by the GBM; an offline label-free removal rule is too blunt | Done (diagnostic) | [DIAG_STEPA.md](gates/single-binary/fdr-20261125/DIAG_STEPA.md) |
+| Next FDR fix (evidence sharing or GBM feature change) and relabelled evaluator; needs a new held-out set | Blocked: needs user decision | [DIAG_STEPA.md](gates/single-binary/fdr-20261125/DIAG_STEPA.md) |
 
 ## R-WP5: ID gap
 

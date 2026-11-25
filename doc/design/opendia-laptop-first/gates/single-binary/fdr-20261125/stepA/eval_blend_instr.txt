@@ -1,0 +1,18 @@
+== raw01
+B5: pooled q<=0.01 lower 0.0052 (90 % 0.0040-0.0065), combined 0.0103 (90 % 0.0080-0.0130); E 50, N 9705; median N@FDP_c 1 % 2035 (994-2114); P(entrapment beats own decoy | best q<=0.05) 0.507 (n 781, 90 % +-0.029)
+G0: pooled q<=0.01 lower 0.0061 (90 % 0.0049-0.0075), combined 0.0122 (90 % 0.0099-0.0150); E 66, N 10779; median N@FDP_c 1 % 2136 (1957-2270); P(entrapment beats own decoy | best q<=0.05) 0.490 (n 714, 90 % +-0.031)
+== raw02
+B5: pooled q<=0.01 lower 0.0033 (90 % 0.0024-0.0044), combined 0.0066 (90 % 0.0048-0.0089); E 33, N 9966; median N@FDP_c 1 % 2231 (2155-2254); P(entrapment beats own decoy | best q<=0.05) 0.447 (n 736, 90 % +-0.030)
+G0: pooled q<=0.01 lower 0.0056 (90 % 0.0044-0.0070), combined 0.0111 (90 % 0.0087-0.0140); E 52, N 9342; median N@FDP_c 1 % 2146 (1322-2215); P(entrapment beats own decoy | best q<=0.05) 0.454 (n 721, 90 % +-0.031)
+== raw03
+B5: pooled q<=0.01 lower 0.0037 (90 % 0.0028-0.0049), combined 0.0075 (90 % 0.0056-0.0097); E 40, N 10709; median N@FDP_c 1 % 2288 (2244-2376); P(entrapment beats own decoy | best q<=0.05) 0.470 (n 776, 90 % +-0.030)
+G0: pooled q<=0.01 lower 0.0060 (90 % 0.0049-0.0074), combined 0.0121 (90 % 0.0098-0.0147); E 69, N 11447; median N@FDP_c 1 % 2246 (2160-2338); P(entrapment beats own decoy | best q<=0.05) 0.466 (n 731, 90 % +-0.030)
+== astral
+B5: pooled q<=0.01 lower 0.0040 (90 % 0.0035-0.0047), combined 0.0081 (90 % 0.0069-0.0094); E 123, N 30380; median N@FDP_c 1 % 2231 (994-2376); P(entrapment beats own decoy | best q<=0.05) 0.475 (n 2293, 90 % +-0.017)
+G0: pooled q<=0.01 lower 0.0059 (90 % 0.0052-0.0067), combined 0.0118 (90 % 0.0105-0.0134); E 187, N 31568; median N@FDP_c 1 % 2170 (1322-2338); P(entrapment beats own decoy | best q<=0.05) 0.470 (n 2166, 90 % +-0.018)
+== D
+B5: pooled q<=0.01 lower 0.0101 (90 % 0.0096-0.0106), combined 0.0115 (90 % 0.0109-0.0121); E 1050, N 104423; median N@FDP_c 1 % 20373 (20033-20832); P(entrapment beats own decoy | best q<=0.05) 0.538 (n 11936, 90 % +-0.008)
+G0: pooled q<=0.01 lower 0.0109 (90 % 0.0104-0.0115), combined 0.0125 (90 % 0.0119-0.0131); E 1202, N 109910; median N@FDP_c 1 % 21495 (21048-21543); P(entrapment beats own decoy | best q<=0.05) 0.543 (n 12421, 90 % +-0.007)
+== H
+B5: pooled q<=0.01 lower 0.0115 (90 % 0.0111-0.0119), combined 0.0131 (90 % 0.0127-0.0136); E 2096, N 182103; median N@FDP_c 1 % 35526 (35210-35849); P(entrapment beats own decoy | best q<=0.05) 0.525 (n 18496, 90 % +-0.006)
+G0: pooled q<=0.01 lower 0.0127 (90 % 0.0123-0.0132), combined 0.0146 (90 % 0.0141-0.0151); E 2451, N 192239; median N@FDP_c 1 % 37376 (37254-37454); P(entrapment beats own decoy | best q<=0.05) 0.539 (n 20043, 90 % +-0.006)

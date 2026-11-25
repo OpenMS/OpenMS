@@ -1,0 +1,10 @@
+q <= 0.01: entrapment peptides in library 515756; recurrent (>= 3 of 5 seeds) D 193, H 422; overlap 39 vs chance 0.16
+H: pooled N 192239 E 2451 lower 0.0127 combined 0.0146; E whose peptide recurs in the other acquisition 242 (0.10); without them lower 0.0115 combined 0.0131
+D: pooled N 109910 E 1202 lower 0.0109 combined 0.0125; E whose peptide recurs in the other acquisition 222 (0.18); without them lower 0.0089 combined 0.0102
+q <= 0.001: entrapment peptides in library 515756; recurrent (>= 3 of 5 seeds) D 26, H 90; overlap 18 vs chance 0.00
+H: pooled N 165812 E 518 lower 0.0031 combined 0.0036; E whose peptide recurs in the other acquisition 125 (0.24); without them lower 0.0024 combined 0.0027
+D: pooled N 80549 E 158 lower 0.0020 combined 0.0022; E whose peptide recurs in the other acquisition 108 (0.68); without them lower 0.0006 combined 0.0007
+== network only
+q <= 0.01: entrapment peptides in library 515756; recurrent (>= 3 of 5 seeds) D 170, H 328; overlap 39 vs chance 0.11
+H: pooled N 177889 E 2020 lower 0.0114 combined 0.0130; E whose peptide recurs in the other acquisition 231 (0.11); without them lower 0.0101 combined 0.0115
+D: pooled N 101860 E 1097 lower 0.0108 combined 0.0123; E whose peptide recurs in the other acquisition 234 (0.21); without them lower 0.0085 combined 0.0097

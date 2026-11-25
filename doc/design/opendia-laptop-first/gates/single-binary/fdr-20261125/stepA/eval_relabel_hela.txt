@@ -1,0 +1,38 @@
+== D exact labels
+NET     0  20167    232 0.0115    0.0131       19378
+NET     1  20281    199 0.0098    0.0112       19897
+NET     2  20256    229 0.0113    0.0129       19493
+NET     3  20381    207 0.0102    0.0116       19829
+NET     4  20775    230 0.0111    0.0126       20156
+B5: pooled q<=0.01 lower 0.0101 (90 % 0.0096-0.0106), combined 0.0115 (90 % 0.0109-0.0121); E 1050, N 104423; median N@FDP_c 1 % 20373 (20033-20832); P(entrapment beats own decoy | best q<=0.05) 0.538 (n 11936, 90 % +-0.008)
+G0: pooled q<=0.01 lower 0.0109 (90 % 0.0104-0.0115), combined 0.0125 (90 % 0.0119-0.0131); E 1202, N 109910; median N@FDP_c 1 % 21495 (21048-21543); P(entrapment beats own decoy | best q<=0.05) 0.543 (n 12421, 90 % +-0.007)
+NET: pooled q<=0.01 lower 0.0108 (90 % 0.0102-0.0113), combined 0.0123 (90 % 0.0117-0.0129); E 1097, N 101860; median N@FDP_c 1 % 19829 (19378-20156); P(entrapment beats own decoy | best q<=0.05) 0.528 (n 11096, 90 % +-0.008)
+== D relabelled (human substrings count as human)
+relabelled entrapment precursors as human: 2912
+NET     0  20167    204 0.0101    0.0116       19760
+NET     1  20281    171 0.0084    0.0097       20403
+NET     2  20256    202 0.0100    0.0114       19848
+NET     3  20381    180 0.0088    0.0101       20361
+NET     4  20775    201 0.0097    0.0111       20576
+B5: pooled q<=0.01 lower 0.0087 (90 % 0.0082-0.0092), combined 0.0099 (90 % 0.0094-0.0105); E 905, N 104423; median N@FDP_c 1 % 20985 (20527-21349); P(entrapment beats own decoy | best q<=0.05) 0.531 (n 11706, 90 % +-0.008)
+G0: pooled q<=0.01 lower 0.0094 (90 % 0.0089-0.0099), combined 0.0107 (90 % 0.0102-0.0113); E 1032, N 109910; median N@FDP_c 1 % 21805 (21541-22009); P(entrapment beats own decoy | best q<=0.05) 0.536 (n 12185, 90 % +-0.007)
+NET: pooled q<=0.01 lower 0.0094 (90 % 0.0089-0.0099), combined 0.0108 (90 % 0.0102-0.0114); E 958, N 101860; median N@FDP_c 1 % 20361 (19760-20576); P(entrapment beats own decoy | best q<=0.05) 0.521 (n 10885, 90 % +-0.008)
+== H exact labels
+NET     0  35717    410 0.0115    0.0131       34969
+NET     1  35445    382 0.0108    0.0123       34869
+NET     2  35457    397 0.0112    0.0128       34718
+NET     3  35595    401 0.0113    0.0129       35044
+NET     4  35675    430 0.0121    0.0138       34905
+B5: pooled q<=0.01 lower 0.0115 (90 % 0.0111-0.0119), combined 0.0131 (90 % 0.0127-0.0136); E 2096, N 182103; median N@FDP_c 1 % 35526 (35210-35849); P(entrapment beats own decoy | best q<=0.05) 0.525 (n 18496, 90 % +-0.006)
+G0: pooled q<=0.01 lower 0.0127 (90 % 0.0123-0.0132), combined 0.0146 (90 % 0.0141-0.0151); E 2451, N 192239; median N@FDP_c 1 % 37376 (37254-37454); P(entrapment beats own decoy | best q<=0.05) 0.539 (n 20043, 90 % +-0.006)
+NET: pooled q<=0.01 lower 0.0114 (90 % 0.0109-0.0118), combined 0.0130 (90 % 0.0125-0.0135); E 2020, N 177889; median N@FDP_c 1 % 34905 (34718-35044); P(entrapment beats own decoy | best q<=0.05) 0.521 (n 17566, 90 % +-0.006)
+== H relabelled (human substrings count as human)
+relabelled entrapment precursors as human: 2912
+NET     0  35717    356 0.0100    0.0114       35397
+NET     1  35445    328 0.0093    0.0106       35333
+NET     2  35457    343 0.0097    0.0111       35174
+NET     3  35595    347 0.0097    0.0112       35398
+NET     4  35675    375 0.0105    0.0120       35332
+B5: pooled q<=0.01 lower 0.0100 (90 % 0.0096-0.0104), combined 0.0114 (90 % 0.0110-0.0119); E 1819, N 182103; median N@FDP_c 1 % 36021 (35753-36287); P(entrapment beats own decoy | best q<=0.05) 0.517 (n 18126, 90 % +-0.006)
+G0: pooled q<=0.01 lower 0.0112 (90 % 0.0108-0.0116), combined 0.0128 (90 % 0.0123-0.0132); E 2144, N 192239; median N@FDP_c 1 % 37897 (37719-37959); P(entrapment beats own decoy | best q<=0.05) 0.533 (n 19635, 90 % +-0.006)
+NET: pooled q<=0.01 lower 0.0098 (90 % 0.0094-0.0102), combined 0.0113 (90 % 0.0108-0.0117); E 1749, N 177889; median N@FDP_c 1 % 35333 (35174-35398); P(entrapment beats own decoy | best q<=0.05) 0.512 (n 17215, 90 % +-0.006)

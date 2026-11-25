@@ -1,0 +1,18 @@
+== D_NET: pairs 11096 P 0.528  (W 12.5 Th, DT 3.0 s, FTOL 15 ppm)
+  all q<=0.05 n 11096 P 0.528 | neither borrows P 0.529 (n 9448) | E share 0-1: P 0.504 (n 10250) | E share 2-3: P 0.776 (n 692) | E share 4+: P 1.000 (n 154) | D share 0-1: P 0.552 (n 10255) | D share 2-3: P 0.274 (n 727) | D share 4+: P 0.000 (n 114)
+  q<=0.001    n 32 P 0.656 | neither borrows P 0.739 (n 23) | E share 0-1: P 0.607 (n 28) | E share 2-3: P 1.000 (n 4) | E share 4+: P nan (n 0) | D share 0-1: P 0.778 (n 27) | D share 2-3: P 0.000 (n 5) | D share 4+: P nan (n 0)
+  0.001-0.01  n 1810 P 0.580 | neither borrows P 0.562 (n 1494) | E share 0-1: P 0.542 (n 1624) | E share 2-3: P 0.852 (n 108) | E share 4+: P 1.000 (n 78) | D share 0-1: P 0.600 (n 1674) | D share 2-3: P 0.395 (n 114) | D share 4+: P 0.000 (n 22)
+  0.01-0.05   n 9254 P 0.518 | neither borrows P 0.522 (n 7931) | E share 0-1: P 0.497 (n 8598) | E share 2-3: P 0.760 (n 580) | E share 4+: P 1.000 (n 76) | D share 0-1: P 0.542 (n 8554) | D share 2-3: P 0.253 (n 608) | D share 4+: P 0.000 (n 92)
+  q<=0.01 accounting: E 1097, counted decoys 1051, expected E if exchangeable D r/(1+r) = 920; by share class 0-1: E 923 vs D*r/(1+r) 798 | 2-3: E 96 vs D*r/(1+r) 90 | 4+: E 78 vs D*r/(1+r) 32
+== D_G0: pairs 12421 P 0.543  (W 12.5 Th, DT 3.0 s, FTOL 15 ppm)
+  all q<=0.05 n 12421 P 0.543 | neither borrows P 0.540 (n 10439) | E share 0-1: P 0.512 (n 11320) | E share 2-3: P 0.815 (n 841) | E share 4+: P 1.000 (n 260) | D share 0-1: P 0.570 (n 11473) | D share 2-3: P 0.263 (n 775) | D share 4+: P 0.000 (n 173)
+  q<=0.001    n 203 P 0.773 | neither borrows P 0.795 (n 156) | E share 0-1: P 0.729 (n 170) | E share 2-3: P 1.000 (n 10) | E share 4+: P 1.000 (n 23) | D share 0-1: P 0.831 (n 189) | D share 2-3: P 0.000 (n 12) | D share 4+: P 0.000 (n 2)
+  0.001-0.01  n 1842 P 0.554 | neither borrows P 0.536 (n 1490) | E share 0-1: P 0.508 (n 1609) | E share 2-3: P 0.804 (n 148) | E share 4+: P 1.000 (n 85) | D share 0-1: P 0.583 (n 1719) | D share 2-3: P 0.189 (n 95) | D share 4+: P 0.000 (n 28)
+  0.01-0.05   n 10376 P 0.537 | neither borrows P 0.536 (n 8793) | E share 0-1: P 0.509 (n 9541) | E share 2-3: P 0.814 (n 683) | E share 4+: P 1.000 (n 152) | D share 0-1: P 0.563 (n 9565) | D share 2-3: P 0.278 (n 668) | D share 4+: P 0.000 (n 143)
+  q<=0.01 accounting: E 1202, counted decoys 1145, expected E if exchangeable D r/(1+r) = 1003; by share class 0-1: E 965 vs D*r/(1+r) 859 | 2-3: E 129 vs D*r/(1+r) 102 | 4+: E 108 vs D*r/(1+r) 41
+== H_G0: pairs 20043 P 0.539  (W 12.5 Th, DT 3.0 s, FTOL 15 ppm)
+  all q<=0.05 n 20043 P 0.539 | neither borrows P 0.538 (n 17661) | E share 0-1: P 0.522 (n 18704) | E share 2-3: P 0.718 (n 975) | E share 4+: P 0.959 (n 364) | D share 0-1: P 0.555 (n 18856) | D share 2-3: P 0.341 (n 970) | D share 4+: P 0.041 (n 217)
+  q<=0.001    n 639 P 0.803 | neither borrows P 0.781 (n 485) | E share 0-1: P 0.767 (n 529) | E share 2-3: P 0.880 (n 25) | E share 4+: P 1.000 (n 85) | D share 0-1: P 0.813 (n 579) | D share 2-3: P 0.860 (n 43) | D share 4+: P 0.294 (n 17)
+  0.001-0.01  n 3333 P 0.569 | neither borrows P 0.559 (n 2859) | E share 0-1: P 0.538 (n 3028) | E share 2-3: P 0.800 (n 170) | E share 4+: P 0.978 (n 135) | D share 0-1: P 0.591 (n 3130) | D share 2-3: P 0.356 (n 132) | D share 4+: P 0.000 (n 71)
+  0.01-0.05   n 16071 P 0.523 | neither borrows P 0.526 (n 14317) | E share 0-1: P 0.510 (n 15147) | E share 2-3: P 0.695 (n 780) | E share 4+: P 0.917 (n 144) | D share 0-1: P 0.538 (n 15147) | D share 2-3: P 0.311 (n 795) | D share 4+: P 0.031 (n 129)
+  q<=0.01 accounting: E 2451, counted decoys 2081, expected E if exchangeable D r/(1+r) = 1823; by share class 0-1: E 2072 vs D*r/(1+r) 1608 | 2-3: E 159 vs D*r/(1+r) 116 | 4+: E 220 vs D*r/(1+r) 98

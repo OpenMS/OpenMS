@@ -1,0 +1,12 @@
+== A_G0: runs 15 (W 1.0 Th, DT 3.0 s, FTOL 10 ppm)
+  E_acc   n    187: no donor 0.930 | share >=1 0.027 >=2 0.027 >=3 0.027 >=4 0.027 | median donors 0
+  D_mt    n    331: no donor 0.897 | share >=1 0.009 >=2 0.009 >=3 0.003 >=4 0.003 | median donors 0
+  D_band  n   1700: no donor 0.904 | share >=1 0.013 >=2 0.010 >=3 0.008 >=4 0.008 | median donors 0
+  E_band  n    736: no donor 0.882 | share >=1 0.038 >=2 0.027 >=3 0.022 >=4 0.018 | median donors 0
+  T_acc   n  31381: no donor 0.921 | share >=1 0.003 >=2 0.001 >=3 0.000 >=4 0.000 | median donors 0
+== A_B5: runs 15 (W 1.0 Th, DT 3.0 s, FTOL 10 ppm)
+  E_acc   n    123: no donor 0.951 | share >=1 0.008 >=2 0.008 >=3 0.008 >=4 0.008 | median donors 0
+  D_mt    n    282: no donor 0.929 | share >=1 0.014 >=2 0.014 >=3 0.000 >=4 0.000 | median donors 0
+  D_band  n   1500: no donor 0.912 | share >=1 0.017 >=2 0.013 >=3 0.005 >=4 0.005 | median donors 0
+  E_band  n    755: no donor 0.878 | share >=1 0.053 >=2 0.048 >=3 0.040 >=4 0.029 | median donors 0
+  T_acc   n  30257: no donor 0.923 | share >=1 0.003 >=2 0.001 >=3 0.000 >=4 0.000 | median donors 0

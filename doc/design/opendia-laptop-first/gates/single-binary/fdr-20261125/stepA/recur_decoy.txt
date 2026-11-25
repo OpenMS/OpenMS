@@ -1,0 +1,4 @@
+accepted entrapments  D: hits 1202, whose peptide recurs (>= 3 of 5 seeds) in the other acquisition 222 (0.185); recurrent sets D 193 H 422 overlap 39
+accepted entrapments  H: hits 2451, whose peptide recurs (>= 3 of 5 seeds) in the other acquisition 242 (0.099); recurrent sets D 193 H 422 overlap 39
+counted decoys        D: hits 1145, whose peptide recurs (>= 3 of 5 seeds) in the other acquisition 60 (0.052); recurrent sets D 182 H 365 overlap 9
+counted decoys        H: hits 2081, whose peptide recurs (>= 3 of 5 seeds) in the other acquisition 43 (0.021); recurrent sets D 182 H 365 overlap 9

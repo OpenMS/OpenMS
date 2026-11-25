@@ -1,0 +1,18 @@
+r 7.0512; W 12.5 Th, DT 3.0 s, FTOL 15 ppm, K 3, candidate region baseline q <= 0.05
+== D_G0: runs 5; tool q: N 109910 E 1202 lower 0.0109
+  baseline TDC: N 109910 E 1202 lower 0.0109 combined 0.0125 median N@FDP_c1% 21495
+  competition : N 109144 E 1133 lower 0.0104 combined 0.0119 median N@FDP_c1% 21374
+  removed (all runs): {'T': 2904, 'E': 652, 'D': 527, 'T_acc': 1622, 'E_acc': 147}
+== H_G0: runs 5; tool q: N 192239 E 2451 lower 0.0127
+  baseline TDC: N 192239 E 2451 lower 0.0127 combined 0.0146 median N@FDP_c1% 37376
+  competition : N 191240 E 2301 lower 0.0120 combined 0.0137 median N@FDP_c1% 37500
+  removed (all runs): {'T': 2314, 'E': 702, 'D': 649, 'T_acc': 1497, 'E_acc': 292}
+r 7.0512; W 12.5 Th, DT 3.0 s, FTOL 15 ppm, K 4, candidate region baseline q <= 0.05
+== D_G0: runs 5; tool q: N 109910 E 1202 lower 0.0109
+  baseline TDC: N 109910 E 1202 lower 0.0109 combined 0.0125 median N@FDP_c1% 21495
+  competition : N 108829 E 1128 lower 0.0104 combined 0.0118 median N@FDP_c1% 21357
+  removed (all runs): {'T': 2434, 'E': 361, 'D': 238, 'T_acc': 1367, 'E_acc': 104}
+== H_G0: runs 5; tool q: N 192239 E 2451 lower 0.0127
+  baseline TDC: N 192239 E 2451 lower 0.0127 combined 0.0146 median N@FDP_c1% 37376
+  competition : N 191223 E 2314 lower 0.0121 combined 0.0138 median N@FDP_c1% 37458
+  removed (all runs): {'T': 1897, 'E': 417, 'D': 293, 'T_acc': 1260, 'E_acc': 219}

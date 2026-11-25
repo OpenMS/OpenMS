@@ -1,0 +1,7 @@
+library /home/singjc/Documents/github/OpenMS-r1-benchmark-20261107/gap-20261114/armE_raw01/library.pqp: precursors 603421, human targets 151239, r 1.0000, IM used False, W 1.0 Th, FTOL 10 ppm, RT tol 0.015
+human targets          n 40000 | iso: has 0.8762 >=1 0.1941 >=2 0.1079 >=3 0.0671 | win: has 0.9997 >=1 0.2885 >=2 0.0612 >=3 0.0359
+entrapment targets     n 40000 | iso: has 1.0000 >=1 0.2194 >=2 0.0910 >=3 0.0260 | win: has 0.9997 >=1 0.2830 >=2 0.0455 >=3 0.0103
+decoys of human        n 40000 | iso: has 0.8426 >=1 0.1137 >=2 0.0380 >=3 0.0076 | win: has 0.9823 >=1 0.2464 >=2 0.0212 >=3 0.0021
+decoys of entrapment   n 40000 | iso: has 0.8389 >=1 0.1098 >=2 0.0363 >=3 0.0069 | win: has 0.9828 >=1 0.2416 >=2 0.0207 >=3 0.0022
+G0: runs 15 N 31568 E 187 lower 0.0059 combined 0.0118 | iso E(0-1/2/3+) [110, 46, 31] share [0.909, 0.0649, 0.026] bound [np.float64(0.0073), np.float64(0.0239), np.float64(0.0388)] | win E(0-1/2/3+) [181, 4, 2] share [0.9545, 0.0352, 0.0103] bound [np.float64(0.0117), np.float64(0.0037), np.float64(0.0062)]
+B5: runs 15 N 30380 E 123 lower 0.0040 combined 0.0081 | iso E(0-1/2/3+) [82, 14, 27] share [0.909, 0.0649, 0.026] bound [np.float64(0.0057), np.float64(0.0076), np.float64(0.0351)] | win E(0-1/2/3+) [122, 0, 1] share [0.9545, 0.0352, 0.0103] bound [np.float64(0.0082), np.float64(0.0), np.float64(0.0032)]

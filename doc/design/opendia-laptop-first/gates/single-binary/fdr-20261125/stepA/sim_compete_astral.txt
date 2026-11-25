@@ -1,0 +1,15 @@
+r 1.0000; W 1.0 Th, DT 3.0 s, FTOL 10 ppm, K 2, candidate region baseline q <= 0.05
+== A_G0: runs 15; tool q: N 31568 E 187 lower 0.0059
+  baseline TDC: N 32906 E 186 lower 0.0057 combined 0.0113 median N@FDP_c1% 2160
+  competition : N 32926 E 180 lower 0.0055 combined 0.0109 median N@FDP_c1% 2159
+  removed (all runs): {'T': 29, 'E': 36, 'D': 28, 'T_acc': 10, 'E_acc': 6}
+r 1.0000; W 1.0 Th, DT 3.0 s, FTOL 10 ppm, K 3, candidate region baseline q <= 0.05
+== A_G0: runs 15; tool q: N 31568 E 187 lower 0.0059
+  baseline TDC: N 32906 E 186 lower 0.0057 combined 0.0113 median N@FDP_c1% 2160
+  competition : N 32900 E 180 lower 0.0055 combined 0.0109 median N@FDP_c1% 2160
+  removed (all runs): {'T': 10, 'E': 31, 'D': 21, 'T_acc': 0, 'E_acc': 6}
+r 1.0000; W 1.0 Th, DT 3.0 s, FTOL 10 ppm, K 4, candidate region baseline q <= 0.05
+== A_G0: runs 15; tool q: N 31568 E 187 lower 0.0059
+  baseline TDC: N 32906 E 186 lower 0.0057 combined 0.0113 median N@FDP_c1% 2160
+  competition : N 32900 E 180 lower 0.0055 combined 0.0109 median N@FDP_c1% 2160
+  removed (all runs): {'T': 9, 'E': 27, 'D': 21, 'T_acc': 0, 'E_acc': 6}

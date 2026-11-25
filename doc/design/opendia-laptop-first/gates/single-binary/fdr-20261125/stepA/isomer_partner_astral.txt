@@ -1,0 +1,7 @@
+runs 15; rows = group members with an isobaric human partner sharing >= 2 fragments
+D_cnt: with partner 57; partner scored in run 56; |apex diff| <=3 s 0.09, <=10 s 0.09, <=30 s 0.18, median 90.1 s; partner q<=0.01 0.05; partner scores higher 0.02; shared frags median 2
+    co-eluting (<=3 s): n 5, partner q<=0.01 0.60, partner scores higher 0.20
+E_acc: with partner 77; partner scored in run 66; |apex diff| <=3 s 0.18, <=10 s 0.26, <=30 s 0.55, median 25.4 s; partner q<=0.01 0.12; partner scores higher 0.11; shared frags median 2
+    co-eluting (<=3 s): n 12, partner q<=0.01 0.42, partner scores higher 0.42
+T_acc: with partner 1024; partner scored in run 780; |apex diff| <=3 s 0.12, <=10 s 0.15, <=30 s 0.24, median 103.3 s; partner q<=0.01 0.08; partner scores higher 0.04; shared frags median 2
+    co-eluting (<=3 s): n 97, partner q<=0.01 0.21, partner scores higher 0.10

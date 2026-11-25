@@ -1,0 +1,13 @@
+library /home/singjc/.jcode/scratch/blend-20261125/eval/hela_r5.predicted_decoys.pqp: precursors 2778189, human targets 172666, r 7.0512, IM used True, W 12.5 Th, FTOL 15 ppm, RT tol 0.015
+human targets          n 40000 | iso: has 0.9561 >=1 0.2016 >=2 0.0638 >=3 0.0391 | win: has 0.9991 >=1 0.6996 >=2 0.1612 >=3 0.0349
+entrapment targets     n 40000 | iso: has 0.9181 >=1 0.1314 >=2 0.0151 >=3 0.0029 | win: has 0.9956 >=1 0.5902 >=2 0.1024 >=3 0.0100
+decoys of human        n 40000 | iso: has 0.9378 >=1 0.1514 >=2 0.0213 >=3 0.0034 | win: has 0.9983 >=1 0.6796 >=2 0.1348 >=3 0.0144
+decoys of entrapment   n 40000 | iso: has 0.8989 >=1 0.1219 >=2 0.0134 >=3 0.0023 | win: has 0.9929 >=1 0.5653 >=2 0.0933 >=3 0.0092
+D_NET: runs 1 N 20167 E 232 lower 0.0115 combined 0.0131 | iso E(0-1/2/3+) [214, 3, 15] share [0.9849, 0.0122, 0.0029] bound [np.float64(0.0121), np.float64(0.0019), np.float64(0.0374)] | win E(0-1/2/3+) [177, 43, 12] share [0.8976, 0.0924, 0.01] bound [np.float64(0.0102), np.float64(0.0054), np.float64(0.009)]
+D_G0: runs 5 N 109910 E 1202 lower 0.0109 combined 0.0125 | iso E(0-1/2/3+) [1077, 38, 87] share [0.9849, 0.0122, 0.0029] bound [np.float64(0.0112), np.float64(0.0043), np.float64(0.0398)] | win E(0-1/2/3+) [887, 228, 87] share [0.8976, 0.0924, 0.01] bound [np.float64(0.0093), np.float64(0.0053), np.float64(0.012)]
+D_B5: runs 5 N 104423 E 1050 lower 0.0101 combined 0.0115 | iso E(0-1/2/3+) [960, 21, 69] share [0.9849, 0.0122, 0.0029] bound [np.float64(0.0105), np.float64(0.0025), np.float64(0.0333)] | win E(0-1/2/3+) [819, 170, 61] share [0.8976, 0.0924, 0.01] bound [np.float64(0.0091), np.float64(0.0041), np.float64(0.0088)]
+Traceback (most recent call last):
+  File "/home/singjc/.jcode/scratch/fdr-20261125/diag_nb.py", line 97, in <module>
+    line = f'{arm}: runs {len(files)} N {N} E {Et} lower {Et / N:.4f} combined {Et * k / N:.4f}'
+                                                          ~~~^~~
+ZeroDivisionError: division by zero

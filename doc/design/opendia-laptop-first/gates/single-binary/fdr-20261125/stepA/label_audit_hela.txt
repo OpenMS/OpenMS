@@ -1,0 +1,34 @@
+library target peptides 585998, entrapment-labelled 515756
+  length 7: entrapment peptides 34323, human substrings 2069
+  length 8: entrapment peptides 55322, human substrings 407
+  length 9: entrapment peptides 57556, human substrings 87
+  length 10: entrapment peptides 57085, human substrings 35
+  length 11: entrapment peptides 55781, human substrings 17
+  length 12: entrapment peptides 50362, human substrings 14
+  length 13: entrapment peptides 44525, human substrings 10
+  length 14: entrapment peptides 37545, human substrings 5
+  length 15: entrapment peptides 30964, human substrings 1
+  length 16: entrapment peptides 25018, human substrings 1
+  length 17: entrapment peptides 18825, human substrings 1
+  length 18: entrapment peptides 13754, human substrings 1
+  length 19: entrapment peptides 9606, human substrings 0
+  length 20: entrapment peptides 6946, human substrings 0
+  length 21: entrapment peptides 5037, human substrings 0
+  length 22: entrapment peptides 3693, human substrings 0
+  length 23: entrapment peptides 2693, human substrings 0
+  length 24: entrapment peptides 1845, human substrings 0
+  length 25: entrapment peptides 1545, human substrings 0
+  length 26: entrapment peptides 1053, human substrings 0
+  length 27: entrapment peptides 724, human substrings 0
+  length 28: entrapment peptides 575, human substrings 0
+  length 29: entrapment peptides 309, human substrings 0
+  length 30: entrapment peptides 194, human substrings 0
+  length 31: entrapment peptides 188, human substrings 0
+  length 32: entrapment peptides 87, human substrings 0
+  length 33: entrapment peptides 100, human substrings 0
+  length 34: entrapment peptides 49, human substrings 0
+  length 35: entrapment peptides 26, human substrings 0
+  length 36: entrapment peptides 21, human substrings 0
+  length 37: entrapment peptides 4, human substrings 0
+  length 38: entrapment peptides 1, human substrings 0
+entrapment-labelled peptides that are exact human substrings (I=L): 2648 of 515756 (0.0051)

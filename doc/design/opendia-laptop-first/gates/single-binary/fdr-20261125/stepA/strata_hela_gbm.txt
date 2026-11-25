@@ -1,0 +1,45 @@
+library: entrapment pairs 1215463, r 7.0512
+== D_G0: runs 5 N 109910 E 1202 lower 0.0109 combined 0.0125; P 0.543 (n 12421)
+  charge   2: share 0.479 P 0.557 (n 7458) E 701 bound 0.0083 | 3: share 0.350 P 0.525 (n 3262) E 330 bound 0.0042 | 4: share 0.171 P 0.519 (n 1701) E 171 bound 0.0028
+  length   (0, 9]: share 0.149 P 0.568 (n 2444) E 272 bound 0.0048 | (12, 16]: share 0.387 P 0.544 (n 4232) E 371 bound 0.0046 | (16, 22]: share 0.153 P 0.485 (n 1863) E 152 bound 0.0027 | (22, 60]: share 0.021 P 0.545 (n 222) E 16 bound 0.0011 | (9, 12]: share 0.290 P 0.554 (n 3660) E 391 bound 0.0053
+  mz       (399.999, 472.26]: share 0.250 P 0.549 (n 2414) E 305 bound 0.0043 | (472.26, 561.059]: share 0.250 P 0.559 (n 3178) E 344 bound 0.0049 | (561.059, 694.354]: share 0.250 P 0.538 (n 3737) E 311 bound 0.0044 | (694.354, 999.999]: share 0.250 P 0.527 (n 3092) E 242 bound 0.0035
+  lib_rt   (-0.0601, 0.198]: share 0.250 P 0.553 (n 2328) E 199 bound 0.0028 | (0.198, 0.408]: share 0.250 P 0.541 (n 1964) E 179 bound 0.0026 | (0.408, 0.624]: share 0.250 P 0.559 (n 2144) E 192 bound 0.0027 | (0.624, 0.945]: share 0.250 P 0.534 (n 5985) E 632 bound 0.0090
+  im       (0.583, 0.81]: share 0.250 P 0.546 (n 2219) E 287 bound 0.0041 | (0.81, 0.884]: share 0.250 P 0.546 (n 2909) E 296 bound 0.0042 | (0.884, 0.998]: share 0.250 P 0.545 (n 3917) E 337 bound 0.0048 | (0.998, 1.36]: share 0.250 P 0.536 (n 3376) E 282 bound 0.0040
+  n_trans  1: share 0.038 P 0.000 (n 0) E 0 bound 0.0000 | 2: share 0.031 P 0.000 (n 0) E 0 bound 0.0000 | 3: share 0.027 P 0.517 (n 89) E 10 bound 0.0006 | 4: share 0.027 P 0.696 (n 79) E 9 bound 0.0005 | 5: share 0.026 P 0.649 (n 151) E 3 bound 0.0002 | 6: share 0.850 P 0.541 (n 12102) E 1180 bound 0.0125
+  cterm    K: share 0.542 P 0.550 (n 6916) E 694 bound 0.0080 | R: share 0.445 P 0.534 (n 5375) E 496 bound 0.0060 | other: share 0.014 P 0.538 (n 130) E 12 bound 0.0013
+  missed   0: share 0.327 P 0.540 (n 7801) E 856 bound 0.0112 | 1: share 0.447 P 0.550 (n 3891) E 286 bound 0.0034 | 2: share 0.226 P 0.532 (n 729) E 60 bound 0.0009
+  Met      M: share 0.429 P 0.531 (n 4663) E 415 bound 0.0050 | noM: share 0.571 P 0.550 (n 7758) E 787 bound 0.0089
+  Pro      P: share 0.403 P 0.553 (n 4887) E 501 bound 0.0062 | noP: share 0.597 P 0.536 (n 7534) E 701 bound 0.0079
+== H_G0: runs 5 N 192239 E 2451 lower 0.0127 combined 0.0146; P 0.539 (n 20043)
+  charge   2: share 0.479 P 0.535 (n 13493) E 1701 bound 0.0115 | 3: share 0.350 P 0.554 (n 4596) E 546 bound 0.0040 | 4: share 0.171 P 0.534 (n 1954) E 204 bound 0.0019
+  length   (0, 9]: share 0.149 P 0.540 (n 4307) E 734 bound 0.0075 | (12, 16]: share 0.387 P 0.542 (n 6898) E 772 bound 0.0055 | (16, 22]: share 0.153 P 0.520 (n 2442) E 228 bound 0.0023 | (22, 60]: share 0.021 P 0.600 (n 340) E 40 bound 0.0016 | (9, 12]: share 0.290 P 0.540 (n 6056) E 677 bound 0.0052
+  mz       (399.999, 472.26]: share 0.250 P 0.538 (n 3099) E 567 bound 0.0046 | (472.26, 561.059]: share 0.250 P 0.530 (n 5055) E 634 bound 0.0052 | (561.059, 694.354]: share 0.250 P 0.552 (n 6265) E 678 bound 0.0055 | (694.354, 999.999]: share 0.250 P 0.535 (n 5624) E 572 bound 0.0047
+  lib_rt   (-0.0601, 0.198]: share 0.250 P 0.516 (n 2033) E 229 bound 0.0019 | (0.198, 0.408]: share 0.250 P 0.534 (n 4584) E 597 bound 0.0049 | (0.408, 0.624]: share 0.250 P 0.553 (n 5780) E 680 bound 0.0055 | (0.624, 0.945]: share 0.250 P 0.539 (n 7646) E 945 bound 0.0077
+  im       (0.583, 0.81]: share 0.250 P 0.540 (n 2826) E 476 bound 0.0039 | (0.81, 0.884]: share 0.250 P 0.519 (n 4665) E 599 bound 0.0049 | (0.884, 0.998]: share 0.250 P 0.558 (n 6383) E 746 bound 0.0061 | (0.998, 1.36]: share 0.250 P 0.536 (n 6169) E 630 bound 0.0051
+  n_trans  1: share 0.038 P 0.000 (n 0) E 0 bound 0.0000 | 2: share 0.031 P 0.000 (n 0) E 0 bound 0.0000 | 3: share 0.027 P 0.600 (n 80) E 6 bound 0.0002 | 4: share 0.027 P 0.443 (n 192) E 11 bound 0.0004 | 5: share 0.026 P 0.536 (n 321) E 19 bound 0.0006 | 6: share 0.850 P 0.540 (n 19450) E 2415 bound 0.0147
+  cterm    K: share 0.542 P 0.528 (n 11043) E 1329 bound 0.0087 | R: share 0.445 P 0.550 (n 8764) E 1077 bound 0.0074 | other: share 0.014 P 0.665 (n 236) E 45 bound 0.0027
+  missed   0: share 0.327 P 0.534 (n 13652) E 1847 bound 0.0138 | 1: share 0.447 P 0.550 (n 5432) E 526 bound 0.0036 | 2: share 0.226 P 0.555 (n 959) E 78 bound 0.0007
+  Met      M: share 0.429 P 0.531 (n 7828) E 825 bound 0.0057 | noM: share 0.571 P 0.545 (n 12215) E 1626 bound 0.0106
+  Pro      P: share 0.403 P 0.553 (n 7535) E 900 bound 0.0063 | noP: share 0.597 P 0.531 (n 12508) E 1551 bound 0.0100
+== D_B5: runs 5 N 104423 E 1048 lower 0.0100 combined 0.0115; P 0.538 (n 11936)
+  charge   2: share 0.479 P 0.552 (n 6370) E 525 bound 0.0065 | 3: share 0.350 P 0.529 (n 3698) E 361 bound 0.0049 | 4: share 0.171 P 0.511 (n 1868) E 162 bound 0.0028
+  length   (0, 9]: share 0.149 P 0.557 (n 1659) E 191 bound 0.0036 | (12, 16]: share 0.387 P 0.543 (n 4612) E 385 bound 0.0050 | (16, 22]: share 0.153 P 0.497 (n 2096) E 175 bound 0.0032 | (22, 60]: share 0.021 P 0.540 (n 252) E 15 bound 0.0011 | (9, 12]: share 0.290 P 0.549 (n 3317) E 282 bound 0.0040
+  mz       (399.999, 472.26]: share 0.250 P 0.535 (n 2358) E 274 bound 0.0041 | (472.26, 561.059]: share 0.250 P 0.544 (n 2783) E 290 bound 0.0044 | (561.059, 694.354]: share 0.250 P 0.547 (n 3556) E 247 bound 0.0037 | (694.354, 999.999]: share 0.250 P 0.527 (n 3239) E 237 bound 0.0036
+  lib_rt   (-0.0601, 0.198]: share 0.250 P 0.549 (n 1862) E 140 bound 0.0021 | (0.198, 0.408]: share 0.250 P 0.546 (n 1592) E 133 bound 0.0020 | (0.408, 0.624]: share 0.250 P 0.535 (n 1965) E 152 bound 0.0023 | (0.624, 0.945]: share 0.250 P 0.534 (n 6517) E 623 bound 0.0094
+  im       (0.583, 0.81]: share 0.250 P 0.541 (n 2201) E 250 bound 0.0038 | (0.81, 0.884]: share 0.250 P 0.536 (n 2738) E 287 bound 0.0043 | (0.884, 0.998]: share 0.250 P 0.544 (n 3505) E 263 bound 0.0039 | (0.998, 1.36]: share 0.250 P 0.534 (n 3492) E 248 bound 0.0037
+  n_trans  1: share 0.038 P 0.000 (n 0) E 0 bound 0.0000 | 2: share 0.031 P 0.000 (n 0) E 0 bound 0.0000 | 3: share 0.027 P 0.511 (n 174) E 10 bound 0.0006 | 4: share 0.027 P 0.676 (n 111) E 9 bound 0.0005 | 5: share 0.026 P 0.570 (n 151) E 4 bound 0.0002 | 6: share 0.850 P 0.537 (n 11500) E 1025 bound 0.0115
+  cterm    K: share 0.542 P 0.552 (n 6584) E 594 bound 0.0072 | R: share 0.445 P 0.520 (n 5211) E 444 bound 0.0056 | other: share 0.014 P 0.582 (n 141) E 10 bound 0.0011
+  missed   0: share 0.327 P 0.536 (n 7504) E 745 bound 0.0102 | 1: share 0.447 P 0.546 (n 3657) E 266 bound 0.0034 | 2: share 0.226 P 0.528 (n 775) E 37 bound 0.0006
+  Met      M: share 0.429 P 0.531 (n 4623) E 402 bound 0.0051 | noM: share 0.571 P 0.543 (n 7313) E 646 bound 0.0077
+  Pro      P: share 0.403 P 0.549 (n 4833) E 486 bound 0.0063 | noP: share 0.597 P 0.532 (n 7103) E 562 bound 0.0067
+== H_B5: runs 5 N 182103 E 2096 lower 0.0115 combined 0.0131; P 0.525 (n 18496)
+  charge   2: share 0.479 P 0.531 (n 11025) E 1214 bound 0.0086 | 3: share 0.350 P 0.525 (n 5266) E 643 bound 0.0050 | 4: share 0.171 P 0.497 (n 2205) E 239 bound 0.0024
+  length   (0, 9]: share 0.149 P 0.543 (n 3051) E 484 bound 0.0052 | (12, 16]: share 0.387 P 0.526 (n 7153) E 763 bound 0.0057 | (16, 22]: share 0.153 P 0.495 (n 2727) E 256 bound 0.0027 | (22, 60]: share 0.021 P 0.546 (n 350) E 54 bound 0.0023 | (9, 12]: share 0.290 P 0.528 (n 5215) E 539 bound 0.0044
+  mz       (399.999, 472.26]: share 0.250 P 0.530 (n 3121) E 488 bound 0.0042 | (472.26, 561.059]: share 0.250 P 0.517 (n 4381) E 530 bound 0.0046 | (561.059, 694.354]: share 0.250 P 0.536 (n 5616) E 578 bound 0.0050 | (694.354, 999.999]: share 0.250 P 0.518 (n 5378) E 500 bound 0.0043
+  lib_rt   (-0.0601, 0.198]: share 0.250 P 0.475 (n 1574) E 147 bound 0.0013 | (0.198, 0.408]: share 0.250 P 0.525 (n 3668) E 438 bound 0.0038 | (0.408, 0.624]: share 0.250 P 0.533 (n 5151) E 558 bound 0.0048 | (0.624, 0.945]: share 0.250 P 0.530 (n 8103) E 953 bound 0.0082
+  im       (0.583, 0.81]: share 0.250 P 0.532 (n 2894) E 418 bound 0.0036 | (0.81, 0.884]: share 0.250 P 0.500 (n 4244) E 514 bound 0.0044 | (0.884, 0.998]: share 0.250 P 0.547 (n 5548) E 626 bound 0.0054 | (0.998, 1.36]: share 0.250 P 0.519 (n 5810) E 538 bound 0.0046
+  n_trans  1: share 0.038 P 0.000 (n 0) E 0 bound 0.0000 | 2: share 0.031 P 0.000 (n 0) E 0 bound 0.0000 | 3: share 0.027 P 0.525 (n 284) E 18 bound 0.0006 | 4: share 0.027 P 0.447 (n 293) E 19 bound 0.0007 | 5: share 0.026 P 0.409 (n 298) E 9 bound 0.0003 | 6: share 0.850 P 0.529 (n 17621) E 2050 bound 0.0131
+  cterm    K: share 0.542 P 0.517 (n 10367) E 1146 bound 0.0079 | R: share 0.445 P 0.535 (n 7904) E 921 bound 0.0067 | other: share 0.014 P 0.578 (n 225) E 29 bound 0.0018
+  missed   0: share 0.327 P 0.531 (n 11901) E 1468 bound 0.0116 | 1: share 0.447 P 0.522 (n 5510) E 538 bound 0.0039 | 2: share 0.226 P 0.479 (n 1085) E 90 bound 0.0008
+  Met      M: share 0.429 P 0.509 (n 7233) E 800 bound 0.0058 | noM: share 0.571 P 0.536 (n 11263) E 1296 bound 0.0089
+  Pro      P: share 0.403 P 0.541 (n 7090) E 862 bound 0.0064 | noP: share 0.597 P 0.516 (n 11406) E 1234 bound 0.0084

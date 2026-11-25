@@ -1,0 +1,31 @@
+library target peptides 100631, entrapment-labelled 50316
+  length 7: entrapment peptides 4138, human substrings 264
+  length 8: entrapment peptides 3911, human substrings 13
+  length 9: entrapment peptides 3725, human substrings 1
+  length 10: entrapment peptides 3466, human substrings 0
+  length 11: entrapment peptides 3191, human substrings 0
+  length 12: entrapment peptides 2923, human substrings 0
+  length 13: entrapment peptides 2792, human substrings 0
+  length 14: entrapment peptides 2493, human substrings 0
+  length 15: entrapment peptides 2301, human substrings 0
+  length 16: entrapment peptides 2043, human substrings 0
+  length 17: entrapment peptides 1819, human substrings 0
+  length 18: entrapment peptides 1745, human substrings 0
+  length 19: entrapment peptides 1624, human substrings 0
+  length 20: entrapment peptides 1488, human substrings 0
+  length 21: entrapment peptides 1326, human substrings 0
+  length 22: entrapment peptides 1235, human substrings 0
+  length 23: entrapment peptides 1140, human substrings 0
+  length 24: entrapment peptides 1091, human substrings 0
+  length 25: entrapment peptides 1039, human substrings 0
+  length 26: entrapment peptides 933, human substrings 0
+  length 27: entrapment peptides 916, human substrings 0
+  length 28: entrapment peptides 769, human substrings 0
+  length 29: entrapment peptides 763, human substrings 0
+  length 30: entrapment peptides 714, human substrings 0
+  length 31: entrapment peptides 604, human substrings 0
+  length 32: entrapment peptides 592, human substrings 0
+  length 33: entrapment peptides 583, human substrings 0
+  length 34: entrapment peptides 522, human substrings 0
+  length 35: entrapment peptides 430, human substrings 0
+entrapment-labelled peptides that are exact human substrings (I=L): 278 of 50316 (0.0055)

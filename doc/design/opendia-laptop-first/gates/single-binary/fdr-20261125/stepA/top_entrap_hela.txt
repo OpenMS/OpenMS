@@ -1,0 +1,22 @@
+D_G0 D_gbt_s0: targets q<=0.001 15390, entrapment precursors 26, peptides 21
+D_G0 D_gbt_s1: targets q<=0.001 16469, entrapment precursors 30, peptides 26
+D_G0 D_gbt_s2: targets q<=0.001 16206, entrapment precursors 33, peptides 28
+D_G0 D_gbt_s3: targets q<=0.001 16199, entrapment precursors 33, peptides 29
+D_G0 D_gbt_s4: targets q<=0.001 16285, entrapment precursors 36, peptides 30
+  D_G0: distinct entrapment peptides 40; in >= 3 of 5 seeds 26; in all 16
+H_G0 H_gbt_s0: targets q<=0.001 33111, entrapment precursors 103, peptides 91
+H_G0 H_gbt_s1: targets q<=0.001 33146, entrapment precursors 107, peptides 93
+H_G0 H_gbt_s2: targets q<=0.001 33273, entrapment precursors 107, peptides 95
+H_G0 H_gbt_s3: targets q<=0.001 33086, entrapment precursors 101, peptides 91
+H_G0 H_gbt_s4: targets q<=0.001 33196, entrapment precursors 100, peptides 89
+  H_G0: distinct entrapment peptides 112; in >= 3 of 5 seeds 90; in all 75
+H_NET H_cur_s0: targets q<=0.001 30170, entrapment precursors 89, peptides 77
+H_NET H_cur_s1: targets q<=0.001 29785, entrapment precursors 91, peptides 78
+H_NET H_cur_s2: targets q<=0.001 30056, entrapment precursors 95, peptides 82
+H_NET H_cur_s3: targets q<=0.001 30654, entrapment precursors 98, peptides 86
+H_NET H_cur_s4: targets q<=0.001 29934, entrapment precursors 96, peptides 83
+  H_NET: distinct entrapment peptides 105; in >= 3 of 5 seeds 80; in all 64
+overlap D_G0 x H_G0 (peptides in >= 3 seeds each): 18 of 26 / 90
+overlap D_G0 x H_NET (peptides in >= 3 seeds each): 18 of 26 / 80
+overlap H_G0 x H_NET (peptides in >= 3 seeds each): 68 of 90 / 80
+most recurrent: LGANSLLDIVVFGR:15, MFVLDEADEMLSR:15, YDLTVPFAR:15, GTIAGGGVIPHIHK:15, FEIWDTAGQER:15, EYTINLHK:15, NFGIWLR:15, HPFPGPGIAIR:15, TTLLPGILK:15, STLEPVEK:15, WPFWLSPR:15, DLMACAQTGSGK:15, STCIYGGAPK:15, WLFSTNHK:14, IHFMLSSYAPVISAEK:14, YPDPLIK:14, SILSLLQR:13, YMTDGMLLR:12, NLHLNLDR:11, DSIVAIGGPTWNVPTGR:10, HPQLLYESK:10, LVLLGDSGVGK:10, VLIFSQMTR:10, YNDPIYVK:10, ILIANNGIAAVK:10, IAVISGVGTR:10, VQMLLSDR:10, STIGVEFATR:10, MSRPYILQETLEEK:10, AGLQFPVGR:10, TCPLLLR:10, LCPNSTGAELR:10, AYFETEK:10, EEGVDVILVNFDR:10, FFETSAK:10, TAVAPLER:10, PIEVELR:10, ITLPTFILEK:10, ILEILEGK:10, IADFGLAR:10
