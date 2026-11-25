@@ -9,10 +9,15 @@
 
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/FEATUREFINDER/ElutionPeakDetection.h>
-#include <OpenMS/PROCESSING/SMOOTHING/SavitzkyGolayFilter.h>
+#include <OpenMS/KERNEL/MassTraceStatistics.h>
 #include <OpenMS/MATH/StatisticFunctions.h>
 
 #include <boost/dynamic_bitset.hpp>
+
+#include <algorithm>
+#include <span>
+#include <utility>
+#include <vector>
 
 #ifdef _OPENMP
 #include <omp.h>
@@ -102,7 +107,7 @@ namespace OpenMS
   void ElutionPeakDetection::findLocalExtrema(const MassTrace& tr, const Size& num_neighboring_peaks,
                                               std::vector<Size>& chrom_maxes, std::vector<Size>& chrom_mins) const
   {
-    std::vector<double> smoothed_ints_vec(tr.getSmoothedIntensities());
+    const std::vector<double>& smoothed_ints_vec(tr.getSmoothedIntensities());
 
     Size mt_length(smoothed_ints_vec.size());
 
@@ -472,7 +477,8 @@ namespace OpenMS
     }
     else // split mt to sub-traces
     {
-      MassTrace::const_iterator cp_it = mt.begin();
+      const std::span<const MassTrace::PeakType> peaks(mt.getPeaks());
+      const std::span<const double> smoothed(mt.getSmoothedIntensities());
       Size last_idx(0);
 
       // add last data point as last minimum (to grep the last chunk of the MT)
@@ -482,27 +488,17 @@ namespace OpenMS
       {
 
         // *********************************************************************
-        // Step 3.1: Create new mass trace (sub-trace between cp_it and split point)
+        // Step 3.1: Determine the sub-trace (the peaks from the previous split point up to this one)
         // *********************************************************************
-        std::vector<PeakType> tmp_mt;
-        std::vector<double> smoothed_tmp;
-        while (last_idx <= mins[min_idx])
+        const Size first_idx = last_idx;
+        if (last_idx <= mins[min_idx])
         {
-          tmp_mt.push_back(*cp_it);
-          smoothed_tmp.push_back(mt.getSmoothedIntensities()[last_idx]);
-          ++cp_it;
-          ++last_idx;
+          last_idx = mins[min_idx] + 1;
         }
+        const std::span<const MassTrace::PeakType> sub_peaks = peaks.subspan(first_idx, last_idx - first_idx);
+        const std::span<const double> sub_smoothed = smoothed.subspan(first_idx, last_idx - first_idx);
 
-        // Create new mass trace, copy smoothed intensities
-        MassTrace new_mt(tmp_mt);
-        new_mt.setSmoothedIntensities(smoothed_tmp);
-        // copy ion mobility centroid and peak fwhm to split traces
-        if (mt.containsIMData()) new_mt.setCentroidIM(mt.getCentroidIM());
-        new_mt.fwhm_mz_avg = mt.fwhm_mz_avg;
-        new_mt.fwhm_im_avg = mt.fwhm_im_avg;
-
-        // check filter criteria
+        // check filter criteria before creating a mass trace for the sub-trace
         bool pw_ok = true;
         bool snr_ok = true;
 
@@ -511,7 +507,7 @@ namespace OpenMS
         // *********************************************************************
         if (pw_filtering_ == "fixed")
         {
-          double act_fwhm(new_mt.estimateFWHM(true));
+          double act_fwhm(MassTraceStatistics::estimateFWHM(sub_peaks, sub_smoothed).fwhm);
           if (act_fwhm < min_fwhm_ || act_fwhm > max_fwhm_)
           {
             pw_ok = false;
@@ -520,6 +516,7 @@ namespace OpenMS
 
         // *********************************************************************
         // Step 3.3: check mass trace signal to noise filter criteria
+        // (note: this tests the apex SNR of the whole trace 'mt', not of the sub-trace)
         // *********************************************************************
         if (mt_snr_filtering_)
         {
@@ -531,22 +528,27 @@ namespace OpenMS
 
         if (pw_ok && snr_ok)
         {
+          // Create new mass trace, copy smoothed intensities
+          MassTrace new_mt(std::vector<MassTrace::PeakType>(sub_peaks.begin(), sub_peaks.end()));
+          new_mt.setSmoothedIntensities(std::vector<double>(sub_smoothed.begin(), sub_smoothed.end()));
+          // copy ion mobility centroid and peak fwhm to split traces
+          if (mt.containsIMData()) new_mt.setCentroidIM(mt.getCentroidIM());
+          new_mt.setFWHMMZAvg(mt.getFWHMMZAvg());
+          new_mt.setFWHMIMAvg(mt.getFWHMIMAvg());
+
           // set label of sub-trace
           new_mt.setLabel(mt.getLabel() + "." + StringUtils::toStr(min_idx + 1));
           new_mt.updateSmoothedMaxRT();
           new_mt.updateWeightedMeanMZ();
           new_mt.updateWeightedMZsd();
           new_mt.setQuantMethod(mt.getQuantMethod());
-          if (pw_filtering_ != "fixed")
-          {
-            new_mt.estimateFWHM(true);
-          }
+          new_mt.estimateFWHM(true);
 
 #ifdef _OPENMP
 #pragma omp critical (OPENMS_ElutionPeakDetection_mtraces)
 #endif
           {
-            single_mtraces.push_back(new_mt);
+            single_mtraces.push_back(std::move(new_mt));
           }
         }
       }
@@ -556,68 +558,102 @@ namespace OpenMS
 
   void ElutionPeakDetection::smoothData(MassTrace& mt, int win_size) const
   {
-    // alternative smoothing using SavitzkyGolay
-    // looking at the unit test, this method gives better fits than lowess smoothing
-    // reference paper uses lowess smoothing
-
-    // Handle traces with fewer than 3 points - Savitzky-Golay requires minimum frame length of 3
-    if (mt.getSize() < 3)
-    {
-      std::vector<double> smoothed;
-      smoothed.reserve(mt.getSize());
-      for (Size i = 0; i < mt.getSize(); ++i)
-      {
-        smoothed.push_back(mt[i].getIntensity());
-      }
-      mt.setSmoothedIntensities(smoothed);
-      return;
-    }
-
-    MSSpectrum spectrum;
-    for (Size i = 0; i != mt.getSize(); ++i)
-    {
-      spectrum.push_back(Peak1D(mt[i].getRT(), mt[i].getIntensity()));
-    }
-
-    SavitzkyGolayFilter sg;
-    Param param;
-    param.setValue("polynomial_order", 2);
-    param.setValue("frame_length", std::max(3, win_size)); // frame length must be at least polynomial_order+1, otherwise SG will fail
-    sg.setParameters(param);
-    sg.filter(spectrum);
-    MSSpectrum::iterator iter = spectrum.begin();
-    std::vector<double> smoothed_intensities;
-    for (; iter != spectrum.end(); ++iter)
-    {
-      smoothed_intensities.push_back(iter->getIntensity());
-    }
-    mt.setSmoothedIntensities(smoothed_intensities);
-    //alternative end
-
-    // std::cout << "win_size elution: " << scan_time << " " << win_size << '\n';
-
-    // if there is no previous FWHM estimation... do it now
-    //    if (win_size == 0)
-    //    {
-    //        mt.estimateFWHM(false); // estimate FWHM
-    //        win_size = mt.getFWHMScansNum();
-    //    }
-
-    // use one global window size for all mass traces to smooth
-    //  std::vector<double> rts, ints;
+    // Savitzky-Golay smoothing with a second order polynomial (the reference paper uses lowess smoothing; judging by
+    // the unit test, Savitzky-Golay gives the better fits).
     //
-    //  for (MassTrace::const_iterator c_it = mt.begin(); c_it != mt.end(); ++c_it)
-    //  {
-    //      rts.push_back(c_it->getRT());
-    //      ints.push_back(c_it->getIntensity());
-    //  }
-    //  LowessSmoothing lowess_smooth;
-    //  Param lowess_params;
-    //  lowess_params.setValue("window_size", win_size);
-    //  lowess_smooth.setParameters(lowess_params);
-    //  std::vector<double> smoothed_data;
-    //  lowess_smooth.smoothData(rts, ints, smoothed_data);
-    //  mt.setSmoothedIntensities(smoothed_data);
+    // Where a full frame fits around a point, this is what SavitzkyGolayFilter computes. It differs in the two
+    // places where that filter misrepresents a mass trace (see issue #2777):
+    //
+    // 1. The ends. SavitzkyGolayFilter evaluates the polynomial of the outermost full frame off-centre, i.e. it
+    //    extrapolates. A mass trace often starts or ends on a steep flank, and there the extrapolated polynomial
+    //    can exceed the apex: the smoothed maximum then sits on the first or last point of the trace although the
+    //    elution apex is a few points further in. Such a trace gets the RT of its first/last point and a FWHM of
+    //    zero, so that it is reported at the edge of its own RT range or discarded by the width filter.
+    //    Here the frame stays centred on the point and narrows towards the ends of the trace to what fits, which
+    //    assumes nothing about the signal beyond the trace. A centred frame of three points is fitted exactly by a
+    //    second order polynomial, so the second and the last but one point are smoothed with a first order fit
+    //    (the mean of the three) instead; left unsmoothed, a noise spike there would compete with the smoothed
+    //    (lowered) apex. The first and the last point keep their intensity, unless they are lower than their
+    //    neighbour: then the smoothing, which lowers an apex on the neighbour, could make the end point the
+    //    maximum (e.g. 92, 100, 80, 70, 10 gives 92, 90.7, 88.4, ...). If it is not lower than the smoothed
+    //    neighbour, such an end point gets the smoothed intensity of the neighbour, scaled by the ratio of their
+    //    raw intensities, so that it stays below it. An end point that is not lower than its neighbour, i.e. a
+    //    trace that is cut off at its maximum, is left as it is.
+    //
+    // 2. Ringing. Next to a flank that spans orders of magnitude the polynomial under- and overshoots.
+    //    SavitzkyGolayFilter clamps negative values to zero, which leaves a 'valley' of zero intensity at the foot
+    //    of a steep peak, and findLocalExtrema() splits the trace there whatever the raw data look like. Here the
+    //    smoothed value is limited to the range of the raw intensities inside its frame (and, as before, to >= 0).
+    const Size size = mt.getSize();
+
+    std::vector<double> smoothed(size);
+    for (Size i = 0; i < size; ++i)
+    {
+      smoothed[i] = mt[i].getIntensity();
+    }
+
+    // the frame length is odd and at least polynomial order + 1
+    Size frame_length = (win_size > 3) ? static_cast<Size>(win_size) : 3;
+    if (frame_length % 2 == 0)
+    {
+      ++frame_length;
+    }
+
+    // A frame of three points is fitted exactly by a second order polynomial, i.e. it does not smooth. A trace that
+    // is shorter than the frame is not smoothed either (as with SavitzkyGolayFilter).
+    if (frame_length >= 5 && frame_length <= size)
+    {
+      const Size max_half_frame = frame_length / 2;
+      for (Size i = 1; i + 1 < size; ++i)
+      {
+        const Size half_frame = std::min({max_half_frame, i, size - 1 - i});
+
+        // Savitzky-Golay coefficients of the centre point for 2m + 1 equidistant points and a polynomial of order 2:
+        // c_j = 3 * (3m^2 + 3m - 1 - 5j^2) / ((2m + 3)(2m + 1)(2m - 1)), j = -m..m. For m = 1, a first order fit.
+        const double m = static_cast<double>(half_frame);
+        const double denominator = (2.0 * m + 3.0) * (2.0 * m + 1.0) * (2.0 * m - 1.0);
+
+        double value = 0.0;
+        double frame_min = mt[i].getIntensity();
+        double frame_max = frame_min;
+        for (Size k = i - half_frame; k <= i + half_frame; ++k)
+        {
+          const double intensity = mt[k].getIntensity();
+          const double j = static_cast<double>(k) - static_cast<double>(i);
+          const double coefficient = (half_frame == 1) ? 1.0 / 3.0 : 3.0 * (3.0 * m * m + 3.0 * m - 1.0 - 5.0 * j * j) / denominator;
+          value += coefficient * intensity;
+          frame_min = std::min(frame_min, intensity);
+          frame_max = std::max(frame_max, intensity);
+        }
+
+        smoothed[i] = std::clamp(value, frame_min, frame_max);
+      }
+
+      // keep an end point that is lower than its neighbour below the neighbour after smoothing (see 1. above)
+      const auto keepEndBelowNeighbour = [&](Size end, Size neighbour)
+      {
+        const double raw_end = mt[end].getIntensity();
+        const double raw_neighbour = mt[neighbour].getIntensity();
+        if (raw_end < raw_neighbour && raw_neighbour > 0.0 && smoothed[neighbour] > 0.0 && smoothed[end] >= smoothed[neighbour])
+        {
+          smoothed[end] = smoothed[neighbour] * (raw_end / raw_neighbour);
+        }
+      };
+      keepEndBelowNeighbour(0, 1);
+      keepEndBelowNeighbour(size - 1, size - 2);
+    }
+
+    // As with SavitzkyGolayFilter, every point of a trace that the frame fits into is >= 0 -- also the first and
+    // the last point, and also with a frame of three points.
+    if (frame_length <= size)
+    {
+      for (double& intensity : smoothed)
+      {
+        intensity = std::max(0.0, intensity);
+      }
+    }
+
+    mt.setSmoothedIntensities(smoothed);
   }
 
   void ElutionPeakDetection::updateMembers_()

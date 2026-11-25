@@ -111,10 +111,6 @@ MRMFile.cpp
 TargetedDataFileLoader.cpp
 )
 
-if (WITH_HDF5)
-  list(APPEND sources_list HDF5Connector.cpp)
-endif()
-
 list(APPEND sources_list ZipArchiveFile.cpp)
 list(APPEND sources_list ZipRandomAccessFile.cpp)
 list(APPEND sources_list MSExperimentArrowExport.cpp)

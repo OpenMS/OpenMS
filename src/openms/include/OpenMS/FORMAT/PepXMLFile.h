@@ -61,6 +61,15 @@ public:
         "run1", "data/run1" and "C:\\data\\run1.mzML" all select the run with "base_name" "C:/data/run1", but "un1" does not.
         Runs with different "base_name"s must not match at the same time (e.g. "run1" for "C:/light/run1" and "C:/heavy/run1").
 
+        The hits give terminal modifications only as the mass of the modified terminus. If the "search_summary" declares
+        a peptide-terminal and a protein-terminal modification with the same mass (e.g. 'Amidated (C-term)' and
+        'Amidated (Protein C-term)'), hits at a protein terminus (according to "peptide_prev_aa"/"peptide_next_aa")
+        get the protein-terminal one, and a warning is issued. A preceding 'M' does not count as a protein N-terminus
+        here, as it may or may not be a removed initiator methionine; a fixed protein N-terminal modification is put
+        on such hits, though. A terminal modification of a hit is taken from the declarations and modifications that
+        fit its terminal residue; if there is none, from a declaration with its mass for another residue (with a
+        warning).
+
         @exception Exception::FileNotFound is thrown if the file could not be opened
         @exception Exception::ParseError is thrown if an error occurs during parsing, or if no run or runs with different "base_name"s match @p experiment_name
     */
@@ -83,6 +92,14 @@ public:
 
     /**
         @brief Stores idXML as PepXML file
+
+        The modifications found in the peptide hits are declared in the "search_summary"; terminal ones
+        with the mass of the modified terminus and, if they can only be at a protein terminus, with
+        "protein_terminus". A modification is written as a static one ('variable="N"') if the search
+        parameters (of the first protein identification run) list it as a fixed modification and it is
+        the only modification found at its sites (all residues of its origin, or all N- or C-termini, of
+        all hits); readers put a static modification on every unmodified site. All other modifications
+        are written as variable ones ('variable="Y"').
 
         @exception Exception::UnableToCreateFile is thrown if the file could not be opened for writing
     */

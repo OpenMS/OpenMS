@@ -63,15 +63,6 @@
   ],
   "overrides": [{ "name": "openssl", "version": "3.6.5" }],
   "features": {
-    "hdf5": {
-      "description": "HDF5 C and C++ libraries for builds configured with -DWITH_HDF5=ON.",
-      "dependencies": [
-        {
-          "name": "hdf5",
-          "features": ["cpp"]
-        }
-      ]
-    },
     "eol-bspline": {
       "description": "Use external eol-bspline library instead of vendored version via -DUSE_EXTERNAL_EOLBSPLINE=ON.",
       "dependencies": [

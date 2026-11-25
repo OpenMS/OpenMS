@@ -59,9 +59,10 @@ START_TEST(PercolatorPosteriorEstimator, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-// The PEP spline (BaseSpline::initiateQR) needs strictly increasing bin medians;
-// tied medians asserted in Debug builds (dx > 0) and divided by zero in Release
-// builds. Seen with ProSE -rescore (nonparametric PEP, no-terminate flag set).
+// The PEP spline needs strictly increasing bin medians: in the Percolator before
+// upstream #408 (a9783ee8), tied medians asserted in Debug builds (dx > 0) and
+// divided by zero in Release builds (seen with ProSE -rescore: nonparametric PEP,
+// no-terminate flag set). Upstream now merges equal knots and pads distinctly.
 Globals::getInstance()->setNoTerminate(true);
 
 START_SECTION([EXTRA] estimatePEP with fewer than 4 bins)

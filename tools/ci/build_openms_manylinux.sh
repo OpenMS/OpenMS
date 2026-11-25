@@ -66,10 +66,11 @@ dnf install -y --disablerepo='epel*' \
   perl-lib \
   libicu
 
-# The openms-thermo-bridge port compiles against the nethost headers of a .NET SDK
-# and publishes the managed assemblies with it. The pinned, SHA-512 verified SDK
-# tarball is used instead of the distro dotnet-sdk-8.0 RPM, whose host pack is
-# named with the rhel.9 RID that the bridge does not search (see the script).
+# The openms-thermo-bridge port takes the managed assemblies from the bridge's
+# release zip and publishes them with a .NET SDK only when its pin has no release
+# zip (see its portfile); the SDK is installed for that case. The pinned, SHA-512
+# verified SDK tarball is used instead of the distro dotnet-sdk-8.0 RPM, whose host
+# pack is named with the rhel.9 RID that the bridge does not search (see the script).
 bash tools/ci/install_dotnet_sdk_linux.sh /usr/share/dotnet
 export DOTNET_ROOT=/usr/share/dotnet
 export PATH="${DOTNET_ROOT}:${PATH}"

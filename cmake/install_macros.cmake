@@ -92,8 +92,7 @@ set(OPENMS_PUBLIC_INCLUDE_ALLOWLIST
   "OpenMS/.*"                             # OpenMS' own headers
   "[a-z_]+"                               # the C++ standard library: <vector>, <string_view>, ...
   "sys/.*" "windows\\.h" "winternl\\.h"   # operating-system headers
-  "omp\\.h"                               # OpenMP, a PUBLIC dependency of libOpenMS
-  "CrawdadWrapper\\.h")                   # Crawdad, a PUBLIC dependency of WITH_CRAWDAD builds
+  "omp\\.h")                              # OpenMP, a PUBLIC dependency of libOpenMS
 
 #------------------------------------------------------------------------------
 # Reject every include of an installed header that is not on the allowlist above.

@@ -4,16 +4,16 @@
 #ifndef _Set_H
 #define _Set_H
 
-
 #include "Array.h"
 
 namespace OpenMS { namespace Internal { namespace Percolator {
+
 
 class Set : public Array<int> {
  public:
   Set() {}
 
-  void add(int el);
+  void add(const int& el) override;
   const Set & operator &=(const Set & rhs); // intersection
   const Set & operator |=(const Set & rhs); // union
   bool isEmpty() const { return size() == 0; }
@@ -31,7 +31,7 @@ class Set : public Array<int> {
     return Array<int>::operator [](rhs);
   }
   using Array<int>::operator[];
-  const int & operator [](std::size_t k) const {
+  const int & operator [](std::size_t k) const override {
     return Array<int>::operator [](k);
   }
 

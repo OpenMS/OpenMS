@@ -22,110 +22,23 @@
 
 namespace OpenMS { namespace Internal { namespace Percolator {
 
-Globals* Globals::glob = 0;
-
-Globals::~Globals() {
-  unredirectBuffer();
-  if (log) {
-    delete log;
-    log = 0;
-  }
-}
-
-Globals::Globals() : noTerminate_(false) {
-  glob = this;
-  verbose = 2;
-  fileLog = std::string("");
-  log = 0;
-  buffer_redirected = false;
-}
 
 Globals* Globals::getInstance() {
-  if (!glob) {
-    new Globals();
-  }
-  return glob;
-}
-
-#if defined (__WIN32__) || defined (__MINGW__) || defined (MINGW) || defined (_WIN32)
-#include <windows.h>
-#include <tchar.h>
-#endif
-
-Logger* Globals::getLogger() {
-  if(buffer_redirected)
-  {
-    std::cerr << "ERROR: cerr buffer is already being redirected.." << std::endl;
-    return NULL;
-  }
-  else if (!log) {
-    initLogger();
-  }
-  return log;
-}
-
-void Globals::initLogger() {
-  if(!fileLog.empty())
-  {
-    log = new Logger(fileLog.c_str());
-  }
-  else if(!log)
-  {
-    log = new Logger();
-  }
-}
-void Globals::setLogFile(const std::string& filename) {
-  if (!log) {
-    initLogger();
-  }
-  log->attach_file(filename.c_str());
-  fileLog = filename;
-}
-
-int Globals::redirectBuffer()
-{
-  if(!fileLog.empty())
-  { 
-    try
-    {
-      ferr.open (fileLog.c_str());
-      save_sbuf_cerr = std::cerr.rdbuf();
-      std::cerr.rdbuf(ferr.rdbuf());
-      buffer_redirected = true;
-      return 0;
-    }catch (const std::exception& e)
-    {
-       std::cerr << "ERROR: " << e.what() << " redirecting cerr buffer.." << std::endl;
-       return -1;
-    }
-  }
-  else
-  {
-    std::cerr << "ERROR: trying to redirect cerr buffer to an empty file,"
-	      <<  "have you called Globals::setLogFile or defined LOG_FILE?." << std::endl;
-    return -1;
-  }
-}
-
-void Globals::unredirectBuffer() {
-  if(buffer_redirected)
-  {
-    std::cerr.rdbuf(save_sbuf_cerr);
-    std::cerr.flush();
-    ferr.close();
-    buffer_redirected = false;
-  }
-  else if(log)
-  {
-    log->disactivate_file_log();
-  }
+  static Globals instance;  // thread-safe initialisation
+  return &instance;
 }
 
 void Globals::clean() {
-  if (glob) {
-    delete glob;
+  *getInstance() = Globals();
+}
+
+void Globals::failUnlessNoTerminate(const std::string& error,
+                                    const char* recovery,
+                                    const char* thrownSuffix) {
+  if (!getInstance()->getNoTerminate()) {
+    throw MyException(error + thrownSuffix);
   }
-  glob = 0;
+  std::cerr << error << recovery << std::endl;
 }
 
 }}}  // namespace OpenMS::Internal::Percolator

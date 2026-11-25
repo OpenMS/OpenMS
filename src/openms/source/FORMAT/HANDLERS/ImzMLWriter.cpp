@@ -43,6 +43,33 @@ namespace
   /// imzML reserves the first 16 bytes of the .ibd for the dataset UUID.
   constexpr uint64_t IBD_UUID_HEADER_BYTES = 16;
 
+  /// Escape a string for an XML attribute without losing whitespace on parsing.
+  std::string writeXMLAttributeEscape_(const std::string& value)
+  {
+    const std::string escaped = XMLHandler::writeXMLEscape(value);
+    std::string result;
+    result.reserve(escaped.size());
+    for (const char c : escaped)
+    {
+      switch (c)
+      {
+        case '\t':
+          result += "&#x9;";
+          break;
+        case '\r':
+          result += "&#xD;";
+          break;
+        case '\n':
+          result += "&#xA;";
+          break;
+        default:
+          result += c;
+          break;
+      }
+    }
+    return result;
+  }
+
   struct PixelCoord
   {
     uint32_t x {1};
@@ -1282,7 +1309,13 @@ namespace
       }
 
       os << "\t\t\t<spectrum index=\"" << i << "\" id=\"" << XMLHandler::writeXMLEscape(native_id)
-         << "\" defaultArrayLength=\"" << spec.size() << "\">\n";
+         << "\" defaultArrayLength=\"" << spec.size() << "\"";
+      // the MALDI spot, which the reader (MzMLHandler) stores as the MetaValue maldi_spot_id
+      if (spec.metaValueExists("maldi_spot_id"))
+      {
+        os << " spotID=\"" << writeXMLAttributeEscape_(spec.getMetaValue("maldi_spot_id").toString()) << "\"";
+      }
+      os << ">\n";
       if (continuous)
       {
         os << "\t\t\t\t<referenceableParamGroupRef ref=\"mzArray\"/>\n";

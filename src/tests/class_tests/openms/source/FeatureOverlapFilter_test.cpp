@@ -142,6 +142,25 @@ START_SECTION((Filter FeatureMap))
 
 END_SECTION
 
+START_SECTION((Filter empty FeatureMap))
+{
+  // an empty map has no m/z and RT range to build the search tree from: there is nothing to filter
+  // (e.g. FeatureFinderMetaboIdent on a run without signal for any of its targets)
+  FeatureMap fmap;
+  FeatureOverlapFilter::filter(fmap); // trace level
+  TEST_TRUE(fmap.empty())
+
+  FeatureOverlapFilter::filter(fmap,
+    [](const Feature& left, const Feature& right){ return left.getOverallQuality() > right.getOverallQuality(); },
+    [](const Feature&, const Feature&) { return true; },
+    false); // convex hulls
+  TEST_TRUE(fmap.empty())
+
+  FeatureOverlapFilter::mergeOverlappingFeatures(fmap, 5.0, 0.05); // centroids
+  TEST_TRUE(fmap.empty())
+}
+END_SECTION
+
 START_SECTION(mergeOverlappingFeatures - basic merging with SUM intensity)
 {
   FeatureMap fmap;

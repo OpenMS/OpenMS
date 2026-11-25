@@ -20,9 +20,11 @@ limitations under the License.
 
 #include <string>
 #include <exception>
+#include <fstream>
 #include <sstream>
 
 namespace OpenMS { namespace Internal { namespace Percolator {
+
 
 using namespace std;
 
@@ -33,9 +35,16 @@ class MyException : public std::exception {
   ~MyException() throw();
   const char* what() const throw();
  
- protected:
+ protected:   
   std::string msg;
 };
+
+// Closes an output file and throws if not everything could be written to
+// it, e.g. because the disk is full: output streams report write errors
+// only through their state.
+void closeOutputFile(std::ofstream& out, const std::string& fileName);
+// Flushes standard output and throws if it could not be written.
+void flushStandardOutput();
 
 }}}  // namespace OpenMS::Internal::Percolator
 

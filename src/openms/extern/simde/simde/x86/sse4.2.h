@@ -30,9 +30,10 @@
 
 #include "sse4.1.h"
 
-#if defined(__ARM_ACLE) || (defined(__GNUC__) && defined(__ARM_FEATURE_CRC32))
+#if defined(__ARM_ACLE) || (defined(__GNUC__) && defined(SIMDE_ARCH_ARM_CRC32))
   #include <arm_acle.h>
 #endif
+//                         ^^ Due to https://gcc.gnu.org/bugzilla/show_bug.cgi?id=70974
 
 HEDLEY_DIAGNOSTIC_PUSH
 SIMDE_DISABLE_UNWANTED_DIAGNOSTICS
@@ -92,6 +93,162 @@ SIMDE_BEGIN_DECLS_
   #define _SIDD_BIT_MASK SIMDE_SIDD_BIT_MASK
   #define _SIDD_UNIT_MASK SIMDE_SIDD_UNIT_MASK
 #endif
+
+#if 0 // not yet implemented
+
+SIMDE_FUNCTION_ATTRIBUTES
+int simde_mm_cmpestra (simde__m128i a, int la, simde__m128i b, int lb, const int imm8)
+    SIMDE_REQUIRE_CONSTANT_RANGE(imm8, 0, 255) {
+  simde__m128i_private a_ = simde__m128i_to_private(a);
+  simde__m128i_private b_ = simde__m128i_to_private(b);
+  return 0;
+}
+#if defined(SIMDE_X86_SSE4_2_NATIVE)
+  #define simde_mm_cmpestra(a, la, b, lb, imm8) _mm_cmpestra(a, la, b, lb, imm8)
+#endif
+#if defined(SIMDE_X86_SSE4_2_ENABLE_NATIVE_ALIASES)
+  #undef _mm_cmpestra
+  #define _mm_cmpestra(a, la, b, lb, imm8) simde_mm_cmpestra(a, la, b, lb, imm8)
+#endif
+
+SIMDE_FUNCTION_ATTRIBUTES
+int simde_mm_cmpestrc (simde__m128i a, int la, simde__m128i b, int lb, const int imm8)
+    SIMDE_REQUIRE_CONSTANT_RANGE(imm8, 0, 255) {
+  simde__m128i_private a_ = simde__m128i_to_private(a);
+  simde__m128i_private b_ = simde__m128i_to_private(b);
+  return 0;
+}
+#if defined(SIMDE_X86_SSE4_2_NATIVE)
+  #define simde_mm_cmpestrc(a, la, b, lb, imm8) _mm_cmpestrc(a, la, b, lb, imm8)
+#endif
+#if defined(SIMDE_X86_SSE4_2_ENABLE_NATIVE_ALIASES)
+  #undef _mm_cmpestrc
+  #define _mm_cmpestrc(a, la, b, lb, imm8) simde_mm_cmpestrc(a, la, b, lb, imm8)
+#endif
+
+SIMDE_FUNCTION_ATTRIBUTES
+int simde_mm_cmpestri (simde__m128i a, int la, simde__m128i b, int lb, const int imm8)
+    SIMDE_REQUIRE_CONSTANT_RANGE(imm8, 0, 255) {
+  simde__m128i_private a_ = simde__m128i_to_private(a);
+  simde__m128i_private b_ = simde__m128i_to_private(b);
+  return 0;
+}
+#if defined(SIMDE_X86_SSE4_2_NATIVE)
+  #define simde_mm_cmpestri(a, la, b, lb, imm8) _mm_cmpestri(a, la, b, lb, imm8)
+#endif
+#if defined(SIMDE_X86_SSE4_2_ENABLE_NATIVE_ALIASES)
+  #undef _mm_cmpestri
+  #define _mm_cmpestri(a, la, b, lb, imm8) simde_mm_cmpestri(a, la, b, lb, imm8)
+#endif
+
+SIMDE_FUNCTION_ATTRIBUTES
+simde__m128i simde_mm_cmpestrm (simde__m128i a, int la, simde__m128i b, int lb, const int imm8)
+    SIMDE_REQUIRE_CONSTANT_RANGE(imm8, 0, 255) {
+  simde__m128i_private a_ = simde__m128i_to_private(a);
+  simde__m128i_private b_ = simde__m128i_to_private(b);
+  simde__m128i_private result_ = simde__m128i_to_private(simde_mm_setzero_si128());
+  return simde__m128i_from_private(result_);
+}
+#if defined(SIMDE_X86_SSE4_2_NATIVE)
+  #define simde_mm_cmpestrm(a, la, b, lb, imm8) _mm_cmpestrm(a, la, b, lb, imm8)
+#endif
+#if defined(SIMDE_X86_SSE4_2_ENABLE_NATIVE_ALIASES)
+  #undef _mm_cmpestrm
+  #define _mm_cmpestrm(a, la, b, lb, imm8) simde_mm_cmpestrm(a, la, b, lb, imm8)
+#endif
+
+SIMDE_FUNCTION_ATTRIBUTES
+int simde_mm_cmpestro (simde__m128i a, int la, simde__m128i b, int lb, const int imm8)
+    SIMDE_REQUIRE_CONSTANT_RANGE(imm8, 0, 255) {
+  simde__m128i_private a_ = simde__m128i_to_private(a);
+  simde__m128i_private b_ = simde__m128i_to_private(b);
+  return 0;
+}
+#if defined(SIMDE_X86_SSE4_2_NATIVE)
+  #define simde_mm_cmpestro(a, la, b, lb, imm8) _mm_cmpestro(a, la, b, lb, imm8)
+#endif
+#if defined(SIMDE_X86_SSE4_2_ENABLE_NATIVE_ALIASES)
+  #undef _mm_cmpestro
+  #define _mm_cmpestro(a, la, b, lb, imm8) simde_mm_cmpestro(a, la, b, lb, imm8)
+#endif
+
+SIMDE_FUNCTION_ATTRIBUTES
+int simde_mm_cmpistra (simde__m128i a, simde__m128i b, const int imm8)
+    SIMDE_REQUIRE_CONSTANT_RANGE(imm8, 0, 255) {
+  simde__m128i_private a_ = simde__m128i_to_private(a);
+  simde__m128i_private b_ = simde__m128i_to_private(b);
+  return 0;
+}
+#if defined(SIMDE_X86_SSE4_2_NATIVE)
+  #define simde_mm_cmpistra(a, b, imm8) _mm_cmpistra(a, b, imm8)
+#endif
+#if defined(SIMDE_X86_SSE4_2_ENABLE_NATIVE_ALIASES)
+  #undef _mm_cmpistra
+  #define _mm_cmpistra(a, b, imm8) simde_mm_cmpistra(a, b, imm8)
+#endif
+
+SIMDE_FUNCTION_ATTRIBUTES
+int simde_mm_cmpistrc (simde__m128i a, simde__m128i b, const int imm8)
+    SIMDE_REQUIRE_CONSTANT_RANGE(imm8, 0, 255) {
+  simde__m128i_private a_ = simde__m128i_to_private(a);
+  simde__m128i_private b_ = simde__m128i_to_private(b);
+  return 0;
+}
+#if defined(SIMDE_X86_SSE4_2_NATIVE)
+  #define simde_mm_cmpistrc(a, b, imm8) _mm_cmpistrc(a, b, imm8)
+#endif
+#if defined(SIMDE_X86_SSE4_2_ENABLE_NATIVE_ALIASES)
+  #undef _mm_cmpistrc
+  #define _mm_cmpistrc(a, b, imm8) simde_mm_cmpistrc(a, b, imm8)
+#endif
+
+SIMDE_FUNCTION_ATTRIBUTES
+int simde_mm_cmpistri (simde__m128i a, simde__m128i b, const int imm8)
+    SIMDE_REQUIRE_CONSTANT_RANGE(imm8, 0, 255) {
+  simde__m128i_private a_ = simde__m128i_to_private(a);
+  simde__m128i_private b_ = simde__m128i_to_private(b);
+  return 0;
+}
+#if defined(SIMDE_X86_SSE4_2_NATIVE)
+  #define simde_mm_cmpistri(a, b, imm8) _mm_cmpistri(a, b, imm8)
+#endif
+#if defined(SIMDE_X86_SSE4_2_ENABLE_NATIVE_ALIASES)
+  #undef _mm_cmpistri
+  #define _mm_cmpistri(a, b, imm8) simde_mm_cmpistri(a, b, imm8)
+#endif
+
+SIMDE_FUNCTION_ATTRIBUTES
+simde__m128i simde_mm_cmpistrm (simde__m128i a, simde__m128i b, const int imm8)
+    SIMDE_REQUIRE_CONSTANT_RANGE(imm8, 0, 255) {
+  simde__m128i_private a_ = simde__m128i_to_private(a);
+  simde__m128i_private b_ = simde__m128i_to_private(b);
+  simde__m128i_private result_ = simde__m128i_to_private(simde_mm_setzero_si128());
+  return simde__m128i_from_private(result_);
+}
+#if defined(SIMDE_X86_SSE4_2_NATIVE)
+  #define simde_mm_cmpistrm(a, b, imm8) _mm_cmpistrm(a, b, imm8)
+#endif
+#if defined(SIMDE_X86_SSE4_2_ENABLE_NATIVE_ALIASES)
+  #undef _mm_cmpistrm
+  #define _mm_cmpistrm(a, b, imm8) simde_mm_cmpistrm(a, b, imm8)
+#endif
+
+SIMDE_FUNCTION_ATTRIBUTES
+int simde_mm_cmpistro (simde__m128i a, simde__m128i b, const int imm8)
+    SIMDE_REQUIRE_CONSTANT_RANGE(imm8, 0, 255) {
+  simde__m128i_private a_ = simde__m128i_to_private(a);
+  simde__m128i_private b_ = simde__m128i_to_private(b);
+  return 0;
+}
+#if defined(SIMDE_X86_SSE4_2_NATIVE)
+  #define simde_mm_cmpistro(a, b, imm8) _mm_cmpistro(a, b, imm8)
+#endif
+#if defined(SIMDE_X86_SSE4_2_ENABLE_NATIVE_ALIASES)
+  #undef _mm_cmpistro
+  #define _mm_cmpistro(a, b, imm8) simde_mm_cmpistro(a, b, imm8)
+#endif
+
+#endif // unimplemented functions
 
 SIMDE_FUNCTION_ATTRIBUTES
 int simde_mm_cmpestrs (simde__m128i a, int la, simde__m128i b, int lb, const int imm8)
@@ -174,6 +331,8 @@ simde_mm_cmpgt_epi64 (simde__m128i a, simde__m128i b) {
       r_.altivec_u64 = HEDLEY_REINTERPRET_CAST(SIMDE_POWER_ALTIVEC_VECTOR(unsigned long long), vec_cmpgt(a_.altivec_i64, b_.altivec_i64));
     #elif defined(SIMDE_WASM_SIMD128_NATIVE)
       r_.wasm_v128 = wasm_i64x2_gt(a_.wasm_v128, b_.wasm_v128);
+    #elif defined(SIMDE_LOONGARCH_LSX_NATIVE)
+      r_.lsx_i64 = __lsx_vslt_d(b_.lsx_i64, a_.lsx_i64);
     #elif defined(SIMDE_VECTOR_SUBSCRIPT_OPS)
       r_.i64 = HEDLEY_REINTERPRET_CAST(__typeof__(r_.i64), a_.i64 > b_.i64);
     #else
@@ -295,17 +454,27 @@ simde_mm_crc32_u8(uint32_t prevcrc, uint8_t v) {
   #if defined(SIMDE_X86_SSE4_2_NATIVE)
     return _mm_crc32_u8(prevcrc, v);
   #else
-    #if defined(SIMDE_ARM_NEON_A64V8_NATIVE) && defined(__ARM_FEATURE_CRC32)
+    #if defined(SIMDE_ARM_NEON_A64V8_NATIVE) && defined(SIMDE_ARCH_ARM_CRC32)
       return __crc32cb(prevcrc, v);
+    #elif defined(SIMDE_LOONGARCH_LSX_NATIVE)
+      return __builtin_loongarch_crcc_w_b_w(v, prevcrc);
     #else
       uint32_t crc = prevcrc;
       crc ^= v;
-      for(int bit = 0 ; bit < 8 ; bit++) {
-        if (crc & 1)
-          crc = (crc >> 1) ^ UINT32_C(0x82f63b78);
-        else
-          crc = (crc >> 1);
-      }
+      // Adapted from: https://create.stephan-brumme.com/crc32/
+      // Apply half-byte comparision algorithm for the best ratio between
+      // performance and lookup table.
+
+      // The lookup table just needs to store every 16th entry
+      // of the standard look-up table.
+      static const uint32_t crc32_half_byte_tbl[] = {
+        0x00000000, 0x105ec76f, 0x20bd8ede, 0x30e349b1, 0x417b1dbc, 0x5125dad3,
+        0x61c69362, 0x7198540d, 0x82f63b78, 0x92a8fc17, 0xa24bb5a6, 0xb21572c9,
+        0xc38d26c4, 0xd3d3e1ab, 0xe330a81a, 0xf36e6f75,
+      };
+
+      crc = (crc >> 4) ^ crc32_half_byte_tbl[crc & 0x0f];
+      crc = (crc >> 4) ^ crc32_half_byte_tbl[crc & 0x0f];
       return crc;
     #endif
   #endif
@@ -320,8 +489,10 @@ simde_mm_crc32_u16(uint32_t prevcrc, uint16_t v) {
   #if defined(SIMDE_X86_SSE4_2_NATIVE)
     return _mm_crc32_u16(prevcrc, v);
   #else
-    #if defined(SIMDE_ARM_NEON_A64V8_NATIVE) && defined(__ARM_FEATURE_CRC32)
+    #if defined(SIMDE_ARM_NEON_A64V8_NATIVE) && defined(SIMDE_ARCH_ARM_CRC32)
       return __crc32ch(prevcrc, v);
+    #elif defined(SIMDE_LOONGARCH_LSX_NATIVE)
+      return __builtin_loongarch_crcc_w_h_w(v, prevcrc);
     #else
       uint32_t crc = prevcrc;
       crc = simde_mm_crc32_u8(crc, v & 0xff);
@@ -340,8 +511,10 @@ simde_mm_crc32_u32(uint32_t prevcrc, uint32_t v) {
   #if defined(SIMDE_X86_SSE4_2_NATIVE)
     return _mm_crc32_u32(prevcrc, v);
   #else
-    #if defined(SIMDE_ARM_NEON_A64V8_NATIVE) && defined(__ARM_FEATURE_CRC32)
+    #if defined(SIMDE_ARM_NEON_A64V8_NATIVE) && defined(SIMDE_ARCH_ARM_CRC32)
       return __crc32cw(prevcrc, v);
+    #elif defined(SIMDE_LOONGARCH_LSX_NATIVE)
+      return __builtin_loongarch_crcc_w_w_w(v, prevcrc);
     #else
       uint32_t crc = prevcrc;
       crc = simde_mm_crc32_u16(crc, v & 0xffff);
@@ -360,7 +533,7 @@ simde_mm_crc32_u64(uint64_t prevcrc, uint64_t v) {
   #if defined(SIMDE_X86_SSE4_2_NATIVE) && defined(SIMDE_ARCH_AMD64)
     return _mm_crc32_u64(prevcrc, v);
   #else
-    #if defined(SIMDE_ARM_NEON_A64V8_NATIVE) && defined(__ARM_FEATURE_CRC32)
+    #if defined(SIMDE_ARM_NEON_A64V8_NATIVE) && defined(SIMDE_ARCH_ARM_CRC32)
       return __crc32cd(HEDLEY_STATIC_CAST(uint32_t, prevcrc), v);
     #else
       uint64_t crc = prevcrc;

@@ -19,6 +19,7 @@
 #include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/CHEMISTRY/ProteaseDigestion.h>
 #include <OpenMS/PROCESSING/ID/IDFilter.h>
+#include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/METADATA/PeptideEvidence.h>
@@ -1242,6 +1243,59 @@ END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
+
+START_SECTION((static void recordGroupScoreThreshold(ProteinIdentification& protein_id, double threshold_score)))
+{
+  ProteinIdentification run;
+  run.setScoreType("q-value");
+  run.setHigherScoreBetter(false);
+  IDFilter::recordGroupScoreThreshold(run, 0.05);
+  TEST_REAL_SIMILAR(double(run.getMetaValue(Constants::UserParam::PROTEIN_GROUP_SCORE_THRESHOLD)), 0.05)
+  TEST_EQUAL(run.getMetaValue(Constants::UserParam::PROTEIN_GROUP_SCORE_THRESHOLD_TYPE).toString(), "q-value")
+  // of repeated cutoffs on the same score type (also under another name), the stricter one is kept
+  IDFilter::recordGroupScoreThreshold(run, 0.1);
+  TEST_REAL_SIMILAR(double(run.getMetaValue(Constants::UserParam::PROTEIN_GROUP_SCORE_THRESHOLD)), 0.05)
+  run.setScoreType("qvalue");
+  IDFilter::recordGroupScoreThreshold(run, 0.1); // the same score type under another name: the stricter 0.05 stays
+  TEST_REAL_SIMILAR(double(run.getMetaValue(Constants::UserParam::PROTEIN_GROUP_SCORE_THRESHOLD)), 0.05)
+  IDFilter::recordGroupScoreThreshold(run, 0.01);
+  TEST_REAL_SIMILAR(double(run.getMetaValue(Constants::UserParam::PROTEIN_GROUP_SCORE_THRESHOLD)), 0.01)
+  TEST_EQUAL(run.getMetaValue(Constants::UserParam::PROTEIN_GROUP_SCORE_THRESHOLD_TYPE).toString(), "qvalue")
+  // higher-is-better scores
+  run.setScoreType("Posterior Probability");
+  run.setHigherScoreBetter(true);
+  IDFilter::recordGroupScoreThreshold(run, 0.9); // another score type: replaces the cutoff
+  TEST_REAL_SIMILAR(double(run.getMetaValue(Constants::UserParam::PROTEIN_GROUP_SCORE_THRESHOLD)), 0.9)
+  IDFilter::recordGroupScoreThreshold(run, 0.8);
+  TEST_REAL_SIMILAR(double(run.getMetaValue(Constants::UserParam::PROTEIN_GROUP_SCORE_THRESHOLD)), 0.9)
+  // a previous cutoff stored as string is compared by its value; a non-numeric one is replaced
+  run.setMetaValue(Constants::UserParam::PROTEIN_GROUP_SCORE_THRESHOLD, "0.95");
+  IDFilter::recordGroupScoreThreshold(run, 0.8);
+  TEST_REAL_SIMILAR(double(run.getMetaValue(Constants::UserParam::PROTEIN_GROUP_SCORE_THRESHOLD)), 0.95)
+  run.setMetaValue(Constants::UserParam::PROTEIN_GROUP_SCORE_THRESHOLD, "unknown");
+  IDFilter::recordGroupScoreThreshold(run, 0.8);
+  TEST_REAL_SIMILAR(double(run.getMetaValue(Constants::UserParam::PROTEIN_GROUP_SCORE_THRESHOLD)), 0.8)
+  // after recalculated group scores (keep_stricter = false), an earlier cutoff no longer applies
+  IDFilter::recordGroupScoreThreshold(run, 0.7, false);
+  TEST_REAL_SIMILAR(double(run.getMetaValue(Constants::UserParam::PROTEIN_GROUP_SCORE_THRESHOLD)), 0.7)
+}
+END_SECTION
+
+START_SECTION((static void removeGroupScoreThreshold(ProteinIdentification& protein_id)))
+{
+  ProteinIdentification run;
+  run.setScoreType("q-value");
+  run.setHigherScoreBetter(false);
+  IDFilter::recordGroupScoreThreshold(run, 0.05);
+  run.setMetaValue("other", 1);
+  IDFilter::removeGroupScoreThreshold(run);
+  TEST_EQUAL(run.metaValueExists(Constants::UserParam::PROTEIN_GROUP_SCORE_THRESHOLD), false)
+  TEST_EQUAL(run.metaValueExists(Constants::UserParam::PROTEIN_GROUP_SCORE_THRESHOLD_TYPE), false)
+  TEST_EQUAL(run.getMetaValue("other"), 1)
+  IDFilter::removeGroupScoreThreshold(run); // nothing to remove
+  TEST_EQUAL(run.metaValueExists(Constants::UserParam::PROTEIN_GROUP_SCORE_THRESHOLD), false)
+}
+END_SECTION
 
 END_TEST
 

@@ -3,38 +3,19 @@
 <!-- Please include a summary of the change and which issue is fixed here. -->
 
 ## Checklist
-- [ ] Make sure that you are listed in the AUTHORS file
-- [ ] I have commented my code, particularly in hard-to-understand areas
 - [ ] New and existing unit tests pass locally with my changes
-- [ ] Updated or added python bindings for changed or new classes (Tick if no updates were necessary.)
 
 ### AI use (see the [OpenMS AI Policy](https://openms.de/ai-policy/))
 <!-- Minor grammar or wording help does not need to be disclosed. -->
 - [ ] I have read the [OpenMS AI Policy](https://openms.de/ai-policy/), and I understand, have reviewed and tested every change in this PR and can explain it in my own words
-- AI use in this PR (tick one):
-  - [ ] None
-  - [ ] Assisted (e.g. completion, suggestions, small edits); commits carry an `Assisted-by:` trailer
-  - [ ] Substantial (e.g. agentic tools wrote significant parts); commits carry a `Co-authored-by:` trailer, and the description above explains the design intent and rationale
+- [ ] Substantial AI use in PR (e.g. agentic tools wrote significant parts); commits carry a `Co-authored-by:` trailer, and the description above explains the design intent and rationale
 
 No need to edit the CHANGELOG file: entries are generated automatically once per week from merged changes.
 
 ### How can I get additional information on failed tests during CI
 <details>
   <summary>Click to expand</summary>
-If your PR is failing you can check out
-
-- The details of the action statuses at the end of the PR or the "Checks" tab.
-- http://cdash.seqan.de/index.php?project=OpenMS and look for your PR. Use the "Show filters" capability on the top right to search for your PR number.
-  If you click in the column that lists the failed tests you will get detailed error messages.
-
-</details>
-
-### Advanced commands (admins / reviewer only)
-<details>
-  <summary>Click to expand</summary>
-  
-- `/reformat` (experimental) applies the clang-format style changes as additional commit. Note: your branch must have a different name (e.g., yourrepo:feature/XYZ) than the receiving branch (e.g., OpenMS:develop). Otherwise, reformat fails to push.
-  
+If your PR is failing you can check out the action statuses at the end of the PR or the "Checks" tab.
 </details>
 
 ---

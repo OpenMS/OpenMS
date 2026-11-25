@@ -10,6 +10,7 @@
 
 namespace OpenMS { namespace Internal { namespace Percolator {
 
+
 class MonotoneRegressor;
 
 class InferPEP {
@@ -19,7 +20,10 @@ class InferPEP {
         std::vector<double> q_to_pep(const std::vector<double>& q_values);
         // Calibrate PEPs from q-values (qns) or from target/decoy labels (TDC)
         std::vector<double> qns_to_pep(const std::vector<double>& q_values, const std::vector<double>& scores);
-        std::vector<double> tdc_to_pep(const std::vector<double>& is_decoy, const std::vector<double>& scores = {});
+        // PEP = oddsFactor * p / (1 - p) for the fitted decoy rate p, clamped
+        // to [0, 1]; oddsFactor corrects for unequal null sizes (mix-max)
+        std::vector<double> tdc_to_pep(const std::vector<double>& is_decoy, const std::vector<double>& scores = {},
+                                       double oddsFactor = 1.0);
 
         double interpolate(const double q_value, const double q1, const double q2, const double pep1, const double pep2) const {
             if (std::abs(q2 - q1) <= 1e-12) {

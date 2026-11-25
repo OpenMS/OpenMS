@@ -124,7 +124,7 @@ namespace OpenMS
 
       for (const auto& [diff, count] : freq_map)
       {
-        if (count > max_count)
+        if (count > max_count || (count == max_count && diff < mode_sampling_rate))   // ties: the smaller difference, whatever the unordered_map order
         {
           mode_sampling_rate = diff;
           max_count = count;
@@ -534,8 +534,8 @@ namespace OpenMS
             
             // Sort indices based on m/z values
             std::sort(indices.begin(), indices.end(),
-                    [&mz_values](size_t i1, size_t i2) {
-                      return mz_values[i1] < mz_values[i2];
+                    [&mz_values](size_t i1, size_t i2) {   // the index breaks ties, so the order does not depend on the std::sort implementation
+                      return mz_values[i1] < mz_values[i2] || (mz_values[i1] == mz_values[i2] && i1 < i2);
                     });
             
             // Reuse sorted vectors
@@ -1025,7 +1025,14 @@ namespace OpenMS
       };
 
       // Convert peaks to Points (same as before)
-      std::vector<Point> points;
+      // The temporaries are per-thread scratch whose capacity survives the call: allocated afresh, they were mapped,
+      // touched and unmapped again for every spectrum (about 90 B per raw peak). Their size is capped by kKeep below.
+      static thread_local std::vector<Point> points;
+      static thread_local std::vector<OpenMS::Size> mz_sorted_indices, original_to_sorted_pos, intensity_sorted_indices,
+                                                    current_cluster_indices;
+      static thread_local std::vector<bool> used;
+      static thread_local std::vector<Point> averaged_points;
+      points.clear();
       points.reserve(spectrum.size());
       for (OpenMS::Size i = 0; i < spectrum.size(); ++i) {
         const auto& peak = spectrum[i];
@@ -1035,37 +1042,66 @@ namespace OpenMS
       // --- Setup for Clustering ---
 
       // 1. Create m/z-sorted indices (needed for cluster expansion)
-      std::vector<OpenMS::Size> mz_sorted_indices(points.size());
+      mz_sorted_indices.resize(points.size());
       std::iota(mz_sorted_indices.begin(), mz_sorted_indices.end(), 0);
+      // Spectra usually arrive sorted by m/z: then the identity already is the (m/z, index) order the sort below
+      // returns (its comparator is a strict total order), and the sort is skipped.
+      const bool mz_sorted_in = std::is_sorted(points.begin(), points.end(), [](const Point& x, const Point& y) { return x.mz < y.mz; });
+      if (!mz_sorted_in)
       std::sort(mz_sorted_indices.begin(), mz_sorted_indices.end(),
-                [&](OpenMS::Size a, OpenMS::Size b) {
-                  return points[a].mz < points[b].mz;
+                [&](OpenMS::Size a, OpenMS::Size b) {   // the index breaks ties, so the order does not depend on the std::sort implementation
+                  return points[a].mz < points[b].mz || (points[a].mz == points[b].mz && a < b);
                 });
 
       // Create reverse lookup: original_index -> mz_sorted_position (needed for cluster expansion)
-      std::vector<OpenMS::Size> original_to_sorted_pos(points.size());
+      original_to_sorted_pos.resize(points.size());
       for (OpenMS::Size i = 0; i < points.size(); ++i) {
         original_to_sorted_pos[mz_sorted_indices[i]] = i;
       }
 
       // 2. ***OPTIMIZATION: Create intensity-sorted indices for seed picking***
-      std::vector<OpenMS::Size> intensity_sorted_indices(points.size());
+      intensity_sorted_indices.resize(points.size());
       std::iota(intensity_sorted_indices.begin(), intensity_sorted_indices.end(), 0);
       std::sort(intensity_sorted_indices.begin(), intensity_sorted_indices.end(),
                 [&](OpenMS::Size a, OpenMS::Size b) {
-                  // Sort DESCENDING by intensity
-                  return points[a].intensity > points[b].intensity;
+                  // Sort DESCENDING by intensity; equal intensities (frequent with integer TOF counts) in index order, so
+                  // the greedy seed order, and with it the clusters, does not depend on the std::sort implementation
+                  return points[a].intensity > points[b].intensity || (points[a].intensity == points[b].intensity && a < b);
                 });
 
       // 3. Keep track of used points
-      std::vector<bool> used(points.size(), false);
+      used.assign(points.size(), false);
       OpenMS::Size num_used = 0;
 
       // Store results temporarily
-      std::vector<Point> averaged_points;
+      averaged_points.clear();
       averaged_points.reserve(points.size());
 
       double ppm_factor = ppm_tolerance_cluster_ * 1e-6;
+
+      // The unused points as a doubly linked list over m/z rank: the neighbour walk below jumps to the nearest unused
+      // point instead of stepping over used ones one by one (a run of used points per probe on dense spectra). Every
+      // point marked used is unlinked, so prv/nxt of a linked position are exactly the nearest unused positions on
+      // either side, the ones the step-over walk reaches: same clusters, same order of members.
+      static thread_local std::vector<OpenMS::SignedSize> prv, nxt;
+      const OpenMS::SignedSize n_pts = static_cast<OpenMS::SignedSize>(points.size());
+      if (prv.capacity() > 262144 && points.size() <= 262144) // the scratch cap kKeep below
+      {
+        std::vector<OpenMS::SignedSize>().swap(prv);
+        std::vector<OpenMS::SignedSize>().swap(nxt);
+      }
+      prv.resize(points.size());
+      nxt.resize(points.size());
+      for (OpenMS::SignedSize i = 0; i < n_pts; ++i)
+      {
+        prv[i] = i - 1;
+        nxt[i] = i + 1; // n_pts: none to the right
+      }
+      auto unlink = [&](OpenMS::SignedSize p) {
+        const OpenMS::SignedSize a = prv[p], b = nxt[p];
+        if (a >= 0) nxt[a] = b;
+        if (b < n_pts) prv[b] = a;
+      };
 
       // --- Main Clustering Loop ---
       // Iterate through peaks in descending order of intensity to find seeds
@@ -1082,7 +1118,7 @@ namespace OpenMS
         // --- Found an unused seed, start clustering ---
 
         // 6. Initialize the cluster with the seed
-        std::vector<OpenMS::Size> current_cluster_indices;
+        current_cluster_indices.clear();
         current_cluster_indices.push_back(seed_original_idx);
         used[seed_original_idx] = true;
         num_used++;
@@ -1093,18 +1129,19 @@ namespace OpenMS
         double cluster_im_max = points[seed_original_idx].im;
 
         // 7. Expand the cluster using m/z sorted neighbors (same logic as before)
-        OpenMS::Size seed_sorted_pos = original_to_sorted_pos[seed_original_idx];
-        OpenMS::SignedSize left_idx = static_cast<OpenMS::SignedSize>(seed_sorted_pos) - 1;
-        OpenMS::SignedSize right_idx = static_cast<OpenMS::SignedSize>(seed_sorted_pos) + 1;
+        const OpenMS::SignedSize seed_sorted_pos = static_cast<OpenMS::SignedSize>(original_to_sorted_pos[seed_original_idx]);
+        OpenMS::SignedSize left_idx = prv[seed_sorted_pos];   // nearest unused point on each side
+        OpenMS::SignedSize right_idx = nxt[seed_sorted_pos];
+        unlink(seed_sorted_pos);
 
         bool changed = true;
         while (changed) {
           changed = false;
 
-          // Check left neighbor
+          // Check left neighbor (left_idx is always an unused point or -1)
           while (left_idx >= 0) {
             OpenMS::Size candidate_original_idx = mz_sorted_indices[left_idx];
-            if (!used[candidate_original_idx]) {
+            {
               const auto& candidate_point = points[candidate_original_idx];
               double potential_mz_min = std::min(cluster_mz_min, candidate_point.mz);
               double potential_mz_max = std::max(cluster_mz_max, candidate_point.mz); // Fixed: Use max for the max value
@@ -1123,22 +1160,22 @@ namespace OpenMS
                 cluster_mz_max = potential_mz_max; // Fixed: Update max value
                 cluster_im_min = potential_im_min;
                 cluster_im_max = potential_im_max;
-                left_idx--;
+                const OpenMS::SignedSize next_left = prv[left_idx];
+                unlink(left_idx);
+                left_idx = next_left;
                 changed = true;
                 break; // Added point, break inner while to re-evaluate from outer changed loop
               } else {
                 left_idx = -1; // Stop checking left this round
                 break;
               }
-            } else {
-              left_idx--; // Skip used point
             }
           }
 
-          // Check right neighbor
-          while (right_idx < static_cast<OpenMS::SignedSize>(points.size())) {
+          // Check right neighbor (right_idx is always an unused point or n_pts)
+          while (right_idx < n_pts) {
             OpenMS::Size candidate_original_idx = mz_sorted_indices[right_idx];
-            if (!used[candidate_original_idx]) {
+            {
               const auto& candidate_point = points[candidate_original_idx];
               double potential_mz_min = std::min(cluster_mz_min, candidate_point.mz); // Fixed: Use min
               double potential_mz_max = std::max(cluster_mz_max, candidate_point.mz);
@@ -1157,15 +1194,15 @@ namespace OpenMS
                 cluster_mz_max = potential_mz_max;
                 cluster_im_min = potential_im_min;
                 cluster_im_max = potential_im_max;
-                right_idx++;
+                const OpenMS::SignedSize next_right = nxt[right_idx];
+                unlink(right_idx);
+                right_idx = next_right;
                 changed = true;
                 break; // Added point, break inner while to re-evaluate from outer changed loop
               } else {
-                right_idx = points.size(); // Stop checking right this round
+                right_idx = n_pts; // Stop checking right this round
                 break;
               }
-            } else {
-              right_idx++; // Skip used point
             }
           }
         } // End cluster expansion (while changed)
@@ -1219,6 +1256,15 @@ namespace OpenMS
         im_data[i] = p.im;
       }
 
+      {
+        constexpr size_t kKeep = 262144;   // points of scratch kept per thread (about 23 MB)
+        if (points.capacity() > kKeep)
+        {
+          std::vector<Point>().swap(points); std::vector<Point>().swap(averaged_points); std::vector<bool>().swap(used);
+          std::vector<OpenMS::Size>().swap(mz_sorted_indices); std::vector<OpenMS::Size>().swap(original_to_sorted_pos);
+          std::vector<OpenMS::Size>().swap(intensity_sorted_indices);
+        }
+      }
       spectrum.sortByPosition();
       spectrum.updateRanges();
       // ensure the output IM array is updated
@@ -1267,6 +1313,7 @@ namespace OpenMS
       Param param = mte.getParameters();
       // disable most filter criteria
       param.setValue("min_trace_length", -1.0);
+      param.setValue("min_trace_scans", 1);
       param.setValue("max_trace_length", -1.0);
       param.setValue("noise_threshold_int", 0.1); // only ignore 0 peaks
       param.setValue("chrom_peak_snr", 0.0);

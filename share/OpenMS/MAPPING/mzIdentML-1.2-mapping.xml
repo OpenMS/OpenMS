@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet href="https://psidev.svn.sourceforge.net/svnroot/psidev/psi/tools/current/xsl/cv-mapping/CvMappingRules.xsl" type="text/xsl"?>
+<!-- mzIdentML mapping file created by ARJ and AB and the whole PSI-PI group -->
+<!-- $Id: mzIdentML-mapping.xml 478 2009-08-19 11:15:20Z a.bertsch0815 $ -->
+<CvMapping xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:noNamespaceSchemaLocation="http://www.psidev.info/files/validator/CvMapping.xsd" modelName="axml.xsd" modelURI="http://code.google.com/p/psi-pi/source/browse/#svn/trunk/schema/mzIdentML_working.xsd" modelVersion="beta">
+
+    <CvReferenceList>
+        <CvReference cvName="PSI-MS" cvIdentifier="MS"/>
+        <CvReference cvName="MOD" cvIdentifier="MOD"/>
+        <CvReference cvName="Brenda" cvIdentifier="BTO"/>
+				<CvReference cvName="UNIMOD" cvIdentifier="UNIMOD"/>
+        <CvReference cvName="GO" cvIdentifier="GO"/>
+        <CvReference cvName="PATO" cvIdentifier="PATO"/>
+        <CvReference cvName="UO" cvIdentifier="UO"/>
+    </CvReferenceList>
+
+    <CvMappingRuleList>
+        <!--
+          Protein grouping rules of mzIdentML 1.2 (and later): terms that each ProteinDetectionList, ProteinAmbiguityGroup
+          and ProteinDetectionHypothesis must have. MzIdentMLFile::isSemanticallyValid() adds these rules to those of
+          mzIdentML-mapping.xml for files of version 1.2 and later.
+        -->
+        <!-- mzIdentML 1.2 protein grouping: the number of protein groups that pass the threshold -->
+        <CvMappingRule id="MzIdentML_ProteinDetectionListCount_rule" cvElementPath="/MzIdentML/DataCollection/AnalysisData/ProteinDetectionList/cvParam/@accession" requirementLevel="MUST"  scopePath="" cvTermsCombinationLogic="OR">
+            <CvTerm termAccession="MS:1002404" useTermName="false" useTerm="true" termName="count of identified proteins" isRepeatable="false" allowChildren="false" cvIdentifierRef="MS" />
+        </CvMappingRule>
+
+        <!-- mzIdentML 1.2 protein grouping: every group says whether it passes the threshold -->
+        <CvMappingRule id="MzIdentML_ProteinAmbiguityGroupThreshold_rule" cvElementPath="/MzIdentML/DataCollection/AnalysisData/ProteinDetectionList/ProteinAmbiguityGroup/cvParam/@accession" requirementLevel="MUST"  scopePath="" cvTermsCombinationLogic="OR">
+            <CvTerm termAccession="MS:1002415" useTermName="false" useTerm="true" termName="protein group passes threshold" isRepeatable="false" allowChildren="false" cvIdentifierRef="MS" />
+        </CvMappingRule>
+
+        <!-- mzIdentML 1.2 protein grouping: every protein of a group is a leading or non-leading protein (or has another relationship to the group) -->
+        <CvMappingRule id="MzIdentML_ProteinDetectionHypothesisRelationship_rule" cvElementPath="/MzIdentML/DataCollection/AnalysisData/ProteinDetectionList/ProteinAmbiguityGroup/ProteinDetectionHypothesis/cvParam/@accession" requirementLevel="MUST"  scopePath="" cvTermsCombinationLogic="OR">
+            <CvTerm termAccession="MS:1001101" useTermName="false" useTerm="false" termName="protein group or subset relationship" isRepeatable="true" allowChildren="true" cvIdentifierRef="MS" />
+        </CvMappingRule>
+
+    </CvMappingRuleList>
+</CvMapping>
