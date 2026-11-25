@@ -87,7 +87,10 @@ void MapAlignmentAlgorithmKD::fitLOWESS()
     {
       OPENMS_LOG_WARN << "Warning: Only " << n << " data points for LOWESS fit of map " << i << ". Consider adjusting RT or m/z tolerance or max_pairwise_log_fc, decreasing min_rel_cc_size, or increasing max_nr_conflicts." << endl;
       TransformationModel::DataPoints identity = {{0,0}, {1,1}, {1e6,1e6}};
-      transformations_[i] = new TransformationModelLowess(identity, lowess_param);
+      // no span to select on three identity points
+      Param identity_param = lowess_param;
+      identity_param.setValue("auto_span", "false");
+      transformations_[i] = new TransformationModelLowess(identity, identity_param);
     }
     else
     {

@@ -71,12 +71,16 @@ namespace OpenMS
     // LOWESS defaults
     Param lowess_defaults;
     TransformationModelLowess::getDefaultParameters(lowess_defaults);
+    // Choose the span per map by cross-validation. The fixed default span (2/3) over-smooths curved RT drift,
+    // and the leftover drift then competes with the RT differences used to rank link candidates (e.g. isomers).
+    // (Set before tagging: overwriting an entry replaces its tags.)
+    lowess_defaults.setValue("auto_span", "true");
     for (Param::ParamIterator it = lowess_defaults.begin(); it != lowess_defaults.end(); ++it)
     {
       const_cast<Param::ParamEntry&>(*it).tags.insert("advanced");
     }
     defaults_.insert("LOWESS:", lowess_defaults);
-    defaults_.setSectionDescription("LOWESS", "LOWESS parameters for internal RT transformations (only relevant if 'warp:enabled' is set to 'true')");
+    defaults_.setSectionDescription("LOWESS", "LOWESS parameters for internal RT transformations (only relevant if 'warp:enabled' is set to 'true'). By default ('auto_span' true), the span is selected per map by cross-validation and 'span' is ignored.");
 
     defaultsToParam_();
     setLogType(CMD);

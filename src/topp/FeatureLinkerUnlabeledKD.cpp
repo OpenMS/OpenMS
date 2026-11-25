@@ -56,7 +56,9 @@ Prior to feature linking, this tool performs an (optional) retention time
 transformation on the features using LOWESS regression in order to minimize
 retention time differences between corresponding features across different
 maps. These transformed RTs are used only internally. In the results, original
-RTs will be reported.
+RTs will be reported. By default, the LOWESS span is selected for each map by
+cross-validation (algorithm:LOWESS:auto_span); set it to 'false' to use the
+fixed algorithm:LOWESS:span instead.
 
 The linking behavior can be influenced by separately specifying how to use
 the available charge and adduct information.  Options  allow to restrict
