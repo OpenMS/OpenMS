@@ -421,9 +421,9 @@ protected:
     registerStringOption_("requantify_vetoed", "<option>", "true",
       "With 'requantify': a missing channel at whose expected position the detection reserved peaks for another multiplet (within\n"
       "'resolver:rt_tolerance' and 'resolver:mz_tolerance') is not quantifiable before it is measured.\n"
-      "true: such a channel is re-quantified anyway, then also from those multiplets' peaks, if all of them are unidentified multiplets\n"
-      "that can be the peptide (same charge and CV, every channel at the m/z the peptide has in one of its channels), usually the\n"
-      "missing channel itself, detected on its own. Not if 'join_channels' examined such a multiplet for the identified one and did not\n"
+      "true: such a channel is re-quantified anyway, then also from the peaks of those multiplets' channels at its m/z (not from other\n"
+      "channels' isotopes there), if all of them are unidentified multiplets that can be the peptide (same charge and CV, every channel\n"
+      "at the m/z the peptide has in one of its channels), usually the missing channel itself, detected on its own. Not if 'join_channels' examined such a multiplet for the identified one and did not\n"
       "join it (its re-measurement over their common spectra failed), and never on a multiplet identified as another peptide or as the\n"
       "same one (it is quantified itself). The channel counts as re-quantified, and stays not quantifiable if the measurement gives no\n"
       "value, or if another such channel's value read the same peaks (one signal is counted once). With 'match_between_runs', an\n"
@@ -1936,7 +1936,9 @@ protected:
     OTHER_PEPTIDE,   ///< a multiplet identified as another peptide occupies it
     SAME_PEPTIDE,    ///< another multiplet identified as the same peptide occupies it (it is quantified itself)
     NOT_THE_PEPTIDE, ///< an unidentified multiplet that cannot be the peptide (or none of the run's multiplets) occupies it
-    JOIN_REJECTED    ///< the join examined such a multiplet for this one and did not join it
+    JOIN_REJECTED,   ///< the join examined such a multiplet for this one and did not join it
+    OTHER_CHANNEL    ///< only unidentified multiplets that can be the peptide occupy it, none with a channel at its position (their
+                     ///< peaks there are another channel's isotopes, e.g. the light M+4 at a Lys4 channel)
   };
 
   /**
@@ -1982,10 +1984,12 @@ protected:
     peptide, or as the same one (it is quantified itself, so its peaks would count twice), keeps the channel not quantifiable,
     and so does a multiplet that joinChannelsOfIdentifiedPeptides_() examined for @p cf and did not join (@p join_rejected): its
     re-measurement over their common spectra failed, and measuring the channel from its peaks over the identified multiplet's elution
-    region would bypass that check.
+    region would bypass that check. Of such a multiplet, only the channel at the missing channel's m/z (detection tolerance) is the
+    missing channel: the peaks of its other channels that lie there are their isotopes (e.g. the light M+4 at a Lys4 channel) and
+    stay unused; if none of the multiplets has a channel there, the channel is not measured (OTHER_CHANNEL).
 
     @param[in] peptides MultiplexResolverAlgorithm::ownerPeptides() of the multiplets the resolver completed
-    @param[out] allowed The unique ids of the channels of those multiplets, whose reserved peaks the channel may then use
+    @param[out] allowed The unique ids of those multiplets' channels at the missing channel's m/z, whose reserved peaks it may then use
     @return The first of the reasons in VetoedChannel_ that applies (MEASURABLE if none does)
   */
   VetoedChannel_ vetoedChannelOwners_(const ConsensusFeature& cf, const FeatureHandle& handle, const vector<double>& mzs, const MSExperiment& blacklist,
@@ -1995,7 +1999,7 @@ protected:
   {
     using Relation = MultiplexResolverAlgorithm::OwnerRelation;
     allowed.clear();
-    bool other_peptide = false, same_peptide = false, not_the_peptide = false, rejected = false;
+    bool other_peptide = false, same_peptide = false, not_the_peptide = false, rejected = false, other_channel = false;
     const std::optional<double> cv = compensationVoltage_(cf);
     for (const UInt64 owner : resolver.reservingOwners(blacklist, cf.getRT(), handle.getMZ(), static_cast<size_t>(cf.getCharge()), cf))
     {
@@ -2016,17 +2020,24 @@ protected:
           rejected = true;
           continue;
         }
+        bool at_position = false;
         for (const FeatureHandle& channel : it->second->getFeatures())
         {
-          if (channel.hasValidUniqueId()) { allowed.insert(channel.getUniqueId()); }
+          if (channel.hasValidUniqueId() && std::abs(channel.getMZ() - handle.getMZ()) <= detectionMZTolerance_(handle.getMZ()))
+          {
+            allowed.insert(channel.getUniqueId());
+            at_position = true;
+          }
         }
+        other_channel = other_channel || !at_position;
       }
     }
     if (other_peptide) { return VetoedChannel_::OTHER_PEPTIDE; }
     if (same_peptide) { return VetoedChannel_::SAME_PEPTIDE; }
     if (not_the_peptide) { return VetoedChannel_::NOT_THE_PEPTIDE; }
     if (rejected) { return VetoedChannel_::JOIN_REJECTED; }
-    return allowed.empty() ? VetoedChannel_::NOT_THE_PEPTIDE : VetoedChannel_::MEASURABLE;
+    if (allowed.empty()) { return other_channel ? VetoedChannel_::OTHER_CHANNEL : VetoedChannel_::NOT_THE_PEPTIDE; }
+    return VetoedChannel_::MEASURABLE;
   }
 
   /**
@@ -2057,10 +2068,13 @@ protected:
 
     @param[in] multiplets The multiplets the resolver completed (for the owners of the reserved peaks)
     @param[in] join_rejected The candidates joinChannelsOfIdentifiedPeptides_() examined and did not join
+    @param[out] vetoed_owners_read The unidentified multiplets' channels whose reserved peaks entered such a value (quantifyTargeted_()
+                does not read them again)
   */
   void requantifyMissingChannels_(ConsensusMap& resolved, const FeatureMap& channels, const MSExperiment& centroided,
                                   const MSExperiment& blacklist, bool owners, const MultiplexResolverAlgorithm& resolver,
-                                  const ConsensusMap& multiplets, const std::set<std::pair<UInt64, UInt64>>& join_rejected) const
+                                  const ConsensusMap& multiplets, const std::set<std::pair<UInt64, UInt64>>& join_rejected,
+                                  std::unordered_set<UInt64>& vetoed_owners_read) const
   {
     std::unordered_map<UInt64, const Feature*> channel_of;
     for (const Feature& channel : channels) { channel_of.emplace(channel.getUniqueId(), &channel); }
@@ -2075,7 +2089,6 @@ protected:
     }
     std::map<VetoedChannel_, Size> vetoed_outcomes;
     Size vetoed_requantified = 0, vetoed_no_value = 0, vetoed_contested = 0, vetoed_peaks_used = 0;
-    std::unordered_set<UInt64> vetoed_owners_read; // channels of unidentified multiplets whose reserved peaks entered a value
     // the values measured for vetoed channels, applied once all are known: a signal that several of them read belongs to none
     struct VetoedValue
     {
@@ -2269,7 +2282,8 @@ protected:
                         << vetoed_outcomes[VetoedChannel_::OTHER_PEPTIDE] << " on another identified peptide, "
                         << vetoed_outcomes[VetoedChannel_::SAME_PEPTIDE] << " on another multiplet of the same peptide, "
                         << vetoed_outcomes[VetoedChannel_::NOT_THE_PEPTIDE] << " on an unidentified multiplet that cannot be the peptide, "
-                        << vetoed_outcomes[VetoedChannel_::JOIN_REJECTED] << " on a multiplet the join did not join, " << vetoed_contested
+                        << vetoed_outcomes[VetoedChannel_::JOIN_REJECTED] << " on a multiplet the join did not join, "
+                        << vetoed_outcomes[VetoedChannel_::OTHER_CHANNEL] << " on another channel's isotopes of an unidentified multiplet, " << vetoed_contested
                         << " whose value read the same unidentified multiplet's peaks as another channel's (counted in neither)." << endl;
       }
       if (vetoed_peaks_used > 0)
@@ -2589,7 +2603,8 @@ protected:
     @p multiplets, the detected ones) that cannot be the peptide (other charge or CV, or a channel not at one of the peptide's).
     Unlike in the re-quantification (where '-requantify_vetoed' uses them only for channels they alone make not quantifiable), the
     peaks of other unidentified multiplets are used (mayBePeptide_()), since they can be the peptide itself, detected without its
-    identification mapping onto it.
+    identification mapping onto it; not those of a channel whose peaks a re-quantified channel already read (@p requantified_owners,
+    e.g. of an isobaric peptide), so that one signal is counted once.
 
     A channel's peak can also hold an isotope (M+1 up to M+n, n + 1 the maximum of 'algorithm:isotopes_per_peptide') of a lower
     channel, e.g. a Dimethyl4 or Lys4 channel the light channel's M+4 (0.0117 Da away), a Dimethyl8 channel the Dimethyl4 channel's
@@ -2634,7 +2649,8 @@ protected:
     entered a feature's intensities is that feature's signal and is removed, so that linking cannot quantify it a second time.
   */
   void quantifyTargeted_(ConsensusMap& resolved, const ConsensusMap& multiplets, const FeatureMap& channels, const MultiplexResolverAlgorithm& resolver,
-                         const MSExperiment& centroided, const MSExperiment& blacklist, const MultiplexResolverAlgorithm::OwnerPeptides* peptides) const
+                         const MSExperiment& centroided, const MSExperiment& blacklist, const MultiplexResolverAlgorithm::OwnerPeptides* peptides,
+                         const std::unordered_set<UInt64>& requantified_owners) const
   {
     const double rt_typical = getParam_().getValue("algorithm:rt_typical");
     const double rt_tolerance = getParam_().getValue("id_mapping:rt_tolerance");
@@ -2779,6 +2795,7 @@ protected:
           {
             return true;
           }
+          if (requantified_owners.contains(owner)) { return true; }
           const auto it = unidentified.find(owner);
           return it != unidentified.end() && !mayBePeptide_(*it->second, candidate.mzs, candidate.charge, candidate.cv);
         };
@@ -3117,12 +3134,13 @@ protected:
     if (requantify_ || targeted_quantification_)
     {
       const bool owners = MultiplexResolverAlgorithm::hasBlacklistOwners(blacklist);
-      if (requantify_) { requantifyMissingChannels_(resolved, channels, centroided, blacklist, owners, resolver, multiplets, join_rejected); }
+      std::unordered_set<UInt64> requantified_owners; // unidentified multiplets' channels whose reserved peaks a re-quantified channel read
+      if (requantify_) { requantifyMissingChannels_(resolved, channels, centroided, blacklist, owners, resolver, multiplets, join_rejected, requantified_owners); }
       // identified peptides without a multiplet are measured where they are expected (while the handles still name their channels)
       if (targeted_quantification_)
       {
         const MultiplexResolverAlgorithm::OwnerPeptides peptides = owners ? resolver.ownerPeptides(multiplets) : MultiplexResolverAlgorithm::OwnerPeptides();
-        quantifyTargeted_(resolved, multiplets, channels, resolver, centroided, blacklist, owners ? &peptides : nullptr);
+        quantifyTargeted_(resolved, multiplets, channels, resolver, centroided, blacklist, owners ? &peptides : nullptr, requantified_owners);
       }
     }
 
