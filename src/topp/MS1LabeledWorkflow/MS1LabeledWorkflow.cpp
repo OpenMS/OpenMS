@@ -2506,9 +2506,10 @@ protected:
                          });
     };
 
-    for (auto& [key, group] : groups)
+    for (auto& entry : groups)
     {
-      const std::string& peptide = key.first;
+      const std::string& peptide = entry.first.first;
+      auto& group = entry.second;
       std::stable_sort(group.begin(), group.end(), [](const TargetedCandidate_& a, const TargetedCandidate_& b) { return a.rt < b.rt; });
 
       // one feature per elution peak, with every identification in it (within the RT tolerance of its boundaries)
