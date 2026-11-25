@@ -52,31 +52,41 @@ Size MSImagingExperiment::getNumberOfPixels() const
 Size MSImagingExperiment::getNumberOfSpectra() const
 { return experiment_.getNrSpectra(); }
 
+Size MSImagingExperiment::size() const
+{ return geometry_.getNumberOfPixels(); }
+
+Size MSImagingExperiment::checkedSpectrumIndex_(Size spectrum_index) const
+{
+  if (spectrum_index >= experiment_.getNrSpectra())
+  {
+    throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                  "Pixel references missing spectrum",
+                                  StringUtils::toStr(spectrum_index));
+  }
+  return spectrum_index;
+}
+
+MSSpectrum& MSImagingExperiment::operator[](Size n)
+{
+  return experiment_[checkedSpectrumIndex_(geometry_.getPixels()[n].spectrum_index)];
+}
+
+const MSSpectrum& MSImagingExperiment::operator[](Size n) const
+{
+  return experiment_[checkedSpectrumIndex_(geometry_.getPixels()[n].spectrum_index)];
+}
+
 bool MSImagingExperiment::hasPixel(UInt x, UInt y) const
 { return geometry_.hasPixel(x, y); }
 
   MSSpectrum& MSImagingExperiment::getSpectrum(UInt x, UInt y)
   {
-    const Size idx = geometry_.getSpectrumIndex(x, y);
-    if (idx >= experiment_.getNrSpectra())
-    {
-      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                    "Pixel references missing spectrum",
-                                    StringUtils::toStr(idx));
-    }
-    return experiment_[idx];
+    return experiment_[checkedSpectrumIndex_(geometry_.getSpectrumIndex(x, y))];
   }
 
   const MSSpectrum& MSImagingExperiment::getSpectrum(UInt x, UInt y) const
   {
-    const Size idx = geometry_.getSpectrumIndex(x, y);
-    if (idx >= experiment_.getNrSpectra())
-    {
-      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                    "Pixel references missing spectrum",
-                                    StringUtils::toStr(idx));
-    }
-    return experiment_[idx];
+    return experiment_[checkedSpectrumIndex_(geometry_.getSpectrumIndex(x, y))];
   }
 
   IonImage MSImagingExperiment::extractIonImage(double mz, double tolerance_ppm) const

@@ -66,9 +66,10 @@ So the full picture is two lines, and they match ordinary Python intuition:
 > **A method hands you a copy — write it back with the matching setter.**
 > **An attribute is the object itself — edit or assign it directly.**
 
-This affects 31 members on structs such as `SiriusTargetDecoySpectra`,
-`RangeSet`, `PreprocessedPairSpectra` and `AQS_featureConcentration`. The main
-container classes have no such attributes.
+This affects 32 members on structs such as `SiriusTargetDecoySpectra`,
+`RangeSet`, `PreprocessedPairSpectra`, `AQS_featureConcentration` and
+`BrukerTimsImagingFile.Config` (`cfg.inner_config.calibrate = True` edits the
+config in place). The main container classes have no such attributes.
 
 ## Three exceptions, all visible at the call site
 
@@ -153,7 +154,13 @@ for spec in exp.iter_spectrum_views():
 The same convention already marks the zero-copy numpy views (`data_view()`,
 `matrix_view()`, `peaks_struct()`); this extends it to object element access.
 The family is
-available on `MSExperiment` (spectra, chromatograms), `FeatureMap` (features),
+available on `MSExperiment` (spectra, chromatograms), `MSImagingExperiment`
+(the spectra of its pixels, in geometry pixel order; plus `experiment_view()` /
+`geometry_view()` for its owned members), `OnDiscImzMLExperiment`
+(`geometry_view()`; open() and close() reset the geometry it shows; like
+`MSImagingExperiment`, `len()` / `[i]` / iteration follow its pixels while
+`getSpectrum(i)` takes a spectrum index),
+`FeatureMap` (features),
 `ConsensusMap` (consensus features), `PeptideIdentificationList`
 (identifications), `MRMTransitionGroup` (features, chromatograms), and
 `MSSpectrum`/`MSChromatogram` (float/integer/string data arrays) — where
@@ -179,7 +186,10 @@ process.
 
 Returning owned values removes all of them, and restores what 3.5 did.
 Aliasing was introduced and removed inside the same unreleased development
-cycle, so no released version ever behaved differently and existing code
-needs no changes.
+cycle, so existing code needs no changes — with one exception:
+`IonImage.get_data()`, new in 3.6.0, shipped there as a writable zero-copy
+view. Since 3.7 it returns an owned copy like every other `get_*`,
+and the view is `IonImage.data_view()`; code that wrote through
+`get_data()` (`img.get_data()[:] /= norm`) must switch to `data_view()`.
 
 See issue #9792 for the full analysis.

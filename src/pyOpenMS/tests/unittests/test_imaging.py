@@ -39,7 +39,23 @@ def test_ion_image_basic():
     assert img.getIntensity(1, 0) == pytest.approx(7.5)
 
 
-def test_ion_image_get_data_zero_copy():
+def test_ion_image_data_view_zero_copy():
+    from pyopenms import IonImage
+
+    img = IonImage(3, 2)
+    img.setIntensity(1, 0, 7.5)
+
+    data = img.data_view()
+    assert data.shape == (2, 3)
+    assert data.dtype == np.float64
+    assert data[0, 1] == pytest.approx(7.5)
+
+    # Zero-copy: writes through the view are reflected in the C++ object
+    data[1, 2] = 42.0
+    assert img.getIntensity(2, 1) == pytest.approx(42.0)
+
+
+def test_ion_image_get_data_copy():
     from pyopenms import IonImage
 
     img = IonImage(3, 2)
@@ -50,9 +66,12 @@ def test_ion_image_get_data_zero_copy():
     assert data.dtype == np.float64
     assert data[0, 1] == pytest.approx(7.5)
 
-    # Zero-copy: writes through the view are reflected in the C++ object
+    # Copy: writes to the array do not reach the C++ object, and later
+    # C++ edits do not show up in the array
     data[1, 2] = 42.0
-    assert img.getIntensity(2, 1) == pytest.approx(42.0)
+    assert img.getIntensity(2, 1) == pytest.approx(0.0)
+    img.setIntensity(0, 0, 3.0)
+    assert data[0, 0] == pytest.approx(0.0)
 
 
 def test_ion_image_get_mask_copy():

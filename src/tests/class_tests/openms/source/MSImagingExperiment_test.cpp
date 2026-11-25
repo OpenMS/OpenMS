@@ -151,6 +151,50 @@ START_SECTION((const MSImagingGeometry& getGeometry() const)) {NOT_TESTABLE} END
 
   START_SECTION((Size getNumberOfSpectra() const)) {NOT_TESTABLE} END_SECTION
 
+START_SECTION((Size size() const))
+{
+  TEST_EQUAL(MSImagingExperiment().size(), 0)
+  // counts pixels, not spectra: spectrum 0 is not bound to a pixel
+  MSImagingExperiment mie = makeFixture();
+  mie.getGeometry().clear();
+  mie.getGeometry().setDimensions(2, 1);
+  mie.getGeometry().addPixel(0, 0, 2);
+  mie.getGeometry().addPixel(1, 0, 1);
+  TEST_EQUAL(mie.getNumberOfSpectra(), 3)
+  TEST_EQUAL(mie.size(), 2)
+  TEST_EQUAL(mie.size(), mie.getNumberOfPixels())
+}
+END_SECTION
+
+START_SECTION((MSSpectrum& operator[](Size n)))
+{
+  // pixel order differs from spectrum order: pixel 0 -> spectrum 2, pixel 1 -> spectrum 1
+  MSImagingExperiment mie = makeFixture();
+  mie.getGeometry().clear();
+  mie.getGeometry().setDimensions(2, 1);
+  mie.getGeometry().addPixel(0, 0, 2);
+  mie.getGeometry().addPixel(1, 0, 1);
+  TEST_REAL_SIMILAR(mie[0][0].getMZ(), 500.0)
+  TEST_REAL_SIMILAR(mie[1][0].getMZ(), 490.0)
+  mie[0].setRT(42.0);
+  TEST_REAL_SIMILAR(mie.getMSExperiment()[2].getRT(), 42.0)
+
+  // stale spectrum_index -> InvalidValue (not UB)
+  mie.getGeometry().setDimensions(3, 1);
+  mie.getGeometry().addPixel(2, 0, 999);
+  TEST_EXCEPTION(Exception::InvalidValue, mie[2])
+}
+END_SECTION
+
+START_SECTION((const MSSpectrum& operator[](Size n) const))
+{
+  const MSImagingExperiment mie = makeFixture();
+  TEST_EQUAL(mie[0].size(), 2u)
+  TEST_REAL_SIMILAR(mie[2][0].getMZ(), 500.0) // pixel (0,1)
+  TEST_REAL_SIMILAR(mie[2].getRT(), mie.getSpectrum(0, 1).getRT())
+}
+END_SECTION
+
   START_SECTION((bool hasPixel(UInt x, UInt y) const))
 {
   MSImagingExperiment mie = makeFixture();
