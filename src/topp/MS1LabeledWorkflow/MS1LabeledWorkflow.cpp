@@ -2020,13 +2020,13 @@ protected:
   /// Spectra in which the identified channel needs its first two isotopes for a targeted feature; an identification that gets no
   /// feature that way, and lies in no feature of another identification of its peptide, needs them in min_pattern_spectra_
   static constexpr Size min_targeted_reference_spectra_ = 3;
-  /// Spectra of the elution peak in which the identified channel has signal (coelution_height_fraction_), for another channel's
-  /// co-elution with it to be tested: over two, the correlation is +/-1, and with empty spectra or low peaks around them it barely
-  /// depends on the channel's course
+  /// Spectra of the elution peak in which the identified channel has a peak, for another channel's co-elution with it to be tested:
+  /// over two, the correlation is +/-1, and with empty spectra or low peaks around them it barely depends on the channel's course.
+  /// A reference from three spectra (first pass) has them, as on develop.
   static constexpr Size min_coelution_spectra_ = 3;
-  /// A spectrum counts towards min_coelution_spectra_ if the identified channel's isotope-summed profile there is at least this
-  /// fraction of its maximum, i.e. within the elution peak's width at 10 % of its height (where chromatography measures a peak's
-  /// asymmetry): a low peak next to two spectra of signal does not count
+  /// For a reference from two spectra (second pass), a spectrum counts towards min_coelution_spectra_ only if the identified
+  /// channel's isotope-summed profile there is at least this fraction of its maximum, i.e. within the elution peak's width at 10 %
+  /// of its height (where chromatography measures a peak's asymmetry): a low peak next to its two spectra of signal does not count
   static constexpr double coelution_height_fraction_ = 0.1;
   /// A channel's peak is left out (the identified channel's: its intensity is not reported) if isotopes of other channels are expected to
   /// make up at least this fraction of it, i.e. if no more of it is left than is subtracted
@@ -2275,11 +2275,11 @@ protected:
       return summed;
     };
     const vector<double> reference_profile = profile(own_peaks);
-    const double reference_height = *std::max_element(reference_profile.begin(), reference_profile.end());
-    const Size reference_spectra = static_cast<Size>(std::count_if(reference_profile.begin(), reference_profile.end(), [&](double v)
-                                                                   { return v > 0.0 && v >= coelution_height_fraction_ * reference_height; }));
     peak.intensities.assign(n_channels, 0.0);
     peak.few_reference_spectra = min_reference_spectra < min_targeted_reference_spectra_;
+    const double counted_height = peak.few_reference_spectra ? coelution_height_fraction_ * *std::max_element(reference_profile.begin(), reference_profile.end()) : 0.0;
+    const Size reference_spectra = static_cast<Size>(std::count_if(reference_profile.begin(), reference_profile.end(), [&](double v)
+                                                                   { return v > 0.0 && v >= counted_height; }));
     // not quantifiable itself if its peaks are mostly another channel's isotope (as another channel's would be left out)
     peak.intensities[own] = !own_as_measured && mostly_own >= min_reference_spectra ? reference_intensity : std::numeric_limits<double>::quiet_NaN();
     for (Size c = 0; c < n_channels; ++c)
@@ -2379,9 +2379,9 @@ protected:
     taken for that channel): its peaks are then used as measured, and its own intensity is not quantifiable. Every other channel
     is measured against it from paired peaks (pairedIntensity_), and reported if its peaks show its isotope pattern paired with the
     reference in at least min_pattern_spectra_ spectra (first two isotopes, no strong peak one isotope below, as for the
-    reference) and it co-elutes (Pearson of the isotope-summed profiles >= 'algorithm:peptide_similarity', with the identified
-    channel's profile at coelution_height_fraction_ of its maximum or more in at least min_coelution_spectra_ spectra of the
-    elution peak, which a reference of two spectra may not have). Otherwise it is
+    reference) and it co-elutes (Pearson of the isotope-summed profiles >= 'algorithm:peptide_similarity', with peaks of the
+    identified channel in at least min_coelution_spectra_ spectra of the elution peak; for a reference from two spectra, which may
+    not have them, only spectra where its profile is at coelution_height_fraction_ of its maximum or more count). Otherwise it is
     absent (0) only if none of its isotopic peaks read (M+0 to M+2) is seen within the boundaries; it is not quantifiable (left
     out) if its peaks there do not form its isotope pattern, or if something else, or a peak left out above, is at any of them.
 
