@@ -115,7 +115,8 @@ Current state on 23 November 2026: the HeLa diaPASEF entrapment at r ≈ 7. The 
 | Calibrated q at q ≤ 0.05 (now 0.065 / 0.074) | Open | |
 | Pass rule change to a paired bootstrap rule | Blocked: needs user approval | |
 | Predicted decoys (`-predict_decoys`) remove the entrapment excess (rule 1c passes) | Done (pass) | [RESULT_DECOYGEN.md](gates/extraction-parity/decoygen/RESULT_DECOYGEN.md) |
-| DIAG_FDR: Astral GBM own-q excess localised to near-isomer entrapments at q ≤ 0.01; opt-in `-gbm_blend` (network/GBM blend, b3391c92e8), offline w = 0.5 pooled bound 1.17 to 0.75 % with IDs kept on dev data | Done (diagnostic); next: frozen precheck | [DIAG_FDR.md](gates/single-binary/fdr-20261125/DIAG_FDR.md) |
+| DIAG_FDR: Astral GBM own-q excess localised to near-isomer entrapments at q ≤ 0.01; opt-in `-gbm_blend` (network/GBM blend, b3391c92e8), offline w = 0.5 pooled bound 1.17 to 0.75 % with IDs kept on dev data | Done (diagnostic) | [DIAG_FDR.md](gates/single-binary/fdr-20261125/DIAG_FDR.md) |
+| PRECHECK_BLEND (frozen): `-gbm_blend 0.5` vs the default on Astral 01/02/03 (03 held out) and HeLa D/H r ≈ 7 (held out), 5 seeds each; pass needs bound ≤ 1 % on Astral and ≥ 0.98x N@FDP_c 1 % everywhere, HeLa lower bound ≤ +0.10 pp | In progress | [PRECHECK_BLEND.md](gates/single-binary/fdr-20261125/PRECHECK_BLEND.md) |
 
 ## R-WP5: ID gap
 
