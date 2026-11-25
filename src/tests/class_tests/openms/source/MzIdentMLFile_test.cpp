@@ -1459,6 +1459,40 @@ START_SECTION(([EXTRA] read protein groups from a ProteinDetectionList (issue #1
 }
 END_SECTION
 
+START_SECTION(([EXTRA] several SequenceCollections, one inside a ProteinDetectionProtocol))
+{
+  std::ifstream source(OPENMS_GET_TEST_DATA_PATH("MzIdentML_protein_groups.mzid"));
+  std::string contents((std::istreambuf_iterator<char>(source)), std::istreambuf_iterator<char>());
+  const auto begin = contents.find("<SequenceCollection>");
+  const auto end = contents.find("</SequenceCollection>");
+  ABORT_IF(begin == std::string::npos || end == std::string::npos)
+  const std::string collection = contents.substr(begin, end + std::string("</SequenceCollection>").size() - begin);
+  contents.erase(begin, collection.size());
+  // a second, nested SequenceCollection that comes first: its children are freed with the other one's, and the
+  // ProteinDetectionProtocol is read at the end
+  const auto protocol = contents.find("<ProteinDetectionProtocol");
+  ABORT_IF(protocol == std::string::npos)
+  contents.insert(contents.find('>', protocol) + 1,
+    "<SequenceCollection><DBSequence id=\"DBSeq_X\" accession=\"X\" searchDatabase_ref=\"SDB_1\"><Seq>MK</Seq></DBSequence></SequenceCollection>");
+  contents.insert(contents.find("</AnalysisProtocolCollection>") + std::string("</AnalysisProtocolCollection>").size(), collection);
+  std::string filename;
+  NEW_TMP_FILE(filename)
+  {
+    std::ofstream output(filename, std::ios::binary);
+    output << contents;
+  }
+  std::vector<ProteinIdentification> proteins;
+  PeptideIdentificationList peptides;
+  MzIdentMLFile().load(filename, proteins, peptides);
+  ABORT_IF(proteins.size() != 1)
+  TEST_EQUAL(peptides.size(), 8)
+  TEST_EQUAL(proteins[0].getHits().size(), 9)
+  TEST_EQUAL(proteins[0].getIndistinguishableProteins().size(), 5)
+  TEST_EQUAL(proteins[0].getProteinGroups().size(), 3)
+  TEST_EQUAL(proteins[0].getInferenceEngine(), "Epifany")
+}
+END_SECTION
+
 START_SECTION(([EXTRA] store and load protein groups (issue #1105)))
 {
   std::vector<ProteinIdentification> proteins;

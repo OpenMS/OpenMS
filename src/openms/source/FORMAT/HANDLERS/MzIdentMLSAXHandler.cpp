@@ -121,22 +121,26 @@ namespace OpenMS::Internal
 
       void* allocate(std::size_t size, std::size_t alignment)
       {
+        if (size + alignment > block_size_)
+        {
+          large_blocks_.emplace_back(new char[size]);
+          return large_blocks_.back().get();
+        }
         while (true)
         {
           if (current_ < blocks_.size())
           {
             const std::size_t offset = (used_ + alignment - 1) & ~(alignment - 1);
-            if (offset + size <= blocks_[current_].size)
+            if (offset + size <= block_size_)
             {
               used_ = offset + size;
-              return blocks_[current_].data.get() + offset;
+              return blocks_[current_].get() + offset;
             }
             ++current_;
             used_ = 0;
             continue;
           }
-          const std::size_t block_size = std::max(block_size_, size + alignment);
-          blocks_.push_back({std::unique_ptr<char[]>(new char[block_size]), block_size});
+          blocks_.emplace_back(new char[block_size_]);
           current_ = blocks_.size() - 1;
           used_ = 0;
         }
@@ -162,8 +166,7 @@ namespace OpenMS::Internal
       /// larger ones, made for single big values, to the system.
       void reset()
       {
-        blocks_.erase(std::remove_if(blocks_.begin(), blocks_.end(), [](const Block& block) { return block.size > block_size_; }),
-                      blocks_.end());
+        large_blocks_.clear();
         current_ = 0;
         used_ = 0;
       }
@@ -176,13 +179,9 @@ namespace OpenMS::Internal
       }
 
     private:
-      struct Block
-      {
-        std::unique_ptr<char[]> data;
-        std::size_t size;
-      };
       static constexpr std::size_t block_size_ = 64 * 1024;
-      std::vector<Block> blocks_;
+      std::vector<std::unique_ptr<char[]>> blocks_; ///< regular blocks, reused after reset()
+      std::vector<std::unique_ptr<char[]>> large_blocks_; ///< one block for each value too large for a regular one
       std::size_t current_ = 0;
       std::size_t used_ = 0;
     };
@@ -561,7 +560,8 @@ namespace OpenMS::Internal
       NodeArena result; ///< nodes of the SpectrumIdentificationResult being read
       std::vector<MzIdentMLNode*> open; ///< open elements, innermost last
       MzIdentMLNode* root = nullptr;
-      MzIdentMLNode* sequence_collection = nullptr;
+      MzIdentMLNode* sequence_collection = nullptr; ///< the SequenceCollection being read
+      std::vector<MzIdentMLNode*> sequence_collections; ///< all SequenceCollections, whose children are freed once read
       bool in_sequence_collection = false;
       bool keep_sequences = false; ///< elements read at the end are in the SequenceCollection
       MzIdentMLNode* current_result = nullptr;
@@ -629,6 +629,7 @@ namespace OpenMS::Internal
         else if (name == "SequenceCollection" && !in_sequence_collection && !current_result)
         {
           sequence_collection = node;
+          sequence_collections.push_back(node);
           in_sequence_collection = true;
         }
         if (auto it = elements.find(name); it != elements.end())
@@ -734,10 +735,13 @@ namespace OpenMS::Internal
             nodes.shrink_to_fit();
           }
         }
-        if (sequence_collection && !in_sequence_collection && !keep_sequences)
+        if (!sequence_collections.empty() && !in_sequence_collection && !keep_sequences)
         {
-          sequence_collection->first_child = nullptr;
-          sequence_collection->last_child = nullptr;
+          for (MzIdentMLNode* collection : sequence_collections)
+          {
+            collection->first_child = nullptr;
+            collection->last_child = nullptr;
+          }
           sequences.release();
         }
       }
