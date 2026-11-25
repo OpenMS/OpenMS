@@ -111,13 +111,19 @@ void MapAlignmentAlgorithmKD::fitLOWESS()
              });
         TransformationModel::DataPoints subset;
         subset.reserve(max_span_selection_points);
-        for (Size k = 0; k < max_span_selection_points; ++k)
+        Size n_distinct_rt = 0;
+        for (Size k = 0; k < max_span_selection_points; ++k) // includes the first and the last point
         {
-          subset.push_back(sorted[k * n / max_span_selection_points]);
+          subset.push_back(sorted[k * (n - 1) / (max_span_selection_points - 1)]);
+          if (k == 0 || subset[k].first > subset[k - 1].first) ++n_distinct_rt;
         }
-        TransformationModelLowess span_selection(subset, fit_param);
-        fit_param.setValue("span", span_selection.getParameters().getValue("span"));
-        fit_param.setValue("auto_span", "false");
+        // a LOWESS model needs at least 3 distinct RTs; if the subset has fewer (heavily repeated RTs), select on all points
+        if (n_distinct_rt >= 3)
+        {
+          TransformationModelLowess span_selection(subset, fit_param);
+          fit_param.setValue("span", span_selection.getParameters().getValue("span"));
+          fit_param.setValue("auto_span", "false");
+        }
       }
       transformations_[i] = new TransformationModelLowess(fit_data_[i], fit_param);
     }

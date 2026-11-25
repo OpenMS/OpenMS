@@ -259,6 +259,55 @@ START_SECTION((group() follows curved RT drift with the default LOWESS settings)
 }
 END_SECTION
 
+START_SECTION((group() with anchors at repeated RTs (default LOWESS settings)))
+{
+  // Anchor pairs (distinct m/z) that share RTs, as features from the same scan do: n_low at RT 100, n_high at RT 200,
+  // and one at RT 300. The RT warp is fitted on all anchors, which have three distinct RTs. Selecting the span must
+  // cope with cross-validation folds (n = 50: leave-one-out) and the subsample for maps with more than 5000 anchors
+  // (n = 5001) that lack the only anchor at RT 300.
+  auto run = [](Size n_low, Size n_high)
+  {
+    std::vector<FeatureMap> maps(2);
+    const Size n = n_low + n_high + 1;
+    for (Size i = 0; i < n; ++i)
+    {
+      const double rt = (i < n_low) ? 100.0 : ((i < n_low + n_high) ? 200.0 : 300.0);
+      for (Size m = 0; m < 2; ++m)
+      {
+        Feature f;
+        f.setMZ(200.0 + 1.0 * i);
+        f.setRT(rt + 5.0 * m);
+        f.setIntensity(1e5);
+        f.setUniqueId(1000000 * (m + 1) + i);
+        maps[m].push_back(f);
+      }
+    }
+    FeatureGroupingAlgorithmKD algo;
+    Param p = algo.getParameters();
+    p.setValue("mz_unit", "Da");
+    p.setValue("link:mz_tol", 0.01);
+    p.setValue("warp:mz_tol", 0.01);
+    algo.setParameters(p);
+    ConsensusMap out;
+    algo.group(maps, out);
+    Size n_pairs = 0;
+    for (const ConsensusFeature& cf : out)
+    {
+      n_pairs += (cf.size() == 2);
+    }
+    return std::make_pair(n, n_pairs);
+  };
+  std::pair<Size, Size> res = run(25, 24); // 50 anchors
+  TEST_EQUAL(res.second, res.first)
+  res = run(2500, 2500); // 5001 anchors
+  TEST_EQUAL(res.second, res.first)
+  // 5001 anchors; the 5000-point subsample would skip the only anchor at RT 200 (two distinct RTs left), so the span
+  // is selected on all points
+  res = run(4999, 1);
+  TEST_EQUAL(res.second, res.first)
+}
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
