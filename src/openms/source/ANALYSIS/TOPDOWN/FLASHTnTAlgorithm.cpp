@@ -366,8 +366,8 @@ void FLASHTnTAlgorithm::setDefaultParams_()
                      "The fragmentation method, which sets the ion types when ion_type is auto. 'auto': read from the activation of each MSn "
                      "spectrum as the file records it (the mzML activation terms, a Thermo .raw file's activation type); ETD or ECD with a "
                      "collisional supplemental activation is EThcD or ECD-HCD; a spectrum without a known activation is searched with b y "
-                     "(a warning gives their count). All spectra must need the same ion types: FLASHTnT searches one set per run and stops "
-                     "with a message for a file of mixed methods (give the method, or split the file). Add-on ExD cells (e.g. e-MSion's on "
+                     "(a warning gives their count). FLASHTnT searches one set of ion types per run: for a file of methods with different ion types, "
+                     "it searches the union of them in every spectrum, with a warning (give the method, or split the file, to search fewer). Add-on ExD cells (e.g. e-MSion's on "
                      "Thermo instruments) record their spectra as HCD, so they need this option (EChcD or ECD-HCD). Any other value: the "
                      "method of every spectrum, whatever the file records.");
   defaults_.setValidStrings("fragmentation", {"auto", "HCD", "CID", "ETD", "ECD", "EThcD", "EChcD", "ECD-HCD", "UVPD"});

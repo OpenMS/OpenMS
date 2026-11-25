@@ -505,9 +505,19 @@ std::vector<std::string> FLASHHelperClasses::resolveIonTypes(const std::vector<s
       summary = "ion types per spectrum (fragmentation auto: " + methods + ")";
       return {};
     }
-    throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                      "fragmentation auto: the MSn spectra have fragmentation methods that need different ion types (" + methods +
-                                        "); FLASHTnT searches one set of ion types per run. Give -fragmentation or -ion_type, or split the file by method.");
+    // one set of ion types per run (FLASHTnT): the union of the methods' ion types, in a fixed order
+    static const std::vector<std::string> order {"a", "b", "c", "x", "y", "z", "zp1", "zp2"};
+    std::set<std::string> all;
+    for (const auto& [types, names] : pools) all.insert(types.begin(), types.end());
+    std::vector<std::string> united;
+    for (const auto& t : order)
+      if (all.erase(t)) united.push_back(t);
+    united.insert(united.end(), all.begin(), all.end());
+    OPENMS_LOG_WARN << "fragmentation auto: the MSn spectra have fragmentation methods with different ion types (" << methods
+                    << "); every spectrum is searched with their union " << joined(united)
+                    << " (give -fragmentation or -ion_type, or split the file by method, to search fewer)" << std::endl;
+    summary = "ion types " + joined(united) + " (fragmentation auto, union: " + methods + ")";
+    return united;
   }
   summary = "ion types " + joined(pools.begin()->first) + " (fragmentation auto: " + methods + ")";
   return pools.begin()->first;

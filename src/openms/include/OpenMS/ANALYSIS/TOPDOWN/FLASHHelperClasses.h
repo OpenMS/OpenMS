@@ -755,8 +755,8 @@ namespace OpenMS
       countFragmentation: the MSn spectra of @p map per method ("" for unknown).
       resolveIonTypes: the ion types to search. @p ion_types other than {"auto"} are returned as given. With {"auto"}, a @p fragmentation
       other than "auto" gives its ion types; "auto" gives the ion types of the methods counted in @p counts (unknown as b y, with a
-      warning naming the count) and throws InvalidParameter if they need different ion types (unless @p allow_mixed, then {} is returned
-      and the caller resolves each spectrum). @p summary describes the choice for the log.
+      warning naming the count); if they need different ion types, the union of them (with a warning), or with @p allow_mixed {}, and the
+      caller resolves each spectrum. @p summary describes the choice for the log.
     */
     static const std::vector<std::string>& fragmentationMethods();
     static std::vector<std::string> ionTypesOf(const std::string& method);
