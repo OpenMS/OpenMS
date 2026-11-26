@@ -1,0 +1,40 @@
+/home/singjc/.jcode/scratch/blend-20261125/eval/ref/entlib-gbt-20261122/runs/D_gbt_s0/20200505_Evosep_200SPD_SG06-16_MLHeLa_200ng_py8_S3-A1_1_2737.precursors.tsv: OK
+/home/singjc/.jcode/scratch/blend-20261125/eval/ref/entlib-gbt-20261122/runs/D_gbt_s1/20200505_Evosep_200SPD_SG06-16_MLHeLa_200ng_py8_S3-A1_1_2737.precursors.tsv: OK
+/home/singjc/.jcode/scratch/blend-20261125/eval/ref/entlib-gbt-20261122/runs/D_gbt_s2/20200505_Evosep_200SPD_SG06-16_MLHeLa_200ng_py8_S3-A1_1_2737.precursors.tsv: OK
+/home/singjc/.jcode/scratch/blend-20261125/eval/ref/entlib-gbt-20261122/runs/D_gbt_s3/20200505_Evosep_200SPD_SG06-16_MLHeLa_200ng_py8_S3-A1_1_2737.precursors.tsv: OK
+/home/singjc/.jcode/scratch/blend-20261125/eval/ref/entlib-gbt-20261122/runs/D_gbt_s4/20200505_Evosep_200SPD_SG06-16_MLHeLa_200ng_py8_S3-A1_1_2737.precursors.tsv: OK
+/home/singjc/.jcode/scratch/blend-20261125/eval/ref/entlib-gbt-20261122/runs/H_gbt_s0/20201207_tims03_Evo03_PS_SA_HeLa_200ng_EvoSep_prot_high_speed_21min_8cm_S1-C8_1_22474.precursors.tsv: OK
+/home/singjc/.jcode/scratch/blend-20261125/eval/ref/entlib-gbt-20261122/runs/H_gbt_s1/20201207_tims03_Evo03_PS_SA_HeLa_200ng_EvoSep_prot_high_speed_21min_8cm_S1-C8_1_22474.precursors.tsv: OK
+/home/singjc/.jcode/scratch/blend-20261125/eval/ref/entlib-gbt-20261122/runs/H_gbt_s2/20201207_tims03_Evo03_PS_SA_HeLa_200ng_EvoSep_prot_high_speed_21min_8cm_S1-C8_1_22474.precursors.tsv: OK
+/home/singjc/.jcode/scratch/blend-20261125/eval/ref/entlib-gbt-20261122/runs/H_gbt_s3/20201207_tims03_Evo03_PS_SA_HeLa_200ng_EvoSep_prot_high_speed_21min_8cm_S1-C8_1_22474.precursors.tsv: OK
+/home/singjc/.jcode/scratch/blend-20261125/eval/ref/entlib-gbt-20261122/runs/H_gbt_s4/20201207_tims03_Evo03_PS_SA_HeLa_200ng_EvoSep_prot_high_speed_21min_8cm_S1-C8_1_22474.precursors.tsv: OK
+relabelled entrapment precursors as human: 2912
+library: target precursors 1390163, r = 6.9176, targets with a paired decoy 1388026 (0.9985)
+ arm  seed  N_q01  E_q01  lower  combined  N_at_FDPc1
+  G0     0  22204    217 0.0098    0.0112       21990
+  G0     1  21804    214 0.0098    0.0112       21541
+  G0     2  22153    205 0.0093    0.0106       22009
+  G0     3  21732    189 0.0087    0.0100       21776
+  G0     4  22017    207 0.0094    0.0108       21805
+NORT     0  21130    225 0.0106    0.0122       20688
+NORT     1  21557    238 0.0110    0.0126       21033
+NORT     2  21087    209 0.0099    0.0113       20770
+NORT     3  20814    193 0.0093    0.0106       20567
+NORT     4  21344    206 0.0097    0.0110       21121
+G0: pooled q<=0.01 lower 0.0094 (90 % 0.0089-0.0099), combined 0.0107 (90 % 0.0102-0.0113); E 1032, N 109910; median N@FDP_c 1 % 21805 (21541-22009); P(entrapment beats own decoy | best q<=0.05) 0.536 (n 12185, 90 % +-0.007)
+NORT: pooled q<=0.01 lower 0.0101 (90 % 0.0096-0.0106), combined 0.0116 (90 % 0.0110-0.0122); E 1071, N 105932; median N@FDP_c 1 % 20770 (20567-21121); P(entrapment beats own decoy | best q<=0.05) 0.543 (n 11817, 90 % +-0.008)
+relabelled entrapment precursors as human: 2912
+library: target precursors 1390163, r = 6.9176, targets with a paired decoy 1388026 (0.9985)
+ arm  seed  N_q01  E_q01  lower  combined  N_at_FDPc1
+  G0     0  38507    432 0.0112    0.0128       37928
+  G0     1  38359    404 0.0105    0.0121       37876
+  G0     2  38462    434 0.0113    0.0129       37897
+  G0     3  38531    437 0.0113    0.0130       37959
+  G0     4  38380    437 0.0114    0.0130       37719
+NORT     0  36284    388 0.0107    0.0122       35758
+NORT     1  36372    389 0.0107    0.0122       35940
+NORT     2  36235    388 0.0107    0.0123       35799
+NORT     3  36280    390 0.0107    0.0123       35751
+NORT     4  36322    397 0.0109    0.0125       35815
+G0: pooled q<=0.01 lower 0.0112 (90 % 0.0108-0.0116), combined 0.0128 (90 % 0.0123-0.0132); E 2144, N 192239; median N@FDP_c 1 % 37897 (37719-37959); P(entrapment beats own decoy | best q<=0.05) 0.533 (n 19635, 90 % +-0.006)
+NORT: pooled q<=0.01 lower 0.0108 (90 % 0.0104-0.0112), combined 0.0123 (90 % 0.0119-0.0128); E 1952, N 181493; median N@FDP_c 1 % 35799 (35751-35940); P(entrapment beats own decoy | best q<=0.05) 0.530 (n 18236, 90 % +-0.006)
