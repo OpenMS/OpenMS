@@ -30,6 +30,7 @@
 #include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopePatternGenerator.h>
 #include <OpenMS/CHEMISTRY/Residue.h>
+#include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/CHEMISTRY/ResidueModification.h>
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/CONCEPT/LogStream.h>
@@ -1729,6 +1730,38 @@ protected:
     return bounds;
   }
 
+  /**
+    @brief The formula of the peptide of @p hit in every channel of its theoretical pattern
+
+    The identified formula with the labels of its own channel @p own replaced by those of each channel (@p label_sets, from
+    MultiplexResolverAlgorithm::expectedChannelMZs()). A 13C or 15N label replaces natural atoms, so the channels' natural isotope
+    distributions differ. Empty if a label has no known composition (e.g. a plain mass shift).
+  */
+  vector<EmpiricalFormula> channelFormulas_(const PeptideHit& hit, Size own, const vector<MultiplexDeltaMasses::LabelSet>& label_sets) const
+  {
+    auto sum = [&](const MultiplexDeltaMasses::LabelSet& labels, EmpiricalFormula& formula)
+    {
+      for (const std::string& label : labels)
+      {
+        const auto it = label_formulas_.find(label);
+        if (it == label_formulas_.end()) { return false; }
+        formula += it->second;
+      }
+      return true;
+    };
+    EmpiricalFormula own_labels;
+    if (own >= label_sets.size() || !sum(label_sets[own], own_labels)) { return {}; }
+    const EmpiricalFormula unlabelled = hit.getSequence().getFormula() - own_labels;
+    vector<EmpiricalFormula> formulas;
+    for (const MultiplexDeltaMasses::LabelSet& labels : label_sets)
+    {
+      EmpiricalFormula channel_labels;
+      if (!sum(labels, channel_labels)) { return {}; }
+      formulas.push_back(unlabelled + channel_labels);
+    }
+    return formulas;
+  }
+
   /// lowerIsotopeBounds_(), bound @p c, or lower_isotope_fraction_ if @p bounds has none for it
   static double lowerIsotopeBound_(const vector<double>& bounds, Size c)
   {
@@ -2044,6 +2077,7 @@ protected:
     std::optional<double> cv;
     vector<char> on_other_multiplet; ///< per channel: lies on a channel of another peptide's multiplet (not quantifiable)
     vector<double> lower_bounds; ///< per channel: the bound for the peak one isotope below it (lowerIsotopeBounds_())
+    vector<EmpiricalFormula> formulas; ///< per channel: the peptide's formula there (channelFormulas_()); empty: the identified one's
   };
 
   /// One elution peak measured by the targeted quantification
@@ -2084,10 +2118,16 @@ protected:
     // (see quantifyTargeted_()): it does if the peak is also the nearest one to the isotope's m/z within twice the detection's m/z
     // tolerance (the window in which MultiplexFiltering looks for peaks of another envelope), i.e. the two are one centroid; a
     // resolved isotope has a centroid of its own, nearer to its m/z. Its part is o's monoisotopic peak, without the isotopes of the
-    // channels below o (hence the correction in ascending m/z), times I_k/I_0 of the peptide's isotope distribution.
+    // channels below o (hence the correction in ascending m/z), times I_k/I_0 of o's isotope distribution: that of the peptide with
+    // o's labels, since a 13C or 15N label replaces natural atoms (e.g. a Lys8 channel has six natural carbons fewer than the light).
     const Size max_isotope = maxIsotope_();
-    const IsotopeDistribution theoretical = hit.getSequence().getFormula().getIsotopeDistribution(
-      CoarseIsotopePatternGenerator(std::max(targeted_isotopes_, max_isotope + 1)));
+    const CoarseIsotopePatternGenerator isotope_generator(std::max(targeted_isotopes_, max_isotope + 1));
+    vector<IsotopeDistribution> channel_isotopes(n_channels);
+    for (Size c = 0; c < n_channels; ++c)
+    {
+      channel_isotopes[c] = (candidate.formulas.size() == n_channels ? candidate.formulas[c] : hit.getSequence().getFormula()).getIsotopeDistribution(isotope_generator);
+    }
+    const IsotopeDistribution& theoretical = channel_isotopes[own];
     vector<Size> ascending_mz(n_channels);
     std::iota(ascending_mz.begin(), ascending_mz.end(), Size(0));
     std::sort(ascending_mz.begin(), ascending_mz.end(), [&](Size a, Size b) { return candidate.mzs[a] < candidate.mzs[b]; });
@@ -2098,13 +2138,14 @@ protected:
       for (Size o = 0; o < n_channels; ++o)
       {
         const double k = std::round((spectrum[index].getMZ() - candidate.mzs[o]) / spacing);
-        if (o == c || !(monoisotopic[o] > 0.0) || k < 1.0 || k > static_cast<double>(max_isotope) || static_cast<Size>(k) >= theoretical.size())
+        const IsotopeDistribution& lower = channel_isotopes[o];
+        if (o == c || !(monoisotopic[o] > 0.0) || k < 1.0 || k > static_cast<double>(max_isotope) || static_cast<Size>(k) >= lower.size())
         {
           continue;
         }
         const double isotope_mz = candidate.mzs[o] + k * spacing;
         if (spectrum.findNearest(isotope_mz, 2.0 * detectionMZTolerance_(isotope_mz)) != index) { continue; }
-        expected += monoisotopic[o] * theoretical[static_cast<Size>(k)].getIntensity() / theoretical[0].getIntensity();
+        expected += monoisotopic[o] * lower[static_cast<Size>(k)].getIntensity() / lower[0].getIntensity();
       }
       return expected;
     };
@@ -2453,9 +2494,11 @@ protected:
       const PeptideHit& hit = id.getHits()[0];
       if (hit.isDecoy()) { ++decoys; continue; }
       TargetedCandidate_ candidate;
-      candidate.mzs = resolver.expectedChannelMZs(hit.getSequence(), hit.getCharge(), candidate.own);
+      vector<MultiplexDeltaMasses::LabelSet> label_sets;
+      candidate.mzs = resolver.expectedChannelMZs(hit.getSequence(), hit.getCharge(), candidate.own, label_sets);
       if (candidate.mzs.empty()) { ++no_pattern; continue; }
       candidate.lower_bounds = lowerIsotopeBounds_(resolver, hit);
+      candidate.formulas = channelFormulas_(hit, candidate.own, label_sets);
       candidate.index = i;
       candidate.charge = hit.getCharge();
       candidate.rt = id.getRT();
@@ -3545,6 +3588,7 @@ protected:
     channel_labels_.clear();
     channel_label_sets_.clear();
     label_deuterium_.clear();
+    label_formulas_.clear();
     channel_descriptions_.clear();
     required_label_mods_.clear();
     label_long_to_shorts_.clear();
@@ -3555,6 +3599,21 @@ protected:
       channel_label_sets_.emplace_back(sample.begin(), sample.end());
       for (const std::string& short_name : sample)
       {
+        if (short_name == "no_label") { label_formulas_.emplace(short_name, EmpiricalFormula()); }
+        else if (const std::string long_name = generator.getLabelLong(short_name); !long_name.empty() && long_name != short_name)
+        {
+          std::set<const ResidueModification*> modifications;
+          try
+          {
+            ModificationsDB::getInstance()->searchModifications(modifications, long_name);
+          }
+          catch (const Exception::BaseException&)
+          {
+            modifications.clear();
+          }
+          // a label can be defined for several residues (e.g. Label:2H(4)), all of the same composition
+          if (!modifications.empty()) { label_formulas_.emplace(short_name, (*modifications.begin())->getDiffFormula()); }
+        }
         if (const unsigned deuterium = generator.getDeuteriumCount(short_name); deuterium > 0)
         {
           label_deuterium_[short_name] = {deuterium, static_cast<double>(getParam_().getValue(MultiplexDeltaMassesGenerator::isChemicalLabel(short_name)
@@ -4069,6 +4128,7 @@ private:
   vector<std::pair<std::string, std::string>> required_label_mods_; ///< (short, PSI-MS name) of every label the search must contain
   vector<set<std::string>> channel_label_sets_;  ///< per channel: its labels' short names ({"no_label"} for the light channel)
   std::map<std::string, MultiplexFiltering::DeuteriumLabel> label_deuterium_; ///< the labels with 2H atoms (short names) and their enrichment, see lowerIsotopeBounds_()
+  std::map<std::string, EmpiricalFormula> label_formulas_; ///< short label name -> its diff formula (none for a plain mass shift), see channelFormulas_()
   vector<std::string> channel_descriptions_;     ///< per channel: PSI-MS names of its labels, for the column header
   std::map<std::string, vector<std::string>> label_long_to_shorts_; ///< PSI-MS name -> short names of '-labels' using it
   bool match_between_runs_ = false;    ///< keep unidentified multiplets so that linking can identify them from other runs

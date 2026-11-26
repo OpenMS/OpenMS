@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
-"""Write MS1LabeledWorkflow_25_input.mzML, MS1LabeledWorkflow_25.idXML and MS1LabeledWorkflow_25.fasta (synthetic triple SILAC,
+"""Write MS1LabeledWorkflow_25_input.mzML, MS1LabeledWorkflow_25.idXML, MS1LabeledWorkflow_25_heavy_id.idXML (SVEDLAFGNYQGEDVTALFEK
+identified in its heavy channel) and MS1LabeledWorkflow_25.fasta (synthetic triple SILAC,
 [][Lys4,Arg6][Lys8,Arg10], targeted quantification).
 
 Centroided MS1 spectra, one per second from 100 to 660 s and at 700 and 701 s, 2+ peptides eluting as Gaussians, light identifications. Only the first two
@@ -22,7 +23,7 @@ intensity-weighted m/z), others are not recorded. Peaks below 'FLOOR' are not re
     700.3 s, identified in the light at 700.5 s.
 The isotope distributions are computed from the elemental formulas, as CoarseIsotopePatternGenerator does.
 
-Usage: python3 MS1LabeledWorkflow_25_input_generate.py (writes the three files next to this script)
+Usage: python3 MS1LabeledWorkflow_25_input_generate.py (writes the files next to this script)
 """
 import base64
 import functools
@@ -60,6 +61,9 @@ IDS = [("SVEDLAFGNYQGEDVTALFEK", 130.0, 0.0, "1.0e-03"), ("TALFEQLSVEDLAFGNYQGDK
        ("LVNELTEFAK", 330.5, 0.0, "1.0e-03"), ("YVNDLAGHEK(Label:2H(4))", 427.5, LYS4, "1.0e-03"), ("YVNDLAGHEK", 432.5, 0.0, "1.0e-03"),
        ("SAGLDFVEEK", 530.5, 0.0, "1.0e-03"), ("ADLTVEFGNK", 630.5, 0.0, "1.0e-04"),
        ("DALTVEFGNK(Label:13C(6)15N(2))", 631.5, LYS8, "1.0e-03"), ("GSAEVTLDFK", 700.5, 0.0, "1.0e-03"), ("NEFLGSVDYK", 580.5, 0.0, "1.0e-03")]
+# MS1LabeledWorkflow_25_heavy_id.idXML: the same with SVEDLAFGNYQGEDVTALFEK identified in its heavy (Lys8) channel
+HEAVY_IDS = [("SVEDLAFGNYQGEDVTALFEK(Label:13C(6)15N(2))", rt, LYS8, pep) if seq == "SVEDLAFGNYQGEDVTALFEK" else (seq, rt, shift, pep)
+             for seq, rt, shift, pep in IDS]
 PROTEIN_SEQUENCES = list(dict.fromkeys(seq.split("(")[0] for seq, _, _, _ in IDS))
 TARGET_FRACTION = {"A": 0.3, "B": 0.65}  # the light M+4's share of the medium M0
 
@@ -210,14 +214,14 @@ def write_mzml(path):
 """)
 
 
-def write_idxml(path):
+def write_idxml(path, ids):
     protein = {seq: i for i, seq in enumerate(PROTEIN_SEQUENCES)}
     entries = "".join(f"""		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0.0" MZ="{mz(seq.split('(')[0]) + shift / 2:.15f}" RT="{rt}" spectrum_reference="scan={SPECTRUM_RTS.index(int(rt)) + 1}" >
 			<PeptideHit score="{pep}" sequence="{seq}" charge="2" protein_refs="PH_{protein[seq.split('(')[0]]}" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 			</PeptideHit>
 		</PeptideIdentification>
-""" for seq, rt, shift, pep in IDS)
+""" for seq, rt, shift, pep in ids)
     proteins = "".join(f"""			<ProteinHit id="PH_{i}" accession="PROT_{i}" score="0.0" sequence="" >
 			</ProteinHit>
 """ for i in range(len(PROTEIN_SEQUENCES)))
@@ -252,5 +256,6 @@ if __name__ == "__main__":
         print(f"{seq}: m/z {mz(seq):.6f}, I1..I5 {[round(d, 4) for d in dist[1:6]]}, light:medium {r}, "
               f"light M+4 in the medium M0 {r * dist[4] / (r * dist[4] + 1):.3f}, light M+5 in the medium M+1 {r * dist[5] / (r * dist[5] + dist[1]):.3f}")
     write_mzml(os.path.join(HERE, "MS1LabeledWorkflow_25_input.mzML"))
-    write_idxml(os.path.join(HERE, "MS1LabeledWorkflow_25.idXML"))
+    write_idxml(os.path.join(HERE, "MS1LabeledWorkflow_25.idXML"), IDS)
+    write_idxml(os.path.join(HERE, "MS1LabeledWorkflow_25_heavy_id.idXML"), HEAVY_IDS)
     write_fasta(os.path.join(HERE, "MS1LabeledWorkflow_25.fasta"))

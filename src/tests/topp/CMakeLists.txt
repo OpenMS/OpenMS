@@ -5561,9 +5561,10 @@ set_tests_properties("TOPP_MS1LabeledWorkflow_15_targeted" PROPERTIES PASS_REGUL
 add_test("TOPP_MS1LabeledWorkflow_15_targeted_out1" ${DIFF} -whitelist "spectra_data" "map id=" "InferenceEngineVersion" -in1 ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_15_targeted.tmp.consensusXML -in2 ${DATA_DIR_TOPP}/MS1LabeledWorkflow_15_out.consensusXML )
 set_tests_properties("TOPP_MS1LabeledWorkflow_15_targeted_out1" PROPERTIES DEPENDS "TOPP_MS1LabeledWorkflow_15_targeted")
 # the same data with SVEDLAFGNYQR, TALFEQLSVEDLAFGNYQGDR and SVEDLAFGNYQGEDVTALR identified as heavy: the identified channel is
-# corrected as well, so the values are those of the light identifications (SVEDLAFGNYQR H/L 1.0015 vs 0.99997: the isotope
-# distribution is the heavy sequence's, with two 12C fewer; TALFEQLSVEDLAFGNYQGDR's heavy, 26 % medium M+4, likewise: H/L 1.011,
-# M/L 2.006). SVEDLAFGNYQGEDVTALR: the subtraction would leave the identified heavy no peaks, so it
+# corrected as well, and every lower channel's isotopes are estimated from that channel's own isotope distribution (the Dimethyl8
+# peptidoform has two natural carbons fewer than the light), so the values are those of the light identifications (with the
+# heavy peptidoform's distribution for all channels: SVEDLAFGNYQR H/L 1.0015, TALFEQLSVEDLAFGNYQGDR H/L 1.011 and M/L 2.006,
+# instead of 1.0000, 1.0002 and 1.9997). SVEDLAFGNYQGEDVTALR: the subtraction would leave the identified heavy no peaks, so it
 # is used as measured (not quantifiable itself) and the light is measured against it, as with the light identification (not
 # dropped for want of a clean elution peak). Plus the isomer TALFEQLSVEDLAFGNYQDGR, identified as heavy at TALFEQLSVEDLAFGNYQGDR's
 # apex with a worse score: its heavy is that identification's reference, so it is not quantified (one signal, one peptide).
@@ -6096,6 +6097,20 @@ add_test("TOPP_MS1LabeledWorkflow_25" ${TOPP_BIN_PATH}/MS1LabeledWorkflow -test
 set_tests_properties("TOPP_MS1LabeledWorkflow_25" PROPERTIES PASS_REGULAR_EXPRESSION "Targeted quantification: 8 feature.s. for 9 identification.s. of peptides without a multiplet in this run .8 other channel.s. measured against the identified one, 1 absent, 7 not quantifiable.. not quantified: 0 identification.s. of peptides quantified in this run, 0 on a channel of another peptide's multiplet, 1 on the signal of a better identification of another peptide, 0 without a clean elution peak")
 add_test("TOPP_MS1LabeledWorkflow_25_out1" ${DIFF} -whitelist "spectra_data" "map id=" "InferenceEngineVersion" -in1 ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_25.tmp.consensusXML -in2 ${DATA_DIR_TOPP}/MS1LabeledWorkflow_25_out.consensusXML )
 set_tests_properties("TOPP_MS1LabeledWorkflow_25_out1" PROPERTIES DEPENDS "TOPP_MS1LabeledWorkflow_25")
+# ... with SVEDLAFGNYQGEDVTALFEK identified in its heavy (Lys8) channel (MS1LabeledWorkflow_25_heavy_id.idXML): the light M+4 in the
+# medium M0 is estimated from the light channel's isotope distribution, which has six natural carbons more than the Lys8
+# peptidoform's, so M/L 0.370 and H/L 0.371 as with the light identification (0.387 and 0.375 with the identified peptidoform's).
+add_test("TOPP_MS1LabeledWorkflow_25_heavy_id" ${TOPP_BIN_PATH}/MS1LabeledWorkflow -test
+  -in ${DATA_DIR_TOPP}/MS1LabeledWorkflow_25_input.mzML
+  -ids ${DATA_DIR_TOPP}/MS1LabeledWorkflow_25_heavy_id.idXML
+  -fasta ${DATA_DIR_TOPP}/MS1LabeledWorkflow_25.fasta
+  -labels "[][Lys4,Arg6][Lys8,Arg10]"
+  -proteinFDR 1.0
+  -ratios:min_ratio_count 1
+  -out_cxml ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_25_heavy_id.tmp.consensusXML)
+set_tests_properties("TOPP_MS1LabeledWorkflow_25_heavy_id" PROPERTIES PASS_REGULAR_EXPRESSION "Targeted quantification: 8 feature.s. for 9 identification.s. of peptides without a multiplet in this run .8 other channel.s. measured against the identified one, 1 absent, 7 not quantifiable..")
+add_test("TOPP_MS1LabeledWorkflow_25_heavy_id_out1" ${DIFF} -whitelist "spectra_data" "map id=" "InferenceEngineVersion" -in1 ${TESTS_TEMP_DIR}/MS1LabeledWorkflow_25_heavy_id.tmp.consensusXML -in2 ${DATA_DIR_TOPP}/MS1LabeledWorkflow_25_heavy_out.consensusXML )
+set_tests_properties("TOPP_MS1LabeledWorkflow_25_heavy_id_out1" PROPERTIES DEPENDS "TOPP_MS1LabeledWorkflow_25_heavy_id")
 
 
 # INIUpdater:
