@@ -1,0 +1,3 @@
+dn_raw01: N 10779 E 66 (hd1 0.530) decoys 101 (hd1 0.228) | combined 0.0123 -> decoy-matched hd1 0.0075
+dn_raw02: N 9342 E 48 (hd1 0.562) decoys 87 (hd1 0.253) | combined 0.0103 -> decoy-matched hd1 0.0060
+dn_raw03: N 11447 E 69 (hd1 0.522) decoys 107 (hd1 0.262) | combined 0.0121 -> decoy-matched hd1 0.0078

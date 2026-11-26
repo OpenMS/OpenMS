@@ -1,0 +1,54 @@
+D: library target precursors 1390163; entrapment 1214585 (ambiguous 171360); r relabel 6.9176, r strict 5.9417
+arm  seed    N1  E1    N2  E2  amb  N_at
+  A     0 22081 178 22042 139   39 22812
+  A     1 22279 198 22238 157   41 22734
+  A     2 22392 202 22347 157   45 22697
+  A     3 22482 215 22433 166   49 22767
+  A     4 22441 218 22390 167   51 22749
+cur     0 20167 204 20135 172   32 20137
+cur     1 20281 171 20250 140   31 20971
+cur     2 20256 202 20226 172   30 20268
+cur     3 20381 180 20350 149   31 20804
+cur     4 20775 201 20740 166   35 20861
+gbt     0 22204 217 22150 163   54 22538
+gbt     1 21804 214 21752 162   52 22076
+gbt     2 22153 205 22099 151   54 22608
+gbt     3 21732 189 21689 146   43 22241
+gbt     4 22017 207 21965 155   52 22417
+A: relabel lower 0.0091 combined 0.0104 (0.0098-0.0109) | strict lower 0.0071 combined 0.0082 (0.0078-0.0087); ambiguous accepted 225; strict median N@FDP_c 1 % 22749
+cur: relabel lower 0.0094 combined 0.0108 (0.0102-0.0114) | strict lower 0.0079 combined 0.0092 (0.0087-0.0097); ambiguous accepted 159; strict median N@FDP_c 1 % 20804
+gbt: relabel lower 0.0094 combined 0.0107 (0.0102-0.0113) | strict lower 0.0071 combined 0.0083 (0.0078-0.0088); ambiguous accepted 255; strict median N@FDP_c 1 % 22417
+H: library target precursors 1390163; entrapment 1214585 (ambiguous 171360); r relabel 6.9176, r strict 5.9417
+arm  seed    N1  E1    N2  E2  amb  N_at
+  A     0 38511 417 38383 289  128 38598
+  A     1 38563 441 38446 324  117 38474
+  A     2 38617 424 38496 303  121 38647
+  A     3 38466 415 38349 298  117 38556
+  A     4 38555 417 38440 302  115 38608
+cur     0 35717 356 35649 288   68 35776
+cur     1 35445 328 35379 262   66 35627
+cur     2 35457 343 35395 281   62 35569
+cur     3 35595 347 35521 273   74 35787
+cur     4 35675 375 35601 301   74 35637
+gbt     0 38507 432 38373 298  134 38597
+gbt     1 38359 404 38235 280  124 38567
+gbt     2 38462 434 38321 293  141 38562
+gbt     3 38531 437 38395 301  136 38633
+gbt     4 38380 437 38251 308  129 38381
+A: relabel lower 0.0110 combined 0.0126 (0.0121-0.0130) | strict lower 0.0079 combined 0.0092 (0.0088-0.0096); ambiguous accepted 598; strict median N@FDP_c 1 % 38598
+cur: relabel lower 0.0098 combined 0.0113 (0.0108-0.0117) | strict lower 0.0079 combined 0.0092 (0.0088-0.0097); ambiguous accepted 344; strict median N@FDP_c 1 % 35637
+gbt: relabel lower 0.0112 combined 0.0128 (0.0123-0.0132) | strict lower 0.0077 combined 0.0090 (0.0086-0.0094); ambiguous accepted 664; strict median N@FDP_c 1 % 38567
+N2: library target precursors 1390163; entrapment 1214585 (ambiguous 171360); r relabel 6.9176, r strict 5.9417
+arm  seed    N1  E1    N2  E2  amb  N_at
+  A     0 46316 533 46160 377  156 46270
+  A     1 46130 516 45970 356  160 46195
+  A     2 46113 492 45967 346  146 46164
+  A     3 46204 520 46050 366  154 46217
+  A     4 46273 507 46120 354  153 46281
+ G0     0 46249 530 46096 377  153 46212
+ G0     1 46146 505 45994 353  152 46204
+ G0     2 46165 496 46015 346  150 46263
+ G0     3 46171 507 46016 352  155 46226
+ G0     4 46262 517 46107 362  155 46234
+A: relabel lower 0.0111 combined 0.0127 (0.0123-0.0131) | strict lower 0.0078 combined 0.0091 (0.0088-0.0095); ambiguous accepted 769; strict median N@FDP_c 1 % 46217
+G0: relabel lower 0.0111 combined 0.0127 (0.0123-0.0131) | strict lower 0.0078 combined 0.0091 (0.0087-0.0094); ambiguous accepted 765; strict median N@FDP_c 1 % 46226

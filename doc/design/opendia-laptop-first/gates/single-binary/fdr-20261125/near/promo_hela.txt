@@ -1,0 +1,12 @@
+== D: runs 5, r 6.9176
+  kept      N   98770 E   522 lower 0.0053 combined 0.0060  (false targets implied by E: 597)
+  promoted  N   11140 E   510 lower 0.0458 combined 0.0524  (false targets implied by E: 584)
+  dropped   N    3090 E   436 lower 0.1411 combined 0.1615  (false targets implied by E: 499)
+  counted decoys: both 604, G0 only 489, NET only 406
+  net change: false targets by E +85 vs counted decoys +83
+== H: runs 5, r 6.9176
+  kept      N  175006 E   854 lower 0.0049 combined 0.0056  (false targets implied by E: 977)
+  promoted  N   17233 E  1290 lower 0.0749 combined 0.0857  (false targets implied by E: 1476)
+  dropped   N    2883 E   895 lower 0.3104 combined 0.3553  (false targets implied by E: 1024)
+  counted decoys: both 792, G0 only 1123, NET only 979
+  net change: false targets by E +452 vs counted decoys +144

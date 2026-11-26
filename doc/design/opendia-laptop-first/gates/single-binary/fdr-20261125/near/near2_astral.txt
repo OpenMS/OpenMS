@@ -1,0 +1,10 @@
+peptides to classify 20372
+  0
+  10000
+  20000
+control: Hamming-1 0.0251, of which modification-equivalent 0.153 (library fraction mod-equivalent 0.0039)
+== Astral: runs 15 N 31568 E 183 lower 0.0058 combined 0.0116
+  (a) (0, 8]: rel rate H1 29.20 H2 3.51 (E 150) | (8, 10]: rel rate H1 0.00 H2 1.93 (E 9) | (10, 13]: rel rate H1 0.00 H2 0.00 (E 17) | (13, 17]: rel rate H1 0.00 H2 0.00 (E 2) | (17, 60]: rel rate H1 0.00 H2 0.00 (E 5)
+  (b) P(entrapment beats own decoy): H1: 0.473 (n 490) | H2: 0.457 (n 582) | H3: 0.483 (n 1008) | H1 mod-equivalent 0.196 (n 56) | H1 other 0.509
+  (c) accepted H1 by substitution class (share accepted / share library): deamidation 1 (1.03x), methyl 0 (0.00x), oxidation 0 (0.00x), formyl 0 (0.00x), dimethyl/ethyl 0 (0.00x), acetyl 0 (0.00x), carbamyl 0 (0.00x), trimethyl 2 (0.73x), K/Q isobaric 0 (0.00x), other 97 (1.07x)
+  (d) set aside 3 modification-equivalent accepted entrapments: lower 0.0057 combined 0.0115

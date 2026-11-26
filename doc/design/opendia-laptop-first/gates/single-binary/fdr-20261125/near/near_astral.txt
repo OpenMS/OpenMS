@@ -1,0 +1,10 @@
+human residues 797148; accepted entrapment peptides (q <= 0.05) 296; control sample 20000 of 50038
+  0 done
+  5000 done
+  10000 done
+  15000 done
+  20000 done
+library entrapment peptides by min Hamming to human (control sample): 1: 0.0251, 2: 0.1071, 3: 0.8677
+Astral: runs 15 N 31568 E 183 lower 0.0058 combined 0.0116 | accepted E by class 0: 0 (0.000 vs lib 0.000), 1: 98 (0.536 vs lib 0.025), 2: 48 (0.262 vs lib 0.107), 3: 37 (0.202 vs lib 0.868)
+    classes <= 1 ambiguous: N 31470 E 85 lower 0.0027 combined 0.0055 (r 0.9688)
+    classes <= 2 ambiguous: N 31422 E 37 lower 0.0012 combined 0.0025 (r 0.8623)

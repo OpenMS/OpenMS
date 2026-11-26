@@ -1,0 +1,31 @@
+peptides to classify 38416
+  0
+  10000
+  20000
+  30000
+control: Hamming-1 0.0887, of which modification-equivalent 0.289 (library fraction mod-equivalent 0.0256)
+== D: runs 5 N 109910 E 1032 lower 0.0094 combined 0.0107
+  (a) (0, 8]: rel rate H1 102070675759.45 H2 78919553728.71 (E 89) | (8, 10]: rel rate H1 13.52 H2 1.24 (E 158) | (10, 13]: rel rate H1 24.99 H2 3.75 (E 359) | (13, 17]: rel rate H1 20.70 H2 7.25 (E 322) | (17, 60]: rel rate H1 0.00 H2 0.00 (E 104)
+  (b) P(entrapment beats own decoy): H1: 0.565 (n 890) | H2: 0.584 (n 1525) | H3: 0.526 (n 9770) | H1 mod-equivalent 0.712 (n 267) | H1 other 0.502
+  (c) accepted H1 by substitution class (share accepted / share library): deamidation 10 (2.32x), methyl 26 (2.78x), oxidation 5 (1.05x), formyl 5 (0.66x), dimethyl/ethyl 0 (0.00x), acetyl 5 (1.18x), carbamyl 8 (0.91x), trimethyl 0 (0.00x), K/Q isobaric 0 (0.00x), other 115 (0.90x)
+  (d) set aside 49 modification-equivalent accepted entrapments: lower 0.0089 combined 0.0103
+== H: runs 5 N 192239 E 2144 lower 0.0112 combined 0.0128
+  (a) (0, 8]: rel rate H1 0.51 H2 0.20 (E 273) | (8, 10]: rel rate H1 10.98 H2 2.16 (E 420) | (10, 13]: rel rate H1 27.38 H2 4.43 (E 606) | (13, 17]: rel rate H1 9.58 H2 2.87 (E 675) | (17, 60]: rel rate H1 0.00 H2 57.52 (E 170)
+  (b) P(entrapment beats own decoy): H1: 0.557 (n 1577) | H2: 0.530 (n 2630) | H3: 0.531 (n 15428) | H1 mod-equivalent 0.611 (n 574) | H1 other 0.525
+  (c) accepted H1 by substitution class (share accepted / share library): deamidation 39 (3.66x), methyl 87 (3.75x), oxidation 9 (0.76x), formyl 28 (1.50x), dimethyl/ethyl 19 (1.54x), acetyl 31 (2.96x), carbamyl 5 (0.23x), trimethyl 37 (1.80x), K/Q isobaric 23 (2.62x), other 278 (0.87x)
+  (d) set aside 170 modification-equivalent accepted entrapments: lower 0.0103 combined 0.0118
+== N2: runs 5 N 230993 E 2555 lower 0.0111 combined 0.0127
+  (a) (0, 8]: rel rate H1 1.61 H2 0.79 (E 452) | (8, 10]: rel rate H1 1.32 H2 0.97 (E 619) | (10, 13]: rel rate H1 7.72 H2 1.77 (E 657) | (13, 17]: rel rate H1 10.07 H2 6.55 (E 650) | (17, 60]: rel rate H1 0.00 H2 0.00 (E 177)
+  (b) P(entrapment beats own decoy): H1: 0.522 (n 2256) | H2: 0.503 (n 3944) | H3: 0.531 (n 17025) | H1 mod-equivalent 0.529 (n 780) | H1 other 0.518
+  (c) accepted H1 by substitution class (share accepted / share library): deamidation 43 (3.84x), methyl 75 (3.08x), oxidation 11 (0.89x), formyl 44 (2.24x), dimethyl/ethyl 15 (1.16x), acetyl 42 (3.81x), carbamyl 30 (1.32x), trimethyl 16 (0.74x), K/Q isobaric 0 (0.00x), other 326 (0.98x)
+  (d) set aside 154 modification-equivalent accepted entrapments: lower 0.0104 combined 0.0119
+== Dnet: runs 5 N 101860 E 958 lower 0.0094 combined 0.0108
+  (a) (0, 8]: rel rate H1 58326100433.97 H2 45378743394.01 (E 51) | (8, 10]: rel rate H1 9.39 H2 1.04 (E 96) | (10, 13]: rel rate H1 12.86 H2 3.22 (E 310) | (13, 17]: rel rate H1 16.84 H2 11.79 (E 399) | (17, 60]: rel rate H1 0.00 H2 0.00 (E 102)
+  (b) P(entrapment beats own decoy): H1: 0.551 (n 465) | H2: 0.573 (n 723) | H3: 0.516 (n 9697) | H1 mod-equivalent 0.633 (n 139) | H1 other 0.515
+  (c) accepted H1 by substitution class (share accepted / share library): deamidation 10 (4.21x), methyl 15 (2.90x), oxidation 5 (1.90x), formyl 6 (1.44x), dimethyl/ethyl 0 (0.00x), acetyl 5 (2.14x), carbamyl 3 (0.62x), trimethyl 0 (0.00x), K/Q isobaric 0 (0.00x), other 59 (0.83x)
+  (d) set aside 34 modification-equivalent accepted entrapments: lower 0.0091 combined 0.0104
+== Hnet: runs 5 N 177889 E 1749 lower 0.0098 combined 0.0113
+  (a) (0, 8]: rel rate H1 0.94 H2 0.66 (E 122) | (8, 10]: rel rate H1 8.33 H2 1.44 (E 232) | (10, 13]: rel rate H1 25.93 H2 2.89 (E 481) | (13, 17]: rel rate H1 9.06 H2 4.53 (E 717) | (17, 60]: rel rate H1 0.00 H2 19.47 (E 197)
+  (b) P(entrapment beats own decoy): H1: 0.555 (n 1151) | H2: 0.535 (n 1580) | H3: 0.507 (n 14484) | H1 mod-equivalent 0.575 (n 445) | H1 other 0.542
+  (c) accepted H1 by substitution class (share accepted / share library): deamidation 16 (3.02x), methyl 52 (4.51x), oxidation 0 (0.00x), formyl 7 (0.75x), dimethyl/ethyl 8 (1.30x), acetyl 25 (4.80x), carbamyl 0 (0.00x), trimethyl 6 (0.59x), K/Q isobaric 5 (1.14x), other 136 (0.86x)
+  (d) set aside 79 modification-equivalent accepted entrapments: lower 0.0094 combined 0.0108

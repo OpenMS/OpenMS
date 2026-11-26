@@ -1,0 +1,15 @@
+raw01 G0: rows 9501 (decoy 6446, entrapment 3055), unique seqs 5256
+library near (hd <= 2) share: decoys 0.130, entrapments 0.129
+  q (0, 0.01]: D n 101 hd1 0.228 hd<=2 0.703 (x5.41) | E n 66 hd1 0.530 hd<=2 0.682 (x5.29)
+  q (0.01, 0.05]: D n 577 hd1 0.208 hd<=2 0.456 (x3.51) | E n 276 hd1 0.087 hd<=2 0.402 (x3.12)
+  q (0.05, 0.3]: D n 5768 hd1 0.075 hd<=2 0.226 (x1.74) | E n 2713 hd1 0.073 hd<=2 0.239 (x1.85)
+raw02 G0: rows 9982 (decoy 6693, entrapment 3289), unique seqs 5189
+library near (hd <= 2) share: decoys 0.130, entrapments 0.129
+  q (0, 0.01]: D n 87 hd1 0.253 hd<=2 0.816 (x6.28) | E n 48 hd1 0.562 hd<=2 0.854 (x6.62)
+  q (0.01, 0.05]: D n 610 hd1 0.243 hd<=2 0.531 (x4.09) | E n 268 hd1 0.213 hd<=2 0.429 (x3.33)
+  q (0.05, 0.3]: D n 5996 hd1 0.068 hd<=2 0.227 (x1.75) | E n 2973 hd1 0.058 hd<=2 0.234 (x1.81)
+raw03 G0: rows 10673 (decoy 7100, entrapment 3573), unique seqs 5512
+library near (hd <= 2) share: decoys 0.130, entrapments 0.129
+  q (0, 0.01]: D n 107 hd1 0.262 hd<=2 0.579 (x4.46) | E n 69 hd1 0.522 hd<=2 0.870 (x6.74)
+  q (0.01, 0.05]: D n 617 hd1 0.246 hd<=2 0.535 (x4.11) | E n 266 hd1 0.199 hd<=2 0.489 (x3.79)
+  q (0.05, 0.3]: D n 6376 hd1 0.071 hd<=2 0.225 (x1.73) | E n 3238 hd1 0.063 hd<=2 0.233 (x1.81)

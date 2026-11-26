@@ -1,0 +1,23 @@
+human residues 11415371; accepted entrapment peptides (q <= 0.05) 10124; control sample 20000 of 513108
+  0 done
+  5000 done
+  10000 done
+  15000 done
+  20000 done
+  25000 done
+library entrapment peptides by min Hamming to human (control sample): 1: 0.0887, 2: 0.1764, 3: 0.7348
+D: runs 5 N 109910 E 1032 lower 0.0094 combined 0.0107 | accepted E by class 0: 0 (0.000 vs lib 0.000), 1: 134 (0.130 vs lib 0.089), 2: 121 (0.117 vs lib 0.176), 3: 777 (0.753 vs lib 0.735)
+    classes <= 1 ambiguous: N 109776 E 898 lower 0.0082 combined 0.0095 (r 6.3037)
+    classes <= 2 ambiguous: N 109655 E 777 lower 0.0071 combined 0.0085 (r 5.0831)
+H: runs 5 N 192239 E 2144 lower 0.0112 combined 0.0128 | accepted E by class 0: 0 (0.000 vs lib 0.000), 1: 332 (0.155 vs lib 0.089), 2: 332 (0.155 vs lib 0.176), 3: 1480 (0.690 vs lib 0.735)
+    classes <= 1 ambiguous: N 191907 E 1812 lower 0.0094 combined 0.0109 (r 6.3037)
+    classes <= 2 ambiguous: N 191575 E 1480 lower 0.0077 combined 0.0092 (r 5.0831)
+N2: runs 5 N 230993 E 2555 lower 0.0111 combined 0.0127 | accepted E by class 0: 0 (0.000 vs lib 0.000), 1: 349 (0.137 vs lib 0.089), 2: 416 (0.163 vs lib 0.176), 3: 1790 (0.701 vs lib 0.735)
+    classes <= 1 ambiguous: N 230644 E 2206 lower 0.0096 combined 0.0111 (r 6.3037)
+    classes <= 2 ambiguous: N 230228 E 1790 lower 0.0078 combined 0.0093 (r 5.0831)
+Dnet: runs 5 N 101860 E 958 lower 0.0094 combined 0.0108 | accepted E by class 0: 0 (0.000 vs lib 0.000), 1: 74 (0.077 vs lib 0.089), 2: 85 (0.089 vs lib 0.176), 3: 799 (0.834 vs lib 0.735)
+    classes <= 1 ambiguous: N 101786 E 884 lower 0.0087 combined 0.0101 (r 6.3037)
+    classes <= 2 ambiguous: N 101701 E 799 lower 0.0079 combined 0.0094 (r 5.0831)
+Hnet: runs 5 N 177889 E 1749 lower 0.0098 combined 0.0113 | accepted E by class 0: 0 (0.000 vs lib 0.000), 1: 165 (0.094 vs lib 0.089), 2: 179 (0.102 vs lib 0.176), 3: 1405 (0.803 vs lib 0.735)
+    classes <= 1 ambiguous: N 177724 E 1584 lower 0.0089 combined 0.0103 (r 6.3037)
+    classes <= 2 ambiguous: N 177545 E 1405 lower 0.0079 combined 0.0095 (r 5.0831)

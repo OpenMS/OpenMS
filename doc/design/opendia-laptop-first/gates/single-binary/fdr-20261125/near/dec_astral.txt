@@ -1,0 +1,3 @@
+  0/50000
+library: human peptides 50315, entrapment peptides 50000; by min Hamming: 0: 19, 1: 1255, 2: 5239, 3: 43487
+strict homolog-free entrapment peptides (hd >= 3): 43487; near-homolog list (hd <= 2): 6513

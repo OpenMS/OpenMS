@@ -1,0 +1,10 @@
+== D: runs 5
+  accepted Hamming-1 entrapments 134: human neighbour is a library target 37 (0.276), scored in run 37, accepted in run 32 (0.239)
+  apex gap to the accepted neighbour: median 0.0 s, <= 3 s 0.969, <= 10 s 0.969
+  accepted entrapments by Hamming class, GBM-promoted vs kept: H1: promoted 72 (0.141) kept 62 (0.119) | H2: promoted 65 (0.127) kept 56 (0.107) | H3: promoted 373 (0.731) kept 404 (0.774)
+  counted decoys promoted 489, kept 604
+== H: runs 5
+  accepted Hamming-1 entrapments 332: human neighbour is a library target 117 (0.352), scored in run 113, accepted in run 98 (0.295)
+  apex gap to the accepted neighbour: median 1.0 s, <= 3 s 0.714, <= 10 s 0.806
+  accepted entrapments by Hamming class, GBM-promoted vs kept: H1: promoted 194 (0.150) kept 138 (0.162) | H2: promoted 215 (0.167) kept 117 (0.137) | H3: promoted 881 (0.683) kept 599 (0.701)
+  counted decoys promoted 1123, kept 792

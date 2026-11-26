@@ -1,0 +1,30 @@
+raw01: library target precursors 302479; entrapment 150768 (ambiguous 12418); r relabel 0.9938, r strict 0.9119
+arm  seed   N1  E1   N2  E2  amb  N_at
+ G0     0 2257  20 2244   7   13  2376
+ G0     1 2231   9 2225   3    6  2462
+ G0     2 2214  13 2205   4    9  2478
+ G0     3 2071  13 2062   4    9  2298
+ G0     4 2006  11 1998   3    8  2371
+G0: relabel lower 0.0061 combined 0.0123 (0.0099-0.0151) | strict lower 0.0020 combined 0.0041 (0.0027-0.0059); ambiguous accepted 45; strict median N@FDP_c 1 % 2376
+raw02: library target precursors 302479; entrapment 150768 (ambiguous 12418); r relabel 0.9938, r strict 0.9119
+arm  seed   N1  E1   N2  E2  amb  N_at
+ G0     0 2329  17 2314   2   15  2608
+ G0     1 1412   6 1408   2    4  2473
+ G0     2 2072   7 2066   1    6  2569
+ G0     3 2114   9 2106   1    8  2557
+ G0     4 1415   9 1407   1    8  2664
+G0: relabel lower 0.0051 combined 0.0103 (0.0080-0.0131) | strict lower 0.0008 combined 0.0016 (0.0007-0.0030); ambiguous accepted 41; strict median N@FDP_c 1 % 2569
+raw03: library target precursors 302479; entrapment 150768 (ambiguous 12418); r relabel 0.9938, r strict 0.9119
+arm  seed   N1  E1   N2  E2  amb  N_at
+  A     0 2215  14 2202   1   13  2701
+  A     1 2151   9 2144   2    7  2605
+  A     2 2314  16 2299   1   15  2757
+  A     3 2178   9 2169   0    9  2615
+  A     4 1456  13 1446   3   10  2406
+ G0     0 2343  17 2329   3   14  2749
+ G0     1 2300  16 2286   2   14  2668
+ G0     2 2275  15 2261   1   14  2740
+ G0     3 2261  12 2251   2   10  2687
+ G0     4 2268   9 2260   1    8  2706
+A: relabel lower 0.0059 combined 0.0119 (0.0095-0.0147) | strict lower 0.0007 combined 0.0014 (0.0007-0.0027); ambiguous accepted 54; strict median N@FDP_c 1 % 2615
+G0: relabel lower 0.0060 combined 0.0121 (0.0098-0.0148) | strict lower 0.0008 combined 0.0017 (0.0009-0.0029); ambiguous accepted 60; strict median N@FDP_c 1 % 2706

@@ -1,0 +1,48 @@
+== q<=0.01: E 431 D 438 H 43577 (score-binned SMD, in decoy SD units)
+             feature  E_minus_D  H_minus_D
+x_im_centroid_offset      0.210     -0.071
+                 s_n     -0.206     -0.083
+      x_ms2_log_area      0.181      0.283
+     f12_extra_share     -0.176     -0.247
+  x_im_central_share     -0.163      0.064
+                s_co     -0.158     -0.215
+               d_lib      0.144     -0.050
+  boundary_log_width      0.140      0.245
+       f12_coelution      0.122      0.250
+       x_ms1_abs_ppm      0.116     -0.157
+            s_best_d      0.106      0.107
+               d_max      0.104     -0.165
+              d6_max      0.104     -0.165
+       x_ms2_abs_ppm     -0.103     -0.189
+== 0.01-0.05: E 2225 D 2264 H 7852 (score-binned SMD, in decoy SD units)
+                feature  E_minus_D  H_minus_D
+boundary_apex_agreement     -0.106     -0.048
+        x_ms1_coelution     -0.086      0.159
+             f12_libcos     -0.074      0.137
+                   s_co      0.074      0.011
+                 d6_max      0.073     -0.160
+                  d_max      0.073     -0.160
+               s_best_d     -0.061     -0.050
+         i_libcos_resid     -0.061      0.226
+     boundary_coelution     -0.058     -0.139
+                 mt_llr     -0.057     -0.105
+                mt_n_z2     -0.057     -0.157
+                mt_n_z3     -0.056     -0.185
+            i_explained      0.055     -0.187
+                 s_best      0.051     -0.121
+== 0.05-0.3: E 20696 D 23464 H 12448 (score-binned SMD, in decoy SD units)
+                feature  E_minus_D  H_minus_D
+     transition_support      0.163      0.306
+                mt_n_z2      0.105     -0.028
+                 mt_cos     -0.096     -0.089
+                mt_n_z3      0.093     -0.043
+             f12_libcos     -0.089      0.041
+boundary_apex_agreement     -0.079     -0.098
+                 mt_dom      0.079      0.090
+               mt_loo_n      0.068      0.019
+   x_fragment_coelution     -0.067     -0.218
+     boundary_coelution     -0.063     -0.217
+         x_im_coelution     -0.063     -0.196
+                  d_max      0.053     -0.060
+                 d6_max      0.053     -0.060
+               i_nclaim      0.052     -0.187
