@@ -15,6 +15,9 @@
 #include <OpenMS/KERNEL/SpectrumHelper.h>
 ///////////////////////////
 
+#include <OpenMS/IONMOBILITY/IMDataArrayUtils.h>
+#include <OpenMS/IONMOBILITY/IMTypes.h>
+
 using namespace OpenMS;
 using namespace std;
 
@@ -363,6 +366,49 @@ START_SECTION(void makePeakPositionUnique(PeakContainerT& p, const int m) )
   makePeakPositionUnique(c, IntensityAveragingMethod::MEDIAN);
   TEST_EQUAL(c.size(), 4)
   TEST_EQUAL(c.getNativeID(), "chromatogram=42")
+
+  // the ion mobility array is removed with the other data arrays, so the IM annotation
+  // describing it must not survive; a spectrum-level drift time is kept
+  MSSpectrum im_template;
+  im_template.push_back(Peak1D(100.0, 1.0f));
+  im_template.push_back(Peak1D(100.0, 3.0f));
+  im_template.push_back(Peak1D(200.0, 5.0f));
+  im_template.getFloatDataArrays().resize(1);
+  im_template.getFloatDataArrays()[0].assign({0.8f, 0.9f, 1.0f});
+  IMDataArrayUtils::setIMUnit(im_template.getFloatDataArrays()[0], DriftTimeUnit::VSSC);
+  im_template.setIMFormat(IMFormat::IM_PEAK);
+  im_template.setIMPeakType(IMPeakType::IM_CENTROIDED);
+  TEST_TRUE(im_template.containsIMData())
+
+  s = im_template;
+  makePeakPositionUnique(s, IntensityAveragingMethod::SUM);
+  TEST_EQUAL(s.size(), 2)
+  TEST_REAL_SIMILAR(s[0].getIntensity(), 4.0)
+  TEST_REAL_SIMILAR(s[1].getIntensity(), 5.0)
+  TEST_FALSE(s.containsIMData())
+  TEST_EQUAL(s.getIMFormat() == IMFormat::UNKNOWN, true)
+  TEST_EQUAL(IMTypes::determineIMFormat(s) == IMFormat::NONE, true)
+  TEST_EQUAL(s.getIMPeakType() == IMPeakType::UNKNOWN, true)
+
+  s = im_template;
+  s.setDriftTime(1.1);
+  s.setDriftTimeUnit(DriftTimeUnit::VSSC);
+  makePeakPositionUnique(s, IntensityAveragingMethod::SUM);
+  TEST_EQUAL(s.size(), 2)
+  TEST_REAL_SIMILAR(s.getDriftTime(), 1.1)
+  TEST_EQUAL(IMTypes::determineIMFormat(s) == IMFormat::IM_SPECTRUM, true)
+
+  // without an ion mobility array, an explicit spectrum-level IM annotation is kept
+  s = s_template;
+  s.setDriftTime(1.1);
+  s.setDriftTimeUnit(DriftTimeUnit::VSSC);
+  s.setIMFormat(IMFormat::IM_SPECTRUM);
+  s.setIMPeakType(IMPeakType::IM_CENTROIDED);
+  makePeakPositionUnique(s, IntensityAveragingMethod::SUM);
+  TEST_EQUAL(s.size(), 4)
+  TEST_EQUAL(s.getIMFormat() == IMFormat::IM_SPECTRUM, true)
+  TEST_EQUAL(s.getIMPeakType() == IMPeakType::IM_CENTROIDED, true)
+  TEST_REAL_SIMILAR(s.getDriftTime(), 1.1)
 
   MSSpectrum s_empty;
   makePeakPositionUnique(s_empty);
