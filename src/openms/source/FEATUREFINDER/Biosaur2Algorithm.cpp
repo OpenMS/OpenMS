@@ -941,15 +941,19 @@ void Biosaur2Algorithm::centroidProfileSpectra_(MSExperiment& exp) const
   MSExperiment centroided_exp;
   Size total_peaks_before = 0;
   Size total_peaks_after = 0;
+  Size n_kept = 0;
 
   for (Size i = 0; i < exp.size(); ++i)
   {
     total_peaks_before += exp[i].size();
     MSSpectrum centroided_spectrum;
 
-    if (exp[i].getType() == SpectrumSettings::SpectrumType::CENTROID)
+    // picking centroided peaks again would drop most of them, so keep them; a spectrum without a type annotation is
+    // judged from its data processing and then its peaks, as PeakPickerHiRes::pickExperiment() does in auto mode
+    if (exp[i].getType(true) == SpectrumSettings::SpectrumType::CENTROID)
     {
       centroided_spectrum = exp[i];
+      ++n_kept;
     }
     else
     {
@@ -966,7 +970,8 @@ void Biosaur2Algorithm::centroidProfileSpectra_(MSExperiment& exp) const
   // experimental settings and the chromatograms, which centroiding does not touch.
   exp.setSpectra(std::move(centroided_exp.getSpectra()));
   OPENMS_LOG_INFO << "Centroiding: " << total_peaks_before
-                  << " profile points -> " << total_peaks_after << " centroided peaks" << endl;
+                  << " profile points -> " << total_peaks_after << " centroided peaks ("
+                  << n_kept << " of " << exp.size() << " spectra already centroided, kept unchanged)" << endl;
 }
 
 void Biosaur2Algorithm::centroidPASEFData_(MSExperiment& exp, double mz_step, double pasef_tolerance) const

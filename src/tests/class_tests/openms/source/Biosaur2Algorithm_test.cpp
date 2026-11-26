@@ -611,6 +611,83 @@ START_SECTION([EXTRA] run() refreshes ranges on the non-FAIMS profile-mode path)
 }
 END_SECTION
 
+START_SECTION([EXTRA] run() in profile mode keeps unannotated spectra that are already centroided)
+{
+  // Without a spectrum type annotation, the data must decide: picking centroided peaks again
+  // keeps only interior local maxima with a neighbour on either side, so most sticks would be
+  // lost. Even scans hold isolated centroid sticks, odd scans a profile peak; none is annotated.
+  Biosaur2Algorithm algo;
+  MSExperiment exp;
+
+  const Size n_sticks = 8;
+  const double stick_mz[n_sticks] = {420.0, 450.0, 480.0, 500.0, 520.0, 550.0, 580.0, 590.0};
+  const float stick_int[n_sticks] = {3000.0f, 8000.0f, 5000.0f, 10000.0f, 4000.0f, 7000.0f, 2000.0f, 6000.0f};
+  for (int i = 0; i < 10; ++i)
+  {
+    MSSpectrum spec;
+    spec.setRT(i * 1.0);
+    spec.setMSLevel(1);
+    if (i % 2 == 0)
+    {
+      for (Size s = 0; s < n_sticks; ++s)
+      {
+        Peak1D p;
+        p.setMZ(stick_mz[s]);
+        p.setIntensity(stick_int[s]);
+        spec.push_back(p);
+      }
+    }
+    else
+    {
+      for (int k = -3; k <= 3; ++k)
+      {
+        Peak1D p;
+        p.setMZ(500.0 + k * 0.01);
+        p.setIntensity(10000.0f * static_cast<float>(std::exp(-0.5 * k * k)));
+        spec.push_back(p);
+      }
+    }
+    exp.addSpectrum(spec);
+  }
+  TEST_EQUAL(exp[0].getType() == SpectrumSettings::SpectrumType::UNKNOWN, true)
+
+  algo.setMSData(exp);
+
+  Param p = algo.getParameters();
+  p.setValue("profile", "true");
+  p.setValue("minmz", 400.0);
+  p.setValue("maxmz", 600.0);
+  p.setValue("mini", 100.0);
+  algo.setParameters(p);
+
+  FeatureMap fmap;
+  algo.run(fmap);
+
+  const MSExperiment& back = algo.getMSData();
+  TEST_EQUAL(back.size(), 10)
+  for (Size k = 0; k < back.size(); ++k)
+  {
+    if (k % 2 == 0)
+    {
+      // centroided: kept as they are
+      TEST_EQUAL(back[k].size(), n_sticks)
+      if (back[k].size() != n_sticks) continue;
+      for (Size s = 0; s < n_sticks; ++s)
+      {
+        TEST_REAL_SIMILAR(back[k][s].getMZ(), stick_mz[s])
+        TEST_REAL_SIMILAR(back[k][s].getIntensity(), stick_int[s])
+      }
+    }
+    else
+    {
+      // profile: still picked, into one centroid
+      TEST_EQUAL(back[k].size(), 1)
+      TEST_EQUAL(back[k].getType() == SpectrumSettings::SpectrumType::CENTROID, true)
+    }
+  }
+}
+END_SECTION
+
 START_SECTION([EXTRA] run() preserves the stored MS data on the non-FAIMS path)
 {
   // the counterpart of the section above: both paths must leave getMSData() usable
