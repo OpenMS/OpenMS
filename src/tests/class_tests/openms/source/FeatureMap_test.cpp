@@ -746,11 +746,12 @@ END_SECTION
 
 START_SECTION((void setPrimaryMSRunPath(const StringList& s, MSExperiment& e)))
   // The mzML's own recorded primary run (its sourceFile) must be preferred over
-  // the caller's fallback list when that run is actually present on disk.
-  // MSExperiment::getPrimaryMSRunPath() hands back that location as a file://
-  // URI; before this fix, the URI was passed straight to File::exists(), which
-  // can never resolve it against the filesystem, so the fallback was used
-  // unconditionally, even though the real run was right there.
+  // the caller's fallback list when that run is actually present on disk and
+  // names the same file as the fallback. MSExperiment::getPrimaryMSRunPath()
+  // hands back that location as a file:// URI; before this fix, the URI was
+  // passed straight to File::exists(), which can never resolve it against the
+  // filesystem, so the fallback was used unconditionally, even though the real
+  // run was right there.
   std::string tmp;
   // setPrimaryMSRunPath(s, e)'s existing, unchanged-by-this-fix guard only
   // engages for a recorded run whose name ends in "mzML" -- use that real
@@ -768,8 +769,9 @@ START_SECTION((void setPrimaryMSRunPath(const StringList& s, MSExperiment& e)))
   MSExperiment exp;
   exp.setSourceFiles(std::vector<SourceFile>{sf});
 
+  // the fallback must name the same file as the recorded run for it to be preferred
   FeatureMap fm3;
-  fm3.setPrimaryMSRunPath(StringList({"fallback.mzML"}), exp);
+  fm3.setPrimaryMSRunPath(StringList({filename}), exp);
   StringList result;
   fm3.getPrimaryMSRunPath(result);
   TEST_EQUAL(result.size(), 1)
@@ -787,6 +789,15 @@ START_SECTION((void setPrimaryMSRunPath(const StringList& s, MSExperiment& e)))
   StringList result_missing;
   fm4.getPrimaryMSRunPath(result_missing);
   TEST_EQUAL(result_missing == StringList({"fallback.mzML"}), true)
+
+  // if the recorded run exists but names a different file than the fallback,
+  // the fallback is kept -- tools that match runs by name (e.g. IDMapper)
+  // must keep seeing the name they already expect, not an unrelated one
+  FeatureMap fm5;
+  fm5.setPrimaryMSRunPath(StringList({"other_name.mzML"}), exp);
+  StringList result_other_name;
+  fm5.getPrimaryMSRunPath(result_other_name);
+  TEST_EQUAL(result_other_name == StringList({"other_name.mzML"}), true)
 END_SECTION
 
 /////////////////////////////////////////////////////////////

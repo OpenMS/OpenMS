@@ -572,9 +572,12 @@ namespace OpenMS
       // ms_path[0] comes from the mzML's own, unauthenticated source metadata;
       // never probe a remote share's authority it may name. A single path also
       // can't fill several existing columns, so leave that case to the fallback
-      // list below rather than letting setPrimaryMSRunPath() throw on it.
+      // list below rather than letting setPrimaryMSRunPath() throw on it. Also
+      // require the same file name as the fallback, so tools that match runs
+      // by name (e.g. IDMapper) keep seeing the name they already expect.
       if (!File::isRemoteAuthorityPath(local_path) && File::exists(local_path) &&
-          column_description_.size() <= 1)
+          column_description_.size() <= 1 &&
+          (s.empty() || File::basename(local_path) == File::basename(s[0])))
       {
         setPrimaryMSRunPath(StringList{local_path});
         return;
