@@ -37,6 +37,57 @@ using namespace std;
 
 namespace OpenMS::Internal
   {
+    namespace
+    {
+      /// The value of a number @p score for a cvParam of @p term: a whole number without decimals for terms with integer
+      /// values (e.g. "102" for MS-GF:RawScore, not "102.0", which readers reject), else @p score_string
+      std::string cvValue_(const ControlledVocabulary::CVTerm& term, double score, const std::string& score_string)
+      {
+        switch (term.xref_type)
+        {
+          case ControlledVocabulary::CVTerm::XRefType::XSD_INTEGER:
+          case ControlledVocabulary::CVTerm::XRefType::XSD_NEGATIVE_INTEGER:
+          case ControlledVocabulary::CVTerm::XRefType::XSD_POSITIVE_INTEGER:
+          case ControlledVocabulary::CVTerm::XRefType::XSD_NON_NEGATIVE_INTEGER:
+          case ControlledVocabulary::CVTerm::XRefType::XSD_NON_POSITIVE_INTEGER:
+            if (std::isfinite(score) && score == std::trunc(score) && std::fabs(score) <= double(std::numeric_limits<Int>::max()))
+            {
+              return StringUtils::toStr(static_cast<Int>(score));
+            }
+            break;
+          default:
+            break;
+        }
+        return score_string;
+      }
+
+      /// A cvParam of @p term (of the CV with the id @p ref in the document) with @p value, with the unit of the value if it has
+      /// one: accession, CV and name of the unit (readers, including OpenMS, need the name to read the unit). A whole number of
+      /// a term with integer values is written without decimals (e.g. a missing MS-GF:RawScore set to 0.0).
+      std::string cvParamWithUnit_(const ControlledVocabulary::CVTerm& term, const std::string& ref, const DataValue& value)
+      {
+        const std::string value_string = value.valueType() == DataValue::DOUBLE_VALUE ? cvValue_(term, double(value), StringUtils::toStr(value))
+                                                                                       : StringUtils::toStr(value);
+        std::string s = term.toXMLString(ref, value_string); // an empty value (e.g. of a flag term) is left out
+        if (!value.hasUnit() || !StringUtils::hasSuffix(s, "/>"))
+        {
+          return s;
+        }
+        char accession[8];
+        snprintf(accession, sizeof(accession), "%07d", value.getUnit()); // all CVs use 7-digit identifiers
+        const bool uo = value.getUnitType() == DataValue::UnitType::UNIT_ONTOLOGY;
+        const std::string unit = (uo ? "UO:" : "MS:") + std::string(accession);
+        // the ids of the CVs in the cvList of the document: "UO", and @p ref for PSI-MS (not the accession prefix "MS")
+        std::string attributes = " unitAccession=\"" + unit + "\" unitCvRef=\"" + (uo ? std::string("UO") : ref) + "\"";
+        const ControlledVocabulary& cv = ControlledVocabulary::getPSIMSCV(); // also has the unit ontology
+        if (cv.exists(unit))
+        {
+          attributes += " unitName=\"" + XMLHandler::writeXMLEscape(cv.getTerm(unit).name) + "\"";
+        }
+        s.insert(s.size() - 2, attributes);
+        return s;
+      }
+    }
 
     void IdentificationHit::setId(const std::string& id) noexcept 
     {
@@ -654,8 +705,8 @@ namespace OpenMS::Internal
         ProteinIdentification::SearchParameters search_params = it->getSearchParameters();
         search_params.removeMetaValue("MS:1001029");
         writeMetaInfos_(sip, search_params, 3);
-        sip +=std::string(3, '\t') + R"(<userParam name="charges" unitName="xsd:string" value=")" + search_params.charges + "\"/>\n";
-//        sip +=std::string(3, '\t') + "<userParam name=\"" + "missed_cleavages" + "\" unitName=\"" + "xsd:integer" + "\" value=\"" + StringUtils::toStr(it->getSearchParameters().missed_cleavages) + "\"/>" + "\n";
+        sip +=std::string(3, '\t') + R"(<userParam name="charges" type="xsd:string" value=")" + search_params.charges + "\"/>\n";
+//        sip +=std::string(3, '\t') + "<userParam name=\"" + "missed_cleavages" + "\" type=\"" + "xsd:integer" + "\" value=\"" + StringUtils::toStr(it->getSearchParameters().missed_cleavages) + "\"/>" + "\n";
         sip += "\t\t</AdditionalSearchParams>\n";
         // modifications:
         if (search_params.fixed_modifications.empty() &&
@@ -784,7 +835,9 @@ namespace OpenMS::Internal
         for (std::vector<ProteinHit>::const_iterator jt = it->getHits().begin(); jt != it->getHits().end(); ++jt)
         {
           std::string enid;
-          std::map<std::string, std::string>::iterator enit = sen_ids.find(std::string(jt->getAccession()));
+          // per search database and accession: runs with different databases get their own DBSequences (see findDBSequence_())
+          const std::string sen_key = sdb_id + '\t' + jt->getAccession();
+          std::map<std::string, std::string>::iterator enit = sen_ids.find(sen_key);
           if (enit == sen_ids.end())
           {
             std::string entry;
@@ -806,7 +859,8 @@ namespace OpenMS::Internal
             entry += "\t\t" + cv_.getTermByName("protein description").toXMLString(cv_ns, enst);
             entry += "\n\t</DBSequence>\n";
 
-            sen_ids.insert(std::pair<std::string, std::string>(enst, enid));
+            sen_ids.insert(std::pair<std::string, std::string>(sen_key, enid));
+            sen_ids.emplace(enst, enid); // the first one of the accession, by the accession alone
             sen_set.insert(entry);
 
           }
@@ -828,7 +882,6 @@ namespace OpenMS::Internal
       //          PeptideHit score_type is then the final score of xQuest_cpp.
       //          top5 ids -> 5 PeptideIdentification for one (pair) spectra. SIR with 5 entries and ranks
       std::map<std::string, std::string> ppxl_specref_2_element; //where the SII will get added for one spectrum reference
-      std::map<std::string, std::vector<std::string> > pep_evis; //maps the sequence to the corresponding evidence elements for the next scope
       for (PeptideIdentificationList::const_iterator it = cpep_id_->begin(); it != cpep_id_->end(); ++it)
       {
         std::string emz = StringUtils::toStr(it->getMZ());
@@ -899,16 +952,16 @@ namespace OpenMS::Internal
         {
           if (!is_ppxl)
           {
-            MzIdentMLHandler::writePeptideHit(*jt, it, pep_ids, cv_ns, sen_set, sen_ids, pep_evis, pp_identifier_2_thresh, sidres, jt == it->getHits().begin());
+            MzIdentMLHandler::writePeptideHit(*jt, it, pep_ids, cv_ns, sen_set, sen_ids, pp_identifier_2_thresh, sidres, jt == it->getHits().begin());
           }
           else
           {
             std::string ppxl_linkid = StringUtils::toStr(UniqueIdGenerator::getUniqueId());
-            MzIdentMLHandler::writeXLMSPeptideHit(*jt, it, ppxl_linkid, pep_ids, cv_ns, sen_set, sen_ids, pep_evis, pp_identifier_2_thresh, ppxl_crosslink_mass, ppxl_specref_2_element, sid, true);
+            MzIdentMLHandler::writeXLMSPeptideHit(*jt, it, ppxl_linkid, pep_ids, cv_ns, sen_set, sen_ids, pp_identifier_2_thresh, ppxl_crosslink_mass, ppxl_specref_2_element, sid, true);
             // XL-MS IDs from OpenPepXL can have two Peptides and SpectrumIdentifications, but with practically the same data except for the sequence and its modifications
             if (jt->metaValueExists(Constants::UserParam::OPENPEPXL_XL_TYPE) && jt->getMetaValue(Constants::UserParam::OPENPEPXL_XL_TYPE) == "cross-link")
             {
-              MzIdentMLHandler::writeXLMSPeptideHit(*jt, it, ppxl_linkid, pep_ids, cv_ns, sen_set, sen_ids, pep_evis, pp_identifier_2_thresh, ppxl_crosslink_mass, ppxl_specref_2_element, sid, false);
+              MzIdentMLHandler::writeXLMSPeptideHit(*jt, it, ppxl_linkid, pep_ids, cv_ns, sen_set, sen_ids, pp_identifier_2_thresh, ppxl_crosslink_mass, ppxl_specref_2_element, sid, false);
             }
           }
         }
@@ -1325,9 +1378,9 @@ namespace OpenMS::Internal
         for (const std::string& acc : group.accessions)
         {
           const auto hit = hits.find(acc);
-          const auto dbsequence = sen_ids.find(acc);
+          const std::string* dbsequence = findDBSequence_(sen_ids, run.getIdentifier(), acc);
           std::string evidence;
-          if (hit != hits.end() && dbsequence != sen_ids.end())
+          if (hit != hits.end() && dbsequence != nullptr)
           {
             const auto pevs = evidence_of.find(acc);
             // the evidence: the top PSMs of each spectrum (as used by the inference tools), or all PSMs if there are none
@@ -1363,7 +1416,7 @@ namespace OpenMS::Internal
             ++n_dropped_proteins;
             continue;
           }
-          hypotheses.push_back({"PDH_" + StringUtils::toStr(++n_pdhs), dbsequence->second, std::move(evidence), hit->second});
+          hypotheses.push_back({"PDH_" + StringUtils::toStr(++n_pdhs), *dbsequence, std::move(evidence), hit->second});
         }
         if (hypotheses.empty())
         {
@@ -1521,11 +1574,11 @@ namespace OpenMS::Internal
         if (cv_.exists(keys[i]))
         {
           ControlledVocabulary::CVTerm a = cv_.getTerm(keys[i]);
-          s +=std::string(indent, '\t') + a.toXMLString("PSI-MS", StringUtils::toStr((meta.getMetaValue(keys[i])))) + "\n";
+          s +=std::string(indent, '\t') + cvParamWithUnit_(a, "PSI-MS", meta.getMetaValue(keys[i])) + "\n"; // with its unit
         }
         else
         {
-          s +=std::string(indent, '\t') + "<userParam name=\"" + writeXMLEscape(keys[i]) + "\" unitName=\"";
+          s +=std::string(indent, '\t') + "<userParam name=\"" + writeXMLEscape(keys[i]) + "\" type=\"";
 
           const DataValue& d = meta.getMetaValue(keys[i]);
           //determine type
@@ -1697,9 +1750,9 @@ namespace OpenMS::Internal
                     + " values=\"" + ListUtils::concatenate(j->second[2], " ") + "\"/>\n";
           if (is_ppxl)
           {
-              s +=std::string(indent+2, '\t') + "<userParam name=\"cross-link_chain\"" + " unitName=\"xsd:string\""
+              s +=std::string(indent+2, '\t') + "<userParam name=\"cross-link_chain\"" + " type=\"xsd:string\""
                         + " value=\"" + ListUtils::concatenate(j->second[3], " ") + "\"/>\n";
-              s +=std::string(indent+2, '\t') + "<userParam name=\"cross-link_ioncategory\"" + " unitName=\"xsd:string\""
+              s +=std::string(indent+2, '\t') + "<userParam name=\"cross-link_ioncategory\"" + " type=\"xsd:string\""
                         + " value=\"" + ListUtils::concatenate(j->second[4], " ") + "\"/>\n";
           }
           s +=std::string(indent+2, '\t') + cv_.getTermByName(j->first).toXMLString("PSI-MS") + "\n";
@@ -1734,12 +1787,40 @@ namespace OpenMS::Internal
       return r;
     }
 
+    std::string MzIdentMLHandler::peptideEvidenceId_(const std::string& attributes, const std::string& accession, std::set<std::string>& sen_set)
+    {
+      auto [pev, inserted] = pev_ids_.emplace(attributes, std::string());
+      if (inserted)
+      {
+        pev->second = "PEV_" + StringUtils::toStr(UniqueIdGenerator::getUniqueId());
+        sen_set.insert("\t<PeptideEvidence id=\"" + pev->second + "\"" + attributes + "/>\n");
+        pev_2_acc_.emplace(pev->second, accession);
+      }
+      return pev->second;
+    }
+
+    const std::string* MzIdentMLHandler::findDBSequence_(const std::map<std::string, std::string>& sen_ids, const std::string& run_identifier,
+                                                         const std::string& accession) const
+    {
+      if (const auto sil = pp_identifier_2_sil_.find(run_identifier); sil != pp_identifier_2_sil_.end())
+      {
+        if (const auto sdb = sil_2_sdb_.find(sil->second); sdb != sil_2_sdb_.end())
+        {
+          if (const auto dbsequence = sen_ids.find(sdb->second + '\t' + accession); dbsequence != sen_ids.end())
+          {
+            return &dbsequence->second;
+          }
+        }
+      }
+      const auto dbsequence = sen_ids.find(accession);
+      return dbsequence == sen_ids.end() ? nullptr : &dbsequence->second;
+    }
+
     void MzIdentMLHandler::writePeptideHit(const PeptideHit& hit,
                                                 PeptideIdentificationList::const_iterator& it,
                                                 std::map<std::string, std::string>& pep_ids,
                                                 const std::string& cv_ns, std::set<std::string>& sen_set,
                                                 std::map<std::string, std::string>& sen_ids,
-                                                std::map<std::string, std::vector<std::string> >& pep_evis,
                                                 std::map<std::string, double>& pp_identifier_2_thresh,
                                                 std::string& sidres, bool top_hit)
     {
@@ -1830,23 +1911,26 @@ namespace OpenMS::Internal
           pepid = pit->second;
         }
 
+        // the PeptideEvidences of the hit: shared with the hits that have the same evidence, not with all hits of the peptide,
+        // which may have other proteins (e.g. in another identification run)
         std::vector<std::string> pevid_ids;
-        if (!duplicate)
         {
           std::vector<PeptideEvidence> peptide_evidences = hit.getPeptideEvidences();
           // TODO idXML allows peptide hits without protein references! Fails in that case - run PeptideIndexer first
           for (std::vector<PeptideEvidence>::const_iterator pe = peptide_evidences.begin(); pe != peptide_evidences.end(); ++pe)
           {
-            std::string pevid =  "PEV_" + StringUtils::toStr(UniqueIdGenerator::getUniqueId());
             std::string dBSequence_ref;
-            map<std::string, std::string>::const_iterator pos = sen_ids.find(pe->getProteinAccession());
-            if (pos != sen_ids.end())
+            const std::string* dbsequence = findDBSequence_(sen_ids, it->getIdentifier(), pe->getProteinAccession());
+            if (dbsequence != nullptr)
             {
-              dBSequence_ref = pos->second;
+              dBSequence_ref = *dbsequence;
             }
             else
             {
-              OPENMS_LOG_ERROR << "Error: Missing or invalid protein reference for peptide '" << pepi << "': '" << pe->getProteinAccession() << "' - skipping." << endl;
+              if (!duplicate) // once per peptide
+              {
+                OPENMS_LOG_ERROR << "Error: Missing or invalid protein reference for peptide '" << pepi << "': '" << pe->getProteinAccession() << "' - skipping." << endl;
+              }
               continue;
             }
             std::string idec;
@@ -1857,7 +1941,7 @@ namespace OpenMS::Internal
 
             std::string e;
             std::string nc_termini = "-";    // character for N- and C-termini as specified in mzIdentML
-            e += "\t<PeptideEvidence id=\"" + pevid + "\" peptide_ref=\"" + pepid + "\" dBSequence_ref=\"" + dBSequence_ref + "\"";
+            e += " peptide_ref=\"" + pepid + "\" dBSequence_ref=\"" + dBSequence_ref + "\""; // the attributes but the id
 
             if (pe->getAAAfter() != PeptideEvidence::UNKNOWN_AA)
             {
@@ -1875,7 +1959,7 @@ namespace OpenMS::Internal
             {
               e += " start=\"" + StringUtils::toStr( int(hit.getMetaValue("start")) + 1) + "\"";
             }
-            else
+            else if (!duplicate) // once per peptide
             {
               OPENMS_LOG_WARN << "Found no start position of peptide hit in protein sequence.\n";
             }
@@ -1887,7 +1971,7 @@ namespace OpenMS::Internal
             {
               e += " end=\"" + StringUtils::toStr( int(hit.getMetaValue("end")) + 1) + "\"";
             }
-            else
+            else if (!duplicate) // once per peptide
             {
               OPENMS_LOG_WARN << "Found no end position of peptide hit in protein sequence.\n";
             }
@@ -1895,16 +1979,8 @@ namespace OpenMS::Internal
             {
               e += " isDecoy=\"" + std::string(idec)+ "\"";
             }
-            e += "/>\n";
-            sen_set.insert(e);
-            pevid_ids.push_back(pevid);
-            pev_2_acc_.emplace(pevid, pe->getProteinAccession());
+            pevid_ids.push_back(peptideEvidenceId_(e, pe->getProteinAccession(), sen_set));
           }
-          pep_evis.insert(make_pair(pepi, pevid_ids));
-        }
-        else
-        {
-          pevid_ids =  pep_evis[pepi];
         }
 
         std::string cmz = StringUtils::toStr(hit.getSequence().getMZ(hit.getCharge())); //calculatedMassToCharge
@@ -1916,6 +1992,8 @@ namespace OpenMS::Internal
           sc = "NA";
           OPENMS_LOG_WARN << "No score assigned to this PSM: " /*<< hit.getSequence().toString()*/ << '\n';
         }
+        // the cvParam of the score
+        auto score_param = [&](const ControlledVocabulary::CVTerm& term) { return term.toXMLString(cv_ns, cvValue_(term, hit.getScore(), sc)); };
         std::string c = StringUtils::toStr(hit.getCharge()); //charge
 
         std::string pte;
@@ -1974,61 +2052,61 @@ namespace OpenMS::Internal
         if (const auto* term = cv_.checkAndGetTermByName(st);
             term != nullptr && peptide_result_details_.contains(term->id))
         {
-          (sii_tmp += "\t\t\t\t\t") += term->toXMLString(cv_ns, sc);
+          (sii_tmp += "\t\t\t\t\t") += score_param(*term);
           copy_hit.removeMetaValue(term->id);
         }
         else if (cv_.exists(st) && peptide_result_details_.contains(st))
         {
           const auto& term = cv_.getTerm(st);
-          (sii_tmp += "\t\t\t\t\t") += term.toXMLString(cv_ns, sc);
+          (sii_tmp += "\t\t\t\t\t") += score_param(term);
           copy_hit.removeMetaValue(term.id);
         }
         else if (st == "q-value" || st == "FDR")
         {
           const auto& term = cv_.getTermByName("PSM-level q-value");
-          (sii_tmp += "\t\t\t\t\t") += term.toXMLString(cv_ns, sc);
+          (sii_tmp += "\t\t\t\t\t") += score_param(term);
           copy_hit.removeMetaValue(term.id);
         }
         else if (st == "Posterior Error Probability")
         {
           const auto& term = cv_.getTermByName("percolator:PEP"); // 'percolaror' was not a typo in the code but in the cv.
-          (sii_tmp += "\t\t\t\t\t") += term.toXMLString(cv_ns, sc);
+          (sii_tmp += "\t\t\t\t\t") += score_param(term);
           copy_hit.removeMetaValue(term.id);
         }
         else if (st == "OMSSA")
         {
           const auto& term = cv_.getTermByName("OMSSA:evalue");
-          (sii_tmp += "\t\t\t\t\t") += term.toXMLString(cv_ns, sc);
+          (sii_tmp += "\t\t\t\t\t") += score_param(term);
           copy_hit.removeMetaValue(term.id);
         }
         else if (st == "Mascot")
         {
           const auto& term = cv_.getTermByName("Mascot:score");
-          (sii_tmp += "\t\t\t\t\t") += term.toXMLString(cv_ns, sc);
+          (sii_tmp += "\t\t\t\t\t") += score_param(term);
           copy_hit.removeMetaValue(term.id);
         }
         else if (st == "XTandem")
         {
           const auto& term = cv_.getTermByName("X\\!Tandem:hyperscore");
-          (sii_tmp += "\t\t\t\t\t") += term.toXMLString(cv_ns, sc);
+          (sii_tmp += "\t\t\t\t\t") += score_param(term);
           copy_hit.removeMetaValue(term.id);
         }
         else if (st == "SEQUEST")
         {
           const auto& term = cv_.getTermByName("Sequest:xcorr");
-          (sii_tmp += "\t\t\t\t\t") += term.toXMLString(cv_ns, sc);
+          (sii_tmp += "\t\t\t\t\t") += score_param(term);
           copy_hit.removeMetaValue(term.id);
         }
         else if (st == "MS-GF+")
         {
           const auto& term = cv_.getTermByName("MS-GF:RawScore");
-          (sii_tmp += "\t\t\t\t\t") += term.toXMLString(cv_ns, sc);
+          (sii_tmp += "\t\t\t\t\t") += score_param(term);
           copy_hit.removeMetaValue(term.id);
         }
         else if (st == Constants::UserParam::OPENPEPXL_SCORE)
         {
           const auto& term = cv_.getTermByName(st);
-          (sii_tmp += "\t\t\t\t\t") += term.toXMLString(cv_ns, sc);
+          (sii_tmp += "\t\t\t\t\t") += score_param(term);
           copy_hit.removeMetaValue(term.id);
         }
         else
@@ -2036,7 +2114,7 @@ namespace OpenMS::Internal
           std::string score_name_placeholder = st.empty()?"PSM-level search engine specific statistic":st;
           sii_tmp +=std::string(5, '\t') + cv_.getTermByName("PSM-level search engine specific statistic").toXMLString(cv_ns);
           sii_tmp += "\n" + std::string(5, '\t') + "<userParam name=\"" + score_name_placeholder
-                       + "\" unitName=\"" + "xsd:double" + "\" value=\"" + sc + "\"/>";
+                       + "\" type=\"" + "xsd:double" + "\" value=\"" + sc + "\"/>";
           OPENMS_LOG_WARN << "Converting unknown score type to PSM-level search engine specific statistic from PSI controlled vocabulary.\n";
         }
         sii_tmp += "\n";
@@ -2057,7 +2135,6 @@ namespace OpenMS::Internal
                                                 const std::string& ppxl_linkid, std::map<std::string, std::string>& pep_ids,
                                                 const std::string& cv_ns, std::set<std::string>& sen_set,
                                                 std::map<std::string, std::string>& sen_ids,
-                                                std::map<std::string, std::vector<std::string> >& pep_evis,
                                                 std::map<std::string, double>& pp_identifier_2_thresh,
                                                 double ppxl_crosslink_mass,
                                                 std::map<std::string, std::string>& ppxl_specref_2_element,
@@ -2394,8 +2471,7 @@ namespace OpenMS::Internal
         pepid = pit->second;
       }
 
-      std::vector<std::string> pevid_ids;
-      if (!duplicate)
+      std::vector<std::string> pevid_ids; // per evidence of the hit, see writePeptideHit()
       {
         if (alpha_peptide)
         {
@@ -2405,16 +2481,18 @@ namespace OpenMS::Internal
           // TODO BETA PEPTIDE Protein Info
           for (std::vector<PeptideEvidence>::const_iterator pe = peptide_evidences.begin(); pe != peptide_evidences.end(); ++pe)
           {
-            std::string pevid =  "PEV_" + StringUtils::toStr(UniqueIdGenerator::getUniqueId());
             std::string dBSequence_ref;
-            map<std::string, std::string>::const_iterator pos = sen_ids.find(pe->getProteinAccession());
-            if (pos != sen_ids.end())
+            const std::string* dbsequence = findDBSequence_(sen_ids, it->getIdentifier(), pe->getProteinAccession());
+            if (dbsequence != nullptr)
             {
-              dBSequence_ref = pos->second;
+              dBSequence_ref = *dbsequence;
             }
             else
             {
-              OPENMS_LOG_ERROR << "Error: Missing or invalid protein reference for peptide '" << pepi << "': '" << pe->getProteinAccession() << "' - skipping." << endl;
+              if (!duplicate) // once per peptide
+              {
+                OPENMS_LOG_ERROR << "Error: Missing or invalid protein reference for peptide '" << pepi << "': '" << pe->getProteinAccession() << "' - skipping." << endl;
+              }
               continue;
             }
             std::string idec;
@@ -2425,7 +2503,7 @@ namespace OpenMS::Internal
 
             std::string e;
             std::string nc_termini = "-";    // character for N- and C-termini as specified in mzIdentML
-            e += "\t<PeptideEvidence id=\"" + pevid + "\" peptide_ref=\"" + pepid + "\" dBSequence_ref=\"" + dBSequence_ref + "\"";
+            e += " peptide_ref=\"" + pepid + "\" dBSequence_ref=\"" + dBSequence_ref + "\""; // the attributes but the id
 
             if (pe->getAAAfter() != PeptideEvidence::UNKNOWN_AA)
             {
@@ -2443,7 +2521,7 @@ namespace OpenMS::Internal
             {
               e += " start=\"" + StringUtils::toStr( int(hit.getMetaValue("start")) + 1) + "\"";
             }
-            else
+            else if (!duplicate) // once per peptide
             {
               OPENMS_LOG_WARN << "Found no start position of peptide hit in protein sequence.\n";
             }
@@ -2455,7 +2533,7 @@ namespace OpenMS::Internal
             {
               e += " end=\"" + StringUtils::toStr( int(hit.getMetaValue("end")) + 1) + "\"";
             }
-            else
+            else if (!duplicate) // once per peptide
             {
               OPENMS_LOG_WARN << "Found no end position of peptide hit in protein sequence.\n";
             }
@@ -2463,11 +2541,8 @@ namespace OpenMS::Internal
             {
               e += " isDecoy=\"" + std::string(idec)+ "\"";
             }
-            e += "/>\n";
-            sen_set.insert(e);
-            pevid_ids.push_back(pevid);
+            pevid_ids.push_back(peptideEvidenceId_(e, pe->getProteinAccession(), sen_set));
           }
-          pep_evis.insert(make_pair(pepi, pevid_ids));
         }
         else // acceptor, beta peptide, does not have its own PeptideHit and PeptideEvidences
         {
@@ -2478,16 +2553,18 @@ namespace OpenMS::Internal
           StringList end = ListUtils::create<std::string>(StringUtils::toStr(hit.getMetaValue(Constants::UserParam::OPENPEPXL_BETA_PEPEV_END)));
           for (Size ev = 0; ev < pre.size(); ++ev)
           {
-            std::string pevid =  "PEV_" + StringUtils::toStr(UniqueIdGenerator::getUniqueId());
             std::string dBSequence_ref;
-            map<std::string, std::string>::const_iterator pos = sen_ids.find(prot[ev]);
-            if (pos != sen_ids.end())
+            const std::string* dbsequence = findDBSequence_(sen_ids, it->getIdentifier(), prot[ev]);
+            if (dbsequence != nullptr)
             {
-              dBSequence_ref = pos->second;
+              dBSequence_ref = *dbsequence;
             }
             else
             {
-              OPENMS_LOG_ERROR << "Error: Missing or invalid protein reference for peptide '" << pepi << "': '" << prot[ev] << "' - skipping." << endl;
+              if (!duplicate) // once per peptide
+              {
+                OPENMS_LOG_ERROR << "Error: Missing or invalid protein reference for peptide '" << pepi << "': '" << prot[ev] << "' - skipping." << endl;
+              }
               continue;
             }
             std::string idec;
@@ -2498,7 +2575,7 @@ namespace OpenMS::Internal
 
             std::string e;
             std::string nc_termini = "-";    // character for N- and C-termini as specified in mzIdentML
-            e += "\t<PeptideEvidence id=\"" + pevid + "\" peptide_ref=\"" + pepid + "\" dBSequence_ref=\"" + dBSequence_ref + "\"";
+            e += " peptide_ref=\"" + pepid + "\" dBSequence_ref=\"" + dBSequence_ref + "\""; // the attributes but the id
 
             if (post[ev] !=StringUtils::toStr(PeptideEvidence::UNKNOWN_AA))
             {
@@ -2512,7 +2589,7 @@ namespace OpenMS::Internal
             {
               e += " start=\"" + StringUtils::toStr(StringUtils::toInt32(start[ev]) + 1) + "\"";
             }
-            else
+            else if (!duplicate) // once per peptide
             {
               OPENMS_LOG_WARN << "Found no start position of peptide hit in protein sequence.\n";
             }
@@ -2520,7 +2597,7 @@ namespace OpenMS::Internal
             {
               e += " end=\"" + StringUtils::toStr(StringUtils::toInt32(end[ev]) + 1) + "\"";
             }
-            else
+            else if (!duplicate) // once per peptide
             {
               OPENMS_LOG_WARN << "Found no end position of peptide hit in protein sequence.\n";
             }
@@ -2528,16 +2605,9 @@ namespace OpenMS::Internal
             {
               e += " isDecoy=\"" + std::string(idec)+ "\"";
             }
-            e += "/>\n";
-            sen_set.insert(e);
-            pevid_ids.push_back(pevid);
+            pevid_ids.push_back(peptideEvidenceId_(e, prot[ev], sen_set));
           }
-          pep_evis.insert(make_pair(pepi, pevid_ids));
         }
-      }
-      else
-      {
-        pevid_ids =  pep_evis[pepi];
       }
 
       std::string r = StringUtils::toStr(hit.getRank() + 1); //rank
@@ -2565,6 +2635,8 @@ namespace OpenMS::Internal
         sc = "NA";
         OPENMS_LOG_WARN << "No score assigned to this PSM: " /*<< hit.getSequence().toString()*/ << '\n';
       }
+      // the cvParam of the score
+      auto score_param = [&](const ControlledVocabulary::CVTerm& term) { return term.toXMLString(cv_ns, cvValue_(term, hit.getScore(), sc)); };
       std::string c = StringUtils::toStr(hit.getCharge()); //charge
 
       std::string pte;
@@ -2621,31 +2693,31 @@ namespace OpenMS::Internal
       if (const auto* term = cv_.checkAndGetTermByName(st);
           term != nullptr && peptide_result_details_.contains(term->id))
       {
-        (sii_tmp += "\t\t\t\t\t") += term->toXMLString(cv_ns, sc);
+        (sii_tmp += "\t\t\t\t\t") += score_param(*term);
         copy_hit.removeMetaValue(term->id);
       }
       else if (cv_.exists(st) && peptide_result_details_.contains(st))
       {
         const auto& term = cv_.getTerm(st);
-        (sii_tmp += "\t\t\t\t\t") += term.toXMLString(cv_ns, sc);
+        (sii_tmp += "\t\t\t\t\t") += score_param(term);
         copy_hit.removeMetaValue(term.id);
       }
       else if (st == "q-value" || st == "FDR")
       {
         const auto& term = cv_.getTermByName("PSM-level q-value");
-        (sii_tmp += "\t\t\t\t\t") += term.toXMLString(cv_ns, sc);
+        (sii_tmp += "\t\t\t\t\t") += score_param(term);
         copy_hit.removeMetaValue(term.id);
       }
       else if (st == "Posterior Error Probability")
       {
         const auto& term = cv_.getTermByName("percolator:PEP"); // 'percolaror' was not a typo in the code but in the cv.
-        (sii_tmp += "\t\t\t\t\t") += term.toXMLString(cv_ns, sc);
+        (sii_tmp += "\t\t\t\t\t") += score_param(term);
         copy_hit.removeMetaValue(term.id);
       }
       else if (st == Constants::UserParam::OPENPEPXL_SCORE)
       {
         const auto& term = cv_.getTermByName(st);
-        (sii_tmp += "\t\t\t\t\t") += term.toXMLString(cv_ns, sc);
+        (sii_tmp += "\t\t\t\t\t") += score_param(term);
         copy_hit.removeMetaValue(term.id);
       }
       else
@@ -2653,7 +2725,7 @@ namespace OpenMS::Internal
         std::string score_name_placeholder = st.empty()?"PSM-level search engine specific statistic":st;
         sii_tmp +=std::string(5, '\t') + cv_.getTermByName("PSM-level search engine specific statistic").toXMLString(cv_ns);
         sii_tmp += "\n" + std::string(5, '\t') + "<userParam name=\"" + score_name_placeholder
-                     + "\" unitName=\"" + "xsd:double" + "\" value=\"" + sc + "\"/>";
+                     + "\" type=\"" + "xsd:double" + "\" value=\"" + sc + "\"/>";
         OPENMS_LOG_WARN << "Converting unknown score type to PSM-level search engine specific statistic from PSI controlled vocabulary.\n";
       }
       sii_tmp += "\n";

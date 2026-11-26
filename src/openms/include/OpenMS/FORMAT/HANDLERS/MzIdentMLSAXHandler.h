@@ -28,6 +28,8 @@ typedef struct _xmlNode xmlNode;
 #include <set>
 #include <stdexcept>
 #include <string>
+#include <unordered_map>
+#include <unordered_set>
 #include <vector>
 
 namespace OpenMS
@@ -36,30 +38,34 @@ namespace OpenMS
 
   namespace Internal
   {
+    struct MzIdentMLNode;
+
     /**
-        @brief XML DOM handler for MzIdentMLFile
+        @brief XML handler for MzIdentMLFile
 
         In read-mode, this class will parse an MzIdentML XML file and append the input
         identifications to the provided PeptideIdentifications and ProteinIdentifications.
+        It reads the file with the SAX2 interface of libxml2, one SpectrumIdentificationResult
+        at a time, and writes a file through a libxml2 DOM tree.
 
         @note Do not use this class. It is only needed in MzIdentMLFile.
-        @note DOM and STREAM handler for MzIdentML have the same interface for legacy id structures.
+        @note This handler and MzIdentMLHandler, the writer that MzIdentMLFile uses, have the same interface for legacy id structures.
         @note Only upon destruction of this class it can be guaranteed that all
         data has been appended to the appropriate containers. Do not try to access the data before that.
     */
-    class OPENMS_DLLAPI MzIdentMLDOMHandler
+    class OPENMS_DLLAPI MzIdentMLSAXHandler
     {
 public:
       /**@name Constructors and destructor */
       //@{
       /// Constructor for a write-only handler for internal identification structures
-      MzIdentMLDOMHandler(const std::vector<ProteinIdentification>& pro_id, const PeptideIdentificationList& pep_id, const std::string& version, const ProgressLogger& logger);
+      MzIdentMLSAXHandler(const std::vector<ProteinIdentification>& pro_id, const PeptideIdentificationList& pep_id, const std::string& version, const ProgressLogger& logger);
 
       /// Constructor for a read-only handler for internal identification structures
-      MzIdentMLDOMHandler(std::vector<ProteinIdentification>& pro_id, PeptideIdentificationList& pep_id, const std::string& version, const ProgressLogger& logger);
+      MzIdentMLSAXHandler(std::vector<ProteinIdentification>& pro_id, PeptideIdentificationList& pep_id, const std::string& version, const ProgressLogger& logger);
 
       /// Destructor
-      virtual ~MzIdentMLDOMHandler();
+      virtual ~MzIdentMLSAXHandler();
       //@}
 
       /// Provides the functionality of reading a mzid with a handler object
@@ -95,34 +101,37 @@ protected:
       /// Precompute the CV child-term sets used per PSM (constant across a file); shared by both constructors.
       void initScoreTermCaches_();
 
-      /**@name Helper functions to build the internal id structures from the DOM tree */
+      /**@name Helper functions to build the internal id structures from the elements of the file */
       //@{
 
       /// First: CVparams, Second: userParams (independent of each other)
-      std::pair<CVTermList, std::map<std::string, DataValue> > parseParamGroup_(const std::vector<xmlNode*>& paramGroup);
-      CVTerm parseCvParam_(xmlNode* param);
-      std::pair<std::string, DataValue> parseUserParam_(xmlNode* param);
-      void parseAnalysisSoftwareList_(const std::vector<xmlNode*>& analysisSoftwareElements);
-      void parseDBSequenceElements_(const std::vector<xmlNode*>& dbSequenceElements);
-      void parsePeptideElements_(const std::vector<xmlNode*>& peptideElements);
-      //AASequence parsePeptideSiblings_(const std::vector<xmlNode*>& peptideSiblings);
-      AASequence parsePeptideSiblings_(xmlNode* peptide);
+      std::pair<CVTermList, std::map<std::string, DataValue> > parseParamGroup_(const std::vector<MzIdentMLNode*>& paramGroup);
+      CVTerm parseCvParam_(MzIdentMLNode* param);
+      std::pair<std::string, DataValue> parseUserParam_(MzIdentMLNode* param);
+      void parseAnalysisSoftwareList_(const std::vector<MzIdentMLNode*>& analysisSoftwareElements);
+      void parseDBSequenceElements_(const std::vector<MzIdentMLNode*>& dbSequenceElements);
+      void parsePeptideElements_(const std::vector<MzIdentMLNode*>& peptideElements);
+      //AASequence parsePeptideSiblings_(const std::vector<MzIdentMLNode*>& peptideSiblings);
+      AASequence parsePeptideSiblings_(MzIdentMLNode* peptide);
       /// Best-effort inference of a modification's mzIdentML @c location (0 = N-terminus, @p peptide_length + 1 = C-terminus)
       /// for the case where the optional @c location attribute is absent. The position is derived from the terminal
       /// specificity of the referenced modification(s) in the ModificationsDB. Returns -1 if no unique terminal
       /// position can be inferred, i.e. when the modification may also occur internally, or when the @c Modification
       /// names a concrete @c residues amino acid (a residue-specific/internal modification whose exact position is
       /// unknown without @c location).
-      SignedSize inferModificationLocation_(xmlNode* modification_element, Size peptide_length) const;
-      void parsePeptideEvidenceElements_(const std::vector<xmlNode*>& peptideEvidenceElements);
-      void parseSpectrumIdentificationElements_(const std::vector<xmlNode*>& spectrumIdentificationElements);
-      void parseSpectrumIdentificationProtocolElements_(const std::vector<xmlNode*>& spectrumIdentificationProtocolElements);
-      void parseInputElements_(const std::vector<xmlNode*>& inputElements);
-      void parseSpectrumIdentificationListElements_(const std::vector<xmlNode*>& spectrumIdentificationListElements);
+      SignedSize inferModificationLocation_(MzIdentMLNode* modification_element, Size peptide_length) const;
+      void parsePeptideEvidenceElements_(const std::vector<MzIdentMLNode*>& peptideEvidenceElements);
+      void parseSpectrumIdentificationElements_(const std::vector<MzIdentMLNode*>& spectrumIdentificationElements);
+      void parseSpectrumIdentificationProtocolElements_(const std::vector<MzIdentMLNode*>& spectrumIdentificationProtocolElements);
+      void parseInputElements_(const std::vector<MzIdentMLNode*>& inputElements);
+      /// Reads a SpectrumIdentificationResult of the SpectrumIdentificationList with the id @p spectrum_identification_list_id
+      void parseSpectrumIdentificationResultElement_(MzIdentMLNode* element_res, const std::string& spectrum_identification_list_id);
+      /// The index in pro_id_ of the protein identification run of a SpectrumIdentificationList; throws Exception::InvalidParameter if no SpectrumIdentification references the list
+      Size runIndexOfList_(const std::string& spectrum_identification_list_ref) const;
       /// The protein identification run of a SpectrumIdentificationList; throws Exception::InvalidParameter if no SpectrumIdentification references the list
       ProteinIdentification& runOfList_(const std::string& spectrum_identification_list_ref);
-      void parseSpectrumIdentificationItemSetXLMS(std::set<std::string>::const_iterator set_it, std::multimap<std::string, int> xl_val_map, xmlNode* element_res, const std::string& spectrumID);
-      void parseSpectrumIdentificationItemElement_(xmlNode* spectrumIdentificationItemElement, PeptideIdentification& spectrum_identification, std::string& spectrumIdentificationList_ref);
+      void parseSpectrumIdentificationItemSetXLMS(std::set<std::string>::const_iterator set_it, std::multimap<std::string, int> xl_val_map, MzIdentMLNode* element_res, const std::string& spectrumID);
+      void parseSpectrumIdentificationItemElement_(MzIdentMLNode* spectrumIdentificationItemElement, PeptideIdentification& spectrum_identification, std::string& spectrumIdentificationList_ref);
       /**
         @brief Reads the protein inference results (ProteinDetectionList) into the identification run they were inferred for
 
@@ -131,9 +140,9 @@ protected:
         annotations, the proteins with the largest sets of supporting peptides), clusters ("cluster identifier") become
         general protein groups. See MzIdentMLProteinDetection for the mapping.
       */
-      void parseProteinDetectionListElements_(const std::vector<xmlNode*>& proteinDetectionListElements,
-                                              const std::vector<xmlNode*>& proteinDetectionElements,
-                                              const std::vector<xmlNode*>& proteinDetectionProtocolElements);
+      void parseProteinDetectionListElements_(const std::vector<MzIdentMLNode*>& proteinDetectionListElements,
+                                              const std::vector<MzIdentMLNode*>& proteinDetectionElements,
+                                              const std::vector<MzIdentMLNode*>& proteinDetectionProtocolElements);
       static ProteinIdentification::SearchParameters findSearchParameters_(std::pair<CVTermList, std::map<std::string, DataValue> > as_params);
       //@}
 
@@ -150,9 +159,11 @@ protected:
 
 
 private:
-      MzIdentMLDOMHandler();
-      MzIdentMLDOMHandler(const MzIdentMLDOMHandler& rhs);
-      MzIdentMLDOMHandler& operator=(const MzIdentMLDOMHandler& rhs);
+      struct SaxReader;
+
+      MzIdentMLSAXHandler();
+      MzIdentMLSAXHandler(const MzIdentMLSAXHandler& rhs);
+      MzIdentMLSAXHandler& operator=(const MzIdentMLSAXHandler& rhs);
 
       ///Struct to hold the used analysis software for that file
       struct AnalysisSoftware
@@ -240,9 +251,12 @@ private:
       };
 
       /// Parses a ProteinAmbiguityGroup with its ProteinDetectionHypotheses
-      ProteinAmbiguityGroup parseProteinAmbiguityGroupElement_(xmlNode* proteinAmbiguityGroupElement);
+      ProteinAmbiguityGroup parseProteinAmbiguityGroupElement_(MzIdentMLNode* proteinAmbiguityGroupElement);
       /// Adds a cvParam or userParam element to @p cv_params or @p user_params (other elements are ignored)
-      void collectParam_(xmlNode* param, std::vector<CVTerm>& cv_params, std::vector<std::pair<std::string, DataValue>>& user_params);
+      void collectParam_(MzIdentMLNode* param, std::vector<CVTerm>& cv_params, std::vector<std::pair<std::string, DataValue>>& user_params);
+      /// Adds a protein hit for @p db to the run of the SpectrumIdentificationList @p spectrum_identification_list_ref,
+      /// unless the run already has a hit with that accession
+      void addProteinHit_(const std::string& spectrum_identification_list_ref, const DBSequence& db, bool is_decoy);
 
 
       std::unique_ptr<XMLHandler> xml_handler_ = nullptr;
@@ -272,6 +286,9 @@ private:
       std::multimap<std::string, std::string> p_pv_map_; ///< mapping Peptide id -> PeptideEvidence id, multiple PeptideEvidences can have equivalent Peptides.
       std::map<std::string, std::string> pv_p_map_; ///< mapping PeptideEvidence id -> Peptide id
       std::map<std::string, DBSequence> db_sq_map_; ///< mapping DBSequence id -> Sequence
+      std::unordered_map<Size, std::unordered_set<std::string>> protein_accessions_of_run_; ///< mapping run index in pro_id_ -> accessions of its protein hits
+      Size psms_with_foreign_evidence_ = 0; ///< PSMs with PeptideEvidenceRefs to the evidence of a peptide with another sequence (ignored)
+      Size psms_with_missing_evidence_ = 0; ///< PSMs with PeptideEvidenceRefs to a PeptideEvidence that is not in the file (ignored)
 
       std::list<std::list<std::string> > hit_pev_; ///< writing help only
 

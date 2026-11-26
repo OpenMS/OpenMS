@@ -1,0 +1,4 @@
+# Protein abundances computed from file 'ProteinQuantifier_input.consensusXML'
+# Parameters (relevant only): method=top, top:N=50, top:aggregate=median
+# Runs per fraction group: fgroup1: 'sample1'; fgroup2: 'sample2'; fgroup3: 'sample3'
+"protein"	"n_proteins"	"protein_score"	"n_peptides"	"abundance_fgroup1_label1"	"abundance_fgroup2_label1"	"abundance_fgroup3_label1"

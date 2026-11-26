@@ -93,6 +93,32 @@ public:
   Size getNumberOfSpectra() const;
 
   /**
+    @brief Number of pixels in the geometry: the imaging experiment is a container of pixels.
+
+    Use getMSExperiment() for access to all spectra, including those not bound to a pixel.
+    @return Geometry pixel count (same as getNumberOfPixels()).
+  */
+  Size size() const;
+
+  /**
+    @brief Random access to the spectrum bound to the @p n'th pixel of the geometry (in getGeometry().getPixels() order).
+    @param[in] n Pixel index; not bounds-checked, as MSExperiment::operator[].
+    @return Reference to the bound spectrum.
+    @throws Exception::InvalidValue if the pixel references a spectrum_index
+            outside the underlying experiment.
+  */
+  MSSpectrum& operator[](Size n);
+
+  /**
+    @brief Random access to the spectrum bound to the @p n'th pixel of the geometry (in getGeometry().getPixels() order).
+    @param[in] n Pixel index; not bounds-checked, as MSExperiment::operator[].
+    @return Const reference to the bound spectrum.
+    @throws Exception::InvalidValue if the pixel references a spectrum_index
+            outside the underlying experiment.
+  */
+  const MSSpectrum& operator[](Size n) const;
+
+  /**
     @brief Tests pixel presence at (@p x, @p y).
     @param[in] x Column index.
     @param[in] y Row index.
@@ -191,6 +217,9 @@ public:
 
 
 private:
+  /// Returns @p spectrum_index if it is a spectrum of the experiment, otherwise throws Exception::InvalidValue.
+  Size checkedSpectrumIndex_(Size spectrum_index) const;
+
   MSExperiment experiment_;
   MSImagingGeometry geometry_;
 };

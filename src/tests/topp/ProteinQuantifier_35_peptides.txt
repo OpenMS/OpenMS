@@ -1,0 +1,8 @@
+# Peptide abundances computed from file 'ProteinQuantifier_input.consensusXML'
+# Parameters (relevant only): (none)
+# Runs per fraction group: fgroup1: 'sample1'; fgroup2: 'sample2'; fgroup3: 'sample3'
+"peptide"	"protein"	"n_proteins"	"charge"	"abundance_fgroup1_label1"	"abundance_fgroup2_label1"	"abundance_fgroup3_label1"	"fraction"
+"GGG"	"Protein"	1	0	4.0	4.0	0.0	"all"
+"AAAK"	"Protein"	1	0	1000.0	0.0	1000.0	"all"
+"CCCK"	"Protein"	1	0	200.0	200.0	0.0	"all"
+"EEEK"	"Protein"	1	0	30.0	30.0	30.0	"all"

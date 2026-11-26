@@ -48,7 +48,7 @@ set(OpenMS_sources_h ${OpenMS_sources_h} ${sources_h})
 ### Private parser implementation and metadata headers, never installed or wrapped.
 set(private_headers_list_h
 ThermoRawFileMetadata.h
-MzIdentMLDOMHandler.h
+MzIdentMLSAXHandler.h
 )
 if (WITH_THERMO_RAW)
   list(APPEND private_headers_list_h ThermoRawScanReader.h)
