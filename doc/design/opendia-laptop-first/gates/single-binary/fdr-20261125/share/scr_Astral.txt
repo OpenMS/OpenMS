@@ -1,0 +1,29 @@
+relabelled as human: 472
+Astral: r 0.9938; W 1.0 Th, DT 3.0 s, FTOL 15 ppm, DIM 0.05 (library IM no), QR 0.05
+  raw01_s0: accepted 2225 (E 16); share>=4 accepted human 0 E 1; IM-gated human 0 E 0
+  raw01_s1: accepted 2231 (E 10); share>=4 accepted human 0 E 1; IM-gated human 0 E 0
+  raw01_s2: accepted 2222 (E 12); share>=4 accepted human 0 E 0; IM-gated human 0 E 0
+  raw01_s3: accepted 2058 (E 11); share>=4 accepted human 0 E 1; IM-gated human 0 E 0
+  raw01_s4: accepted 2007 (E 11); share>=4 accepted human 0 E 0; IM-gated human 0 E 0
+  raw02_s0: accepted 2334 (E 17); share>=4 accepted human 0 E 0; IM-gated human 0 E 0
+  raw02_s1: accepted 2006 (E 6); share>=4 accepted human 0 E 1; IM-gated human 0 E 0
+  raw02_s2: accepted 2072 (E 7); share>=4 accepted human 0 E 0; IM-gated human 0 E 0
+  raw02_s3: accepted 2115 (E 9); share>=4 accepted human 0 E 1; IM-gated human 0 E 0
+  raw02_s4: accepted 2218 (E 17); share>=4 accepted human 0 E 0; IM-gated human 0 E 0
+  raw03_s0: accepted 2343 (E 17); share>=4 accepted human 0 E 0; IM-gated human 0 E 0
+  raw03_s1: accepted 2271 (E 12); share>=4 accepted human 0 E 1; IM-gated human 0 E 0
+  raw03_s2: accepted 2275 (E 15); share>=4 accepted human 0 E 0; IM-gated human 0 E 0
+  raw03_s3: accepted 2261 (E 12); share>=4 accepted human 0 E 0; IM-gated human 0 E 0
+  raw03_s4: accepted 2269 (E 9); share>=4 accepted human 0 E 0; IM-gated human 0 E 0
+Astral	BASE           N   32906 E   181 lower 0.0055 combined 0.0110 | median N@FDP_c1% 2180 (1.000x) min rel 1.000
+Astral	RULE_2         N   32926 E   175 lower 0.0053 combined 0.0107 | median N@FDP_c1% 2180 (1.000x) min rel 0.999
+Astral	ORACLE_2       N   32900 E   175 lower 0.0053 combined 0.0107 | median N@FDP_c1% 2180 (1.000x) min rel 1.000
+Astral	RULE_3         N   32900 E   175 lower 0.0053 combined 0.0107 | median N@FDP_c1% 2180 (1.000x) min rel 1.000
+Astral	ORACLE_3       N   32900 E   175 lower 0.0053 combined 0.0107 | median N@FDP_c1% 2180 (1.000x) min rel 1.000
+Astral	RULE_4         N   32900 E   175 lower 0.0053 combined 0.0107 | median N@FDP_c1% 2180 (1.000x) min rel 1.000
+Astral	ORACLE_4       N   32900 E   175 lower 0.0053 combined 0.0107 | median N@FDP_c1% 2180 (1.000x) min rel 1.000
+Astral	RULE_5         N   32906 E   181 lower 0.0055 combined 0.0110 | median N@FDP_c1% 2180 (1.000x) min rel 1.000
+Astral	ORACLE_5       N   32906 E   181 lower 0.0055 combined 0.0110 | median N@FDP_c1% 2180 (1.000x) min rel 1.000
+Astral	RULE_6         N   32906 E   181 lower 0.0055 combined 0.0110 | median N@FDP_c1% 2180 (1.000x) min rel 1.000
+Astral	ORACLE_6       N   32906 E   181 lower 0.0055 combined 0.0110 | median N@FDP_c1% 2180 (1.000x) min rel 1.000
+Astral	ORACLE_ALLE    N   32712 E     0 lower 0.0000 combined 0.0000 | median N@FDP_c1% 2833 (1.300x) min rel 1.230

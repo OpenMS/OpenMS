@@ -1,0 +1,25 @@
+relabelled as human: 2912
+D_test: r 6.9176; W 12.5 Th, DT 3.0 s, FTOL 15 ppm, DIM 0.05 (library IM yes), QR 0.05
+  D_gbt_s0: accepted 22207 (E 218); share>=4 accepted human 278 E 19; IM-gated human 277 E 19
+D_test	BASE           N   22204 E   217 lower 0.0098 combined 0.0112 | median N@FDP_c1% 21990 (1.000x) min rel 1.000
+D_test	RULE_2         N   21864 E   190 lower 0.0087 combined 0.0099 | median N@FDP_c1% 21873 (0.995x) min rel 0.995
+D_test	ORACLE_2       N   22149 E   168 lower 0.0076 combined 0.0087 | median N@FDP_c1% 22518 (1.024x) min rel 1.024
+D_test	RULE_2_IM      N   21925 E   196 lower 0.0089 combined 0.0102 | median N@FDP_c1% 21877 (0.995x) min rel 0.995
+D_test	ORACLE_2_IM    N   22153 E   172 lower 0.0078 combined 0.0089 | median N@FDP_c1% 22464 (1.022x) min rel 1.022
+D_test	RULE_3         N   22000 E   200 lower 0.0091 combined 0.0104 | median N@FDP_c1% 21886 (0.995x) min rel 0.995
+D_test	ORACLE_3       N   22169 E   188 lower 0.0085 combined 0.0097 | median N@FDP_c1% 22283 (1.013x) min rel 1.013
+D_test	RULE_3_IM      N   22005 E   200 lower 0.0091 combined 0.0104 | median N@FDP_c1% 21891 (0.995x) min rel 0.995
+D_test	ORACLE_3_IM    N   22169 E   188 lower 0.0085 combined 0.0097 | median N@FDP_c1% 22283 (1.013x) min rel 1.013
+D_test	RULE_4         N   21960 E   201 lower 0.0092 combined 0.0105 | median N@FDP_c1% 21815 (0.992x) min rel 0.992
+D_test	ORACLE_4       N   22178 E   197 lower 0.0089 combined 0.0102 | median N@FDP_c1% 22151 (1.007x) min rel 1.007
+D_test	RULE_4_IM      N   21961 E   201 lower 0.0092 combined 0.0105 | median N@FDP_c1% 21816 (0.992x) min rel 0.992
+D_test	ORACLE_4_IM    N   22178 E   197 lower 0.0089 combined 0.0102 | median N@FDP_c1% 22151 (1.007x) min rel 1.007
+D_test	RULE_5         N   22001 E   209 lower 0.0095 combined 0.0109 | median N@FDP_c1% 21823 (0.992x) min rel 0.992
+D_test	ORACLE_5       N   22189 E   208 lower 0.0094 combined 0.0107 | median N@FDP_c1% 22020 (1.001x) min rel 1.001
+D_test	RULE_5_IM      N   22001 E   209 lower 0.0095 combined 0.0109 | median N@FDP_c1% 21823 (0.992x) min rel 0.992
+D_test	ORACLE_5_IM    N   22189 E   208 lower 0.0094 combined 0.0107 | median N@FDP_c1% 22020 (1.001x) min rel 1.001
+D_test	RULE_6         N   22136 E   215 lower 0.0097 combined 0.0111 | median N@FDP_c1% 21929 (0.997x) min rel 0.997
+D_test	ORACLE_6       N   22202 E   215 lower 0.0097 combined 0.0111 | median N@FDP_c1% 21997 (1.000x) min rel 1.000
+D_test	RULE_6_IM      N   22136 E   215 lower 0.0097 combined 0.0111 | median N@FDP_c1% 21929 (0.997x) min rel 0.997
+D_test	ORACLE_6_IM    N   22202 E   215 lower 0.0097 combined 0.0111 | median N@FDP_c1% 21997 (1.000x) min rel 1.000
+D_test	ORACLE_ALLE    N   21980 E     0 lower 0.0000 combined 0.0000 | median N@FDP_c1% 26462 (1.203x) min rel 1.203

@@ -1,0 +1,29 @@
+relabelled as human: 2912
+D: r 6.9176; W 12.5 Th, DT 3.0 s, FTOL 15 ppm, DIM 0.05 (library IM yes), QR 0.05
+  D_gbt_s0: accepted 22207 (E 218); share>=4 accepted human 278 E 19; IM-gated human 277 E 19
+  D_gbt_s1: accepted 21807 (E 214); share>=4 accepted human 273 E 16; IM-gated human 272 E 16
+  D_gbt_s2: accepted 22154 (E 205); share>=4 accepted human 288 E 16; IM-gated human 287 E 16
+  D_gbt_s3: accepted 21734 (E 190); share>=4 accepted human 267 E 14; IM-gated human 266 E 14
+  D_gbt_s4: accepted 22020 (E 208); share>=4 accepted human 280 E 20; IM-gated human 279 E 19
+D	BASE           N  109910 E  1032 lower 0.0094 combined 0.0107 | median N@FDP_c1% 21805 (1.000x) min rel 1.000
+D	RULE_2         N  108525 E   954 lower 0.0088 combined 0.0101 | median N@FDP_c1% 21790 (0.999x) min rel 0.991
+D	ORACLE_2       N  109633 E   817 lower 0.0075 combined 0.0085 | median N@FDP_c1% 22413 (1.028x) min rel 1.018
+D	RULE_2_IM      N  108781 E   972 lower 0.0089 combined 0.0102 | median N@FDP_c1% 21769 (0.998x) min rel 0.989
+D	ORACLE_2_IM    N  109646 E   830 lower 0.0076 combined 0.0087 | median N@FDP_c1% 22357 (1.025x) min rel 1.018
+D	RULE_3         N  109098 E   977 lower 0.0090 combined 0.0102 | median N@FDP_c1% 21850 (1.002x) min rel 0.991
+D	ORACLE_3       N  109722 E   902 lower 0.0082 combined 0.0094 | median N@FDP_c1% 22241 (1.020x) min rel 1.011
+D	RULE_3_IM      N  109156 E   980 lower 0.0090 combined 0.0103 | median N@FDP_c1% 21847 (1.002x) min rel 0.992
+D	ORACLE_3_IM    N  109723 E   903 lower 0.0082 combined 0.0094 | median N@FDP_c1% 22232 (1.020x) min rel 1.009
+D	RULE_4         N  108829 E   976 lower 0.0090 combined 0.0103 | median N@FDP_c1% 21781 (0.999x) min rel 0.992
+D	ORACLE_4       N  109765 E   945 lower 0.0086 combined 0.0099 | median N@FDP_c1% 22100 (1.014x) min rel 1.006
+D	RULE_4_IM      N  108835 E   977 lower 0.0090 combined 0.0103 | median N@FDP_c1% 21777 (0.999x) min rel 0.992
+D	ORACLE_4_IM    N  109766 E   946 lower 0.0086 combined 0.0099 | median N@FDP_c1% 22100 (1.014x) min rel 1.006
+D	RULE_5         N  108891 E   993 lower 0.0091 combined 0.0104 | median N@FDP_c1% 21668 (0.994x) min rel 0.992
+D	ORACLE_5       N  109839 E   992 lower 0.0090 combined 0.0103 | median N@FDP_c1% 21909 (1.005x) min rel 1.001
+D	RULE_5_IM      N  108891 E   993 lower 0.0091 combined 0.0104 | median N@FDP_c1% 21668 (0.994x) min rel 0.992
+D	ORACLE_5_IM    N  109839 E   992 lower 0.0090 combined 0.0103 | median N@FDP_c1% 21909 (1.005x) min rel 1.001
+D	RULE_6         N  109569 E  1019 lower 0.0093 combined 0.0106 | median N@FDP_c1% 21754 (0.998x) min rel 0.997
+D	ORACLE_6       N  109899 E  1021 lower 0.0093 combined 0.0106 | median N@FDP_c1% 21818 (1.001x) min rel 1.000
+D	RULE_6_IM      N  109569 E  1019 lower 0.0093 combined 0.0106 | median N@FDP_c1% 21754 (0.998x) min rel 0.997
+D	ORACLE_6_IM    N  109899 E  1021 lower 0.0093 combined 0.0106 | median N@FDP_c1% 21818 (1.001x) min rel 1.000
+D	ORACLE_ALLE    N  108767 E     0 lower 0.0000 combined 0.0000 | median N@FDP_c1% 26313 (1.207x) min rel 1.194
