@@ -2219,6 +2219,52 @@ START_SECTION(([EXTRA] iBAQ counts the theoretically observable peptides within 
   // no peptide in the range: no iBAQ value (not a division by 0)
   TEST_REAL_SIMILAR(ibaq(7, 30), -1.0);
 
+  // a protein without a sequence has no iBAQ value either: whether its hit has no sequence, it has
+  // no hit, or there are no protein hits at all (e.g. no protein inference results). It is left out
+  // and does not count as quantified - it must not keep its summed abundance under the name iBAQ.
+  auto ibaq_with_hits = [&make_detailed_input](const std::vector<ProteinHit>& hits)
+  {
+    ConsensusMap consensus;
+    ExperimentalDesign design;
+    make_detailed_input({"fileA"},
+                        {{0, "AAAAAK", 2, 100.0},
+                         {0, "CCCCCK", 2, 200.0}},
+                        "Prot", consensus, design);
+    ProteinIdentification proteins;
+    proteins.setHits(hits);
+
+    PeptideAndProteinQuant q;
+    Param p = q.getDefaults();
+    p.setValue("method", "iBAQ");
+    q.setParameters(p);
+    q.readQuantData(consensus, design);
+    q.quantifyPeptides();
+    q.quantifyProteins(proteins);
+    const auto& quant = q.getProteinResults();
+    auto it = quant.find("Prot");
+    const double abundance = (it == quant.end()) ? -1.0 : it->second.fraction_group_abundances.at(1).at(1);
+    return std::make_pair(abundance, q.getStatistics().quant_proteins);
+  };
+  ProteinHit with_sequence, without_sequence, other;
+  with_sequence.setAccession("Prot");
+  with_sequence.setSequence("AAAAAKCCCCCKEEEEEK"); // 3 peptides of 6 aa
+  without_sequence.setAccession("Prot");
+  other.setAccession("Other");
+  other.setSequence("AAAAAKCCCCCKEEEEEK");
+
+  auto result = ibaq_with_hits({with_sequence}); // control
+  TEST_REAL_SIMILAR(result.first, 300.0 / 3)
+  TEST_EQUAL(result.second, 1)
+  result = ibaq_with_hits({without_sequence});
+  TEST_REAL_SIMILAR(result.first, -1.0)
+  TEST_EQUAL(result.second, 0)
+  result = ibaq_with_hits({other}); // no hit for "Prot"
+  TEST_REAL_SIMILAR(result.first, -1.0)
+  TEST_EQUAL(result.second, 0)
+  result = ibaq_with_hits({}); // no protein hits at all
+  TEST_REAL_SIMILAR(result.first, -1.0)
+  TEST_EQUAL(result.second, 0)
+
   // a maximum below the minimum is an error, reported when the parameters are set (before any
   // quantification); 0 is "no limit", not a maximum
   PeptideAndProteinQuant quantifier;

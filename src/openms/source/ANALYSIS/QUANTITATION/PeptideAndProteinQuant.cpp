@@ -1814,56 +1814,71 @@ namespace OpenMS
       prot_quant_.erase(it);
     };
 
-    EnzymaticDigestion digest{};
-    for (auto & hit : proteins.getHits())
+    // Every quantified protein needs its sequence, from its hit in @p proteins. The loop runs over the
+    // results, not over the hits: a protein without a hit (e.g. when no protein inference results were
+    // given at all) must not keep its summed abundance under the name iBAQ.
+    std::unordered_map<std::string, const std::string*> sequence_of; // accession -> sequence
+    for (const auto& hit : proteins.getHits())
     {
-      const std::string & hit_accession = hit.getAccession();
-      const std::string & hit_sequence = hit.getSequence();
+      sequence_of.emplace(hit.getAccession(), &hit.getSequence());
+    }
+    // without any hit, one warning instead of one per protein
+    const bool warn_each_missing_sequence = !sequence_of.empty();
+    if (!warn_each_missing_sequence && !prot_quant_.empty())
+    {
+      OPENMS_LOG_WARN << "iBAQ needs the protein sequences, but no protein hits (e.g. protein inference results) "
+                      << "were given: none of the " << prot_quant_.size() << " proteins can be quantified!" << endl;
+    }
 
-      if (prot_quant_.contains(hit_accession))
+    EnzymaticDigestion digest{};
+    std::vector<std::string> to_remove;
+    for (auto& [accession, pd] : prot_quant_)
+    {
+      const auto seq_it = sequence_of.find(accession);
+      if ((seq_it == sequence_of.end()) || seq_it->second->empty())
       {
-        if (hit_sequence.empty())
+        if (warn_each_missing_sequence)
         {
-          remove_protein(hit_accession);
-          OPENMS_LOG_WARN << "Removed " << hit_accession <<  ", no protein sequence found!" << endl;
+          OPENMS_LOG_WARN << "Removed " << accession << ", no protein sequence found!" << endl;
         }
-        else
+        to_remove.push_back(accession);
+        continue;
+      }
+      std::vector<std::string_view> peptides {};
+      digest.digestUnmodified(*seq_it->second, peptides, min_length, max_length);
+      if (peptides.empty())
+      {
+        // the divisor would be 0: iBAQ is not defined for this protein
+        OPENMS_LOG_WARN << "Removed " << accession << ", its sequence has no theoretically observable peptide "
+                        << "(fully tryptic, length " << min_length << " to "
+                        << (max_length == 0 ? std::string("unlimited") : std::to_string(max_length))
+                        << "; see 'ibaq:min_length' and 'ibaq:max_length')!" << endl;
+        to_remove.push_back(accession);
+        continue;
+      }
+      const double n_theoretical_peptides = double(peptides.size());
+      // the file+channel level abundances are the same quantity at a finer
+      // granularity, so they need the same normalization
+      for (auto& file_entry : pd.channel_level_abundances)
+      {
+        for (auto& channel_entry : file_entry.second)
         {
-          std::vector<std::string_view> peptides {};
-          digest.digestUnmodified(hit_sequence, peptides, min_length, max_length);
-          if (peptides.empty())
-          {
-            // the divisor would be 0: iBAQ is not defined for this protein
-            remove_protein(hit_accession);
-            OPENMS_LOG_WARN << "Removed " << hit_accession << ", its sequence has no theoretically observable peptide "
-                            << "(fully tryptic, length " << min_length << " to "
-                            << (max_length == 0 ? std::string("unlimited") : std::to_string(max_length))
-                            << "; see 'ibaq:min_length' and 'ibaq:max_length')!" << endl;
-            continue;
-          }
-          const double n_theoretical_peptides = double(peptides.size());
-          ProteinData& pd = prot_quant_[hit_accession];
-          // the file+channel level abundances are the same quantity at a finer
-          // granularity, so they need the same normalization
-          for (auto& file_entry : pd.channel_level_abundances)
-          {
-            for (auto& channel_entry : file_entry.second)
-            {
-              channel_entry.second /= n_theoretical_peptides;
-            }
-          }
-          for (auto& [fraction_group, label_abundances] :
-               prot_quant_[hit_accession].fraction_group_abundances)
-          {
-            (void)fraction_group;
-            for (auto& [label, abundance] : label_abundances)
-            {
-              (void)label;
-              abundance /= n_theoretical_peptides;
-            }
-          }
+          channel_entry.second /= n_theoretical_peptides;
         }
       }
+      for (auto& [fraction_group, label_abundances] : pd.fraction_group_abundances)
+      {
+        (void)fraction_group;
+        for (auto& [label, abundance] : label_abundances)
+        {
+          (void)label;
+          abundance /= n_theoretical_peptides;
+        }
+      }
+    }
+    for (const std::string& accession : to_remove)
+    {
+      remove_protein(accession);
     }
   }
 }
