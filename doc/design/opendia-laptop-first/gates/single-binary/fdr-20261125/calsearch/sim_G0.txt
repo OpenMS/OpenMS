@@ -1,0 +1,22 @@
+raw01_s0 cuts {'d_lib': 0.0, 'd_max': 0.9764, 'i_nclaim': 4.8331, 'i_explained': 0.7996, 'f12_extra_share': -0.1669}
+raw01_s1 cuts {'d_lib': 0.0403, 'd_max': 1.0246, 'i_nclaim': 4.813, 'i_explained': 0.7956, 'f12_extra_share': -0.1912}
+raw01_s2 cuts {'d_lib': 0.0857, 'd_max': 1.0649, 'i_nclaim': 4.8903, 'i_explained': 0.802, 'f12_extra_share': -0.1643}
+raw01_s3 cuts {'d_lib': 0.1418, 'd_max': 1.114, 'i_nclaim': 4.8203, 'i_explained': 0.8436, 'f12_extra_share': -0.147}
+raw01_s4 cuts {'d_lib': 0.2899, 'd_max': 1.4493, 'i_nclaim': 4.9127, 'i_explained': 0.7551, 'f12_extra_share': -0.1228}
+raw02_s0 cuts {'d_lib': 0.1464, 'd_max': 1.1838, 'i_nclaim': 4.8903, 'i_explained': 0.8524, 'f12_extra_share': -0.1614}
+raw02_s1 cuts {'d_lib': 0.1219, 'd_max': 1.1777, 'i_nclaim': 4.8828, 'i_explained': 0.7811, 'f12_extra_share': -0.1885}
+raw02_s2 cuts {'d_lib': 0.0559, 'd_max': 1.0549, 'i_nclaim': 4.8675, 'i_explained': 0.7545, 'f12_extra_share': -0.2288}
+raw02_s3 cuts {'d_lib': 0.1057, 'd_max': 1.1338, 'i_nclaim': 4.804, 'i_explained': 0.8209, 'f12_extra_share': -0.1691}
+raw02_s4 cuts {'d_lib': 0.0591, 'd_max': 1.0568, 'i_nclaim': 4.8986, 'i_explained': 0.7872, 'f12_extra_share': -0.2356}
+== G0: pooled over 10 runs (r = 1.0000); combined = E(1+1/r)/N at own q <= 0.01
+G0	R0                   N  21487 E  121 combined 0.0113 worst 0.0162 | N@FDP_c1% sum  20871 (1.000x) median 2138 runs>=R0 10/10
+G0	GATE_0.01            N  20563 E   86 combined 0.0084 worst 0.0121 | N@FDP_c1% sum  20990 (1.006x) median 2100 runs>=R0 7/10
+G0	GATE_0.02            N  21216 E  105 combined 0.0099 worst 0.0136 | N@FDP_c1% sum  21373 (1.024x) median 2108 runs>=R0 6/10
+G0	GATE_0.05            N  21617 E  126 combined 0.0117 worst 0.0190 | N@FDP_c1% sum  21266 (1.019x) median 2140 runs>=R0 7/10
+G0	GATE_0.1             N  21506 E  124 combined 0.0115 worst 0.0162 | N@FDP_c1% sum  21103 (1.011x) median 2134 runs>=R0 2/10
+G0	GRP_d_lib            N  21158 E  101 combined 0.0095 worst 0.0138 | N@FDP_c1% sum  21366 (1.024x) median 2126 runs>=R0 6/10
+G0	GRP_d_max            N  21115 E   99 combined 0.0094 worst 0.0136 | N@FDP_c1% sum  21433 (1.027x) median 2144 runs>=R0 7/10
+G0	GRP_i_nclaim         N  20939 E   97 combined 0.0093 worst 0.0147 | N@FDP_c1% sum  21107 (1.011x) median 2125 runs>=R0 6/10
+G0	GRP_i_explained      N  20820 E  110 combined 0.0106 worst 0.0158 | N@FDP_c1% sum  20841 (0.999x) median 2094 runs>=R0 2/10
+G0	GRP_f12_extra_share  N  20840 E  116 combined 0.0111 worst 0.0160 | N@FDP_c1% sum  20431 (0.979x) median 2088 runs>=R0 3/10
+G0	GRP_ANY              N  20761 E   98 combined 0.0094 worst 0.0151 | N@FDP_c1% sum  21438 (1.027x) median 2156 runs>=R0 8/10

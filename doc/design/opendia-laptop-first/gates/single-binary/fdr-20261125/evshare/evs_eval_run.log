@@ -1,0 +1,91 @@
+raw03_G0_s0.log:exit 0
+raw03_G0_s0.log:GATE SAME LFQ_Astral_DIA_15min_50ng_Human_03.calibration.json
+raw03_G0_s0.log:GATE SAME LFQ_Astral_DIA_15min_50ng_Human_03.precursors.tsv
+raw03_G0_s0.log:GATE SAME precursors.tsv
+D_G0_s0.log:exit 0
+D_G0_s0.log:GATE SAME 20200505_Evosep_200SPD_SG06-16_MLHeLa_200ng_py8_S3-A1_1_2737.calibration.json
+D_G0_s0.log:GATE SAME 20200505_Evosep_200SPD_SG06-16_MLHeLa_200ng_py8_S3-A1_1_2737.precursors.tsv
+D_G0_s0.log:GATE SAME precursors.tsv
+H_G0_s0.log:exit 0
+H_G0_s0.log:GATE SAME 20201207_tims03_Evo03_PS_SA_HeLa_200ng_EvoSep_prot_high_speed_21min_8cm_S1-C8_1_22474.calibration.json
+H_G0_s0.log:GATE SAME 20201207_tims03_Evo03_PS_SA_HeLa_200ng_EvoSep_prot_high_speed_21min_8cm_S1-C8_1_22474.precursors.tsv
+H_G0_s0.log:GATE SAME precursors.tsv
+gate same 9 diff 0
+remote tables: 40 (expect 50)
+MISSING N1_G0_s0 (N = 0)
+MISSING N1_A_s0 (N = 0)
+MISSING N1_G0_s1 (N = 0)
+MISSING N1_A_s1 (N = 0)
+MISSING N1_G0_s2 (N = 0)
+MISSING N1_A_s2 (N = 0)
+MISSING N1_G0_s3 (N = 0)
+MISSING N1_A_s3 (N = 0)
+MISSING N1_G0_s4 (N = 0)
+MISSING N1_A_s4 (N = 0)
+759ebe69836bd5ef841a11beacee6ecf68926ca5ea28dc8b36065f2469b12621  /home/singjc/Documents/github/OpenMS-wp00-design-docs/doc/design/opendia-laptop-first/gates/single-binary/fdr-20261125/stepA/eval_pdec_relabel.py
+f85096fade632e8a5a7f5adb223cb831ee44b4647e73abecf07d64266709f8a5  /home/singjc/Documents/github/OpenMS-wp00-design-docs/doc/design/opendia-laptop-first/gates/single-binary/fdr-20261125/stepA/eval_pdec_instr.py
+72977c6686a1b1cae0ecafad0426ae9abf524013503e353217054074fa48bbe9  /home/singjc/Documents/github/OpenMS-wp00-design-docs/doc/design/opendia-laptop-first/gates/single-binary/fdr-20261125/stepA/label_audit_astral.tsv
+66411e6d0dcfcc7ca55deaa51c20ace14c4b5aea184e69bb020f59cdb3b25ef0  /home/singjc/Documents/github/OpenMS-wp00-design-docs/doc/design/opendia-laptop-first/gates/single-binary/fdr-20261125/stepA/label_audit_hela.tsv
+d9e3fbe045dad14a321a540519b9334fcd35b4553e1f830552f719f8922f5c4b  /home/singjc/Documents/github/OpenMS-r1-benchmark-20261107/gap-20261114/armE_raw01/library.pqp
+76f2a6c22277eaf464a301b446e97b0fd909fbf6b26d79736b1b0337c304f15c  /home/singjc/.jcode/scratch/blend-20261125/eval/hela_r5.predicted_decoys.pqp
+== PRIMARY (relabel)
+== raw03
+relabelled entrapment precursors as human: 472
+library: target precursors 302479, r = 0.9938, targets with a paired decoy 300942 (0.9949)
+arm  seed  N_q01  E_q01  lower  combined  N_at_FDPc1
+  A     0   2215     14 0.0063    0.0127        2128
+  A     1   2151      9 0.0042    0.0084        2258
+  A     2   2314     16 0.0069    0.0139        2273
+  A     3   2178      9 0.0041    0.0083        2353
+  A     4   1456     13 0.0089    0.0179         692
+ G0     0   2343     17 0.0073    0.0146        2222
+ G0     1   2300     16 0.0070    0.0140        2246
+ G0     2   2275     15 0.0066    0.0132        2160
+ G0     3   2261     12 0.0053    0.0106        2252
+ G0     4   2268      9 0.0040    0.0080        2338
+A: pooled q<=0.01 lower 0.0059 (90 % 0.0047-0.0073), combined 0.0119 (90 % 0.0095-0.0147); E 61, N 10314; median N@FDP_c 1 % 2258 (692-2353); P(entrapment beats own decoy | best q<=0.05) 0.463 (n 717, 90 % +-0.031)
+G0: pooled q<=0.01 lower 0.0060 (90 % 0.0049-0.0074), combined 0.0121 (90 % 0.0098-0.0148); E 69, N 11447; median N@FDP_c 1 % 2246 (2160-2338); P(entrapment beats own decoy | best q<=0.05) 0.469 (n 706, 90 % +-0.031)
+== D
+relabelled entrapment precursors as human: 2912
+library: target precursors 1390163, r = 6.9176, targets with a paired decoy 1388026 (0.9985)
+arm  seed  N_q01  E_q01  lower  combined  N_at_FDPc1
+  A     0  22081    178 0.0081    0.0092       22270
+  A     1  22279    198 0.0089    0.0102       22226
+  A     2  22392    202 0.0090    0.0103       22332
+  A     3  22482    215 0.0096    0.0109       22278
+  A     4  22441    218 0.0097    0.0111       22164
+ G0     0  22204    217 0.0098    0.0112       21990
+ G0     1  21804    214 0.0098    0.0112       21541
+ G0     2  22153    205 0.0093    0.0106       22009
+ G0     3  21732    189 0.0087    0.0100       21776
+ G0     4  22017    207 0.0094    0.0108       21805
+A: pooled q<=0.01 lower 0.0091 (90 % 0.0086-0.0095), combined 0.0104 (90 % 0.0098-0.0109); E 1011, N 111675; median N@FDP_c 1 % 22270 (22164-22332); P(entrapment beats own decoy | best q<=0.05) 0.531 (n 12140, 90 % +-0.007)
+G0: pooled q<=0.01 lower 0.0094 (90 % 0.0089-0.0099), combined 0.0107 (90 % 0.0102-0.0113); E 1032, N 109910; median N@FDP_c 1 % 21805 (21541-22009); P(entrapment beats own decoy | best q<=0.05) 0.536 (n 12185, 90 % +-0.007)
+== H
+relabelled entrapment precursors as human: 2912
+library: target precursors 1390163, r = 6.9176, targets with a paired decoy 1388026 (0.9985)
+arm  seed  N_q01  E_q01  lower  combined  N_at_FDPc1
+  A     0  38511    417 0.0108    0.0124       38031
+  A     1  38563    441 0.0114    0.0131       37889
+  A     2  38617    424 0.0110    0.0126       38045
+  A     3  38466    415 0.0108    0.0123       37950
+  A     4  38555    417 0.0108    0.0124       38093
+ G0     0  38507    432 0.0112    0.0128       37928
+ G0     1  38359    404 0.0105    0.0121       37876
+ G0     2  38462    434 0.0113    0.0129       37897
+ G0     3  38531    437 0.0113    0.0130       37959
+ G0     4  38380    437 0.0114    0.0130       37719
+A: pooled q<=0.01 lower 0.0110 (90 % 0.0106-0.0114), combined 0.0126 (90 % 0.0121-0.0130); E 2114, N 192712; median N@FDP_c 1 % 38031 (37889-38093); P(entrapment beats own decoy | best q<=0.05) 0.532 (n 19633, 90 % +-0.006)
+G0: pooled q<=0.01 lower 0.0112 (90 % 0.0108-0.0116), combined 0.0128 (90 % 0.0123-0.0132); E 2144, N 192239; median N@FDP_c 1 % 37897 (37719-37959); P(entrapment beats own decoy | best q<=0.05) 0.533 (n 19635, 90 % +-0.006)
+== N1
+relabelled entrapment precursors as human: 2912
+library: target precursors 1390163, r = 6.9176, targets with a paired decoy 1388026 (0.9985)
+Traceback (most recent call last):
+  File "/home/singjc/Documents/github/OpenMS-wp00-design-docs/doc/design/opendia-laptop-first/gates/single-binary/fdr-20261125/stepA/eval_pdec_relabel.py", line 45, in <module>
+    df = pd.DataFrame(rows).sort_values(['arm', 'seed']); pw = pd.DataFrame(pw)
+  File "/home/singjc/Documents/github/pyprophet/.venv/lib/python3.13/site-packages/pandas/core/frame.py", line 7172, in sort_values
+    keys = [self._get_label_or_level_values(x, axis=axis) for x in by]
+            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^
+  File "/home/singjc/Documents/github/pyprophet/.venv/lib/python3.13/site-packages/pandas/core/generic.py", line 1911, in _get_label_or_level_values
+    raise KeyError(key)
+KeyError: 'arm'

@@ -1,0 +1,22 @@
+relabelled as human: 2912
+== HeLa_H (2 runs, r = 6.9176)
+HeLa_H	R0               N  76866 E  836 combined 0.0124 runs>1% 2 | N1 sum  75804 1.000x median 37902 rel min 1.000 runs>=R0 2/2
+HeLa_H	d_lib@0.75       N  76821 E  833 combined 0.0124 runs>1% 2 | N1 sum  75763 0.999x median 37882 rel min 0.999 runs>=R0 0/2
+HeLa_H	d_max@0.75       N  76757 E  817 combined 0.0122 runs>1% 2 | N1 sum  75749 0.999x median 37874 rel min 0.999 runs>=R0 0/2
+HeLa_H	i_nclaim@0.75    N  76817 E  827 combined 0.0123 runs>1% 2 | N1 sum  75807 1.000x median 37904 rel min 0.999 runs>=R0 1/2
+HeLa_H	ANY@0.75         N  76827 E  832 combined 0.0124 runs>1% 2 | N1 sum  75696 0.999x median 37848 rel min 0.997 runs>=R0 0/2
+HeLa_H	d_lib@0.8        N  76821 E  833 combined 0.0124 runs>1% 2 | N1 sum  75763 0.999x median 37882 rel min 0.999 runs>=R0 0/2
+HeLa_H	d_max@0.8        N  76765 E  826 combined 0.0123 runs>1% 2 | N1 sum  75816 1.000x median 37908 rel min 1.000 runs>=R0 1/2
+HeLa_H	i_nclaim@0.8     N  76761 E  821 combined 0.0122 runs>1% 2 | N1 sum  75768 1.000x median 37884 rel min 0.998 runs>=R0 1/2
+HeLa_H	ANY@0.8          N  76764 E  830 combined 0.0124 runs>1% 2 | N1 sum  75658 0.998x median 37829 rel min 0.998 runs>=R0 0/2
+HeLa_H	d_lib@0.9        N  76821 E  833 combined 0.0124 runs>1% 2 | N1 sum  75763 0.999x median 37882 rel min 0.999 runs>=R0 0/2
+HeLa_H	d_max@0.9        N  76886 E  839 combined 0.0125 runs>1% 2 | N1 sum  75797 1.000x median 37898 rel min 1.000 runs>=R0 1/2
+HeLa_H	i_nclaim@0.9     N  76754 E  819 combined 0.0122 runs>1% 2 | N1 sum  75888 1.001x median 37944 rel min 1.001 runs>=R0 2/2
+HeLa_H	ANY@0.9          N  76804 E  814 combined 0.0121 runs>1% 2 | N1 sum  75897 1.001x median 37948 rel min 1.001 runs>=R0 2/2
+HeLa_H	d_lib@0.95       N  76821 E  833 combined 0.0124 runs>1% 2 | N1 sum  75763 0.999x median 37882 rel min 0.999 runs>=R0 0/2
+HeLa_H	d_max@0.95       N  76893 E  835 combined 0.0124 runs>1% 2 | N1 sum  75807 1.000x median 37904 rel min 1.000 runs>=R0 1/2
+HeLa_H	i_nclaim@0.95    N  76757 E  818 combined 0.0122 runs>1% 2 | N1 sum  75834 1.000x median 37917 rel min 1.000 runs>=R0 2/2
+HeLa_H	ANY@0.95         N  76779 E  815 combined 0.0121 runs>1% 2 | N1 sum  75911 1.001x median 37956 rel min 1.001 runs>=R0 2/2
+HeLa_H	d_lib@3g         N  76821 E  833 combined 0.0124 runs>1% 2 | N1 sum  75763 0.999x median 37882 rel min 0.999 runs>=R0 0/2
+HeLa_H	d_max@3g         N  76742 E  817 combined 0.0122 runs>1% 2 | N1 sum  75704 0.999x median 37852 rel min 0.998 runs>=R0 0/2
+HeLa_H	i_nclaim@3g      N  76760 E  824 combined 0.0123 runs>1% 2 | N1 sum  75819 1.000x median 37910 rel min 1.000 runs>=R0 1/2

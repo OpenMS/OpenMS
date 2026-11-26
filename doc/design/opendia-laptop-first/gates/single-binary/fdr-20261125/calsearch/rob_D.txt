@@ -1,0 +1,22 @@
+relabelled as human: 2912
+== HeLa_D (2 runs, r = 6.9176)
+HeLa_D	R0               N  44008 E  431 combined 0.0112 runs>1% 2 | N1 sum  43531 1.000x median 21766 rel min 1.000 runs>=R0 2/2
+HeLa_D	d_lib@0.75       N  44011 E  433 combined 0.0113 runs>1% 2 | N1 sum  43497 0.999x median 21748 rel min 0.999 runs>=R0 0/2
+HeLa_D	d_max@0.75       N  44015 E  417 combined 0.0108 runs>1% 2 | N1 sum  43521 1.000x median 21760 rel min 1.000 runs>=R0 0/2
+HeLa_D	i_nclaim@0.75    N  44183 E  416 combined 0.0108 runs>1% 2 | N1 sum  43880 1.008x median 21940 rel min 1.006 runs>=R0 2/2
+HeLa_D	ANY@0.75         N  44158 E  410 combined 0.0106 runs>1% 2 | N1 sum  43942 1.009x median 21971 rel min 1.008 runs>=R0 2/2
+HeLa_D	d_lib@0.8        N  44011 E  433 combined 0.0113 runs>1% 2 | N1 sum  43497 0.999x median 21748 rel min 0.999 runs>=R0 0/2
+HeLa_D	d_max@0.8        N  44064 E  423 combined 0.0110 runs>1% 2 | N1 sum  43429 0.998x median 21714 rel min 0.997 runs>=R0 0/2
+HeLa_D	i_nclaim@0.8     N  44186 E  421 combined 0.0109 runs>1% 2 | N1 sum  43756 1.005x median 21878 rel min 1.003 runs>=R0 2/2
+HeLa_D	ANY@0.8          N  44201 E  418 combined 0.0108 runs>1% 2 | N1 sum  43871 1.008x median 21936 rel min 1.007 runs>=R0 2/2
+HeLa_D	d_lib@0.9        N  44011 E  433 combined 0.0113 runs>1% 2 | N1 sum  43497 0.999x median 21748 rel min 0.999 runs>=R0 0/2
+HeLa_D	d_max@0.9        N  44054 E  422 combined 0.0110 runs>1% 2 | N1 sum  43538 1.000x median 21769 rel min 1.000 runs>=R0 1/2
+HeLa_D	i_nclaim@0.9     N  43928 E  412 combined 0.0107 runs>1% 2 | N1 sum  43457 0.998x median 21728 rel min 0.997 runs>=R0 0/2
+HeLa_D	ANY@0.9          N  44168 E  428 combined 0.0111 runs>1% 2 | N1 sum  43598 1.002x median 21799 rel min 1.001 runs>=R0 2/2
+HeLa_D	d_lib@0.95       N  44011 E  433 combined 0.0113 runs>1% 2 | N1 sum  43497 0.999x median 21748 rel min 0.999 runs>=R0 0/2
+HeLa_D	d_max@0.95       N  44026 E  428 combined 0.0111 runs>1% 2 | N1 sum  43531 1.000x median 21766 rel min 0.999 runs>=R0 1/2
+HeLa_D	i_nclaim@0.95    N  43972 E  421 combined 0.0110 runs>1% 2 | N1 sum  43563 1.001x median 21782 rel min 1.000 runs>=R0 1/2
+HeLa_D	ANY@0.95         N  43962 E  410 combined 0.0107 runs>1% 2 | N1 sum  43600 1.002x median 21800 rel min 1.001 runs>=R0 2/2
+HeLa_D	d_lib@3g         N  44011 E  433 combined 0.0113 runs>1% 2 | N1 sum  43497 0.999x median 21748 rel min 0.999 runs>=R0 0/2
+HeLa_D	d_max@3g         N  43965 E  414 combined 0.0108 runs>1% 2 | N1 sum  43479 0.999x median 21740 rel min 0.998 runs>=R0 0/2
+HeLa_D	i_nclaim@3g      N  44156 E  412 combined 0.0107 runs>1% 2 | N1 sum  43856 1.007x median 21928 rel min 1.007 runs>=R0 2/2

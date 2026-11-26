@@ -1,0 +1,23 @@
+A_raw01_s0 cuts {'d_lib': 0.0977, 'd_max': 1.0835, 'i_nclaim': 4.8203, 'i_explained': 0.7853, 'f12_extra_share': -0.1559, 'e_nclaim': 0.0}
+A_raw01_s1 cuts {'d_lib': 0.058, 'd_max': 1.0336, 'i_nclaim': 4.8363, 'i_explained': 0.7907, 'f12_extra_share': -0.1975, 'e_nclaim': 0.0}
+A_raw01_s2 cuts {'d_lib': 0.0864, 'd_max': 1.0817, 'i_nclaim': 4.852, 'i_explained': 0.8187, 'f12_extra_share': -0.1312, 'e_nclaim': 0.0}
+A_raw01_s3 cuts {'d_lib': 0.0572, 'd_max': 1.0351, 'i_nclaim': 4.8797, 'i_explained': 0.8032, 'f12_extra_share': -0.1929, 'e_nclaim': 0.0}
+A_raw01_s4 cuts {'d_lib': 0.0801, 'd_max': 1.0586, 'i_nclaim': 4.8978, 'i_explained': 0.8028, 'f12_extra_share': -0.152, 'e_nclaim': 0.0}
+A_raw02_s0 cuts {'d_lib': 0.119, 'd_max': 1.1724, 'i_nclaim': 4.8536, 'i_explained': 0.7994, 'f12_extra_share': -0.1854, 'e_nclaim': 0.0}
+A_raw02_s1 cuts {'d_lib': 0.1052, 'd_max': 1.1169, 'i_nclaim': 4.8122, 'i_explained': 0.7691, 'f12_extra_share': -0.1739, 'e_nclaim': 0.0}
+A_raw02_s2 cuts {'d_lib': 0.1864, 'd_max': 1.2827, 'i_nclaim': 4.9141, 'i_explained': 0.7831, 'f12_extra_share': -0.1632, 'e_nclaim': 0.0}
+A_raw02_s3 cuts {'d_lib': 0.1183, 'd_max': 1.1342, 'i_nclaim': 4.8283, 'i_explained': 0.7585, 'f12_extra_share': -0.1924, 'e_nclaim': 0.0}
+A_raw02_s4 cuts {'d_lib': 0.057, 'd_max': 1.0722, 'i_nclaim': 4.8299, 'i_explained': 0.7228, 'f12_extra_share': -0.2058, 'e_nclaim': 0.0}
+== A: pooled over 10 runs (r = 1.0000); combined = E(1+1/r)/N at own q <= 0.01
+A	R0                   N  22140 E  124 combined 0.0112 worst 0.0146 | N@FDP_c1% sum  21603 (1.000x) median 2138 runs>=R0 10/10
+A	GATE_0.01            N  20926 E   96 combined 0.0092 worst 0.0119 | N@FDP_c1% sum  21201 (0.981x) median 2137 runs>=R0 5/10
+A	GATE_0.02            N  21665 E  124 combined 0.0114 worst 0.0169 | N@FDP_c1% sum  21690 (1.004x) median 2156 runs>=R0 5/10
+A	GATE_0.05            N  22163 E  131 combined 0.0118 worst 0.0197 | N@FDP_c1% sum  21634 (1.001x) median 2140 runs>=R0 4/10
+A	GATE_0.1             N  22203 E  132 combined 0.0119 worst 0.0186 | N@FDP_c1% sum  21453 (0.993x) median 2122 runs>=R0 1/10
+A	GRP_d_lib            N  21647 E   97 combined 0.0090 worst 0.0108 | N@FDP_c1% sum  21876 (1.013x) median 2202 runs>=R0 5/10
+A	GRP_d_max            N  21808 E  107 combined 0.0098 worst 0.0138 | N@FDP_c1% sum  22085 (1.022x) median 2208 runs>=R0 8/10
+A	GRP_i_nclaim         N  21490 E  104 combined 0.0097 worst 0.0126 | N@FDP_c1% sum  21901 (1.014x) median 2205 runs>=R0 7/10
+A	GRP_i_explained      N  21446 E  114 combined 0.0106 worst 0.0133 | N@FDP_c1% sum  21346 (0.988x) median 2142 runs>=R0 3/10
+A	GRP_f12_extra_share  N  21494 E  120 combined 0.0112 worst 0.0146 | N@FDP_c1% sum  20826 (0.964x) median 2066 runs>=R0 1/10
+A	GRP_e_nclaim         N  21586 E  119 combined 0.0110 worst 0.0140 | N@FDP_c1% sum  21011 (0.973x) median 2080 runs>=R0 0/10
+A	GRP_ANY              N  21819 E  113 combined 0.0104 worst 0.0128 | N@FDP_c1% sum  21972 (1.017x) median 2194 runs>=R0 7/10

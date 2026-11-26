@@ -1,0 +1,21 @@
+== G0 (10 runs, r = 1.0000)
+G0	R0               N  21487 E  121 combined 0.0113 runs>1% 6 | N1 sum  20871 1.000x median 2138 rel min 1.000 runs>=R0 10/10
+G0	d_lib@0.75       N  21031 E  104 combined 0.0099 runs>1% 5 | N1 sum  21123 1.012x median 2106 rel min 0.970 runs>=R0 6/10
+G0	d_max@0.75       N  20506 E   92 combined 0.0090 runs>1% 3 | N1 sum  21091 1.011x median 2142 rel min 0.889 runs>=R0 7/10
+G0	i_nclaim@0.75    N  20509 E  105 combined 0.0102 runs>1% 4 | N1 sum  21115 1.012x median 2085 rel min 0.892 runs>=R0 6/10
+G0	ANY@0.75         N  20814 E  100 combined 0.0096 runs>1% 4 | N1 sum  21670 1.038x median 2187 rel min 0.991 runs>=R0 8/10
+G0	d_lib@0.8        N  21092 E  104 combined 0.0099 runs>1% 5 | N1 sum  21163 1.014x median 2126 rel min 0.970 runs>=R0 6/10
+G0	d_max@0.8        N  20443 E   93 combined 0.0091 runs>1% 3 | N1 sum  21103 1.011x median 2146 rel min 0.911 runs>=R0 7/10
+G0	i_nclaim@0.8     N  20651 E  107 combined 0.0104 runs>1% 4 | N1 sum  21302 1.021x median 2182 rel min 0.929 runs>=R0 7/10
+G0	ANY@0.8          N  20896 E  108 combined 0.0103 runs>1% 4 | N1 sum  21372 1.024x median 2194 rel min 0.904 runs>=R0 8/10
+G0	d_lib@0.9        N  21158 E  101 combined 0.0095 runs>1% 4 | N1 sum  21366 1.024x median 2126 rel min 0.976 runs>=R0 6/10
+G0	d_max@0.9        N  21115 E   99 combined 0.0094 runs>1% 5 | N1 sum  21433 1.027x median 2144 rel min 0.971 runs>=R0 7/10
+G0	i_nclaim@0.9     N  20939 E   97 combined 0.0093 runs>1% 3 | N1 sum  21107 1.011x median 2125 rel min 0.957 runs>=R0 6/10
+G0	ANY@0.9          N  20761 E   98 combined 0.0094 runs>1% 4 | N1 sum  21438 1.027x median 2156 rel min 0.929 runs>=R0 8/10
+G0	d_lib@0.95       N  21182 E   98 combined 0.0093 runs>1% 3 | N1 sum  21307 1.021x median 2148 rel min 0.987 runs>=R0 4/10
+G0	d_max@0.95       N  21265 E  107 combined 0.0101 runs>1% 5 | N1 sum  21193 1.015x median 2140 rel min 0.981 runs>=R0 5/10
+G0	i_nclaim@0.95    N  21169 E  106 combined 0.0100 runs>1% 3 | N1 sum  21180 1.015x median 2128 rel min 0.981 runs>=R0 6/10
+G0	ANY@0.95         N  21076 E  105 combined 0.0100 runs>1% 5 | N1 sum  21385 1.025x median 2144 rel min 0.982 runs>=R0 6/10
+G0	d_lib@3g         N  20487 E   91 combined 0.0089 runs>1% 4 | N1 sum  20851 0.999x median 2082 rel min 0.950 runs>=R0 4/10
+G0	d_max@3g         N  20281 E   89 combined 0.0088 runs>1% 3 | N1 sum  20909 1.002x median 2121 rel min 0.889 runs>=R0 6/10
+G0	i_nclaim@3g      N  19953 E   97 combined 0.0097 runs>1% 4 | N1 sum  20448 0.980x median 2050 rel min 0.862 runs>=R0 4/10

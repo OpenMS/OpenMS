@@ -1,0 +1,13 @@
+raw03_G0_s0.log:exit 0
+raw03_G0_s0.log:GATE SAME LFQ_Astral_DIA_15min_50ng_Human_03.calibration.json
+raw03_G0_s0.log:GATE SAME LFQ_Astral_DIA_15min_50ng_Human_03.precursors.tsv
+raw03_G0_s0.log:GATE SAME precursors.tsv
+D_G0_s0.log:exit 0
+D_G0_s0.log:GATE SAME 20200505_Evosep_200SPD_SG06-16_MLHeLa_200ng_py8_S3-A1_1_2737.calibration.json
+D_G0_s0.log:GATE SAME 20200505_Evosep_200SPD_SG06-16_MLHeLa_200ng_py8_S3-A1_1_2737.precursors.tsv
+D_G0_s0.log:GATE SAME precursors.tsv
+H_G0_s0.log:exit 0
+H_G0_s0.log:GATE SAME 20201207_tims03_Evo03_PS_SA_HeLa_200ng_EvoSep_prot_high_speed_21min_8cm_S1-C8_1_22474.calibration.json
+H_G0_s0.log:GATE SAME 20201207_tims03_Evo03_PS_SA_HeLa_200ng_EvoSep_prot_high_speed_21min_8cm_S1-C8_1_22474.precursors.tsv
+H_G0_s0.log:GATE SAME precursors.tsv
+gate same 9 diff 0

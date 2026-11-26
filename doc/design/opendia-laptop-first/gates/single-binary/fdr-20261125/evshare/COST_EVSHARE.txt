@@ -1,0 +1,38 @@
+D_A_s0.log node hl-codon-cn-105.ebi.ac.uk cpu AMD EPYC 9555 64-Core Processor flags -evidence_share 15:40.19 31013120 exit 0
+D_A_s1.log node hl-codon-cn-106.ebi.ac.uk cpu AMD EPYC 9555 64-Core Processor flags -evidence_share 16:14.02 31035112 exit 0
+D_A_s2.log node hl-codon-cn-108.ebi.ac.uk cpu AMD EPYC 9555 64-Core Processor flags -evidence_share 15:54.42 31134956 exit 0
+D_A_s3.log node hl-codon-cn-052.ebi.ac.uk cpu AMD EPYC 9555 64-Core Processor flags -evidence_share 16:42.50 31213184 exit 0
+D_A_s4.log node hl-codon-cn-054.ebi.ac.uk cpu AMD EPYC 9555 64-Core Processor flags -evidence_share 15:30.20 30812960 exit 0
+D_G0_s0.log node hl-codon-cn-033.ebi.ac.uk cpu AMD EPYC 9555 64-Core Processor flags 17:39.79 31637740 exit 0
+H_A_s0.log node hl-codon-cn-070.ebi.ac.uk cpu AMD EPYC 9555 64-Core Processor flags -evidence_share 22:17.69 23264704 exit 0
+H_A_s1.log node hl-codon-cn-072.ebi.ac.uk cpu AMD EPYC 9555 64-Core Processor flags -evidence_share 22:34.66 22810880 exit 0
+H_A_s2.log node hl-codon-cn-073.ebi.ac.uk cpu AMD EPYC 9555 64-Core Processor flags -evidence_share 20:14.20 23573740 exit 0
+H_A_s3.log node hl-codon-cn-075.ebi.ac.uk cpu AMD EPYC 9555 64-Core Processor flags -evidence_share 19:32.89 23182948 exit 0
+H_A_s4.log node hl-codon-cn-077.ebi.ac.uk cpu AMD EPYC 9555 64-Core Processor flags -evidence_share 20:33.22 23105604 exit 0
+H_G0_s0.log node hl-codon-cn-100.ebi.ac.uk cpu AMD EPYC 9555 64-Core Processor flags 19:07.39 23918060 exit 0
+N1_A_s0.log node hl-codon-cn-079.ebi.ac.uk cpu AMD EPYC 9555 64-Core Processor flags -evidence_share 0:32.69 5656744 exit 8
+N1_A_s1.log node hl-codon-cn-079.ebi.ac.uk cpu AMD EPYC 9555 64-Core Processor flags -evidence_share 0:32.80 5324180 exit 8
+N1_A_s2.log node hl-codon-cn-079.ebi.ac.uk cpu AMD EPYC 9555 64-Core Processor flags -evidence_share 0:31.81 5321100 exit 8
+N1_A_s3.log node hl-codon-cn-080.ebi.ac.uk cpu AMD EPYC 9555 64-Core Processor flags -evidence_share 0:32.66 5326016 exit 8
+N1_A_s4.log node hl-codon-cn-081.ebi.ac.uk cpu AMD EPYC 9555 64-Core Processor flags -evidence_share 0:32.13 5486680 exit 8
+N1_G0_s0.log node hl-codon-cn-086.ebi.ac.uk cpu AMD EPYC 9555 64-Core Processor flags 0:32.64 5322596 exit 8
+N1_G0_s1.log node hl-codon-cn-087.ebi.ac.uk cpu AMD EPYC 9555 64-Core Processor flags 0:32.14 5383912 exit 8
+N1_G0_s2.log node hl-codon-cn-088.ebi.ac.uk cpu AMD EPYC 9555 64-Core Processor flags 0:32.45 5323496 exit 8
+N1_G0_s3.log node hl-codon-cn-088.ebi.ac.uk cpu AMD EPYC 9555 64-Core Processor flags 0:32.57 5323420 exit 8
+N1_G0_s4.log node hl-codon-cn-090.ebi.ac.uk cpu AMD EPYC 9555 64-Core Processor flags 0:32.24 5325120 exit 8
+N2_A_s0.log node hl-codon-cn-082.ebi.ac.uk cpu AMD EPYC 9555 64-Core Processor flags -evidence_share 52:51.05 60364072 exit 0
+N2_A_s1.log node hl-codon-cn-085.ebi.ac.uk cpu AMD EPYC 9555 64-Core Processor flags -evidence_share 30:38.73 60370904 exit 0
+N2_A_s2.log node hl-codon-cn-085.ebi.ac.uk cpu AMD EPYC 9555 64-Core Processor flags -evidence_share 30:30.95 60342576 exit 0
+N2_A_s3.log node hl-codon-cn-085.ebi.ac.uk cpu AMD EPYC 9555 64-Core Processor flags -evidence_share 35:19.79 60382048 exit 0
+N2_A_s4.log node hl-codon-cn-086.ebi.ac.uk cpu AMD EPYC 9555 64-Core Processor flags -evidence_share 38:51.67 60350704 exit 0
+N2_G0_s0.log node hl-codon-cn-090.ebi.ac.uk cpu AMD EPYC 9555 64-Core Processor flags 31:20.96 60363928 exit 0
+N2_G0_s1.log node hl-codon-cn-092.ebi.ac.uk cpu AMD EPYC 9555 64-Core Processor flags 32:44.85 60434152 exit 0
+N2_G0_s2.log node hl-codon-cn-139.ebi.ac.uk cpu AMD EPYC 9455 48-Core Processor flags 31:39.34 60397976 exit 0
+N2_G0_s3.log node hl-codon-cn-139.ebi.ac.uk cpu AMD EPYC 9455 48-Core Processor flags 31:54.65 60348664 exit 0
+N2_G0_s4.log node hl-codon-cn-139.ebi.ac.uk cpu AMD EPYC 9455 48-Core Processor flags 31:33.35 60375572 exit 0
+raw03_A_s0.log node hl-codon-cn-101.ebi.ac.uk cpu AMD EPYC 9555 64-Core Processor flags -evidence_share 8:10.15 12600036 exit 0
+raw03_A_s1.log node hl-codon-cn-101.ebi.ac.uk cpu AMD EPYC 9555 64-Core Processor flags -evidence_share 5:32.23 12379508 exit 0
+raw03_A_s2.log node hl-codon-cn-101.ebi.ac.uk cpu AMD EPYC 9555 64-Core Processor flags -evidence_share 5:33.79 13036444 exit 0
+raw03_A_s3.log node hl-codon-cn-102.ebi.ac.uk cpu AMD EPYC 9555 64-Core Processor flags -evidence_share 8:42.05 12788424 exit 0
+raw03_A_s4.log node hl-codon-cn-102.ebi.ac.uk cpu AMD EPYC 9555 64-Core Processor flags -evidence_share 5:55.38 13099128 exit 0
+raw03_G0_s0.log node hl-codon-cn-099.ebi.ac.uk cpu AMD EPYC 9555 64-Core Processor flags 8:33.35 12966876 exit 0
