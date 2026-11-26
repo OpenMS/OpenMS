@@ -69,7 +69,7 @@ public:
     /**
         @brief Default constructor.
 
-        Creates a range with all coordinates zero.
+        Creates an empty range with corners at infinity.
     */
     DRange() :
       Base()
@@ -177,27 +177,14 @@ public:
     /// Returns the smallest range containing this range and @p other_range
     DRange united(const DRange<D>& other_range) const
     {
-      // An empty range's corners are the +/-infinity sentinel used by Base::empty.
-      // Folding it into the elementwise min/max below and then normalizing would
-      // swap that sentinel into the universal range instead of leaving it empty,
-      // so empty operands are handled directly instead.
-      if (this->isEmpty()) return other_range;
-      if (other_range.isEmpty()) return *this;
-
-      PositionType united_min;
-      PositionType united_max;
-      DRange<D> united_range = DRange<D>::empty;
-
-      PositionType other_min = other_range.minPosition();
-      PositionType other_max = other_range.maxPosition();
-
+      // An empty dimension holds (+max, -max), which min/max leave unchanged; the result
+      // must not be normalized, or an empty dimension becomes (-max, +max).
+      DRange<D> united_range; // empty
       for (Size i = 0; i != D; ++i)
       {
-        united_min[i] = min_[i] < other_min[i] ? min_[i] : other_min[i];
-        united_max[i] = max_[i] > other_max[i] ? max_[i] : other_max[i];
+        united_range.min_[i] = std::min(min_[i], other_range.min_[i]);
+        united_range.max_[i] = std::max(max_[i], other_range.max_[i]);
       }
-      united_range.setMinMax(united_min, united_max);
-
       return united_range;
     }
 
