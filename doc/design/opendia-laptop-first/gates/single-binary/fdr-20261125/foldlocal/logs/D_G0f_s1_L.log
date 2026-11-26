@@ -1,0 +1,27 @@
+GBM fold-local f0: r1 pos 12062 neg 64878 trees 300/281 r2 pos 13543 neg 63496 trees 209/295 r3 pos 13990 neg 62770 | final trees 217
+GBM fold-local f1: r1 pos 13425 neg 64047 trees 260/218 r2 pos 14055 neg 64863 trees 229/203 r3 pos 14062 neg 63728 | final trees 268
+GBM fold-local f2: r1 pos 12445 neg 63530 trees 300/263 r2 pos 12905 neg 65674 trees 214/247 r3 pos 6831 neg 63925 | final trees 229
+rows 9099057 d 49 kept 2420135 rows equal to exported score 5939070
+	Command being timed: "/nfs/research/juan/singj/opendia/foldlocal-20261126/gbm_replay_static /nfs/research/juan/singj/opendia/calsearch-20261126/runs/D_G0f_s1/20200505_Evosep_200SPD_SG06-16_MLHeLa_200ng_py8_S3-A1_1_2737.features.tsv /nfs/research/juan/singj/opendia/foldlocal-20261126/hela_keys_e.tsv 1 8 /nfs/research/juan/singj/opendia/foldlocal-20261126/out/D_G0f_s1_L.tsv fold_local"
+	User time (seconds): 243.96
+	System time (seconds): 2.63
+	Percent of CPU this job got: 479%
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 0:51.45
+	Average shared text size (kbytes): 0
+	Average unshared data size (kbytes): 0
+	Average stack size (kbytes): 0
+	Average total size (kbytes): 0
+	Maximum resident set size (kbytes): 3035928
+	Average resident set size (kbytes): 0
+	Major (requiring I/O) page faults: 0
+	Minor (reclaiming a frame) page faults: 296212
+	Voluntary context switches: 424
+	Involuntary context switches: 1176
+	Swaps: 0
+	File system inputs: 0
+	File system outputs: 0
+	Socket messages sent: 0
+	Socket messages received: 0
+	Signals delivered: 0
+	Page size (bytes): 4096
+	Exit status: 0

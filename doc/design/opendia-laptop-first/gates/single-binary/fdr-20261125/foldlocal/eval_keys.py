@@ -4,7 +4,7 @@ Usage: eval_keys.py <keys_e.tsv> <variant> <kept.tsv> ...  (gbm_replay output: r
 Metrics are the same as devAB/eval_replay.py: precursor-level paired TDC at q<=1 %. N = accepted targets, E = accepted entrapments
 (labels for evaluation only), lower bound E/N, combined bound 2E/N, and N@FDP_c 1 %."""
 import sys, numpy as np, pandas as pd
-P = pd.read_csv(sys.argv[1], sep='\t', header=None, names=['id', 't', 'd', 'e']).set_index('id')
+P = pd.read_csv(sys.argv[1], sep='\t', header=None, names=['id', 't', 'd', 'e'], dtype={'t': str}).set_index('id')
 P['key'] = np.where(P.d == 1, P.t.str.replace('^DECOY_', '', regex=True), P.t)
 var = sys.argv[2]
 def tdc(w):

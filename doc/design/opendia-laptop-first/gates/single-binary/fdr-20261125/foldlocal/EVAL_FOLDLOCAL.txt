@@ -1,0 +1,12 @@
+P	D_G0f_s0_P.tsv	N 22204	E 250	lower 0.0113	combined 0.0225	N@FDPc1% 20036
+P	D_G0f_s1_P.tsv	N 21804	E 248	lower 0.0114	combined 0.0227	N@FDPc1% 19606
+P	POOLED	N 44008	E 498	lower 0.0113	combined 0.0226	N@FDPc1% 39642
+L	D_G0f_s0_L.tsv	N 21837	E 235	lower 0.0108	combined 0.0215	N@FDPc1% 19964
+L	D_G0f_s1_L.tsv	N 21218	E 223	lower 0.0105	combined 0.0210	N@FDPc1% 18928
+L	POOLED	N 43055	E 458	lower 0.0106	combined 0.0213	N@FDPc1% 38892
+P	H_G0f_s0_P.tsv	N 38507	E 493	lower 0.0128	combined 0.0256	N@FDPc1% 35609
+P	H_G0f_s1_P.tsv	N 38359	E 465	lower 0.0121	combined 0.0242	N@FDPc1% 35628
+P	POOLED	N 76866	E 958	lower 0.0125	combined 0.0249	N@FDPc1% 71237
+L	H_G0f_s0_L.tsv	N 38033	E 447	lower 0.0118	combined 0.0235	N@FDPc1% 35268
+L	H_G0f_s1_L.tsv	N 38212	E 462	lower 0.0121	combined 0.0242	N@FDPc1% 35494
+L	POOLED	N 76245	E 909	lower 0.0119	combined 0.0238	N@FDPc1% 70762

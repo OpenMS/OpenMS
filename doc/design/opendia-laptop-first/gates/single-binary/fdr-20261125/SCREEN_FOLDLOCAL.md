@@ -41,3 +41,29 @@ L moves to a frozen remote precheck only if both of these hold:
 
 A bound <= 1 % is the end goal. It is not required at this screen. All four runs are reported. No reruns or retuning are done after
 results are seen.
+
+## Result (job 44203046, 8/8 exit 0): FAIL, not promoted
+
+The P arm reproduces each run's exported production score on every row (D 9.10 M rows, H 11.86 M rows, all four runs), so the
+harness is faithful. Outputs were fetched with sha256 (`foldlocal/fetched.sha256`). Logs are in `foldlocal/logs/`.
+The first evaluation read numeric TRAML ids as integers and mis-keyed some pairs. The fixed `eval_keys.py` (TRAML read as
+string) is the reported one. Both arms used the same evaluator.
+
+| Set | Arm | N (2 seeds) | E | combined 2E/N | N ratio L/P |
+|---|---|---:|---:|---:|---:|
+| D | P | 44008 | 498 | 2.26 % | |
+| D | L | 43055 | 458 | 2.13 % | 0.978x |
+| H | P | 76866 | 958 | 2.49 % | |
+| H | L | 76245 | 909 | 2.38 % | 0.992x |
+
+Condition 1 (lower bound) passes on D and H. Condition 2 (N >= 0.995x) fails on D and H. These absolute values come from this
+harness's re-competition and its 2E/N scale, so they are not the gate's E(1+1/r)/N on tool q-values. Only the P versus L comparison is meaningful.
+
+Descriptive check, chosen after seeing the result, so not part of the rule (`foldlocal/MATCHED_N.txt`): at the same number of top-ranked targets as L,
+P accepts fewer entrapments in every run (L minus P: D +23, +30; H +41, +23). So L lowers the bound only by
+accepting fewer IDs. At matched N its ranking is worse than the pooled default. A likely reason is that each fold-local model trains on
+about 2/3 of the positives (logs: about 14 k versus 21 k on D). The isolation gap is real (DIAG_CALIBRATION), but closing it does not explain
+the entrapment excess.
+
+Decision: `-gbm_fold_local` stays an advanced opt-in, off by default. Off output is unchanged: P reproduced the default
+bit for bit, and the unit tests pass. No container, precheck or PXD017703 use follows from this screen.

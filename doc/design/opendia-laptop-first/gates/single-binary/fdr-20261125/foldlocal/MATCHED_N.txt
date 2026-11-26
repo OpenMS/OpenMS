@@ -1,0 +1,5 @@
+run	N_L	E_L	E_P at same N	descriptive: E_L - E_P(N_L)
+D_G0f_s0	21837	235	212	+23
+D_G0f_s1	21218	223	193	+30
+H_G0f_s0	38033	447	406	+41
+H_G0f_s1	38212	462	439	+23
