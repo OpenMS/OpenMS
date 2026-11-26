@@ -231,6 +231,8 @@ Usage:
         .def("setMSLevel", [](OpenMS::MSSpectrum& self, unsigned int ms_level) { return self.setMSLevel(ms_level); }, "ms_level"_a, "Sets the MS level")
         .def("getName", [](const OpenMS::MSSpectrum& self) { return self.getName(); }, "Returns the name of the spectrum")
         .def("setName", [](OpenMS::MSSpectrum& self, const std::string& name) { return self.setName(name); }, "name"_a, "Sets the name of the spectrum")
+        .def("copyMetaDataFrom", [](OpenMS::MSSpectrum& self, const OpenMS::MSSpectrum& source) { self.copyMetaDataFrom(source); }, "source"_a,
+            "Copies the meta data of source (SpectrumSettings, RT, drift time and its unit, MS level, name) into this spectrum. Peaks, data arrays and ranges are not changed")
         .def("sortByIntensity", [](OpenMS::MSSpectrum& self, bool reverse) { return self.sortByIntensity(reverse); }, "reverse"_a = false, "Sorts the peaks by intensity (ascending if reverse is False, descending if True)")
         .def("sortByPosition", [](OpenMS::MSSpectrum& self) { return self.sortByPosition(); }, "Sorts the peaks by m/z position")
         .def("isSorted", [](const OpenMS::MSSpectrum& self) { return self.isSorted(); }, "Returns True if the spectrum is sorted by m/z")

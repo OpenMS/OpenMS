@@ -456,3 +456,48 @@ def test_msspectrum_get_type_with_query_data():
         SpectrumSettings.SpectrumType.CENTROID,
         SpectrumSettings.SpectrumType.PROFILE,
     ]
+
+
+def test_msspectrum_copy_meta_data_from():
+    """copyMetaDataFrom copies only the meta data; peaks and data arrays stay."""
+    from pyopenms import MSSpectrum, Precursor, FloatDataArray, DriftTimeUnit
+
+    source = MSSpectrum()
+    source.set_peaks(([100.0, 200.0], [1.0, 2.0]))
+    source.setRT(12.5)
+    source.setDriftTime(0.9)
+    source.setDriftTimeUnit(DriftTimeUnit.VSSC)
+    source.setMSLevel(2)
+    source.setName("source")
+    source.setNativeID("scan=7")
+    prec = Precursor()
+    prec.setMZ(500.25)
+    source.setPrecursors([prec])
+    source.setMetaValue("label", "source")
+    fda = FloatDataArray()
+    fda.push_back(1.0)
+    fda.push_back(2.0)
+    source.setFloatDataArrays([fda])
+
+    target = MSSpectrum()
+    target.set_peaks(([300.0], [3.0]))
+
+    target.copyMetaDataFrom(source)
+
+    assert target.getRT() == pytest.approx(12.5)
+    assert target.getDriftTime() == pytest.approx(0.9)
+    assert target.getDriftTimeUnit() == DriftTimeUnit.VSSC
+    assert target.getMSLevel() == 2
+    assert target.getName() == "source"
+    assert target.getNativeID() == "scan=7"
+    assert len(target.getPrecursors()) == 1
+    assert target.getPrecursors()[0].getMZ() == pytest.approx(500.25)
+    assert target.getMetaValue("label") == "source"
+
+    mz, intensity = target.get_peaks()
+    assert list(mz) == pytest.approx([300.0])
+    assert list(intensity) == pytest.approx([3.0])
+    assert len(target.getFloatDataArrays()) == 0
+
+    assert source.size() == 2
+    assert len(source.getFloatDataArrays()) == 1
