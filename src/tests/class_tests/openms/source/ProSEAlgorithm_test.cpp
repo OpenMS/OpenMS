@@ -2546,8 +2546,7 @@ START_SECTION(([EXTRA] ions:by_activation rebuilds the index of a single file wi
   etd.setNativeID("spectrum=etd");
   spectra.addSpectrum(std::move(etd));
   std::string file;
-  NEW_TMP_FILE(file)
-  file += ".mzML";
+  NEW_TMP_FILE_EXT(file, ".mzML") // registers the name with its extension: the 10 MB file is removed at the end
   FileHandler().storeExperiment(file, spectra, {FileTypes::MZML});
   // the preconditions: the first 8 MiB name no electron-based activation (the terms that ProSE looks for), the file does
   {
