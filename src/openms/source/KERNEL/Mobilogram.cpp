@@ -101,6 +101,13 @@ namespace OpenMS
   {
     drift_time_unit_ = dt;
   }
+
+  void Mobilogram::copyMetaDataFrom(const Mobilogram& source) noexcept
+  {
+    retention_time_ = source.retention_time_;
+    drift_time_unit_ = source.drift_time_unit_;
+  }
+
   void Mobilogram::sortByIntensity(bool reverse)
   {
     if (reverse && std::is_sorted(cbegin(), cend(), [](auto& left, auto& right) {

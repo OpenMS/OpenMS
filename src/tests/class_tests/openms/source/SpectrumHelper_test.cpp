@@ -12,6 +12,7 @@
 ///////////////////////////
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/KERNEL/MSChromatogram.h>
+#include <OpenMS/KERNEL/Mobilogram.h>
 #include <OpenMS/KERNEL/SpectrumHelper.h>
 ///////////////////////////
 
@@ -409,6 +410,19 @@ START_SECTION(void makePeakPositionUnique(PeakContainerT& p, const int m) )
   TEST_EQUAL(s.getIMFormat() == IMFormat::IM_SPECTRUM, true)
   TEST_EQUAL(s.getIMPeakType() == IMPeakType::IM_CENTROIDED, true)
   TEST_REAL_SIMILAR(s.getDriftTime(), 1.1)
+
+  Mobilogram mb;
+  mb.setRT(42.0);
+  mb.setDriftTimeUnit(DriftTimeUnit::VSSC);
+  mb.push_back(MobilityPeak1D(0.9, 1.0f));
+  mb.push_back(MobilityPeak1D(0.9, 3.0f));
+  mb.push_back(MobilityPeak1D(1.0, 5.0f));
+  makePeakPositionUnique(mb, IntensityAveragingMethod::SUM);
+  TEST_EQUAL(mb.size(), 2)
+  TEST_REAL_SIMILAR(mb[0].getIntensity(), 4.0)
+  TEST_REAL_SIMILAR(mb[1].getIntensity(), 5.0)
+  TEST_REAL_SIMILAR(mb.getRT(), 42.0)
+  TEST_EQUAL(mb.getDriftTimeUnit() == DriftTimeUnit::VSSC, true)
 
   MSSpectrum s_empty;
   makePeakPositionUnique(s_empty);

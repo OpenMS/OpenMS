@@ -111,6 +111,43 @@ START_SECTION((void setDriftTimeUnit(double dt)))
 }
 END_SECTION
 
+START_SECTION((void copyMetaDataFrom(const Mobilogram& source)))
+{
+  Mobilogram source;
+  source.setRT(42.0);
+  source.setDriftTimeUnit(DriftTimeUnit::VSSC);
+  source.push_back(MobilityPeak1D(0.8, 1.0f));
+  source.getFloatDataArrays().resize(1);
+  source.getFloatDataArrays()[0].push_back(1.0f);
+
+  Mobilogram target;
+  target.push_back(MobilityPeak1D(0.9, 3.0f));
+  target.push_back(MobilityPeak1D(1.0, 4.0f));
+  target.getStringDataArrays().resize(1);
+  target.getStringDataArrays()[0].assign({"a", "b"});
+  target.updateRanges();
+
+  target.copyMetaDataFrom(source);
+
+  // meta data is taken from the source
+  TEST_REAL_SIMILAR(target.getRT(), 42.0)
+  TEST_EQUAL(target.getDriftTimeUnit() == DriftTimeUnit::VSSC, true)
+
+  // peaks, data arrays and ranges of the target are kept
+  TEST_EQUAL(target.size(), 2)
+  TEST_REAL_SIMILAR(target[0].getMobility(), 0.9)
+  TEST_REAL_SIMILAR(target[1].getMobility(), 1.0)
+  TEST_EQUAL(target.getFloatDataArrays().size(), 0)
+  TEST_EQUAL(target.getStringDataArrays().size(), 1)
+  TEST_REAL_SIMILAR(target.getMinMobility(), 0.9)
+  TEST_REAL_SIMILAR(target.getMaxMobility(), 1.0)
+
+  // the source is unchanged
+  TEST_EQUAL(source.size(), 1)
+  TEST_EQUAL(source.getFloatDataArrays().size(), 1)
+}
+END_SECTION
+
 
 /////////////////////////////////////////////////////////////
 // RangeManager

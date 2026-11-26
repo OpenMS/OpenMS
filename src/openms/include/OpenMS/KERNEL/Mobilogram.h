@@ -273,6 +273,16 @@ namespace OpenMS
     */
     void setDriftTimeUnit(DriftTimeUnit dt) noexcept;
 
+    /**
+      @brief Copies the meta data of @p source into this mobilogram
+
+      Copies the retention time and the drift time unit.
+      Peaks, data arrays and ranges of this mobilogram are not changed.
+
+      @param[in] source The mobilogram to copy the meta data from
+    */
+    void copyMetaDataFrom(const Mobilogram& source) noexcept;
+
     //@}
 
     /**
