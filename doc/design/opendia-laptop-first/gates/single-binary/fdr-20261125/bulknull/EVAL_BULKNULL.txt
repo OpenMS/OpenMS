@@ -1,0 +1,14 @@
+library r = 6.9176, k = 1.1446
+D	D_G0f_s0.tsv	tool_q	N 22204	E 217	lower 0.0098	combined 0.0112	N@FDPc1% 21990
+D	D_G0f_s0.tsv	bn_q	N 22166	E 211	lower 0.0095	combined 0.0109	N@FDPc1% 21990
+D	D_G0f_s1.tsv	tool_q	N 21804	E 214	lower 0.0098	combined 0.0112	N@FDPc1% 21541
+D	D_G0f_s1.tsv	bn_q	N 21738	E 211	lower 0.0097	combined 0.0111	N@FDPc1% 21541
+D	POOLED	tool_q	N 44008	E 431	lower 0.0098	combined 0.0112 (90 % 0.0103-0.0121)	N@FDPc1% sum 43531
+D	POOLED	bn_q	N 43904	E 422	lower 0.0096	combined 0.0110 (90 % 0.0101-0.0119)	N@FDPc1% sum 43531
+library r = 6.9176, k = 1.1446
+H	H_G0f_s0.tsv	tool_q	N 38507	E 432	lower 0.0112	combined 0.0128	N@FDPc1% 37928
+H	H_G0f_s0.tsv	bn_q	N 38578	E 445	lower 0.0115	combined 0.0132	N@FDPc1% 37928
+H	H_G0f_s1.tsv	tool_q	N 38359	E 404	lower 0.0105	combined 0.0121	N@FDPc1% 37876
+H	H_G0f_s1.tsv	bn_q	N 38474	E 428	lower 0.0111	combined 0.0127	N@FDPc1% 37876
+H	POOLED	tool_q	N 76866	E 836	lower 0.0109	combined 0.0124 (90 % 0.0117-0.0132)	N@FDPc1% sum 75804
+H	POOLED	bn_q	N 77052	E 873	lower 0.0113	combined 0.0130 (90 % 0.0123-0.0137)	N@FDPc1% sum 75804

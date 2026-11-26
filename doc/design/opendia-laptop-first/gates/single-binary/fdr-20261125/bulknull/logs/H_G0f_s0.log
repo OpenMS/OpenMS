@@ -1,0 +1,25 @@
+Bulk-null q: f0 trees 190 bulk t/d 397953/394790 upper-half decoy mean w 0.959546 f1 trees 217 bulk t/d 398658/394594 upper-half decoy mean w 0.953136 f2 trees 207 bulk t/d 397893/394398 upper-half decoy mean w 0.964265
+rows 11862146 d 49 kept 2394470 kept rows whose replayed plain q equals the exported q 2394470; targets at q<=0.01 plain 38507 bulk-null 38578
+	Command being timed: "/nfs/research/juan/singj/opendia/bulknull-20261126/bulknull_replay /nfs/research/juan/singj/opendia/calsearch-20261126/runs/H_G0f_s0/20201207_tims03_Evo03_PS_SA_HeLa_200ng_EvoSep_prot_high_speed_21min_8cm_S1-C8_1_22474.features.tsv /nfs/research/juan/singj/opendia/bulknull-20261126/hela_keys_relabel.tsv 8 /nfs/research/juan/singj/opendia/bulknull-20261126/out/H_G0f_s0.tsv"
+	User time (seconds): 152.19
+	System time (seconds): 2.78
+	Percent of CPU this job got: 375%
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 0:41.32
+	Average shared text size (kbytes): 0
+	Average unshared data size (kbytes): 0
+	Average stack size (kbytes): 0
+	Average total size (kbytes): 0
+	Maximum resident set size (kbytes): 5122532
+	Average resident set size (kbytes): 0
+	Major (requiring I/O) page faults: 0
+	Minor (reclaiming a frame) page faults: 147252
+	Voluntary context switches: 4559
+	Involuntary context switches: 363
+	Swaps: 0
+	File system inputs: 0
+	File system outputs: 0
+	Socket messages sent: 0
+	Socket messages received: 0
+	Signals delivered: 0
+	Page size (bytes): 4096
+	Exit status: 0

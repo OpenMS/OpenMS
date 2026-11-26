@@ -41,3 +41,25 @@ The screen passes only if all of these hold:
 
 N at reported q <= 1 % will drop. It is reported, not gated, as agreed with the user on 26 Nov. If the screen passes, the next step is a
 frozen precheck on held-out PXD017703 runs. All four runs are reported. There are no reruns and no retuning after results are seen.
+
+## Result (job 44228932, 4/4 exit 0): FAIL on rule 2, not promoted
+
+Rule 1 (fidelity) passes. On every kept row of all 4 runs (D 2.42 M, H 2.39 M per run), the replayed plain q equals the exported q.
+The `tool_q` arm reproduces RESULT_RTNULL's G0 seeds 0 and 1 exactly: D 22204/217 and 21804/214, H 38507/432 and 38359/404.
+Outputs were fetched with sha256 (`bulknull/fetched.sha256`). Logs are in `bulknull/logs/`, and the evaluation is in `bulknull/EVAL_BULKNULL.txt`.
+
+| Set | q | N (2 seeds) | E | combined (90 %) | N@FDP_c 1 % |
+|---|---|---:|---:|---:|---:|
+| D | default | 44008 | 431 | 1.12 % (1.03-1.21) | 43531 |
+| D | bulk-null | 43904 | 422 | 1.10 % (1.01-1.19) | 43531 |
+| H | default | 76866 | 836 | 1.24 % (1.17-1.32) | 75804 |
+| H | bulk-null | 77052 | 873 | 1.30 % (1.23-1.37) | 75804 |
+
+Rule 2 fails on D and H. Rule 3 holds by construction.
+
+The reason (from the logs, descriptive): the bulk classifier finds almost no target versus decoy shift. Across folds, the mean weight of
+upper-half decoys is 0.94-1.00 on D and H. On Astral OSW features (CALIB §9) it was 1.2-1.5. So the decoys here already resemble
+low-scoring false targets on all 49 features. The HeLa excess is therefore not a bulk density shift that extrapolates into the tail. On H
+the weights are slightly below 1, so q becomes slightly more liberal.
+
+Decision: `-bulk_null_q` stays an advanced opt-in, off by default (fork `ece0c8b64b`). No precheck, and PXD017703 stays unused.
