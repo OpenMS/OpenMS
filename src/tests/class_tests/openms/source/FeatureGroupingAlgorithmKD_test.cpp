@@ -10,8 +10,12 @@
 #include <OpenMS/test_config.h>
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmKD.h>
+#include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
+
+#include <algorithm>
+#include <cmath>
 
 using namespace OpenMS;
 using namespace std;
@@ -148,6 +152,159 @@ START_SECTION((group() ranks link partners by their warped RTs))
   }
   TEST_EQUAL(n_true, n_decoy)
   TEST_EQUAL(n_decoy_linked, 0)
+}
+END_SECTION
+
+START_SECTION((group() follows curved RT drift with the default LOWESS settings))
+{
+  // Map 1 drifts by 40 s * sin(...) relative to map 0, with three periods over the
+  // gradient. Compounds near the extremes of the drift also have a decoy in map 1 at
+  // the unshifted RT. A warp that follows the drift makes the true partner the closer
+  // one. A fixed span of 2/3 smooths the drift almost flat, so the decoy is closer.
+  const Size n_comp = 200;
+  const double amp = 40.0;
+  const double period = 2000.0;
+  std::vector<FeatureMap> maps(2);
+  std::vector<bool> has_decoy(n_comp, false);
+  for (Size i = 0; i < n_comp; ++i)
+  {
+    const double mz = 200.0 + 10.0 * i;
+    const double rt = 100.0 + 30.0 * i;
+    const double s = std::sin(2.0 * Constants::PI * (rt - 100.0) / period);
+    Feature f0;
+    f0.setMZ(mz);
+    f0.setRT(rt);
+    f0.setIntensity(1e5);
+    f0.setUniqueId(1000 + i);
+    maps[0].push_back(f0);
+    Feature f1; // true partner
+    f1.setMZ(mz);
+    f1.setRT(rt + amp * s);
+    f1.setIntensity(1e5);
+    f1.setUniqueId(2000 + i);
+    maps[1].push_back(f1);
+    if (std::fabs(s) > 0.98)
+    {
+      has_decoy[i] = true;
+      Feature decoy; // at the unshifted RT
+      decoy.setMZ(mz + 0.001);
+      decoy.setRT(rt);
+      decoy.setIntensity(1e5);
+      decoy.setUniqueId(3000 + i);
+      maps[1].push_back(decoy);
+    }
+  }
+  const Size n_decoy = std::count(has_decoy.begin(), has_decoy.end(), true);
+  TEST_EQUAL(n_decoy >= 6, true)
+
+  // returns (true partners linked, decoys linked) for the compounds with a decoy
+  auto run = [&](const std::string& auto_span)
+  {
+    FeatureGroupingAlgorithmKD algo;
+    Param p = algo.getParameters();
+    p.setValue("mz_unit", "Da");
+    p.setValue("link:mz_tol", 0.01);
+    p.setValue("link:rt_tol", 60.0);
+    p.setValue("warp:enabled", "true");
+    p.setValue("warp:mz_tol", 0.01);
+    p.setValue("warp:rt_tol", 100.0);
+    if (!auto_span.empty())
+    {
+      p.setValue("LOWESS:auto_span", auto_span);
+    }
+    algo.setParameters(p);
+    ConsensusMap out;
+    algo.group(maps, out);
+    std::pair<Size, Size> counts(0, 0);
+    for (const ConsensusFeature& cf : out)
+    {
+      UInt64 id0 = 0;
+      UInt64 id1 = 0;
+      for (const FeatureHandle& fh : cf.getFeatures())
+      {
+        if (fh.getMapIndex() == 0)
+        {
+          id0 = fh.getUniqueId();
+        }
+        else
+        {
+          id1 = fh.getUniqueId();
+        }
+      }
+      if (id0 < 1000 || id0 >= 1000 + n_comp || !has_decoy[id0 - 1000])
+      {
+        continue;
+      }
+      if (id1 == id0 + 1000)
+      {
+        ++counts.first;
+      }
+      else if (id1 == id0 + 2000)
+      {
+        ++counts.second;
+      }
+    }
+    return counts;
+  };
+
+  // default parameters (LOWESS:auto_span true)
+  TEST_EQUAL(FeatureGroupingAlgorithmKD().getParameters().getValue("LOWESS:auto_span"), "true")
+  std::pair<Size, Size> res = run("");
+  TEST_EQUAL(res.first, n_decoy)
+  TEST_EQUAL(res.second, 0)
+
+  // fixed span 2/3: decoys win (shows that the scenario depends on the span)
+  res = run("false");
+  TEST_EQUAL(res.second > n_decoy / 2, true)
+}
+END_SECTION
+
+START_SECTION((group() with anchors at repeated RTs (default LOWESS settings)))
+{
+  // Anchor pairs (distinct m/z) that share RTs, as features from the same scan do: n_low at RT 100, n_high at RT 200,
+  // and one at RT 300. The RT warp is fitted on all anchors, which have three distinct RTs. Selecting the span must
+  // cope with cross-validation folds (n = 50: leave-one-out) and the subsample for maps with more than 5000 anchors
+  // (n = 5001) that lack the only anchor at RT 300.
+  auto run = [](Size n_low, Size n_high)
+  {
+    std::vector<FeatureMap> maps(2);
+    const Size n = n_low + n_high + 1;
+    for (Size i = 0; i < n; ++i)
+    {
+      const double rt = (i < n_low) ? 100.0 : ((i < n_low + n_high) ? 200.0 : 300.0);
+      for (Size m = 0; m < 2; ++m)
+      {
+        Feature f;
+        f.setMZ(200.0 + 1.0 * i);
+        f.setRT(rt + 5.0 * m);
+        f.setIntensity(1e5);
+        f.setUniqueId(1000000 * (m + 1) + i);
+        maps[m].push_back(f);
+      }
+    }
+    FeatureGroupingAlgorithmKD algo;
+    Param p = algo.getParameters();
+    p.setValue("mz_unit", "Da");
+    p.setValue("link:mz_tol", 0.01);
+    p.setValue("warp:mz_tol", 0.01);
+    algo.setParameters(p);
+    ConsensusMap out;
+    algo.group(maps, out);
+    Size n_pairs = 0;
+    for (const ConsensusFeature& cf : out)
+    {
+      n_pairs += (cf.size() == 2);
+    }
+    return std::make_pair(n, n_pairs);
+  };
+  std::pair<Size, Size> res = run(25, 24); // 50 anchors
+  TEST_EQUAL(res.second, res.first)
+  res = run(2500, 2500); // 5001 anchors
+  TEST_EQUAL(res.second, res.first)
+  // 5001 anchors; the 5000-point subsample would skip the only anchor at RT 200 (two distinct RTs left), so the span
+  // is selected on all points
+  res = run(4999, 1);
+  TEST_EQUAL(res.second, res.first)
 }
 END_SECTION
 
