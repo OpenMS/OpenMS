@@ -143,6 +143,16 @@ public:
     /// Sets the name
     void setName(const std::string& name);
 
+    /**
+      @brief Copies the meta data of @p source into this chromatogram
+
+      Copies the ChromatogramSettings and the name.
+      Peaks, data arrays and ranges of this chromatogram are not changed.
+
+      @param[in] source The chromatogram to copy the meta data from
+    */
+    void copyMetaDataFrom(const MSChromatogram& source);
+
     ///@}
 
     /// returns the mz of the product entry, makes sense especially for MRM scans

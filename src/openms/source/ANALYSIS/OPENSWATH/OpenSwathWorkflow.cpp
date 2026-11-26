@@ -159,8 +159,7 @@ namespace OpenMS
       }
       MSChromatogram result;
       static_cast<RangeManagerContainer<RangeRT, RangeIntensity>&>(result) = chromatogram;
-      static_cast<ChromatogramSettings&>(result) = chromatogram;
-      result.setName(chromatogram.getName());
+      result.copyMetaDataFrom(chromatogram);
       result.reserve(indices_to_keep.size());
       for (Size i : indices_to_keep)
       {

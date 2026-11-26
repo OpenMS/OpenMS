@@ -248,6 +248,16 @@ public:
     /// Sets the name
     void setName(const std::string& name);
 
+    /**
+      @brief Copies the meta data of @p source into this spectrum
+
+      Copies the SpectrumSettings, retention time, drift time, drift time unit, MS level and name.
+      Peaks, data arrays and ranges of this spectrum are not changed.
+
+      @param[in] source The spectrum to copy the meta data from
+    */
+    void copyMetaDataFrom(const MSSpectrum& source);
+
     //@}
 
     /**

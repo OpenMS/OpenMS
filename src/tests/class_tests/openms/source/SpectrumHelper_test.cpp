@@ -351,13 +351,17 @@ START_SECTION(void makePeakPositionUnique(PeakContainerT& p, const int m) )
   s = s_template;
   s.setRT(123.5);
   s.setNativeID("spectrum=42");
+  s.setMSLevel(2);
   makePeakPositionUnique(s, IntensityAveragingMethod::MEDIAN);
+  TEST_EQUAL(s.size(), 4)
   TEST_REAL_SIMILAR(s.getRT(), 123.5)
   TEST_EQUAL(s.getNativeID(), "spectrum=42")
+  TEST_EQUAL(s.getMSLevel(), 2)
 
   c = c_template;
   c.setNativeID("chromatogram=42");
   makePeakPositionUnique(c, IntensityAveragingMethod::MEDIAN);
+  TEST_EQUAL(c.size(), 4)
   TEST_EQUAL(c.getNativeID(), "chromatogram=42")
 
   MSSpectrum s_empty;

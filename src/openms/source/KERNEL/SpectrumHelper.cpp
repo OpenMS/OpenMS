@@ -16,13 +16,7 @@ namespace OpenMS
     // clear old spectrum first before copying
     if (clear_spectrum) output.clear(true);
 
-    // copy the spectrum meta data
-    output.SpectrumSettings::operator=(input);
-    output.setRT(input.getRT());
-    output.setDriftTime(input.getDriftTime());
-    output.setDriftTimeUnit(input.getDriftTimeUnit());
-    output.setMSLevel(input.getMSLevel());
-    output.setName(input.getName());
+    output.copyMetaDataFrom(input);
   }
 }
 
