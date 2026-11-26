@@ -9,6 +9,7 @@
 #pragma once
 
 #include <OpenMS/DATASTRUCTURES/Adduct.h>
+#include <OpenMS/DATASTRUCTURES/Compomer.h>
 
 #include <OpenMS/CONCEPT/Types.h>
 
@@ -17,8 +18,6 @@
 
 namespace OpenMS
 {
-  class Compomer;
-
   /**
     @brief Computes empirical formulas for given mass differences using a set of allowed elements
     
