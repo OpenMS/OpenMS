@@ -3,13 +3,15 @@ Mass Spectrometry Imaging
 
 pyOpenMS reads and writes imzML, the standard format for mass spectrometry imaging data. An imzML data set
 consists of two files with the same name: the ``.imzML`` file holds the metadata and the position of every pixel,
-the ``.ibd`` file the peak data. Keep both in the same directory.
+the ``.ibd`` file the peak data. Keep both in the same directory. pyOpenMS also reads the MALDI imaging runs of
+Bruker timsTOF instruments (see `Bruker timsTOF MALDI imaging`_).
 
 Loading an imzML file
 *********************
 
 :py:class:`~.ImzMLFile` loads a data set into an :py:class:`~.MSImagingExperiment`, which holds one spectrum per
-pixel and the geometry of the image. :py:class:`~.FileHandler` does not read imzML.
+pixel and the geometry of the image. ``FileHandler().loadImagingExperiment()`` does the same and detects the
+format from the file; ``FileHandler().loadExperiment()`` does not read imaging data.
 
 The geometry is two-dimensional and covers the first plane (``z = 1``) of a data set. Spectra of other planes are
 loaded too, and ``getMSExperiment()`` returns them, but pixel access, regions and ion images leave them out.
@@ -45,12 +47,50 @@ Pixel coordinates start at 0. The spectrum of the top-left pixel is:
 
     8399
 
+Pixels
+******
+
+An :py:class:`~.MSImagingExperiment` is a container of its pixels: ``len()``, indexing and iteration follow the
+pixels of the geometry and return a copy of each pixel's spectrum.
+
+.. code-block:: python
+    :linenos:
+
+    print(len(img), img[0].size())
+    tic = [sum(spectrum.get_peaks()[1]) for spectrum in img]
+
+.. code-block:: output
+
+    9 8399
+
+A change to such a copy does not reach the experiment. To change a spectrum in place, take a live view of it
+with ``spectrum_view``, which accepts a pixel index or the coordinates of a pixel; ``spectrum_views()`` returns
+the views of all pixels:
+
+.. code-block:: python
+    :linenos:
+
+    img.spectrum_view(0, 0).setMetaValue("note", "top left")
+    print(img.getSpectrum(0, 0).getMetaValue("note"))
+
+.. code-block:: output
+
+    top left
+
+In the same way, ``geometry_view()`` and ``experiment_view()`` return the geometry and the
+:py:class:`~.MSExperiment` of the imaging experiment itself, whereas ``getGeometry()`` and ``getMSExperiment()``
+return copies. A view is only valid as long as the spectra it belongs to are not replaced or resized.
+
+The index of a pixel is not always the index of its spectrum: a geometry can leave spectra out (for example those
+of other planes) or order them differently. ``experiment_view()[k]`` is the spectrum with index ``k``, and an
+experiment without a geometry has no pixels (``len()`` is 0) although it may hold spectra.
+
 Ion images
 **********
 
 ``extractIonImage`` sums, for every pixel, the intensities within a tolerance (in ppm) around an m/z value. The
-result is an :py:class:`~.IonImage`, whose ``get_data()`` returns the image as a numpy array of shape (height,
-width), for example to show it with matplotlib's ``imshow``:
+result is an :py:class:`~.IonImage`, whose ``get_data()`` returns a copy of the image as a numpy array of shape
+(height, width), for example to show it with matplotlib's ``imshow``:
 
 .. code-block:: python
     :linenos:
@@ -63,15 +103,17 @@ width), for example to show it with matplotlib's ``imshow``:
 
     (3, 3)
 
-A region limits the image to part of the pixels. Regions belong to the geometry, so add them to a copy of it and
-set the copy:
+``data_view()`` returns the same array without copying it. Values written to it change the
+:py:class:`~.IonImage`, for example to normalize an image in place (``ion.data_view()[:] /= norm``).
+
+A region limits the image to part of the pixels. Regions belong to the geometry, so add them to the geometry of
+the experiment with ``geometry_view()``:
 
 .. code-block:: python
     :linenos:
 
     left = oms.MSImagingRegion.rectangle(1, "left", 0, 0, 1, 2)  # id, name, min x, min y, max x, max y
-    geometry.addRegion(left)
-    img.setGeometry(geometry)
+    img.geometry_view().addRegion(left)
     ion_left = img.extractIonImage(450.0, 10.0, 1)
     print(ion_left.get_mask().sum())
 
@@ -102,6 +144,46 @@ Like :py:class:`~.MSImagingExperiment`, it maps only the plane ``z = 1`` to pixe
 an error for other values of ``z``, and ``extractIonImage`` leaves those spectra out. ``getSpectrum(i)`` reads any
 spectrum by its index, and ``getIndex(i)`` returns its coordinates (``x``, ``y`` and ``z``) without reading the
 peaks.
+
+``len()``, indexing and iteration follow the pixels here too, so ``on_disc[i]`` reads the spectrum of the pixel
+with index ``i``, while ``getSpectrum(i)`` takes the index of a spectrum in the file and ``getNrSpectra()`` counts
+the spectra. The two differ if the geometry leaves spectra out.
+
+Bruker timsTOF MALDI imaging
+****************************
+
+:py:class:`~.BrukerTimsImagingFile` loads a MALDI imaging run of a timsTOF instrument (a ``.d`` directory, also
+zipped as ``.d.zip``) into an :py:class:`~.MSImagingExperiment`. Like :py:class:`~.BrukerTimsFile` (see
+:doc:`vendor_formats`), it is part of the pyOpenMS wheels and needs no Bruker software; a pyOpenMS built from
+source has it only if OpenMS was built with ``WITH_OPENTIMS`` (the default). The example reads ``my_image.d``;
+use one of your own runs instead.
+
+.. code-block:: python
+    :linenos:
+
+    if oms.BrukerTimsImagingFile.isImagingDataset("my_image.d"):
+        img = oms.BrukerTimsImagingFile().load("my_image.d")
+        print(img.getGeometry().getWidth(), img.getGeometry().getHeight(), len(img))
+
+Every pixel holds the spectrum of one frame. The pixel coordinates start at 0, as for imzML, whatever the
+positions stored in the run. Only two-dimensional images are read: a run with several sections (values of ``z``)
+raises an error.
+
+A :py:class:`~.BrukerTimsImagingFile.Config` changes how the run is read. Its ``inner_config`` is a
+:py:class:`~.BrukerTimsFile.Config`, for example to recalibrate m/z or to centroid along the ion mobility axis.
+The frames are always read one by one (``export_mode`` is set to ``FRAME``). If the configuration restricts the
+frames, for example with ``frame_id_min`` and ``frame_id_max``, the pixels of the other frames are missing from
+the image.
+
+.. code-block:: python
+    :linenos:
+
+    config = oms.BrukerTimsImagingFile.Config()
+    config.inner_config.frame_id_max = 1000
+    part = oms.BrukerTimsImagingFile().load("my_image.d", config)
+
+``readMaldiFrameInfo`` returns the frame and the position of every pixel as stored in the run, without loading
+the spectra.
 
 Writing imzML
 *************
