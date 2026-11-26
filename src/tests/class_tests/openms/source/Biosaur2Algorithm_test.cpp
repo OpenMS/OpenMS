@@ -533,6 +533,16 @@ START_SECTION([EXTRA] run() preserves chromatograms and settings on the FAIMS pr
   TEST_EQUAL(back.getExperimentalSettings().getDateTime().toString(), "2019-09-07T09:40:04")
   // centroiding must not strip the FAIMS annotation, or the split never happens
   TEST_EQUAL(FAIMSHelper::getCompensationVoltages(back).size(), 2)
+  // ... nor change it: the CVs are negative, so a "drift time >= 0" test for "is set"
+  // would drop every one of them. Spectrum k was acquired at RT k with CV cvs[k % 2].
+  for (Size k = 0; k < back.size(); ++k)
+  {
+    TEST_REAL_SIMILAR(back[k].getRT(), static_cast<double>(k))
+    TEST_EQUAL(back[k].getMSLevel(), 1)
+    TEST_EQUAL(back[k].getType() == SpectrumSettings::SpectrumType::CENTROID, true)
+    TEST_EQUAL(back[k].getDriftTimeUnit() == DriftTimeUnit::FAIMS_COMPENSATION_VOLTAGE, true)
+    TEST_REAL_SIMILAR(back[k].getDriftTime(), cvs[k % 2])
+  }
 }
 END_SECTION
 

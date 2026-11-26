@@ -962,14 +962,9 @@ void Biosaur2Algorithm::centroidProfileSpectra_(MSExperiment& exp) const
     }
     else
     {
+      // pick() copies the spectrum metadata (RT, MS level, drift time and its unit, i.e. a
+      // FAIMS CV, which is usually negative) and marks the result centroided
       picker.pick(exp[i], centroided_spectrum);
-      centroided_spectrum.setRT(exp[i].getRT());
-      centroided_spectrum.setMSLevel(exp[i].getMSLevel());
-      centroided_spectrum.setType(SpectrumSettings::SpectrumType::CENTROID);
-      if (exp[i].getDriftTime() >= 0)
-      {
-        centroided_spectrum.setDriftTime(exp[i].getDriftTime());
-      }
     }
 
     centroided_exp.addSpectrum(centroided_spectrum);
