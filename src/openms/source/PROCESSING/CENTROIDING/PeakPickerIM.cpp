@@ -966,11 +966,8 @@ namespace OpenMS
 #ifdef DEBUG_PICKER
       OPENMS_LOG_DEBUG << "--- Centroided frame has  " << centroided_frame.size() << " --- peaks.\n";
 #endif
-      // Copy only SpectrumSettings from the input into the centroided result
-      static_cast<SpectrumSettings&>(centroided_frame) = static_cast<const SpectrumSettings&>(spectrum);
-      centroided_frame.setMSLevel(spectrum.getMSLevel());
-      centroided_frame.setName(spectrum.getName());
-      centroided_frame.setRT(spectrum.getRT());
+      // Copy the meta data (not the peaks) from the input into the centroided result
+      centroided_frame.copyMetaDataFrom(spectrum);
       removeAllFloatDataArraysExcept(centroided_frame, Constants::UserParam::ION_MOBILITY_CENTROID);
       centroided_frame.setIMFormat(IMFormat::IM_PEAK);
       centroided_frame.setIMPeakType(IMPeakType::IM_CENTROIDED);

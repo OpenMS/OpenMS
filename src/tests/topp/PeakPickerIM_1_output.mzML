@@ -211,6 +211,7 @@
 					<cvParam cvRef="MS" accession="MS:1000571" name="sum of spectra" />
 					<scan >
 						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="3011.377004" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
+						<cvParam cvRef="MS" accession="MS:1002815" name="inverse reduced ion mobility" value="1.089799273727" unitAccession="MS:1002814" unitName="volt-second per square centimeter" unitCvRef="MS" />
 						<scanWindowList count="1">
 							<scanWindow>
 								<cvParam cvRef="MS" accession="MS:1000501" name="scan window lower limit" value="100" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -254,6 +255,7 @@
 					<cvParam cvRef="MS" accession="MS:1000571" name="sum of spectra" />
 					<scan >
 						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="3013.161778" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
+						<cvParam cvRef="MS" accession="MS:1002815" name="inverse reduced ion mobility" value="1.089799273727" unitAccession="MS:1002814" unitName="volt-second per square centimeter" unitCvRef="MS" />
 						<scanWindowList count="1">
 							<scanWindow>
 								<cvParam cvRef="MS" accession="MS:1000501" name="scan window lower limit" value="100" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -297,6 +299,7 @@
 					<cvParam cvRef="MS" accession="MS:1000571" name="sum of spectra" />
 					<scan >
 						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="3014.948539" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
+						<cvParam cvRef="MS" accession="MS:1002815" name="inverse reduced ion mobility" value="1.089799273727" unitAccession="MS:1002814" unitName="volt-second per square centimeter" unitCvRef="MS" />
 						<scanWindowList count="1">
 							<scanWindow>
 								<cvParam cvRef="MS" accession="MS:1000501" name="scan window lower limit" value="100" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -382,14 +385,14 @@
 <indexList count="2">
 	<index name="spectrum">
 		<offset idRef="merged=109590 frame=28663 scanStart=1 scanEnd=918">15445</offset>
-		<offset idRef="merged=109655 frame=28680 scanStart=1 scanEnd=918">2083955</offset>
-		<offset idRef="merged=109720 frame=28697 scanStart=1 scanEnd=918">4156981</offset>
+		<offset idRef="merged=109655 frame=28680 scanStart=1 scanEnd=918">2084153</offset>
+		<offset idRef="merged=109720 frame=28697 scanStart=1 scanEnd=918">4157377</offset>
 	</index>
 	<index name="chromatogram">
-		<offset idRef="TIC">6213001</offset>
-		<offset idRef="BPC">6215450</offset>
+		<offset idRef="TIC">6213595</offset>
+		<offset idRef="BPC">6216044</offset>
 	</index>
 </indexList>
-<indexListOffset>6217924</indexListOffset>
+<indexListOffset>6218518</indexListOffset>
 <fileChecksum>0</fileChecksum>
 </indexedmzML>
