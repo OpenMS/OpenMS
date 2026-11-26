@@ -454,15 +454,6 @@ double Biosaur2Algorithm::calculateMedian_(const vector<double>& values) const
   return Math::median(sorted.begin(), sorted.end(), false);
 }
 
-bool Biosaur2Algorithm::shouldThrowForMissingIM_(const MSSpectrum& spectrum) const
-{
-  // The Python reference implementation degrades gracefully when ion-mobility
-  // arrays are missing by simply disabling IM-based gating. To mirror this
-  // behavior, we never treat missing per-peak IM arrays as a hard error here.
-  (void)spectrum;
-  return false;
-}
-
 double Biosaur2Algorithm::cosineCorrelation1D_(const vector<double>& v1,
                                                const vector<double>& v2) const
 {
@@ -1784,15 +1775,9 @@ vector<Biosaur2Algorithm::Hill> Biosaur2Algorithm::detectHills_(const MSExperime
   {
     if (peak_end[sc] == 0) continue;
     const MSSpectrum& spectrum = exp[sc];
-    if (IMTypes::determineIMFormat(spectrum) != IMFormat::IM_PEAK)
-    {
-      if (spectrum.getDriftTime() >= 0 && shouldThrowForMissingIM_(spectrum))
-      {
-        throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                            "Ion mobility array missing although drift times are present.");
-      }
-      continue;
-    }
+    // no per-peak IM array: no IM gating for this scan. A drift time without one is valid (one IM value per
+    // spectrum, e.g. a FAIMS CV), and the Python reference also just disables IM gating when the arrays are missing
+    if (IMTypes::determineIMFormat(spectrum) != IMFormat::IM_PEAK) continue;
     auto [im_index_local, im_unit_local] = spectrum.getIMData(); // may throw
     const auto& fda_local = spectrum.getFloatDataArrays();
     if (im_index_local >= fda_local.size())

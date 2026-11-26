@@ -655,17 +655,6 @@ private:
                             const std::vector<double>& intensities2, const std::vector<Size>& scans2) const;
 
   /**
-    @brief Check if missing ion mobility data should be treated as an error
- 
-    The Python reference implementation gracefully degrades when ion mobility arrays are missing.
-    This method implements the same behavior by returning false to allow processing without IM data.
- 
-    @param[in] spectrum Spectrum to check
-    @return Currently always returns false (missing IM is not an error)
-  */
-  bool shouldThrowForMissingIM_(const MSSpectrum& spectrum) const;
- 
-  /**
     @brief Process a single FAIMS compensation voltage group
 
     Performs the complete feature detection pipeline (optional PASEF centroiding, hill detection,
