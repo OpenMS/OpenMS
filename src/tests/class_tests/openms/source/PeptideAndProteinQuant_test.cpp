@@ -1077,12 +1077,17 @@ END_SECTION
 // iBAQ test
 START_SECTION((const ProteinQuant& getProteinResults()))
 {
+  // The protein of this file, AAAKCCCKEEEKGGG, has four tryptic peptides of 3 or 4 amino acids:
+  // none of them is in the default length range of 'ibaq' (6 to 30). Without a length range all
+  // four count, as before the range existed.
   PeptideAndProteinQuant quantifier;
   PeptideAndProteinQuant::ProteinQuant quant;
   PeptideAndProteinQuant::ProteinData protein;
 
   Param parameters = quantifier.getDefaults();
   parameters.setValue("method", "iBAQ");
+  parameters.setValue("ibaq:min_length", 1);
+  parameters.setValue("ibaq:max_length", 0);
   quantifier.setParameters(parameters);
 
   ConsensusMap consensus;
@@ -1098,6 +1103,17 @@ START_SECTION((const ProteinQuant& getProteinResults()))
   TEST_REAL_SIMILAR(protein.fraction_group_abundances.at(1).at(1), 308.5);
   TEST_REAL_SIMILAR(protein.fraction_group_abundances.at(2).at(1), 58.5);
   TEST_REAL_SIMILAR(protein.fraction_group_abundances.at(3).at(1), 257.5);
+
+  // with the default range the protein has no theoretically observable peptide, so no iBAQ value:
+  // it is left out rather than divided by 0
+  PeptideAndProteinQuant default_range;
+  Param default_parameters = default_range.getDefaults();
+  default_parameters.setValue("method", "iBAQ");
+  default_range.setParameters(default_parameters);
+  default_range.readQuantData(consensus, ed);
+  default_range.quantifyPeptides();
+  default_range.quantifyProteins(proteins_);
+  TEST_TRUE(default_range.getProteinResults().find("Protein") == default_range.getProteinResults().end());
 }
 END_SECTION
 
@@ -2147,6 +2163,62 @@ START_SECTION((const ProteinQuant& getProteinResults() iBAQ must also normalize 
   // (100 + 200) / 3 theoretical peptides
   TEST_REAL_SIMILAR(pd.fraction_group_abundances.at(1).at(1), 100.0);
   TEST_REAL_SIMILAR(pd.channel_level_abundances.at("fileA").at(1), 100.0);
+}
+END_SECTION
+
+START_SECTION(([EXTRA] iBAQ counts the theoretically observable peptides within 'ibaq:min_length' and 'ibaq:max_length'))
+{
+  // Fully tryptic peptides (no missed cleavages) of the sequence, by length:
+  //   AAAAAK (6) | GK (2) | CCCCCK (6) | R (1) | L x 30 + K (31) | EEEEEK (6)
+  // The original definition of iBAQ (and the default) counts those of 6 to 30 amino acids: 3.
+  const std::string sequence = "AAAAAKGKCCCCCKR" + std::string(30, 'L') + "K" + "EEEEEK";
+
+  // abundance of "Prot" (detected: AAAAAK 100 + CCCCCK 200) for the given length range;
+  // -1 if it was not quantified
+  auto ibaq = [&sequence, &make_detailed_input](Int min_length, Int max_length)
+  {
+    ConsensusMap consensus;
+    ExperimentalDesign design;
+    make_detailed_input({"fileA"},
+                        {{0, "AAAAAK", 2, 100.0},
+                         {0, "CCCCCK", 2, 200.0}},
+                        "Prot", consensus, design);
+    ProteinHit prot_hit;
+    prot_hit.setAccession("Prot");
+    prot_hit.setSequence(sequence);
+    ProteinIdentification proteins;
+    proteins.setHits({prot_hit});
+
+    PeptideAndProteinQuant quantifier;
+    Param p = quantifier.getDefaults();
+    p.setValue("method", "iBAQ");
+    p.setValue("ibaq:min_length", min_length);
+    p.setValue("ibaq:max_length", max_length);
+    quantifier.setParameters(p);
+    quantifier.readQuantData(consensus, design);
+    quantifier.quantifyPeptides();
+    quantifier.quantifyProteins(proteins);
+
+    const auto& quant = quantifier.getProteinResults();
+    auto it = quant.find("Prot");
+    if (it == quant.end()) return -1.0;
+    // the file+channel level has to get the same divisor
+    TEST_REAL_SIMILAR(it->second.channel_level_abundances.at("fileA").at(1),
+                      it->second.fraction_group_abundances.at(1).at(1));
+    return it->second.fraction_group_abundances.at(1).at(1);
+  };
+
+  TEST_REAL_SIMILAR(ibaq(6, 30), 300.0 / 3); // the defaults
+  TEST_REAL_SIMILAR(ibaq(1, 0), 300.0 / 6);  // every tryptic peptide, as before the range existed
+  TEST_REAL_SIMILAR(ibaq(6, 0), 300.0 / 4);  // no upper limit: the 31-mer counts
+  TEST_REAL_SIMILAR(ibaq(2, 30), 300.0 / 4); // GK counts, R does not
+  TEST_REAL_SIMILAR(ibaq(6, 6), 300.0 / 3);  // a range of one length
+
+  // no peptide in the range: no iBAQ value (not a division by 0)
+  TEST_REAL_SIMILAR(ibaq(7, 30), -1.0);
+
+  // a maximum below the minimum is an error
+  TEST_EXCEPTION(Exception::InvalidParameter, ibaq(10, 8))
 }
 END_SECTION
 
