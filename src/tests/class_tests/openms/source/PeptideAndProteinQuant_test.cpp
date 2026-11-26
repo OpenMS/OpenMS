@@ -1103,9 +1103,10 @@ START_SECTION((const ProteinQuant& getProteinResults()))
   TEST_REAL_SIMILAR(protein.fraction_group_abundances.at(1).at(1), 308.5);
   TEST_REAL_SIMILAR(protein.fraction_group_abundances.at(2).at(1), 58.5);
   TEST_REAL_SIMILAR(protein.fraction_group_abundances.at(3).at(1), 257.5);
+  TEST_EQUAL(quantifier.getStatistics().quant_proteins, 1)
 
   // with the default range the protein has no theoretically observable peptide, so no iBAQ value:
-  // it is left out rather than divided by 0
+  // it is left out rather than divided by 0, and no longer counts as quantified
   PeptideAndProteinQuant default_range;
   Param default_parameters = default_range.getDefaults();
   default_parameters.setValue("method", "iBAQ");
@@ -1114,6 +1115,7 @@ START_SECTION((const ProteinQuant& getProteinResults()))
   default_range.quantifyPeptides();
   default_range.quantifyProteins(proteins_);
   TEST_TRUE(default_range.getProteinResults().find("Protein") == default_range.getProteinResults().end());
+  TEST_EQUAL(default_range.getStatistics().quant_proteins, 0)
 }
 END_SECTION
 
@@ -2217,8 +2219,17 @@ START_SECTION(([EXTRA] iBAQ counts the theoretically observable peptides within 
   // no peptide in the range: no iBAQ value (not a division by 0)
   TEST_REAL_SIMILAR(ibaq(7, 30), -1.0);
 
-  // a maximum below the minimum is an error
-  TEST_EXCEPTION(Exception::InvalidParameter, ibaq(10, 8))
+  // a maximum below the minimum is an error, reported when the parameters are set (before any
+  // quantification); 0 is "no limit", not a maximum
+  PeptideAndProteinQuant quantifier;
+  Param p = quantifier.getDefaults();
+  p.setValue("ibaq:min_length", 10);
+  p.setValue("ibaq:max_length", 8);
+  TEST_EXCEPTION(Exception::InvalidParameter, quantifier.setParameters(p))
+  p.setValue("ibaq:max_length", 10);
+  quantifier.setParameters(p); // a range of one length is fine
+  p.setValue("ibaq:max_length", 0);
+  quantifier.setParameters(p);
 }
 END_SECTION
 

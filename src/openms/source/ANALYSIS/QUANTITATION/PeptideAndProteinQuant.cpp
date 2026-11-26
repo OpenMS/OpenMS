@@ -43,7 +43,7 @@ namespace OpenMS
   {
     std::vector<std::string> true_false = {"true","false"};
 
-    defaults_.setValue("method", "top", "- top - quantify based on three most abundant peptides (number can be changed in 'top').\n- iBAQ (intensity based absolute quantification), calculate the sum of all peptide peak intensities divided by the number of theoretically observable tryptic peptides (https://rdcu.be/cND1J): the fully tryptic peptides of the protein sequence (cleavage after K or R, not before P; no missed cleavages) whose length is within 'ibaq:min_length' and 'ibaq:max_length'. Warning: only consensusXML or featureXML input is allowed!");
+    defaults_.setValue("method", "top", "- top - quantify based on three most abundant peptides (number can be changed in 'top').\n- iBAQ (intensity based absolute quantification), calculate the sum of all peptide peak intensities divided by the number of theoretically observable tryptic peptides (https://rdcu.be/cND1J): the fully tryptic peptides of the protein sequence (OpenMS' 'Trypsin': cleavage after K, R or X, not before P; no missed cleavages) whose length is within 'ibaq:min_length' and 'ibaq:max_length'. Warning: only consensusXML or featureXML input is allowed!");
     defaults_.setValidStrings("method", {"top","iBAQ"});
 
     defaults_.setValue("top:N", 3, "Calculate protein abundance from this number of proteotypic peptides (most abundant first; '0' for all)");
@@ -59,7 +59,7 @@ namespace OpenMS
 
     defaults_.setValue("ibaq:min_length", 6, "Minimum length (in amino acids) of a theoretically observable peptide. The defaults (6 to 30) follow the original definition of iBAQ (Schwanhaeusser et al., Nature 2011).");
     defaults_.setMinInt("ibaq:min_length", 1);
-    defaults_.setValue("ibaq:max_length", 30, "Maximum length (in amino acids) of a theoretically observable peptide ('0' for no limit). 'min_length' 1 and 'max_length' 0 count every tryptic peptide, as OpenMS did before these options existed.");
+    defaults_.setValue("ibaq:max_length", 30, "Maximum length (in amino acids) of a theoretically observable peptide ('0' for no limit); otherwise at least 'min_length'. 'min_length' 1 and 'max_length' 0 count every tryptic peptide, as OpenMS did before these options existed.");
     defaults_.setMinInt("ibaq:max_length", 0);
 
     defaults_.setSectionDescription("ibaq", "Options for 'method' 'iBAQ': the peptides of a protein sequence that count as theoretically observable (the divisor of the protein abundance). They depend only on the sequence, not on the data. A protein without any such peptide has no iBAQ value and is not quantified.");
@@ -1057,6 +1057,17 @@ namespace OpenMS
 
   void PeptideAndProteinQuant::updateMembers_()
   {
+    // An empty iBAQ length range is a configuration error: reject it when the parameters are set,
+    // not only after a whole quantification has run. ('ibaq:max_length' 0 means "no limit".)
+    const Size ibaq_min_length = param_.getValue("ibaq:min_length");
+    const Size ibaq_max_length = param_.getValue("ibaq:max_length");
+    if ((ibaq_max_length != 0) && (ibaq_max_length < ibaq_min_length))
+    {
+      throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+        "'ibaq:max_length' (" + std::to_string(ibaq_max_length) + ") must be 0 (no limit) or at least 'ibaq:min_length' (" +
+        std::to_string(ibaq_min_length) + ").");
+    }
+
     // reset everything:
     stats_ = Statistics();
     pep_quant_.clear();
@@ -1787,15 +1798,22 @@ namespace OpenMS
     // theoretically observable; it counts like a peptide that was not detected.
     // As in the original definition (Schwanhaeusser et al., Nature 2011), these are the fully
     // tryptic peptides without missed cleavages (the defaults of EnzymaticDigestion) within a
-    // length range, by default 6 to 30 amino acids.
+    // length range, by default 6 to 30 amino acids. (The range was validated in updateMembers_().)
     const Size min_length = param_.getValue("ibaq:min_length");
     const Size max_length = param_.getValue("ibaq:max_length"); // 0: no limit
-    if ((max_length != 0) && (max_length < min_length))
+
+    // A protein without an iBAQ value leaves the results. quantifyProteins() has already counted it
+    // as quantified if it has abundances, so the statistics have to forget it again.
+    auto remove_protein = [this](const std::string& accession)
     {
-      throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-        "'ibaq:max_length' (" + std::to_string(max_length) + ") must be 0 (no limit) or at least 'ibaq:min_length' (" +
-        std::to_string(min_length) + ").");
-    }
+      auto it = prot_quant_.find(accession);
+      if (!it->second.fraction_group_abundances.empty() && (stats_.quant_proteins > 0))
+      {
+        --stats_.quant_proteins;
+      }
+      prot_quant_.erase(it);
+    };
+
     EnzymaticDigestion digest{};
     for (auto & hit : proteins.getHits())
     {
@@ -1806,7 +1824,7 @@ namespace OpenMS
       {
         if (hit_sequence.empty())
         {
-          prot_quant_.erase(hit_accession);
+          remove_protein(hit_accession);
           OPENMS_LOG_WARN << "Removed " << hit_accession <<  ", no protein sequence found!" << endl;
         }
         else
@@ -1816,7 +1834,7 @@ namespace OpenMS
           if (peptides.empty())
           {
             // the divisor would be 0: iBAQ is not defined for this protein
-            prot_quant_.erase(hit_accession);
+            remove_protein(hit_accession);
             OPENMS_LOG_WARN << "Removed " << hit_accession << ", its sequence has no theoretically observable peptide "
                             << "(fully tryptic, length " << min_length << " to "
                             << (max_length == 0 ? std::string("unlimited") : std::to_string(max_length))

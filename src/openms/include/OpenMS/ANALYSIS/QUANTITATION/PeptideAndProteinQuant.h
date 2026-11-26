@@ -498,11 +498,10 @@ private:
          and 'ibaq:max_length' (by default 6 to 30, as in the original definition of iBAQ). It
          does not depend on the data: a peptide that 'modifications:exclude' leaves out counts like
          a peptide that was not detected. A protein without a sequence, or without any theoretically
-         observable peptide, is removed from the results (with a warning).
+         observable peptide, is removed from the results (with a warning) and no longer counts as
+         quantified in the statistics. (An empty length range is rejected when the parameters are set.)
 
          @param[in] proteins Protein identification information containing sequences
-
-         @throw Exception::InvalidParameter if 'ibaq:max_length' is neither 0 nor at least 'ibaq:min_length'
     */
     void performIbaqNormalization_(const ProteinIdentification& proteins);
 
