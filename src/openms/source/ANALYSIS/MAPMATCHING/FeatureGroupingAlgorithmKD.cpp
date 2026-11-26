@@ -459,13 +459,16 @@ namespace OpenMS
     {
       const vector<Size>& candidates = it->second;
 
-      // choose a point j with minimal distance to center i
+      // choose a point j with minimal distance to center i; use the (possibly warped)
+      // RTs stored in kd_data, as in the neighborhood search, not the features' original RTs
       double min_dist = numeric_limits<double>::max();
       Size best_index = numeric_limits<Size>::max();
       for (vector<Size>::const_iterator c_it = candidates.begin(); c_it != candidates.end(); ++c_it)
       {
         double dist = const_cast<FeatureDistance&>(feature_distance_)(*(kd_data.feature(*c_it)),
-                                                                      *(kd_data.feature(i))).second;
+                                                                      *(kd_data.feature(i)),
+                                                                      kd_data.rt(*c_it),
+                                                                      kd_data.rt(i)).second;
 
         if (dist < min_dist)
         {

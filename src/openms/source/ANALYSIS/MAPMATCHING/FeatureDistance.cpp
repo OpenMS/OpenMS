@@ -124,6 +124,14 @@ namespace OpenMS
   pair<bool, double> FeatureDistance::operator()(const BaseFeature & left,
                                                  const BaseFeature & right)
   {
+    return (*this)(left, right, left.getRT(), right.getRT());
+  }
+
+  pair<bool, double> FeatureDistance::operator()(const BaseFeature & left,
+                                                 const BaseFeature & right,
+                                                 double left_rt,
+                                                 double right_rt)
+  {
     if (!ignore_charge_)
     {
       Int charge_left = left.getCharge(), charge_right = right.getCharge();
@@ -170,7 +178,7 @@ namespace OpenMS
     }
 
     // check RT difference constraint:
-    double dist_rt = fabs(left.getRT() - right.getRT());
+    double dist_rt = fabs(left_rt - right_rt);
     if (dist_rt > params_rt_.max_difference)
     {
       if (force_constraints_)
