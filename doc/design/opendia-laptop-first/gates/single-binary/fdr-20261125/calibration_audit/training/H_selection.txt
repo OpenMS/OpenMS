@@ -1,0 +1,4 @@
+rows=2395697
+held=0 global_pos=23757 local_pos=23721 global_neg=15800 local_neg=15800 global_local_pos_diff=36 global_local_neg_diff=0 perturb_global_pos_diff=0 perturb_global_neg_diff=2808 perturb_local_pos_diff=0 perturb_local_neg_diff=0
+held=1 global_pos=23813 local_pos=23818 global_neg=15792 local_neg=15793 global_local_pos_diff=5 global_local_neg_diff=1 perturb_global_pos_diff=0 perturb_global_neg_diff=2808 perturb_local_pos_diff=0 perturb_local_neg_diff=0
+held=2 global_pos=23864 local_pos=23923 global_neg=15784 local_neg=15785 global_local_pos_diff=59 global_local_neg_diff=1 perturb_global_pos_diff=0 perturb_global_neg_diff=2809 perturb_local_pos_diff=0 perturb_local_neg_diff=0

@@ -1,0 +1,2 @@
+D: actual production fold agrees for 1000 distinct precursors in first 1000 feature rows
+H: actual production fold agrees for 1000 distinct precursors in first 1000 feature rows

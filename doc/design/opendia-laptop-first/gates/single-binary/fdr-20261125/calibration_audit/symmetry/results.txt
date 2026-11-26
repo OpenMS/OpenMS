@@ -1,0 +1,12 @@
+PASS search produces both identical-evidence precursors after label swap
+PASS all 14 SearchCandidate fields unchanged by label swap
+PASS identical target/decoy evidence receives identical search area and support
+PASS strict higher score wins each pair across three folds
+PASS 12 target winners receive reverse-min q=1/12 with plus-one correction
+PASS strict pair winner identities survive label swap despite decoy-normalization change
+PASS label-swapped all-decoy winners receive q=1, intentionally asymmetric FDR
+PASS competition invariant to subset row iteration order
+PASS all exact pair ties resolve to decoys
+PASS tie priority follows label, not row identity
+PASS orphan target accepted as competitor when its decoy has no row
+PASS replica of pair-max population gate retains weak partner symmetrically

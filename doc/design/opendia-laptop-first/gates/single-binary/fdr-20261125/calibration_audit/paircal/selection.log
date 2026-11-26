@@ -1,0 +1,41 @@
+PASS label-free TDC helper tests
+D 0 baseline pairs 1230054 targets_q01 22204 strata {np.str_('all'): np.int64(1230054)}
+D 0 A_agreement pairs 1230054 targets_q01 22159 strata {np.str_('agree'): np.int64(629240), np.str_('disagree'): np.int64(600224), np.str_('missing'): np.int64(590)}
+D 0 B_net99 pairs 1230054 targets_q01 22076 strata {np.str_('high'): np.int64(50242), np.str_('low'): np.int64(1179222), np.str_('missing'): np.int64(590)}
+JCODE_PROGRESS {"dataset":"D","seed":0}
+D 1 baseline pairs 1229852 targets_q01 21804 strata {np.str_('all'): np.int64(1229852)}
+D 1 A_agreement pairs 1229852 targets_q01 21811 strata {np.str_('agree'): np.int64(645678), np.str_('disagree'): np.int64(583730), np.str_('missing'): np.int64(444)}
+D 1 B_net99 pairs 1229852 targets_q01 21724 strata {np.str_('high'): np.int64(50546), np.str_('low'): np.int64(1178862), np.str_('missing'): np.int64(444)}
+JCODE_PROGRESS {"dataset":"D","seed":1}
+D 2 baseline pairs 1229941 targets_q01 22153 strata {np.str_('all'): np.int64(1229941)}
+D 2 A_agreement pairs 1229941 targets_q01 22143 strata {np.str_('agree'): np.int64(641930), np.str_('disagree'): np.int64(587551), np.str_('missing'): np.int64(460)}
+D 2 B_net99 pairs 1229941 targets_q01 22112 strata {np.str_('high'): np.int64(50154), np.str_('low'): np.int64(1179327), np.str_('missing'): np.int64(460)}
+JCODE_PROGRESS {"dataset":"D","seed":2}
+D 3 baseline pairs 1229936 targets_q01 21732 strata {np.str_('all'): np.int64(1229936)}
+D 3 A_agreement pairs 1229936 targets_q01 21851 strata {np.str_('agree'): np.int64(630436), np.str_('disagree'): np.int64(598963), np.str_('missing'): np.int64(537)}
+D 3 B_net99 pairs 1229936 targets_q01 21801 strata {np.str_('high'): np.int64(51339), np.str_('low'): np.int64(1178060), np.str_('missing'): np.int64(537)}
+JCODE_PROGRESS {"dataset":"D","seed":3}
+D 4 baseline pairs 1229946 targets_q01 22017 strata {np.str_('all'): np.int64(1229946)}
+D 4 A_agreement pairs 1229946 targets_q01 22063 strata {np.str_('agree'): np.int64(643524), np.str_('disagree'): np.int64(586056), np.str_('missing'): np.int64(366)}
+D 4 B_net99 pairs 1229946 targets_q01 22029 strata {np.str_('high'): np.int64(50533), np.str_('low'): np.int64(1179047), np.str_('missing'): np.int64(366)}
+JCODE_PROGRESS {"dataset":"D","seed":4}
+H 0 baseline pairs 1216301 targets_q01 38507 strata {np.str_('all'): np.int64(1216301)}
+H 0 A_agreement pairs 1216301 targets_q01 38210 strata {np.str_('agree'): np.int64(622125), np.str_('disagree'): np.int64(593762), np.str_('missing'): np.int64(414)}
+H 0 B_net99 pairs 1216301 targets_q01 38012 strata {np.str_('high'): np.int64(62166), np.str_('low'): np.int64(1153721), np.str_('missing'): np.int64(414)}
+JCODE_PROGRESS {"dataset":"H","seed":0}
+H 1 baseline pairs 1216066 targets_q01 38359 strata {np.str_('all'): np.int64(1216066)}
+H 1 A_agreement pairs 1216066 targets_q01 38221 strata {np.str_('agree'): np.int64(615921), np.str_('disagree'): np.int64(599737), np.str_('missing'): np.int64(408)}
+H 1 B_net99 pairs 1216066 targets_q01 38079 strata {np.str_('high'): np.int64(62103), np.str_('low'): np.int64(1153555), np.str_('missing'): np.int64(408)}
+JCODE_PROGRESS {"dataset":"H","seed":1}
+H 2 baseline pairs 1216087 targets_q01 38462 strata {np.str_('all'): np.int64(1216087)}
+H 2 A_agreement pairs 1216087 targets_q01 38218 strata {np.str_('agree'): np.int64(619865), np.str_('disagree'): np.int64(595760), np.str_('missing'): np.int64(462)}
+H 2 B_net99 pairs 1216087 targets_q01 38225 strata {np.str_('high'): np.int64(62363), np.str_('low'): np.int64(1153262), np.str_('missing'): np.int64(462)}
+JCODE_PROGRESS {"dataset":"H","seed":2}
+H 3 baseline pairs 1216175 targets_q01 38531 strata {np.str_('all'): np.int64(1216175)}
+H 3 A_agreement pairs 1216175 targets_q01 38292 strata {np.str_('agree'): np.int64(610572), np.str_('disagree'): np.int64(605215), np.str_('missing'): np.int64(388)}
+H 3 B_net99 pairs 1216175 targets_q01 38152 strata {np.str_('high'): np.int64(62045), np.str_('low'): np.int64(1153742), np.str_('missing'): np.int64(388)}
+JCODE_PROGRESS {"dataset":"H","seed":3}
+H 4 baseline pairs 1216307 targets_q01 38380 strata {np.str_('all'): np.int64(1216307)}
+H 4 A_agreement pairs 1216307 targets_q01 38142 strata {np.str_('agree'): np.int64(620315), np.str_('disagree'): np.int64(595441), np.str_('missing'): np.int64(551)}
+H 4 B_net99 pairs 1216307 targets_q01 38178 strata {np.str_('high'): np.int64(62368), np.str_('low'): np.int64(1153388), np.str_('missing'): np.int64(551)}
+JCODE_PROGRESS {"dataset":"H","seed":4}

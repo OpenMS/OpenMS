@@ -1,0 +1,2 @@
+production_global_selection positives=7926/7848 negatives=214/131 changed_positive_rows=78 changed_negative_rows=83 changed_fixed_probe_predictions=10000 max_delta=4.06144
+exclude_before_selection positives=7878/7878 negatives=200/200 changed_positive_rows=0 changed_negative_rows=0 changed_fixed_probe_predictions=0 max_delta=0
