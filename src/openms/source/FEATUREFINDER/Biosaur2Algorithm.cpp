@@ -948,9 +948,10 @@ void Biosaur2Algorithm::centroidProfileSpectra_(MSExperiment& exp) const
     total_peaks_before += exp[i].size();
     MSSpectrum centroided_spectrum;
 
-    // picking centroided peaks again would drop most of them, so keep them; a spectrum without a type annotation is
-    // judged from its data processing and then its peaks, as PeakPickerHiRes::pickExperiment() does in auto mode
-    if (exp[i].getType(true) == SpectrumSettings::SpectrumType::CENTROID)
+    // picking centroided peaks again would drop most of them, so keep spectra marked centroided by their type or by a
+    // peak picking data processing entry. Not from the peaks (getType(true)): PeakTypeEstimator calls short or narrow
+    // profile peaks centroided, and profile=true says unannotated data are profile
+    if (exp[i].getType(false) == SpectrumSettings::SpectrumType::CENTROID)
     {
       centroided_spectrum = exp[i];
       ++n_kept;

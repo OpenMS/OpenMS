@@ -18,6 +18,7 @@
 #include <OpenMS/IONMOBILITY/FAIMSHelper.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
+#include <OpenMS/METADATA/DataProcessing.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/Feature.h>
 
@@ -611,13 +612,18 @@ START_SECTION([EXTRA] run() refreshes ranges on the non-FAIMS profile-mode path)
 }
 END_SECTION
 
-START_SECTION([EXTRA] run() in profile mode keeps unannotated spectra that are already centroided)
+START_SECTION([EXTRA] run() in profile mode keeps spectra marked as peak picked and picks unannotated ones)
 {
-  // Without a spectrum type annotation, the data must decide: picking centroided peaks again
-  // keeps only interior local maxima with a neighbour on either side, so most sticks would be
-  // lost. Even scans hold isolated centroid sticks, odd scans a profile peak; none is annotated.
+  // No spectrum carries a type. Even scans hold centroid sticks whose data processing says they
+  // were peak picked: picking them again keeps only interior local maxima with a neighbour on
+  // either side, so most sticks would be lost. Odd scans hold a five-point profile peak with no
+  // annotation at all; profile=true must still pick it, although PeakTypeEstimator (and so
+  // getType(true)) calls it centroided, as it does for many short or narrow profile peaks.
   Biosaur2Algorithm algo;
   MSExperiment exp;
+
+  DataProcessingPtr picked = std::make_shared<DataProcessing>();
+  picked->setProcessingActions({DataProcessing::PEAK_PICKING});
 
   const Size n_sticks = 8;
   const double stick_mz[n_sticks] = {420.0, 450.0, 480.0, 500.0, 520.0, 550.0, 580.0, 590.0};
@@ -629,6 +635,7 @@ START_SECTION([EXTRA] run() in profile mode keeps unannotated spectra that are a
     spec.setMSLevel(1);
     if (i % 2 == 0)
     {
+      spec.getDataProcessing().push_back(picked);
       for (Size s = 0; s < n_sticks; ++s)
       {
         Peak1D p;
@@ -639,7 +646,7 @@ START_SECTION([EXTRA] run() in profile mode keeps unannotated spectra that are a
     }
     else
     {
-      for (int k = -3; k <= 3; ++k)
+      for (int k = -2; k <= 2; ++k)
       {
         Peak1D p;
         p.setMZ(500.0 + k * 0.01);
@@ -669,7 +676,7 @@ START_SECTION([EXTRA] run() in profile mode keeps unannotated spectra that are a
   {
     if (k % 2 == 0)
     {
-      // centroided: kept as they are
+      // marked as peak picked: kept as they are
       TEST_EQUAL(back[k].size(), n_sticks)
       if (back[k].size() != n_sticks) continue;
       for (Size s = 0; s < n_sticks; ++s)
@@ -680,7 +687,7 @@ START_SECTION([EXTRA] run() in profile mode keeps unannotated spectra that are a
     }
     else
     {
-      // profile: still picked, into one centroid
+      // unannotated: picked, into one centroid (not the five raw samples)
       TEST_EQUAL(back[k].size(), 1)
       TEST_EQUAL(back[k].getType() == SpectrumSettings::SpectrumType::CENTROID, true)
     }
