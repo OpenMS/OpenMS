@@ -454,8 +454,6 @@ namespace OpenMS
       theo_gen_settings.setValue("add_zp2_ions", "true");
       theo_gen_settings.setValue("add_b_ions", "false");
       theo_gen_settings.setValue("add_y_ions", "false");
-      // w ions form from the z+1 radicals by side-chain loss (e.g. Leu -C3H7 vs. Ile -C2H5)
-      theo_gen_settings.setValue("add_w_ions", "true");
     }
     else if (fm == Precursor::ActivationMethod::ETciD || fm == Precursor::ActivationMethod::EThcD)
     {
@@ -467,9 +465,6 @@ namespace OpenMS
       theo_gen_settings.setValue("add_z_ions", "true");
       theo_gen_settings.setValue("add_zp1_ions", "true");
       theo_gen_settings.setValue("add_zp2_ions", "true");
-      // the supplemental collisional activation of the ETD products also gives d ions
-      theo_gen_settings.setValue("add_d_ions", "true");
-      theo_gen_settings.setValue("add_w_ions", "true");
     }
     else
     {

@@ -86,8 +86,9 @@ namespace OpenMS
 
     /// Generates a spectrum for a peptide sequence based on activation method and precursor charge.
     /// Activation method 'CID' will generate b- and y-ions, 'HCD' and 'HCID' additionally a-ions.
-    /// Activation method 'ECD' or 'ETD' will generate c-, z+1-, z+2- and w-ions.
-    /// Activation method 'ETciD' or 'EThcD' will generate a-, b-, c-, x-, y-, z-, z+1-, z+2-, d- and w-ions.
+    /// Activation method 'ECD' or 'ETD' will generate c-, z+1- and z+2-ions.
+    /// Activation method 'ETciD' or 'EThcD' will generate a-, b-, c-, x-, y-, z-, z+1- and z+2-ions.
+    /// Satellite ions (d, v, w) are never added here; enable them with the add_d_ions, add_v_ions and add_w_ions parameters.
     /// If precursor charge is greater than 2 ions with charge 1 & 2 will be generated, else only ions of charge 1 will appear in the spectrum.
     /// @throw Exception::InvalidParameter   If fragmentation method is anything else than 'CID', 'HCD', 'HCID', 'ECD', 'ETD', 'ETciD' or 'EThcD'.
     static MSSpectrum generateSpectrum(const Precursor::ActivationMethod& fm, const AASequence& seq, int precursor_charge);

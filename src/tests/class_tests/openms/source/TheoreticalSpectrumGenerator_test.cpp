@@ -519,59 +519,48 @@ START_SECTION(static MSSpectrum generateSpectrum(const Precursor::ActivationMeth
 
   spec.clear(true);
 
-  // Test ECD/ETD: c, z+1, z+2 and w ions. HFYLWCP has two w ions, w2 (Cys, -HS) and w4 (Leu, -C3H7);
-  // Pro, Trp, Tyr and Phe have no partial side-chain loss.
+  // Test ECD/ETD
   spec = TheoreticalSpectrumGenerator::generateSpectrum(Precursor::ActivationMethod::ECD, AASequence::fromString("HFYLWCP"), 1);
-  TEST_EQUAL(spec.size(), 19);
+  TEST_EQUAL(spec.size(), 17);
 
   TEST_REAL_SIMILAR(spec[0].getPosition()[0], 100.0518816);
   TEST_REAL_SIMILAR(spec[1].getPosition()[0], 101.0597067);
-  TEST_REAL_SIMILAR(spec[2].getPosition()[0], 170.0811697); // w2
-  TEST_REAL_SIMILAR(spec[3].getPosition()[0], 203.0610665);
-  TEST_REAL_SIMILAR(spec[4].getPosition()[0], 204.0688916);
-  TEST_REAL_SIMILAR(spec[5].getPosition()[0], 302.1611520);
-  TEST_REAL_SIMILAR(spec[6].getPosition()[0], 389.1403798);
-  TEST_REAL_SIMILAR(spec[7].getPosition()[0], 390.1482049);
-  TEST_REAL_SIMILAR(spec[8].getPosition()[0], 459.1696674); // w4
-  TEST_REAL_SIMILAR(spec[9].getPosition()[0], 465.2244813);
-  TEST_REAL_SIMILAR(spec[10].getPosition()[0], 502.2244442);
-  TEST_REAL_SIMILAR(spec[11].getPosition()[0], 503.2322692);
-  TEST_REAL_SIMILAR(spec[12].getPosition()[0], 578.3085457);
+  TEST_REAL_SIMILAR(spec[2].getPosition()[0], 203.0610665);
+  TEST_REAL_SIMILAR(spec[3].getPosition()[0], 204.0688916);
+  TEST_REAL_SIMILAR(spec[4].getPosition()[0], 302.1611520);
+  TEST_REAL_SIMILAR(spec[5].getPosition()[0], 389.1403798);
+  TEST_REAL_SIMILAR(spec[6].getPosition()[0], 390.1482049);
+  TEST_REAL_SIMILAR(spec[7].getPosition()[0], 465.2244813);
+  TEST_REAL_SIMILAR(spec[8].getPosition()[0], 502.2244442);
+  TEST_REAL_SIMILAR(spec[9].getPosition()[0], 503.2322692);
+  TEST_REAL_SIMILAR(spec[10].getPosition()[0], 578.3085457);
   // ...
 
   spec.clear(true);
 
-  // Satellite ions per activation method, on GLITAK (precursor charge 2: fragment charge 1). The d and w ions are
-  // tested in detail in "[EXTRA] satellite ions d, v and w".
+  // No activation method adds satellite ions (they are opt-in via add_d_ions/add_v_ions/add_w_ions). GLITAK at
+  // precursor charge 2 (fragment charge 1) has d and w ions at Leu, Ile and Thr; see "[EXTRA] satellite ions d, v and w".
   {
     const AASequence glitak = AASequence::fromString("GLITAK");
-    const std::vector<double> d_ions = {101.070939, 228.170653, 242.186303, 341.254717, 343.233982};
-    const std::vector<double> w_ions = {73.028406, 286.176133, 288.155397, 387.223811, 401.239461, 486.292225};
+    const std::vector<double> satellite_ions = {101.070939, 228.170653, 242.186303, 341.254717, 343.233982, // d
+                                                73.028406, 286.176133, 288.155397, 387.223811, 401.239461, 486.292225}; // w
     auto contains = [](const MSSpectrum& s, double mz)
     {
       return std::any_of(s.begin(), s.end(), [mz](const Peak1D& peak) { return std::fabs(peak.getMZ() - mz) < 1e-4; });
     };
-
-    // ETD: 4 c, 5 z+1, 5 z+2 and 6 w ions, no d ions
-    spec = TheoreticalSpectrumGenerator::generateSpectrum(Precursor::ActivationMethod::ETD, glitak, 2);
-    TEST_EQUAL(spec.size(), 20)
-    for (double mz : w_ions) TEST_TRUE(contains(spec, mz))
-    for (double mz : d_ions) TEST_FALSE(contains(spec, mz))
-
-    // EThcD and ETciD: 4 each of a, b, c, 5 each of x, y, z, z+1, z+2, 5 d and 6 w ions
-    for (const auto method : {Precursor::ActivationMethod::EThcD, Precursor::ActivationMethod::ETciD})
+    // ETD: 4 c, 5 z+1 and 5 z+2 ions; EThcD and ETciD: 4 each of a, b, c and 5 each of x, y, z, z+1, z+2; HCD: 4 a, 4 b, 5 y
+    const std::vector<std::pair<Precursor::ActivationMethod, Size>> methods = {
+      {Precursor::ActivationMethod::ETD, 14}, {Precursor::ActivationMethod::EThcD, 37},
+      {Precursor::ActivationMethod::ETciD, 37}, {Precursor::ActivationMethod::HCD, 13}};
+    for (const auto& [method, size] : methods)
     {
       spec = TheoreticalSpectrumGenerator::generateSpectrum(method, glitak, 2);
-      TEST_EQUAL(spec.size(), 48)
-      for (double mz : w_ions) TEST_TRUE(contains(spec, mz))
-      for (double mz : d_ions) TEST_TRUE(contains(spec, mz))
+      TEST_EQUAL(spec.size(), size)
+      for (double mz : satellite_ions)
+      {
+        TEST_FALSE(contains(spec, mz))
+      }
     }
-
-    // HCD: only 4 a, 4 b and 5 y ions
-    spec = TheoreticalSpectrumGenerator::generateSpectrum(Precursor::ActivationMethod::HCD, glitak, 2);
-    TEST_EQUAL(spec.size(), 13)
-    for (double mz : d_ions) TEST_FALSE(contains(spec, mz))
-    for (double mz : w_ions) TEST_FALSE(contains(spec, mz))
     spec.clear(true);
   }
 
