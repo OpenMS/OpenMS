@@ -1,0 +1,247 @@
+diff --git a/src/topp/OpenDIA/OpenDIA.cpp b/src/topp/OpenDIA/OpenDIA.cpp
+index 3eb86c22ee..26946d46b0 100644
+--- a/src/topp/OpenDIA/OpenDIA.cpp
++++ b/src/topp/OpenDIA/OpenDIA.cpp
+@@ -92,6 +92,9 @@ protected:
+     registerStringList_("gbm_monotone", "<name:+1|name:-1>", {}, "Advanced, experimental (FDR-20261125): monotone constraints of the hard-negative GBM per feature column", false, true);
+     registerFlag_("gbm_fold_local", "Advanced, experimental (FDR-20261126): train the hard-negative GBM per outer fold on that fold's training rows only, "
+                   "including positive selection, hard-negative mining and the rescoring between rounds (inner cross-fit)", true);
++    registerFlag_("bulk_null_q", "Advanced, experimental (FDR-20261126): report label-free bulk-null weighted target-decoy q-values. The ranking "
++                  "is unchanged; each decoy counts by a cross-fitted false-target/decoy density ratio learnt on winners below the "
++                  "median decoy score", true);
+     registerIntOption_("trace_tensor_gb", "<GiB>", 64, "Advanced: hard cap on the 6-fragment trace tensor in GiB (about 6.1 KiB per candidate window with ion mobility); "
+                        "raise it for very large libraries, memory permitting", false, true);
+     setMinInt_("trace_tensor_gb", 1);
+@@ -269,6 +272,7 @@ protected:
+     options.gbm_exclude = getStringList_("gbm_exclude");
+     options.gbm_monotone = getStringList_("gbm_monotone");
+     options.gbm_fold_local = getFlag_("gbm_fold_local");
++    options.bulk_null_q = getFlag_("bulk_null_q");
+     if (!(options.search_valley_fraction > 0.0))
+     {
+       writeLogError_("-valley_fraction must be in (0, 1].");
+diff --git a/src/topp/OpenDIA/include/OpenDIAGBM.h b/src/topp/OpenDIA/include/OpenDIAGBM.h
+index 3dab2dcee2..119d18285b 100644
+--- a/src/topp/OpenDIA/include/OpenDIAGBM.h
++++ b/src/topp/OpenDIA/include/OpenDIAGBM.h
+@@ -119,4 +119,19 @@ namespace OpenMS::OpenDIA
+   */
+   CrossFitScorer::Result blendScores(const CrossFitScorer::Input& input, const std::vector<float>& network, const std::vector<float>& gbm,
+                                      double w);
++
++  /**
++    @brief Label-free bulk-null weighted target-decoy q-values (FDR-20261126, opt-in; CALIB section 9 ported to OpenDIA).
++
++    The ranking is the pooled paired TDC of @p score (kept rows, as pooledPairedTDC) and is not changed; only the decoy count
++    in q is reweighted. The bulk is every precursor winner whose score lies below its fold's median decoy-winner score, so it
++    is almost all false targets and decoys. Per fold f a HistGBM (default options) learns target versus decoy on the bulk
++    winners of the other folds (feature columns only, unit weights, validation rows by pair_hash % 100 < 10). Every decoy
++    winner of f gets w = exp(margin) * n_decoy / n_target of that model (the false-target / decoy density ratio), clipped to
++    [0.2, 5] and divided by the mean w of f's bulk decoys. Along the ranked list q = min(1, (sum of w over decoys + 1) /
++    targets) with a reverse cumulative minimum. Returns q per row (1 for rows outside the ranked list).
++    @throws std::invalid_argument With fewer than 2 folds or a fold without bulk targets or bulk decoys.
++  */
++  std::vector<double> bulkNullQ(const CrossFitScorer::Input& input, const std::vector<float>& score, int threads,
++                                const std::function<void(const std::string&)>& log = {});
+ }
+diff --git a/src/topp/OpenDIA/include/OpenDIAWorkflow.h b/src/topp/OpenDIA/include/OpenDIAWorkflow.h
+index 326d48a02d..e64320bfd8 100644
+--- a/src/topp/OpenDIA/include/OpenDIAWorkflow.h
++++ b/src/topp/OpenDIA/include/OpenDIAWorkflow.h
+@@ -136,6 +136,7 @@ namespace OpenMS::OpenDIA
+     std::vector<std::string> gbm_exclude;  ///< Feature columns the GBM never splits on (FDR-20261125; empty = none).
+     std::vector<std::string> gbm_monotone; ///< "name:+1" / "name:-1" monotone GBM constraints (FDR-20261125; empty = none).
+     bool gbm_fold_local = false;           ///< Fold-local GBM training chains (FDR-20261126, GBMVariant::fold_local; off = as before).
++    bool bulk_null_q = false;              ///< Report bulk-null weighted TDC q-values (FDR-20261126, bulkNullQ; off = plain pooled TDC q).
+     std::size_t min_transitions = 1;
+     std::size_t population_min_support = 3;     ///< Pairs whose best candidate has fewer supporting fragments are dropped.
+     double grid_half_width_s = 15.0;
+diff --git a/src/topp/OpenDIA/source/OpenDIAGBM.cpp b/src/topp/OpenDIA/source/OpenDIAGBM.cpp
+index 12d05eae94..42a63124b7 100644
+--- a/src/topp/OpenDIA/source/OpenDIAGBM.cpp
++++ b/src/topp/OpenDIA/source/OpenDIAGBM.cpp
+@@ -677,4 +677,93 @@ namespace OpenMS::OpenDIA
+     for (std::size_t i = 0; i < comp.ranked.size(); ++i) res.q_value[comp.ranked[i]] = comp.q[i];
+     return res;
+   }
++
++  std::vector<double> bulkNullQ(const CrossFitScorer::Input& in, const std::vector<float>& score, int threads,
++                                const std::function<void(const std::string&)>& log)
++  {
++    const std::size_t n = in.rows(), d = in.dimension;
++    if (score.size() != n) throw std::invalid_argument("bulkNullQ: inconsistent input sizes.");
++    std::vector<std::uint32_t> kept;
++    for (std::uint32_t r = 0; r < n; ++r)
++      if (score[r] > -1e29f) kept.push_back(r);
++    const auto comp = CrossFitScorer::pooledPairedTDC(in, score, kept);
++    std::uint8_t n_folds = 0;
++    for (std::uint32_t r : comp.winners) n_folds = std::max<std::uint8_t>(n_folds, in.fold[r] + 1);
++    if (n_folds < 2) throw std::invalid_argument("bulkNullQ: needs at least 2 folds.");
++
++    // Bulk: precursor winners below their fold's median decoy-winner score.
++    std::vector<double> med(n_folds, 0.0);
++    for (std::uint8_t f = 0; f < n_folds; ++f)
++    {
++      std::vector<double> v;
++      for (std::uint32_t r : comp.winners)
++        if (in.fold[r] == f && in.decoy[r]) v.push_back(score[r]);
++      if (v.empty()) throw std::invalid_argument("bulkNullQ: a fold has no decoy winners.");
++      std::sort(v.begin(), v.end());
++      const std::size_t m = v.size() / 2;
++      med[f] = v.size() % 2 ? v[m] : 0.5 * (v[m - 1] + v[m]);
++    }
++    std::vector<std::uint8_t> bulk(n, 0), label(n, 0);
++    for (std::uint32_t r : comp.winners)
++    {
++      bulk[r] = score[r] < med[in.fold[r]];
++      label[r] = !in.decoy[r];
++    }
++    const std::vector<double> unit(n, 1.0);
++    std::vector<double> w(n, 1.0);
++    std::string line = "Bulk-null q:";
++    for (std::uint8_t f = 0; f < n_folds; ++f)
++    {
++      std::vector<std::uint32_t> tr, va, dec;
++      double nt = 0.0, nd = 0.0;
++      for (std::uint32_t r : comp.winners)
++      {
++        if (in.fold[r] == f)
++        {
++          if (in.decoy[r]) dec.push_back(r);
++          continue;
++        }
++        if (!bulk[r]) continue;
++        (in.pair_hash[r] % 100 < 10 ? va : tr).push_back(r);
++        (in.decoy[r] ? nd : nt) += 1.0;
++      }
++      if (nt == 0.0 || nd == 0.0 || tr.empty()) throw std::invalid_argument("bulkNullQ: a fold's training bulk lacks targets or decoys.");
++      HistGBM model;
++      HistGBM::Options go;
++      go.threads = threads;
++      model.fit(in.features.data(), d, tr, va, label, unit, go);
++      const double prior = nd / nt;
++#pragma omp parallel for num_threads(threads) schedule(static)
++      for (std::ptrdiff_t i = 0; i < static_cast<std::ptrdiff_t>(dec.size()); ++i)
++      {
++        const std::uint32_t r = dec[i];
++        const double z = std::clamp(model.predict(in.features.data() + static_cast<std::size_t>(r) * d), -50.0, 50.0);
++        w[r] = std::clamp(std::exp(z) * prior, 0.2, 5.0);
++      }
++      double sum = 0.0, cnt = 0.0, tail_sum = 0.0, tail_cnt = 0.0;
++      for (std::uint32_t r : dec)
++      {
++        if (bulk[r]) { sum += w[r]; cnt += 1.0; }
++        else { tail_sum += w[r]; tail_cnt += 1.0; }
++      }
++      if (cnt == 0.0) throw std::invalid_argument("bulkNullQ: a fold has no bulk decoys.");
++      for (std::uint32_t r : dec) w[r] *= cnt / sum;
++      line += " f" + std::to_string(f) + " trees " + std::to_string(model.trees.size()) + " bulk t/d " + std::to_string(static_cast<std::size_t>(nt)) +
++              "/" + std::to_string(static_cast<std::size_t>(nd)) + " upper-half decoy mean w " +
++              std::to_string(tail_cnt > 0.0 ? tail_sum / tail_cnt * cnt / sum : 0.0);
++    }
++    if (log) log(line);
++    std::vector<double> qs(comp.ranked.size()), q(n, 1.0);
++    double targets = 0.0, decoys = 0.0;
++    for (std::size_t i = 0; i < comp.ranked.size(); ++i)
++    {
++      const std::uint32_t r = comp.ranked[i];
++      if (in.decoy[r]) decoys += w[r];
++      else targets += 1.0;
++      qs[i] = std::min(1.0, (decoys + 1.0) / std::max(targets, 1.0));
++    }
++    for (std::size_t i = qs.size(); i-- > 1;) qs[i - 1] = std::min(qs[i - 1], qs[i]);
++    for (std::size_t i = 0; i < comp.ranked.size(); ++i) q[comp.ranked[i]] = qs[i];
++    return q;
++  }
+ }
+diff --git a/src/topp/OpenDIA/source/OpenDIAWorkflow.cpp b/src/topp/OpenDIA/source/OpenDIAWorkflow.cpp
+index f5335e144e..c3b6d00ca5 100644
+--- a/src/topp/OpenDIA/source/OpenDIAWorkflow.cpp
++++ b/src/topp/OpenDIA/source/OpenDIAWorkflow.cpp
+@@ -1108,6 +1108,19 @@ namespace OpenMS::OpenDIA
+       scored.score = std::move(gbm.score);
+       scored.q_value = std::move(gbm.q_value);
+     }
++    if (options_.bulk_null_q)
++    {
++      // FDR-20261126: same ranking, bulk-null weighted decoy count in q (opt-in).
++      std::size_t plain = 0, weighted = 0;
++      auto q = bulkNullQ(input, scored.score, options_.threads, say);
++      for (std::size_t i = 0; i < n; ++i)
++      {
++        plain += !input.decoy[i] && scored.q_value[i] <= 0.01;
++        weighted += !input.decoy[i] && q[i] <= 0.01;
++      }
++      say("Bulk-null q: target precursors at q <= 0.01: plain TDC " + std::to_string(plain) + ", bulk-null " + std::to_string(weighted));
++      scored.q_value = std::move(q);
++    }
+     result.features = std::move(input.features);
+     for (std::size_t i = 0; i < n; ++i)
+     {
+diff --git a/src/topp/OpenDIA/test/OpenDIAGBM_test.cpp b/src/topp/OpenDIA/test/OpenDIAGBM_test.cpp
+index 29974a18b4..11c0c6487a 100644
+--- a/src/topp/OpenDIA/test/OpenDIAGBM_test.cpp
++++ b/src/topp/OpenDIA/test/OpenDIAGBM_test.cpp
+@@ -324,6 +324,62 @@ int main()
+     check(threw, "wrong-size use_feature throws");
+   }
+ 
++  // (e) Bulk-null q (FDR-20261126) on synthetic winners with known truth. False targets are shifted against decoys in
++  // feature 1, which also enters the score, so plain TDC under-counts false targets. One row per precursor.
++  for (const float shift : {0.8f, 0.0f})
++  {
++    CrossFitScorer::Input in;
++    const std::size_t pairs = 60000, d = 4;
++    in.dimension = d;
++    std::mt19937_64 rng(11);
++    std::normal_distribution<float> nd(0.0f, 1.0f);
++    std::vector<float> s;
++    std::vector<std::uint8_t> truth;  // 1 = true target
++    for (std::uint32_t pr = 0; pr < pairs; ++pr)
++      for (int dec = 0; dec < 2; ++dec)
++      {
++        const bool real = !dec && pr % 10 == 0;
++        float f[4] = {nd(rng), nd(rng), nd(rng), nd(rng)};
++        if (real) f[0] += 4.0f;
++        if (!dec && !real) f[1] += shift;
++        for (float v : f) in.features.push_back(v);
++        in.precursor.push_back(2 * pr + dec);
++        in.pair.push_back(pr);
++        in.decoy.push_back(static_cast<std::uint8_t>(dec));
++        in.fold.push_back(static_cast<std::uint8_t>(pr % 3));
++        in.pair_hash.push_back(CrossFitScorer::fnv1a("b" + std::to_string(pr)));
++        s.push_back(f[0] + 0.5f * f[1]);
++        truth.push_back(real);
++      }
++    std::vector<std::uint32_t> all(in.rows());
++    std::iota(all.begin(), all.end(), 0u);
++    const auto comp = CrossFitScorer::pooledPairedTDC(in, s, all);
++    std::vector<double> plain(in.rows(), 1.0);
++    for (std::size_t i = 0; i < comp.ranked.size(); ++i) plain[comp.ranked[i]] = comp.q[i];
++    const auto q = bulkNullQ(in, s, 2, [](const std::string& l) { std::cout << l << '\n'; });
++    const auto fdp = [&](const std::vector<double>& qq, double at, std::size_t& acc)
++    {
++      std::size_t f = 0;
++      acc = 0;
++      for (std::size_t r = 0; r < qq.size(); ++r)
++        if (!in.decoy[r] && qq[r] <= at) { ++acc; f += !truth[r]; }
++      return acc ? static_cast<double>(f) / acc : 0.0;
++    };
++    std::size_t np = 0, nb = 0;
++    const double fp = fdp(plain, 0.05, np), fb = fdp(q, 0.05, nb);
++    std::cout << "bulkNullQ shift " << shift << ": at q<=0.05 plain N " << np << " FDP " << fp << ", bulk-null N " << nb << " FDP " << fb << '\n';
++    // Same ranking: along the plain TDC order the bulk-null q is non-decreasing.
++    bool mono = true;
++    for (std::size_t i = 1; i < comp.ranked.size(); ++i) mono = mono && q[comp.ranked[i]] >= q[comp.ranked[i - 1]];
++    check(mono, "bulkNullQ keeps the ranking");
++    if (shift > 0.0f)
++    {
++      check(fp > 0.06, "synthetic plain TDC is anti-conservative at 5 %");
++      check(fb < fp && std::abs(fb - 0.05) < std::abs(fp - 0.05), "bulkNullQ moves FDP towards the nominal 5 %");
++    }
++    else check(nb > 0.9 * np && nb < 1.1 * np, "bulkNullQ is near neutral for exchangeable decoys");
++  }
++
+   // Optional timing run: OPENDIA_GBM_BENCH_ROWS=<rows> (49 features, OPENDIA_GBM_BENCH_THREADS threads, default 8).
+   if (const char* env = std::getenv("OPENDIA_GBM_BENCH_ROWS"))
+   {
