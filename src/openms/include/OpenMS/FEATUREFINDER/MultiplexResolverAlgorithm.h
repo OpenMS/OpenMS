@@ -210,6 +210,18 @@ namespace OpenMS
       would count them twice.
     */
     static bool isForeign(OwnerRelation relation);
+
+    /**
+      @brief The owners of the blacklisted peaks that the owner-aware check of a missing channel looks at
+
+      Every blacklisted peak of the spectra of the CV of @p consensus within 'algorithm:rt_tolerance' of @p rt that lies within
+      'algorithm:mz_tolerance' (both sides) of one of the first three isotopes at @p mz (charge @p charge). resolve() makes a
+      missing channel of @p consensus at @p mz not quantifiable if one of these owners is foreign (isForeign() of
+      classifyBlacklistOwner()), so a caller can tell which multiplets made it so.
+
+      @return The owners (blacklistOwner(), UniqueIdInterface::INVALID for a peak of no reported feature), sorted, each once
+    */
+    std::vector<UInt64> reservingOwners(const MSExperiment& blacklist, double rt, double mz, size_t charge, const ConsensusFeature& consensus) const;
     ///@}
 
   protected:
