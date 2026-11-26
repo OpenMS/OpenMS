@@ -1,0 +1,11 @@
+AB2	A_raw01_s0	N 2111	E 9	lower 0.0043	combined 0.0085	N@FDPc1% 2146
+AB2	A_raw02_s0	N 2171	E 11	lower 0.0051	combined 0.0101	N@FDPc1% 2157
+AB2	A_raw01_s1	N 2328	E 18	lower 0.0077	combined 0.0155	N@FDPc1% 2165
+AB2	A_raw02_s1	N 2227	E 11	lower 0.0049	combined 0.0099	N@FDPc1% 2235
+AB2	A_raw01_s2	N 2332	E 17	lower 0.0073	combined 0.0146	N@FDPc1% 2174
+AB2	A_raw02_s2	N 2235	E 12	lower 0.0054	combined 0.0107	N@FDPc1% 2230
+AB2	A_raw01_s3	N 2213	E 12	lower 0.0054	combined 0.0108	N@FDPc1% 2170
+AB2	A_raw02_s3	N 2058	E 9	lower 0.0044	combined 0.0087	N@FDPc1% 2096
+AB2	A_raw01_s4	N 2151	E 11	lower 0.0051	combined 0.0102	N@FDPc1% 2148
+AB2	A_raw02_s4	N 2177	E 12	lower 0.0055	combined 0.0110	N@FDPc1% 2093
+AB2	POOLED	N 22003	E 122	lower 0.0055	combined 0.0111	N@FDPc1% 21614
