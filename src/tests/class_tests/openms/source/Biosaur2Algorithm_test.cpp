@@ -586,6 +586,16 @@ START_SECTION([EXTRA] run() refreshes ranges on the non-FAIMS profile-mode path)
   const MSExperiment& back = algo.getMSData();
   TEST_EQUAL(back.size(), 10)
   TEST_EQUAL(FAIMSHelper::getCompensationVoltages(back).empty(), true)
+  // centroiding keeps each spectrum's metadata and does not invent an IM annotation;
+  // spectrum k was acquired at RT k, and this path keeps the acquisition order
+  for (Size k = 0; k < back.size(); ++k)
+  {
+    TEST_REAL_SIMILAR(back[k].getRT(), static_cast<double>(k))
+    TEST_EQUAL(back[k].getMSLevel(), 1)
+    TEST_EQUAL(back[k].getType() == SpectrumSettings::SpectrumType::CENTROID, true)
+    TEST_REAL_SIMILAR(back[k].getDriftTime(), IMTypes::DRIFTTIME_NOT_SET)
+    TEST_EQUAL(back[k].getDriftTimeUnit() == DriftTimeUnit::NONE, true)
+  }
   TEST_REAL_SIMILAR(back.getMinRT(), 0.0)
   TEST_REAL_SIMILAR(back.getMaxRT(), 9.0)
   // Compare the cached ranges against ones recomputed from the very same spectra: this
