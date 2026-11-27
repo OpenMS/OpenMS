@@ -493,11 +493,17 @@ private:
     /**
          @brief Perform iBAQ normalization on protein abundances.
          
-         The divisor is the number of theoretically observable peptides of the protein sequence. It
+         The divisor is the number of theoretically observable peptides of the protein sequence: its
+         fully tryptic peptides without missed cleavages whose length is within 'ibaq:min_length'
+         and 'ibaq:max_length' (by default 6 to 30, as in the original definition of iBAQ). It
          does not depend on the data: a peptide that 'modifications:exclude' leaves out counts like
-         a peptide that was not detected.
+         a peptide that was not detected. A protein without a sequence (no hit in @p proteins, or a
+         hit without a sequence), or without any theoretically observable peptide, is removed from the
+         results (with a warning) and no longer counts as quantified in the statistics. (An empty
+         length range is rejected when the parameters are set.)
 
-         @param[in] proteins Protein identification information containing sequences
+         @param[in] proteins Protein identification information containing sequences: the hits
+                    whose accessions name the quantified proteins (or group leaders)
     */
     void performIbaqNormalization_(const ProteinIdentification& proteins);
 

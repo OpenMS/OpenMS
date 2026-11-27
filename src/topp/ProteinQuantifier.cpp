@@ -73,6 +73,10 @@ Quantification is based on the intensity values of the features in the input fil
 The peptide-to-protein step uses the (e.g. 3) most abundant proteotypic peptides per protein to compute the protein abundances. This is a general version of the "top 3 approach" (but only for relative quantification) described in:\n
 Silva <em>et al.</em>: Absolute quantification of proteins by LCMS<sup>E</sup>: a virtue of parallel MS acquisition (Mol. Cell. Proteomics, 2006, PMID: 16219938).
 
+With @p method @p iBAQ the abundance of a protein is instead the sum of all of its peptide abundances divided by the number of its theoretically observable peptides, as described in:\n
+Schwanh&auml;usser <em>et al.</em>: <a href="https://doi.org/10.1038/nature10098">Global quantification of mammalian gene expression control</a> (Nature, 2011, PMID: 21593866).\n
+The theoretically observable peptides are counted in the protein sequence, so every protein needs one; proteins without are left out. The sequences come from the protein hits of the protein inference results: those in the input (a featureXML with one protein identification run that has hits, or a consensusXML with one run that holds inference results) or those from @p protein_groups. Without such results no protein can be quantified with iBAQ. Counted are the fully tryptic peptides (OpenMS' "Trypsin": cleavage after K, R or X, not before P) without missed cleavages, whatever enzyme the data was digested with, whose length is within @p ibaq:min_length and @p ibaq:max_length. The defaults, 6 to 30 amino acids, follow the original definition; @p ibaq:min_length 1 with @p ibaq:max_length 0 counts every tryptic peptide, as earlier versions of OpenMS did. A protein without any peptide in the range has no iBAQ value and is left out with a warning.
+
 Only features/feature groups with unambiguous peptide annotation are used for peptide quantification. It is possible to resolve ambiguities before applying ProteinQuantifier using one of two equivalent mechanisms in OpenMS: @ref TOPP_IDConflictResolver or @ref TOPP_FileFilter (option @p id:keep_best_score_id).
 
 Similarly, only proteotypic peptides (i.e. those matching to exactly one protein) are used for protein quantification <em>by default</em>. Peptide/protein IDs from multiple identification runs can be handled, but will not be differentiated (i.e. protein accessions for a peptide will be accumulated over all identification runs). See section "Optional input: Protein inference/grouping results" below for exceptions to this.
@@ -732,7 +736,12 @@ protected:
     if (proteins) // parameters relevant only for protein output
     {
       relevant_params.push_back("method");
-      if (!is_ibaq)
+      if (is_ibaq)
+      {
+        relevant_params.push_back("ibaq:min_length");
+        relevant_params.push_back("ibaq:max_length");
+      }
+      else
       {
         relevant_params.push_back("top:N");
         Size top = algo_params_.getValue("top:N");

@@ -43,7 +43,7 @@ namespace OpenMS
   {
     std::vector<std::string> true_false = {"true","false"};
 
-    defaults_.setValue("method", "top", "- top - quantify based on three most abundant peptides (number can be changed in 'top').\n- iBAQ (intensity based absolute quantification), calculate the sum of all peptide peak intensities divided by the number of theoretically observable tryptic peptides (https://rdcu.be/cND1J). Warning: only consensusXML or featureXML input is allowed!");
+    defaults_.setValue("method", "top", "- top - quantify based on three most abundant peptides (number can be changed in 'top').\n- iBAQ (intensity based absolute quantification), calculate the sum of all peptide peak intensities divided by the number of theoretically observable tryptic peptides (https://rdcu.be/cND1J): the fully tryptic peptides of the protein sequence (OpenMS' 'Trypsin': cleavage after K, R or X, not before P; no missed cleavages) whose length is within 'ibaq:min_length' and 'ibaq:max_length'. Warning: only consensusXML or featureXML input is allowed!");
     defaults_.setValidStrings("method", {"top","iBAQ"});
 
     defaults_.setValue("top:N", 3, "Calculate protein abundance from this number of proteotypic peptides (most abundant first; '0' for all)");
@@ -56,6 +56,13 @@ namespace OpenMS
     defaults_.setValidStrings("top:include_all", true_false);
 
     defaults_.setSectionDescription("top", "Additional options for custom quantification using top N peptides.");
+
+    defaults_.setValue("ibaq:min_length", 6, "Minimum length (in amino acids) of a theoretically observable peptide. The defaults (6 to 30) follow the original definition of iBAQ (Schwanhaeusser et al., Nature 2011).");
+    defaults_.setMinInt("ibaq:min_length", 1);
+    defaults_.setValue("ibaq:max_length", 30, "Maximum length (in amino acids) of a theoretically observable peptide ('0' for no limit); otherwise at least 'min_length'. 'min_length' 1 and 'max_length' 0 count every tryptic peptide, as OpenMS did before these options existed.");
+    defaults_.setMinInt("ibaq:max_length", 0);
+
+    defaults_.setSectionDescription("ibaq", "Options for 'method' 'iBAQ': the peptides of a protein sequence that count as theoretically observable (the divisor of the protein abundance). They depend only on the sequence, not on the data. A protein without any such peptide has no iBAQ value and is not quantified.");
 
     defaults_.setValue("fractions:aggregate", "sum", "How the fractions of one fraction group are combined into that group's (fraction group, label) assay values.\n- sum - add up every fraction, i.e. treat them as the parts of one separated sample that they are.\n- best - keep a single fraction per peptide and fraction group and discard the others. The fraction is chosen ONCE per peptide, ranked by the number of labels in which it has a positive abundance and then by the total of those abundances (an exact tie keeps the lowest fraction number), and ALL of its labels are then taken from it. The choice is deliberately not made per label: taking one channel from one fraction and another channel from a different fraction would mix physical aliquots and destroy the reporter-ion ratios that isobaric quantification consists of.\nOnly the assay values are affected. Per-(file, channel) quantities are per fraction by definition and always report every file.");
     defaults_.setValidStrings("fractions:aggregate", {"sum","best"});
@@ -1050,6 +1057,17 @@ namespace OpenMS
 
   void PeptideAndProteinQuant::updateMembers_()
   {
+    // An empty iBAQ length range is a configuration error: reject it when the parameters are set,
+    // not only after a whole quantification has run. ('ibaq:max_length' 0 means "no limit".)
+    const Size ibaq_min_length = param_.getValue("ibaq:min_length");
+    const Size ibaq_max_length = param_.getValue("ibaq:max_length");
+    if ((ibaq_max_length != 0) && (ibaq_max_length < ibaq_min_length))
+    {
+      throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+        "'ibaq:max_length' (" + std::to_string(ibaq_max_length) + ") must be 0 (no limit) or at least 'ibaq:min_length' (" +
+        std::to_string(ibaq_min_length) + ").");
+    }
+
     // reset everything:
     stats_ = Statistics();
     pep_quant_.clear();
@@ -1778,46 +1796,89 @@ namespace OpenMS
     // The divisor is the number of theoretically observable peptides of the protein sequence,
     // independent of the data. A peptide that 'modifications:exclude' leaves out is still
     // theoretically observable; it counts like a peptide that was not detected.
-    EnzymaticDigestion digest{};
-    for (auto & hit : proteins.getHits())
-    {
-      const std::string & hit_accession = hit.getAccession();
-      const std::string & hit_sequence = hit.getSequence();
+    // As in the original definition (Schwanhaeusser et al., Nature 2011), these are the fully
+    // tryptic peptides without missed cleavages (the defaults of EnzymaticDigestion) within a
+    // length range, by default 6 to 30 amino acids. (The range was validated in updateMembers_().)
+    const Size min_length = param_.getValue("ibaq:min_length");
+    const Size max_length = param_.getValue("ibaq:max_length"); // 0: no limit
 
-      if (prot_quant_.contains(hit_accession))
+    // A protein without an iBAQ value leaves the results. quantifyProteins() has already counted it
+    // as quantified if it has abundances, so the statistics have to forget it again.
+    auto remove_protein = [this](const std::string& accession)
+    {
+      auto it = prot_quant_.find(accession);
+      if (!it->second.fraction_group_abundances.empty() && (stats_.quant_proteins > 0))
       {
-        if (hit_sequence.empty())
+        --stats_.quant_proteins;
+      }
+      prot_quant_.erase(it);
+    };
+
+    // Every quantified protein needs its sequence, from its hit in @p proteins. The loop runs over the
+    // results, not over the hits: a protein without a hit (e.g. when no protein inference results were
+    // given at all) must not keep its summed abundance under the name iBAQ.
+    std::unordered_map<std::string, const std::string*> sequence_of; // accession -> sequence
+    for (const auto& hit : proteins.getHits())
+    {
+      sequence_of.emplace(hit.getAccession(), &hit.getSequence());
+    }
+    // without any hit, one warning instead of one per protein
+    const bool warn_each_missing_sequence = !sequence_of.empty();
+    if (!warn_each_missing_sequence && !prot_quant_.empty())
+    {
+      OPENMS_LOG_WARN << "iBAQ needs the protein sequences, but no protein hits (e.g. protein inference results) "
+                      << "were given: none of the " << prot_quant_.size() << " proteins can be quantified!" << endl;
+    }
+
+    EnzymaticDigestion digest{};
+    std::vector<std::string> to_remove;
+    for (auto& [accession, pd] : prot_quant_)
+    {
+      const auto seq_it = sequence_of.find(accession);
+      if ((seq_it == sequence_of.end()) || seq_it->second->empty())
+      {
+        if (warn_each_missing_sequence)
         {
-          prot_quant_.erase(hit_accession);
-          OPENMS_LOG_WARN << "Removed " << hit_accession <<  ", no protein sequence found!" << endl;
+          OPENMS_LOG_WARN << "Removed " << accession << ", no protein sequence found!" << endl;
         }
-        else
+        to_remove.push_back(accession);
+        continue;
+      }
+      std::vector<std::string_view> peptides {};
+      digest.digestUnmodified(*seq_it->second, peptides, min_length, max_length);
+      if (peptides.empty())
+      {
+        // the divisor would be 0: iBAQ is not defined for this protein
+        OPENMS_LOG_WARN << "Removed " << accession << ", its sequence has no theoretically observable peptide "
+                        << "(fully tryptic, length " << min_length << " to "
+                        << (max_length == 0 ? std::string("unlimited") : std::to_string(max_length))
+                        << "; see 'ibaq:min_length' and 'ibaq:max_length')!" << endl;
+        to_remove.push_back(accession);
+        continue;
+      }
+      const double n_theoretical_peptides = double(peptides.size());
+      // the file+channel level abundances are the same quantity at a finer
+      // granularity, so they need the same normalization
+      for (auto& file_entry : pd.channel_level_abundances)
+      {
+        for (auto& channel_entry : file_entry.second)
         {
-          std::vector<std::string_view> peptides {};
-          digest.digestUnmodified(hit_sequence, peptides);
-          const double n_theoretical_peptides = double(peptides.size());
-          ProteinData& pd = prot_quant_[hit_accession];
-          // the file+channel level abundances are the same quantity at a finer
-          // granularity, so they need the same normalization
-          for (auto& file_entry : pd.channel_level_abundances)
-          {
-            for (auto& channel_entry : file_entry.second)
-            {
-              channel_entry.second /= n_theoretical_peptides;
-            }
-          }
-          for (auto& [fraction_group, label_abundances] :
-               prot_quant_[hit_accession].fraction_group_abundances)
-          {
-            (void)fraction_group;
-            for (auto& [label, abundance] : label_abundances)
-            {
-              (void)label;
-              abundance /= n_theoretical_peptides;
-            }
-          }
+          channel_entry.second /= n_theoretical_peptides;
         }
       }
+      for (auto& [fraction_group, label_abundances] : pd.fraction_group_abundances)
+      {
+        (void)fraction_group;
+        for (auto& [label, abundance] : label_abundances)
+        {
+          (void)label;
+          abundance /= n_theoretical_peptides;
+        }
+      }
+    }
+    for (const std::string& accession : to_remove)
+    {
+      remove_protein(accession);
     }
   }
 }

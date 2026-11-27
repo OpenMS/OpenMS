@@ -4221,8 +4221,9 @@ add_test("TOPP_ProteinQuantifier_14_out1" ${DIFF} -in1 ${TESTS_TEMP_DIR}/Protein
 set_tests_properties("TOPP_ProteinQuantifier_14_out1" PROPERTIES DEPENDS "TOPP_ProteinQuantifier_14")
 add_test("TOPP_ProteinQuantifier_14_out2" ${DIFF} -in1 ${TESTS_TEMP_DIR}/ProteinQuantifier_14_output2.tmp.csv -in2 ${DATA_DIR_TOPP}/ProteinQuantifier_14_output2.txt -whitelist "computed from file" )
 set_tests_properties("TOPP_ProteinQuantifier_14_out2" PROPERTIES DEPENDS "TOPP_ProteinQuantifier_14")
-# iBAQ
-add_test("TOPP_ProteinQuantifier_15" ${TOPP_BIN_PATH}/ProteinQuantifier -test -in ${DATA_DIR_TOPP}/ProteinQuantifier_input.consensusXML -out ${TESTS_TEMP_DIR}/ProteinQuantifier_15_output.tmp.csv -method iBAQ)
+# iBAQ; the tryptic peptides of the protein in this file have 3 or 4 amino acids, none in the
+# default 'ibaq' length range (6 to 30): count all of them (TOPP_ProteinQuantifier_24 uses the range)
+add_test("TOPP_ProteinQuantifier_15" ${TOPP_BIN_PATH}/ProteinQuantifier -test -in ${DATA_DIR_TOPP}/ProteinQuantifier_input.consensusXML -out ${TESTS_TEMP_DIR}/ProteinQuantifier_15_output.tmp.csv -method iBAQ -ibaq:min_length 1 -ibaq:max_length 0)
 add_test("TOPP_ProteinQuantifier_15_out1" ${DIFF} -in1 ${TESTS_TEMP_DIR}/ProteinQuantifier_15_output.tmp.csv -in2 ${DATA_DIR_TOPP}/ProteinQuantifier_15_output.txt -whitelist "computed from file" )
 set_tests_properties("TOPP_ProteinQuantifier_15_out1" PROPERTIES DEPENDS "TOPP_ProteinQuantifier_15")
 # fractionated, TMT example
@@ -4301,7 +4302,8 @@ add_test("TOPP_ProteinQuantifier_23_out1" ${DIFF} -in1 ${TESTS_TEMP_DIR}/Protein
 set_tests_properties("TOPP_ProteinQuantifier_23_out1" PROPERTIES DEPENDS "TOPP_ProteinQuantifier_23")
 
 # same input under iBAQ: the file+channel level values must be normalized by the number of
-# theoretically observable peptides, just like the sample-level ones
+# theoretically observable peptides, just like the sample-level ones (here all three tryptic
+# peptides, of 6 to 15 amino acids, are in the default 'ibaq' length range)
 add_test("TOPP_ProteinQuantifier_24" ${TOPP_BIN_PATH}/ProteinQuantifier -test -in ${DATA_DIR_TOPP}/ProteinQuantifier_23_input.consensusXML -design ${DATA_DIR_TOPP}/ProteinQuantifier_23_input.tsv -file_and_channel_level_output "true" -out ${TESTS_TEMP_DIR}/ProteinQuantifier_24_output.tmp -method iBAQ)
 add_test("TOPP_ProteinQuantifier_24_out1" ${DIFF} -in1 ${TESTS_TEMP_DIR}/ProteinQuantifier_24_output.tmp -in2 ${DATA_DIR_TOPP}/ProteinQuantifier_24_output.txt -whitelist "computed from file" )
 set_tests_properties("TOPP_ProteinQuantifier_24_out1" PROPERTIES DEPENDS "TOPP_ProteinQuantifier_24")
