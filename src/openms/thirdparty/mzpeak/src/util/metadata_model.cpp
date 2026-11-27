@@ -1282,8 +1282,10 @@ read_spectra_metadata_(const SpectraMetadataFiles& files, MetadataDetail detail)
   // deciding to EXPOSE a field is a separate call from deciding to stop paying
   // for one nobody reads.  Adding any of them means deleting it from this list.
   std::vector<std::string_view> skip_scan = {
-      "scan_index", "preset_scan_configuration", "filter_string",
+      "scan_index", "preset_scan_configuration",
       "ion_injection_time", "instrument_configuration_id", "spectrum_reference"};
+  // (OpenMS change) filter_string is kept at Full: it names the analyzer.
+  if (detail != MetadataDetail::Full) skip_scan.push_back("filter_string");
   // Named once: adding one of the above to SpectrumMetadata means deleting it
   // from this list, and Lean's extras are appended rather than re-typed.
   if (lean) skip_scan.insert(skip_scan.end(), {"parameters", "scan_windows"});
@@ -1689,6 +1691,7 @@ read_spectra_metadata_(const SpectraMetadataFiles& files, MetadataDetail detail)
         const arrow::Array* im_value =
             resolve_field(scan, "ion_mobility_value").get();
         const StringColumn im_type(resolve_field(scan, "ion_mobility_type").get());
+        const StringColumn filter_string(resolve_field(scan, "filter_string").get());
 
         for (int64_t r = 0; r < scan->length(); ++r) {
           // F7: outer struct null => row carries no scan data, skip.
@@ -1730,6 +1733,7 @@ read_spectra_metadata_(const SpectraMetadataFiles& files, MetadataDetail detail)
             if constexpr (full_record) if (detail == MetadataDetail::Full) {
               it->second.scan_parameters =
                   read_cv_params_from_list(scan, "parameters", r);
+              it->second.filter_string = opt_string(filter_string, r);
             }
 
             // RT (seconds): scan.MS_1000016_scan_start_time is the authoritative,

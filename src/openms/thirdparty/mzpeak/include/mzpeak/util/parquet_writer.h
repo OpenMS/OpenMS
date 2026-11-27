@@ -136,6 +136,7 @@ struct SpectrumMetaRow {
   /// Scan-level ion mobility (OpenMS addition, see SpectrumData).
   std::optional<double> ion_mobility;
   std::optional<std::string> ion_mobility_type;
+  std::optional<std::string> filter_string;  ///< scans facet filter_string (OpenMS addition)
 };
 
 /// Seconds to the minutes the format stores, chosen so that the reader's `minutes * 60.0` gives back

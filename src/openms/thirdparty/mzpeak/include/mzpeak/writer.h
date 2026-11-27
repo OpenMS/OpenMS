@@ -74,6 +74,10 @@ struct SpectrumData {
   std::optional<double> ion_mobility;
   std::optional<std::string> ion_mobility_type;
 
+  /// Optional filter string of the scan (MS:1000512, e.g. a Thermo "ITMS + c NSI d Full ms2 ..."),
+  /// written to the scans facet's filter_string column, as the reference writer does. (OpenMS addition.)
+  std::optional<std::string> filter_string;
+
   /// Optional scan polarity: 1 = positive, -1 = negative.
   std::optional<int> polarity;
 

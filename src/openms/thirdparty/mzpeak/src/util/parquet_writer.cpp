@@ -534,6 +534,7 @@ std::shared_ptr<arrow::Table> scans_table(const std::vector<SpectrumMetaRow>& ro
   std::vector<std::optional<double>> scan_start_time;
   std::vector<std::optional<double>> ion_mobility_value;
   std::vector<std::optional<std::string>> ion_mobility_type;
+  std::vector<std::optional<std::string>> filter_string;
   for (const auto& r : rows) {
     source_index.push_back(r.index);
     scan_index.push_back(0);
@@ -544,6 +545,7 @@ std::shared_ptr<arrow::Table> scans_table(const std::vector<SpectrumMetaRow>& ro
             : std::nullopt);
     ion_mobility_value.push_back(r.ion_mobility);
     ion_mobility_type.push_back(r.ion_mobility_type);
+    filter_string.push_back(r.filter_string);
   }
   // ion_mobility_value / ion_mobility_type: the scan-level ion mobility columns the reader joins by
   // source_index (OpenMS addition; the reference reader ignores columns it does not know).
@@ -553,13 +555,15 @@ std::shared_ptr<arrow::Table> scans_table(const std::vector<SpectrumMetaRow>& ro
       arrow::field("scan_start_time", arrow::float64(), true),
       arrow::field("ion_mobility_value", arrow::float64(), true),
       arrow::field("ion_mobility_type", arrow::utf8(), true),
+      arrow::field("filter_string", arrow::utf8(), true),
   }));
   return arrow::Table::Make(
       schema, {build_array<arrow::UInt64Builder>(source_index),
                build_array<arrow::UInt64Builder>(scan_index),
                build_optional_array<arrow::DoubleBuilder>(scan_start_time),
                build_optional_array<arrow::DoubleBuilder>(ion_mobility_value),
-               build_optional_string_array<arrow::StringBuilder>(ion_mobility_type)});
+               build_optional_string_array<arrow::StringBuilder>(ion_mobility_type),
+               build_optional_string_array<arrow::StringBuilder>(filter_string)});
 }
 
 /// Precursor facet: one row per (spectrum, precursor).  Column names are the

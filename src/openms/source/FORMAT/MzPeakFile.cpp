@@ -460,6 +460,7 @@ namespace OpenMS
       if (md.total_ion_current) { out.setMetaValue("total ion current", static_cast<double>(*md.total_ion_current)); }
       if (md.lowest_observed_mz) { out.setMetaValue("lowest observed m/z", *md.lowest_observed_mz); }
       if (md.highest_observed_mz) { out.setMetaValue("highest observed m/z", *md.highest_observed_mz); }
+      if (md.filter_string && !md.filter_string->empty()) { out.setMetaValue("filter string", *md.filter_string); } // as MzMLHandler stores MS:1000512
       if (!md.spectrum_type.empty())
       {
         InstrumentSettings::ScanMode mode;
@@ -935,6 +936,7 @@ namespace OpenMS
         out.ion_mobility = in.getDriftTime();
         out.ion_mobility_type = ionMobilityType(in.getDriftTimeUnit());
       }
+      if (in.metaValueExists("filter string")) { out.filter_string = in.getMetaValue("filter string").toString(); } // scans facet filter_string
       return out;
     }
 
