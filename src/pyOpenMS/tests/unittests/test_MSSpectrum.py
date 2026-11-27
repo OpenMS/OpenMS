@@ -481,6 +481,10 @@ def test_msspectrum_copy_meta_data_from():
 
     target = MSSpectrum()
     target.set_peaks(([300.0], [3.0]))
+    target_fda = FloatDataArray()
+    target_fda.setName("target")
+    target_fda.push_back(7.0)
+    target.setFloatDataArrays([target_fda])
 
     target.copyMetaDataFrom(source)
 
@@ -497,7 +501,10 @@ def test_msspectrum_copy_meta_data_from():
     mz, intensity = target.get_peaks()
     assert list(mz) == pytest.approx([300.0])
     assert list(intensity) == pytest.approx([3.0])
-    assert len(target.getFloatDataArrays()) == 0
+    target_fdas = target.getFloatDataArrays()
+    assert len(target_fdas) == 1
+    assert target_fdas[0].getName() == "target"
+    assert list(target_fdas[0].get_data()) == pytest.approx([7.0])
 
     assert source.size() == 2
     assert len(source.getFloatDataArrays()) == 1
