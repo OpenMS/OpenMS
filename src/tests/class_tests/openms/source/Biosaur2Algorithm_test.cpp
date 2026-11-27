@@ -18,6 +18,7 @@
 #include <OpenMS/IONMOBILITY/FAIMSHelper.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
+#include <OpenMS/METADATA/DataProcessing.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/Feature.h>
 
@@ -533,6 +534,16 @@ START_SECTION([EXTRA] run() preserves chromatograms and settings on the FAIMS pr
   TEST_EQUAL(back.getExperimentalSettings().getDateTime().toString(), "2019-09-07T09:40:04")
   // centroiding must not strip the FAIMS annotation, or the split never happens
   TEST_EQUAL(FAIMSHelper::getCompensationVoltages(back).size(), 2)
+  // ... nor change it: the CVs are negative, so a "drift time >= 0" test for "is set"
+  // would drop every one of them. Spectrum k was acquired at RT k with CV cvs[k % 2].
+  for (Size k = 0; k < back.size(); ++k)
+  {
+    TEST_REAL_SIMILAR(back[k].getRT(), static_cast<double>(k))
+    TEST_EQUAL(back[k].getMSLevel(), 1)
+    TEST_EQUAL(back[k].getType() == SpectrumSettings::SpectrumType::CENTROID, true)
+    TEST_EQUAL(back[k].getDriftTimeUnit() == DriftTimeUnit::FAIMS_COMPENSATION_VOLTAGE, true)
+    TEST_REAL_SIMILAR(back[k].getDriftTime(), cvs[k % 2])
+  }
 }
 END_SECTION
 
@@ -576,6 +587,16 @@ START_SECTION([EXTRA] run() refreshes ranges on the non-FAIMS profile-mode path)
   const MSExperiment& back = algo.getMSData();
   TEST_EQUAL(back.size(), 10)
   TEST_EQUAL(FAIMSHelper::getCompensationVoltages(back).empty(), true)
+  // centroiding keeps each spectrum's metadata and does not invent an IM annotation;
+  // spectrum k was acquired at RT k, and this path keeps the acquisition order
+  for (Size k = 0; k < back.size(); ++k)
+  {
+    TEST_REAL_SIMILAR(back[k].getRT(), static_cast<double>(k))
+    TEST_EQUAL(back[k].getMSLevel(), 1)
+    TEST_EQUAL(back[k].getType() == SpectrumSettings::SpectrumType::CENTROID, true)
+    TEST_REAL_SIMILAR(back[k].getDriftTime(), IMTypes::DRIFTTIME_NOT_SET)
+    TEST_EQUAL(back[k].getDriftTimeUnit() == DriftTimeUnit::NONE, true)
+  }
   TEST_REAL_SIMILAR(back.getMinRT(), 0.0)
   TEST_REAL_SIMILAR(back.getMaxRT(), 9.0)
   // Compare the cached ranges against ones recomputed from the very same spectra: this
@@ -588,6 +609,89 @@ START_SECTION([EXTRA] run() refreshes ranges on the non-FAIMS profile-mode path)
   TEST_REAL_SIMILAR(back.getMaxMZ(), recomputed.getMaxMZ())
   TEST_REAL_SIMILAR(back.getMinRT(), recomputed.getMinRT())
   TEST_REAL_SIMILAR(back.getMaxRT(), recomputed.getMaxRT())
+}
+END_SECTION
+
+START_SECTION([EXTRA] run() in profile mode keeps spectra marked as peak picked and picks unannotated ones)
+{
+  // No spectrum carries a type. Even scans hold centroid sticks whose data processing says they
+  // were peak picked: picking them again keeps only interior local maxima with a neighbour on
+  // either side, so most sticks would be lost. Odd scans hold a five-point profile peak with no
+  // annotation at all; profile=true must still pick it, although PeakTypeEstimator (and so
+  // getType(true)) calls it centroided, as it does for many short or narrow profile peaks.
+  Biosaur2Algorithm algo;
+  MSExperiment exp;
+
+  DataProcessingPtr picked = std::make_shared<DataProcessing>();
+  picked->setProcessingActions({DataProcessing::PEAK_PICKING});
+
+  const Size n_sticks = 8;
+  const double stick_mz[n_sticks] = {420.0, 450.0, 480.0, 500.0, 520.0, 550.0, 580.0, 590.0};
+  const float stick_int[n_sticks] = {3000.0f, 8000.0f, 5000.0f, 10000.0f, 4000.0f, 7000.0f, 2000.0f, 6000.0f};
+  for (int i = 0; i < 10; ++i)
+  {
+    MSSpectrum spec;
+    spec.setRT(i * 1.0);
+    spec.setMSLevel(1);
+    if (i % 2 == 0)
+    {
+      spec.getDataProcessing().push_back(picked);
+      for (Size s = 0; s < n_sticks; ++s)
+      {
+        Peak1D p;
+        p.setMZ(stick_mz[s]);
+        p.setIntensity(stick_int[s]);
+        spec.push_back(p);
+      }
+    }
+    else
+    {
+      for (int k = -2; k <= 2; ++k)
+      {
+        Peak1D p;
+        p.setMZ(500.0 + k * 0.01);
+        p.setIntensity(10000.0f * static_cast<float>(std::exp(-0.5 * k * k)));
+        spec.push_back(p);
+      }
+    }
+    exp.addSpectrum(spec);
+  }
+  TEST_EQUAL(exp[0].getType() == SpectrumSettings::SpectrumType::UNKNOWN, true)
+
+  algo.setMSData(exp);
+
+  Param p = algo.getParameters();
+  p.setValue("profile", "true");
+  p.setValue("minmz", 400.0);
+  p.setValue("maxmz", 600.0);
+  p.setValue("mini", 100.0);
+  algo.setParameters(p);
+
+  FeatureMap fmap;
+  algo.run(fmap);
+
+  const MSExperiment& back = algo.getMSData();
+  TEST_EQUAL(back.size(), 10)
+  for (Size k = 0; k < back.size(); ++k)
+  {
+    if (k % 2 == 0)
+    {
+      // marked as peak picked: kept as they are
+      TEST_EQUAL(back[k].size(), n_sticks)
+      if (back[k].size() != n_sticks) continue;
+      for (Size s = 0; s < n_sticks; ++s)
+      {
+        TEST_REAL_SIMILAR(back[k][s].getMZ(), stick_mz[s])
+        TEST_REAL_SIMILAR(back[k][s].getIntensity(), stick_int[s])
+      }
+    }
+    else
+    {
+      // unannotated: picked, into one centroid (not the five raw samples)
+      TEST_EQUAL(back[k].size(), 1)
+      TEST_EQUAL(back[k].getType() == SpectrumSettings::SpectrumType::CENTROID, true)
+    }
+  }
 }
 END_SECTION
 

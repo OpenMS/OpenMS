@@ -454,15 +454,6 @@ double Biosaur2Algorithm::calculateMedian_(const vector<double>& values) const
   return Math::median(sorted.begin(), sorted.end(), false);
 }
 
-bool Biosaur2Algorithm::shouldThrowForMissingIM_(const MSSpectrum& spectrum) const
-{
-  // The Python reference implementation degrades gracefully when ion-mobility
-  // arrays are missing by simply disabling IM-based gating. To mirror this
-  // behavior, we never treat missing per-peak IM arrays as a hard error here.
-  (void)spectrum;
-  return false;
-}
-
 double Biosaur2Algorithm::cosineCorrelation1D_(const vector<double>& v1,
                                                const vector<double>& v2) const
 {
@@ -950,26 +941,26 @@ void Biosaur2Algorithm::centroidProfileSpectra_(MSExperiment& exp) const
   MSExperiment centroided_exp;
   Size total_peaks_before = 0;
   Size total_peaks_after = 0;
+  Size n_kept = 0;
 
   for (Size i = 0; i < exp.size(); ++i)
   {
     total_peaks_before += exp[i].size();
     MSSpectrum centroided_spectrum;
 
-    if (exp[i].getType() == SpectrumSettings::SpectrumType::CENTROID)
+    // picking centroided peaks again would drop most of them, so keep spectra marked centroided by their type or by a
+    // peak picking data processing entry. Not from the peaks (getType(true)): PeakTypeEstimator calls short or narrow
+    // profile peaks centroided, and profile=true says unannotated data are profile
+    if (exp[i].getType(false) == SpectrumSettings::SpectrumType::CENTROID)
     {
       centroided_spectrum = exp[i];
+      ++n_kept;
     }
     else
     {
+      // pick() copies the spectrum metadata (RT, MS level, drift time and its unit, i.e. a
+      // FAIMS CV, which is usually negative) and marks the result centroided
       picker.pick(exp[i], centroided_spectrum);
-      centroided_spectrum.setRT(exp[i].getRT());
-      centroided_spectrum.setMSLevel(exp[i].getMSLevel());
-      centroided_spectrum.setType(SpectrumSettings::SpectrumType::CENTROID);
-      if (exp[i].getDriftTime() >= 0)
-      {
-        centroided_spectrum.setDriftTime(exp[i].getDriftTime());
-      }
     }
 
     centroided_exp.addSpectrum(centroided_spectrum);
@@ -980,7 +971,8 @@ void Biosaur2Algorithm::centroidProfileSpectra_(MSExperiment& exp) const
   // experimental settings and the chromatograms, which centroiding does not touch.
   exp.setSpectra(std::move(centroided_exp.getSpectra()));
   OPENMS_LOG_INFO << "Centroiding: " << total_peaks_before
-                  << " profile points -> " << total_peaks_after << " centroided peaks" << endl;
+                  << " profile points -> " << total_peaks_after << " centroided peaks ("
+                  << n_kept << " of " << exp.size() << " spectra already centroided, kept unchanged)" << endl;
 }
 
 void Biosaur2Algorithm::centroidPASEFData_(MSExperiment& exp, double mz_step, double pasef_tolerance) const
@@ -1789,15 +1781,9 @@ vector<Biosaur2Algorithm::Hill> Biosaur2Algorithm::detectHills_(const MSExperime
   {
     if (peak_end[sc] == 0) continue;
     const MSSpectrum& spectrum = exp[sc];
-    if (IMTypes::determineIMFormat(spectrum) != IMFormat::IM_PEAK)
-    {
-      if (spectrum.getDriftTime() >= 0 && shouldThrowForMissingIM_(spectrum))
-      {
-        throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                            "Ion mobility array missing although drift times are present.");
-      }
-      continue;
-    }
+    // no per-peak IM array: no IM gating for this scan. A drift time without one is valid (one IM value per
+    // spectrum, e.g. a FAIMS CV), and the Python reference also just disables IM gating when the arrays are missing
+    if (IMTypes::determineIMFormat(spectrum) != IMFormat::IM_PEAK) continue;
     auto [im_index_local, im_unit_local] = spectrum.getIMData(); // may throw
     const auto& fda_local = spectrum.getFloatDataArrays();
     if (im_index_local >= fda_local.size())
