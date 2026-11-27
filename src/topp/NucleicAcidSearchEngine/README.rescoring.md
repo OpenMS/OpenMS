@@ -51,6 +51,11 @@ parent sets. If a placed oligo has a target parent as well as a decoy parent,
 both paths classify it as a target. On fallback, only parents within the native
 reporting cutoff are merged, preserving the native output identities.
 
+With `background:enable`, background explanations are removed before choosing
+that native cutoff and before constructing the training pool. The merged
+parent sets use the same database-only target/decoy rule as the final FDR;
+background parents do not turn a database decoy into a target.
+
 Runner-ups are not rescored as rows of their own. Every RNA target has an
 isobaric reversed decoy, so most spectra have a strong decoy runner-up.
 Without Percolator's target-decoy competition, its training q-values and PEPs

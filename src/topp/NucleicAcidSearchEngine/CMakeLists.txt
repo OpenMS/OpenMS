@@ -25,6 +25,7 @@ set(tool_sources
   source/RNARouteScorer.cpp
   source/RNARouteCandidateGenerator.cpp
   source/RNARescoringFeatures.cpp
+  source/RNABackgroundDatabase.cpp
 )
 set(tool_headers
   include/ModifiedNASequenceGenerator.h
@@ -37,6 +38,7 @@ set(tool_headers
   include/RNARouteScorer.h
   include/RNARouteCandidateGenerator.h
   include/RNARescoringFeatures.h
+  include/RNABackgroundDatabase.h
 )
 
 add_executable(${PROJECT_NAME} ${PROJECT_NAME}.cpp ${tool_sources} ${tool_headers})
