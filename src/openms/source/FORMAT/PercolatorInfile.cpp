@@ -11,6 +11,7 @@
 #include <string_view>
 
 #include <OpenMS/CHEMISTRY/ProteaseDB.h>
+#include <OpenMS/CHEMISTRY/ResidueModification.h>
 #include <OpenMS/CHEMISTRY/ProteaseDigestion.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CONCEPT/Constants.h>
@@ -46,6 +47,73 @@
 namespace OpenMS
 {
   using namespace std;
+
+  namespace
+  {
+    // Mass tags (e.g. Y[+79.96633]) are resolved to the closest-mass modification in ModificationsDB, which may be a different
+    // entry than the searched one (e.g. MOD:00254 instead of Phospho (Y)). Replace such modifications by the closest searched one.
+    void applyPreferredModifications_(AASequence& seq, const std::vector<const ResidueModification*>& preferred)
+    {
+      if (preferred.empty() || !seq.isModified()) return;
+      constexpr double max_error = 0.01;
+
+      const auto is_preferred = [&preferred](const ResidueModification* mod)
+      {
+        return std::any_of(preferred.begin(), preferred.end(), [mod](const ResidueModification* p)
+          { return p == mod || p->getFullId() == mod->getFullId(); });
+      };
+
+      const auto find_preferred = [&preferred](const ResidueModification* mod, char residue, bool n_term, bool c_term) -> const ResidueModification*
+      {
+        const ResidueModification* best = nullptr;
+        double best_error = max_error;
+        for (const ResidueModification* p : preferred)
+        {
+          const ResidueModification::TermSpecificity ts = p->getTermSpecificity();
+          bool term_ok;
+          if (n_term) term_ok = (ts == ResidueModification::N_TERM || ts == ResidueModification::PROTEIN_N_TERM);
+          else if (c_term) term_ok = (ts == ResidueModification::C_TERM || ts == ResidueModification::PROTEIN_C_TERM);
+          else term_ok = (ts == ResidueModification::ANYWHERE);
+          if (!term_ok) continue;
+          const char origin = p->getOrigin();
+          if (origin != residue && origin != 'X' && origin != '.') continue;
+          const double error = std::fabs(p->getDiffMonoMass() - mod->getDiffMonoMass());
+          if (error <= best_error)
+          {
+            best_error = error;
+            best = p;
+          }
+        }
+        return best;
+      };
+
+      if (seq.empty()) return;
+
+      if (const ResidueModification* mod = seq.getNTerminalModification(); mod != nullptr && !is_preferred(mod))
+      {
+        if (const ResidueModification* p = find_preferred(mod, seq[0].getOneLetterCode()[0], true, false))
+        {
+          seq.setNTerminalModification(p);
+        }
+      }
+      if (const ResidueModification* mod = seq.getCTerminalModification(); mod != nullptr && !is_preferred(mod))
+      {
+        if (const ResidueModification* p = find_preferred(mod, seq[seq.size() - 1].getOneLetterCode()[0], false, true))
+        {
+          seq.setCTerminalModification(p);
+        }
+      }
+      for (Size i = 0; i < seq.size(); ++i)
+      {
+        const ResidueModification* mod = seq[i].getModification();
+        if (mod == nullptr || is_preferred(mod)) continue;
+        if (const ResidueModification* p = find_preferred(mod, seq[i].getOneLetterCode()[0], false, false))
+        {
+          seq.setModification(i, p);
+        }
+      }
+    }
+  }
 
   void PercolatorInfile::store(const std::string& pin_file,
     const PeptideIdentificationList& peptide_ids,
@@ -141,7 +209,8 @@ namespace OpenMS
     StringList& filenames,
     std::string decoy_prefix, 
     double threshold, 
-    bool SageAnnotation)
+    bool SageAnnotation,
+    const std::vector<const ResidueModification*>& preferred_modifications)
   {
     CsvFile csv(pin_file, '\t');
     
@@ -416,6 +485,7 @@ namespace OpenMS
       StringUtils::substitute(sPeptide, "]-", "]."); // we can parse [+42].MVLVQDLLHPTAASEAR
       StringUtils::substitute(sPeptide, "-[", ".["); // we can parse MVLVQDLLHPTAASEAR.[+111]
       AASequence aa_seq = AASequence::fromString(sPeptide);
+      applyPreferredModifications_(aa_seq, preferred_modifications);
       PeptideHit ph(score, rank - 1, charge, std::move(aa_seq));
       ph.setMetaValue("target_decoy", target_decoy);
 
