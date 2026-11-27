@@ -45,6 +45,7 @@ public:
   using NucleicAcidSearchEngine::nativeReportCutoff_;
   using NucleicAcidSearchEngine::rescoringThreads_;
   using NucleicAcidSearchEngine::generateLFQInput_;
+  using NucleicAcidSearchEngine::calculateOligoFDR_;
   void enableAmbiguities() { resolve_ambiguous_mods_ = true; }
   bool ambiguitiesEnabled() const { return resolve_ambiguous_mods_; }
 };
@@ -190,6 +191,74 @@ const MSSpectrum::IntegerDataArray* legacyCharges(const MSSpectrum& spectrum)
 }
 
 START_TEST(NASEDigestion, "$Id$")
+
+START_SECTION(([EXTRA] oligo FDR counts exact spectrum ties as decoys before choosing sequence representatives))
+{
+  TestNASE tool;
+  tool.registerOptionsAndFlags_();
+  for (bool higher_better : {false, true})
+  {
+    for (bool tied : {false, true})
+    {
+      for (bool decoy_first : {false, true})
+      {
+        for (bool target_lexically_first : {false, true})
+        {
+          IdentificationData data;
+          const auto file = data.registerInputFile(IdentificationData::InputFile("synthetic.mzML"));
+          const auto score = data.registerScoreType(IdentificationData::ScoreType("native score", higher_better));
+          for (Size i = 0; i < 20; ++i)
+          {
+            std::string suffix;
+            Size code = i;
+            for (Size position = 0; position < 5; ++position)
+            {
+              suffix += std::string("ACGU")[code % 4];
+              code /= 4;
+            }
+            const std::string target_sequence = (target_lexically_first ? "A" : "U") + suffix;
+            const std::string decoy_sequence = (target_lexically_first ? "U" : "A") + suffix;
+            const auto observation = data.registerObservation(IdentificationData::Observation("scan=" + std::to_string(i), file, i, 500));
+            const auto add_match = [&](bool decoy) {
+              const std::string sequence = decoy ? decoy_sequence : target_sequence;
+              IdentificationData::ParentSequence parent((decoy ? "DECOY_" : "TARGET_") + std::to_string(i), IdentificationData::MoleculeType::RNA,
+                                                        sequence);
+              parent.is_decoy = decoy;
+              const auto parent_ref = data.registerParentSequence(parent);
+              IdentificationData::IdentifiedOligo oligo(NASequence::fromString(sequence));
+              oligo.parent_matches[parent_ref].insert(IdentificationData::ParentMatch(0, oligo.sequence.size() - 1));
+              const auto oligo_ref = data.registerIdentifiedOligo(oligo);
+              IdentificationData::ObservationMatch match(oligo_ref, observation, -2);
+              const double native_score = ! decoy && ! tied ? (higher_better ? 11.0 : 1.0) : (higher_better ? 10.0 : 2.0);
+              match.addScore(score, native_score);
+              data.registerObservationMatch(match);
+            };
+            add_match(decoy_first);
+            add_match(! decoy_first);
+          }
+          const auto native_best = data.getBestMatchPerObservation(score, true);
+          const auto q_score = tool.calculateOligoFDR_(data, score);
+          Size accepted_targets = 0;
+          for (const auto& match : data.getObservationMatches())
+          {
+            const bool decoy = match.identified_molecule_var.getIdentifiedOligoRef()->allParentsAreDecoys();
+            const auto q = match.getScore(q_score);
+            TEST_TRUE(q.second)
+            if (! decoy)
+            {
+              TEST_REAL_SIMILAR(q.first, tied ? 1.0 : 0.05)
+              accepted_targets += q.first <= 0.05;
+            }
+          }
+          TEST_EQUAL(accepted_targets, tied ? 0 : 20)
+          // The oligo-level selection must not change the general native tie policy.
+          TEST_TRUE(data.getBestMatchPerObservation(score, true) == native_best)
+        }
+      }
+    }
+  }
+}
+END_SECTION
 
 START_SECTION(([EXTRA] Percolator uses the resolved thread count within its supported bounds))
 {

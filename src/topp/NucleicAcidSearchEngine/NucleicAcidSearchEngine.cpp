@@ -79,6 +79,7 @@
 #include <fstream>
 #include <vector>
 #include <map>
+#include <numeric>
 #include <regex>
 
 // multithreading
@@ -144,6 +145,15 @@ See @ref TOPP_NASE_Rescoring for the features, fallback and limitations.
 With @p background:enable, a background of known RNAs (by default the built-in human background) is searched
 alongside the database, and spectra best explained by a background sequence are left out of the results and the
 FDR calculation. See @ref TOPP_NASE_Background.
+
+The q-values of @p fdr:cutoff are per spectrum. When a molecule produces many spectra (several charge states, long
+elution), they understate the FDR of the reported oligos: a wrong match to an abundant molecule brings all its spectra.
+With @p fdr:oligo_level, NASE also calculates q-values per unmodified oligo sequence (each sequence represented by its
+best-scoring spectrum; exact per-spectrum target/decoy ties favor the decoy before sequence aggregation) and reports
+an "oligo-level q-value" for every hit;
+@p fdr:oligo_cutoff removes hits of sequences above it. Use them for claims about which oligos are present. They count
+one decoy more, (decoys + 1) / targets, as needed for FDR control with the few sequences of RNA samples
+(@p fdr:oligo_plus_one): with n target sequences no q-value is below 1/n, so q <= 0.01 needs at least 100 sequences.
 
 <B>The command line parameters of this tool are:</B>
 @verbinclude TOPP_NucleicAcidSearchEngine.cli
@@ -502,6 +512,23 @@ protected:
     setMinFloat_("fdr:cutoff", 0.0);
     setMaxFloat_("fdr:cutoff", 1.0);
     registerFlag_("fdr:remove_decoys", "Do not score hits to decoy sequences and remove them when filtering");
+    registerFlag_("fdr:oligo_level",
+                  "Also estimate the FDR per oligonucleotide sequence (unmodified): each spectrum's best hit competes, every sequence "
+                  "is represented by its best-scoring spectrum, and targets compete with decoys by these scores (q-value = "
+                  "(decoys + 1) / targets at or above a score, see 'fdr:oligo_plus_one'). Every hit gets the 'oligo-level q-value' "
+                  "of its sequence. Many spectra of one molecule count once, so this is the FDR of the reported sequences; the "
+                  "spectrum-level FDR understates it when molecules produce many spectra.", false);
+    registerStringOption_("fdr:oligo_plus_one", "<choice>", "true",
+                          "With 'fdr:oligo_level': count one decoy more, (decoys + 1) / targets, as needed for FDR control with few "
+                          "sequences (target-decoy competition with the +1 correction). With n target sequences, no q-value is below 1 / n, "
+                          "so q <= 0.01 needs at least 100 sequences. 'false': decoys / targets, as the spectrum-level q-values.",
+                          false, true);
+    setValidStrings_("fdr:oligo_plus_one", {"true", "false"});
+    registerDoubleOption_("fdr:oligo_cutoff", "<value>", 1.0,
+                          "With 'fdr:oligo_level': remove hits whose sequence has a higher oligo-level q-value (applied together with "
+                          "'fdr:cutoff')", false);
+    setMinFloat_("fdr:oligo_cutoff", 0.0);
+    setMaxFloat_("fdr:oligo_cutoff", 1.0);
 
     registerTOPPSubsection_("background", "Background RNAs: known RNAs that the database lacks, searched so that their spectra do not match decoys or false targets");
     registerFlag_("background:enable",
@@ -2120,7 +2147,10 @@ protected:
     fdr.setParameters(fdr_params);
     IdentificationData::ScoreTypeRef fdr_ref =
     fdr.applyToObservationMatches(id_data, score_ref);
+    std::optional<IdentificationData::ScoreTypeRef> oligo_ref;
+    if (getFlag_("fdr:oligo_level")) oligo_ref = calculateOligoFDR_(id_data, score_ref);
     double fdr_cutoff = getDoubleOption_("fdr:cutoff");
+    const double oligo_cutoff = getDoubleOption_("fdr:oligo_cutoff");
     if (remove_decoys) // remove references to decoys from shared oligos
     {
       IDFilter::removeDecoys(id_data);
@@ -2128,11 +2158,122 @@ protected:
     if (fdr_cutoff < 1.0)
     {
       IDFilter::filterObservationMatchesByScore(id_data, fdr_ref, fdr_cutoff);
+    }
+    if (oligo_ref && (oligo_cutoff < 1.0))
+    {
+      IDFilter::filterObservationMatchesByScore(id_data, *oligo_ref, oligo_cutoff);
+    }
+    if ((fdr_cutoff < 1.0) || (oligo_ref && (oligo_cutoff < 1.0)))
+    {
       OPENMS_LOG_INFO << "Search hits after FDR filtering: "
                       << id_data.getObservationMatches().size()
                       << "\nIdentified spectra after FDR filtering: "
                       << id_data.getObservations().size() << endl;
     }
+  }
+
+  /// The unmodified sequence of an oligo: the origins of its nucleotides
+  static std::string unmodifiedSequence_(const NASequence& sequence)
+  {
+    std::string result;
+    for (const auto* ribo : sequence.getSequence()) result += ribo->getOrigin();
+    return result;
+  }
+
+  /**
+    @brief Oligo-level q-values ('fdr:oligo_level'), from target-decoy competition of unmodified oligo sequences
+
+    Each spectrum contributes its best hit (by @p score_ref), preferring decoys on exact target/decoy score ties.
+    Remaining ties use the existing molecule-value order. A sequence (with its target/decoy status) is represented by
+    the best score of its spectra; q-value of a target sequence = (decoy sequences + 1) / target sequences with at least
+    its score ('fdr:oligo_plus_one'; without the +1 as FalseDiscoveryRate does for spectra; ties count for the decoys),
+    made monotone. Every observation match
+    gets the q-value of its sequence (1 if no spectrum's best hit has that sequence).
+
+    @return The score type of the oligo-level q-values
+  */
+  IdentificationData::ScoreTypeRef calculateOligoFDR_(IdentificationData& id_data, IdentificationData::ScoreTypeRef score_ref)
+  {
+    const bool higher_better = score_ref->higher_better;
+    const double plus_one = (getStringOption_("fdr:oligo_plus_one") == "true") ? 1.0 : 0.0;
+    auto key_of = [](const IdentificationData::ObservationMatch& match) {
+      const auto oligo = match.identified_molecule_var.getIdentifiedOligoRef();
+      return std::make_pair(unmodifiedSequence_(oligo->sequence), oligo->allParentsAreDecoys());
+    };
+    std::map<std::pair<std::string, bool>, double> best; // (sequence, decoy) -> best score
+    for (auto match_ref : id_data.getBestMatchPerObservation(score_ref, true))
+    {
+      if (match_ref->identified_molecule_var.getMoleculeType() != IdentificationData::MoleculeType::RNA) continue;
+      const auto score = match_ref->getScore(score_ref);
+      if (! score.second) continue;
+      // Resolve exact spectrum-level ties before reducing to one sequence. The
+      // general best-match API orders molecule values without preferring decoys.
+      const auto [first, last] = id_data.getMatchesForObservation(match_ref->observation_ref);
+      for (auto tied_ref = first; tied_ref != last; ++tied_ref)
+      {
+        if (tied_ref->identified_molecule_var.getMoleculeType() != IdentificationData::MoleculeType::RNA) { continue; }
+        const auto tied_score = tied_ref->getScore(score_ref);
+        if (! tied_score.second || tied_score.first != score.first || ! key_of(*tied_ref).second) { continue; }
+        if (! key_of(*match_ref).second || IdentificationData::observationMatchLess(*tied_ref, *match_ref)) { match_ref = tied_ref; }
+      }
+      const auto key = key_of(*match_ref);
+      auto pos = best.find(key);
+      if (pos == best.end()) best.emplace(key, score.first);
+      else if (higher_better ? (score.first > pos->second) : (score.first < pos->second))
+        pos->second = score.first;
+    }
+    // sort best first; at equal scores decoys first (ties count for the decoys)
+    std::vector<std::pair<double, bool>> ranked; // (score, decoy)
+    std::vector<std::pair<std::string, bool>> keys;
+    for (const auto& [key, score] : best)
+    {
+      ranked.emplace_back(score, key.second);
+      keys.push_back(key);
+    }
+    std::vector<Size> order(ranked.size());
+    std::iota(order.begin(), order.end(), 0);
+    std::sort(order.begin(), order.end(), [&](Size a, Size b) {
+      if (ranked[a].first != ranked[b].first) return higher_better ? (ranked[a].first > ranked[b].first) : (ranked[a].first < ranked[b].first);
+      return ranked[a].second && !ranked[b].second;
+    });
+    // fdr at each rank, counting everything with at least that score
+    std::vector<double> fdr(order.size(), 1.0);
+    Size targets = 0, decoys = 0;
+    for (Size i = 0; i < order.size();)
+    {
+      Size j = i;
+      for (; (j < order.size()) && (ranked[order[j]].first == ranked[order[i]].first); ++j)
+      {
+        ranked[order[j]].second ? ++decoys : ++targets;
+      }
+      for (Size k = i; k < j; ++k) fdr[k] = targets ? std::min(1.0, (double(decoys) + plus_one) / double(targets)) : 1.0;
+      i = j;
+    }
+    std::map<std::pair<std::string, bool>, double> q_of;
+    double running = 1.0;
+    for (Size k = order.size(); k-- > 0;)
+    {
+      running = std::min(running, fdr[k]);
+      q_of[keys[order[k]]] = running;
+    }
+
+    IdentificationData::ScoreTypeRef oligo_ref = id_data.registerScoreType(IdentificationData::ScoreType("oligo-level q-value", false));
+    Size target_1 = 0, target_5 = 0;
+    for (const auto& [key, q] : q_of)
+    {
+      if (key.second) continue;
+      target_1 += (q <= 0.01);
+      target_5 += (q <= 0.05);
+    }
+    for (auto it = id_data.getObservationMatches().begin(); it != id_data.getObservationMatches().end(); ++it)
+    {
+      if (it->identified_molecule_var.getMoleculeType() != IdentificationData::MoleculeType::RNA) continue;
+      auto pos = q_of.find(key_of(*it));
+      id_data.addScore(it, oligo_ref, (pos == q_of.end()) ? 1.0 : pos->second);
+    }
+    OPENMS_LOG_INFO << "Oligo-level FDR: " << best.size() << " sequences (targets and decoys); target sequences at q <= 0.01: "
+                    << target_1 << ", at q <= 0.05: " << target_5 << endl;
+    return oligo_ref;
   }
 
   void generateLFQInput_(IdentificationData& id_data, const std::string& out_file)
