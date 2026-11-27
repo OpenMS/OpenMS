@@ -13,6 +13,8 @@
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 
+#include <type_traits>
+
 namespace OpenMS
 {
   /**
@@ -139,6 +141,11 @@ namespace OpenMS
    * The method combines peaks with the same position to a single one with the
    * intensity determined by method m.
    *
+   * The meta data of @p p is kept. Its data arrays are removed (with a warning).
+   * If one of them was the ion mobility array of a spectrum (or the spectrum is marked as
+   * IMFormat::IM_PEAK), its IM format and IM peak type are reset to UNKNOWN, so that
+   * IMTypes::determineIMFormat() infers the format from the remaining data (e.g. the drift time).
+   *
    * @param[in] p The peak container to be manipulated.
    * @param[in] m The method for determining peak intensity from peaks with same position (median, mean, sum, min, max).
    **/
@@ -156,6 +163,15 @@ namespace OpenMS
     
     double current_position = p.begin()->getPos();
     PeakContainerT p_new;
+    p_new.copyMetaDataFrom(p);
+    if constexpr (std::is_same_v<PeakContainerT, MSSpectrum>)
+    {
+      if (p.containsIMData() || p.getIMFormat() == IMFormat::IM_PEAK)
+      {
+        p_new.setIMFormat(IMFormat::UNKNOWN);
+        p_new.setIMPeakType(IMPeakType::UNKNOWN);
+      }
+    }
     double intensity_new(0);
     std::vector<double> intensities_at_same_position;
     for (typename PeakContainerT::PeakType& peak : p)

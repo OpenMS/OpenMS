@@ -204,6 +204,56 @@ START_SECTION((void setDriftTimeUnit(double dt)))
 }
 END_SECTION
 
+START_SECTION((void copyMetaDataFrom(const MSSpectrum& source)))
+{
+  MSSpectrum source;
+  source.setRT(12.5);
+  source.setDriftTime(0.9);
+  source.setDriftTimeUnit(DriftTimeUnit::VSSC);
+  source.setMSLevel(2);
+  source.setName("source");
+  source.setNativeID("scan=7");
+  source.getPrecursors().resize(1);
+  source.getPrecursors()[0].setMZ(500.25);
+  source.setMetaValue("label", "source");
+  source.push_back(Peak1D(100.0, 1.0f));
+  source.push_back(Peak1D(200.0, 2.0f));
+  source.getFloatDataArrays().resize(1);
+  source.getFloatDataArrays()[0].assign({1.0f, 2.0f});
+
+  MSSpectrum target;
+  target.push_back(Peak1D(300.0, 3.0f));
+  target.getStringDataArrays().resize(1);
+  target.getStringDataArrays()[0].push_back("target");
+  target.updateRanges();
+
+  target.copyMetaDataFrom(source);
+
+  // meta data is taken from the source
+  TEST_REAL_SIMILAR(target.getRT(), 12.5)
+  TEST_REAL_SIMILAR(target.getDriftTime(), 0.9)
+  TEST_EQUAL(target.getDriftTimeUnit() == DriftTimeUnit::VSSC, true)
+  TEST_EQUAL(target.getMSLevel(), 2)
+  TEST_STRING_EQUAL(target.getName(), "source")
+  TEST_STRING_EQUAL(target.getNativeID(), "scan=7")
+  TEST_EQUAL(target.getPrecursors().size(), 1)
+  TEST_REAL_SIMILAR(target.getPrecursors()[0].getMZ(), 500.25)
+  TEST_STRING_EQUAL(target.getMetaValue("label").toString(), "source")
+
+  // peaks, data arrays and ranges of the target are kept
+  TEST_EQUAL(target.size(), 1)
+  TEST_REAL_SIMILAR(target[0].getMZ(), 300.0)
+  TEST_EQUAL(target.getFloatDataArrays().size(), 0)
+  TEST_EQUAL(target.getStringDataArrays().size(), 1)
+  TEST_REAL_SIMILAR(target.getMinMZ(), 300.0)
+  TEST_REAL_SIMILAR(target.getMaxMZ(), 300.0)
+
+  // the source is unchanged
+  TEST_EQUAL(source.size(), 2)
+  TEST_EQUAL(source.getFloatDataArrays().size(), 1)
+}
+END_SECTION
+
 START_SECTION((const FloatDataArrays& getFloatDataArrays() const))
 {
   MSSpectrum s;

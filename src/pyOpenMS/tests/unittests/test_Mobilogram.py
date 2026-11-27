@@ -111,5 +111,29 @@ class TestMobilogram(unittest.TestCase):
         tic = mobilogram.calculateTIC()
         assert tic == 300.0
 
+    def testMobilogramCopyMetaDataFrom(self):
+        import numpy as np
+        source = pyopenms.Mobilogram()
+        source.setRT(42.0)
+        source.setDriftTimeUnit(pyopenms.DriftTimeUnit.VSSC)
+        source.set_peaks((np.array([0.8], dtype=np.float64), np.array([1.0], dtype=np.float32)))
+
+        target = pyopenms.Mobilogram()
+        target.set_peaks((np.array([0.9, 1.0], dtype=np.float64), np.array([3.0, 4.0], dtype=np.float32)))
+        fda = pyopenms.FloatDataArray()
+        fda.push_back(5.0)
+        fda.push_back(6.0)
+        target.setFloatDataArrays([fda])
+
+        target.copyMetaDataFrom(source)
+
+        assert target.getRT() == 42.0
+        assert target.getDriftTimeUnit() == pyopenms.DriftTimeUnit.VSSC
+        mb_out, int_out = target.get_peaks()
+        assert list(mb_out) == [0.9, 1.0]
+        assert list(int_out) == [3.0, 4.0]
+        assert len(target.getFloatDataArrays()) == 1
+        assert source.size() == 1
+
 if __name__ == '__main__':
     unittest.main()

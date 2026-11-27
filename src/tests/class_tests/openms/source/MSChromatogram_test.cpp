@@ -81,6 +81,48 @@ START_SECTION((void setName(const std::string &name)))
 }
 END_SECTION
 
+START_SECTION((void copyMetaDataFrom(const MSChromatogram& source)))
+{
+  MSChromatogram source;
+  source.setName("source");
+  source.setNativeID("chrom=7");
+  source.setChromatogramType(ChromatogramSettings::ChromatogramType::SELECTED_REACTION_MONITORING_CHROMATOGRAM);
+  source.getPrecursor().setMZ(500.25);
+  source.getProduct().setMZ(250.5);
+  source.setMetaValue("label", "source");
+  source.push_back(ChromatogramPeak(1.0, 1.0f));
+  source.getFloatDataArrays().resize(1);
+  source.getFloatDataArrays()[0].push_back(1.0f);
+
+  MSChromatogram target;
+  target.push_back(ChromatogramPeak(5.0, 3.0f));
+  target.push_back(ChromatogramPeak(6.0, 4.0f));
+  target.updateRanges();
+
+  target.copyMetaDataFrom(source);
+
+  // meta data is taken from the source
+  TEST_STRING_EQUAL(target.getName(), "source")
+  TEST_STRING_EQUAL(target.getNativeID(), "chrom=7")
+  TEST_EQUAL(target.getChromatogramType() == ChromatogramSettings::ChromatogramType::SELECTED_REACTION_MONITORING_CHROMATOGRAM, true)
+  TEST_REAL_SIMILAR(target.getPrecursor().getMZ(), 500.25)
+  TEST_REAL_SIMILAR(target.getProduct().getMZ(), 250.5)
+  TEST_STRING_EQUAL(target.getMetaValue("label").toString(), "source")
+
+  // peaks, data arrays and ranges of the target are kept
+  TEST_EQUAL(target.size(), 2)
+  TEST_REAL_SIMILAR(target[0].getRT(), 5.0)
+  TEST_REAL_SIMILAR(target[1].getRT(), 6.0)
+  TEST_EQUAL(target.getFloatDataArrays().size(), 0)
+  TEST_REAL_SIMILAR(target.getMinRT(), 5.0)
+  TEST_REAL_SIMILAR(target.getMaxRT(), 6.0)
+
+  // the source is unchanged
+  TEST_EQUAL(source.size(), 1)
+  TEST_EQUAL(source.getFloatDataArrays().size(), 1)
+}
+END_SECTION
+
 START_SECTION((const FloatDataArrays& getFloatDataArrays() const ))
 {
   MSChromatogram chrom;

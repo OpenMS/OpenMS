@@ -1702,6 +1702,8 @@ Usage:
         .def("getDriftTimeUnit", [](const OpenMS::Mobilogram& self) { return self.getDriftTimeUnit(); }, "Returns the ion mobility drift time unit")
         .def("getDriftTimeUnitAsString", [](const OpenMS::Mobilogram& self) { return self.getDriftTimeUnitAsString(); }, "Returns the ion mobility drift time unit as string")
         .def("setDriftTimeUnit", [](OpenMS::Mobilogram& self, OpenMS::DriftTimeUnit dt) { return self.setDriftTimeUnit(dt); }, "dt"_a, "Sets the ion mobility drift time unit")
+        .def("copyMetaDataFrom", [](OpenMS::Mobilogram& self, const OpenMS::Mobilogram& source) { self.copyMetaDataFrom(source); }, "source"_a,
+            "Copies the meta data of source (retention time, drift time unit) into this mobilogram. Peaks, data arrays and ranges are not changed")
         .def("sortByIntensity", [](OpenMS::Mobilogram& self, bool reverse) { return self.sortByIntensity(reverse); }, "reverse"_a = false,
             R"doc(
 Lexicographically sorts the peaks by their intensity

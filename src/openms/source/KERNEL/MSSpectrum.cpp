@@ -339,14 +339,8 @@ namespace OpenMS
       return *this;
     }
     ContainerType::operator=(source);
-    SpectrumSettings::operator=(source);
     RangeManagerType::operator=(source);
-
-    retention_time_ = source.retention_time_;
-    drift_time_ = source.drift_time_;
-    drift_time_unit_ = source.drift_time_unit_;
-    ms_level_ = source.ms_level_;
-    name_ = source.name_;
+    copyMetaDataFrom(source);
     float_data_arrays_ = source.float_data_arrays_;
     string_data_arrays_ = source.string_data_arrays_;
     integer_data_arrays_ = source.integer_data_arrays_;
@@ -472,6 +466,16 @@ namespace OpenMS
   void MSSpectrum::setName(const std::string &name)
   {
     name_ = name;
+  }
+
+  void MSSpectrum::copyMetaDataFrom(const MSSpectrum& source)
+  {
+    SpectrumSettings::operator=(source);
+    retention_time_ = source.retention_time_;
+    drift_time_ = source.drift_time_;
+    drift_time_unit_ = source.drift_time_unit_;
+    ms_level_ = source.ms_level_;
+    name_ = source.name_;
   }
 
   const MSSpectrum::FloatDataArrays &MSSpectrum::getFloatDataArrays() const

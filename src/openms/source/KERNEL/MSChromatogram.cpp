@@ -50,9 +50,7 @@ MSChromatogram &MSChromatogram::operator=(const MSChromatogram &source)
 
   RangeManagerType::operator=(source);
   ContainerType::operator=(source);
-  ChromatogramSettings::operator=(source);
-
-  name_ = source.name_;
+  copyMetaDataFrom(source);
   float_data_arrays_ = source.float_data_arrays_;
   string_data_arrays_ = source.string_data_arrays_;
   integer_data_arrays_ = source.integer_data_arrays_;
@@ -78,6 +76,12 @@ const std::string &MSChromatogram::getName() const
 void MSChromatogram::setName(const std::string &name)
 {
   name_ = name;
+}
+
+void MSChromatogram::copyMetaDataFrom(const MSChromatogram& source)
+{
+  ChromatogramSettings::operator=(source);
+  name_ = source.name_;
 }
 
 double MSChromatogram::getMZ() const

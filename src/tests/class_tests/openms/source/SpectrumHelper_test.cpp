@@ -12,8 +12,12 @@
 ///////////////////////////
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/KERNEL/MSChromatogram.h>
+#include <OpenMS/KERNEL/Mobilogram.h>
 #include <OpenMS/KERNEL/SpectrumHelper.h>
 ///////////////////////////
+
+#include <OpenMS/IONMOBILITY/IMDataArrayUtils.h>
+#include <OpenMS/IONMOBILITY/IMTypes.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -346,10 +350,84 @@ START_SECTION(void makePeakPositionUnique(PeakContainerT& p, const int m) )
   TEST_REAL_SIMILAR(c[2].getIntensity(), 9)
   TEST_REAL_SIMILAR(c[3].getIntensity(), 7)
   
+  // the spectrum/chromatogram's own metadata must survive the call, not just
+  // its merged peaks
+  s = s_template;
+  s.setRT(123.5);
+  s.setNativeID("spectrum=42");
+  s.setMSLevel(2);
+  makePeakPositionUnique(s, IntensityAveragingMethod::MEDIAN);
+  TEST_EQUAL(s.size(), 4)
+  TEST_REAL_SIMILAR(s.getRT(), 123.5)
+  TEST_EQUAL(s.getNativeID(), "spectrum=42")
+  TEST_EQUAL(s.getMSLevel(), 2)
+
+  c = c_template;
+  c.setNativeID("chromatogram=42");
+  makePeakPositionUnique(c, IntensityAveragingMethod::MEDIAN);
+  TEST_EQUAL(c.size(), 4)
+  TEST_EQUAL(c.getNativeID(), "chromatogram=42")
+
+  // the ion mobility array is removed with the other data arrays, so the IM annotation
+  // describing it must not survive; a spectrum-level drift time is kept
+  MSSpectrum im_template;
+  im_template.push_back(Peak1D(100.0, 1.0f));
+  im_template.push_back(Peak1D(100.0, 3.0f));
+  im_template.push_back(Peak1D(200.0, 5.0f));
+  im_template.getFloatDataArrays().resize(1);
+  im_template.getFloatDataArrays()[0].assign({0.8f, 0.9f, 1.0f});
+  IMDataArrayUtils::setIMUnit(im_template.getFloatDataArrays()[0], DriftTimeUnit::VSSC);
+  im_template.setIMFormat(IMFormat::IM_PEAK);
+  im_template.setIMPeakType(IMPeakType::IM_CENTROIDED);
+  TEST_TRUE(im_template.containsIMData())
+
+  s = im_template;
+  makePeakPositionUnique(s, IntensityAveragingMethod::SUM);
+  TEST_EQUAL(s.size(), 2)
+  TEST_REAL_SIMILAR(s[0].getIntensity(), 4.0)
+  TEST_REAL_SIMILAR(s[1].getIntensity(), 5.0)
+  TEST_FALSE(s.containsIMData())
+  TEST_EQUAL(s.getIMFormat() == IMFormat::UNKNOWN, true)
+  TEST_EQUAL(IMTypes::determineIMFormat(s) == IMFormat::NONE, true)
+  TEST_EQUAL(s.getIMPeakType() == IMPeakType::UNKNOWN, true)
+
+  s = im_template;
+  s.setDriftTime(1.1);
+  s.setDriftTimeUnit(DriftTimeUnit::VSSC);
+  makePeakPositionUnique(s, IntensityAveragingMethod::SUM);
+  TEST_EQUAL(s.size(), 2)
+  TEST_REAL_SIMILAR(s.getDriftTime(), 1.1)
+  TEST_EQUAL(IMTypes::determineIMFormat(s) == IMFormat::IM_SPECTRUM, true)
+
+  // without an ion mobility array, an explicit spectrum-level IM annotation is kept
+  s = s_template;
+  s.setDriftTime(1.1);
+  s.setDriftTimeUnit(DriftTimeUnit::VSSC);
+  s.setIMFormat(IMFormat::IM_SPECTRUM);
+  s.setIMPeakType(IMPeakType::IM_CENTROIDED);
+  makePeakPositionUnique(s, IntensityAveragingMethod::SUM);
+  TEST_EQUAL(s.size(), 4)
+  TEST_EQUAL(s.getIMFormat() == IMFormat::IM_SPECTRUM, true)
+  TEST_EQUAL(s.getIMPeakType() == IMPeakType::IM_CENTROIDED, true)
+  TEST_REAL_SIMILAR(s.getDriftTime(), 1.1)
+
+  Mobilogram mb;
+  mb.setRT(42.0);
+  mb.setDriftTimeUnit(DriftTimeUnit::VSSC);
+  mb.push_back(MobilityPeak1D(0.9, 1.0f));
+  mb.push_back(MobilityPeak1D(0.9, 3.0f));
+  mb.push_back(MobilityPeak1D(1.0, 5.0f));
+  makePeakPositionUnique(mb, IntensityAveragingMethod::SUM);
+  TEST_EQUAL(mb.size(), 2)
+  TEST_REAL_SIMILAR(mb[0].getIntensity(), 4.0)
+  TEST_REAL_SIMILAR(mb[1].getIntensity(), 5.0)
+  TEST_REAL_SIMILAR(mb.getRT(), 42.0)
+  TEST_EQUAL(mb.getDriftTimeUnit() == DriftTimeUnit::VSSC, true)
+
   MSSpectrum s_empty;
   makePeakPositionUnique(s_empty);
   TEST_EQUAL(s_empty.size(), 0)
-  
+
   MSChromatogram c_empty;
   makePeakPositionUnique(c_empty);
   TEST_EQUAL(c_empty.size(), 0)

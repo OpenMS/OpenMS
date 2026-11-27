@@ -90,6 +90,8 @@ Usage:
         .def("getMaxIntensity", [](const OpenMS::MSChromatogram& self) { return self.getMaxIntensity(); }, "Get the maximum intensity value")
         .def("getName", [](const OpenMS::MSChromatogram& self) { return self.getName(); }, "Returns the name")
         .def("setName", [](OpenMS::MSChromatogram& self, const std::string& name) { return self.setName(name); }, "name"_a, "Sets the name")
+        .def("copyMetaDataFrom", [](OpenMS::MSChromatogram& self, const OpenMS::MSChromatogram& source) { self.copyMetaDataFrom(source); }, "source"_a,
+            "Copies the meta data of source (ChromatogramSettings, name) into this chromatogram. Peaks, data arrays and ranges are not changed")
         .def("getMZ", [](const OpenMS::MSChromatogram& self) { return self.getMZ(); }, "Returns the mz of the product entry, makes sense especially for MRM scans")
         .def("sortByIntensity", [](OpenMS::MSChromatogram& self, bool reverse) { return self.sortByIntensity(reverse); }, "reverse"_a = false,
             R"doc(
