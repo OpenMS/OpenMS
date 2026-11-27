@@ -145,7 +145,7 @@ namespace OpenMS
    * If one of them was the ion mobility array of a spectrum (or the spectrum is marked as
    * IMFormat::IM_PEAK), its IM format and IM peak type are reset to UNKNOWN, so that
    * IMTypes::determineIMFormat() infers the format from the remaining data (e.g. the drift time).
-   * The ranges are recomputed from the merged peaks.
+   * The ranges are recomputed from the merged peaks; an empty container gets empty ranges.
    *
    * @param[in] p The peak container to be manipulated.
    * @param[in] m The method for determining peak intensity from peaks with same position (median, mean, sum, min, max).
@@ -157,9 +157,13 @@ namespace OpenMS
     {
       OPENMS_LOG_WARN << "Warning: data arrays are being ignored in the method SpectrumHelper::makePeakPositionUnique().\n";
     }
-    
-    if (p.empty()) return;
-    
+
+    if (p.empty())
+    {
+      p.clearRanges();
+      return;
+    }
+
     p.sortByPosition();
     
     double current_position = p.begin()->getPos();
