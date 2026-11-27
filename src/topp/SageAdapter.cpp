@@ -693,6 +693,17 @@ protected:
       "longest_y_pct", "matched_peaks", "scored_candidates"}; 
     double FDR_threshhold = getDoubleOption_("q_value_threshold"); 
 
+    // Sage reports modifications as mass tags; prefer the searched modifications when resolving them
+    // (e.g. Phospho (Y) instead of MOD:00254 with almost identical mass)
+    std::vector<const ResidueModification*> searched_mods;
+    for (const auto& mod_names : {getStringList_("fixed_modifications"), getStringList_("variable_modifications")})
+    {
+      for (const auto& mod_to_residue : ModifiedPeptideGenerator::getModifications(mod_names).val)
+      {
+        searched_mods.push_back(mod_to_residue.first);
+      }
+    }
+
     PeptideIdentificationList peptide_identifications = PercolatorInfile::load(
       output_folder + "/results.sage.pin",
       true,
@@ -701,7 +712,8 @@ protected:
       filenames,
       decoy_prefix, 
       FDR_threshhold, 
-      true);
+      true,
+      searched_mods);
 
     for (auto& id : peptide_identifications)
     {

@@ -17,6 +17,8 @@
 #include <OpenMS/METADATA/PeptideHit.h>
 #include <OpenMS/METADATA/PeptideEvidence.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
+#include <OpenMS/CHEMISTRY/ModificationsDB.h>
+#include <OpenMS/CHEMISTRY/ResidueModification.h>
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
@@ -924,6 +926,43 @@ START_SECTION(([EXTRA] load: a single-file PIN with no FileName column loads wit
   TEST_EQUAL(loaded.size(), 1)
   TEST_EQUAL(filenames.empty(), true)
   TEST_EQUAL(loaded[0].metaValueExists("id_merge_index"), false)
+}
+END_SECTION
+
+START_SECTION(([EXTRA] load: mass tags are resolved to the preferred (searched) modifications))
+{
+  // Y[+79.96633] matches MOD:00254 (79.966330) slightly better than Phospho (Y) (79.966331) by mass alone
+  std::ifstream in(OPENMS_GET_TEST_DATA_PATH("sage.pin"));
+  std::string header, row;
+  std::getline(in, header);
+  std::getline(in, row);
+  std::vector<std::string> fields;
+  StringUtils::split(row, '\t', fields);
+  fields[fields.size() - 2] = "[+42.010567]-LPY[+79.96633]QQLALELK";
+
+  std::string pin_file;
+  NEW_TMP_FILE(pin_file);
+  {
+    std::ofstream out(pin_file);
+    out << header << "\n" << ListUtils::concatenate(fields, "\t") << "\n";
+  }
+
+  StringList filenames;
+  StringList extra_scores;
+  PeptideIdentificationList loaded = PercolatorInfile::load(pin_file, true, "ln(hyperscore)", extra_scores, filenames, "DECOY_");
+  TEST_EQUAL(loaded.size(), 1)
+  TEST_EQUAL(loaded[0].getHits()[0].getSequence()[2].getModification()->getFullId() != "Phospho (Y)", true)
+
+  const ModificationsDB* mod_db = ModificationsDB::getInstance();
+  std::vector<const ResidueModification*> preferred = {
+    mod_db->getModification("Phospho", "Y", ResidueModification::ANYWHERE),
+    mod_db->getModification("Acetyl", "", ResidueModification::PROTEIN_N_TERM)
+  };
+  loaded = PercolatorInfile::load(pin_file, true, "ln(hyperscore)", extra_scores, filenames, "DECOY_", 0.01, false, preferred);
+  TEST_EQUAL(loaded.size(), 1)
+  const AASequence& seq = loaded[0].getHits()[0].getSequence();
+  TEST_EQUAL(seq.getNTerminalModification()->getFullId(), "Acetyl (Protein N-term)")
+  TEST_EQUAL(seq[2].getModification()->getFullId(), "Phospho (Y)")
 }
 END_SECTION
 

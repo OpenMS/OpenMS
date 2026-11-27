@@ -21,6 +21,7 @@
 
 namespace OpenMS
 {
+  class ResidueModification;
 
   /**
      @brief Class for storing Percolator tab-delimited input files.
@@ -80,10 +81,14 @@ namespace OpenMS
       * @param[in] threshold A double value representing the threshold for the `spectrum_q` value. Only spectra with `spectrum_q` below this threshold are processed.
                          Implemented to allow prefiltering of Sage results.
       * @param[in] SageAnnotation A boolean value used to determine if the pin file is coming from Sage or not 
+      * @param[in] preferred_modifications Modifications that were searched (e.g. the fixed and variable modifications passed to the search engine).
+                         Peptides in the pin file carry modifications as mass tags (e.g. Y[+79.96633]), which are resolved by mass and can pick a
+                         different database entry of (almost) identical mass (e.g. MOD:00254 instead of Phospho (Y)). If a resolved modification
+                         is not in this list, it is replaced by the closest-mass modification of this list for the same residue and terminal
+                         specificity (if one is within 0.01 Da). Empty (default): no replacement.
       * @return A `std::vector` of `PeptideIdentification` objects containing the peptide identifications.
       
       * @throws `Exception::ParseError` if any line in the input file does not have the expected number of columns.
-      * TODO: implement something similar to PepXMLFile().setPreferredFixedModifications(getModifications_(fixed_modifications_names));      
       */
       static PeptideIdentificationList load(const std::string& pin_file, 
         bool higher_score_better, 
@@ -92,7 +97,8 @@ namespace OpenMS
         StringList& filenames, 
         std::string decoy_prefix = "",
         double threshold = 0.01, 
-        bool SageAnnotation = false);
+        bool SageAnnotation = false,
+        const std::vector<const ResidueModification*>& preferred_modifications = {});
 
       // uses spectrum_reference, if empty uses spectrum_id, if also empty fall back to using index
       static std::string getScanIdentifier(const PeptideIdentification& pid, size_t index);
