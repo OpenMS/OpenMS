@@ -7,6 +7,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/ID/PROSE/ProSEAlgorithm.h>
+#include <OpenMS/ANALYSIS/ID/PROSE/ProSEPEFF.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/CHEMISTRY/EnzymaticDigestion.h>
 #include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
@@ -597,8 +598,9 @@ class ProSE :
 #endif
       });
 
-      registerInputFile_("database", "<file>", "", "Input protein sequence database in FASTA format.");
-      setValidFormats_("database", ListUtils::create<std::string>("fasta"));
+      registerInputFile_("database", "<file>", "", "Input protein sequence database in FASTA format, or PEFF (read as FASTA; "
+                         "its sequence variants are searched with -Search:database:peff_variants simple).");
+      setValidFormats_("database", ListUtils::create<std::string>("fasta,peff"));
 
       registerOutputFileList_("out", "<files>", StringList(), "Output identification file(s), one per -in: idXML or an idparquet directory bundle (format by extension). Must have the same number of entries as -in.", false);
       setValidFormats_("out", ListUtils::create<std::string>("idXML,idparquet"));
@@ -615,6 +617,17 @@ class ProSE :
 
       registerOutputFileList_("out_pin", "<files>", StringList(), "Output Percolator input (.pin/.tsv) file(s) for external rescoring. Must have the same number of entries as -in. It holds the PSMs before the rescoring and before any FDR filter, with ProSE's own scores and all reported hits: 'Search:rescore' and 'Search:FDR:*' apply to the other outputs only.", false, true);
       setValidFormats_("out_pin", ListUtils::create<std::string>("tsv"));
+
+      registerOutputFile_("out_variant_status", "<file>", "", "Optional table (TSV) of the sequence variants of a PEFF database "
+                          "(-Search:database:peff_variants simple): one row per annotated variant (\\VariantSimple, "
+                          "\\VariantComplex) with whether it was searched and why not (e.g. 'complex_not_supported', "
+                          "'unknown_residue'), and its PSMs over all inputs: the target PSMs (best hit per spectrum) with the "
+                          "variant, those at a q-value <= 0.01 and the inputs with such a PSM, the best q-value, and the target "
+                          "PSMs without a variant at q <= 0.01 that cover its position on the protein (the reference sequence "
+                          "observed). The PSMs as in the -out files (after the FDR filters); without q-values (no rescoring, "
+                          "FDR:PSM 0) every reported PSM counts. A variant that is not searched cannot be found: it is 'not "
+                          "detected' only if it was searched.", false);
+      setValidFormats_("out_variant_status", ListUtils::create<std::string>("tsv"));
 
       registerOutputDir_("out_mod_analysis_dir", "<dir>", "", "Optional directory to write modification-analysis tables (delta-mass, PTM stats) when running in open-search mode. When set, per-file tables are written using each input file's basename and an additional aggregate table is written across all input files. The analysis covers the PSMs of each input that pass 'Search:FDR:PSM', before the protein FDR (the evidence for the mass shifts, also of PSMs whose proteins the protein FDR removes). Has no effect in closed-search mode.", false, true);
 
@@ -2212,6 +2225,35 @@ class ProSE :
                                          /*fdr_applied=*/ result.stats.fdr_applied);
       }
 
+      // -- the status of the PEFF sequence variants (on the final identifications of all inputs); a failed write is
+      // reported at the end, after the other outputs --
+      const std::string out_variant_status = getStringOption_("out_variant_status");
+      bool variant_status_failed = false;
+      if (!out_variant_status.empty())
+      {
+        const std::shared_ptr<const ProSEPEFF> peff = sse.getVariantWindows();
+        if (peff == nullptr)
+        {
+          OPENMS_LOG_WARN << "-out_variant_status: no sequence variants were read (the database has no PEFF variant "
+                          << "annotations, or -Search:database:peff_variants is 'none'); the table has no rows." << endl;
+        }
+        std::vector<const PeptideIdentificationList*> runs;
+        for (const ProSEAlgorithm::SearchResult& result : mfres.per_file)
+        {
+          if (result.exit_code == ProSEAlgorithm::ExitCodes::EXECUTION_OK) { runs.push_back(&result.peptide_ids); }
+        }
+        static const ProSEPEFF no_variants; // (a table without rows)
+        try
+        {
+          (peff ? *peff : no_variants).storeVariantStatus(out_variant_status, runs, 0.01);
+        }
+        catch (const Exception::BaseException& e)
+        {
+          OPENMS_LOG_ERROR << "Failed to write -out_variant_status " << out_variant_status << ": " << e.what() << endl;
+          variant_status_failed = true;
+        }
+      }
+
       // Write per-file outputs and track failures.
       // Accumulate Arrow tables for merged parquet output.
       std::vector<std::shared_ptr<arrow::Table>> qpx_psm_tables, qpx_pg_tables;
@@ -3128,6 +3170,7 @@ class ProSE :
                          << (out_merged.empty() ? std::string() : " (-out_merged " + out_merged + ")") << "." << endl;
         return pooled_error;
       }
+      if (variant_status_failed) { return CANNOT_WRITE_OUTPUT_FILE; } // (reported above)
       return EXECUTION_OK;
     }
 };
