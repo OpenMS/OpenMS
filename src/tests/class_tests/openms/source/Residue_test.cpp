@@ -925,12 +925,19 @@ START_SECTION((Satellite ion methods and types))
   TEST_EQUAL(ile->hasSatelliteLoss('b'), true)
   TEST_EQUAL(ile->getSatelliteLossFormula('a'), EmpiricalFormula("CH3"))
   TEST_EQUAL(ile->getSatelliteLossFormula('b'), EmpiricalFormula("C2H5"))
+  TEST_EQUAL(ile->getSatelliteLossFormula(), ile->getSatelliteLossFormula('a'))
 
-  // Thr subtype a (-OH) vs subtype b (-CH3)
+  // Thr subtype a (-CH3, keeps the OH) vs subtype b (-OH, keeps the CH3). mzPAF v1.0: "a is the
+  // heaviest of the two options. For Threonine da has an additional group of OH and db a group of CH3."
   TEST_EQUAL(thr->hasSatelliteLoss('a'), true)
   TEST_EQUAL(thr->hasSatelliteLoss('b'), true)
-  TEST_EQUAL(thr->getSatelliteLossFormula('a'), EmpiricalFormula("OH"))
-  TEST_EQUAL(thr->getSatelliteLossFormula('b'), EmpiricalFormula("CH3"))
+  TEST_EQUAL(thr->getSatelliteLossFormula('a'), EmpiricalFormula("CH3"))
+  TEST_EQUAL(thr->getSatelliteLossFormula('b'), EmpiricalFormula("OH"))
+  TEST_EQUAL(thr->getSatelliteLossFormula(), thr->getSatelliteLossFormula('a'))
+
+  // 'a' is the heavier ion, i.e. the smaller loss
+  TEST_TRUE(ile->getSatelliteLossFormula('a').getMonoWeight() < ile->getSatelliteLossFormula('b').getMonoWeight())
+  TEST_TRUE(thr->getSatelliteLossFormula('a').getMonoWeight() < thr->getSatelliteLossFormula('b').getMonoWeight())
 
   const Residue* arg = rdb->getResidue("Arg");
   TEST_EQUAL(arg->hasSatelliteLoss(), true)

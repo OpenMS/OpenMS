@@ -690,6 +690,9 @@ namespace OpenMS
   {
     if (!hasSatelliteLoss(subtype)) { return EmpiricalFormula(); }
     char olc = one_letter_code_[0];
+    // Ile and Thr carry two different groups on the beta carbon, so they form two d/w ions.
+    // mzPAF v1.0 names the heavier one 'a' and the lighter one 'b': the 'a' ion keeps the larger
+    // group (Ile: ethyl, Thr: hydroxyl) and loses CH3. The default (no subtype) is 'a'.
     switch (olc)
     {
       case 'V':
@@ -699,7 +702,7 @@ namespace OpenMS
       case 'I':
         return (subtype == 'b') ? EmpiricalFormula("C2H5") : EmpiricalFormula("CH3");
       case 'T':
-        return (subtype == 'b') ? EmpiricalFormula("CH3") : EmpiricalFormula("OH");
+        return (subtype == 'b') ? EmpiricalFormula("OH") : EmpiricalFormula("CH3");
       case 'D':
         return EmpiricalFormula("CHO2");
       case 'E':

@@ -16,13 +16,18 @@
 #include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
+#include <OpenMS/CHEMISTRY/MzPAF.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/CONCEPT/Constants.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 #include <map>
+#include <cmath>
 #include <cstring>
 #include <algorithm>
+#include <limits>
+#include <optional>
 
 ///////////////////////////
 
@@ -534,6 +539,32 @@ START_SECTION(static MSSpectrum generateSpectrum(const Precursor::ActivationMeth
   // ...
 
   spec.clear(true);
+
+  // No activation method adds satellite ions (they are opt-in via add_d_ions/add_v_ions/add_w_ions). GLITAK at
+  // precursor charge 2 (fragment charge 1) has d and w ions at Leu, Ile and Thr; see "[EXTRA] satellite ions d, v and w".
+  {
+    const AASequence glitak = AASequence::fromString("GLITAK");
+    const std::vector<double> satellite_ions = {101.070939, 228.170653, 242.186303, 341.254717, 343.233982, // d
+                                                73.028406, 286.176133, 288.155397, 387.223811, 401.239461, 486.292225}; // w
+    auto contains = [](const MSSpectrum& s, double mz)
+    {
+      return std::any_of(s.begin(), s.end(), [mz](const Peak1D& peak) { return std::fabs(peak.getMZ() - mz) < 1e-4; });
+    };
+    // ETD: 4 c, 5 z+1 and 5 z+2 ions; EThcD and ETciD: 4 each of a, b, c and 5 each of x, y, z, z+1, z+2; HCD: 4 a, 4 b, 5 y
+    const std::vector<std::pair<Precursor::ActivationMethod, Size>> methods = {
+      {Precursor::ActivationMethod::ETD, 14}, {Precursor::ActivationMethod::EThcD, 37},
+      {Precursor::ActivationMethod::ETciD, 37}, {Precursor::ActivationMethod::HCD, 13}};
+    for (const auto& [method, size] : methods)
+    {
+      spec = TheoreticalSpectrumGenerator::generateSpectrum(method, glitak, 2);
+      TEST_EQUAL(spec.size(), size)
+      for (double mz : satellite_ions)
+      {
+        TEST_FALSE(contains(spec, mz))
+      }
+    }
+    spec.clear(true);
+  }
 
   // Test precursor_charge > 2
   spec = TheoreticalSpectrumGenerator::generateSpectrum(Precursor::ActivationMethod::HCID, AASequence::fromString("PEP"), 3);
@@ -1057,6 +1088,195 @@ START_SECTION([EXTRA] add_internal_fragments on very short peptides does not han
 }
 END_SECTION
 
+START_SECTION(([EXTRA] satellite ions d, v and w))
+{
+  // The expected m/z values are computed independently from the elemental formulas: d = a + H - loss,
+  // v = y - complete side chain, w = z+1 - loss, with the losses of Residue::getSatelliteLossFormula() and
+  // Residue::getVLossFormula(). In GLITAK, Gly and Ala have no d/w ion, Leu has one (-C3H7) and Ile (a: -CH3,
+  // b: -C2H5) and Thr (a: -CH3, b: -OH) have two each; every residue but Gly has a v ion.
+  TOLERANCE_ABSOLUTE(1e-5)
+  TOLERANCE_RELATIVE(1.0 + 1e-7)
+  const AASequence peptide = AASequence::fromString("GLITAK");
+  struct SeriesCase
+  {
+    std::string series;                                // d, v or w
+    std::vector<std::pair<std::string, double>> ions;  // name and m/z at charge 1, ascending
+  };
+  const std::vector<SeriesCase> cases = {
+    {"d", {{"d2", 101.070939}, {"db3", 228.170653}, {"da3", 242.186303}, {"db4", 341.254717}, {"da4", 343.233982}}},
+    {"v", {{"v1", 74.023655}, {"v2", 202.118618}, {"v3", 273.155732}, {"v4", 374.203410}, {"v5", 487.287474}}},
+    {"w", {{"w1", 73.028406}, {"wb3", 286.176133}, {"wa3", 288.155397}, {"wb4", 387.223811}, {"wa4", 401.239461}, {"w5", 486.292225}}}};
+  std::map<std::string, double> mz_of; // over all series, by ion name with charge
+  for (const auto& c : cases)
+  {
+    TheoreticalSpectrumGenerator generator;
+    Param p(generator.getParameters());
+    p.setValue("add_b_ions", "false");
+    p.setValue("add_y_ions", "false");
+    p.setValue("add_" + c.series + "_ions", "true");
+    p.setValue(c.series + "_intensity", 0.25);
+    p.setValue("add_metainfo", "true");
+    generator.setParameters(p);
+    PeakSpectrum spec;
+    generator.getSpectrum(spec, peptide, 1, 2);
+
+    TEST_EQUAL(spec.size(), 2 * c.ions.size())
+    TEST_TRUE(spec.isSorted())
+    TEST_EQUAL(spec.getStringDataArrays().size(), 1)
+    TEST_EQUAL(spec.getIntegerDataArrays().size(), 1)
+    if (spec.getStringDataArrays().size() != 1 || spec.getIntegerDataArrays().size() != 1) continue;
+    for (Size i = 0; i < spec.size(); ++i)
+    {
+      const std::string& name = spec.getStringDataArrays()[0][i];
+      TEST_EQUAL(name.substr(0, 1), c.series)
+      TEST_EQUAL(spec.getIntegerDataArrays()[0][i], Int(std::count(name.begin(), name.end(), '+')))
+      TEST_REAL_SIMILAR(spec[i].getIntensity(), 0.25)
+      mz_of[name] = spec[i].getMZ();
+    }
+    for (const auto& [name, mz] : c.ions)
+    {
+      TEST_EQUAL(mz_of.count(name + "+"), 1)
+      TEST_EQUAL(mz_of.count(name + "++"), 1)
+      TEST_REAL_SIMILAR(mz_of[name + "+"], mz)
+      TEST_REAL_SIMILAR(mz_of[name + "++"], (mz + Constants::PROTON_MASS_U) / 2)
+    }
+  }
+
+  // Leu and Ile: the same w ions from AASequence (the default subtype is 'a')
+  TEST_REAL_SIMILAR(mz_of["w5+"], AASequence::fromString("LITAK").getMZ(1, Residue::WIon))
+  TEST_REAL_SIMILAR(mz_of["w5+"], AASequence::fromString("LITAK").getMZ(1, Residue::Zp1Ion) - EmpiricalFormula("C3H7").getMonoWeight())
+  TEST_REAL_SIMILAR(mz_of["wa4+"], AASequence::fromString("ITAK").getMZ(1, Residue::WIon))
+  TEST_REAL_SIMILAR(mz_of["wb4+"], AASequence::fromString("ITAK").getMZ(1, Residue::Zp1Ion) - EmpiricalFormula("C2H5").getMonoWeight())
+  TEST_REAL_SIMILAR(mz_of["da3+"], AASequence::fromString("GLI").getMZ(1, Residue::DIon))
+  TEST_REAL_SIMILAR(mz_of["v4++"], AASequence::fromString("ITAK").getMZ(2, Residue::VIon))
+
+  // collects the ion names of a spectrum
+  auto namesOf = [](const PeakSpectrum& spec)
+  {
+    std::vector<std::string> names;
+    if (!spec.getStringDataArrays().empty())
+    {
+      names.assign(spec.getStringDataArrays()[0].begin(), spec.getStringDataArrays()[0].end());
+    }
+    std::sort(names.begin(), names.end());
+    return names;
+  };
+  TheoreticalSpectrumGenerator generator;
+  Param p(generator.getParameters());
+  p.setValue("add_metainfo", "true");
+
+  // off by default
+  generator.setParameters(p);
+  PeakSpectrum spec;
+  generator.getSpectrum(spec, peptide, 1, 2);
+  for (const std::string& name : namesOf(spec))
+  {
+    TEST_TRUE(name[0] == 'b' || name[0] == 'y')
+  }
+
+  p.setValue("add_b_ions", "false");
+  p.setValue("add_y_ions", "false");
+  p.setValue("add_d_ions", "true");
+  p.setValue("add_w_ions", "true");
+  generator.setParameters(p);
+
+  // d1 ions only with add_first_prefix_ion, like a1 ions
+  spec.clear(true);
+  generator.getSpectrum(spec, AASequence::fromString("LIK"), 1, 1);
+  TEST_EQUAL(ListUtils::concatenate(namesOf(spec), ","), "da2+,db2+,w1+,wa2+,wb2+")
+  p.setValue("add_first_prefix_ion", "true");
+  generator.setParameters(p);
+  spec.clear(true);
+  generator.getSpectrum(spec, AASequence::fromString("LIK"), 1, 1);
+  TEST_EQUAL(ListUtils::concatenate(namesOf(spec), ","), "d1+,da2+,db2+,w1+,wa2+,wb2+")
+  TEST_REAL_SIMILAR(spec[0].getMZ(), 44.049476) // d1: a1 of Leu + H - C3H7
+  p.setValue("add_first_prefix_ion", "false");
+
+  // a modified residue at the cleavage site gives no satellite ion; terminal modifications shift the masses
+  generator.setParameters(p);
+  spec.clear(true);
+  generator.getSpectrum(spec, AASequence::fromString("GLM(Oxidation)AK"), 1, 1);
+  TEST_EQUAL(ListUtils::concatenate(namesOf(spec), ","), "d2+,w1+,w4+")
+  PeakSpectrum acetylated;
+  generator.getSpectrum(acetylated, AASequence::fromString(".(Acetyl)GLITAK"), 1, 1);
+  TEST_EQUAL(acetylated.size(), 11)
+  ABORT_IF(acetylated.getStringDataArrays().empty())
+  for (Size i = 0; i < acetylated.size(); ++i)
+  {
+    const std::string& name = acetylated.getStringDataArrays()[0][i];
+    const double shift = name[0] == 'd' ? EmpiricalFormula("C2H2O").getMonoWeight() : 0.0;
+    TEST_EQUAL(mz_of.count(name), 1)
+    TEST_REAL_SIMILAR(acetylated[i].getMZ(), mz_of[name] + shift)
+  }
+
+  // Isotope clusters are computed from the formulas: their first peaks are the ions above. As for the other ion
+  // types (addIsotopeCluster_()), the charge is added as H atoms, so these masses include the electron mass.
+  p.setValue("add_v_ions", "true");
+  p.setValue("isotope_model", "coarse");
+  p.setValue("max_isotope", 2);
+  generator.setParameters(p);
+  spec.clear(true);
+  generator.getSpectrum(spec, peptide, 1, 1);
+  TEST_EQUAL(spec.size(), 32) // 5 d, 5 v and 6 w ions with two isotope peaks each
+  TEST_TRUE(spec.isSorted())
+  ABORT_IF(spec.getStringDataArrays().empty())
+  for (const auto& c : cases)
+  {
+    for (const auto& [name, mz] : c.ions)
+    {
+      double first = std::numeric_limits<double>::max();
+      Size count = 0;
+      for (Size i = 0; i < spec.size(); ++i)
+      {
+        if (spec.getStringDataArrays()[0][i] != name) continue;
+        first = std::min(first, spec[i].getMZ());
+        ++count;
+      }
+      TEST_EQUAL(count, 2)
+      TEST_REAL_SIMILAR(first, mz + Constants::ELECTRON_MASS_U)
+    }
+  }
+  TOLERANCE_ABSOLUTE(1e-5)
+  TOLERANCE_RELATIVE(1.0 + 1e-5)
+}
+END_SECTION
+
+START_SECTION(([EXTRA] satellite ions agree with MzPAF::calculateTheoreticalMZ))
+{
+  // Every d, v and w peak equals the m/z MzPAF computes for its name, here with both terminal modifications, modified
+  // residues (no satellite ion), first prefix ions and charges up to 3.
+  TOLERANCE_ABSOLUTE(1e-6)
+  TheoreticalSpectrumGenerator generator;
+  Param p(generator.getParameters());
+  p.setValue("add_b_ions", "false");
+  p.setValue("add_y_ions", "false");
+  for (const std::string option : {"add_d_ions", "add_v_ions", "add_w_ions", "add_first_prefix_ion", "add_metainfo"})
+  {
+    p.setValue(option, "true");
+  }
+  generator.setParameters(p);
+  const AASequence peptide = AASequence::fromString(".(Acetyl)TIVLM(Oxidation)C(Carbamidomethyl)DEK.(Amidated)");
+  PeakSpectrum spec;
+  generator.getSpectrum(spec, peptide, 1, 3);
+  TEST_EQUAL(spec.size(), 63) // per charge: 8 d (two each for Thr and Ile), 6 v and 7 w (two for Ile); none at M, C
+  ABORT_IF(spec.getStringDataArrays().empty())
+  for (Size i = 0; i < spec.size(); ++i)
+  {
+    std::string name = spec.getStringDataArrays()[0][i]; // e.g. "da1++" -> mzPAF "da1^2"
+    const Size charge = std::count(name.begin(), name.end(), '+');
+    name.erase(name.find('+'));
+    if (charge > 1) name += "^" + std::to_string(charge);
+    const std::optional<double> mz = MzPAF::calculateTheoreticalMZ(MzPAF::parse(name), peptide);
+    TEST_TRUE(mz.has_value())
+    if (mz.has_value())
+    {
+      TEST_REAL_SIMILAR(spec[i].getMZ(), *mz)
+    }
+  }
+  TOLERANCE_ABSOLUTE(1e-5)
+}
+END_SECTION
+
 START_SECTION(bool getIonSeriesSpectrum(PeakSpectrum& spectrum, std::vector<uint8_t>& ion_series, const AASequence& peptide, Int min_charge, Int max_charge) const)
 {
   // the peaks of getSpectrum() bit for bit, in its order, with the terminal series of the ion names
@@ -1157,6 +1377,13 @@ START_SECTION(bool getIonSeriesSpectrum(PeakSpectrum& spectrum, std::vector<uint
   p.setValue("add_losses", "true");
   generator.setParameters(p);
   TEST_EQUAL(generator.getIonSeriesSpectrum(spectrum, series, AASequence::fromString("PEPTIDEK"), 1, 2), false)
+  for (const std::string satellite : {"add_d_ions", "add_v_ions", "add_w_ions"})
+  {
+    Param p_satellite(TheoreticalSpectrumGenerator().getParameters());
+    p_satellite.setValue(satellite, "true");
+    generator.setParameters(p_satellite);
+    TEST_EQUAL(generator.getIonSeriesSpectrum(spectrum, series, AASequence::fromString("PEPTIDEK"), 1, 2), false)
+  }
 }
 END_SECTION
 

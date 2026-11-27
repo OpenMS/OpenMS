@@ -460,7 +460,9 @@ public:
     bool hasSatelliteLoss(char subtype = '\0') const;
 
     /// returns the radical side-chain loss: d = a + H - loss; w = z+1 - loss
-    /// @param subtype '\0' for default, 'a' for subtype a, 'b' for subtype b
+    /// @param subtype '\0' for default, 'a' for subtype a, 'b' for subtype b.
+    ///        Only Ile and Thr have two different losses. As in mzPAF v1.0, 'a' is the heavier ion
+    ///        (Ile and Thr: -CH3) and 'b' the lighter one (Ile: -C2H5, Thr: -OH); the default is 'a'.
     EmpiricalFormula getSatelliteLossFormula(char subtype = '\0') const;
     //@}
 

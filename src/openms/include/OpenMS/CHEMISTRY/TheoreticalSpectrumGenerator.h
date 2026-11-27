@@ -32,6 +32,12 @@ namespace OpenMS
       are extended. Therefore it is not recommended to add to or change the PeakSpectrum or these DataArrays
       between calls of the getSpectrum function with the same PeakSpectrum.
 
+      The satellite ions d, v and w (add_d_ions, add_v_ions, add_w_ions) lose (part of) the side chain of the residue
+      at the cleavage site: d = a + H - loss, v = y - complete side chain, w = z+1 - loss (see
+      Residue::getSatelliteLossFormula() and Residue::getVLossFormula()). Residues without such a loss (e.g. Gly, Ala or
+      Pro for d and w) or carrying a modification give no peak. Ile and Thr give two d and two w ions, named with the
+      mzPAF subtype (e.g. wa5 and wb5). Satellite ions are added without neutral losses.
+
       @note The generation of neutral loss peaks is very slow in this class.
       Something similar to the neutral loss precalculation used in TheoreticalSpectrumGeneratorXLMS
       should be implemented here as well.
@@ -79,17 +85,19 @@ namespace OpenMS
     virtual void getSpectrum(PeakSpectrum& spec, const AASequence& peptide, Int min_charge, Int max_charge, Int precursor_charge = 0) const;
 
     /// Generates a spectrum for a peptide sequence based on activation method and precursor charge.
-    /// Activation method 'CID' or 'HCID' will generate only b- and y-ions.
-    /// Activation method 'ECD' or 'ETD' will generate only c- and z-ions.
+    /// Activation method 'CID' will generate b- and y-ions, 'HCD' and 'HCID' additionally a-ions.
+    /// Activation method 'ECD' or 'ETD' will generate c-, z+1- and z+2-ions.
+    /// Activation method 'ETciD' or 'EThcD' will generate a-, b-, c-, x-, y-, z-, z+1- and z+2-ions.
+    /// Satellite ions (d, v, w) are never added here; enable them with the add_d_ions, add_v_ions and add_w_ions parameters.
     /// If precursor charge is greater than 2 ions with charge 1 & 2 will be generated, else only ions of charge 1 will appear in the spectrum.
-    /// @throw Exception::InvalidParameter   If fragmentation method is anything else than 'CID', 'HCID', 'ECD' or 'ETD'.
+    /// @throw Exception::InvalidParameter   If fragmentation method is anything else than 'CID', 'HCD', 'HCID', 'ECD', 'ETD', 'ETciD' or 'EThcD'.
     static MSSpectrum generateSpectrum(const Precursor::ActivationMethod& fm, const AASequence& seq, int precursor_charge);
 
     /**
       @brief The peaks of getSpectrum() for scoring: same positions, intensities and order, but no ion names, charges or precursor
 
-      Only for a configuration of plain ion series (no isotopes, losses, internal fragments, precursor or immonium ions;
-      sorted output). Instead of the ion names, @p ion_series receives per peak 0 for an N-terminal (a, b, c) and 1 for a
+      Only for a configuration of plain ion series (no isotopes, losses, internal fragments, precursor, immonium or
+      satellite ions; sorted output). Instead of the ion names, @p ion_series receives per peak 0 for an N-terminal (a, b, c) and 1 for a
       C-terminal (x, y, z, z+1, z+2) ion, which is what HyperScore reads from the names.
 
       @param[out] spectrum Its peaks and data arrays are replaced (the meta data is kept)
@@ -160,6 +168,12 @@ namespace OpenMS
     /// helper to add an isotope cluster to a spectrum, also adds charges and ion names to the DataArrays, if the add_metainfo parameter is set to true
     void addIsotopeCluster_(PeakSpectrum& spectrum, const AASequence& ion, DataArrays::StringDataArray& ion_names, DataArrays::IntegerDataArray& charges, const Residue::ResidueType res_type, Int charge, double intensity) const;
 
+    /// addIsotopeCluster_() for an ion given by its formula (as returned by AASequence::getFormula(type, charge)) and name
+    void addIsotopeCluster_(PeakSpectrum& spectrum, const EmpiricalFormula& ion_formula, const std::string& ion_name, DataArrays::StringDataArray& ion_names, DataArrays::IntegerDataArray& charges, Int charge, double intensity) const;
+
+    /// adds the peaks of the satellite ion series @p res_type (Residue::DIon, VIon or WIon) for the given charge, also adds charges and ion names to the DataArrays, if the add_metainfo parameter is set to true
+    void addSatellitePeaks_(PeakSpectrum& spectrum, const AASequence& peptide, DataArrays::StringDataArray& ion_names, DataArrays::IntegerDataArray& charges, MSSpectrum::Chunks& chunks, const Residue::ResidueType res_type, Int charge) const;
+
     /// helper to add full neutral loss ladders (for isotope clusters), also adds charges and ion names to the DataArrays, if the add_metainfo parameter is set to true
     void addLosses_(PeakSpectrum& spectrum, const AASequence& ion, DataArrays::StringDataArray& ion_names, DataArrays::IntegerDataArray& charges, double intensity, const Residue::ResidueType res_type, int charge) const;
 
@@ -183,6 +197,9 @@ namespace OpenMS
     bool add_z_ions_;
     bool add_zp1_ions_;
     bool add_zp2_ions_;
+    bool add_d_ions_;
+    bool add_v_ions_;
+    bool add_w_ions_;
     bool add_first_prefix_ion_;
     bool add_losses_;
     bool add_term_losses_;
@@ -200,6 +217,9 @@ namespace OpenMS
     double x_intensity_;
     double y_intensity_;
     double z_intensity_;
+    double d_intensity_;
+    double v_intensity_;
+    double w_intensity_;
 
     Int max_isotope_;
     double rel_loss_intensity_;
