@@ -11,6 +11,7 @@
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/Macros.h>
 #include <OpenMS/DATASTRUCTURES/StringUtils.h>
+#include <OpenMS/MATH/PortableMath.h>
 #include <OpenMS/MATH/StatisticFunctions.h>
 
 #include <algorithm>
@@ -271,7 +272,7 @@ namespace OpenMS::MassTraceStatistics
     {
       double w_i = peak.getIntensity();
       total_weight += w_i;
-      weighted_sum += w_i * std::exp(2 * std::log(std::abs(peak.getMZ() - centroid_mz)));
+      weighted_sum += w_i * PortableMath::exp(2 * PortableMath::log(std::abs(peak.getMZ() - centroid_mz)));
     }
 
     if (total_weight < std::numeric_limits<double>::epsilon())

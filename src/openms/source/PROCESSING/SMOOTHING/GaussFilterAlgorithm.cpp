@@ -7,6 +7,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/PROCESSING/SMOOTHING/GaussFilterAlgorithm.h>
+#include <OpenMS/MATH/PortableMath.h>
 
 namespace OpenMS
 {
@@ -35,7 +36,7 @@ namespace OpenMS
 
     for (Size i = 1; i < number_of_points_right; i++)
     {
-      coeffs_[i] = 1.0 / (sigma_ * sqrt(2.0 * Constants::PI)) * exp(-((i * spacing_) * (i * spacing_)) / (2 * sigma_ * sigma_));
+      coeffs_[i] = 1.0 / (sigma_ * sqrt(2.0 * Constants::PI)) * PortableMath::exp(-((i * spacing_) * (i * spacing_)) / (2 * sigma_ * sigma_));
     }
 #ifdef DEBUG_FILTERING
     std::cout << "Coeffs: " << std::endl;
