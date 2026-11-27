@@ -25,7 +25,3 @@ if(DEFINED OPENMS_CONTRIB_LIBS)
     "(cmake --preset <platform>-release, see 'cmake --list-presets'). "
     "A build directory that still has the option cached needs 'cmake -U OPENMS_CONTRIB_LIBS'.")
 endif()
-
-#------------------------------------------------------------------------------
-# Ensure Qt includes it's libs as SYSTEM
-set(QT_INCLUDE_DIRS_NO_SYSTEM Off)

@@ -383,6 +383,18 @@ namespace OpenMS
       */
       inline const std::string   TARGET_DECOY = "target_decoy";
 
+      /** User parameter name for the score cutoff that protein groups of a ProteinIdentification had to reach (set by
+          IDFilter's 'score:proteingroup'). Exported as the protein detection threshold in mzIdentML.
+              double
+      */
+      inline const std::string   PROTEIN_GROUP_SCORE_THRESHOLD = "protein_group_score_threshold";
+
+      /** User parameter name for the score type of PROTEIN_GROUP_SCORE_THRESHOLD (the protein score type of the
+          ProteinIdentification when the cutoff was applied).
+              String
+      */
+      inline const std::string   PROTEIN_GROUP_SCORE_THRESHOLD_TYPE = "protein_group_score_threshold_type";
+
       /** User parameter name for a delta score: a score ratio between a rank x hit and the rank x+1 hit
               String
       */
@@ -393,9 +405,9 @@ namespace OpenMS
       */
       inline const std::string   ISOTOPE_ERROR = "isotope_error";
 
-      // User parameter name for the standard score of the best candidate's score within
-      // the pool of all candidates scored for the same spectrum. 0 when fewer than two
-      // candidates were scored or when all of them tied.
+      // User parameter name for the standard score of a hit's score within the pool of all
+      // candidates scored for the same spectrum (ProSE: each reported hit gets the z-score of
+      // its own score). 0 when fewer than two candidates were scored or when all of them tied.
       inline const std::string HYPERSCORE_ZSCORE = "hyperscore_zscore";
 
       // User parameter name for ln(1 + number of candidates scored for a spectrum).

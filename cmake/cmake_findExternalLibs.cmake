@@ -226,30 +226,6 @@ else()
 endif()
 
 #------------------------------------------------------------------------------
-# Find Crawdad libraries if requested
-# cmake args: -DCrawdad_DIR=/path/to/Crawdad/ -DWITH_CRAWDAD=TRUE
-## TODO check if necessary
-if (WITH_CRAWDAD)
-  message(STATUS "Will compile with Crawdad support: ${Crawdad_DIR}" )
-  find_package(Crawdad REQUIRED)
-  # find archive (static) version and add it to the OpenMS library
-  find_library(Crawdad_LIBRARY
-   NAMES Crawdad.a Crawdad
-    HINTS ${Crawdad_DIR})
-endif()
-
-#------------------------------------------------------------------------------
-# HDF5
-if (WITH_HDF5)
-  # For MSVC use static linking to the HDF5 libraries
-  if(MSVC)
-    set(HDF5_USE_STATIC_LIBRARIES ON)
-  endif()
-  find_package(HDF5 MODULE REQUIRED COMPONENTS C CXX)
-endif()
-
-
-#------------------------------------------------------------------------------
 # libcurl (used for HTTP in OpenMS core, e.g. HTTPInputSource, which needs curl_multi_poll() of 7.66; also needed by
 # Apache Arrow 23+)
 find_package(CURL 7.66 REQUIRED)
@@ -293,6 +269,7 @@ endif()
 
 # Determine Arrow Compute target (may be bundled into Arrow::arrow_* on some distros).
 # We need compute kernels (e.g., "equal") for filter expression binding.
+unset(OPENMS_ARROW_COMPUTE_TARGET)
 if(ARROW_USE_STATIC AND TARGET Arrow::arrow_compute_static)
   set(OPENMS_ARROW_COMPUTE_TARGET Arrow::arrow_compute_static)
 elseif(NOT ARROW_USE_STATIC AND TARGET Arrow::arrow_compute_shared)
@@ -301,6 +278,25 @@ elseif(TARGET Arrow::arrow_compute_static)
   set(OPENMS_ARROW_COMPUTE_TARGET Arrow::arrow_compute_static)
 elseif(TARGET Arrow::arrow_compute_shared)
   set(OPENMS_ARROW_COMPUTE_TARGET Arrow::arrow_compute_shared)
+else()
+  # Since Arrow 20, compute is a package of its own (ArrowCompute). Pick its static/shared target
+  # by the same preference as the other Arrow targets: falling through to find_library() below
+  # can return libarrow_compute.so next to static Arrow archives (installations with both, e.g.
+  # Apache's apt packages). The shared library then loads a second copy of Arrow at run time,
+  # which aborts in protobuf's descriptor registration; whether the linker records it depends on
+  # link order (GNU ld drops it with --as-needed, lld keeps it).
+  find_package(ArrowCompute CONFIG QUIET)
+endif()
+if(OPENMS_ARROW_COMPUTE_TARGET)
+  # found above
+elseif(ARROW_USE_STATIC AND TARGET ArrowCompute::arrow_compute_static)
+  set(OPENMS_ARROW_COMPUTE_TARGET ArrowCompute::arrow_compute_static)
+elseif(NOT ARROW_USE_STATIC AND TARGET ArrowCompute::arrow_compute_shared)
+  set(OPENMS_ARROW_COMPUTE_TARGET ArrowCompute::arrow_compute_shared)
+elseif(TARGET ArrowCompute::arrow_compute_static)
+  set(OPENMS_ARROW_COMPUTE_TARGET ArrowCompute::arrow_compute_static)
+elseif(TARGET ArrowCompute::arrow_compute_shared)
+  set(OPENMS_ARROW_COMPUTE_TARGET ArrowCompute::arrow_compute_shared)
 else()
   # Fallback: compute might be a plain library without a CMake target.
   # Use platform-neutral search with optional hints.
@@ -524,11 +520,6 @@ endif()
 set(THREADS_PREFER_PTHREAD_FLAG ON)
 find_package (Threads REQUIRED)
 
-
-#------------------------------------------------------------------------------
-# QT (only needed for GUI)
-#------------------------------------------------------------------------------
-include(${OPENMS_HOST_DIRECTORY}/cmake/cmake_findQt.cmake)
 
 #------------------------------------------------------------------------------
 # opentims (Bruker TimsTOF .d file reading)

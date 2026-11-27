@@ -8,6 +8,10 @@
 
 #include <OpenMS/SYSTEM/SysInfo.h>
 
+#ifdef _OPENMP
+  #include <omp.h>
+#endif
+
 #include <algorithm>
 #include <array>
 #include <cerrno>
@@ -278,6 +282,43 @@ namespace OpenMS
 #endif
   }
 
+  namespace
+  {
+    thread_local int omp_threads_of_this_thread = 0; // see SysInfo::setOmpThreadsOfThisThread()
+  }
+
+  int SysInfo::ompThreadsOfThisThread()
+  {
+    if (omp_threads_of_this_thread > 0) { return omp_threads_of_this_thread; }
+#ifdef _OPENMP
+    return std::max(1, omp_get_max_threads());
+#else
+    return 1;
+#endif
+  }
+
+  void SysInfo::setOmpThreadsOfThisThread(const int threads)
+  {
+    omp_threads_of_this_thread = std::max(0, threads);
+  }
+
+  bool SysInfo::ompThreadCountIsGlobal()
+  {
+#ifdef _OPENMP
+    static const bool global = []()
+    {
+      const int own = omp_get_max_threads();
+      std::thread([own]() { omp_set_num_threads(own + 1); }).join();
+      const bool changed = omp_get_max_threads() != own;
+      omp_set_num_threads(own); // back (where the other thread's call reached this thread, for every thread)
+      return changed;
+    }();
+    return global;
+#else
+    return false;
+#endif
+  }
+
   UInt SysInfo::getAvailablePhysicalCores([[maybe_unused]] const std::vector<int>& cpus)
   {
     const UInt hardware_threads = std::max(1u, std::thread::hardware_concurrency());
@@ -444,7 +485,7 @@ namespace OpenMS
     {
       s +=std::string("-");
     }
-    s =StringUtils::toStr(std::abs(((long long)mem_after - (long long)mem_before) / 1024)) + " MB";
+    s += StringUtils::toStr(std::abs(((long long)mem_after - (long long)mem_before) / 1024)) + " MB";
     return s;
   }
 

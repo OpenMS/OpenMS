@@ -109,6 +109,13 @@ if (NOT (${SAGE_BINARY} STREQUAL "SAGE_BINARY-NOTFOUND"))
       "SageAdapter:1:database" 
       "SageAdapter:1:sage_executable")
   set_tests_properties("TOPP_SageAdapter_1_out1" PROPERTIES DEPENDS "TOPP_SageAdapter_1")
+  # two variable modifications on one residue (SILAC Lys4 and Lys8) must both reach Sage, which reports the searched ones in results.json
+  # (own folder, as Sage writes results.json next to the output)
+  file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/SageAdapter_2)
+  add_test("TOPP_SageAdapter_2" ${TOPP_BIN_PATH}/SageAdapter -test -ini ${DATA_DIR_TOPP}/THIRDPARTY/SageAdapter_1.ini -database ${DATA_DIR_TOPP}/THIRDPARTY/SageAdapter_1.fasta -in ${DATA_DIR_TOPP}/THIRDPARTY/SageAdapter_1.mzML -out SageAdapter_2/SageAdapter_2_out.tmp.idXML -sage_executable "${SAGE_BINARY}"
+    -variable_modifications "Oxidation (M)" "Label:2H(4) (K)" "Label:13C(6)15N(2) (K)")
+  add_test("TOPP_SageAdapter_2_out1" ${CMAKE_COMMAND} -DINPUT_FILE=SageAdapter_2/results.json "-DEXPECTED=4.025107;8.014199;15.994915" -P ${DATA_DIR_TOPP}/check_file_contains.cmake)
+  set_tests_properties("TOPP_SageAdapter_2_out1" PROPERTIES DEPENDS "TOPP_SageAdapter_2")
 endif()
 ## test returncode when Sage not found:
 add_test("TOPP_SageAdapter_missing" ${TOPP_BIN_PATH}/SageAdapter -test -database ${DATA_DIR_TOPP}/THIRDPARTY/proteins.fasta -in ${DATA_DIR_TOPP}/THIRDPARTY/spectra.mzML -out Sage_1_out.tmp.idXML -sage_executable "/does/not/exists/path.exe")

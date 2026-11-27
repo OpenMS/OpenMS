@@ -222,8 +222,9 @@ namespace OpenMS
     {
       if (N >= match_odds.size()) match_odds.resize(N + 1);
       auto& row = match_odds[N];
-      if (row.empty()) row.assign(N + 1, std::numeric_limits<double>::quiet_NaN());
       if (matches > N) return f(N, matches, p);
+      // grows only to the largest match count seen (matches stays small, N can be ~2000)
+      if (matches >= row.size()) row.resize(matches + 1, std::numeric_limits<double>::quiet_NaN());
       double& v = row[matches];
       if (std::isnan(v)) v = f(N, matches, p);
       return v;

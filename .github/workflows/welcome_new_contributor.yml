@@ -51,7 +51,12 @@ jobs:
 
               // 2. Post Comment
               const type = eventName === 'pull_request_target' ? 'PR' : 'issue';
-              const body = `Welcome @${username} and thank you for your contribution to OpenMS! To help us better understand our userbase and contributors, we would appreciate if you could complete the survey at the link below. Completing this survey will help us get to your ${type} sooner. Thank you for your participation!\n\n[Survey](https://tally.so/r/pbV6Qq)`;
+              let body = `Welcome @${username} and thank you for your contribution to OpenMS! To help us better understand our userbase and contributors, we would appreciate if you could complete the survey at the link below. Completing this survey will help us get to your ${type} sooner. Thank you for your participation!\n\n[Survey](https://tally.so/r/pbV6Qq)`;
+
+              // PR only: ask the author to confirm the checklist by replying on the PR
+              if (eventName === 'pull_request_target') {
+                body += `\n\nBefore we review your PR, please confirm the following by replying to this comment with the checklist below (copy, paste and tick the boxes):\n\n\`\`\`\n- [ ] I've added myself to the [AUTHORS](https://github.com/${context.repo.owner}/${context.repo.repo}/blob/develop/AUTHORS) file\n- [ ] I've built this branch locally and all tests pass\n\`\`\``;
+              }
 
               await github.rest.issues.createComment({
                 issue_number: issueNumber,

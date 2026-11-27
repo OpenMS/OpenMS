@@ -8,6 +8,9 @@
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmKD.h>
 #include <OpenMS/CONCEPT/LogStream.h>
+
+#include <algorithm>
+#include <cmath>
 #include <queue>
 
 using namespace std;
@@ -78,20 +81,62 @@ void MapAlignmentAlgorithmKD::addRTFitData(const KDTreeFeatureMaps& kd_data)
 
 void MapAlignmentAlgorithmKD::fitLOWESS()
 {
+  // with LOWESS:auto_span, the span is selected on at most this many points per map (see below)
+  const Size max_span_selection_points = 5000;
+  const Param lowess_param = param_.copy("LOWESS:", true);
+  if (lowess_param.getValue("auto_span").toBool())
+  {
+    Param lowess_defaults;
+    TransformationModelLowess::getDefaultParameters(lowess_defaults);
+    if (fabs(double(lowess_param.getValue("span")) - double(lowess_defaults.getValue("span"))) > 1e-6)
+    {
+      OPENMS_LOG_WARN << "Warning: LOWESS:span (" << double(lowess_param.getValue("span")) << ") is not used because LOWESS:auto_span is true "
+                      << "(the span is selected by cross-validation). Set LOWESS:auto_span to false to use a fixed span." << endl;
+    }
+  }
   Size num_maps = fit_data_.size();
   for (Size i = 0; i < num_maps; ++i)
   {
     Size n = fit_data_[i].size();
-    const Param& lowess_param = param_.copy("LOWESS:", true);
     if (n < 50)
     {
       OPENMS_LOG_WARN << "Warning: Only " << n << " data points for LOWESS fit of map " << i << ". Consider adjusting RT or m/z tolerance or max_pairwise_log_fc, decreasing min_rel_cc_size, or increasing max_nr_conflicts." << endl;
       TransformationModel::DataPoints identity = {{0,0}, {1,1}, {1e6,1e6}};
-      transformations_[i] = new TransformationModelLowess(identity, lowess_param);
+      // no span to select on three identity points
+      Param identity_param = lowess_param;
+      identity_param.setValue("auto_span", "false");
+      if (double(identity_param.getValue("span")) <= 0.0) // as in the CV fallback of TransformationModelLowess
+      {
+        identity_param.setValue("span", 2 / 3.0);
+      }
+      transformations_[i] = new TransformationModelLowess(identity, identity_param);
     }
     else
     {
-      transformations_[i] = new TransformationModelLowess(fit_data_[i], lowess_param);
+      Param fit_param = lowess_param;
+      // Cross-validating the span fits ~10 candidate spans x 5 folds, so its cost grows with the number of points.
+      // On large maps, select the span on evenly spaced (in RT order) points, then fit all points with that span.
+      if (fit_param.getValue("auto_span").toBool() && n > max_span_selection_points)
+      {
+        TransformationModel::DataPoints sorted(fit_data_[i]);
+        sort(sorted.begin(), sorted.end()); // by RT, ties by the target RT: independent of the platform's std::sort
+        TransformationModel::DataPoints subset;
+        subset.reserve(max_span_selection_points);
+        Size n_distinct_rt = 0;
+        for (Size k = 0; k < max_span_selection_points; ++k) // includes the first and the last point
+        {
+          subset.push_back(sorted[k * (n - 1) / (max_span_selection_points - 1)]);
+          if (k == 0 || subset[k].first > subset[k - 1].first) ++n_distinct_rt;
+        }
+        // a LOWESS model needs at least 3 distinct RTs; if the subset has fewer (heavily repeated RTs), select on all points
+        if (n_distinct_rt >= 3)
+        {
+          TransformationModelLowess span_selection(subset, fit_param);
+          fit_param.setValue("span", span_selection.getParameters().getValue("span"));
+          fit_param.setValue("auto_span", "false");
+        }
+      }
+      transformations_[i] = new TransformationModelLowess(fit_data_[i], fit_param);
     }
   }
 }

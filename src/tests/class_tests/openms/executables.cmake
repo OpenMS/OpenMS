@@ -166,6 +166,7 @@ set(kernel_executables_list
   FeatureUniqueIds_test
   Feature_test
   MassTrace_test
+  MassTraceStatistics_test
   Mobilogram_test
   MobilityPeak1D_test
   MobilityPeak2D_test
@@ -249,6 +250,7 @@ set(format_executables_list
   MzIdentMLValidator_test
   ThermoRawFileMetadata_test
   MzMLFile_test
+  MzPeakFile_test
   ImzMLFile_test
   ImzMLFile_all_modes_test
   MzMLSpectrumDecoder_test
@@ -287,6 +289,11 @@ set(format_executables_list
   PercolatorInfile_test
   PercolatorOutfile_test
   PercolatorPosteriorEstimator_test
+  PercolatorReset_test
+  PercolatorTron_test
+  PercolatorNewton_test
+  PercolatorSampler_test
+  PercolatorBestPositive_test
   PercolatorScores_test
   ProtXMLFile_test
   S3InputSource_test
@@ -337,10 +344,6 @@ set(format_executables_list
   MRMFeatureAccessOpenMS_test
   SiriusFragmentAnnotation_test
 )
-
-if(WITH_HDF5)
-  list(APPEND format_executables_list HDF5_test)
-endif()
 
 list(APPEND format_executables_list Arrow_test MSExperimentArrowExport_test ConsensusMapArrowExport_test
   ProteinGroupArrowExport_test QPXFile_test QPXCollectionExport_test QPXValueValidation_test QPXDatasetExport_test

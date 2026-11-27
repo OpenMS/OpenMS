@@ -8,6 +8,8 @@
 
 #include <OpenMS/ANALYSIS/DECHARGING/FeatureDeconvolution.h>
 
+#include "FeatureDeconvolutionHelpers.h"
+
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
 #include <OpenMS/CONCEPT/Constants.h>
@@ -39,45 +41,10 @@ namespace OpenMS
 
     Holds information on an explicit (with H+) 1-sided Compomer of a feature.
   */
-  struct FeatureDeconvolution::CmpInfo_
+  struct FeatureDeconvolution::CmpInfo_ :
+    Internal::FeatureDeconvolutionHelpers::CmpInfo
   {
-    std::string s_comp; ///< formula as String
-    Size idx_cp{}; ///< index into compomer vector
-    UInt side_cp{}; ///< side of parent compomer (LEFT or RIGHT)
-
-    // C'tor
-    CmpInfo_() :
-      s_comp() {}
-
-    // C'tor
-    CmpInfo_(std::string& s, Size idx, UInt side) :
-      s_comp(s), idx_cp(idx), side_cp(side) {}
-
-    // Copy C'tor
-    CmpInfo_(const CmpInfo_& rhs)  = default;
-
-    // Assignment
-    CmpInfo_& operator=(const CmpInfo_& rhs)
-    {
-      if (&rhs == this) return *this;
-
-      s_comp = rhs.s_comp;
-      idx_cp = rhs.idx_cp;
-      side_cp = rhs.side_cp;
-      return *this;
-    }
-
-    // Comparator
-    bool operator<(const CmpInfo_& other) const
-    {
-      return s_comp < other.s_comp;
-    }
-
-    bool operator==(const CmpInfo_& other) const
-    {
-      return s_comp == other.s_comp;
-    }
-
+    using CmpInfo::CmpInfo;
   };
 
   FeatureDeconvolution::FeatureDeconvolution() :
@@ -1037,162 +1004,18 @@ namespace OpenMS
   ///      (Na+) -> (H+Na+)
   void FeatureDeconvolution::inferMoreEdges_(PairsType& edges, std::map<Size, std::set<CmpInfo_> >& feature_adducts)
   {
-    Adduct default_adduct;
-
-    bool is_neg = (param_.getValue("negative_mode") == "true" ? true : false);
-    if (is_neg)
-    {
-      default_adduct = Adduct(-1, 1, -Constants::PROTON_MASS_U, "H-1", log(1.0),0);
-    }
-    else
-    {
-      default_adduct = Adduct(1, 1, Constants::PROTON_MASS_U, "H1", log(1.0), 0);
-    }
-
-    int left_charges, right_charges;
-
-    Size edges_size = edges.size();
-    for (Size i = 0; i < edges_size; ++i)
-    {
-      Size idx0 = edges[i].getElementIndex(0);
-      Size idx1 = edges[i].getElementIndex(1);
-
-      std::set<CmpInfo_> result;
-
-      // look at the intersection of the two adjacent features
-      // (we thus require the non-H adduct to be present on both sides of the edge,
-      //  if one is deemed enough just change to union)
-      std::set_intersection(feature_adducts[idx0].begin(), feature_adducts[idx0].end(),
-                            feature_adducts[idx1].begin(), feature_adducts[idx1].end(),
-                            std::inserter(result, result.begin()));
-      std::set<CmpInfo_>::iterator result_it = result.begin();
-
-      // add new edge with each adduct of the intersection
-      while (result_it != result.end())
-      {
-        Compomer::CompomerSide to_add = edges[result_it->idx_cp].getCompomer().removeAdduct(default_adduct).getComponent()[result_it->side_cp];
-        // we currently do not punish additional two-side adducts
-        for (Compomer::CompomerSide::iterator it = to_add.begin(); it != to_add.end(); ++it)
-        {
-          it->second.setLogProb(0);
-        }
-        ChargePair cp(edges[i]); // make a copy
-        Compomer new_cmp = cp.getCompomer().removeAdduct(default_adduct);
-
-        new_cmp.add(to_add, Compomer::LEFT);
-        new_cmp.add(to_add, Compomer::RIGHT);
-
-        //We again need to consider inverted behavior (but cp.getCharge(x) gets negative charges as assigned before!
-        if (is_neg)
-        {
-          left_charges =  -new_cmp.getPositiveCharges();
-          right_charges =  -new_cmp.getNegativeCharges();
-        }
-        else
-        {
-          left_charges = new_cmp.getNegativeCharges();
-          right_charges = new_cmp.getPositiveCharges();
-        }
-
-
-        // refill with default adducts (usually H+):
-        if (((cp.getCharge(0) - left_charges) % default_adduct.getCharge() == 0) &&
-            ((cp.getCharge(1) - right_charges) % default_adduct.getCharge() == 0)) // for singly charged default_adducts this should always be true
-        {
-          int hc_left, hc_right;
-          hc_left = (cp.getCharge(0) - left_charges) / default_adduct.getCharge();
-          hc_right = (cp.getCharge(1) - right_charges) / default_adduct.getCharge();
-
-          // we have not stepped over the charge capacity of the features
-          if (hc_left >= 0 && hc_right >= 0)
-          {
-            // fill up with defaults:
-            if (hc_left > 0)
-              new_cmp.add(default_adduct * hc_left, Compomer::LEFT);
-            if (hc_right > 0)
-              new_cmp.add(default_adduct * hc_right, Compomer::RIGHT);
-
-            // charge constraints of feature still fulfilled? (taking ionization mode into account)
-            int left_charge, right_charge;
-            if (is_neg)
-            {
-              left_charge =  -new_cmp.getPositiveCharges();
-              right_charge =  -new_cmp.getNegativeCharges();
-            }
-            else
-            {
-              left_charge = new_cmp.getNegativeCharges();
-              right_charge = new_cmp.getPositiveCharges();
-            }
-
-            if ((left_charge == cp.getCharge(0)) &&
-                (right_charge == cp.getCharge(1)))
-            {
-              cp.setCompomer(new_cmp);
-              cp.setEdgeScore(0.99); //TODO how to score this new edge?
-              edges.push_back(cp); // add edge
-            }
-            else
-            {
-              throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "FeatureDeconvolution::inferMoreEdges_(): Inferred edges with wrong(switched?) charges! Left neg_charge, left feature charge, right pos_charge, right feature charge",StringUtils::toStr(new_cmp.getNegativeCharges())+","+StringUtils::toStr(cp.getCharge(0))+","+StringUtils::toStr(new_cmp.getPositiveCharges())+","+StringUtils::toStr(cp.getCharge(1)));
-            }
-          }
-
-        }
-        else // have nonzero modulo.SHOULD NOT HAPPEN FOR DEFAULT CHARGE 1/-1 !!
-        {
-          throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "FeatureDeconvolution::inferMoreEdges_(): Modulo returns leftover charge!",StringUtils::toStr(new_cmp.getNegativeCharges()));
-        }
-
-        ++result_it;
-      }
-    } // edge for
-
-    OPENMS_LOG_INFO << "Inferring edges raised edge count from " << edges_size << " to " << edges.size() << "\n";
+    const bool is_neg = (param_.getValue("negative_mode") == "true" ? true : false);
+    Internal::FeatureDeconvolutionHelpers::inferMoreEdges(edges, feature_adducts, is_neg, "FeatureDeconvolution", OPENMS_PRETTY_FUNCTION);
   }
 
   void FeatureDeconvolution::printEdgesOfConnectedFeatures_(Size idx_1, Size idx_2, const PairsType& feature_relation)
   {
-    std::cout << " +++++ printEdgesOfConnectedFeatures_ +++++\n";
-    for (Size i = 0; i < feature_relation.size(); ++i)
-    {
-      if (
-        ((feature_relation[i].getElementIndex(0) == idx_1) && (feature_relation[i].getElementIndex(1) == idx_2))
-         ||
-        ((feature_relation[i].getElementIndex(0) == idx_2) && (feature_relation[i].getElementIndex(1) == idx_1))
-        )
-      {
-        std::cout << feature_relation[i].getCompomer() << " Edge: "  << i << " score: " <<  feature_relation[i].getEdgeScore() << "\n";
-      }
-    }
-    std::cout << " ----- printEdgesOfConnectedFeatures_ -----\n";
-    return;
+    Internal::FeatureDeconvolutionHelpers::printEdgesOfConnectedFeatures(idx_1, idx_2, feature_relation);
   }
 
   inline bool FeatureDeconvolution::intensityFilterPassed_(const Int q1, const Int q2, const Compomer& cmp, const Feature& f1, const Feature& f2) const
   {
-    if (!enable_intensity_filter_)
-      return true;
-
-    if (q1 == q2)
-    {
-      Compomer cl; cl.add(cmp.getComponent()[0], Compomer::LEFT);
-      Compomer cr; cr.add(cmp.getComponent()[1], Compomer::LEFT);
-      if (((cl.getLogP() <= cr.getLogP()) && (f1.getIntensity() <= f2.getIntensity()))
-         ||
-          ((cl.getLogP() >= cr.getLogP()) && (f1.getIntensity() >= f2.getIntensity()))
-          )
-      {
-        return true;
-      }
-      else
-      {
-        // forbid this edge?!
-        std::cout << "intensity constraint: edge with intensity " << f1.getIntensity() << "(" << cmp.getAdductsAsString(Compomer::LEFT) << ") and " << f2.getIntensity() << "(" << cmp.getAdductsAsString(Compomer::RIGHT) << ") deleted\n";
-        return false;
-      }
-    }
-    return true;
+    return Internal::FeatureDeconvolutionHelpers::intensityFilterPassed(enable_intensity_filter_, q1, q2, cmp, f1, f2);
   }
 
   bool FeatureDeconvolution::chargeTestworthy_(const Int feature_charge, const Int putative_charge, const bool other_unchanged) const
@@ -1235,36 +1058,7 @@ namespace OpenMS
 
   void FeatureDeconvolution::checkSolution_(const ConsensusMap& cons_map) const
   {
-    Size ladders_total(0);
-    Size ladders_with_odd(0);
-
-    // checking number of charge ladders which have all gapped shapes, hinting at wrong lower-bound bound (should be lower)
-    for (const ConsensusFeature& cfeature : cons_map)
-    {
-      if (cfeature.size() == 1)
-        continue;
-
-      ++ladders_total;
-      IntList charges = cfeature.getMetaValue("distinct_charges").toIntList();
-
-      for (Size i = 0; i < charges.size(); ++i)
-      {
-        if (charges[i] % 2 == 1)
-        {
-          ++ladders_with_odd;
-          break;
-        }
-      }
-
-    }
-
-    // if more than 5% of charge ladder have only gapped, report
-    if (ladders_with_odd < ladders_total * 0.95)
-    {
-      OPENMS_LOG_WARN << ".\n..\nWarning: a significant portion of your decharged molecules have gapped, even-numbered charge ladders (" << ladders_total - ladders_with_odd << " of " << ladders_total << ")";
-      OPENMS_LOG_WARN <<"This might indicate a too low charge interval being tested.\n..\n.\n";
-    }
-
+    Internal::FeatureDeconvolutionHelpers::checkSolution(cons_map);
   }
 
 }

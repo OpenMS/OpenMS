@@ -7,6 +7,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/DATASTRUCTURES/DateTime.h>
+#include <OpenMS/DATASTRUCTURES/Date.h>
 
 #include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <OpenMS/CONCEPT/Exception.h>
@@ -22,23 +23,6 @@ using namespace std;
 
 namespace OpenMS
 {
-  // helper: validate date fields
-  static bool isValidDate_(int year, int month, int day)
-  {
-    if (month < 1 || month > 12 || day < 1 || year < 1)
-    {
-      return false;
-    }
-    static const int days_in_month[] = {0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
-    int max_day = days_in_month[month];
-    if (month == 2)
-    {
-      bool leap = (year % 4 == 0 && year % 100 != 0) || (year % 400 == 0);
-      if (leap) max_day = 29;
-    }
-    return day <= max_day;
-  }
-
   // helper: validate time fields
   static bool isValidTime_(int hour, int minute, int second)
   {
@@ -329,7 +313,7 @@ namespace OpenMS
       }
     }
 
-    if (!parsed || !isValidDate_(year, month, day) || !isValidTime_(hour, minute, second))
+    if (!parsed || !Date::isValidDate(year, month, day) || !isValidTime_(hour, minute, second))
     {
       throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, date, "Invalid date time string");
     }
@@ -346,7 +330,7 @@ namespace OpenMS
 
   void DateTime::set(UInt month, UInt day, UInt year, UInt hour, UInt minute, UInt second)
   {
-    if (!isValidDate_((int)year, (int)month, (int)day) || !isValidTime_((int)hour, (int)minute, (int)second))
+    if (!Date::isValidDate((int)year, (int)month, (int)day) || !isValidTime_((int)hour, (int)minute, (int)second))
     {
       std::string date_time =StringUtils::toStr(year) + "-" + StringUtils::toStr(month) + "-" + StringUtils::toStr(day)
                          + " " + StringUtils::toStr(hour) + ":" + StringUtils::toStr(minute) + ":" + StringUtils::toStr(second);
@@ -463,7 +447,7 @@ namespace OpenMS
       }
     }
 
-    if (!parsed || !isValidDate_(year, month, day))
+    if (!parsed || !Date::isValidDate(year, month, day))
     {
       throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, date, "Could not set date");
     }
@@ -493,7 +477,7 @@ namespace OpenMS
 
   void DateTime::setDate(UInt month, UInt day, UInt year)
   {
-    if (!isValidDate_((int)year, (int)month, (int)day))
+    if (!Date::isValidDate((int)year, (int)month, (int)day))
     {
       throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                   StringUtils::toStr(year) + "-" + StringUtils::toStr(month) + "-" + StringUtils::toStr(day), "Could not set date");
@@ -619,7 +603,7 @@ namespace OpenMS
       return d; // return invalid for unknown format
     }
 
-    if (!isValidDate_(year, month, day) && format != "hh:mm:ss")
+    if (!Date::isValidDate(year, month, day) && format != "hh:mm:ss")
     {
       return d;
     }

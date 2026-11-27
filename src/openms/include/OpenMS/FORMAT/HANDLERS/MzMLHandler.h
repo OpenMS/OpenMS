@@ -157,6 +157,10 @@ public:
       /// Get the spectra and chromatogram counts of a file
       void getCounts(Size& spectra_counts, Size& chromatogram_counts);
 
+      /// The number of \<spectrum\> elements read when loading all data (LD_ALLDATA), including those the options
+      /// skipped (MS level, RT or precursor m/z range)
+      Size getSpectraRead() const;
+
       /**@name IMSDataConsumer setter
          @anchor consumer_a
 
@@ -416,6 +420,8 @@ protected:
       bool in_spectrum_list_{ false };
       /// Flag that indicates whether this spectrum should be skipped (e.g. due to options)
       bool skip_spectrum_{ false };
+      /// Number of \<spectrum\> elements read, including skipped ones (see getSpectraRead())
+      Size spectra_read_{ 0 };
       /// Flag that indicates whether the parser is inside a chromatogram being skipped
       bool skip_chromatogram_{ false };
       /// Remember whether the RT of the spectrum was set or not

@@ -14,10 +14,13 @@
 #include <OpenMS/METADATA/PeptideIdentificationList.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include "NuXLReport.h"
+#include <string>
 #include <vector>
 
 namespace OpenMS
 {
+
+class FalseDiscoveryRate;
 
 /**
   @brief Class-separated FDR calculation for nucleic-acid cross-links (NuXL).
@@ -37,6 +40,26 @@ class NuXLFDR
 {
   public:
     /**
+      @brief Separate FDR group for short cross-links.
+
+      Short cross-links (see isShortXL()) carry little sequence-specific fragment evidence next to their large adduct,
+      so at the same score far more of them are false than of the other cross-links. With a single cross-link FDR,
+      most of the false cross-links accepted at a given threshold are short ones. In their own group, both groups are
+      held at the requested FDR.
+    */
+    enum class XLGroups
+    {
+      OFF,  ///< one FDR over all cross-links
+      ON,   ///< short cross-links form their own FDR group
+      AUTO  ///< as ON if the short cross-links have enough decoys to estimate their own FDR (see useShortXLGroup()), else as OFF
+    };
+
+    static constexpr Size SHORT_XL_MAX_LENGTH = 9;      ///< short cross-link: at most this many residues ...
+    static constexpr Size SHORT_XL_MIN_NA_LENGTH = 2;   ///< ... and at least this many nucleotides in the adduct
+    static constexpr Size AUTO_MIN_DECOYS = 10;         ///< XLGroups::AUTO: decoys the short cross-links need ...
+    static constexpr double AUTO_FDR = 0.1;             ///< ... among the cross-links at this FDR over all cross-links
+
+    /**
       @brief Construct with a top-hit cap that controls how @ref FalseDiscoveryRate is parametrised.
 
       @p report_top_hits @c >= @c 2 toggles @c use_all_hits @c = @c true on the underlying
@@ -45,8 +68,29 @@ class NuXLFDR
       @ref QValueAtPSMLevel and @ref calculatePeptideAndXLQValueAtPSMLevel methods.
 
       @param[in] report_top_hits Top-hit cap; values @c >= @c 2 enable the underlying FDR engine's @c use_all_hits mode.
+      @param[in] xl_groups Whether short cross-links form their own FDR group (see XLGroups).
     */
-    explicit NuXLFDR(size_t report_top_hits);
+    explicit NuXLFDR(size_t report_top_hits, XLGroups xl_groups = XLGroups::OFF);
+
+    /// Parse "auto", "on" or "off" (the values of the NuXL:fdr_groups option)
+    static XLGroups xlGroupsFromString(const std::string& s);
+
+    /// Whether @p hit is a short cross-link: NuXL:isXL, at most SHORT_XL_MAX_LENGTH residues and at least SHORT_XL_MIN_NA_LENGTH nucleotides (NuXL:NA_length)
+    static bool isShortXL(const PeptideHit& hit);
+
+    /**
+      @brief Whether the short cross-links of @p xl_pi get their own FDR group.
+
+      XLGroups::ON: if there are short cross-links. XLGroups::AUTO: if, among the cross-links that pass AUTO_FDR with
+      one FDR over all cross-links, at least AUTO_MIN_DECOYS are short decoys. Below that, the FDR of the short
+      cross-links would rest on too few decoys. The decision uses only the decoy counts, not the numbers of
+      identifications the two ways would give. In both modes, the short and the other cross-links each need at least
+      one decoy: FalseDiscoveryRate gives every target of a list without decoys q-value 0.
+
+      @param[in] xl_pi Cross-link identifications, one hit each (as produced by splitIntoPeptidesAndXLs()).
+      @param[out] short_decoys Number of short decoys counted for the decision (XLGroups::AUTO; 0 otherwise).
+    */
+    bool useShortXLGroup(const PeptideIdentificationList& xl_pi, Size& short_decoys) const;
 
     /**
       @brief Partition @p peptide_ids into plain-peptide and cross-link PSM lists by their single top hit.
@@ -116,7 +160,9 @@ class NuXLFDR
       Internally calls @ref splitIntoPeptidesAndXLs and then applies
       @ref FalseDiscoveryRate to each output list with the same parameters as
       @ref QValueAtPSMLevel. The q-values are computed independently on each class so XL
-      and non-XL FDR control are not confounded.
+      and non-XL FDR control are not confounded. If useShortXLGroup() is true, the q-values of the short and the
+      other cross-links are computed separately, every cross-link hit is annotated with its group
+      (meta value @c NuXL:fdr_group: @c short_XL or @c XL), and @p xl_pi keeps the order of the input.
 
       @param[in]  peptide_ids Input mixed plain-peptide / cross-link PSMs.
       @param[out] pep_pi      Plain-peptide PSMs with PSM- and peptide-level q-values annotated.
@@ -192,7 +238,11 @@ class NuXLFDR
       int decoy_factor) const;
 
   private:
+    /// Set the parameters described at QValueAtPSMLevel() on @p fdr
+    void setUpFDR_(FalseDiscoveryRate& fdr) const;
+
     size_t report_top_hits_; ///< Top-hit cap consulted by the FDR-applying methods to toggle @c use_all_hits.
+    XLGroups xl_groups_; ///< Whether short cross-links form their own FDR group
 };
 
 }

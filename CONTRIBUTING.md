@@ -15,6 +15,8 @@ You most likely came here to:
   - request new features
 
 To do so, open a [new issue](https://github.com/OpenMS/OpenMS/issues/new/choose) describing the bug, your question, etc.
+Issues and pull requests for the graphical tools (TOPPView, TOPPAS, INIFileEditor) and the GUI library go to
+[OpenMS-TOPP-GUI](https://github.com/OpenMS/OpenMS-TOPP-GUI).
 
 If you found a bug, e.g. an OpenMS tool crashes during data processing, it is essential to provide some basic information:
   - the OpenMS version you are running
@@ -37,6 +39,7 @@ Before you open the pull request, make sure you
  - have [unit tests and functional tests](https://openms.readthedocs.io/en/latest/manual/develop.html#automated-unit-tests) - see also [this example](https://github.com/OpenMS/OpenMS/blob/develop/src/tests/class_tests/openms/source/MSNumpressCoder_test.cpp)
  - have [proper documentation](https://openms.readthedocs.io/en/latest/manual/develop/developer-faq.html#doxygen-documentation) - see also [this example](https://github.com/OpenMS/OpenMS/blob/develop/src/openms/include/OpenMS/FORMAT/MSNumpressCoder.h)
  - have Python bindings — nanobind binding files are in `src/pyOpenMS/bindings/`; see `src/pyOpenMS/CLAUDE.md` for wrapping instructions
+ - follow the [OpenMS AI Policy](https://openms.de/ai-policy/) if you used AI tools: you are accountable for, understand and have tested every change, and you disclose substantial AI use with a `Co-authored-by:` commit trailer (lighter use: `Assisted-by:`) and in the AI section of the pull request template
 A core developer will review your changes to the main development branch (develop) and approve them (or ask for modifications). You may indicate the prefered reviewer(s) by adding links to them in a comment section (e.g., @cbielow @hendrikweisser @hroest @jpfeuffer @timosachsenberg)
 
 Also consider getting in contact with the core developers early. They might provide additional guidance and valuable information on how your specific aim is achieved. This might give you a head start in, for example, developing novel tools or algorithms.

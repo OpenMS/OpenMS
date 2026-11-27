@@ -405,9 +405,6 @@ private:
                                   double rt_extraction_window);
 
      /// @note: TODO deprecate this function (use ChromatogramExtractorAlgorithm instead)
-    int getFilterNr_(const std::string& filter);
-
-     /// @note: TODO deprecate this function (use ChromatogramExtractorAlgorithm instead)
     void populatePeptideRTMap_(OpenMS::TargetedExperiment& transition_exp,
                                double rt_extraction_window);
 

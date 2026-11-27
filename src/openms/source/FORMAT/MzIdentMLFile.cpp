@@ -12,9 +12,10 @@
 #include <OpenMS/FORMAT/MzIdentMLFile.h>
 #include <OpenMS/FORMAT/VALIDATORS/MzIdentMLValidator.h>
 #include <OpenMS/FORMAT/CVMappingFile.h>
+#include <OpenMS/DATASTRUCTURES/CVMappingRule.h>
 #include <OpenMS/FORMAT/HANDLERS/MzIdentMLHandler.h>
-#include <OpenMS/FORMAT/HANDLERS/MzIdentMLDOMHandler.h>
-#include <OpenMS/FORMAT/TextFile.h>
+#include <OpenMS/FORMAT/HANDLERS/MzIdentMLSAXHandler.h>
+#include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
 #include <OpenMS/FORMAT/VALIDATORS/XMLValidator.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/METADATA/ProteinRunReferences.h>
@@ -36,7 +37,7 @@ namespace OpenMS
     // behavior of the sibling identification loaders (e.g. IdXMLFile::load) and FileHandler::loadIdentifications.
     poid.clear();
     peid.clear();
-    Internal::MzIdentMLDOMHandler handler(poid, peid, schema_version_, *this);
+    Internal::MzIdentMLSAXHandler handler(poid, peid, schema_version_, *this);
     handler.readMzIdentMLFile(filename);
   }
 
@@ -52,18 +53,53 @@ namespace OpenMS
 
     Internal::MzIdentMLHandler handler(poid, peid, filename, schema_version_, *this);
     save_(filename, &handler);
-//    Internal::MzIdentMLDOMHandler handler(poid, peid, schema_version_, *this);
+//    Internal::MzIdentMLSAXHandler handler(poid, peid, schema_version_, *this);
 //    handler.writeMzIdentMLFile(filename);
+  }
+
+  namespace
+  {
+    /// Reads the version attribute and the namespace of the root element, then stops parsing
+    class RootVersionHandler final : public Internal::XMLHandler
+    {
+    public:
+      explicit RootVersionHandler(const std::string& filename) :
+        XMLHandler(filename, "")
+      {
+      }
+
+      void onStartElement(const char16_t* qname, const Internal::XMLAttributes& attributes) override
+      {
+        attributes.valueUTF8("version", version);
+        // the default namespace, or the one of the root's prefix (e.g. <mzid:MzIdentML xmlns:mzid="...">)
+        const std::string name = sm_.convert(qname);
+        const std::string::size_type colon = name.find(':');
+        const std::string xmlns_attribute = colon == std::string::npos ? std::string("xmlns") : "xmlns:" + name.substr(0, colon);
+        attributes.valueUTF8(xmlns_attribute.c_str(), xmlns);
+        throw EndParsingSoftly(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
+      }
+
+      std::string version; ///< version attribute of the root (empty if absent)
+      std::string xmlns; ///< namespace of the root (empty if not declared)
+    };
   }
 
   std::string MzIdentMLFile::detectVersion(const std::string& filename) const
   {
-    // Read the first few lines of the header and look for the mzIdentML version. The version is
-    // declared both as a 'version="x.y.z"' attribute on the <MzIdentML> root and in the target
-    // namespace ('.../mzIdentML/x.y'). We prefer the explicit version attribute and fall back to
-    // the namespace; if neither maps to a bundled schema we keep the adapter default (1.3.0).
-    TextFile file(filename, true, 15);
-    std::string header = StringUtils::concatenate(file, " ");
+    // The mzIdentML version is declared by the root element, both as its 'version="x.y.z"' attribute and in its
+    // namespace ('.../mzIdentML/x.y'). Only the root counts: other elements have version attributes of their own
+    // (e.g. <AnalysisSoftware version="1.3.0">). We prefer the version attribute and fall back to the namespace;
+    // if neither maps to a bundled schema we keep the adapter default (1.3.0).
+    RootVersionHandler root(filename);
+    try
+    {
+      MzIdentMLFile reader; // parse_() is not const
+      reader.parse_(filename, &root); // stops at the root element
+    }
+    catch (const Exception::ParseError&)
+    {
+      // not well-formed up to the root element: use the default
+    }
 
     // candidate versions we ship schemas for, newest first
     static const std::vector<std::string> known_versions = {"1.3.0", "1.2.0", "1.1.0", "1.0.0"};
@@ -71,7 +107,7 @@ namespace OpenMS
     // 1) explicit version attribute, e.g. version="1.1.0"
     for (const std::string& v : known_versions)
     {
-      if (StringUtils::hasSubstring(header, std::string("version=\"") + v + "\""))
+      if (root.version == v)
       {
         return v;
       }
@@ -81,7 +117,7 @@ namespace OpenMS
     {
       // namespace carries only major.minor (e.g. "1.1"), so match on that prefix
       std::string ns_version = StringUtils::prefix(v, v.rfind('.')); // "1.1.0" -> "1.1"
-      if (StringUtils::hasSubstring(header, std::string("mzIdentML/") + ns_version))
+      if (StringUtils::hasSubstring(root.xmlns, std::string("mzIdentML/") + ns_version))
       {
         return v;
       }
@@ -108,6 +144,17 @@ namespace OpenMS
     // load mapping
     CVMappings mapping;
     CVMappingFile().load(File::find("/MAPPING/mzIdentML-mapping.xml"), mapping);
+    // mzIdentML 1.2 made some terms required for protein grouping: check them only for files of version 1.2 and later
+    const std::string version = detectVersion(filename);
+    if (version != "1.0.0" && version != "1.1.0")
+    {
+      CVMappings mapping_1_2;
+      CVMappingFile().load(File::find("/MAPPING/mzIdentML-1.2-mapping.xml"), mapping_1_2);
+      for (const CVMappingRule& rule : mapping_1_2.getMappingRules())
+      {
+        mapping.addMappingRule(rule);
+      }
+    }
 
     // validate
     Internal::MzIdentMLValidator v(mapping, ControlledVocabulary::getPSIMSCV());

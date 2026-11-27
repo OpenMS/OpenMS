@@ -5,7 +5,6 @@ set -o pipefail
 
 # Parse command line arguments
 SKIP_DOC_DEPS=false
-SKIP_GUI_DEPS=false
 
 while [[ $# -gt 0 ]]; do
   case $1 in
@@ -14,7 +13,7 @@ while [[ $# -gt 0 ]]; do
     shift
     ;;
   --skip-gui-deps)
-    SKIP_GUI_DEPS=true
+    # accepted for existing callers; the GUI (and Qt) is built by OpenMS-TOPP-GUI
     shift
     ;;
   *)
@@ -54,27 +53,18 @@ brew update
 
 # Required dependencies:
 brew install \
-  autoconf \
-  autoconf-archive \
-  automake \
   bash \
   bison \
   dotnet \
   flex \
   icu4c \
   libomp \
-  libtool \
   pkg-config \
   ninja
 
 # libomp is the OpenMP runtime, which Apple's Clang does not ship. The formula is
 # keg-only: the macOS presets find it in /opt/homebrew/opt/libomp, other builds need
 # -DOpenMP_ROOT=$(brew --prefix libomp). Without it OpenMS runs single-threaded.
-
-# GUI dependencies (can be skipped for non-GUI builds):
-if [ "$SKIP_GUI_DEPS" = false ]; then
-  brew install qtbase qtsvg
-fi
 
 # Optional documentation dependencies:
 if [ "$SKIP_DOC_DEPS" = false ]; then

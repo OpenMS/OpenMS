@@ -1,0 +1,220 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="https://www.openms.de/xml-stylesheet/IdXML.xsl" ?>
+<IdXML version="1.5" xsi:noNamespaceSchemaLocation="https://www.openms.de/xml-schema/IdXML_1_5.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<SearchParameters id="SP_0" db="" db_version="" taxonomy="" mass_type="monoisotopic" charges="" enzyme="trypsin" missed_cleavages="1" precursor_peak_tolerance="0" precursor_peak_tolerance_ppm="false" peak_mass_tolerance="0" peak_mass_tolerance_ppm="false" >
+	</SearchParameters>
+	<IdentificationRun date="0000-00-00T00:00:00" search_engine="OMSSA" search_engine_version="" search_parameters_ref="SP_0" >
+		<ProteinIdentification score_type="" higher_score_better="true" significance_threshold="0.0" >
+			<ProteinHit id="PH_0" accession="PROT1" score="0.0" sequence="" >
+			</ProteinHit>
+		</ProteinIdentification>
+		<PeptideIdentification score_type="OMSSA" higher_score_better="false" significance_threshold="0.0" MZ="400.0" RT="0.0" spectrum_reference="scan=1" >
+			<PeptideHit score="5.112579e-01" sequence="CFIMQTYK" charge="2" >
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="OMSSA" higher_score_better="false" significance_threshold="0.0" MZ="401.0" RT="10.0" spectrum_reference="scan=2" >
+			<PeptideHit score="3.504883e-01" sequence="HLPSWCFK" charge="2" >
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="OMSSA" higher_score_better="false" significance_threshold="0.0" MZ="402.0" RT="20.0" spectrum_reference="scan=3" >
+			<PeptideHit score="4.296453e-01" sequence="NRVAEHLK" charge="2" >
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="OMSSA" higher_score_better="false" significance_threshold="0.0" MZ="403.0" RT="30.0" spectrum_reference="scan=4" >
+			<PeptideHit score="3.908410e-01" sequence="TYDGKNRK" charge="2" >
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="OMSSA" higher_score_better="false" significance_threshold="0.0" MZ="404.0" RT="40.0" spectrum_reference="scan=5" >
+			<PeptideHit score="4.398377e-01" sequence="CFIMQTYK" charge="2" >
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="OMSSA" higher_score_better="false" significance_threshold="0.0" MZ="405.0" RT="50.0" spectrum_reference="scan=6" >
+			<PeptideHit score="1.841005e-01" sequence="HLPSWCFK" charge="2" >
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="OMSSA" higher_score_better="false" significance_threshold="0.0" MZ="406.0" RT="60.0" spectrum_reference="scan=7" >
+			<PeptideHit score="7.089282e-01" sequence="NRVAEHLK" charge="2" >
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="OMSSA" higher_score_better="false" significance_threshold="0.0" MZ="407.0" RT="70.0" spectrum_reference="scan=8" >
+			<PeptideHit score="2.019861e-01" sequence="TYDGKNRK" charge="2" >
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="OMSSA" higher_score_better="false" significance_threshold="0.0" MZ="408.0" RT="80.0" spectrum_reference="scan=9" >
+			<PeptideHit score="2.898698e+00" sequence="CFIMQTYK" charge="2" >
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="OMSSA" higher_score_better="false" significance_threshold="0.0" MZ="409.0" RT="90.0" spectrum_reference="scan=10" >
+			<PeptideHit score="6.165750e-01" sequence="HLPSWCFK" charge="2" >
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="OMSSA" higher_score_better="false" significance_threshold="0.0" MZ="410.0" RT="100.0" spectrum_reference="scan=11" >
+			<PeptideHit score="5.554722e-01" sequence="NRVAEHLK" charge="2" >
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="OMSSA" higher_score_better="false" significance_threshold="0.0" MZ="411.0" RT="110.0" spectrum_reference="scan=12" >
+			<PeptideHit score="1.082675e+00" sequence="TYDGKNRK" charge="2" >
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="OMSSA" higher_score_better="false" significance_threshold="0.0" MZ="412.0" RT="120.0" spectrum_reference="scan=13" >
+			<PeptideHit score="1.236372e-01" sequence="CFIMQTYK" charge="2" >
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="OMSSA" higher_score_better="false" significance_threshold="0.0" MZ="413.0" RT="130.0" spectrum_reference="scan=14" >
+			<PeptideHit score="6.009773e-01" sequence="HLPSWCFK" charge="2" >
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="OMSSA" higher_score_better="false" significance_threshold="0.0" MZ="414.0" RT="140.0" spectrum_reference="scan=15" >
+			<PeptideHit score="9.538536e-02" sequence="NRVAEHLK" charge="2" >
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="OMSSA" higher_score_better="false" significance_threshold="0.0" MZ="415.0" RT="150.0" spectrum_reference="scan=16" >
+			<PeptideHit score="1.402929e-02" sequence="TYDGKNRK" charge="2" >
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="OMSSA" higher_score_better="false" significance_threshold="0.0" MZ="416.0" RT="160.0" spectrum_reference="scan=17" >
+			<PeptideHit score="7.215539e-01" sequence="CFIMQTYK" charge="2" >
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="OMSSA" higher_score_better="false" significance_threshold="0.0" MZ="417.0" RT="170.0" spectrum_reference="scan=18" >
+			<PeptideHit score="4.053971e-02" sequence="HLPSWCFK" charge="2" >
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="OMSSA" higher_score_better="false" significance_threshold="0.0" MZ="418.0" RT="180.0" spectrum_reference="scan=19" >
+			<PeptideHit score="8.477642e-02" sequence="NRVAEHLK" charge="2" >
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="OMSSA" higher_score_better="false" significance_threshold="0.0" MZ="419.0" RT="190.0" spectrum_reference="scan=20" >
+			<PeptideHit score="1.767043e-01" sequence="TYDGKNRK" charge="2" >
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="OMSSA" higher_score_better="false" significance_threshold="0.0" MZ="420.0" RT="200.0" spectrum_reference="scan=21" >
+			<PeptideHit score="2.188946e+00" sequence="CFIMQTYK" charge="2" >
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="OMSSA" higher_score_better="false" significance_threshold="0.0" MZ="421.0" RT="210.0" spectrum_reference="scan=22" >
+			<PeptideHit score="3.784690e-01" sequence="HLPSWCFK" charge="2" >
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="OMSSA" higher_score_better="false" significance_threshold="0.0" MZ="422.0" RT="220.0" spectrum_reference="scan=23" >
+			<PeptideHit score="2.086946e-01" sequence="NRVAEHLK" charge="2" >
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="OMSSA" higher_score_better="false" significance_threshold="0.0" MZ="423.0" RT="230.0" spectrum_reference="scan=24" >
+			<PeptideHit score="6.281219e-01" sequence="TYDGKNRK" charge="2" >
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="OMSSA" higher_score_better="false" significance_threshold="0.0" MZ="424.0" RT="240.0" spectrum_reference="scan=25" >
+			<PeptideHit score="7.960374e-01" sequence="CFIMQTYK" charge="2" >
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="OMSSA" higher_score_better="false" significance_threshold="0.0" MZ="425.0" RT="250.0" spectrum_reference="scan=26" >
+			<PeptideHit score="6.015838e-01" sequence="HLPSWCFK" charge="2" >
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="OMSSA" higher_score_better="false" significance_threshold="0.0" MZ="426.0" RT="260.0" spectrum_reference="scan=27" >
+			<PeptideHit score="7.103774e-01" sequence="NRVAEHLK" charge="2" >
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="OMSSA" higher_score_better="false" significance_threshold="0.0" MZ="427.0" RT="270.0" spectrum_reference="scan=28" >
+			<PeptideHit score="9.621949e-02" sequence="TYDGKNRK" charge="2" >
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="OMSSA" higher_score_better="false" significance_threshold="0.0" MZ="428.0" RT="280.0" spectrum_reference="scan=29" >
+			<PeptideHit score="4.023943e-04" sequence="CFIMQTYK" charge="2" >
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="OMSSA" higher_score_better="false" significance_threshold="0.0" MZ="429.0" RT="290.0" spectrum_reference="scan=30" >
+			<PeptideHit score="1.389578e-05" sequence="HLPSWCFK" charge="2" >
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="OMSSA" higher_score_better="false" significance_threshold="0.0" MZ="430.0" RT="300.0" spectrum_reference="scan=31" >
+			<PeptideHit score="3.281272e-03" sequence="NRVAEHLK" charge="2" >
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="OMSSA" higher_score_better="false" significance_threshold="0.0" MZ="431.0" RT="310.0" spectrum_reference="scan=32" >
+			<PeptideHit score="8.037303e-03" sequence="TYDGKNRK" charge="2" >
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="OMSSA" higher_score_better="false" significance_threshold="0.0" MZ="432.0" RT="320.0" spectrum_reference="scan=33" >
+			<PeptideHit score="1.202581e-04" sequence="CFIMQTYK" charge="2" >
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="OMSSA" higher_score_better="false" significance_threshold="0.0" MZ="433.0" RT="330.0" spectrum_reference="scan=34" >
+			<PeptideHit score="5.139019e-05" sequence="HLPSWCFK" charge="2" >
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="OMSSA" higher_score_better="false" significance_threshold="0.0" MZ="434.0" RT="340.0" spectrum_reference="scan=35" >
+			<PeptideHit score="1.363926e-06" sequence="NRVAEHLK" charge="2" >
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="OMSSA" higher_score_better="false" significance_threshold="0.0" MZ="435.0" RT="350.0" spectrum_reference="scan=36" >
+			<PeptideHit score="2.036281e-04" sequence="TYDGKNRK" charge="2" >
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="OMSSA" higher_score_better="false" significance_threshold="0.0" MZ="436.0" RT="360.0" spectrum_reference="scan=37" >
+			<PeptideHit score="4.952153e-05" sequence="CFIMQTYK" charge="2" >
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="OMSSA" higher_score_better="false" significance_threshold="0.0" MZ="437.0" RT="370.0" spectrum_reference="scan=38" >
+			<PeptideHit score="1.508384e-03" sequence="HLPSWCFK" charge="2" >
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="OMSSA" higher_score_better="false" significance_threshold="0.0" MZ="438.0" RT="380.0" spectrum_reference="scan=39" >
+			<PeptideHit score="8.805470e-05" sequence="NRVAEHLK" charge="2" >
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="OMSSA" higher_score_better="false" significance_threshold="0.0" MZ="439.0" RT="390.0" spectrum_reference="scan=40" >
+			<PeptideHit score="2.650112e-05" sequence="TYDGKNRK" charge="2" >
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="OMSSA" higher_score_better="false" significance_threshold="0.0" MZ="440.0" RT="400.0" spectrum_reference="scan=41" >
+			<PeptideHit score="8.023135e-02" sequence="CFIMQTYK" charge="3" >
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="OMSSA" higher_score_better="false" significance_threshold="0.0" MZ="441.0" RT="410.0" spectrum_reference="scan=42" >
+			<PeptideHit score="4.433683e-02" sequence="HLPSWCFK" charge="3" >
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="OMSSA" higher_score_better="false" significance_threshold="0.0" MZ="442.0" RT="420.0" spectrum_reference="scan=43" >
+			<PeptideHit score="2.516852e-01" sequence="NRVAEHLK" charge="3" >
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="OMSSA" higher_score_better="false" significance_threshold="0.0" MZ="443.0" RT="430.0" spectrum_reference="scan=44" >
+			<PeptideHit score="1.524607e-02" sequence="TYDGKNRK" charge="3" >
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="OMSSA" higher_score_better="false" significance_threshold="0.0" MZ="444.0" RT="440.0" spectrum_reference="scan=45" >
+			<PeptideHit score="1.293755e-02" sequence="CFIMQTYK" charge="3" >
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="OMSSA" higher_score_better="false" significance_threshold="0.0" MZ="445.0" RT="450.0" spectrum_reference="scan=46" >
+			<PeptideHit score="4.790640e-01" sequence="HLPSWCFK" charge="3" >
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="OMSSA" higher_score_better="false" significance_threshold="0.0" MZ="446.0" RT="460.0" spectrum_reference="scan=47" >
+			<PeptideHit score="3.086835e-04" sequence="NRVAEHLK" charge="3" >
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="OMSSA" higher_score_better="false" significance_threshold="0.0" MZ="447.0" RT="470.0" spectrum_reference="scan=48" >
+			<PeptideHit score="5.996589e-03" sequence="TYDGKNRK" charge="3" >
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="OMSSA" higher_score_better="false" significance_threshold="0.0" MZ="448.0" RT="480.0" spectrum_reference="scan=49" >
+			<PeptideHit score="1.612459e-04" sequence="CFIMQTYK" charge="3" >
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="OMSSA" higher_score_better="false" significance_threshold="0.0" MZ="449.0" RT="490.0" spectrum_reference="scan=50" >
+			<PeptideHit score="2.777966e-03" sequence="HLPSWCFK" charge="3" >
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="OMSSA" higher_score_better="false" significance_threshold="0.0" MZ="450.0" RT="500.0" spectrum_reference="scan=51" >
+			<PeptideHit score="5.629137e-04" sequence="NRVAEHLK" charge="3" >
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="OMSSA" higher_score_better="false" significance_threshold="0.0" MZ="451.0" RT="510.0" spectrum_reference="scan=52" >
+			<PeptideHit score="6.987886e-03" sequence="TYDGKNRK" charge="3" >
+			</PeptideHit>
+		</PeptideIdentification>
+	</IdentificationRun>
+</IdXML>

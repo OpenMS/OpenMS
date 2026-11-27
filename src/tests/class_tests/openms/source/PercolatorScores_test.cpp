@@ -17,12 +17,18 @@
 #include "ScoreHolder.h"
 #include "Scores.h"
 #include "ssl.h"
+#include "PsmStore.h"
 
 #include <algorithm>
 #include <map>
 #include <memory>
+#include <random>
 #include <string>
 #include <vector>
+#include <utility>
+#ifdef _OPENMP
+#include <omp.h>
+#endif
 
 using namespace OpenMS;
 using namespace std;
@@ -41,12 +47,13 @@ namespace
   {
     vector<unique_ptr<PSMDescription>> psms;
     vector<unique_ptr<double[]>> features;
+    OpenMS::Internal::Percolator::PsmStore strings; // the ids
 
     void add(Scores& scores, unsigned file, unsigned scan, const string& id, double score, LabelType label)
     {
       features.emplace_back(new double[1]{score});
       auto psm = make_unique<PSMDescription>();
-      psm->setId(id);
+      strings.storeStrings(*psm, id, "", {});
       psm->specFileNr = file;
       psm->scan = scan;
       psm->expMass = 1000.0 + scan;
@@ -67,13 +74,14 @@ namespace
   // The ids of the positive training examples, in their order.
   vector<string> positiveIds(Scores& scores, double fdr, bool train_best_positive)
   {
-    AlgIn data(scores.size(), 2);
+    // the training set on the PSMs' feature rows (rowsInPlace), which identify the PSMs
+    AlgIn data(2, /*rowsInPlace=*/true);
     scores.generateNegativeTrainingSet(data, 1.0);
     scores.generatePositiveTrainingSet(data, fdr, 1.0, train_best_positive);
     map<const double*, string> id_of;
-    for (const ScoreHolder& sh : scores) id_of[sh.pPSM->features] = sh.pPSM->getId();
+    for (const ScoreHolder& sh : scores) id_of[sh.pPSM->features] = string(sh.pPSM->getId());
     vector<string> ids;
-    for (int i = data.negatives; i < data.m; ++i) ids.push_back(id_of[data.vals[i]]);
+    for (int i = data.negatives; i < data.m; ++i) ids.push_back(id_of[data.row(i)]);
     return ids;
   }
 
@@ -138,7 +146,7 @@ START_SECTION([EXTRA] generatePositiveTrainingSet with trainBestPositive: the be
   vector<string> passing;
   for (const ScoreHolder& sh : scores)
   {
-    if (sh.isTarget() && sh.q <= fdr) passing.push_back(sh.pPSM->getId());
+    if (sh.isTarget() && sh.q <= fdr) passing.push_back(string(sh.pPSM->getId()));
   }
   TEST_EQUAL(passing.size(), 240u)
   TEST_TRUE(positiveIds(scores, fdr, false) == passing)
@@ -172,4 +180,5 @@ END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
+
 END_TEST

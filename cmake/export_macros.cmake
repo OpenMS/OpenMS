@@ -12,13 +12,12 @@ include(CMakePackageConfigHelpers)
 # a collection of wrapper for export functions that allows easier usage
 # througout the OpenMS build system
 #
-# The export sets (core, CLI, GUI; see cmake/install_macros.cmake) each get one
+# The export sets (core, CLI; see cmake/install_macros.cmake) each get one
 # target file, <set>.cmake, in the build tree and in the installation.
 # OpenMSConfig.cmake includes the core file and then the files of the layers
 # that are present.
 set(_OPENMS_EXPORT_FILE "${OPENMS_EXPORT_SET}.cmake")
 set(_OPENMS_CLI_EXPORT_FILE "${OPENMS_CLI_EXPORT_SET}.cmake")
-set(_OPENMS_GUI_EXPORT_FILE "${OPENMS_GUI_EXPORT_SET}.cmake")
 
 # clear the lists before we refill them (one list of targets per export set)
 foreach(_export_set IN LISTS OPENMS_EXPORT_SETS)
@@ -68,9 +67,8 @@ macro(openms_export_targets )
   # of the installation export set, so the build tree describes the same layers
   # as an installation. A target of one set refers to targets of another set
   # through that set's file, which CMake resolves across the export() calls of
-  # this project. A set without targets (the GUI set of a WITH_GUI=OFF
-  # configuration) must not leave the file of an earlier configuration of this
-  # build directory behind: OpenMSConfig.cmake takes the presence of a layer's
+  # this project. A set without targets must not leave the file of an earlier
+  # configuration of this build directory behind: OpenMSConfig.cmake takes the presence of a layer's
   # file as the layer being available.
   foreach(_export_set IN LISTS OPENMS_EXPORT_SETS)
     if(_OPENMS_EXPORT_TARGETS_${_export_set})

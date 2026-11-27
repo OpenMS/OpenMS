@@ -7,6 +7,9 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/OPENSWATH/TransitionParquetFile.h>
+
+#include "OSWParquetArchiveHelpers.h"
+
 #include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathLibraryIDNormalizer.h>
 #include <OpenMS/FORMAT/ArrowSchemaRegistry.h>
 #include <OpenMS/FORMAT/ParquetFile.h>
@@ -73,11 +76,6 @@ namespace
     std::map<int, Size> transition_charge_counts_decoy;
   };
 
-  std::string jsonEscape_(const std::string& input)
-  {
-    return OpenMS::ParquetFile::jsonEscape(input);
-  }
-
   std::string jsonMapByClass_(const std::map<int, Size>& target, const std::map<int, Size>& decoy)
   {
     std::ostringstream oss;
@@ -126,9 +124,9 @@ namespace
         << "  \"openms\": {\n"
         << "    \"schema_version\": 1,\n"
         << "    \"generator\": \"TransitionParquetFile\",\n"
-      << "    \"openms_version\": \"" << jsonEscape_(OpenMS::VersionInfo::getVersion()) << "\",\n"
-        << "    \"build_time\": \"" << jsonEscape_(OpenMS::VersionInfo::getTime()) << "\",\n"
-        << "    \"tool\": {\"name\": \"OpenSwathWorkflow\", \"version\": \"" << jsonEscape_(OpenMS::VersionInfo::getVersion()) << "\"},\n"
+      << "    \"openms_version\": \"" << OpenMS::ParquetFile::jsonEscape(OpenMS::VersionInfo::getVersion()) << "\",\n"
+        << "    \"build_time\": \"" << OpenMS::ParquetFile::jsonEscape(OpenMS::VersionInfo::getTime()) << "\",\n"
+        << "    \"tool\": {\"name\": \"OpenSwathWorkflow\", \"version\": \"" << OpenMS::ParquetFile::jsonEscape(OpenMS::VersionInfo::getVersion()) << "\"},\n"
         << "    \"counts\": {\n"
         << "      \"proteins\": {\"total\": " << stats.proteins_total << ", \"target\": " << proteins_target << ", \"decoy\": " << stats.proteins_decoy << "},\n"
         << "      \"peptides\": {\"total\": " << stats.peptides_total << ", \"target\": " << peptides_target << ", \"decoy\": " << stats.peptides_decoy << "},\n"
@@ -228,20 +226,7 @@ namespace OpenMS
     // extracting the entry to a temporary file and reading from disk.
     auto open_table_from_entry = [&](const std::string& entry) -> std::shared_ptr<arrow::Table>
     {
-      auto ra_res = ZipRandomAccessFile::Open(oswpq_dir, entry, temp_dir);
-      if (ra_res.ok())
-      {
-        const auto& raf = ra_res.ValueOrDie();
-        return ParquetFile::readTable(std::static_pointer_cast<arrow::io::RandomAccessFile>(raf));
-      }
-      // Fallback to extract
-      const std::string path = ZipArchiveFile::extractEntryToTempFile(oswpq_dir, entry, temp_dir);
-      if (!File::exists(path))
-      {
-        throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                            "Missing required parquet file '" + entry + "' in '" + oswpq_dir + "'");
-      }
-      return ParquetFile::readTable(path);
+      return Internal::OSWParquetArchiveHelpers::openTableFromEntry(oswpq_dir, entry, temp_dir, "Missing required parquet file", OPENMS_PRETTY_FUNCTION);
     };
 
     auto precursors_table = open_table_from_entry("library/precursors.parquet");

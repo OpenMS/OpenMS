@@ -323,7 +323,7 @@ def run_from_df(self, df, features, spectra_path=""):
     Run targeted feature extraction using compounds from a pandas DataFrame.
 
     Convenience wrapper that combines :meth:`compounds_from_df` and :meth:`run`.
-    The spectra must be set beforehand via :meth:`setMSData`.
+    The spectra must be set beforehand via :meth:`setFromMS1Data`.
 
     Parameters
     ----------
@@ -341,7 +341,7 @@ def run_from_df(self, df, features, spectra_path=""):
     >>> exp = MSExperiment()
     >>> MzMLFile().load("spectra.mzML", exp)
     >>> ff = FeatureFinderAlgorithmMetaboIdent()
-    >>> ff.setMSData(exp)
+    >>> ff.setFromMS1Data(exp)
     >>> features = FeatureMap()
     >>> ff.run_from_df(df, features, "spectra.mzML")
     """

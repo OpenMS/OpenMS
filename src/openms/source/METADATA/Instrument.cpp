@@ -7,6 +7,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/METADATA/Instrument.h>
+#include <OpenMS/CONCEPT/EnumHelpers.h>
 
 using namespace std;
 
@@ -155,13 +156,7 @@ namespace OpenMS
 
   StringList Instrument::getAllNamesOfIonOpticsType()
   {
-    StringList names;
-    names.reserve(static_cast<size_t>(IonOpticsType::SIZE_OF_IONOPTICSTYPE));
-    for (size_t i = 0; i < static_cast<size_t>(IonOpticsType::SIZE_OF_IONOPTICSTYPE); ++i)
-    {
-      names.push_back(NamesOfIonOpticsType[i]);
-    }
-    return names;
+    return Helpers::enumNames(NamesOfIonOpticsType, IonOpticsType::SIZE_OF_IONOPTICSTYPE);
   }
 
 }

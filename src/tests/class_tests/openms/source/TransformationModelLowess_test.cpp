@@ -14,6 +14,8 @@
 #include <OpenMS/ANALYSIS/MAPMATCHING/TransformationModel.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/TransformationModelLowess.h>
 
+#include <cmath>
+
 ///////////////////////////
 
 START_TEST(TransformationModelLowess, "$Id$")
@@ -180,6 +182,85 @@ START_SECTION((auto span selection chooses larger span on tie and persists param
   TEST_REAL_SIMILAR(tm.evaluate(0.0),  1.0);
   TEST_REAL_SIMILAR(tm.evaluate(5.0), 11.0);
   TEST_REAL_SIMILAR(tm.evaluate(10.0), 21.0);
+}
+END_SECTION
+
+START_SECTION((auto span selection with repeated x values))
+{
+  using OpenMS::TransformationModel;
+  using OpenMS::TransformationModelLowess;
+  using OpenMS::Param;
+
+  // 50 points at three distinct x values; x = 300 occurs only once. Repeated x values are valid input (e.g.
+  // features from the same scan). Leave-one-out CV holds the x = 300 point out in one fold, which leaves two
+  // distinct x values - too few for the interpolation model behind each fit. That fold must be skipped.
+  TransformationModel::DataPoints data;
+  for (int i = 0; i < 25; ++i)
+  {
+    data.push_back(std::make_pair(100.0, 110.0));
+  }
+  for (int i = 0; i < 24; ++i)
+  {
+    data.push_back(std::make_pair(200.0, 205.0));
+  }
+  data.push_back(std::make_pair(300.0, 290.0));
+
+  Param p;
+  TransformationModelLowess::getDefaultParameters(p);
+  p.setValue("auto_span", "true");
+  TransformationModelLowess tm(data, p);
+  TEST_EQUAL(tm.getParameters().getValue("auto_span").toString(), "false")
+  const double span = static_cast<double>(tm.getParameters().getValue("span"));
+  TEST_EQUAL(span > 0.0 && span <= 1.0, true)
+  TEST_EQUAL(std::isfinite(tm.evaluate(250.0)), true)
+}
+END_SECTION
+
+START_SECTION((auto span selection does not depend on the input order of points with the same x))
+{
+  using OpenMS::TransformationModel;
+  using OpenMS::TransformationModelLowess;
+  using OpenMS::Param;
+
+  // 300 points, every x four times (features from the same scan), near-linear drift: the candidate spans score
+  // about the same, so a different order of tied points (which decides the CV folds) could change the choice
+  TransformationModel::DataPoints data;
+  for (int i = 0; i < 300; ++i)
+  {
+    const double x = 100.0 + 5.0 * (i / 4);
+    data.push_back(std::make_pair(x, 1.02 * x + 3.0 * std::sin(12.9898 * i + 78.233 * 2)));
+  }
+  TransformationModel::DataPoints reversed(data.rbegin(), data.rend());
+  Param p;
+  TransformationModelLowess::getDefaultParameters(p);
+  p.setValue("auto_span", "true");
+  TransformationModelLowess tm(data, p);
+  TransformationModelLowess tm_reversed(reversed, p);
+  TEST_REAL_SIMILAR(static_cast<double>(tm.getParameters().getValue("span")),
+                    static_cast<double>(tm_reversed.getParameters().getValue("span")))
+  TEST_REAL_SIMILAR(tm.evaluate(500.0), tm_reversed.evaluate(500.0))
+}
+END_SECTION
+
+START_SECTION((auto span selection keeps the fixed span if no candidate can be evaluated))
+{
+  using OpenMS::TransformationModel;
+  using OpenMS::TransformationModelLowess;
+  using OpenMS::Param;
+
+  // three points: every leave-one-out training set is too small, so no span can be cross-validated
+  TransformationModel::DataPoints data = {{100.0, 110.0}, {200.0, 205.0}, {300.0, 290.0}};
+  Param p;
+  TransformationModelLowess::getDefaultParameters(p);
+  p.setValue("auto_span", "true");
+  p.setValue("span", 0.5);
+  TransformationModelLowess tm(data, p);
+  TEST_REAL_SIMILAR(static_cast<double>(tm.getParameters().getValue("span")), 0.5)
+  TEST_EQUAL(tm.getParameters().getValue("auto_span").toString(), "false")
+
+  p.setValue("span", 0.0); // invalid fixed span: fall back to the default 2/3
+  TransformationModelLowess tm0(data, p);
+  TEST_REAL_SIMILAR(static_cast<double>(tm0.getParameters().getValue("span")), 2 / 3.0)
 }
 END_SECTION
 

@@ -72,7 +72,10 @@ namespace OpenMS::Math
       }
 
       sort();
-      double prevscore = -std::numeric_limits<double>::infinity();
+      // score_clas_pairs_ is sorted highest score first (simsortdec()), so scores
+      // only decrease (or tie) as we walk forward; the sentinel has to start above
+      // every real score, and a new step begins once the score actually drops.
+      double prevscore = std::numeric_limits<double>::infinity();
       UInt prevTP = 0;
       UInt prevFP = 0;
       UInt truePos = 0;
@@ -82,7 +85,7 @@ namespace OpenMS::Math
       {
         //since it is sorted we do not need abs here.
         //TODO not sure if this makes much difference to an equality
-        if ((pair.first - prevscore) > 1e-8)
+        if ((prevscore - pair.first) > 1e-8)
         {
           area += trapezoidal_area(falsePos,prevFP,truePos,prevTP);
           prevscore = pair.first;
@@ -93,7 +96,7 @@ namespace OpenMS::Math
       }
       area += trapezoidal_area(falsePos,prevFP,truePos,prevTP);
       // scale to unit square
-      area /= truePos * falsePos;
+      area /= (double)truePos * falsePos;
 
       // update internals
       pos_ = truePos;

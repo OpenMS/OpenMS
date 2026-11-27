@@ -33,6 +33,17 @@
 #if !defined(SIMDE_X86_CLMUL_H)
 #define SIMDE_X86_CLMUL_H
 
+#include <stddef.h>
+#include <stdint.h>
+
+#include "../hedley.h"
+#include "../simde-detect-clang.h"
+#include "../simde-diagnostic.h"
+#include "../simde-features.h"
+#include "../simde-common.h"
+#include "sse2.h"
+#include "avx.h"
+#include "avx512/types.h"
 #include "avx512/set.h"
 #include "avx512/setzero.h"
 
@@ -101,6 +112,10 @@ simde_x_bitreverse_u64(uint64_t v) {
     return HEDLEY_STATIC_CAST(uint64_t, _mm_cvtsi128_si64(vec));
   #elif HEDLEY_HAS_BUILTIN(__builtin_bitreverse64)
     return __builtin_bitreverse64(v);
+  #elif defined(__loongarch64)
+    uint64_t r;
+    __asm__ __volatile__ ("bitrev.d %0, %1" :"=&r"(r):"r"(v):);
+    return r;
   #else
     v = ((v >>  1) & UINT64_C(0x5555555555555555)) | ((v & UINT64_C(0x5555555555555555)) <<  1);
     v = ((v >>  2) & UINT64_C(0x3333333333333333)) | ((v & UINT64_C(0x3333333333333333)) <<  2);
@@ -199,7 +214,7 @@ simde_mm_clmulepi64_si128 (simde__m128i a, simde__m128i b, const int imm8)
   #else
     #define simde_mm_clmulepi64_si128(a, b, imm8) _mm_clmulepi64_si128(a, b, imm8)
   #endif
-#elif defined(SIMDE_ARM_NEON_A64V8_NATIVE) && defined(__ARM_FEATURE_AES) && !defined(__clang__)
+#elif defined(SIMDE_ARM_NEON_A64V8_NATIVE) && defined(SIMDE_ARCH_ARM_AES) && !(SIMDE_DETECT_CLANG_VERSION_NOT(22,0,0))
   #define simde_mm_clmulepi64_si128(a, b, imm8) \
     simde__m128i_from_neon_u64( \
       vreinterpretq_u64_p128( \
@@ -224,84 +239,61 @@ simde_mm256_clmulepi64_epi128 (simde__m256i a, simde__m256i b, const int imm8)
     b_ = simde__m256i_to_private(b),
     r_;
 
-  #if defined(SIMDE_X86_PCLMUL_NATIVE)
-    SIMDE_LCC_DISABLE_DEPRECATED_WARNINGS
-    switch (imm8 & 0x11) {
+  simde__m128i_private a_lo_, b_lo_, r_lo_, a_hi_, b_hi_, r_hi_;
+
+  #if HEDLEY_HAS_BUILTIN(__builtin_shufflevector) && !defined(HEDLEY_IBM_VERSION)
+    switch (imm8 & 0x01) {
       case 0x00:
-        r_.m128i[0] = _mm_clmulepi64_si128(a_.m128i[0], b_.m128i[0], 0x00);
-        r_.m128i[1] = _mm_clmulepi64_si128(a_.m128i[1], b_.m128i[1], 0x00);
+        a_lo_.u64 = __builtin_shufflevector(a_.u64, a_.u64, 0, 2);
         break;
       case 0x01:
-        r_.m128i[0] = _mm_clmulepi64_si128(a_.m128i[0], b_.m128i[0], 0x01);
-        r_.m128i[1] = _mm_clmulepi64_si128(a_.m128i[1], b_.m128i[1], 0x01);
+        a_lo_.u64 = __builtin_shufflevector(a_.u64, a_.u64, 1, 3);
+        break;
+    }
+    switch (imm8 & 0x10) {
+      case 0x00:
+        b_lo_.u64 = __builtin_shufflevector(b_.u64, b_.u64, 0, 2);
         break;
       case 0x10:
-        r_.m128i[0] = _mm_clmulepi64_si128(a_.m128i[0], b_.m128i[0], 0x10);
-        r_.m128i[1] = _mm_clmulepi64_si128(a_.m128i[1], b_.m128i[1], 0x10);
-        break;
-      case 0x11:
-        r_.m128i[0] = _mm_clmulepi64_si128(a_.m128i[0], b_.m128i[0], 0x11);
-        r_.m128i[1] = _mm_clmulepi64_si128(a_.m128i[1], b_.m128i[1], 0x11);
+        b_lo_.u64 = __builtin_shufflevector(b_.u64, b_.u64, 1, 3);
         break;
     }
-    SIMDE_LCC_REVERT_DEPRECATED_WARNINGS
   #else
-    simde__m128i_private a_lo_, b_lo_, r_lo_, a_hi_, b_hi_, r_hi_;
+    a_lo_.u64[0] = a_.u64[((imm8 >> 0) & 1) + 0];
+    a_lo_.u64[1] = a_.u64[((imm8 >> 0) & 1) + 2];
+    b_lo_.u64[0] = b_.u64[((imm8 >> 4) & 1) + 0];
+    b_lo_.u64[1] = b_.u64[((imm8 >> 4) & 1) + 2];
+  #endif
 
-    #if HEDLEY_HAS_BUILTIN(__builtin_shufflevector) && !defined(HEDLEY_IBM_VERSION)
-      switch (imm8 & 0x01) {
-        case 0x00:
-          a_lo_.u64 = __builtin_shufflevector(a_.u64, a_.u64, 0, 2);
-          break;
-        case 0x01:
-          a_lo_.u64 = __builtin_shufflevector(a_.u64, a_.u64, 1, 3);
-          break;
-      }
-      switch (imm8 & 0x10) {
-        case 0x00:
-          b_lo_.u64 = __builtin_shufflevector(b_.u64, b_.u64, 0, 2);
-          break;
-        case 0x10:
-          b_lo_.u64 = __builtin_shufflevector(b_.u64, b_.u64, 1, 3);
-          break;
-      }
-    #else
-      a_lo_.u64[0] = a_.u64[((imm8 >> 0) & 1) + 0];
-      a_lo_.u64[1] = a_.u64[((imm8 >> 0) & 1) + 2];
-      b_lo_.u64[0] = b_.u64[((imm8 >> 4) & 1) + 0];
-      b_lo_.u64[1] = b_.u64[((imm8 >> 4) & 1) + 2];
-    #endif
+  SIMDE_VECTORIZE
+  for (size_t i = 0 ; i < (sizeof(r_hi_.u64) / sizeof(r_hi_.u64[0])) ; i++) {
+    a_hi_.u64[i] = simde_x_bitreverse_u64(a_lo_.u64[i]);
+    b_hi_.u64[i] = simde_x_bitreverse_u64(b_lo_.u64[i]);
 
-    SIMDE_VECTORIZE
-    for (size_t i = 0 ; i < (sizeof(r_hi_.u64) / sizeof(r_hi_.u64[0])) ; i++) {
-      a_hi_.u64[i] = simde_x_bitreverse_u64(a_lo_.u64[i]);
-      b_hi_.u64[i] = simde_x_bitreverse_u64(b_lo_.u64[i]);
+    r_lo_.u64[i] = simde_x_clmul_u64(a_lo_.u64[i], b_lo_.u64[i]);
+    r_hi_.u64[i] = simde_x_clmul_u64(a_hi_.u64[i], b_hi_.u64[i]);
 
-      r_lo_.u64[i] = simde_x_clmul_u64(a_lo_.u64[i], b_lo_.u64[i]);
-      r_hi_.u64[i] = simde_x_clmul_u64(a_hi_.u64[i], b_hi_.u64[i]);
+    r_hi_.u64[i] = simde_x_bitreverse_u64(r_hi_.u64[i]) >> 1;
+  }
 
-      r_hi_.u64[i] = simde_x_bitreverse_u64(r_hi_.u64[i]) >> 1;
-    }
-
-    #if HEDLEY_HAS_BUILTIN(__builtin_shufflevector) && !defined(HEDLEY_IBM_VERSION)
-      r_.u64 = __builtin_shufflevector(r_lo_.u64, r_hi_.u64, 0, 2, 1, 3);
-    #elif defined(SIMDE_SHUFFLE_VECTOR_)
-      r_ = simde__m256i_to_private(simde_mm256_set_m128i(simde__m128i_from_private(r_hi_), simde__m128i_from_private(r_lo_)));
-      r_.u64 = SIMDE_SHUFFLE_VECTOR_(64, 32, r_.u64, r_.u64, 0, 2, 1, 3);
-    #else
-      r_.u64[0] = r_lo_.u64[0];
-      r_.u64[1] = r_hi_.u64[0];
-      r_.u64[2] = r_lo_.u64[1];
-      r_.u64[3] = r_hi_.u64[1];
-    #endif
+  #if HEDLEY_HAS_BUILTIN(__builtin_shufflevector) && !defined(HEDLEY_IBM_VERSION)
+    r_.u64 = __builtin_shufflevector(r_lo_.u64, r_hi_.u64, 0, 2, 1, 3);
+  #elif defined(SIMDE_SHUFFLE_VECTOR_)
+    r_ = simde__m256i_to_private(simde_mm256_set_m128i(simde__m128i_from_private(r_hi_), simde__m128i_from_private(r_lo_)));
+    r_.u64 = SIMDE_SHUFFLE_VECTOR_(64, 32, r_.u64, r_.u64, 0, 2, 1, 3);
+  #else
+    r_.u64[0] = r_lo_.u64[0];
+    r_.u64[1] = r_hi_.u64[0];
+    r_.u64[2] = r_lo_.u64[1];
+    r_.u64[3] = r_hi_.u64[1];
   #endif
 
   return simde__m256i_from_private(r_);
 }
-#if defined(SIMDE_X86_VPCLMULQDQ_NATIVE) && defined(SIMDE_X86_AVX_NATIVE)
+#if defined(SIMDE_X86_VPCLMULQDQ_NATIVE) && defined(SIMDE_X86_AVX512VL_NATIVE)
   #define simde_mm256_clmulepi64_epi128(a, b, imm8) _mm256_clmulepi64_epi128(a, b, imm8)
 #endif
-#if defined(SIMDE_X86_VPCLMULQDQ_ENABLE_NATIVE_ALIASES)
+#if defined(SIMDE_X86_VPCLMULQDQ_ENABLE_NATIVE_ALIASES) && defined(SIMDE_X86_AVX512VL_ENABLE_NATIVE_ALIASES)
   #undef _mm256_clmulepi64_epi128
   #define _mm256_clmulepi64_epi128(a, b, imm8) simde_mm256_clmulepi64_epi128(a, b, imm8)
 #endif
@@ -398,7 +390,7 @@ simde_mm512_clmulepi64_epi128 (simde__m512i a, simde__m512i b, const int imm8)
 #if defined(SIMDE_X86_VPCLMULQDQ_NATIVE) && defined(SIMDE_X86_AVX512F_NATIVE)
   #define simde_mm512_clmulepi64_epi128(a, b, imm8) _mm512_clmulepi64_epi128(a, b, imm8)
 #endif
-#if defined(SIMDE_X86_VPCLMULQDQ_ENABLE_NATIVE_ALIASES)
+#if defined(SIMDE_X86_VPCLMULQDQ_ENABLE_NATIVE_ALIASES) && defined(SIMDE_X86_AVX512F_ENABLE_NATIVE_ALIASES)
   #undef _mm512_clmulepi64_epi128
   #define _mm512_clmulepi64_epi128(a, b, imm8) simde_mm512_clmulepi64_epi128(a, b, imm8)
 #endif

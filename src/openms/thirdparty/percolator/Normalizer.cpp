@@ -15,7 +15,9 @@
 
  *******************************************************************************/
 #include <assert.h>
+#include <cmath>
 #include <iostream>
+#include <sstream>
 #include <vector>
 #include <set>
 #include <string>
@@ -23,15 +25,15 @@
 #include "StdvNormalizer.h"
 #include "UniNormalizer.h"
 #include "NoNormalizer.h"
+#include "DataSet.h"
 #include "FeatureNames.h"
 #include "Globals.h"
+#include "MyException.h"
 
 namespace OpenMS { namespace Internal { namespace Percolator {
 
 using namespace std;
 
-int Normalizer::subclass_type = STDV;
-Normalizer* Normalizer::theNormalizer = NULL;
 
 Normalizer::Normalizer() {
 }
@@ -62,22 +64,31 @@ void Normalizer::normalize(const double* in, double* out, size_t offset,
   }
 }
 
-Normalizer* Normalizer::getNormalizer() {
-  if (theNormalizer == NULL) {
-    if (subclass_type == UNI) {
-      theNormalizer = new UniNormalizer();
-    } else if (subclass_type == STDV) {
-      theNormalizer = new StdvNormalizer();
-    } else {
-     theNormalizer = new NoNormalizer();
-    }
+void Normalizer::checkFactorsFinite(size_t begin, size_t end,
+                                    const char* subName,
+                                    const char* divName) const {
+  for (size_t ix = begin; ix < end; ++ix) {
+    if (std::isfinite(sub[ix]) && std::isfinite(div[ix])) continue;
+    ostringstream oss;
+    oss << "ERROR: Cannot normalize feature "
+        << DataSet::getFeatureNames().describeFeature(ix) << ": its "
+        << subName << " is " << sub[ix] << " and its " << divName << " is "
+        << div[ix] << ", because some of its values are too large in "
+        << "magnitude. Check the input, or rescale this feature, e.g. by "
+        << "taking its logarithm." << std::endl;
+    throw MyException(oss.str());
   }
-  return theNormalizer;
 }
 
-void Normalizer::setType(int type) {
+std::unique_ptr<Normalizer> Normalizer::create(int type) {
   assert(type == UNI || type == STDV || type == NONORM);
-  subclass_type = type;
+  if (type == UNI) {
+    return std::unique_ptr<Normalizer>(new UniNormalizer());
+  } else if (type == STDV) {
+    return std::unique_ptr<Normalizer>(new StdvNormalizer());
+  } else {
+    return std::unique_ptr<Normalizer>(new NoNormalizer());
+  }
 }
 
 // Before merging cross validation bins, the scores are renormalized to an uniform range.

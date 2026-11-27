@@ -89,16 +89,20 @@ public:
 
       The output buffer is initially sized from the content size recorded in the frame header, capped at
       @p expected_size (or, if that is 0, at a small multiple of @p nr_bytes), and grows as needed. The
-      expected size therefore only affects the initial allocation, not the result.
+      expected size therefore only affects the initial allocation, not the result. To bound the memory that
+      untrusted data can take, pass @p max_size: the buffer then never grows beyond it (plus one byte).
 
       @param[in]  compressed_data Pointer to the zstd-compressed bytes.
       @param[in]  nr_bytes        Length of @p compressed_data in bytes.
       @param[out] out             Receives the decompressed bytes; any previous contents are replaced.
       @param[in]  expected_size   Expected size of the decompressed data in bytes (0 if unknown).
+      @param[in]  max_size        Largest size of the decompressed data in bytes that is accepted (0: no limit).
 
-      @throws Exception::ConversionError if the data is not valid zstd data or is truncated.
+      @throws Exception::ConversionError if the data is not valid zstd data, is truncated, or is larger than
+              @p max_size.
     */
-    static void uncompressData(const void* compressed_data, size_t nr_bytes, std::string& out, size_t expected_size = 0);
+    static void uncompressData(const void* compressed_data, size_t nr_bytes, std::string& out, size_t expected_size = 0,
+                               size_t max_size = 0);
 
     /**
       @brief Byte-shuffle an array of @p element_size byte elements.

@@ -9,7 +9,7 @@ presets from `CMakePresets.json`, as described in
 
 - `mcr.microsoft.com/devcontainers/cpp:1-ubuntu-24.04` (linux/amd64 and
   linux/arm64), plus the packages from `tools/ci/deps-ubuntu.sh`: compilers,
-  CMake, Ninja, autotools, Qt 6, Doxygen and ccache.
+  CMake, Ninja, autotools, Doxygen and ccache.
 - The .NET 8 SDK in `/usr/share/dotnet`, from
   `tools/ci/install_dotnet_sdk_linux.sh`. `WITH_THERMO_RAW` is ON by default,
   and the Thermo RAW bridge compiles against the SDK's nethost headers.

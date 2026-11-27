@@ -143,11 +143,25 @@ void replaceKeyedMRMCollection_(std::vector<ElementT>& target,
 }
 
 
+// In Python, OnDiscImzMLExperiment is a container of pixels like MSImagingExperiment: len / [i] /
+// iteration follow the geometry's pixels. The C++ size() / operator[] / getSpectrum(i) count spectra.
+template <>
+struct pyopenms_iter::IndexAccess<OpenMS::OnDiscImzMLExperiment>
+{
+    static size_t size(OpenMS::OnDiscImzMLExperiment& c) { return c.getGeometry().getNumberOfPixels(); }
+    static OpenMS::MSSpectrum at(OpenMS::OnDiscImzMLExperiment& c, size_t i)
+    {
+        return c.getSpectrum(c.getGeometry().getPixels()[i].spectrum_index);  // decoded from the .ibd: an owned copy
+    }
+};
+
+
 NB_MODULE(_pyopenms_kernel, m) {
     // index-based value iterators (see index_value_iterator.h)
     pyopenms_iter::bind_index_value_iterator<OpenMS::Mobilogram>(m, "_MobilogramIter");
     pyopenms_iter::bind_index_value_iterator<OpenMS::ConsensusMap>(m, "_ConsensusMapIter");
     pyopenms_iter::bind_index_value_iterator<OpenMS::FeatureMap>(m, "_FeatureMapIter");
+    pyopenms_iter::bind_index_value_iterator<OpenMS::OnDiscImzMLExperiment>(m, "_OnDiscImzMLExperimentIter");
     m.doc() = "pyOpenMS kernel bindings";
 
 
@@ -477,6 +491,7 @@ Feature handles are not checked.
         .def("getFWHMborders", [](const OpenMS::MassTrace& self) { return self.getFWHMborders(); })
         .def("getSmoothedIntensities", [](const OpenMS::MassTrace& self) { return self.getSmoothedIntensities(); })
         .def("setSmoothedIntensities", [](OpenMS::MassTrace& self, const std::vector<double>& ints) { self.setSmoothedIntensities(ints); }, "intensities"_a)
+        .def("clearSmoothedIntensities", [](OpenMS::MassTrace& self) { self.clearSmoothedIntensities(); }, "Removes the smoothed intensities and releases their memory")
         .def("getAverageMS1CycleTime", [](const OpenMS::MassTrace& self) { return self.getAverageMS1CycleTime(); })
         .def("computeSmoothedPeakArea", [](const OpenMS::MassTrace& self) { return self.computeSmoothedPeakArea(); })
         .def("computePeakArea", [](const OpenMS::MassTrace& self) { return self.computePeakArea(); })
@@ -485,6 +500,8 @@ Feature handles are not checked.
         .def("computeFwhmArea", [](const OpenMS::MassTrace& self) { return self.computeFwhmArea(); })
         .def("computeFwhmAreaSmooth", [](const OpenMS::MassTrace& self) { return self.computeFwhmAreaSmooth(); })
         .def("getIntensity", [](const OpenMS::MassTrace& self, bool smoothed) { return self.getIntensity(smoothed); }, "smoothed"_a)
+        .def("getIntensity", [](const OpenMS::MassTrace& self, bool smoothed, OpenMS::MassTrace::MT_QUANTMETHOD method) { return self.getIntensity(smoothed, method); }, "smoothed"_a, "method"_a,
+            "Returns the quantitated value for the given quantitation method (instead of the one set with setQuantMethod)")
         .def("getMaxIntensity", [](const OpenMS::MassTrace& self, bool smoothed) { return self.getMaxIntensity(smoothed); }, "smoothed"_a)
         .def("getConvexhull", [](const OpenMS::MassTrace& self) { return self.getConvexhull(); })
         .def("updateSmoothedMaxRT", [](OpenMS::MassTrace& self) { self.updateSmoothedMaxRT(); })
@@ -495,8 +512,12 @@ Feature handles are not checked.
         .def("updateMeanMZ", [](OpenMS::MassTrace& self) { self.updateMeanMZ(); })
         .def("updateWeightedMeanMZ", [](OpenMS::MassTrace& self) { self.updateWeightedMeanMZ(); })
         .def("updateWeightedMZsd", [](OpenMS::MassTrace& self) { self.updateWeightedMZsd(); })
-        .def_rw("fwhm_mz_avg", &OpenMS::MassTrace::fwhm_mz_avg)
-        .def_rw("fwhm_im_avg", &OpenMS::MassTrace::fwhm_im_avg)
+        .def("getFWHMMZAvg", [](const OpenMS::MassTrace& self) { return self.getFWHMMZAvg(); }, "Returns the average FWHM of the m/z peaks (0: no FWHM meta data available)")
+        .def("setFWHMMZAvg", [](OpenMS::MassTrace& self, double fwhm) { self.setFWHMMZAvg(fwhm); }, "fwhm"_a, "Sets the average FWHM of the m/z peaks")
+        .def("getFWHMIMAvg", [](const OpenMS::MassTrace& self) { return self.getFWHMIMAvg(); }, "Returns the average FWHM of the ion mobility peaks (0: no FWHM meta data available)")
+        .def("setFWHMIMAvg", [](OpenMS::MassTrace& self, double fwhm) { self.setFWHMIMAvg(fwhm); }, "fwhm"_a, "Sets the average FWHM of the ion mobility peaks")
+        .def_prop_rw("fwhm_mz_avg", [](const OpenMS::MassTrace& self) { return self.getFWHMMZAvg(); }, [](OpenMS::MassTrace& self, double fwhm) { self.setFWHMMZAvg(fwhm); })
+        .def_prop_rw("fwhm_im_avg", [](const OpenMS::MassTrace& self) { return self.getFWHMIMAvg(); }, [](OpenMS::MassTrace& self, double fwhm) { self.setFWHMIMAvg(fwhm); })
         .def("computeIntensitySum", [](const OpenMS::MassTrace& self) { return self.computeIntensitySum(); }, "Sum all peak intensities in the mass trace")
         .def("getQuantMethod", [](const OpenMS::MassTrace& self) { return self.getQuantMethod(); }, "Returns the quantification method")
         .def("setQuantMethod", [](OpenMS::MassTrace& self, OpenMS::MassTrace::MT_QUANTMETHOD method) { self.setQuantMethod(method); }, "method"_a, "Sets the quantification method")
@@ -1980,8 +2001,16 @@ This is an alias for getChromatogramByNativeId().
     // -----------------------------------------------------------------------
     // OnDiscImzMLExperiment
     // -----------------------------------------------------------------------
-    nb::class_<OpenMS::OnDiscImzMLExperiment>(m, "OnDiscImzMLExperiment",
-        "Random-access on-disc reader for imzML (.imzML + .ibd), analogous to OnDiscMSExperiment for indexed mzML.")
+    nb::class_<OpenMS::OnDiscImzMLExperiment>(m, "OnDiscImzMLExperiment", R"doc(
+Random-access on-disc reader for imzML (.imzML + .ibd), analogous to OnDiscMSExperiment for indexed mzML.
+
+Two index spaces: len(od), od[i] and iteration follow the geometry's pixels (as on
+MSImagingExperiment), while getNrSpectra() and getSpectrum(i) follow the spectra in file
+order. od[i] and getSpectrum(i) differ whenever the geometry skips or reorders spectra
+(z != 1, out-of-grid or duplicate coordinates); such spectra are reachable only through
+getSpectrum(i). The spectrum index of pixel i is
+od.getGeometry().pixels_struct()[i]["spectrum_index"].
+)doc")
         .def(nb::init<>())
         .def("open", [](OpenMS::OnDiscImzMLExperiment& self, const std::string& imzml_path, const std::string& ibd_path, bool skip_metadata) {
             self.open(imzml_path, ibd_path, skip_metadata);
@@ -1992,9 +2021,27 @@ This is an alias for getChromatogramByNativeId().
         .def("isOpen", [](const OpenMS::OnDiscImzMLExperiment& self) { return self.isOpen(); })
         .def("getNrSpectra", [](const OpenMS::OnDiscImzMLExperiment& self) { return self.getNrSpectra(); })
         .def("size", [](const OpenMS::OnDiscImzMLExperiment& self) { return self.size(); })
+        .def("__len__", [](OpenMS::OnDiscImzMLExperiment& self) -> size_t {
+            return pyopenms_iter::IndexAccess<OpenMS::OnDiscImzMLExperiment>::size(self);
+        }, "Number of pixels in the geometry; getNrSpectra() counts the spectra")
+        .def("__iter__", [](nb::object self) -> pyopenms_iter::IndexValueIterator<OpenMS::OnDiscImzMLExperiment> {
+            return pyopenms_iter::make_index_value_iterator<OpenMS::OnDiscImzMLExperiment>(self);
+        })
+        .def("__getitem__", [](OpenMS::OnDiscImzMLExperiment& self, long long index) -> OpenMS::MSSpectrum {
+            using Access = pyopenms_iter::IndexAccess<OpenMS::OnDiscImzMLExperiment>;
+            const long long n = static_cast<long long>(Access::size(self));
+            if (index < 0) { index += n; }
+            if (index < 0 || index >= n) { throw nb::index_error("pixel index out of range"); }
+            // GIL held on purpose: reads seek and read one shared FILE*, so concurrent calls would interleave
+            return Access::at(self, static_cast<size_t>(index));
+        }, "index"_a,
+        "Returns the spectrum of the pixel at index (geometry pixel order; negative counts from the end), read from disk. "
+        "Not the same as getSpectrum(index), which takes a spectrum index.")
         .def("getSpectrum", [](OpenMS::OnDiscImzMLExperiment& self, size_t i) {
             return self.getSpectrum(i);
-        }, "i"_a)
+        }, "i"_a,
+        "Returns the i-th spectrum in file order (spectrum index, up to getNrSpectra()), read from disk. "
+        "Not the same as od[i], which takes a pixel index; for pixel coordinates use getSpectrumAtCoord (1-based).")
         .def("getSpectrumAtCoord", [](OpenMS::OnDiscImzMLExperiment& self, uint32_t x, uint32_t y, uint32_t z) {
             return self.getSpectrumAtCoord(x, y, z);
         }, "x"_a, "y"_a, "z"_a = 1)
@@ -2010,6 +2057,11 @@ This is an alias for getChromatogramByNativeId().
         .def("getGeometry",
             [](const OpenMS::OnDiscImzMLExperiment& self) -> OpenMS::MSImagingGeometry { return self.getGeometry(); },
             "Return the shared 2D MSImagingGeometry (0-based pixel grid + (x,y)->spectrum index), built lazily from the index")
+        .def("geometry_view",
+            [](OpenMS::OnDiscImzMLExperiment& self) -> OpenMS::MSImagingGeometry& { return self.getGeometry(); },
+            nb::rv_policy::reference_internal,
+            "Returns a live view of the imaging geometry, e.g. exp.geometry_view().addRegion(region). Edits through it are visible immediately, "
+            "and the parent object is kept alive automatically. After open() or close() the view shows the new (or empty) geometry. For an owned copy use getGeometry().")
         .def("extractIonImage",
             [](const OpenMS::OnDiscImzMLExperiment& self, double mz, double tolerance_ppm) {
                 return self.extractIonImage(mz, tolerance_ppm);

@@ -14,6 +14,9 @@
 #include <OpenMS/CHEMISTRY/EnzymaticDigestion.h>
 #include <string_view>
 #include <OpenMS/CHEMISTRY/ProteaseDB.h>
+#include <OpenMS/CHEMISTRY/DigestionEnzymeProtein.h>
+#include <random>
+#include <set>
 #include <vector>
 using namespace OpenMS;
 using namespace std;
@@ -346,6 +349,79 @@ START_SECTION([EXTRA] digestUnmodified honors SPEC_NONE / SPEC_SEMI (pair output
 }
 END_SECTION
 
+START_SECTION([EXTRA] digestUnmodified on a fully empty sequence must not crash or throw (SPEC_FULL / SPEC_SEMI, pair and string_view output))
+{
+  // Regression test: an empty protein sequence (e.g. a malformed FASTA entry with a header but no
+  // residues) combined with min_length == 0 must yield zero peptides, not undefined behaviour.
+  // (min_length == 0 is a valid, user-settable value, e.g. FragmentIndex's 'peptide:min_size' only
+  // enforces >= 0; it is also exactly the case the existing "sequence.size() < min_length" guard
+  // does NOT catch, since 0 < 0 is false.)
+  //
+  // Two distinct bugs used to live in this corner (both only reachable via an *empty* sequence with
+  // min_length == 0, since tokenize_() returns at least one position for any non-empty sequence, and
+  // any min_length >= 1 is already caught by the pre-existing "too short" guard):
+  //  1) digestAfterTokenize_()'s "no cleavage site" branch computed `sequence.size() - 1` as the
+  //     *length* of the one reported span. For an empty sequence (size() == 0), that underflowed to
+  //     SIZE_MAX. Real caller impact: OpenMS::FragmentIndex (used by the ProSE TOPP tool) takes the
+  //     reported (start, length) span and constructs
+  //     std::string_view(protein.sequence.data() + start, length) directly from it (FragmentIndex.cpp,
+  //     the digestUnmodified() call in its "else" branch for proteins with an empty sequence) - an
+  //     out-of-bounds read of ~2^64 bytes, i.e. a crash.
+  //  2) For SPEC_SEMI, digestUnmodified() always appends sequence.size() as an extra "cleavage
+  //     position" and hands the result to semiSpecificDigestion_(), which throws
+  //     Exception::InvalidValue if fewer than two positions are given. For an empty sequence this is
+  //     exactly one position, so once min_length == 0 lets execution reach that call, the exception
+  //     fires. FragmentIndex calls digestUnmodified() from inside an '#pragma omp parallel for' loop
+  //     over all FASTA entries, where an escaping exception is undefined behaviour (typically
+  //     std::terminate()).
+  // Neither bug is visible in operator== or any existing assertion above: both earlier SPEC_NONE /
+  // SPEC_SEMI tests in this section use either a non-empty sequence or min_length >= 1 on an empty
+  // one, and the only existing empty-sequence test (above) uses SPEC_NONE with min_length == 1, which
+  // takes a different, unaffected code path.
+  std::string empty_s;
+
+  // Bug (1): SPEC_FULL, min_length == 0, pair output.
+  EnzymaticDigestion ed_full_empty;
+  ed_full_empty.setEnzyme(ProteaseDB::getInstance()->getEnzyme("Trypsin"));
+  ed_full_empty.setSpecificity(EnzymaticDigestion::SPEC_FULL);
+  std::vector<std::pair<size_t, size_t>> out_pairs_empty;
+  ed_full_empty.digestUnmodified(empty_s, out_pairs_empty, 0, 10);
+  TEST_EQUAL(out_pairs_empty.size(), 0)
+  // defensive: if a span were (incorrectly) reported, its length must never exceed the input.
+  for (const auto& p : out_pairs_empty)
+  {
+    TEST_EQUAL(p.second <= empty_s.size(), true)
+  }
+
+  // Bug (2): SPEC_SEMI must not throw for an empty sequence when min_length == 0.
+  EnzymaticDigestion ed_semi_empty;
+  ed_semi_empty.setEnzyme(ProteaseDB::getInstance()->getEnzyme("Trypsin"));
+  ed_semi_empty.setSpecificity(EnzymaticDigestion::SPEC_SEMI);
+
+  std::vector<std::pair<size_t, size_t>> out_pairs_semi;
+  ed_semi_empty.digestUnmodified(empty_s, out_pairs_semi, 0, 10); // must not throw
+  TEST_EQUAL(out_pairs_semi.size(), 0)
+
+  // Same scenario through the std::string_view-output overload, used directly by most production
+  // call sites (SimpleSearchEngineAlgorithm, OpenSwathLibraryPreparation, FragmentIndex's
+  // 'clip_nterm_methionine_' branch, ...).
+  std::vector<std::string_view> out_views;
+  ed_semi_empty.digestUnmodified(empty_s, out_views, 0, 10); // must not throw
+  TEST_EQUAL(out_views.size(), 0)
+
+  // SPEC_FULL on the string_view overload never underflowed (its "no cleavage site" branch already
+  // pushed 'sequence' itself rather than computing size() - 1), but it used to report one spurious
+  // zero-length "peptide" for an empty sequence with min_length == 0; the fix (treating an empty
+  // sequence as "too short" up front, for every specificity) removes that too.
+  EnzymaticDigestion ed_full_empty_sv;
+  ed_full_empty_sv.setEnzyme(ProteaseDB::getInstance()->getEnzyme("Trypsin"));
+  ed_full_empty_sv.setSpecificity(EnzymaticDigestion::SPEC_FULL);
+  out_views.clear();
+  ed_full_empty_sv.digestUnmodified(empty_s, out_views, 0, 10);
+  TEST_EQUAL(out_views.size(), 0)
+}
+END_SECTION
+
 START_SECTION((Size semiSpecificDigestion_(const std::vector<int>& cleavage_positions, std::vector<std::pair<Size, Size>>& output, Size min_length, Size max_length) const))
 {
     class TempChild : public EnzymaticDigestion
@@ -587,4 +663,101 @@ END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
+START_SECTION(([EXTRA] static std::optional<SimpleCleavageRule> SimpleCleavageRule::parse(const std::string& regex)))
+{
+  using Rule = EnzymaticDigestion::SimpleCleavageRule;
+  const std::optional<Rule> trypsin = Rule::parse("(?<=[KRX])(?!P)");
+  TEST_TRUE(trypsin.has_value())
+  TEST_TRUE(trypsin->cleavesBetween('K', 'A'))
+  TEST_TRUE(trypsin->cleavesBetween('R', 'K'))
+  TEST_TRUE(trypsin->cleavesBetween('X', 'R'))
+  TEST_TRUE(!trypsin->cleavesBetween('K', 'P'))
+  TEST_TRUE(!trypsin->cleavesBetween('A', 'A'))
+  TEST_TRUE(!trypsin->cleavesBetween('P', 'K'))
+  const std::optional<Rule> trypsin_p = Rule::parse("(?<=[KRX])");
+  TEST_TRUE(trypsin_p.has_value())
+  TEST_TRUE(trypsin_p->cleavesBetween('K', 'P'))
+  TEST_TRUE(!trypsin_p->cleavesBetween('P', 'K'))
+  const std::optional<Rule> lys_c = Rule::parse("(?<=[KX])(?!P)");
+  TEST_TRUE(lys_c.has_value())
+  TEST_TRUE(lys_c->cleavesBetween('K', 'R'))
+  TEST_TRUE(!lys_c->cleavesBetween('R', 'K'))
+  // every other pattern is left to the regular expression
+  for (const char* regex : {"", "()", "(?<=W)", "(?<=[])", "(?<=[A-Z])", "(?<=[kr])", "(?<=[KR]", "(?<=[KR]))", "(?<=[KR])(?!P",
+                            "(?<=[KR])(?![P])", "(?<=[KR])(?!PQ)", "(?<=[KR])(?!p)", "(?<=[KR])(?!P) ", "(?=[DBX])",
+                            "(?<=[DBX])(?=[DBX])", "(?<=[HKRX][PX])(?!P)"})
+  {
+    TEST_TRUE(!Rule::parse(regex).has_value())
+  }
+}
+END_SECTION
+
+START_SECTION(([EXTRA] every enzyme with a simple cleavage rule: the hand-counted cleavage positions of tokenize_() equal those of the regular expression))
+{
+  // the regular-expression path of tokenize_() for the same enzyme: the cached simple rule is cleared after setEnzyme()
+  struct RegexDigestion : EnzymaticDigestion
+  {
+    void setEnzyme(const DigestionEnzyme* enzyme) { EnzymaticDigestion::setEnzyme(enzyme); simple_rule_.reset(); }
+  };
+  std::mt19937 rng(42);
+  std::set<std::string> simple, regex_only;
+  const ProteaseDB* db = ProteaseDB::getInstance();
+  for (auto it = db->beginEnzyme(); it != db->endEnzyme(); ++it)
+  {
+    const DigestionEnzymeProtein* enzyme = *it;
+    const std::optional<EnzymaticDigestion::SimpleCleavageRule> rule = EnzymaticDigestion::SimpleCleavageRule::parse(enzyme->getRegEx());
+    if (!rule)
+    {
+      regex_only.insert(enzyme->getName());
+      continue;
+    }
+    simple.insert(enzyme->getName());
+    // sequences rich in the residues of the rule: the cleaving ones, the blocking one (three times) and a few others
+    std::string alphabet = "AGL";
+    for (int c = 'A'; c <= 'Z'; ++c)
+    {
+      if (rule->after[static_cast<size_t>(c)]) alphabet += static_cast<char>(c);
+      if (rule->not_before[static_cast<size_t>(c)]) alphabet += std::string(3, static_cast<char>(c));
+    }
+    EnzymaticDigestion fast;
+    RegexDigestion slow;
+    fast.setEnzyme(enzyme);
+    slow.setEnzyme(enzyme);
+    fast.setMissedCleavages(1);
+    slow.setMissedCleavages(1);
+    for (auto spec : {EnzymaticDigestion::SPEC_FULL, EnzymaticDigestion::SPEC_SEMI, EnzymaticDigestion::SPEC_NONE})
+    {
+      fast.setSpecificity(spec);
+      slow.setSpecificity(spec);
+      for (int k = 0; k < 100; ++k)
+      {
+        std::string s(std::uniform_int_distribution<int>(1, 16)(rng), 'A');
+        for (char& c : s) c = alphabet[std::uniform_int_distribution<size_t>(0, alphabet.size() - 1)(rng)];
+        TEST_EQUAL(fast.countInternalCleavageSites(s), slow.countInternalCleavageSites(s))
+        std::vector<std::pair<Size, Size>> a, b;
+        fast.digestUnmodified(s, a);
+        slow.digestUnmodified(s, b);
+        TEST_TRUE(a == b)
+        // SPEC_NONE: tokenize_(s, pos, end); SPEC_FULL and SPEC_SEMI: tokenize_(s, pos - 2, end + 2)
+        for (int pos = 0; pos < static_cast<int>(s.size()); ++pos)
+        {
+          for (int len = 1; pos + len <= static_cast<int>(s.size()); ++len)
+          {
+            TEST_EQUAL(fast.isValidProduct(s, pos, len, false), slow.isValidProduct(s, pos, len, false))
+          }
+        }
+      }
+    }
+  }
+  for (const char* name : {"Trypsin", "Trypsin/P", "Lys-C", "Arg-C", "Chymotrypsin", "glutamyl endopeptidase"})
+  {
+    TEST_TRUE(simple.count(name) == 1)
+  }
+  for (const char* name : {"Asp-N", "no cleavage", "unspecific cleavage", "Formic_acid", "proline endopeptidase"})
+  {
+    TEST_TRUE(regex_only.count(name) == 1)
+  }
+}
+END_SECTION
+
 END_TEST

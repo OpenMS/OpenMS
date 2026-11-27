@@ -24,24 +24,11 @@
 
 namespace OpenMS { namespace Internal { namespace Percolator {
 
-PSMDescription::PSMDescription() : features(NULL), expMass(0.), calcMass(0.), retentionTime_(nan("")), scan(0u), specFileNr(0u), id_(""), peptide("") {
-}
 
-PSMDescription::PSMDescription(const std::string& pep) : features(NULL), expMass(0.), calcMass(0.), retentionTime_(nan("")), scan(0u), specFileNr(0u), id_(""), peptide(pep) {
-}
-
-PSMDescription::~PSMDescription() {}
 
 std::string PSMDescription::proteinNameSeparator_ = "\t";
 std::vector<string> PSMDescription::spectraFileNames_(0);
-
-void PSMDescription::deletePtr(PSMDescription* psm) {
-    if (psm != NULL) {
-        psm->deleteRetentionFeatures();
-        delete psm;
-        psm = NULL;
-    }
-}
+size_t PSMDescription::lastSpectrumFileIndex_ = 0;
 
 std::string PSMDescription::removePTMs(const string& peptide) {
     std::string peptideSequence = peptide;
@@ -71,12 +58,25 @@ std::string PSMDescription::removePTMs(const string& peptide) {
     return peptide.substr(0, 1) + std::string(".") + peptideSequence + std::string(".") + peptide.substr(peptide.size() - 1, 1);
 }
 
-void PSMDescription::printProteins(std::ostream& out) {
-    std::vector<std::string>::const_iterator it = proteinIds.begin();
+void PSMDescription::printProteins(std::ostream& out) const {
+    ProteinList proteinIds = proteins();
+    ProteinList::const_iterator it = proteinIds.begin();
     if (it != proteinIds.end()) {
         out << *it;
         for (++it; it != proteinIds.end(); ++it) {
             out << PSMDescription::proteinNameSeparator_ << *it;
+        }
+    }
+}
+
+void PSMDescription::appendProteins(std::string& out) const {
+    ProteinList proteinIds = proteins();
+    ProteinList::const_iterator it = proteinIds.begin();
+    if (it != proteinIds.end()) {
+        out += *it;
+        for (++it; it != proteinIds.end(); ++it) {
+            out += PSMDescription::proteinNameSeparator_;
+            out += *it;
         }
     }
 }

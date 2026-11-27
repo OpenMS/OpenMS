@@ -201,8 +201,9 @@ A glossary of common terms used throughout OpenMS documentation.
        applications that can be chained to create analysis pipelines tailored for a specific problem. See :term:`TOPP tools`.
 
     TOPPAS
-        An assistant for GUI-driven :term:`TOPP` workflow design, build into OpenMS. 
-        See `TOPPAS tutorial <https://archive.openms.de/openms/Documentation/nightly/latest/html/TOPPAS_tutorial.html>` for details.
+        An assistant for GUI-driven :term:`TOPP` workflow design, one of the graphical tools of OpenMS
+        (installed separately from `OpenMS-TOPP-GUI <https://github.com/OpenMS/OpenMS-TOPP-GUI>`__).
+        See `TOPPAS tutorial <https://archive.openms.de/openms/Documentation/release/latest/html-gui/TOPPAS_tutorial.html>`__ for details.
 
     TOPP tools
         OpenMS provides a number of applications (executable files) that are chainable in a pipeline/script and each process MS data.

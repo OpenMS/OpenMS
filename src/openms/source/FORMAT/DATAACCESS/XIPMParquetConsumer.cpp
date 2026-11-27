@@ -7,6 +7,8 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/DATAACCESS/XIPMParquetConsumer.h>
+#include "ParquetConsumerHelpers.h"
+#include <OpenMS/FORMAT/ParquetFile.h>
 
 #include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathHelper.h>
 #include <OpenMS/CONCEPT/Exception.h>
@@ -34,158 +36,29 @@ namespace OpenMS
 {
   namespace
   {
-    void appendOrThrow_(const arrow::Status& status, const char* column)
-    {
-      if (!status.ok())
-      {
-        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                      std::string("Failed to append value for ") + column, status.ToString());
-      }
-    }
-
-    void reserveOrThrow_(const arrow::Status& status, const char* column)
-    {
-      if (!status.ok())
-      {
-        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                      std::string("Failed to reserve capacity for ") + column, status.ToString());
-      }
-    }
-
-    template <typename Builder>
-    std::shared_ptr<arrow::Array> finishArray_(Builder& builder, const char* name)
-    {
-      std::shared_ptr<arrow::Array> array;
-      auto status = builder.Finish(&array);
-      if (!status.ok())
-      {
-        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                      std::string("Failed to finish array for ") + name, status.ToString());
-      }
-      return array;
-    }
-
-    void appendOptionalInt_(arrow::Int64Builder& builder, bool has_value, int64_t value, const char* column)
-    {
-      if (!has_value)
-      {
-        appendOrThrow_(builder.AppendNull(), column);
-      }
-      else
-      {
-        appendOrThrow_(builder.Append(value), column);
-      }
-    }
+    using Internal::ParquetConsumerHelpers::appendOrThrow;
+    using Internal::ParquetConsumerHelpers::reserveOrThrow;
+    using Internal::ParquetConsumerHelpers::appendOptionalInt;
+    using Internal::ParquetConsumerHelpers::appendOptionalString;
+    using Internal::ParquetConsumerHelpers::appendBinary;
+    using Internal::ParquetConsumerHelpers::IdAssigner;
+    using Internal::ParquetConsumerHelpers::buildAnnotation;
+    using Internal::ParquetConsumerHelpers::buildPrecursorAnnotation;
+    using Internal::ParquetConsumerHelpers::CompoundInfo;
+    using Internal::ParquetConsumerHelpers::TransitionInfo;
 
     void appendOptionalDouble_(arrow::DoubleBuilder& builder, bool has_value, double value, const char* column)
     {
       if (!has_value || !std::isfinite(value))
       {
-        appendOrThrow_(builder.AppendNull(), column);
+        appendOrThrow(builder.AppendNull(), column);
       }
       else
       {
-        appendOrThrow_(builder.Append(value), column);
+        appendOrThrow(builder.Append(value), column);
       }
     }
 
-    void appendOptionalString_(arrow::StringBuilder& builder, const std::string& value, const char* column)
-    {
-      if (value.empty())
-      {
-        appendOrThrow_(builder.AppendNull(), column);
-      }
-      else
-      {
-        appendOrThrow_(builder.Append(value), column);
-      }
-    }
-
-    void appendBinary_(arrow::BinaryBuilder& builder, const std::string& value, const char* column)
-    {
-      if (value.size() > static_cast<Size>(std::numeric_limits<int32_t>::max()))
-      {
-        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                      std::string("Failed to append value for ") + column,
-                                      "Single binary payload exceeds Arrow binary cell limit");
-      }
-      appendOrThrow_(builder.Append(reinterpret_cast<const uint8_t*>(value.data()),
-                                    static_cast<int32_t>(value.size())), column);
-    }
-
-    struct CompoundInfo
-    {
-      int64_t precursor_id = 0;
-      std::string modified_sequence;
-      int64_t precursor_charge = 0;
-      int64_t precursor_decoy = 0;
-    };
-
-    struct TransitionInfo
-    {
-      int64_t transition_id = 0;
-      int64_t precursor_id = 0;
-      std::string modified_sequence;
-      int64_t precursor_charge = 0;
-      int64_t product_charge = 0;
-      int64_t detecting_transition = 0;
-      int64_t precursor_decoy = 0;
-      int64_t product_decoy = 0;
-      int64_t transition_ordinal = 0;
-      std::string transition_type;
-      std::string annotation;
-    };
-
-    int64_t parseOrAssignId_(const std::string& text, int64_t& next_id, std::unordered_set<int64_t>& used_ids)
-    {
-      try
-      {
-        const int64_t value = StringUtils::toInt64(text);
-        if (value >= 0 && used_ids.insert(value).second)
-        {
-          if (value >= next_id)
-          {
-            next_id = value + 1;
-          }
-          return value;
-        }
-      }
-      catch (Exception::ConversionError&)
-      {
-      }
-
-      while (used_ids.count(next_id))
-      {
-        ++next_id;
-      }
-      used_ids.insert(next_id);
-      return next_id++;
-    }
-
-    std::string buildAnnotation_(const std::string& transition_type, int64_t ordinal, int64_t charge)
-    {
-      if (transition_type.empty() || ordinal < 0)
-      {
-        return "";
-      }
-      std::string annotation = transition_type + StringUtils::toStr(ordinal);
-      if (charge > 0)
-      {
-        annotation += "^" + StringUtils::toStr(charge);
-      }
-      return annotation;
-    }
-
-    std::string buildPrecursorAnnotation_(const std::string& native_id)
-    {
-      const std::string tag = "_Precursor_i";
-      const Size pos = native_id.rfind(tag);
-      if (pos != std::string::npos)
-      {
-        return native_id.substr(pos + 1);
-      }
-      return "";
-    }
   } // namespace
 
   class XIPMParquetConsumerImpl
@@ -246,10 +119,10 @@ namespace OpenMS
       }
 
       const bool is_precursor = peak_map.native_id.find("_Precursor_i") != std::string::npos;
-      appendOrThrow_(run_id_builder_.Append(static_cast<int64_t>(run_id)), "RUN_ID");
-      appendOptionalString_(source_file_builder_, source_file, "SOURCE_FILE");
-      appendOrThrow_(ms_level_builder_.Append(ms_level), "MS_LEVEL");
-      appendOrThrow_(peakmap_type_builder_.Append(is_precursor ? "precursor" : "transition"), "PEAKMAP_TYPE");
+      appendOrThrow(run_id_builder_.Append(static_cast<int64_t>(run_id)), "RUN_ID");
+      appendOptionalString(source_file_builder_, source_file, "SOURCE_FILE");
+      appendOrThrow(ms_level_builder_.Append(ms_level), "MS_LEVEL");
+      appendOrThrow(peakmap_type_builder_.Append(is_precursor ? "precursor" : "transition"), "PEAKMAP_TYPE");
 
       if (is_precursor)
       {
@@ -263,17 +136,17 @@ namespace OpenMS
         }
 
         const CompoundInfo& comp = comp_it->second;
-        appendOptionalInt_(precursor_id_builder_, true, comp.precursor_id, "PRECURSOR_ID");
-        appendOrThrow_(transition_id_builder_.AppendNull(), "TRANSITION_ID");
-        appendOptionalString_(modified_sequence_builder_, comp.modified_sequence, "MODIFIED_SEQUENCE");
-        appendOptionalInt_(precursor_charge_builder_, comp.precursor_charge > 0, comp.precursor_charge, "PRECURSOR_CHARGE");
-        appendOrThrow_(product_charge_builder_.AppendNull(), "PRODUCT_CHARGE");
-        appendOrThrow_(detecting_transition_builder_.AppendNull(), "DETECTING_TRANSITION");
-        appendOptionalInt_(precursor_decoy_builder_, true, comp.precursor_decoy, "PRECURSOR_DECOY");
-        appendOrThrow_(product_decoy_builder_.AppendNull(), "PRODUCT_DECOY");
-        appendOrThrow_(transition_ordinal_builder_.AppendNull(), "TRANSITION_ORDINAL");
-        appendOrThrow_(transition_type_builder_.AppendNull(), "TRANSITION_TYPE");
-        appendOptionalString_(annotation_builder_, buildPrecursorAnnotation_(peak_map.native_id), "ANNOTATION");
+        appendOptionalInt(precursor_id_builder_, true, comp.precursor_id, "PRECURSOR_ID");
+        appendOrThrow(transition_id_builder_.AppendNull(), "TRANSITION_ID");
+        appendOptionalString(modified_sequence_builder_, comp.modified_sequence, "MODIFIED_SEQUENCE");
+        appendOptionalInt(precursor_charge_builder_, comp.precursor_charge > 0, comp.precursor_charge, "PRECURSOR_CHARGE");
+        appendOrThrow(product_charge_builder_.AppendNull(), "PRODUCT_CHARGE");
+        appendOrThrow(detecting_transition_builder_.AppendNull(), "DETECTING_TRANSITION");
+        appendOptionalInt(precursor_decoy_builder_, true, comp.precursor_decoy, "PRECURSOR_DECOY");
+        appendOrThrow(product_decoy_builder_.AppendNull(), "PRODUCT_DECOY");
+        appendOrThrow(transition_ordinal_builder_.AppendNull(), "TRANSITION_ORDINAL");
+        appendOrThrow(transition_type_builder_.AppendNull(), "TRANSITION_TYPE");
+        appendOptionalString(annotation_builder_, buildPrecursorAnnotation(peak_map.native_id), "ANNOTATION");
       }
       else
       {
@@ -286,20 +159,20 @@ namespace OpenMS
         }
 
         const TransitionInfo& tr = tr_it->second;
-        appendOptionalInt_(precursor_id_builder_, true, tr.precursor_id, "PRECURSOR_ID");
-        appendOptionalInt_(transition_id_builder_, true, tr.transition_id, "TRANSITION_ID");
-        appendOptionalString_(modified_sequence_builder_, tr.modified_sequence, "MODIFIED_SEQUENCE");
-        appendOptionalInt_(precursor_charge_builder_, tr.precursor_charge > 0, tr.precursor_charge, "PRECURSOR_CHARGE");
-        appendOptionalInt_(product_charge_builder_, tr.product_charge > 0, tr.product_charge, "PRODUCT_CHARGE");
-        appendOptionalInt_(detecting_transition_builder_, true, tr.detecting_transition, "DETECTING_TRANSITION");
-        appendOptionalInt_(precursor_decoy_builder_, true, tr.precursor_decoy, "PRECURSOR_DECOY");
-        appendOptionalInt_(product_decoy_builder_, true, tr.product_decoy, "PRODUCT_DECOY");
-        appendOptionalInt_(transition_ordinal_builder_, tr.transition_ordinal >= 0, tr.transition_ordinal, "TRANSITION_ORDINAL");
-        appendOptionalString_(transition_type_builder_, tr.transition_type, "TRANSITION_TYPE");
-        appendOptionalString_(annotation_builder_, tr.annotation, "ANNOTATION");
+        appendOptionalInt(precursor_id_builder_, true, tr.precursor_id, "PRECURSOR_ID");
+        appendOptionalInt(transition_id_builder_, true, tr.transition_id, "TRANSITION_ID");
+        appendOptionalString(modified_sequence_builder_, tr.modified_sequence, "MODIFIED_SEQUENCE");
+        appendOptionalInt(precursor_charge_builder_, tr.precursor_charge > 0, tr.precursor_charge, "PRECURSOR_CHARGE");
+        appendOptionalInt(product_charge_builder_, tr.product_charge > 0, tr.product_charge, "PRODUCT_CHARGE");
+        appendOptionalInt(detecting_transition_builder_, true, tr.detecting_transition, "DETECTING_TRANSITION");
+        appendOptionalInt(precursor_decoy_builder_, true, tr.precursor_decoy, "PRECURSOR_DECOY");
+        appendOptionalInt(product_decoy_builder_, true, tr.product_decoy, "PRODUCT_DECOY");
+        appendOptionalInt(transition_ordinal_builder_, tr.transition_ordinal >= 0, tr.transition_ordinal, "TRANSITION_ORDINAL");
+        appendOptionalString(transition_type_builder_, tr.transition_type, "TRANSITION_TYPE");
+        appendOptionalString(annotation_builder_, tr.annotation, "ANNOTATION");
       }
 
-      appendOrThrow_(target_mz_builder_.Append(peak_map.target_mz), "TARGET_MZ");
+      appendOrThrow(target_mz_builder_.Append(peak_map.target_mz), "TARGET_MZ");
       const bool has_rt_window = (peak_map.rt_end - peak_map.rt_start) > 0.0;
       const bool has_target_rt = std::isfinite(peak_map.target_rt) || has_rt_window;
       const double target_rt = std::isfinite(peak_map.target_rt) ? peak_map.target_rt :
@@ -324,34 +197,34 @@ namespace OpenMS
         return;
       }
 
-      reserveOrThrow_(run_id_builder_.Reserve(expectedPeakMaps), "RUN_ID");
-      reserveOrThrow_(source_file_builder_.Reserve(expectedPeakMaps), "SOURCE_FILE");
-      reserveOrThrow_(ms_level_builder_.Reserve(expectedPeakMaps), "MS_LEVEL");
-      reserveOrThrow_(peakmap_type_builder_.Reserve(expectedPeakMaps), "PEAKMAP_TYPE");
-      reserveOrThrow_(precursor_id_builder_.Reserve(expectedPeakMaps), "PRECURSOR_ID");
-      reserveOrThrow_(transition_id_builder_.Reserve(expectedPeakMaps), "TRANSITION_ID");
-      reserveOrThrow_(modified_sequence_builder_.Reserve(expectedPeakMaps), "MODIFIED_SEQUENCE");
-      reserveOrThrow_(precursor_charge_builder_.Reserve(expectedPeakMaps), "PRECURSOR_CHARGE");
-      reserveOrThrow_(product_charge_builder_.Reserve(expectedPeakMaps), "PRODUCT_CHARGE");
-      reserveOrThrow_(detecting_transition_builder_.Reserve(expectedPeakMaps), "DETECTING_TRANSITION");
-      reserveOrThrow_(precursor_decoy_builder_.Reserve(expectedPeakMaps), "PRECURSOR_DECOY");
-      reserveOrThrow_(product_decoy_builder_.Reserve(expectedPeakMaps), "PRODUCT_DECOY");
-      reserveOrThrow_(transition_ordinal_builder_.Reserve(expectedPeakMaps), "TRANSITION_ORDINAL");
-      reserveOrThrow_(transition_type_builder_.Reserve(expectedPeakMaps), "TRANSITION_TYPE");
-      reserveOrThrow_(annotation_builder_.Reserve(expectedPeakMaps), "ANNOTATION");
-      reserveOrThrow_(target_mz_builder_.Reserve(expectedPeakMaps), "TARGET_MZ");
-      reserveOrThrow_(target_rt_builder_.Reserve(expectedPeakMaps), "TARGET_RT");
-      reserveOrThrow_(target_im_builder_.Reserve(expectedPeakMaps), "TARGET_ION_MOBILITY");
-      reserveOrThrow_(rt_start_builder_.Reserve(expectedPeakMaps), "RT_START");
-      reserveOrThrow_(rt_end_builder_.Reserve(expectedPeakMaps), "RT_END");
-      reserveOrThrow_(mz_data_builder_.Reserve(expectedPeakMaps), "MZ_DATA");
-      reserveOrThrow_(rt_data_builder_.Reserve(expectedPeakMaps), "RT_DATA");
-      reserveOrThrow_(mobility_data_builder_.Reserve(expectedPeakMaps), "MOBILITY_DATA");
-      reserveOrThrow_(intensity_data_builder_.Reserve(expectedPeakMaps), "INTENSITY_DATA");
-      reserveOrThrow_(mz_compression_builder_.Reserve(expectedPeakMaps), "MZ_COMPRESSION");
-      reserveOrThrow_(rt_compression_builder_.Reserve(expectedPeakMaps), "RT_COMPRESSION");
-      reserveOrThrow_(mobility_compression_builder_.Reserve(expectedPeakMaps), "MOBILITY_COMPRESSION");
-      reserveOrThrow_(intensity_compression_builder_.Reserve(expectedPeakMaps), "INTENSITY_COMPRESSION");
+      reserveOrThrow(run_id_builder_.Reserve(expectedPeakMaps), "RUN_ID");
+      reserveOrThrow(source_file_builder_.Reserve(expectedPeakMaps), "SOURCE_FILE");
+      reserveOrThrow(ms_level_builder_.Reserve(expectedPeakMaps), "MS_LEVEL");
+      reserveOrThrow(peakmap_type_builder_.Reserve(expectedPeakMaps), "PEAKMAP_TYPE");
+      reserveOrThrow(precursor_id_builder_.Reserve(expectedPeakMaps), "PRECURSOR_ID");
+      reserveOrThrow(transition_id_builder_.Reserve(expectedPeakMaps), "TRANSITION_ID");
+      reserveOrThrow(modified_sequence_builder_.Reserve(expectedPeakMaps), "MODIFIED_SEQUENCE");
+      reserveOrThrow(precursor_charge_builder_.Reserve(expectedPeakMaps), "PRECURSOR_CHARGE");
+      reserveOrThrow(product_charge_builder_.Reserve(expectedPeakMaps), "PRODUCT_CHARGE");
+      reserveOrThrow(detecting_transition_builder_.Reserve(expectedPeakMaps), "DETECTING_TRANSITION");
+      reserveOrThrow(precursor_decoy_builder_.Reserve(expectedPeakMaps), "PRECURSOR_DECOY");
+      reserveOrThrow(product_decoy_builder_.Reserve(expectedPeakMaps), "PRODUCT_DECOY");
+      reserveOrThrow(transition_ordinal_builder_.Reserve(expectedPeakMaps), "TRANSITION_ORDINAL");
+      reserveOrThrow(transition_type_builder_.Reserve(expectedPeakMaps), "TRANSITION_TYPE");
+      reserveOrThrow(annotation_builder_.Reserve(expectedPeakMaps), "ANNOTATION");
+      reserveOrThrow(target_mz_builder_.Reserve(expectedPeakMaps), "TARGET_MZ");
+      reserveOrThrow(target_rt_builder_.Reserve(expectedPeakMaps), "TARGET_RT");
+      reserveOrThrow(target_im_builder_.Reserve(expectedPeakMaps), "TARGET_ION_MOBILITY");
+      reserveOrThrow(rt_start_builder_.Reserve(expectedPeakMaps), "RT_START");
+      reserveOrThrow(rt_end_builder_.Reserve(expectedPeakMaps), "RT_END");
+      reserveOrThrow(mz_data_builder_.Reserve(expectedPeakMaps), "MZ_DATA");
+      reserveOrThrow(rt_data_builder_.Reserve(expectedPeakMaps), "RT_DATA");
+      reserveOrThrow(mobility_data_builder_.Reserve(expectedPeakMaps), "MOBILITY_DATA");
+      reserveOrThrow(intensity_data_builder_.Reserve(expectedPeakMaps), "INTENSITY_DATA");
+      reserveOrThrow(mz_compression_builder_.Reserve(expectedPeakMaps), "MZ_COMPRESSION");
+      reserveOrThrow(rt_compression_builder_.Reserve(expectedPeakMaps), "RT_COMPRESSION");
+      reserveOrThrow(mobility_compression_builder_.Reserve(expectedPeakMaps), "MOBILITY_COMPRESSION");
+      reserveOrThrow(intensity_compression_builder_.Reserve(expectedPeakMaps), "INTENSITY_COMPRESSION");
     }
 
     void finalize()
@@ -423,10 +296,8 @@ namespace OpenMS
 
     void buildTransitionMaps_(const OpenSwath::LightTargetedExperiment& transition_exp)
     {
-      int64_t next_precursor_id = 1;
-      int64_t next_transition_id = 1;
-      std::unordered_set<int64_t> used_precursor_ids;
-      std::unordered_set<int64_t> used_transition_ids;
+      IdAssigner precursor_id_assigner("XIPMParquetConsumer", "PRECURSOR_ID");
+      IdAssigner transition_id_assigner("XIPMParquetConsumer", "TRANSITION_ID");
 
       std::unordered_map<std::string, bool> precursor_has_target_transition;
       std::unordered_map<std::string, bool> precursor_has_decoy_transition;
@@ -454,13 +325,25 @@ namespace OpenMS
         return (!has_target && has_decoy) ? 1 : 0;
       };
 
+      // Claim every explicit ID first: a fresh ID handed out below must not take a value that an
+      // entry later in the list carries itself.
+      for (const auto& compound : transition_exp.getCompounds())
+      {
+        precursor_id_assigner.reserve(compound.id);
+      }
+      for (const auto& transition : transition_exp.getTransitions())
+      {
+        transition_id_assigner.reserve(transition.transition_name);
+        precursor_id_assigner.reserve(transition.peptide_ref);
+      }
+
       std::unordered_map<std::string, int64_t> precursor_ids;
       precursor_ids.reserve(transition_exp.getCompounds().size());
 
       for (const auto& compound : transition_exp.getCompounds())
       {
         const std::string compound_id = compound.id;
-        const int64_t precursor_id = parseOrAssignId_(compound_id, next_precursor_id, used_precursor_ids);
+        const int64_t precursor_id = precursor_id_assigner.assign(compound_id);
         precursor_ids[compound_id] = precursor_id;
 
         CompoundInfo info;
@@ -480,7 +363,7 @@ namespace OpenMS
         auto id_it = transition_ids_.find(transition_name);
         if (id_it == transition_ids_.end())
         {
-          transition_id = parseOrAssignId_(transition_name, next_transition_id, used_transition_ids);
+          transition_id = transition_id_assigner.assign(transition_name);
           transition_ids_[transition_name] = transition_id;
         }
         else
@@ -491,7 +374,7 @@ namespace OpenMS
         auto precursor_it = precursor_ids.find(peptide_ref);
         if (precursor_it == precursor_ids.end())
         {
-          const int64_t precursor_id = parseOrAssignId_(peptide_ref, next_precursor_id, used_precursor_ids);
+          const int64_t precursor_id = precursor_id_assigner.assign(peptide_ref);
           precursor_ids[peptide_ref] = precursor_id;
 
           CompoundInfo info;
@@ -516,7 +399,7 @@ namespace OpenMS
         info.product_decoy = transition.getDecoy() ? 1 : 0;
         info.transition_ordinal = transition.fragment_nr;
         info.transition_type = transition.getFragmentType();
-        info.annotation = buildAnnotation_(info.transition_type, info.transition_ordinal, info.product_charge);
+        info.annotation = buildAnnotation(info.transition_type, info.transition_ordinal, info.product_charge);
 
         transition_info_.emplace(transition_name, std::move(info));
       }
@@ -569,34 +452,34 @@ namespace OpenMS
       const auto& fields = schema_->fields();
       int i = 0;
       std::vector<std::shared_ptr<arrow::Array>> arrays = {
-        finishArray_(run_id_builder_, fields.at(i++)->name().c_str()),
-        finishArray_(source_file_builder_, fields.at(i++)->name().c_str()),
-        finishArray_(ms_level_builder_, fields.at(i++)->name().c_str()),
-        finishArray_(peakmap_type_builder_, fields.at(i++)->name().c_str()),
-        finishArray_(precursor_id_builder_, fields.at(i++)->name().c_str()),
-        finishArray_(transition_id_builder_, fields.at(i++)->name().c_str()),
-        finishArray_(modified_sequence_builder_, fields.at(i++)->name().c_str()),
-        finishArray_(precursor_charge_builder_, fields.at(i++)->name().c_str()),
-        finishArray_(product_charge_builder_, fields.at(i++)->name().c_str()),
-        finishArray_(detecting_transition_builder_, fields.at(i++)->name().c_str()),
-        finishArray_(precursor_decoy_builder_, fields.at(i++)->name().c_str()),
-        finishArray_(product_decoy_builder_, fields.at(i++)->name().c_str()),
-        finishArray_(transition_ordinal_builder_, fields.at(i++)->name().c_str()),
-        finishArray_(transition_type_builder_, fields.at(i++)->name().c_str()),
-        finishArray_(annotation_builder_, fields.at(i++)->name().c_str()),
-        finishArray_(target_mz_builder_, fields.at(i++)->name().c_str()),
-        finishArray_(target_rt_builder_, fields.at(i++)->name().c_str()),
-        finishArray_(target_im_builder_, fields.at(i++)->name().c_str()),
-        finishArray_(rt_start_builder_, fields.at(i++)->name().c_str()),
-        finishArray_(rt_end_builder_, fields.at(i++)->name().c_str()),
-        finishArray_(mz_data_builder_, fields.at(i++)->name().c_str()),
-        finishArray_(rt_data_builder_, fields.at(i++)->name().c_str()),
-        finishArray_(mobility_data_builder_, fields.at(i++)->name().c_str()),
-        finishArray_(intensity_data_builder_, fields.at(i++)->name().c_str()),
-        finishArray_(mz_compression_builder_, fields.at(i++)->name().c_str()),
-        finishArray_(rt_compression_builder_, fields.at(i++)->name().c_str()),
-        finishArray_(mobility_compression_builder_, fields.at(i++)->name().c_str()),
-        finishArray_(intensity_compression_builder_, fields.at(i++)->name().c_str()),
+        ParquetFile::finishArray(run_id_builder_, fields.at(i++)->name().c_str()),
+        ParquetFile::finishArray(source_file_builder_, fields.at(i++)->name().c_str()),
+        ParquetFile::finishArray(ms_level_builder_, fields.at(i++)->name().c_str()),
+        ParquetFile::finishArray(peakmap_type_builder_, fields.at(i++)->name().c_str()),
+        ParquetFile::finishArray(precursor_id_builder_, fields.at(i++)->name().c_str()),
+        ParquetFile::finishArray(transition_id_builder_, fields.at(i++)->name().c_str()),
+        ParquetFile::finishArray(modified_sequence_builder_, fields.at(i++)->name().c_str()),
+        ParquetFile::finishArray(precursor_charge_builder_, fields.at(i++)->name().c_str()),
+        ParquetFile::finishArray(product_charge_builder_, fields.at(i++)->name().c_str()),
+        ParquetFile::finishArray(detecting_transition_builder_, fields.at(i++)->name().c_str()),
+        ParquetFile::finishArray(precursor_decoy_builder_, fields.at(i++)->name().c_str()),
+        ParquetFile::finishArray(product_decoy_builder_, fields.at(i++)->name().c_str()),
+        ParquetFile::finishArray(transition_ordinal_builder_, fields.at(i++)->name().c_str()),
+        ParquetFile::finishArray(transition_type_builder_, fields.at(i++)->name().c_str()),
+        ParquetFile::finishArray(annotation_builder_, fields.at(i++)->name().c_str()),
+        ParquetFile::finishArray(target_mz_builder_, fields.at(i++)->name().c_str()),
+        ParquetFile::finishArray(target_rt_builder_, fields.at(i++)->name().c_str()),
+        ParquetFile::finishArray(target_im_builder_, fields.at(i++)->name().c_str()),
+        ParquetFile::finishArray(rt_start_builder_, fields.at(i++)->name().c_str()),
+        ParquetFile::finishArray(rt_end_builder_, fields.at(i++)->name().c_str()),
+        ParquetFile::finishArray(mz_data_builder_, fields.at(i++)->name().c_str()),
+        ParquetFile::finishArray(rt_data_builder_, fields.at(i++)->name().c_str()),
+        ParquetFile::finishArray(mobility_data_builder_, fields.at(i++)->name().c_str()),
+        ParquetFile::finishArray(intensity_data_builder_, fields.at(i++)->name().c_str()),
+        ParquetFile::finishArray(mz_compression_builder_, fields.at(i++)->name().c_str()),
+        ParquetFile::finishArray(rt_compression_builder_, fields.at(i++)->name().c_str()),
+        ParquetFile::finishArray(mobility_compression_builder_, fields.at(i++)->name().c_str()),
+        ParquetFile::finishArray(intensity_compression_builder_, fields.at(i++)->name().c_str()),
       };
       OPENMS_PRECONDITION(i == schema_->num_fields(),
                           "Column count mismatch: buildSchema_ and buildTableFromBuilders_ are out of sync");
@@ -685,14 +568,14 @@ namespace OpenMS
 
     void appendEncodedPeakMap_(const EncodedPeakMap& encoded)
     {
-      appendBinary_(mz_data_builder_, encoded.mz_encoded, "MZ_DATA");
-      appendBinary_(rt_data_builder_, encoded.rt_encoded, "RT_DATA");
-      appendBinary_(mobility_data_builder_, encoded.mobility_encoded, "MOBILITY_DATA");
-      appendBinary_(intensity_data_builder_, encoded.intensity_encoded, "INTENSITY_DATA");
-      appendOrThrow_(mz_compression_builder_.Append(encoded.mz_compression), "MZ_COMPRESSION");
-      appendOrThrow_(rt_compression_builder_.Append(encoded.rt_compression), "RT_COMPRESSION");
-      appendOrThrow_(mobility_compression_builder_.Append(encoded.mobility_compression), "MOBILITY_COMPRESSION");
-      appendOrThrow_(intensity_compression_builder_.Append(encoded.intensity_compression), "INTENSITY_COMPRESSION");
+      appendBinary(mz_data_builder_, encoded.mz_encoded, "MZ_DATA");
+      appendBinary(rt_data_builder_, encoded.rt_encoded, "RT_DATA");
+      appendBinary(mobility_data_builder_, encoded.mobility_encoded, "MOBILITY_DATA");
+      appendBinary(intensity_data_builder_, encoded.intensity_encoded, "INTENSITY_DATA");
+      appendOrThrow(mz_compression_builder_.Append(encoded.mz_compression), "MZ_COMPRESSION");
+      appendOrThrow(rt_compression_builder_.Append(encoded.rt_compression), "RT_COMPRESSION");
+      appendOrThrow(mobility_compression_builder_.Append(encoded.mobility_compression), "MOBILITY_COMPRESSION");
+      appendOrThrow(intensity_compression_builder_.Append(encoded.intensity_compression), "INTENSITY_COMPRESSION");
 
       ++pending_rows_;
       pending_binary_bytes_ += static_cast<int64_t>(

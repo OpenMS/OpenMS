@@ -3,7 +3,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Mathias Walzer $
-// $Authors: Mathias Walzer $
+// $Authors: Mathias Walzer, Samuel Wein $
 // --------------------------------------------------------------------------
 
 #include "../DATASTRUCTURES/RegularExpressionInternal.h"
@@ -291,22 +291,11 @@ namespace OpenMS
         int max_stretch = 0;
         for (map<std::string, vector<bool> >::iterator tt = ion_series.begin(); tt != ion_series.end(); ++tt)
         {
-          int stretch = 0;
-          for (vector<bool>::iterator it = tt->second.begin(); it != tt->second.end(); ++it)
+          const int stretch = static_cast<int>(computeLongestIonSeries(tt->second));
+          if (stretch > max_stretch)
           {
-            if (*it)
-            {
-              ++stretch;
-            }
-            else
-            {
-              stretch = 0;
-            }
-            if (stretch > max_stretch)
-            {
-              max_stretch = stretch;
-              max_series = tt->first;
-            }
+            max_stretch = stretch;
+            max_series = tt->first;
           }
         }
         ph->setMetaValue("max_series_type", max_series);

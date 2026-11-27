@@ -19,6 +19,7 @@
 
 namespace OpenMS { namespace Internal { namespace Percolator {
 
+
 uint64_t PseudoRandom::seed_ = 1u;
 
 // Park–Miller random number generator

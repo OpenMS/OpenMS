@@ -9,6 +9,8 @@
 #include <OpenMS/ANALYSIS/OPENSWATH/PeakPickerChromatogram.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 
+#include "PeakPickerHelpers.h"
+
 namespace OpenMS
 {
   PeakPickerChromatogram::PeakPickerChromatogram() :
@@ -41,8 +43,8 @@ namespace OpenMS
     defaults_.setValue("remove_overlapping_peaks", "false", "Try to remove overlapping peaks during peak picking");
     defaults_.setValidStrings("remove_overlapping_peaks", {"false","true"});
 
-    defaults_.setValue("method", "corrected", "Which method to choose for chromatographic peak-picking (OpenSWATH legacy on raw data, corrected picking on smoothed chromatogram or Crawdad on smoothed chromatogram).");
-    defaults_.setValidStrings("method", {"legacy","corrected","crawdad"});
+    defaults_.setValue("method", "corrected", "Which method to choose for chromatographic peak-picking (OpenSWATH legacy on raw data or corrected picking on smoothed chromatogram).");
+    defaults_.setValidStrings("method", {"legacy","corrected"});
 
     // write defaults into Param object param_
     defaultsToParam_();
@@ -85,12 +87,6 @@ namespace OpenMS
         "using method \'" << method_ << "\'\n";
     }
     picked_chrom.clear(true);
-    // Crawdad has its own methods, so we can call the wrapper directly
-    if (method_ == "crawdad")
-    {
-      pickChromatogramCrawdad_(chromatogram, picked_chrom);
-      return;
-    }
 
     // Smooth the chromatogram
     smoothed_chrom = chromatogram;
@@ -215,163 +211,26 @@ namespace OpenMS
     }
   }
 
-#ifdef WITH_CRAWDAD
-  void PeakPickerChromatogram::pickChromatogramCrawdad_(const MSChromatogram& chromatogram, MSChromatogram& picked_chrom)
-  {
-    OPENMS_LOG_DEBUG << "Picking chromatogram using crawdad \n";
-
-    // copy meta data of the input chromatogram
-    picked_chrom.clear(true);
-    picked_chrom.ChromatogramSettings::operator=(chromatogram);
-    picked_chrom.MetaInfoInterface::operator=(chromatogram);
-    picked_chrom.setName(chromatogram.getName());
-
-    std::vector<double> time;
-    std::vector<double> intensity;
-    for (Size i = 0; i < chromatogram.size(); i++)
-    {
-      time.push_back(chromatogram[i].getRT());
-      intensity.push_back(chromatogram[i].getIntensity());
-    }
-
-    CrawdadWrapper crawdad_pp;
-    crawdad_pp.SetChromatogram(time, intensity);
-    std::vector<crawpeaks::SlimCrawPeak> result = crawdad_pp.CalcPeaks();
-
-    picked_chrom.getFloatDataArrays().clear();
-    picked_chrom.getFloatDataArrays().resize(SIZE_OF_FLOATINDICES);
-    picked_chrom.getFloatDataArrays()[IDX_ABUNDANCE].setName("IntegratedIntensity");
-    picked_chrom.getFloatDataArrays()[IDX_LEFTBORDER].setName("leftWidth");
-    picked_chrom.getFloatDataArrays()[IDX_RIGHTBORDER].setName("rightWidth");
-    for (std::vector<crawpeaks::SlimCrawPeak>::iterator it = result.begin(); it != result.end(); ++it)
-    {
-      ChromatogramPeak p;
-      p.setRT(chromatogram[it->peak_rt_idx].getRT());
-      p.setIntensity(it->peak_area); //chromatogram[it->peak_rt_idx].getIntensity() );
-
-      picked_chrom.getFloatDataArrays()[IDX_ABUNDANCE].push_back(it->peak_area);
-      picked_chrom.getFloatDataArrays()[IDX_LEFTBORDER].push_back(chromatogram[it->start_rt_idx].getRT());
-      picked_chrom.getFloatDataArrays()[IDX_RIGHTBORDER].push_back(chromatogram[it->stop_rt_idx].getRT());
-
-      OPENMS_LOG_DEBUG << "Found peak at " << p.getRT() << " and "  << chromatogram[it->peak_rt_idx].getIntensity()
-                << " with borders " << chromatogram[it->start_rt_idx].getRT() << " " << chromatogram[it->stop_rt_idx].getRT()  <<  " (" << chromatogram[it->start_rt_idx].getRT() - chromatogram[it->stop_rt_idx].getRT() << ") "
-                << it->peak_area << " weighted RT " << /* weighted_mz << */ std::endl;
-
-      picked_chrom.push_back(p);
-
-    }
-
-  }
-#else
-  void PeakPickerChromatogram::pickChromatogramCrawdad_(const MSChromatogram& /* chromatogram */, MSChromatogram& /* picked_chrom */)
-  {
-    throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                     "PeakPickerChromatogram was not compiled with crawdad, please choose a different algorithm!");
-  }
-#endif
-
   void PeakPickerChromatogram::removeOverlappingPeaks_(const MSChromatogram& chromatogram, MSChromatogram& picked_chrom)
   {
-    if (picked_chrom.empty()) {return; }
-    OPENMS_LOG_DEBUG << "Remove overlapping peaks now (size " << picked_chrom.size() << ")\n";
-    Size current_peak = 0;
-    // Find overlapping peaks
-    for (Size i = 0; i < picked_chrom.size() - 1; i++)
-    {
-      // Check whether the current right overlaps with the next left
-      // See whether we can correct this and find some border between the two
-      // features ...
-      if (right_width_[i] > left_width_[i + 1])
+    Internal::PeakPickerHelpers::removeOverlappingPeaks(chromatogram, picked_chrom, left_width_, right_width_, integrated_intensities_,
+      [](const ChromatogramPeak& peak) { return peak.getPos(); },
+      [](Size new_left_border, Size new_right_border)
       {
-        const int current_left_idx = left_width_[i];
-        const int current_right_idx = right_width_[i];
-        const int next_left_idx = left_width_[i + 1];
-        const int next_right_idx = right_width_[i + 1];
-        OPENMS_LOG_DEBUG << " Found overlapping " << i << " : " << current_left_idx << " " << current_right_idx << '\n';
-        OPENMS_LOG_DEBUG << "                   -- with  " << i + 1 << " : " << next_left_idx << " " << next_right_idx << '\n';
-
-        // Find the peak width and best RT
-        double central_peak_rt = picked_chrom[i].getPos();
-        double next_peak_rt = picked_chrom[i + 1].getPos();
-        current_peak = findClosestPeak_(chromatogram, central_peak_rt, current_peak);
-        Size next_peak = findClosestPeak_(chromatogram, next_peak_rt, current_peak);
-
-        // adjust the right border of the current and left border of next
-        Size k = 1;
-        while ((current_peak + k) < chromatogram.size()
-              && (chromatogram[current_peak + k].getIntensity() < chromatogram[current_peak + k - 1].getIntensity()))
-        {
-          ++k;
-        }
-        Size new_right_border = current_peak + k - 1;
-        k = 1;
-        while ((next_peak - k + 1) > 0
-              && (chromatogram[next_peak - k].getIntensity() < chromatogram[next_peak - k + 1].getIntensity()))
-        {
-          ++k;
-        }
-        Size new_left_border = next_peak - k + 1;
-
-        // assert that the peaks are now not overlapping any more ...
-        if (new_left_border < new_right_border)
-        {
-          OPENMS_LOG_ERROR << "Something went wrong, peaks are still overlapping!" << " - new left border " << new_left_border << " vs " << new_right_border << " -- will take the mean\n";
-          new_left_border = (new_left_border + new_right_border) / 2;
-          new_right_border = (new_left_border + new_right_border) / 2;
-
-        }
-
-        OPENMS_LOG_DEBUG << "New peak l: " << chromatogram[current_left_idx].getPos() 
-          << " " << chromatogram[new_right_border].getPos() 
-          << " int " << integrated_intensities_[i] << '\n';
-        OPENMS_LOG_DEBUG << "New peak r: " << chromatogram[new_left_border].getPos() 
-          << " " << chromatogram[next_right_idx].getPos() 
-          << " int " << integrated_intensities_[i + 1] << '\n';
-
-
-        right_width_[i] = new_right_border;
-        left_width_[i + 1] = new_left_border;
-
-      }
-    }
+        OPENMS_LOG_ERROR << "Something went wrong, peaks are still overlapping!" << " - new left border " << new_left_border << " vs " << new_right_border << " -- will take the mean\n";
+      },
+      '\n');
   }
 
   Size PeakPickerChromatogram::findClosestPeak_(const MSChromatogram& chromatogram, double target_rt, Size current_peak)
   {
-    while (current_peak < chromatogram.size())
-    {
-      // check if we have walked past the RT of the peak
-      if (target_rt < chromatogram[current_peak].getRT())
-      {
-        // see which one is closer, the current one or the one before
-        if (current_peak > 0 &&
-            std::fabs(target_rt - chromatogram[current_peak - 1].getRT()) <
-            std::fabs(target_rt - chromatogram[current_peak].getRT()))
-        {
-          current_peak--;
-        }
-
-        return current_peak;
-      }
-      current_peak++;
-    }
-    return current_peak;
+    return Internal::PeakPickerHelpers::findClosestPeak(chromatogram, target_rt, current_peak,
+                                                        [](const ChromatogramPeak& peak) { return peak.getRT(); });
   }
 
   void PeakPickerChromatogram::integratePeaks_(const MSChromatogram& chromatogram)
   {
-    for (Size i = 0; i < left_width_.size(); i++)
-    {
-      const int current_left_idx = left_width_[i];
-      const int current_right_idx = right_width_[i];
-
-      // Also integrate the intensities
-      integrated_intensities_[i] = 0;
-      for (int k = current_left_idx; k <= current_right_idx; k++)
-      {
-        integrated_intensities_[i] += chromatogram[k].getIntensity();
-      }
-    }
+    Internal::PeakPickerHelpers::integratePeaks(chromatogram, left_width_, right_width_, integrated_intensities_);
   }
 
   void PeakPickerChromatogram::updateMembers_()
@@ -390,10 +249,10 @@ namespace OpenMS
     report_sn_ = (bool)param_.getValue("report_sn").toBool();
     method_ = param_.getValue("method").toString();
 
-    if (method_ != "crawdad" && method_ != "corrected" && method_ != "legacy")
+    if (method_ != "corrected" && method_ != "legacy")
     {
       throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                       "Method needs to be one of: crawdad, corrected, legacy");
+                                       "Method needs to be one of: corrected, legacy");
     }
 
     Param sg_filter_parameters = sgolay_.getParameters();
@@ -410,14 +269,6 @@ namespace OpenMS
     snt_parameters.setValue("bin_count", sn_bin_count_);
     snt_parameters.setValue("write_log_messages", param_.getValue("write_sn_log_messages"));
     snt_.setParameters(snt_parameters);
-
-#ifndef WITH_CRAWDAD
-    if (method_ == "crawdad")
-    {
-      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                       "PeakPickerChromatogram was not compiled with crawdad, please choose a different algorithm!");
-    }
-#endif
   }
 
 }

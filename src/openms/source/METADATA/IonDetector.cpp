@@ -7,6 +7,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/METADATA/IonDetector.h>
+#include <OpenMS/CONCEPT/EnumHelpers.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <algorithm>
 
@@ -99,66 +100,32 @@ namespace OpenMS
 
   StringList IonDetector::getAllNamesOfType()
   {
-    StringList names;
-    names.reserve(static_cast<size_t>(Type::SIZE_OF_TYPE));
-    for (size_t i = 0; i < static_cast<size_t>(Type::SIZE_OF_TYPE); ++i)
-    {
-      names.push_back(NamesOfType[i]);
-    }
-    return names;
+    return Helpers::enumNames(NamesOfType, Type::SIZE_OF_TYPE);
   }
 
   StringList IonDetector::getAllNamesOfAcquisitionMode()
   {
-    StringList names;
-    names.reserve(static_cast<size_t>(AcquisitionMode::SIZE_OF_ACQUISITIONMODE));
-    for (size_t i = 0; i < static_cast<size_t>(AcquisitionMode::SIZE_OF_ACQUISITIONMODE); ++i)
-    {
-      names.push_back(NamesOfAcquisitionMode[i]);
-    }
-    return names;
+    return Helpers::enumNames(NamesOfAcquisitionMode, AcquisitionMode::SIZE_OF_ACQUISITIONMODE);
   }
 
   const std::string& IonDetector::typeToString(Type type)
   {
-    if (type == Type::SIZE_OF_TYPE)
-    {
-      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Value not allowed", "SIZE_OF_TYPE");
-    }
-    return NamesOfType[static_cast<size_t>(type)];
+    return Helpers::enumToName(NamesOfType, type, Type::SIZE_OF_TYPE, "SIZE_OF_TYPE", OPENMS_PRETTY_FUNCTION);
   }
 
   IonDetector::Type IonDetector::toType(const std::string& name)
   {
-    auto first = &NamesOfType[0];
-    auto last = &NamesOfType[static_cast<size_t>(Type::SIZE_OF_TYPE)];
-    const auto it = std::find(first, last, name);
-    if (it == last)
-    {
-      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Value unknown", name);
-    }
-    return static_cast<Type>(it - first);
+    return Helpers::enumFromName(NamesOfType, Type::SIZE_OF_TYPE, name, "Value unknown", OPENMS_PRETTY_FUNCTION);
   }
 
   const std::string& IonDetector::acquisitionModeToString(AcquisitionMode mode)
   {
-    if (mode == AcquisitionMode::SIZE_OF_ACQUISITIONMODE)
-    {
-      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Value not allowed", "SIZE_OF_ACQUISITIONMODE");
-    }
-    return NamesOfAcquisitionMode[static_cast<size_t>(mode)];
+    return Helpers::enumToName(NamesOfAcquisitionMode, mode, AcquisitionMode::SIZE_OF_ACQUISITIONMODE, "SIZE_OF_ACQUISITIONMODE", OPENMS_PRETTY_FUNCTION);
   }
 
   IonDetector::AcquisitionMode IonDetector::toAcquisitionMode(const std::string& name)
   {
-    auto first = &NamesOfAcquisitionMode[0];
-    auto last = &NamesOfAcquisitionMode[static_cast<size_t>(AcquisitionMode::SIZE_OF_ACQUISITIONMODE)];
-    const auto it = std::find(first, last, name);
-    if (it == last)
-    {
-      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Value unknown", name);
-    }
-    return static_cast<AcquisitionMode>(it - first);
+    return Helpers::enumFromName(NamesOfAcquisitionMode, AcquisitionMode::SIZE_OF_ACQUISITIONMODE, name, "Value unknown", OPENMS_PRETTY_FUNCTION);
   }
 
 }

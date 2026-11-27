@@ -10,8 +10,10 @@
 # taken from the bridge's pre-built release zip via tools/ci/fetch_thermo_assets.sh
 # (retried, SHA-256 pinned, cached between runs) when one is published for the pinned
 # bridge revision; otherwise the bridge publishes it with the .NET SDK during the OpenMS
-# build (NuGet restore + Thermo package download). The Linux wheels take the bridge from
-# the openms-thermo-bridge vcpkg port, which publishes the managed half the same way.
+# build (NuGet restore + Thermo package download). The Linux and Windows wheels take the
+# bridge from the openms-thermo-bridge vcpkg port, which downloads the same release zip
+# itself (SHA-512 pinned in its portfile) and publishes the managed half only when no zip
+# is published for its pin.
 # Compiling the native bridge always needs the nethost headers from a .NET SDK. The
 # finished wheels are smoke-tested by loading a real RAW file.
 
@@ -231,7 +233,7 @@ jobs:
           CIBW_BUILD_VERBOSITY: 1
 
       # The dependencies are linked statically, so auditwheel should have grafted only
-      # OpenMS's own libraries and system ones (libgomp, libgfortran, ...).
+      # OpenMS's own libraries and system ones (libgomp).
       - name: Show the libraries bundled into the wheel
         run: |
           python3 -m venv "$RUNNER_TEMP/auditwheel"
@@ -352,7 +354,7 @@ jobs:
           CIBW_BUILD_VERBOSITY: 1
 
       # The dependencies are linked statically, so auditwheel should have grafted only
-      # OpenMS's own libraries and system ones (libgomp, libgfortran, ...).
+      # OpenMS's own libraries and system ones (libgomp).
       - name: Show the libraries bundled into the wheel
         run: |
           python3 -m venv "$RUNNER_TEMP/auditwheel"
@@ -376,7 +378,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          bash tools/ci/deps-macos.sh --skip-doc-deps --skip-gui-deps
+          bash tools/ci/deps-macos.sh --skip-doc-deps
 
           # These dependencies are need only in this workflow:
           brew install \
@@ -436,7 +438,6 @@ jobs:
             -DOpenMP_ROOT=$(brew --prefix libomp) \
             -DARROW_USE_STATIC=OFF \
             -DPYOPENMS=OFF \
-            -DWITH_GUI=OFF \
             -DBUILD_TOPP_TOOLS=OFF \
             -DINSTALL_OPENMS_EXAMPLES=OFF \
             -DWITH_THERMO_RAW=ON \
@@ -570,8 +571,9 @@ jobs:
           key: thermo-assets-win-x64-${{ hashFiles('tools/ci/fetch_thermo_assets.sh') }}
 
       # Only the RAW test file is used here: the bridge comes from vcpkg's
-      # openms-thermo-bridge port, which publishes its managed assemblies with the
-      # .NET SDK of the runner image when the binary cache misses.
+      # openms-thermo-bridge port, which downloads the pre-built managed assemblies of
+      # the bridge release when the binary cache misses (and publishes them with the
+      # .NET SDK of the runner image only if its pin has no release zip).
       - name: Fetch Thermo RAW test file
         shell: bash
         run: bash tools/ci/fetch_thermo_assets.sh win-x64 "$GITHUB_WORKSPACE"
@@ -598,7 +600,6 @@ jobs:
             -DUSE_EXTERNAL_SQLITECPP=ON \
             -DCMAKE_REQUIRE_FIND_PACKAGE_OpenMSThermoBridge=ON \
             -DPYOPENMS=OFF \
-            -DWITH_GUI=OFF \
             -DBUILD_TOPP_TOOLS=OFF \
             -DINSTALL_OPENMS_EXAMPLES=OFF \
             -DWITH_THERMO_RAW=ON \
@@ -811,7 +812,7 @@ jobs:
           # Naming the wheel by path is what pins the test to the artifact just
           # built -- pip installs the file it is given and never substitutes a
           # package-index release of pyopenms for it. The index still has to stay
-          # reachable for the dependencies (numpy, matplotlib, nanobind-backend),
+          # reachable for the dependencies (numpy, nanobind-backend),
           # which are not in wheelhouse; --no-index here would fail the install
           # with "No matching distribution found for numpy>=2.0".
           python -m pip install --only-binary=:all: --find-links wheelhouse "${wheels[0]}"
@@ -843,7 +844,7 @@ jobs:
 
       - name: Install test dependencies
         shell: bash
-        run: python -m pip install pytest pytest-cov "pandas>=3" pyarrow
+        run: python -m pip install pytest pytest-cov "pandas>=3" pyarrow "matplotlib>=3.5"
 
       - name: Run the pyOpenMS test suite against the installed wheel
         shell: bash

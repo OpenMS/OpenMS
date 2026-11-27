@@ -23,9 +23,11 @@
 #include <OpenMS/SYSTEM/File.h>
 
 #include <atomic>
+#include <cstdlib>
 #include <ctime>
 #include <fstream>
 #include <filesystem>
+#include <functional>
 #include <thread>
 
 using namespace OpenMS;
@@ -262,6 +264,26 @@ START_SECTION((static std::string find(const std::string &filename, StringList d
     }
     TEST_EQUAL(msg.find("OPENMS_DATA_PATH") != std::string::npos, true)
     TEST_EQUAL(msg.find(File::getOpenMSDataPath()) != std::string::npos, true)
+  }
+
+  // A candidate directory that cannot be checked does not hold the file: the search goes on to the next one
+  // (here: the data path) instead of throwing std::filesystem::filesystem_error. Callers pass compiled-in
+  // build-machine paths first (the PeptDeep models: OPENMS_BINARY_PATH), which may be unreadable on a user's
+  // machine. EACCES from a folder without permissions; skipped where the mode is not enforced (root, Windows).
+  {
+    std::string locked;
+    NEW_TMP_FILE(locked);
+    std::filesystem::create_directory(locked);
+    std::filesystem::permissions(locked, std::filesystem::perms::none);
+    std::error_code ec;
+    (void)std::filesystem::status(std::filesystem::path(locked) / "probe", ec);
+    if (ec == std::errc::permission_denied)
+    {
+      TEST_EQUAL(File::find("CV/psi-ms.obo", {locked + "/share/OpenMS"}), s_obo)
+      TEST_EXCEPTION(Exception::FileNotFound, File::find("CV/does_not_exist.obo", {locked + "/share/OpenMS"}))
+    }
+    std::filesystem::permissions(locked, std::filesystem::perms::owner_all);
+    std::filesystem::remove(locked);
   }
 END_SECTION
 
@@ -527,6 +549,19 @@ START_SECTION(static StringList getPathLocations(const std::string& path))
   StringList empty = File::getPathLocations("");
   TEST_EQUAL(empty.empty(), true)
 
+  // empty entries name no directory (and must not become "/")
+#ifdef OPENMS_WINDOWSPLATFORM
+  StringList with_empty = File::getPathLocations(";C:\\temp;;");
+  TEST_EQUAL(with_empty.size(), 1)
+  ABORT_IF(with_empty.size() != 1)
+  TEST_EQUAL(with_empty[0], "C:/temp/")
+#else
+  StringList with_empty = File::getPathLocations(":/usr/bin::");
+  TEST_EQUAL(with_empty.size(), 1)
+  ABORT_IF(with_empty.size() != 1)
+  TEST_EQUAL(with_empty[0], "/usr/bin/")
+#endif
+
   // Also exercise the no-argument overload, which reads PATH safely even when the
   // environment lookup would otherwise return nullptr.
   File::getPathLocations();
@@ -539,14 +574,88 @@ START_SECTION(static std::string findSiblingTOPPExecutable(const std::string& to
   TEST_EXCEPTION(Exception::FileNotFound, File::findSiblingTOPPExecutable("executable_does_not_exist"))
   TEST_EQUAL(File::path(File::findSiblingTOPPExecutable("File_test")) + "/", File::getExecutablePath())
 
-  // Sibling resolution looks next to the running executable only; it does NOT fall back to a
-  // PATH lookup. A binary that exists only on PATH (e.g. the "echo"/"cmd" resolved by findExecutable
-  // above) is therefore reported as not found here. This pins the current "siblings only" contract.
+  // the last place searched is the PATH (absolute entries only), so a tool of another layer
+  // of a split installation in a prefix of its own is found as well
+  {
+    const std::string unique = File::getUniqueName(false);
+    const std::string tool = "OpenMS_File_test_PATH_tool_" + unique;
 #ifdef OPENMS_WINDOWSPLATFORM
-  TEST_EXCEPTION(Exception::FileNotFound, File::findSiblingTOPPExecutable("cmd"))
+    const std::string tool_file = tool + ".exe"; // the name given without .exe is completed
+    const char separator = ';';
 #else
-  TEST_EXCEPTION(Exception::FileNotFound, File::findSiblingTOPPExecutable("echo"))
+    const std::string tool_file = tool;
+    const char separator = ':';
 #endif
+    TEST_EXCEPTION(Exception::FileNotFound, File::findSiblingTOPPExecutable(tool))
+
+    const std::filesystem::path dir = std::filesystem::temp_directory_path() / ("OpenMS_File_test_PATH_" + unique);
+    const std::filesystem::path shadow = std::filesystem::temp_directory_path() / ("OpenMS_File_test_PATH_shadow_" + unique);
+    const std::filesystem::path not_executable = std::filesystem::temp_directory_path() / ("OpenMS_File_test_PATH_noexec_" + unique);
+    const std::string relative_dir = "OpenMS_File_test_relative_PATH_" + unique;
+
+    auto set_path = [](const std::string& value)
+    {
+#ifdef OPENMS_WINDOWSPLATFORM
+      _putenv_s("PATH", value.c_str());
+#else
+      setenv("PATH", value.c_str(), 1);
+#endif
+    };
+    const char* old_path_ptr = std::getenv("PATH");
+    const std::string old_path = old_path_ptr == nullptr ? "" : old_path_ptr;
+    // restores PATH and removes the directories, also if a lookup throws unexpectedly
+    struct Restore
+    {
+      std::function<void()> f;
+      ~Restore() { f(); }
+    } restore{[&]()
+    {
+      set_path(old_path);
+      std::error_code ec;
+      std::filesystem::remove_all(dir, ec);
+      std::filesystem::remove_all(shadow, ec);
+      std::filesystem::remove_all(not_executable, ec);
+      std::filesystem::remove_all(relative_dir, ec);
+    }};
+
+    std::filesystem::create_directories(dir);
+    std::ofstream(dir / tool_file) << "dummy";
+    // a relative PATH entry resolves against the working directory and is skipped
+    std::filesystem::create_directories(relative_dir);
+    std::ofstream(std::filesystem::path(relative_dir) / tool_file) << "dummy";
+#ifndef OPENMS_WINDOWSPLATFORM
+    for (const std::filesystem::path& f : {dir / tool_file, std::filesystem::path(relative_dir) / tool_file})
+    {
+      std::filesystem::permissions(f, std::filesystem::perms::owner_exec, std::filesystem::perm_options::add);
+    }
+#endif
+
+    set_path(relative_dir + separator + old_path);
+    TEST_EXCEPTION(Exception::FileNotFound, File::findSiblingTOPPExecutable(tool))
+
+    // a directory of the tool's name does not count, nor (not on Windows) a file that is not
+    // executable; the first executable file further down the PATH does. An empty entry is
+    // skipped as well (it does not mean "/").
+    std::filesystem::create_directories(shadow / tool_file);
+    set_path(relative_dir + separator + shadow.string() + separator + separator + dir.string() + separator + old_path);
+    std::string found = File::findSiblingTOPPExecutable(tool);
+    TEST_EQUAL(std::filesystem::equivalent(found, dir / tool_file), true)
+#ifndef OPENMS_WINDOWSPLATFORM
+    std::filesystem::create_directories(not_executable);
+    std::ofstream(not_executable / tool_file) << "dummy";
+    std::filesystem::permissions(not_executable / tool_file,
+                                 std::filesystem::perms::owner_exec | std::filesystem::perms::group_exec | std::filesystem::perms::others_exec,
+                                 std::filesystem::perm_options::remove);
+    set_path(not_executable.string() + separator + dir.string() + separator + old_path);
+    found = File::findSiblingTOPPExecutable(tool);
+    TEST_EQUAL(std::filesystem::equivalent(found, dir / tool_file), true)
+    set_path(not_executable.string() + separator + old_path);
+    TEST_EXCEPTION(Exception::FileNotFound, File::findSiblingTOPPExecutable(tool))
+#endif
+
+    set_path(old_path);
+    TEST_EXCEPTION(Exception::FileNotFound, File::findSiblingTOPPExecutable(tool))
+  }
 }
 END_SECTION
 

@@ -463,6 +463,108 @@ START_SECTION([EXTRA] MzTabParameter round-trips a name with a comma not followe
 }
 END_SECTION
 
+START_SECTION([EXTRA] MzTabModification round-trips a CHEMMOD identifier with a negative mass)
+{
+  // getModificationIdentifier_ writes "CHEMMOD:" + the (possibly negative)
+  // diff mono mass for any modification without a UNIMOD accession, with no
+  // position prefix when the modification carries no site information.
+  MzTabModification no_position;
+  no_position.fromCellString("CHEMMOD:-18.010565");
+  TEST_EQUAL(no_position.getModOrSubstIdentifier().toCellString(), "CHEMMOD:-18.010565")
+  TEST_EQUAL(no_position.getPositionsAndParameters().size(), 0)
+
+  // A positioned modification whose identifier is also a negative-mass
+  // CHEMMOD: the position must split off before the identifier's own dash.
+  MzTabModification with_position;
+  with_position.fromCellString("3-CHEMMOD:-18.010565");
+  TEST_EQUAL(with_position.getModOrSubstIdentifier().toCellString(), "CHEMMOD:-18.010565")
+  std::vector<std::pair<Size, MzTabParameter> > pos = with_position.getPositionsAndParameters();
+  TEST_EQUAL(pos.size(), 1)
+  TEST_EQUAL(pos[0].first, 3)
+
+  // The position's own bracketed parameter can carry a '-' too (scientific
+  // notation, e.g. a false-localization-rate of 0.005 written as "5e-03" by
+  // StringUtils::toStr) -- that dash must not be mistaken for the split point.
+  MzTabModification with_bracketed_param;
+  with_bracketed_param.fromCellString("3[MS, MS:1002380, false localization rate, 5e-03]-UNIMOD:21");
+  TEST_EQUAL(with_bracketed_param.getModOrSubstIdentifier().toCellString(), "UNIMOD:21")
+  std::vector<std::pair<Size, MzTabParameter> > bracketed_pos = with_bracketed_param.getPositionsAndParameters();
+  TEST_EQUAL(bracketed_pos.size(), 1)
+  TEST_EQUAL(bracketed_pos[0].first, 3)
+  TEST_STRING_EQUAL(bracketed_pos[0].second.toCellString(), "[MS, MS:1002380, false localization rate, 5e-03]")
+}
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
+START_SECTION([EXTRA] exportIdentificationsToMzTab with first_run_inference_only and PSMs of the first run)
+{
+  // With first_run_inference_only, the first run is skipped when search engines are mapped to runs. A PSM
+  // that still refers to it used to dereference the begin() of an empty search engine list.
+  ProteinIdentification inference, search;
+  inference.setIdentifier("inference");
+  inference.setSearchEngine("Fido");
+  inference.setPrimaryMSRunPath(StringList{"file.mzML"});
+  search.setIdentifier("search");
+  search.setSearchEngine("Comet");
+  search.setPrimaryMSRunPath(StringList{"file.mzML"});
+  std::vector<ProteinIdentification> prot_ids{inference, search};
+
+  PeptideIdentificationList pep_ids;
+  for (const std::string run : {"inference", "search"})
+  {
+    PeptideIdentification pep;
+    pep.setIdentifier(run);
+    pep.setRT(100.0);
+    pep.setMZ(500.0);
+    pep.setSpectrumReference("scan=1");
+    pep.setHits({PeptideHit(1.0, 1, 2, AASequence::fromString("PEPTIDE"))});
+    pep_ids.push_back(pep);
+  }
+
+  MzTab mztab = MzTab::exportIdentificationsToMzTab(prot_ids, pep_ids, "test.idXML", true);
+  TEST_EQUAL(mztab.getPSMSectionRows().size(), 2)
+}
+END_SECTION
+
+START_SECTION([EXTRA] exportConsensusMapToMzTab with a peptide identification without hits)
+{
+  // A consensus feature can carry unidentified spectra (peptide identifications without hits). The PEP row
+  // used to read the first hit of the first peptide identification, which had none.
+  ConsensusMap consensus_map;
+  ConsensusMap::ColumnHeaders headers;
+  ConsensusMap::ColumnHeader header;
+  header.filename = "a.mzML";
+  header.label = "label-free";
+  headers[0] = header;
+  consensus_map.setColumnHeaders(headers);
+
+  ProteinIdentification protein_id;
+  protein_id.setIdentifier("run_0");
+  protein_id.setPrimaryMSRunPath(StringList{"a.mzML"});
+  consensus_map.setProteinIdentifications({protein_id});
+
+  ConsensusFeature feature;
+  feature.insert(FeatureHandle(0, Peak2D({10.0, 500.0}, 2.0), 1));
+  PeptideIdentification unidentified;
+  unidentified.setIdentifier("run_0");
+  unidentified.setRT(10.0);
+  unidentified.setMZ(500.0);
+  PeptideIdentification identified = unidentified;
+  identified.setHits({PeptideHit(1.0, 1, 2, AASequence::fromString("PEPTIDE"))});
+  feature.getPeptideIdentifications().push_back(unidentified);
+  feature.getPeptideIdentifications().push_back(identified);
+  consensus_map.push_back(feature);
+
+  const MzTab mz_tab = MzTab::exportConsensusMapToMzTab(
+    consensus_map, "test.consensusXML",
+    /* first_run_inference_only */ false,
+    /* export_unidentified_features */ true,
+    /* export_unassigned_ids */ false,
+    /* export_subfeatures */ false);
+  ABORT_IF(mz_tab.getPeptideSectionRows().size() != 1)
+  TEST_EQUAL(mz_tab.getPeptideSectionRows()[0].sequence.toCellString(), "PEPTIDE")
+}
+END_SECTION
+
 END_TEST

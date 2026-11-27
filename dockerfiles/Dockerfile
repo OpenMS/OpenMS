@@ -31,6 +31,8 @@ RUN apt-get update \
     make \
     git \
     ca-certificates \
+    # curl: tools/ci/fetch_thermo_assets.sh downloads the pre-built managed Thermo bridge with it
+    curl \
     build-essential \
     # OpenMS build dependencies
     libsvm-dev \
@@ -44,15 +46,9 @@ RUN apt-get update \
     libbz2-dev \
     libcurl4-openssl-dev \
     libomp-dev \
-    libhdf5-dev\
     libeigen3-dev \
     # Boost headers only: OpenMS links no compiled Boost library
     libboost-dev \
-    qt6-base-dev \
-    libglx-dev \
-    libgl1-mesa-dev \
-    libqt6opengl6-dev \
-    libqt6svg6-dev \
   && rm -rf /var/lib/apt/lists/* \
   && update-ca-certificates \
   && apt-get update && apt-get install -y --no-install-recommends wget \
@@ -123,8 +119,21 @@ RUN <<-EOF
         *) echo "Unsupported architecture: ${TARGETARCH}" && exit 1 ;;
     esac
     ORT_NAME="onnxruntime-linux-${ORT_ARCH}-${ONNXRUNTIME_VERSION}"
-    wget "https://github.com/microsoft/onnxruntime/releases/download/v${ONNXRUNTIME_VERSION}/${ORT_NAME}.tgz" -O ort.tgz
-    echo "${ORT_SHA256}  ort.tgz" | sha256sum -c -
+    # Microsoft's release first; PhotoPrism mirrors the byte-identical release
+    # archives while github.com/microsoft/onnxruntime is unavailable (#10946, same
+    # mirror as the vcpkg overlay port). Each download must match the pinned SHA256.
+    ORT_OK=""
+    for ORT_URL in \
+        "https://github.com/microsoft/onnxruntime/releases/download/v${ONNXRUNTIME_VERSION}/${ORT_NAME}.tgz" \
+        "https://dl.photoprism.app/onnx/runtime/v${ONNXRUNTIME_VERSION}/${ORT_NAME}.tgz"
+    do
+        rm -f ort.tgz
+        if wget "${ORT_URL}" -O ort.tgz && echo "${ORT_SHA256}  ort.tgz" | sha256sum -c -; then
+            ORT_OK=1
+            break
+        fi
+    done
+    test -n "${ORT_OK}"
     mkdir -p "${ONNXRUNTIME_DIR}"
     tar xzf ort.tgz --strip-components=1 -C "${ONNXRUNTIME_DIR}"
     test -f "${ONNXRUNTIME_DIR}/include/onnxruntime_cxx_api.h"
@@ -134,8 +143,10 @@ EOF
 
 # Install the .NET 8 SDK for the openms-thermo-bridge build (WITH_THERMO_RAW).
 # The bridge's FindDotNetHost.cmake requires the nethost headers/library from
-# the official .NET SDK host pack under /usr/share/dotnet/packs/..., and runs
-# `dotnet publish` to build the managed Thermo wrapper. We use Microsoft's
+# the official .NET SDK host pack under /usr/share/dotnet/packs/... The managed
+# Thermo wrapper normally comes pre-built from the bridge's release (see the
+# configure step of the build stage); the bridge builds it with `dotnet publish`
+# only when the pinned bridge revision has no release zip. We use Microsoft's
 # dotnet-install.sh because Ubuntu's own dotnet-sdk-8.0 installs to /usr/lib/dotnet
 # and does not provide the host pack in the expected layout.
 # WITH_THERMO_RAW is ON on every Linux target we build (amd64 and aarch64), so
@@ -209,22 +220,33 @@ EOF
 ENV PATH="${THIRDPARTY_DIR}/LuciPHOr2:${THIRDPARTY_DIR}/MSGFPlus:${THIRDPARTY_DIR}/ThermoRawFileParser:${THIRDPARTY_DIR}/Comet:${THIRDPARTY_DIR}/Fido:${THIRDPARTY_DIR}/MaRaCluster:${THIRDPARTY_DIR}/Percolator:${THIRDPARTY_DIR}/SpectraST:${THIRDPARTY_DIR}/Sage:${PATH}"
 RUN <<-EOF
     set -eux
-    # Map Docker's TARGETARCH to Debian multiarch tuple
+    # Thermo RAW support: take the managed half of openms-thermo-bridge
+    # (ThermoWrapperManaged.dll and the Thermo CommonCore assemblies) from the zip of
+    # the bridge's release (retried, SHA-256 pinned in the script) and hand it to the
+    # bridge. Otherwise the bridge runs `dotnet publish` during `make`, which downloads
+    # five Thermo .nupkg files from raw.githubusercontent.com in a single attempt and
+    # restores their dependencies from nuget.org (#9717). The script leaves the
+    # directory empty when the pinned bridge revision has no release zip; the bridge
+    # then publishes the assemblies itself, as before.
     case "${TARGETARCH}" in
-        amd64) DEB_ARCH="x86_64-linux-gnu" ;;
-        arm64) DEB_ARCH="aarch64-linux-gnu" ;;
+        amd64) THERMO_PLATFORM="linux-x64" ;;
+        arm64) THERMO_PLATFORM="linux-arm64" ;;
         *) echo "Unsupported architecture: ${TARGETARCH}" && exit 1 ;;
     esac
-    
+    bash ${SOURCE_DIR}/tools/ci/fetch_thermo_assets.sh --managed-only "${THERMO_PLATFORM}" ${BUILD_DIR}
+    THERMO_MANAGED_OPT=""
+    if [ -f ${BUILD_DIR}/thermo-managed/ThermoWrapperManaged.dll ]; then
+        THERMO_MANAGED_OPT="-DOPENMS_THERMO_BRIDGE_PREBUILT_MANAGED_DIR=${BUILD_DIR}/thermo-managed"
+    fi
     # dependencies from the apt packages above, not from vcpkg
     cmake \
         -DOPENMS_USE_VCPKG=OFF \
-        -DQt6_DIR="/usr/lib/${DEB_ARCH}/cmake/Qt6" \
         -DCMAKE_BUILD_TYPE='Release' \
         -DCMAKE_PREFIX_PATH="/opt/libxml2;/usr/;/usr/local;${ONNXRUNTIME_DIR}" \
         -DLIBXML2_INCLUDE_DIR=/opt/libxml2/include/libxml2 \
         -DLIBXML2_LIBRARY=/opt/libxml2/lib/libxml2.so \
         -DWITH_ONNX=ON \
+        ${THERMO_MANAGED_OPT} \
         -DCMAKE_INSTALL_PREFIX=${INSTALL_DIR} \
         -S ${SOURCE_DIR} \
         -B ${BUILD_DIR}
@@ -271,8 +293,6 @@ RUN apt-get update \
   && apt-get install -y --no-install-recommends --no-install-suggests \
     ca-certificates \
     wget \
-    qt6-base-dev \
-    libqt6opengl6 \
     libsvm3 \
     libzip4 \
     zlib1g \
@@ -280,7 +300,6 @@ RUN apt-get update \
     libbz2-1.0 \
     libcurl4 \
     libgomp1 \
-    libqt6svg6 \
     # ICU is required by the .NET runtime that hosts the openms-thermo-bridge
     libicu74 \
   && wget https://packages.apache.org/artifactory/arrow/ubuntu/apache-arrow-apt-source-latest-noble.deb \
@@ -383,10 +402,6 @@ ARG TARGETARCH
 
 RUN apt-get update \ 
     && apt-get install -y --no-install-recommends --no-install-suggests \
-    # we need Xvfb to run a small subset of GUI tests (eg. TOPPView_test)
-    xvfb \
-    # needed for TSGDialog_test and TOPPView_test
-    libqt6test6 \
     wget \
   && rm -rf /var/lib/apt/lists/*
 
@@ -415,4 +430,4 @@ ARG ONNXRUNTIME_DIR
 COPY --from=build ${ONNXRUNTIME_DIR} ${ONNXRUNTIME_DIR}
 
 WORKDIR ${BUILD_DIR}
-RUN xvfb-run -a ctest --output-on-failure -j${NUM_BUILD_CORES}
+RUN ctest --output-on-failure -j${NUM_BUILD_CORES}

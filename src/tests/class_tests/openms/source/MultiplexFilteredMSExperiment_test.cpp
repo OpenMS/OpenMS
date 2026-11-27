@@ -12,6 +12,8 @@
 #include <OpenMS/FEATUREFINDER/MultiplexFilteredPeak.h>
 #include <OpenMS/FEATUREFINDER/MultiplexFilteredMSExperiment.h>
 
+#include <utility>
+
 using namespace OpenMS;
 
 START_TEST(MultiplexFilteredMSExperiment, "$Id$")
@@ -39,7 +41,17 @@ START_SECTION(addPeak(const MultiplexFilteredPeak& peak))
   TEST_EQUAL(exp.size(), n + 1);
 END_SECTION
 
-START_SECTION(MultiplexFilteredPeak getPeak(size_t i))
+START_SECTION(addPeak(MultiplexFilteredPeak&& peak))
+  MultiplexFilteredMSExperiment exp_moved;
+  MultiplexFilteredPeak peak_temp(655.32, 2346.67, 25, 111);
+  peak_temp.addSatellite(111, 26, 1);
+  exp_moved.addPeak(std::move(peak_temp));
+  TEST_EQUAL(exp_moved.size(), 1);
+  TEST_REAL_SIMILAR(exp_moved.getMZ(0), 655.32);
+  TEST_EQUAL(exp_moved.getPeak(0).size(), 1);
+END_SECTION
+
+START_SECTION(const MultiplexFilteredPeak& getPeak(size_t i) const)
   MultiplexFilteredPeak peak = exp.getPeak(0);
   TEST_REAL_SIMILAR(peak.getMZ(), 654.32);
 END_SECTION

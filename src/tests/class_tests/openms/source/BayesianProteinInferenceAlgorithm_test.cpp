@@ -7,6 +7,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/ClassTest.h>
+#include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/ANALYSIS/ID/BayesianProteinInferenceAlgorithm.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/test_config.h>
@@ -23,7 +24,12 @@ START_TEST(BayesianProteinInferenceAlgorithm, "$Id$")
       IdXMLFile idf;
       idf.load(OPENMS_GET_TEST_DATA_PATH("newMergerTest_out.idXML"),prots,peps);
       BayesianProteinInferenceAlgorithm bpia;
+      // a group score cutoff recorded before applies to the old groups only
+      prots[0].setMetaValue(Constants::UserParam::PROTEIN_GROUP_SCORE_THRESHOLD, 0.95);
+      prots[0].setMetaValue(Constants::UserParam::PROTEIN_GROUP_SCORE_THRESHOLD_TYPE, "Posterior Probability");
       bpia.inferPosteriorProbabilities(prots,peps,false);
+      TEST_EQUAL(prots[0].metaValueExists(Constants::UserParam::PROTEIN_GROUP_SCORE_THRESHOLD), false)
+      TEST_EQUAL(prots[0].metaValueExists(Constants::UserParam::PROTEIN_GROUP_SCORE_THRESHOLD_TYPE), false)
     }
     END_SECTION
 

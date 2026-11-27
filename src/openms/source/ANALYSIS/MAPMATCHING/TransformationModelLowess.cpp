@@ -26,11 +26,6 @@ using namespace std;
 
 namespace OpenMS
 {
-  bool cmpFirstDimension(const TransformationModel::DataPoint& x, const TransformationModel::DataPoint& y)
-  {
-    return (x.first < y.first);
-  }
-
   TransformationModelLowess::TransformationModelLowess(
       const TransformationModel::DataPoints& data_,
       const Param& params) : model_(nullptr)
@@ -50,8 +45,9 @@ namespace OpenMS
     // TODO copy ... 
     TransformationModel::DataPoints data(data_);
 
-    // sort data
-    std::sort(data.begin(), data.end(), cmpFirstDimension);
+    // sort data by x, and points with the same x by y: a sort by x only leaves the order of tied points to the
+    // (unstable) std::sort of the platform, and that order decides the CV folds of 'auto_span'
+    std::sort(data.begin(), data.end());
 
     vector<double> x(data.size()), y(data.size()), result(data.size());
     double xmin_ = data[0].first;
@@ -130,6 +126,15 @@ namespace OpenMS
 
           if (train.size() < static_cast<Size>(std::max(3, min_neighbors))) continue;
 
+          // The interpolation model behind each fit needs at least 3 distinct x values. Repeated x values are valid
+          // input (e.g. features from the same scan), so holding out a fold can leave too few: skip such folds.
+          Size n_distinct_x = 0;
+          for (Size j = 0; j < train.size(); ++j) // 'data' (and hence 'train') is sorted by x
+          {
+            if (j == 0 || train[j].first > train[j - 1].first) ++n_distinct_x;
+          }
+          if (n_distinct_x < 3) continue;
+
           TransformationModelLowess cv_model(train, p_cv);
 
           for (Size j : folds_in[f])
@@ -153,9 +158,21 @@ namespace OpenMS
                                               folds, train_eval, score,
                                               kTieTol, OpenMS::CrossValidation::CrossValidation::CandidateTieBreak::PreferLarger);
 
-      span = best_span;
-      OPENMS_LOG_INFO << "Optimal selected span=" << span
-                << " (" << params_.getValue("auto_metric").toString() << " = " << best_score << ")" << std::endl;
+      if (std::isfinite(best_score))
+      {
+        span = best_span;
+        OPENMS_LOG_INFO << "Optimal selected span=" << span
+                  << " (" << params_.getValue("auto_metric").toString() << " = " << best_score << ")" << std::endl;
+      }
+      else // no candidate could be evaluated (too few points or distinct x values in every fold): keep the fixed span
+      {
+        if (span <= 0.0)
+        {
+          span = 2 / 3.0; // the default of 'span'
+        }
+        OPENMS_LOG_WARN << "Warning: cross-validation could not evaluate any LOWESS span (too few points or distinct x values per fold); using span="
+                        << span << std::endl;
+      }
 
       // persist for downstream and prevent re-entry
       params_.setValue("span", span);

@@ -9,6 +9,7 @@
 #include <OpenMS/FORMAT/AbsoluteQuantitationStandardsFile.h>
 #include <OpenMS/FORMAT/Base64.h>
 #include <OpenMS/FORMAT/BrukerTimsFile.h>
+#include <OpenMS/FORMAT/BrukerTimsImagingFile.h>
 #ifdef WITH_THERMO_RAW
 #include <OpenMS/FORMAT/OnDiscThermoRawExperiment.h>
 #include <OpenMS/FORMAT/ThermoRawFile.h>
@@ -317,6 +318,10 @@ Supports DDA-PASEF, DIA-PASEF, and raw frame-level 4D access.
 Ion mobility data is stored in VSSC (1/K0) units using IM_PEAK format
 for MS1 and DIA MS2, and scalar drift times for DDA MS2.
 
+``load()`` and ``transform()`` also read TSF data (timsTOF without ion
+mobility: MALDI imaging and spot runs, LC-MS with TIMS off), one
+centroided spectrum per frame, MS2 spectra with their precursor.
+
 This class is only available when OpenMS is built with
 ``WITH_OPENTIMS=ON`` (the default). The Bruker SDK
 (``timsdata.dll`` / ``libtimsdata.so``) is not bundled with pyOpenMS;
@@ -365,7 +370,7 @@ runtime.
         .def_static("detectFormat", &OpenMS::BrukerTimsFile::detectFormat, "path"_a,
         "Which Bruker data format a .d directory or '.d.zip' archive holds, told by its file names (nothing is read or extracted)")
         .def_static("checkDataFormat", &OpenMS::BrukerTimsFile::checkDataFormat, "path"_a,
-        "Raises if the path holds Bruker data in a format that cannot be read (TSF, BAF); load() does this check itself")
+        "Raises if the path holds Bruker data in a format that cannot be read (BAF); load() does this check itself")
         ;
     def_ProgressLogger<OpenMS::BrukerTimsFile>(brukertimsfile_class);
 
@@ -449,6 +454,85 @@ runtime.
         .def_rw("boundaries", &OpenMS::BrukerTimsFile::DIAStreamingMetadata::boundaries, "One SwathMap per DIA window (MS2 only)")
         .def_rw("nr_ms1_spectra", &OpenMS::BrukerTimsFile::DIAStreamingMetadata::nr_ms1_spectra, "Number of MS1 frames")
         .def_rw("nr_ms2_spectra", &OpenMS::BrukerTimsFile::DIAStreamingMetadata::nr_ms2_spectra, "Per-window spectrum counts (parallel to boundaries)")
+        ;
+
+    // -----------------------------------------------------------------------
+    // BrukerTimsImagingFile
+    // -----------------------------------------------------------------------
+    auto brukertimsimagingfile_class = nb::class_<OpenMS::BrukerTimsImagingFile>(m, "BrukerTimsImagingFile",
+        R"doc(
+Reader for Bruker timsTOF MALDI imaging .d directories (or '.d.zip' archives) via opentims.
+
+Loads the frames into an MSImagingExperiment and builds its 2D pixel geometry
+from the MaldiFrameInfo table. Datasets with more than one z section are rejected.
+Only the frames that Config.inner_config admits (e.g. a frame id or retention time
+range) are loaded; pixels whose frame was not loaded are skipped, so the image may
+be incomplete.
+
+This class is only available when OpenMS is built with ``WITH_OPENTIMS=ON``
+(the default). Use ``hasattr(pyopenms, "BrukerTimsImagingFile")`` to
+feature-detect at runtime.
+)doc");
+    brukertimsimagingfile_class
+        .def(nb::init<>())
+        .def("load", [](OpenMS::BrukerTimsImagingFile& self, const std::string& path) -> OpenMS::MSImagingExperiment {
+            OpenMS::MSImagingExperiment exp;
+            {
+              nb::gil_scoped_release release;
+              self.load(path, exp);
+            }
+            return exp;
+        }, "path"_a, "Load a MALDI imaging .d directory into a new MSImagingExperiment using default configuration")
+        .def("load", [](OpenMS::BrukerTimsImagingFile& self, const std::string& path, const OpenMS::BrukerTimsImagingFile::Config& config) -> OpenMS::MSImagingExperiment {
+            OpenMS::MSImagingExperiment exp;
+            {
+              nb::gil_scoped_release release;
+              self.load(path, exp, config);
+            }
+            return exp;
+        }, "path"_a, "config"_a, "Load a MALDI imaging .d directory into a new MSImagingExperiment with explicit configuration. "
+        "Only the frames config.inner_config admits are loaded; pixels of other frames are skipped, so the image may be incomplete")
+        .def("load", [](OpenMS::BrukerTimsImagingFile& self, const std::string& path, OpenMS::MSImagingExperiment& exp) -> void {
+            nb::gil_scoped_release release;
+            self.load(path, exp);
+        }, "path"_a, "exp"_a, "Load a MALDI imaging .d directory into exp (replaced, not appended) using default configuration")
+        .def("load", [](OpenMS::BrukerTimsImagingFile& self, const std::string& path, OpenMS::MSImagingExperiment& exp,
+                        const OpenMS::BrukerTimsImagingFile::Config& config) -> void {
+            nb::gil_scoped_release release;
+            self.load(path, exp, config);
+        }, "path"_a, "exp"_a, "config"_a, "Load a MALDI imaging .d directory into exp (replaced, not appended) with explicit configuration. "
+        "Only the frames config.inner_config admits are loaded; pixels of other frames are skipped, so the image may be incomplete")
+        .def_static("isImagingDataset", &OpenMS::BrukerTimsImagingFile::isImagingDataset, "path"_a,
+        "True iff GlobalMetadata.MaldiApplicationType is 'Imaging'. Never raises: an unreadable path gives False")
+        .def_static("readMaldiFrameInfo", &OpenMS::BrukerTimsImagingFile::readMaldiFrameInfo, "d_folder"_a,
+        "Reads the MaldiFrameInfo table; returns a list of MaldiPixel sorted by frame id")
+        .def_static("readGlobalMetadataValue", &OpenMS::BrukerTimsImagingFile::readGlobalMetadataValue, "d_folder"_a, "key"_a,
+        "Reads a single GlobalMetadata value; an empty string if the key or the table is absent")
+        ;
+    def_ProgressLogger<OpenMS::BrukerTimsImagingFile>(brukertimsimagingfile_class);
+
+    // Nested MaldiPixel struct
+    nb::class_<OpenMS::BrukerTimsImagingFile::MaldiPixel>(brukertimsimagingfile_class, "MaldiPixel",
+        "One row of the MaldiFrameInfo table (z is not exposed)")
+        .def(nb::init<>())
+        .def_rw("frame_id", &OpenMS::BrukerTimsImagingFile::MaldiPixel::frame_id, "Bruker frame ID (1-based)")
+        .def_rw("x", &OpenMS::BrukerTimsImagingFile::MaldiPixel::x, "Raw XIndexPos")
+        .def_rw("y", &OpenMS::BrukerTimsImagingFile::MaldiPixel::y, "Raw YIndexPos")
+        .def("__repr__", [](const OpenMS::BrukerTimsImagingFile::MaldiPixel& self) -> std::string {
+            std::ostringstream oss;
+            oss << "MaldiPixel(frame_id=" << self.frame_id << ", x=" << self.x << ", y=" << self.y << ")";
+            return oss.str();
+        })
+        ;
+
+    // Nested Config struct
+    nb::class_<OpenMS::BrukerTimsImagingFile::Config>(brukertimsimagingfile_class, "Config",
+        "Configuration for BrukerTimsImagingFile.load()")
+        .def(nb::init<>())
+        .def_rw("inner_config", &OpenMS::BrukerTimsImagingFile::Config::inner_config,
+        "BrukerTimsFile.Config for the frame reader (calibration, centroiding, ...). load() forces export_mode to FRAME and load_ms1/load_ms2 to True")
+        .def_rw("strict_imaging_only", &OpenMS::BrukerTimsImagingFile::Config::strict_imaging_only,
+        "Reject datasets whose MaldiApplicationType is not 'Imaging' (default True)")
         ;
 #endif // WITH_OPENTIMS
 
@@ -953,6 +1037,7 @@ Converts a file type name into a Type
         .value("OSWPQ", OpenMS::FileTypes::Type::OSWPQ)
         .value("PEFF", OpenMS::FileTypes::Type::PEFF)
         .value("YAML", OpenMS::FileTypes::Type::YAML)
+        .value("MZPEAK", OpenMS::FileTypes::Type::MZPEAK)
         .value("SIZE_OF_TYPE", OpenMS::FileTypes::Type::SIZE_OF_TYPE)
 
         .export_values();
@@ -2224,6 +2309,9 @@ Attributes:
         .def("__deepcopy__", [](const OpenMS::PercolatorInfile& self, nb::dict) { return OpenMS::PercolatorInfile(self); }, "memo"_a)
         .def_static("getStandardFeatureSet", &OpenMS::PercolatorInfile::getStandardFeatureSet, "min_charge"_a, "max_charge"_a,
                     "Standard PIN columns: SpecId, Label, ScanNr, ExpMass, CalcMass, mass, peplen, charge{min..max}, enzN, enzC, enzInt, dm, absdm")
+        .def_static("getFeatureSet", &OpenMS::PercolatorInfile::getFeatureSet, "search_parameters"_a, "min_charge"_a, "max_charge"_a,
+                    "PIN columns of the PSMs of a search run: getStandardFeatureSet(), the search engine's features (the search parameters' "
+                    "meta value 'extra_features'; without it: 'score'), then Peptide and Proteins")
         .def_static("store", [](const std::string& pin_file, const OpenMS::PeptideIdentificationList& peptide_ids, const std::vector<std::string>& feature_set, const std::string& enz, int min_charge, int max_charge) { return OpenMS::PercolatorInfile::store(pin_file, peptide_ids, feature_set, enz, min_charge, max_charge); }, "pin_file"_a, "peptide_ids"_a, "feature_set"_a, "enz"_a, "min_charge"_a, "max_charge"_a)
         ;
 

@@ -38,7 +38,7 @@ jobs:
       - name: Install system dependencies
         shell: bash
         run: |
-          bash tools/ci/deps-ubuntu.sh --skip-gui-deps
+          bash tools/ci/deps-ubuntu.sh
 
       - name: Install ccache
         shell: bash
@@ -86,9 +86,9 @@ jobs:
           echo "ccache dir: ${{ github.workspace }}/.ccache"
           echo ""
           echo "To build OpenMS with the vcpkg preset (the first configure builds all"
-          echo "vcpkg dependencies, which takes a while; Qt is not installed, so disable the GUI):"
+          echo "vcpkg dependencies, which takes a while):"
           echo "  export CCACHE_DIR=${{ github.workspace }}/.ccache"
-          echo "  cmake --preset linux-x64-release -DWITH_GUI=OFF \\"
+          echo "  cmake --preset linux-x64-release \\"
           echo "    -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_C_COMPILER_LAUNCHER=ccache"
           echo "  cmake --build --preset linux-x64-release"
           echo "  ctest --preset linux-x64-release"

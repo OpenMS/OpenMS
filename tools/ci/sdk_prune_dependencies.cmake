@@ -13,8 +13,8 @@
 #
 # The install component Dependencies is the runtime dependency set of every
 # installed target (cmake/package_general.cmake), so it also holds what only the
-# GUI library and the applications need: Qt and its plugins on Windows and macOS,
-# among others. The SDK ships the core and CLI layers only, so this follows the
+# applications (TOPP tools, third-party adapters) need. The SDK ships the core and
+# CLI layers only, so this follows the
 # dependencies of ROOTS (those layers' libraries) the way the loader does, and
 # removes every shared library, framework or plugin below LIB_DIR outside that
 # closure. Static libraries, import libraries and the CMake package files are
@@ -150,7 +150,7 @@ foreach(_file IN LISTS _remove)
   file(REMOVE "${_file}")
 endforeach()
 
-# directories left empty (e.g. the Qt plugin directory), deepest first
+# directories left empty, deepest first
 file(GLOB_RECURSE _dirs LIST_DIRECTORIES true "${LIB_DIR}/*")
 list(SORT _dirs ORDER DESCENDING)
 foreach(_dir IN LISTS _dirs)

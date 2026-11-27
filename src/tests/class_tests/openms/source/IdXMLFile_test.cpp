@@ -13,6 +13,7 @@
 ///////////////////////////
 
 #include <OpenMS/FORMAT/IdXMLFile.h>
+#include <OpenMS/SYSTEM/SysInfo.h>
 #include <OpenMS/CONCEPT/FuzzyStringComparator.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
@@ -1972,6 +1973,24 @@ START_SECTION([EXTRA] load - an empty file list ('spectra_data') is not stored)
   IdXMLFile().load(OPENMS_GET_TEST_DATA_PATH("comet.topperc_check.idXML"), proteins, peptides);
   TEST_EQUAL(proteins.size(), 1)
   TEST_EQUAL(proteins[0].metaValueExists("spectra_data"), false)
+}
+END_SECTION
+
+START_SECTION(([EXTRA] store() with the threads of this thread set by SysInfo::setOmpThreadsOfThisThread()))
+{
+  std::vector<ProteinIdentification> protein_ids;
+  PeptideIdentificationList peptide_ids;
+  std::string document_id;
+  IdXMLFile f;
+  f.load(OPENMS_GET_TEST_DATA_PATH("IdXMLFile_whole.idXML"), protein_ids, peptide_ids, document_id);
+  std::string by_runtime, by_two;
+  NEW_TMP_FILE(by_runtime)
+  NEW_TMP_FILE(by_two)
+  f.store(by_runtime, protein_ids, peptide_ids, document_id);
+  SysInfo::setOmpThreadsOfThisThread(2);
+  f.store(by_two, protein_ids, peptide_ids, document_id);
+  SysInfo::setOmpThreadsOfThisThread(0);
+  TEST_FILE_EQUAL(by_two.c_str(), by_runtime.c_str())
 }
 END_SECTION
 

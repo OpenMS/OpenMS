@@ -11,6 +11,8 @@
 
 ///////////////////////////
 #include <OpenMS/ANALYSIS/OPENSWATH/IonMobilityScoring.h>
+#include <OpenMS/KERNEL/MRMTransitionGroup.h>
+#include <OpenMS/KERNEL/MSChromatogram.h>
 ///////////////////////////
 
 using namespace std;
@@ -536,4 +538,62 @@ END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
+
+START_SECTION(([EXTRA] static void driftIdScoring(const SpectrumSequence& spectra, const std::vector<TransitionType>& transitions, MRMTransitionGroupType& transition_group_detection, OpenSwath_Scores& scores, const double drift_target, RangeMobility im_range, const double dia_extract_window_, const bool dia_extraction_ppm_, const double drift_extra, const bool apply_im_peak_picking, ...)))
+{
+  // identification transition: mock_tr1 (500.2), detecting transition: mock_tr2 (600.5)
+  std::vector<OpenSwath::SpectrumPtr> spectra{spec};
+  MRMTransitionGroup<MSChromatogram, OpenSwath::LightTransition> detection;
+  MSChromatogram chrom;
+  chrom.setNativeID("group2");
+  detection.addTransition(mock_tr2, "group2");
+  detection.addChromatogram(chrom, "group2");
+  std::vector<OpenSwath::LightTransition> identification{mock_tr1};
+
+  for (bool apply_im_peak_picking : {false, true})
+  {
+    // IM range 0.5 - 1.5, extended by 25 % on either side
+    OpenSwath_Scores scores;
+    OpenMS::RangeMobility im_range(1.0);
+    im_range.minSpanIfSingular(1.);
+    IonMobilityScoring::driftIdScoring(spectra, identification, detection, scores, 1.0, im_range, 0.3, false, 0.25, apply_im_peak_picking);
+    TEST_REAL_SIMILAR(scores.im_drift, 0.705405405405405)
+    TEST_REAL_SIMILAR(scores.im_delta_score, 0.294594594594595)
+    TEST_REAL_SIMILAR(scores.im_delta, 0.294594594594595)
+    TEST_REAL_SIMILAR(scores.im_log_intensity, 5.91620206260744)
+    TEST_REAL_SIMILAR(scores.im_ind_contrast_coelution, 3.0)
+    TEST_REAL_SIMILAR(scores.im_ind_contrast_shape, 0.676374335346479)
+    TEST_REAL_SIMILAR(scores.im_ind_sum_contrast_coelution, 3.0)
+    TEST_REAL_SIMILAR(scores.im_ind_sum_contrast_shape, 0.676374335346479)
+    if (apply_im_peak_picking)
+    {
+      TEST_REAL_SIMILAR(scores.im_drift_left, 0.299985)
+      TEST_REAL_SIMILAR(scores.im_drift_right, 1.29999)
+    }
+
+    // narrower m/z window: only the 500.2 peaks of the identification transition are extracted
+    OpenSwath_Scores scores_narrow;
+    IonMobilityScoring::driftIdScoring(spectra, identification, detection, scores_narrow, 1.0, im_range, 0.1, false, 0.25, apply_im_peak_picking);
+    TEST_REAL_SIMILAR(scores_narrow.im_drift, 0.5)
+    TEST_REAL_SIMILAR(scores_narrow.im_log_intensity, 5.14166355650266)
+    TEST_REAL_SIMILAR(scores_narrow.im_ind_contrast_coelution, 1.0)
+    TEST_REAL_SIMILAR(scores_narrow.im_ind_contrast_shape, 0.500541711968198)
+    TEST_REAL_SIMILAR(scores_narrow.im_ind_sum_contrast_coelution, 1.0)
+    TEST_REAL_SIMILAR(scores_narrow.im_ind_sum_contrast_shape, 0.500541711968198)
+  }
+
+  // no signal of the identification transition in the IM range (2.5 - 3.5): contrast scores are set to 0
+  OpenSwath_Scores scores;
+  OpenMS::RangeMobility im_range(3.0);
+  im_range.minSpanIfSingular(1.);
+  IonMobilityScoring::driftIdScoring(spectra, identification, detection, scores, 3.0, im_range, 0.3, false, 0.25, false);
+  TEST_REAL_SIMILAR(scores.im_drift, -1)
+  TEST_REAL_SIMILAR(scores.im_delta, 4)
+  TEST_REAL_SIMILAR(scores.im_ind_contrast_coelution, 0)
+  TEST_REAL_SIMILAR(scores.im_ind_contrast_shape, 0)
+  TEST_REAL_SIMILAR(scores.im_ind_sum_contrast_coelution, 0)
+  TEST_REAL_SIMILAR(scores.im_ind_sum_contrast_shape, 0)
+}
+END_SECTION
+
 END_TEST

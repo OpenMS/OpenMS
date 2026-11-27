@@ -1975,6 +1975,9 @@ def testPosteriorErrorProbabilityModel():
     assert pyopenms.PosteriorErrorProbabilityModel().fit is not None
     assert pyopenms.PosteriorErrorProbabilityModel().computeProbability is not None
 
+    params = model.getParameters()
+    params.setValue("min_mixture_scores", 3)  # toy data (default: at least 35 scores)
+    model.setParameters(params)
     scores = [float(i) for i in range(10)]
     model.fit(scores, "none")
     model.fit(scores, scores, "none")
@@ -1994,9 +1997,54 @@ def testPosteriorErrorProbabilityModel():
     target = [float(i) for i in range(10)]
     model.getGumbelGnuplotFormula(GaussFitResult) 
     model.getGaussGnuplotFormula(GaussFitResult) 
-    model.getBothGnuplotFormula(GaussFitResult, GaussFitResult) 
+    model.getBothGnuplotFormula(GaussFitResult, GaussFitResult)
     model.plotTargetDecoyEstimation(target, target)
     model.getSmallestScore()
+
+
+@report
+def testPosteriorErrorProbabilityModelTargetDecoy():
+    """
+    @tests: PosteriorErrorProbabilityModel
+     PosteriorErrorProbabilityModel.fitTargetDecoy
+     PosteriorErrorProbabilityModel.getModelType
+     PosteriorErrorProbabilityModel.computeDecoyProbability
+     PosteriorErrorProbabilityModel.getTargetDecoyAUC
+    """
+    # target-decoy competition: incorrect targets and decoys ~ Gumbel(2, 0.6), correct targets ~ N(5, 1)
+    rng = np.random.default_rng(1)
+    targets = list(rng.gumbel(2.0, 0.6, 2000)) + list(rng.normal(5.0, 1.0, 1000))
+    decoys = list(rng.gumbel(2.0, 0.6, 2000))
+
+    model = pyopenms.PosteriorErrorProbabilityModel()
+    ModelType = pyopenms.PosteriorErrorProbabilityModel.ModelType
+    assert model.getModelType() == ModelType.NONE
+    assert model.fitTargetDecoy(targets, decoys, "none")
+    assert model.getModelType() == ModelType.TARGET_DECOY_ISOTONIC
+    assert "isotonic" in pyopenms.PosteriorErrorProbabilityModel.modelTypeToString(model.getModelType())
+    assert abs(model.getTargetDecoyIncorrectFraction() - 2000.0 / 3000.0) < 1e-9
+    assert not model.hasCalibrationWarning()
+
+    curve = model.getIsotonicPEPCurve()
+    assert len(curve) > 2
+    peps = [model.computeProbability(s) for s in np.linspace(-2.0, 10.0, 200)]
+    assert all(0.0 <= p <= 1.0 for p in peps)
+    assert all(b <= a + 1e-12 for a, b in zip(peps, peps[1:]))  # non-increasing
+    # the PEPs of the targets sum up to (about) the number of incorrect targets
+    assert abs(sum(model.computeProbability(t) for t in targets) / 2000.0 - 1.0) < 0.1
+    # targets score better than decoys
+    assert model.getTargetDecoyAUC() > 0.5
+    # decoys get the (label-swapped) PEPs they would get as targets: never above the PEP of a target with the same score
+    assert all(0.0 <= model.computeDecoyProbability(d) <= model.computeProbability(d) + 1e-12 for d in decoys)
+
+    # without decoys: mixture model of the targets
+    assert model.fitTargetDecoy(targets, [], "none")
+    assert model.getModelType() == ModelType.MIXTURE
+    assert model.getTargetDecoyAUC() == -1.0
+    assert model.computeDecoyProbability(3.0) == model.computeProbability(3.0)
+    assert abs(model.getNegativePrior() - 2000.0 / 3000.0) < 0.05
+    location, scale = model.getIncorrectlyAssignedGumbelFitResult()
+    assert abs(scale - 0.6) < 0.1
 
 @report
 def testSeedListGenerator():
@@ -6400,8 +6448,34 @@ def testKernelMassTrace():
     assert trace.updateMeanMZ is not None
     assert trace.updateWeightedMeanMZ is not None
     assert trace.updateWeightedMZsd is not None
+    assert trace.clearSmoothedIntensities is not None
 
     s = trace.getSize()
+
+    # average peak FWHMs: accessors, and the attributes they replaced
+    assert trace.getFWHMMZAvg() == 0.0
+    assert trace.getFWHMIMAvg() == 0.0
+    trace.setFWHMMZAvg(0.5)
+    assert trace.getFWHMMZAvg() == 0.5
+    assert trace.fwhm_mz_avg == 0.5
+    trace.fwhm_im_avg = 0.25
+    assert trace.getFWHMIMAvg() == 0.25
+
+    # quantitation method as an argument
+    peaks = []
+    for rt, intensity in [(1.0, 10.0), (2.0, 30.0), (3.0, 20.0)]:
+        p = pyopenms.Peak2D()
+        p.setRT(rt)
+        p.setMZ(100.0)
+        p.setIntensity(intensity)
+        peaks.append(p)
+    trace = pyopenms.MassTrace(peaks)
+    assert trace.getIntensity(False, pyopenms.MT_QUANTMETHOD.MT_QUANT_HEIGHT) == 30.0
+    assert trace.getIntensity(False, pyopenms.MT_QUANTMETHOD.MT_QUANT_MEDIAN) == 20.0
+    trace.setSmoothedIntensities([12.0, 25.0, 18.0])
+    assert trace.getIntensity(True, pyopenms.MT_QUANTMETHOD.MT_QUANT_HEIGHT) == 25.0
+    trace.clearSmoothedIntensities()
+    assert len(trace.getSmoothedIntensities()) == 0
 
 @report
 def testElutionPeakDetection():

@@ -20,6 +20,7 @@
 #include <OpenMS/KERNEL/Peak1D.h>
 #include <OpenMS/IMAGING/MSImagingExperiment.h>
 #include <OpenMS/IMAGING/MSImagingGeometry.h>
+#include <OpenMS/IMAGING/MSImagingRegion.h>
 #include <OpenMS/IMAGING/IonImage.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/FORMAT/OPTIONS/PeakFileOptions.h>
@@ -424,6 +425,44 @@ START_SECTION(const MSImagingGeometry& getGeometry() const)
   const auto& e0 = od.getIndex(0);
   TEST_EQUAL(geom.hasPixel(e0.x - 1, e0.y - 1), true)
   TEST_EQUAL(geom.getSpectrumIndex(e0.x - 1, e0.y - 1), 0)
+}
+END_SECTION
+
+
+START_SECTION([EXTRA] OnDiscImzMLExperiment::open resets the geometry in place)
+{
+  // A geometry reference taken before a re-open must stay valid and describe the re-opened dataset.
+  OnDiscImzMLExperiment od;
+  od.open(imzml_path);
+  MSImagingGeometry& geom = od.getGeometry();
+  const Size n_pixels = geom.getNumberOfPixels();
+  geom.addRegion(MSImagingRegion::rectangle(1, "roi", 0, 0, 0, 0));
+  TEST_EQUAL(od.getGeometry().getNumberOfRegions(), 1)
+
+  od.open(imzml_path);
+  TEST_EQUAL(&od.getGeometry() == &geom, true)
+  TEST_EQUAL(geom.getNumberOfPixels(), n_pixels)
+  TEST_EQUAL(geom.getNumberOfRegions(), 0) // user regions belong to the previous open()
+
+  od.close();
+  TEST_EQUAL(&od.getGeometry() == &geom, true)
+  TEST_EQUAL(geom.getNumberOfPixels(), 0)
+}
+END_SECTION
+
+
+START_SECTION([EXTRA] OnDiscImzMLExperiment::open leaves the object closed and empty when it fails)
+{
+  OnDiscImzMLExperiment od;
+  od.open(imzml_path);
+  const MSImagingGeometry& geom = od.getGeometry();
+  TEST_EQUAL(od.getNrSpectra() > 0, true)
+
+  TEST_EXCEPTION(Exception::FileNotFound, od.open(imzml_path, "/nonexistent/missing.ibd"))
+  TEST_EQUAL(od.isOpen(), false)
+  TEST_EQUAL(od.getNrSpectra(), 0)
+  TEST_EQUAL(&od.getGeometry() == &geom, true)
+  TEST_EQUAL(geom.getNumberOfPixels(), 0)
 }
 END_SECTION
 
@@ -864,6 +903,40 @@ START_SECTION(void store round-trip processed imzML)
     TEST_REAL_SIMILAR(reloaded[0][0].getMZ(), original[0][0].getMZ())
   }
   TEST_EQUAL(reloaded.getMetaValue("imzml:imaging_mode"), "processed")
+}
+END_SECTION
+
+
+START_SECTION([EXTRA] store round-trip of the MALDI spot (spotID))
+{
+  // The reader (MzMLHandler) keeps the spotID attribute as the MetaValue maldi_spot_id; the writer used to drop it
+  MSExperiment original;
+  MSSpectrum spot = makePixelSpectrum_(1, 1, 100.0, 10.0f);
+  spot.setMetaValue("maldi_spot_id", "R00X001Y001\tline\rbreak\nnext <&>");
+  original.addSpectrum(spot);
+  original.addSpectrum(makePixelSpectrum_(2, 1, 100.0, 20.0f));
+
+  std::string tmp_imzml;
+  NEW_TMP_FILE_EXT(tmp_imzml, ".imzML");
+  ImzMLFile().store(tmp_imzml, original);
+  std::ifstream is(tmp_imzml);
+  const std::string out((std::istreambuf_iterator<char>(is)), std::istreambuf_iterator<char>());
+  is.close();
+  TEST_TRUE(StringUtils::hasSubstring(out, "spotID=\"R00X001Y001&#x9;line&#xD;break&#xA;next &lt;&amp;&gt;\""))
+  TEST_TRUE(out.find("spotID=") == out.rfind("spotID=")) // only for the spectrum with a spot
+  std::ostringstream errors;
+  TEST_TRUE(ImzMLFile().isValid(tmp_imzml, errors)) // spotID is an attribute of <spectrum> in the mzML 1.1 schema
+
+  const MSExperiment reloaded = loadImzMLExperiment_(tmp_imzml);
+  TEST_EQUAL(reloaded.size(), 2)
+  if (reloaded.size() == 2)
+  {
+    TEST_STRING_EQUAL(reloaded[0].getMetaValue("maldi_spot_id").toString(), "R00X001Y001\tline\rbreak\nnext <&>")
+    TEST_FALSE(reloaded[1].metaValueExists("maldi_spot_id"))
+  }
+
+  // NEW_TMP_FILE_EXT only tracks the .imzML, so drop the companion .ibd file
+  remove((tmp_imzml.substr(0, tmp_imzml.size() - 6) + ".ibd").c_str());
 }
 END_SECTION
 

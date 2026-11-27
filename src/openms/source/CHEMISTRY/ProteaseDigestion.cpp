@@ -20,8 +20,7 @@ namespace OpenMS
 {
   void ProteaseDigestion::setEnzyme(const std::string& enzyme_name)
   {
-    enzyme_ = ProteaseDB::getInstance()->getEnzyme(enzyme_name);
-    re_.assign(enzyme_->getRegEx());
+    EnzymaticDigestion::setEnzyme(ProteaseDB::getInstance()->getEnzyme(enzyme_name));
   }
 
   bool ProteaseDigestion::isValidProduct(const std::string& protein,

@@ -63,6 +63,7 @@ MascotXMLFile.h
 MsInspectFile.h
 MzDataFile.h
 MzMLFile.h
+MzPeakFile.h
 MzQCFile.h
 MzTab.h
 MzTabBase.h
@@ -114,10 +115,6 @@ TargetedDataFileLoader.h
 ZlibCompression.h
 ZstdCompression.h
 )
-
-if (WITH_HDF5)
-  list(APPEND sources_list_h HDF5Connector.h)
-endif()
 
 list(APPEND sources_list_h ZipArchiveFile.h)
 list(APPEND sources_list_h MSExperimentArrowExport.h)

@@ -28,7 +28,6 @@ using namespace Internal;
 namespace
 {
   /// Set an environment variable, overwriting any existing value.
-  /// Replaces Qt's qputenv(): with WITH_GUI=OFF this program links no Qt (see doc/CMakeLists.txt).
   void setEnvVar(const char* name, const char* value)
   {
 #ifdef _WIN32
@@ -233,12 +232,6 @@ bool generate(const ToolListType& tools, const std::string& prefix, const std::s
   for (ToolListType::const_iterator it = tools.begin(); it != tools.end(); ++it)
   {
     std::string command = binary_directory + it->first;
-#if defined(__APPLE__)
-    if (it->first == "TOPPView" || it->first == "TOPPAS")
-    {
-      command = binary_directory + it->first + ".app/Contents/MacOS/" + it->first;
-    }
-#endif
 #ifdef OPENMS_WINDOWSPLATFORM
     command += ".exe"; // otherwise File::exists() will fail
 #endif
@@ -281,36 +274,32 @@ bool generate(const ToolListType& tools, const std::string& prefix, const std::s
     //////
     // get the INI file and convert it into HTML
     //////
-    if (it->first != "TOPPView" && // do not support -write_ini
-        it->first != "TOPPAS")
-    {
-      std::string tmp_file = SystemSettings::getTempDirectory() + "/" + File::getUniqueName() + "_" + it->first + ".ini";
-      const std::vector<std::string> ini_command_args = {"-write_ini", tmp_file};
+    std::string tmp_file = SystemSettings::getTempDirectory() + "/" + File::getUniqueName() + "_" + it->first + ".ini";
+    const std::vector<std::string> ini_command_args = {"-write_ini", tmp_file};
 
-      ExternalProcess ep([&](const std::string& s) { f << s; }, [&](const std::string& s) { f << s; });
-      std::string error_msg;
-      if (ep.run(command, ini_command_args, "", false, error_msg,
-                 ExternalProcess::IO_MODE::READ_WRITE)
-            != ExternalProcess::RETURNSTATE::SUCCESS
-          || ! File::exists(tmp_file))
-      { // error while generation cli docu
-        std::cerr << "Errors occurred while writing ini file for " << it->first << "!" << std::endl;
-        std::string args_str;
-        for (const auto& a : ini_command_args) args_str += " " + a;
-        std::cerr << "Command line was: \n " << command << args_str << std::endl;
-        errors_occured = true;
-        continue;
-      }
-
-      // load content of written ini file
-      Param p;
-      ParamXMLFile pf;
-      pf.load(tmp_file, p);
-      File::remove(tmp_file);
-      ofstream f_html((std::string("output/") + prefix + it->first + ".html").c_str());
-      convertINI2HTML(p, f_html);
-      f_html.close();
+    ExternalProcess ep([&](const std::string& s) { f << s; }, [&](const std::string& s) { f << s; });
+    std::string error_msg;
+    if (ep.run(command, ini_command_args, "", false, error_msg,
+               ExternalProcess::IO_MODE::READ_WRITE)
+          != ExternalProcess::RETURNSTATE::SUCCESS
+        || ! File::exists(tmp_file))
+    { // error while generation cli docu
+      std::cerr << "Errors occurred while writing ini file for " << it->first << "!" << std::endl;
+      std::string args_str;
+      for (const auto& a : ini_command_args) args_str += " " + a;
+      std::cerr << "Command line was: \n " << command << args_str << std::endl;
+      errors_occured = true;
+      continue;
     }
+
+    // load content of written ini file
+    Param p;
+    ParamXMLFile pf;
+    pf.load(tmp_file, p);
+    File::remove(tmp_file);
+    ofstream f_html((std::string("output/") + prefix + it->first + ".html").c_str());
+    convertINI2HTML(p, f_html);
+    f_html.close();
   }
   return errors_occured;
 }
@@ -333,12 +322,6 @@ int main(int argc, char** argv)
 
   //TOPP tools
   ToolListType topp_tools = ToolHandler::getTOPPToolList();
-#ifdef WITH_GUI
-  // Only documented when they were built: a WITH_GUI=OFF build has no such executables,
-  // and generate() below runs each tool to capture its help output.
-  topp_tools["TOPPView"] = Internal::ToolDescription(); // these two need to be excluded from writing an INI file later!
-  topp_tools["TOPPAS"] = Internal::ToolDescription();
-#endif
 
   bool errors_occured = generate(topp_tools, "TOPP_", binary_directory);
 

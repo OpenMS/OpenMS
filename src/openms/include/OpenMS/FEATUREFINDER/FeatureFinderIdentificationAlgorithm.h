@@ -110,24 +110,24 @@ public:
   const PeakMap& getMSData() const;
 
   /**
-    @brief Copy the MS data into the algorithm instance; useful from pyOpenMS where moving is awkward.
-    @param[in] ms_data Source @ref PeakMap; copied into the internal cache.
+    @brief Copy the MS1 spectra of @p ms_data into the algorithm instance; useful from pyOpenMS where moving is awkward.
+    @param[in] ms_data Source @ref PeakMap; copied into the internal cache, which keeps only its MS1 spectra (all other MS levels are dropped).
   */
-  void setMSData(const PeakMap& ms_data); // for pyOpenMS
+  void setFromMS1Data(const PeakMap& ms_data); // for pyOpenMS
   /**
-    @brief Move the MS data into the algorithm instance (no copy).
-    @param[in] ms_data Source @ref PeakMap; moved into the internal cache. @ref getMSData will later expose the cached (possibly preprocessed) copy, not the original.
+    @brief Move the MS1 spectra of @p ms_data into the algorithm instance (no copy).
+    @param[in] ms_data Source @ref PeakMap; moved into the internal cache, which keeps only its MS1 spectra (all other MS levels are dropped). @ref getMSData will later expose the cached (possibly preprocessed) copy, not the original.
   */
-  void setMSData(PeakMap&& ms_data); // moves peak data and saves the copy. Note that getMSData() will give back a processed/modified version.
+  void setFromMS1Data(PeakMap&& ms_data); // moves peak data and saves the copy. Note that getMSData() will give back a processed/modified version.
 
   /**
     @brief Mutable access to the accumulated extracted chromatograms (XICs) from the last @ref run.
-    @return Reference to the accumulated XIC @ref PeakMap.
+    @return Reference to the accumulated XIC @ref PeakMap; empty unless the parameter @c keep_chromatograms is "true".
   */
   PeakMap& getChromatograms();
   /**
     @brief Read-only access to the accumulated extracted chromatograms.
-    @return Const reference to the accumulated XIC @ref PeakMap.
+    @return Const reference to the accumulated XIC @ref PeakMap; empty unless the parameter @c keep_chromatograms is "true".
   */
   const PeakMap& getChromatograms() const;
 
@@ -283,6 +283,7 @@ protected:
 
   PeakMap ms_data_; ///< input LC-MS data
   PeakMap chrom_data_; ///< accumulated chromatograms (XICs)
+  bool keep_chromatograms_ = false; ///< keep the chromatograms of every batch in chrom_data_ (parameter keep_chromatograms)
   TargetedExperiment library_; ///< assays for peptides (cleared per chunk during processing)
   TargetedExperiment output_library_; ///< accumulated assays for output (populated from library_ before clearing)
 
@@ -375,7 +376,8 @@ protected:
 
   void ensureConvexHulls_(Feature& feature) const;
 
-  void postProcess_(FeatureMap& features);
+  /// Store the candidates (if requested and @p store_candidates), filter them and fit elution models
+  void postProcess_(FeatureMap& features, bool store_candidates = true);
 
   /// Helper functions for run()
   void initializeFeatureFinder_();

@@ -47,29 +47,56 @@ namespace OpenMS
     write_log_messages_ = param_.getValue("write_log_messages").toBool();
   }
 
+  namespace
+  {
+    /**
+      @brief Smooths the 1D peak container @p container (shared by the filter() overloads)
+
+      @param[in] report_no_signal report_no_signal(): called if no signal was found although the container has at least three peaks;
+                 the container is left untouched then
+    */
+    template <typename Container, typename ReportNoSignal>
+    void filterContainer_(GaussFilterAlgorithm& gauss_algo, Container& container, ReportNoSignal&& report_no_signal)
+    {
+      bool found_signal = false;
+      const Size data_size = container.size();
+      std::vector<double> pos_in(data_size), int_in(data_size), pos_out(data_size), int_out(data_size);
+
+      // copy container to vectors
+      for (Size p = 0; p < container.size(); ++p)
+      {
+        pos_in[p] = container[p].getPos();
+        int_in[p] = static_cast<double>(container[p].getIntensity());
+      }
+
+      // apply filter
+      auto pos_out_it = pos_out.begin();
+      auto int_out_it = int_out.begin();
+      found_signal = gauss_algo.filter(pos_in.begin(), pos_in.end(), int_in.begin(), pos_out_it, int_out_it);
+
+      // If all intensities are zero in the scan and the scan has a reasonable size, throw an exception.
+      // This is the case if the Gaussian filter is smaller than the spacing of raw data
+      if (!found_signal && container.size() >= 3)
+      {
+        report_no_signal();
+      }
+      else
+      {
+        // copy the new data into the container
+        for (Size p = 0; p < container.size(); ++p)
+        {
+          container[p].setIntensity(int_out[p]);
+          container[p].setPos(pos_out[p]);
+        }
+      }
+    }
+  } // namespace
+
   void GaussFilter::filter(MSSpectrum & spectrum)
   {
     // make sure the right data type is set
     spectrum.setType(SpectrumSettings::SpectrumType::PROFILE);
-    bool found_signal = false;
-    const Size data_size = spectrum.size();
-    std::vector<double> mz_in(data_size), int_in(data_size), mz_out(data_size), int_out(data_size);
-
-    // copy spectrum to container
-    for (Size p = 0; p < spectrum.size(); ++p)
-    {
-      mz_in[p] = spectrum[p].getMZ();
-      int_in[p] = static_cast<double>(spectrum[p].getIntensity());
-    }
-
-    // apply filter
-    auto mz_out_it = mz_out.begin();
-    auto int_out_it = int_out.begin();
-    found_signal = gauss_algo_.filter(mz_in.begin(), mz_in.end(), int_in.begin(), mz_out_it, int_out_it);
-
-    // If all intensities are zero in the scan and the scan has a reasonable size, throw an exception.
-    // This is the case if the Gaussian filter is smaller than the spacing of raw data
-    if (!found_signal && spectrum.size() >= 3)
+    filterContainer_(gauss_algo_, spectrum, [&]()
     {
       if (write_log_messages_)
       {
@@ -80,16 +107,7 @@ namespace OpenMS
         }
         OPENMS_LOG_WARN << error_message << std::endl;
       }
-    }
-    else
-    {
-      // copy the new data into the spectrum
-      for (Size p = 0; p < spectrum.size(); ++p)
-      {
-        spectrum[p].setIntensity(int_out[p]);
-        spectrum[p].setMZ(mz_out[p]);
-      }
-    }
+    });
   }
 
   void GaussFilter::filter(MSChromatogram & chromatogram)
@@ -100,25 +118,7 @@ namespace OpenMS
         "GaussFilter: Cannot use ppm tolerance on chromatograms");
     }
 
-    bool found_signal = false;
-    const Size data_size = chromatogram.size();
-    std::vector<double> rt_in(data_size), int_in(data_size), rt_out(data_size), int_out(data_size);
-
-    // copy spectrum to container
-    for (Size p = 0; p < chromatogram.size(); ++p)
-    {
-      rt_in[p] = chromatogram[p].getRT();
-      int_in[p] = chromatogram[p].getIntensity();
-    }
-
-    // apply filter
-    auto mz_out_it = rt_out.begin();
-    auto int_out_it = int_out.begin();
-    found_signal = gauss_algo_.filter(rt_in.begin(), rt_in.end(), int_in.begin(), mz_out_it, int_out_it);
-
-    // If all intensities are zero in the scan and the scan has a reasonable size, throw an exception.
-    // This is the case if the Gaussian filter is smaller than the spacing of raw data
-    if (!found_signal && chromatogram.size() >= 3)
+    filterContainer_(gauss_algo_, chromatogram, [&]()
     {
       if (write_log_messages_)
       {
@@ -129,16 +129,7 @@ namespace OpenMS
         }
         OPENMS_LOG_ERROR << error_message << std::endl;
       }
-    }
-    else
-    {
-      // copy the new data into the chromatogram
-      for (Size p = 0; p < chromatogram.size(); ++p)
-      {
-        chromatogram[p].setIntensity(int_out[p]);
-        chromatogram[p].setRT(rt_out[p]);
-      }
-    }
+    });
   }
 
   void GaussFilter::filter(Mobilogram & mobilogram)
@@ -149,25 +140,7 @@ namespace OpenMS
         "GaussFilter: Cannot use ppm tolerance on mobilogram");
     }
 
-    bool found_signal = false;
-    const Size data_size = mobilogram.size();
-    std::vector<double> im_in(data_size), int_in(data_size), im_out(data_size), int_out(data_size);
-
-    // copy spectrum to container
-    for (Size p = 0; p < mobilogram.size(); ++p)
-    {
-      im_in[p] = mobilogram[p].getMobility();
-      int_in[p] = mobilogram[p].getIntensity();
-    }
-
-    // apply filter
-    auto im_out_it = im_out.begin();
-    auto int_out_it = int_out.begin();
-    found_signal = gauss_algo_.filter(im_in.begin(), im_in.end(), int_in.begin(), im_out_it, int_out_it);
-
-    // If all intensities are zero in the scan and the scan has a reasonable size, throw an exception.
-    // This is the case if the Gaussian filter is smaller than the spacing of raw data
-    if (!found_signal && mobilogram.size() >= 3)
+    filterContainer_(gauss_algo_, mobilogram, [&]()
     {
       if (write_log_messages_)
       {
@@ -178,18 +151,7 @@ namespace OpenMS
         }
         OPENMS_LOG_ERROR << error_message << std::endl;
       }
-    }
-    else
-    {
-      // copy the new data into the spectrum
-      auto im_it = im_out.begin();
-      auto int_it = int_out.begin();
-      for (Size p = 0; im_it != im_out.end(); im_it++, int_it++, p++)
-      {
-        mobilogram[p].setIntensity(*int_it);
-        mobilogram[p].setMobility(*im_it);
-      }
-    }
+    });
   }
 
   void GaussFilter::filterExperiment(PeakMap & map)

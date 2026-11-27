@@ -16,6 +16,9 @@
 #include <OpenMS/FEATUREFINDER/MultiplexClustering.h>
 
 #include <OpenMS/FORMAT/MzMLFile.h>
+#include <OpenMS/ML/CLUSTERING/GridBasedClustering.h>
+
+#include <random>
 
 using namespace OpenMS;
 
@@ -97,6 +100,88 @@ START_SECTION(cluster(const std::vector<MultiplexFilteredMSExperiment>& filter_r
     TEST_EQUAL(cluster_results[5].size(), 0);
     TEST_EQUAL(cluster_results[6].size(), 0);
     TEST_EQUAL(cluster_results[7].size(), 0);
+END_SECTION
+
+// cluster() clusters groups of points separated by empty m/z columns of the grid on their own. The clusters must be those of
+// the clustering of all points of a filter result at once (as before): same indices, points, centres and bounding boxes.
+START_SECTION(([EXTRA] cluster() of groups of points equals the clustering of all points))
+{
+  // an experiment that spans the grid (centroided constructor, m/z tolerance in Da)
+  MSExperiment exp_range;
+  for (int s = 0; s <= 300; s += 50)
+  {
+    MSSpectrum spectrum;
+    spectrum.setMSLevel(1);
+    spectrum.setRT(s);
+    spectrum.push_back(Peak1D(400.0, 1.0));
+    spectrum.push_back(Peak1D(410.0, 1.0));
+    exp_range.addSpectrum(spectrum);
+  }
+  exp_range.updateRanges();
+  const double tolerance = 0.01; // Da, i.e. the width of the m/z columns of the grid
+  const double rt_typical_range = 30.0;
+  MultiplexClustering clustering_range(exp_range, tolerance, false, rt_typical_range);
+
+  // the grid of MultiplexClustering(exp, mz_tolerance, false, rt_typical)
+  std::vector<double> grid_mz, grid_rt;
+  const double mz_min = exp_range.spectrumRanges().byMSLevel(1).getMinMZ() - 1e-2, mz_max = exp_range.spectrumRanges().byMSLevel(1).getMaxMZ() + 1e-2;
+  const double rt_min = exp_range.spectrumRanges().byMSLevel(1).getMinRT() - 1e-2, rt_max = exp_range.spectrumRanges().byMSLevel(1).getMaxRT() + 1e-2;
+  for (double mz = mz_min; mz < mz_max; mz = mz + tolerance) { grid_mz.push_back(mz); }
+  grid_mz.push_back(mz_max);
+  for (double rt = rt_min; rt < rt_max; rt = rt + rt_typical_range) { grid_rt.push_back(rt); }
+  grid_rt.push_back(rt_max);
+
+  // Islands of points (elution profiles of a few m/z traces each), separated by 1 to 6 empty m/z columns, and one long
+  // chain of points over many columns. Points of neighbouring islands can be nearest neighbours of each other.
+  std::vector<MultiplexFilteredMSExperiment> results(2);
+  std::mt19937 rng(7);
+  std::uniform_real_distribution<double> jitter(-0.3, 0.3);
+  double mz = 401.0;
+  size_t index = 0;
+  for (int island = 0; island < 60; ++island)
+  {
+    const int traces = 1 + island % 3;
+    for (int trace = 0; trace < traces; ++trace)
+    {
+      for (double rt = 10.0 + (island * 7) % 50; rt < 200.0 + (island * 13) % 90; rt += 1.7)
+      {
+        const double point_mz = mz + (trace + 0.5 + jitter(rng)) * tolerance;
+        results[0].addPeak(MultiplexFilteredPeak(point_mz, rt, index, index));
+        ++index;
+      }
+    }
+    mz += (traces + 1 + island % 6) * tolerance; // traces, then 1 to 6 empty columns
+  }
+  for (int k = 0; k < 400; ++k)
+  {
+    results[1].addPeak(MultiplexFilteredPeak(405.0 + k * 0.004, 5.0 + (k % 37) * 7.5, k, k));
+  }
+
+  std::vector<std::map<int, GridBasedCluster>> clusters = clustering_range.cluster(results);
+  TEST_EQUAL(clusters.size(), 2)
+  for (size_t r = 0; r < results.size(); ++r)
+  {
+    GridBasedClustering<MultiplexClustering::MultiplexDistance> all(MultiplexClustering::MultiplexDistance(tolerance / rt_typical_range), results[r].getMZ(), results[r].getRT(), grid_mz, grid_rt);
+    all.cluster();
+    const std::map<int, GridBasedCluster> expected = all.getResults();
+    TEST_EQUAL(expected.size() > 10, true)
+    TEST_EQUAL(clusters[r].size(), expected.size())
+    Size differences = 0;
+    for (auto it = clusters[r].cbegin(), it_expected = expected.cbegin(); it != clusters[r].cend() && it_expected != expected.cend(); ++it, ++it_expected)
+    {
+      const GridBasedCluster& c = it->second;
+      const GridBasedCluster& e = it_expected->second;
+      differences += !(it->first == it_expected->first && c.getPoints() == e.getPoints() && c.getCentre() == e.getCentre()
+                       && c.getBoundingBox() == e.getBoundingBox() && c.getPropertiesB() == e.getPropertiesB());
+    }
+    TEST_EQUAL(differences, 0)
+  }
+
+  // a point outside of the grid is reported as before
+  std::vector<MultiplexFilteredMSExperiment> outside(1);
+  outside[0].addPeak(MultiplexFilteredPeak(1000.0, 100.0, 0, 0));
+  TEST_EXCEPTION(Exception::IllegalArgument, clustering_range.cluster(outside))
+}
 END_SECTION
 
 END_TEST

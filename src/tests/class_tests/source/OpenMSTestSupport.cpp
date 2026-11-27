@@ -8,7 +8,7 @@
 
 // libOpenMS-specific setup for the std-only class-test framework. Built as the
 // OpenMSTestSupport target and linked by every class test of a project that links
-// libOpenMS -- the openms, openms_cli and openms_gui test projects and the
+// libOpenMS -- the openms and openms_cli test projects and the
 // tool-local test/ folders -- but not by tests that do not, e.g. OpenSwathAlgo.
 // Registers, at static init:
 //  1. a fixed UniqueIdGenerator seed, so IDs in output files match the reference

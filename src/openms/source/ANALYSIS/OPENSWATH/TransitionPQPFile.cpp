@@ -39,6 +39,128 @@ namespace OpenMS
     constexpr Size max_protein_reserve = 100000;
     constexpr Size stable_stream_order_transition_limit = 100000;
 
+    /// SQL creating the tables of a PQP file (shared by the TargetedExperiment and LightTargetedExperiment writers)
+    const char* const PQP_CREATE_SQL_ =
+      "CREATE TABLE VERSION(" \
+      "ID INT NOT NULL);" \
+
+      // gene table
+      // OpenSWATH proteomics workflows
+      "CREATE TABLE GENE(" \
+      "ID INT PRIMARY KEY NOT NULL," \
+      "GENE_NAME TEXT NOT NULL," \
+      "DECOY INT NOT NULL);" \
+
+      // peptide_gene_mapping table
+      // OpenSWATH proteomics workflows
+      "CREATE TABLE PEPTIDE_GENE_MAPPING(" \
+      "PEPTIDE_ID INT NOT NULL," \
+      "GENE_ID INT NOT NULL);" \
+
+      // protein table
+      // OpenSWATH proteomics workflows
+      "CREATE TABLE PROTEIN(" \
+      "ID INT PRIMARY KEY NOT NULL," \
+      "PROTEIN_ACCESSION TEXT NOT NULL," \
+      "DECOY INT NOT NULL);" \
+
+      // peptide_protein_mapping table
+      // OpenSWATH proteomics workflows
+      "CREATE TABLE PEPTIDE_PROTEIN_MAPPING(" \
+      "PEPTIDE_ID INT NOT NULL," \
+      "PROTEIN_ID INT NOT NULL);" \
+
+      // peptide table
+      // OpenSWATH proteomics workflows
+      "CREATE TABLE PEPTIDE(" \
+      "ID INT PRIMARY KEY NOT NULL," \
+      "UNMODIFIED_SEQUENCE TEXT NOT NULL," \
+      "MODIFIED_SEQUENCE TEXT NOT NULL," \
+      "DECOY INT NOT NULL);" \
+
+      // precursor_peptide_mapping table
+      // OpenSWATH proteomics workflows
+      "CREATE TABLE PRECURSOR_PEPTIDE_MAPPING(" \
+      "PRECURSOR_ID INT NOT NULL," \
+      "PEPTIDE_ID INT NOT NULL);" \
+
+      // compound table
+      // OpenSWATH metabolomics workflows
+      "CREATE TABLE COMPOUND(" \
+      "ID INT PRIMARY KEY NOT NULL," \
+      "COMPOUND_NAME TEXT NOT NULL," \
+      "SUM_FORMULA TEXT NOT NULL," \
+      "SMILES TEXT NOT NULL," \
+      "ADDUCTS TEXT NOT NULL," \
+      "DECOY INT NOT NULL);" \
+
+      // precursor_compound_mapping table
+      // OpenSWATH metabolomics workflows
+      "CREATE TABLE PRECURSOR_COMPOUND_MAPPING(" \
+      "PRECURSOR_ID INT NOT NULL," \
+      "COMPOUND_ID INT NOT NULL);" \
+
+      // precursor table
+      "CREATE TABLE PRECURSOR(" \
+      "ID INT PRIMARY KEY NOT NULL," \
+      "TRAML_ID TEXT NULL," \
+      "GROUP_LABEL TEXT NULL," \
+      "PRECURSOR_MZ REAL NOT NULL," \
+      "CHARGE INT NULL," \
+      "LIBRARY_INTENSITY REAL NULL," \
+      "LIBRARY_RT REAL NULL," \
+      "LIBRARY_DRIFT_TIME REAL NULL," \
+      "DECOY INT NOT NULL);" \
+
+      // transition_precursor_mapping table
+      "CREATE TABLE TRANSITION_PRECURSOR_MAPPING(" \
+      "TRANSITION_ID INT NOT NULL," \
+      "PRECURSOR_ID INT NOT NULL);" \
+
+      // transition_peptide_mapping table
+      // IPF proteomics workflows
+      "CREATE TABLE TRANSITION_PEPTIDE_MAPPING(" \
+      "TRANSITION_ID INT NOT NULL," \
+      "PEPTIDE_ID INT NOT NULL);" \
+
+      // transition table
+      "CREATE TABLE TRANSITION(" \
+      "ID INT PRIMARY KEY NOT NULL," \
+      "TRAML_ID TEXT NULL," \
+      "PRODUCT_MZ REAL NOT NULL," \
+      "CHARGE INT NULL," \
+      "TYPE CHAR(1) NULL," \
+      "ANNOTATION TEXT NULL," \
+      "ORDINAL INT NULL," \
+      "DETECTING INT NOT NULL," \
+      "IDENTIFYING INT NOT NULL," \
+      "QUANTIFYING INT NOT NULL," \
+      "LIBRARY_INTENSITY REAL NULL," \
+      "DECOY INT NOT NULL);";
+
+    /// SQL flagging the peptides, compounds, proteins and genes of decoy precursors as decoys
+    const char* const PQP_UPDATE_DECOYS_SQL_ =
+      // Peptides
+      "UPDATE PEPTIDE SET DECOY = 1 WHERE ID IN "
+      "(SELECT PEPTIDE.ID FROM PRECURSOR "
+      "JOIN PRECURSOR_PEPTIDE_MAPPING ON PRECURSOR.ID = PRECURSOR_PEPTIDE_MAPPING.PRECURSOR_ID "
+      "JOIN PEPTIDE ON PRECURSOR_PEPTIDE_MAPPING.PEPTIDE_ID = PEPTIDE.ID WHERE PRECURSOR.DECOY = 1); "
+      // Compounds
+      "UPDATE COMPOUND SET DECOY = 1 WHERE ID IN "
+      "(SELECT COMPOUND.ID FROM PRECURSOR "
+      "JOIN PRECURSOR_COMPOUND_MAPPING ON PRECURSOR.ID = PRECURSOR_COMPOUND_MAPPING.PRECURSOR_ID "
+      "JOIN COMPOUND ON PRECURSOR_COMPOUND_MAPPING.COMPOUND_ID = COMPOUND.ID WHERE PRECURSOR.DECOY = 1); "
+      // Proteins
+      "UPDATE PROTEIN SET DECOY = 1 WHERE ID IN "
+      "(SELECT PROTEIN.ID FROM PEPTIDE "
+      "JOIN PEPTIDE_PROTEIN_MAPPING ON PEPTIDE.ID = PEPTIDE_PROTEIN_MAPPING.PEPTIDE_ID "
+      "JOIN PROTEIN ON PEPTIDE_PROTEIN_MAPPING.PROTEIN_ID = PROTEIN.ID WHERE PEPTIDE.DECOY = 1); "
+      // Genes
+      "UPDATE GENE SET DECOY = 1 WHERE ID IN "
+      "(SELECT GENE.ID FROM PEPTIDE "
+      "JOIN PEPTIDE_GENE_MAPPING ON PEPTIDE.ID = PEPTIDE_GENE_MAPPING.PEPTIDE_ID "
+      "JOIN GENE ON PEPTIDE_GENE_MAPPING.GENE_ID = GENE.ID WHERE PEPTIDE.DECOY = 1); ";
+
     void validateTraMLIDTableName_(const std::string& table_name)
     {
       if (table_name != "PRECURSOR" && table_name != "TRANSITION")
@@ -719,106 +841,9 @@ namespace OpenMS
     SqliteConnector conn(filename);
 
     // Create SQL structure
-    const char* create_sql =
-      "CREATE TABLE VERSION(" \
-      "ID INT NOT NULL);" \
-
-      // gene table
-      // OpenSWATH proteomics workflows
-      "CREATE TABLE GENE(" \
-      "ID INT PRIMARY KEY NOT NULL," \
-      "GENE_NAME TEXT NOT NULL," \
-      "DECOY INT NOT NULL);" \
-
-      // peptide_gene_mapping table
-      // OpenSWATH proteomics workflows
-      "CREATE TABLE PEPTIDE_GENE_MAPPING(" \
-      "PEPTIDE_ID INT NOT NULL," \
-      "GENE_ID INT NOT NULL);" \
-
-      // protein table
-      // OpenSWATH proteomics workflows
-      "CREATE TABLE PROTEIN(" \
-      "ID INT PRIMARY KEY NOT NULL," \
-      "PROTEIN_ACCESSION TEXT NOT NULL," \
-      "DECOY INT NOT NULL);" \
-
-      // peptide_protein_mapping table
-      // OpenSWATH proteomics workflows
-      "CREATE TABLE PEPTIDE_PROTEIN_MAPPING(" \
-      "PEPTIDE_ID INT NOT NULL," \
-      "PROTEIN_ID INT NOT NULL);" \
-
-      // peptide table
-      // OpenSWATH proteomics workflows
-      "CREATE TABLE PEPTIDE(" \
-      "ID INT PRIMARY KEY NOT NULL," \
-      "UNMODIFIED_SEQUENCE TEXT NOT NULL," \
-      "MODIFIED_SEQUENCE TEXT NOT NULL," \
-      "DECOY INT NOT NULL);" \
-
-      // precursor_peptide_mapping table
-      // OpenSWATH proteomics workflows
-      "CREATE TABLE PRECURSOR_PEPTIDE_MAPPING(" \
-      "PRECURSOR_ID INT NOT NULL," \
-      "PEPTIDE_ID INT NOT NULL);" \
-
-      // compound table
-      // OpenSWATH metabolomics workflows
-      "CREATE TABLE COMPOUND(" \
-      "ID INT PRIMARY KEY NOT NULL," \
-      "COMPOUND_NAME TEXT NOT NULL," \
-      "SUM_FORMULA TEXT NOT NULL," \
-      "SMILES TEXT NOT NULL," \
-      "ADDUCTS TEXT NOT NULL," \
-      "DECOY INT NOT NULL);" \
-
-      // precursor_compound_mapping table
-      // OpenSWATH metabolomics workflows
-      "CREATE TABLE PRECURSOR_COMPOUND_MAPPING(" \
-      "PRECURSOR_ID INT NOT NULL," \
-      "COMPOUND_ID INT NOT NULL);" \
-
-      // precursor table
-      "CREATE TABLE PRECURSOR(" \
-      "ID INT PRIMARY KEY NOT NULL," \
-      "TRAML_ID TEXT NULL," \
-      "GROUP_LABEL TEXT NULL," \
-      "PRECURSOR_MZ REAL NOT NULL," \
-      "CHARGE INT NULL," \
-      "LIBRARY_INTENSITY REAL NULL," \
-      "LIBRARY_RT REAL NULL," \
-      "LIBRARY_DRIFT_TIME REAL NULL," \
-      "DECOY INT NOT NULL);" \
-
-      // transition_precursor_mapping table
-      "CREATE TABLE TRANSITION_PRECURSOR_MAPPING(" \
-      "TRANSITION_ID INT NOT NULL," \
-      "PRECURSOR_ID INT NOT NULL);" \
-
-      // transition_peptide_mapping table
-      // IPF proteomics workflows
-      "CREATE TABLE TRANSITION_PEPTIDE_MAPPING(" \
-      "TRANSITION_ID INT NOT NULL," \
-      "PEPTIDE_ID INT NOT NULL);" \
-
-      // transition table
-      "CREATE TABLE TRANSITION(" \
-      "ID INT PRIMARY KEY NOT NULL," \
-      "TRAML_ID TEXT NULL," \
-      "PRODUCT_MZ REAL NOT NULL," \
-      "CHARGE INT NULL," \
-      "TYPE CHAR(1) NULL," \
-      "ANNOTATION TEXT NULL," \
-      "ORDINAL INT NULL," \
-      "DETECTING INT NOT NULL," \
-      "IDENTIFYING INT NOT NULL," \
-      "QUANTIFYING INT NOT NULL," \
-      "LIBRARY_INTENSITY REAL NULL," \
-      "DECOY INT NOT NULL);";
 
     // Execute SQL create statement
-    conn.executeStatement(create_sql);
+    conn.executeStatement(PQP_CREATE_SQL_);
 
     // Prepare insert statements
 
@@ -1025,27 +1050,6 @@ namespace OpenMS
     }
 
     // OpenSWATH: Prepare decoy updates
-    std::stringstream update_decoys_sql;
-    // Peptides
-    update_decoys_sql << "UPDATE PEPTIDE SET DECOY = 1 WHERE ID IN " <<
-      "(SELECT PEPTIDE.ID FROM PRECURSOR " <<
-      "JOIN PRECURSOR_PEPTIDE_MAPPING ON PRECURSOR.ID = PRECURSOR_PEPTIDE_MAPPING.PRECURSOR_ID " <<
-      "JOIN PEPTIDE ON PRECURSOR_PEPTIDE_MAPPING.PEPTIDE_ID = PEPTIDE.ID WHERE PRECURSOR.DECOY = 1); ";
-    // Compounds
-    update_decoys_sql << "UPDATE COMPOUND SET DECOY = 1 WHERE ID IN " <<
-      "(SELECT COMPOUND.ID FROM PRECURSOR " <<
-      "JOIN PRECURSOR_COMPOUND_MAPPING ON PRECURSOR.ID = PRECURSOR_COMPOUND_MAPPING.PRECURSOR_ID " <<
-      "JOIN COMPOUND ON PRECURSOR_COMPOUND_MAPPING.COMPOUND_ID = COMPOUND.ID WHERE PRECURSOR.DECOY = 1); ";
-    // Proteins
-    update_decoys_sql << "UPDATE PROTEIN SET DECOY = 1 WHERE ID IN " <<
-      "(SELECT PROTEIN.ID FROM PEPTIDE " <<
-      "JOIN PEPTIDE_PROTEIN_MAPPING ON PEPTIDE.ID = PEPTIDE_PROTEIN_MAPPING.PEPTIDE_ID " <<
-      "JOIN PROTEIN ON PEPTIDE_PROTEIN_MAPPING.PROTEIN_ID = PROTEIN.ID WHERE PEPTIDE.DECOY = 1); ";
-    // Genes
-    update_decoys_sql << "UPDATE GENE SET DECOY = 1 WHERE ID IN " <<
-      "(SELECT GENE.ID FROM PEPTIDE " <<
-      "JOIN PEPTIDE_GENE_MAPPING ON PEPTIDE.ID = PEPTIDE_GENE_MAPPING.PEPTIDE_ID " <<
-      "JOIN GENE ON PEPTIDE_GENE_MAPPING.GENE_ID = GENE.ID WHERE PEPTIDE.DECOY = 1); ";
 
     conn.executeStatement("BEGIN TRANSACTION");
 
@@ -1162,7 +1166,7 @@ namespace OpenMS
       }
     }
 
-    conn.executeStatement(update_decoys_sql.str());
+    conn.executeStatement(PQP_UPDATE_DECOYS_SQL_);
     conn.executeStatement("END TRANSACTION");
   }
 
@@ -1300,97 +1304,9 @@ namespace OpenMS
     SqliteConnector conn(filename);
 
     // Create SQL structure (same as heavy version)
-    const char* create_sql =
-      "CREATE TABLE VERSION(" \
-      "ID INT NOT NULL);" \
-
-      // gene table
-      "CREATE TABLE GENE(" \
-      "ID INT PRIMARY KEY NOT NULL," \
-      "GENE_NAME TEXT NOT NULL," \
-      "DECOY INT NOT NULL);" \
-
-      // peptide_gene_mapping table
-      "CREATE TABLE PEPTIDE_GENE_MAPPING(" \
-      "PEPTIDE_ID INT NOT NULL," \
-      "GENE_ID INT NOT NULL);" \
-
-      // protein table
-      "CREATE TABLE PROTEIN(" \
-      "ID INT PRIMARY KEY NOT NULL," \
-      "PROTEIN_ACCESSION TEXT NOT NULL," \
-      "DECOY INT NOT NULL);" \
-
-      // peptide_protein_mapping table
-      "CREATE TABLE PEPTIDE_PROTEIN_MAPPING(" \
-      "PEPTIDE_ID INT NOT NULL," \
-      "PROTEIN_ID INT NOT NULL);" \
-
-      // peptide table
-      "CREATE TABLE PEPTIDE(" \
-      "ID INT PRIMARY KEY NOT NULL," \
-      "UNMODIFIED_SEQUENCE TEXT NOT NULL," \
-      "MODIFIED_SEQUENCE TEXT NOT NULL," \
-      "DECOY INT NOT NULL);" \
-
-      // precursor_peptide_mapping table
-      "CREATE TABLE PRECURSOR_PEPTIDE_MAPPING(" \
-      "PRECURSOR_ID INT NOT NULL," \
-      "PEPTIDE_ID INT NOT NULL);" \
-
-      // compound table
-      "CREATE TABLE COMPOUND(" \
-      "ID INT PRIMARY KEY NOT NULL," \
-      "COMPOUND_NAME TEXT NOT NULL," \
-      "SUM_FORMULA TEXT NOT NULL," \
-      "SMILES TEXT NOT NULL," \
-      "ADDUCTS TEXT NOT NULL," \
-      "DECOY INT NOT NULL);" \
-
-      // precursor_compound_mapping table
-      "CREATE TABLE PRECURSOR_COMPOUND_MAPPING(" \
-      "PRECURSOR_ID INT NOT NULL," \
-      "COMPOUND_ID INT NOT NULL);" \
-
-      // precursor table
-      "CREATE TABLE PRECURSOR(" \
-      "ID INT PRIMARY KEY NOT NULL," \
-      "TRAML_ID TEXT NULL," \
-      "GROUP_LABEL TEXT NULL," \
-      "PRECURSOR_MZ REAL NOT NULL," \
-      "CHARGE INT NULL," \
-      "LIBRARY_INTENSITY REAL NULL," \
-      "LIBRARY_RT REAL NULL," \
-      "LIBRARY_DRIFT_TIME REAL NULL," \
-      "DECOY INT NOT NULL);" \
-
-      // transition_precursor_mapping table
-      "CREATE TABLE TRANSITION_PRECURSOR_MAPPING(" \
-      "TRANSITION_ID INT NOT NULL," \
-      "PRECURSOR_ID INT NOT NULL);" \
-
-      // transition_peptide_mapping table
-      "CREATE TABLE TRANSITION_PEPTIDE_MAPPING(" \
-      "TRANSITION_ID INT NOT NULL," \
-      "PEPTIDE_ID INT NOT NULL);" \
-
-      // transition table
-      "CREATE TABLE TRANSITION(" \
-      "ID INT PRIMARY KEY NOT NULL," \
-      "TRAML_ID TEXT NULL," \
-      "PRODUCT_MZ REAL NOT NULL," \
-      "CHARGE INT NULL," \
-      "TYPE CHAR(1) NULL," \
-      "ANNOTATION TEXT NULL," \
-      "ORDINAL INT NULL," \
-      "DETECTING INT NOT NULL," \
-      "IDENTIFYING INT NOT NULL," \
-      "QUANTIFYING INT NOT NULL," \
-      "LIBRARY_INTENSITY REAL NULL," \
-      "DECOY INT NOT NULL);";
 
     // Execute SQL create statement
-    conn.executeStatement(create_sql);
+    conn.executeStatement(PQP_CREATE_SQL_);
 
     // Build index maps. PRECURSOR.ID comes directly from canonical LightCompound.id;
     // peptide/compound/protein helper tables retain their independent local row IDs, which
@@ -1581,23 +1497,6 @@ namespace OpenMS
     };
 
     // Prepare decoy updates
-    std::stringstream update_decoys_sql;
-    update_decoys_sql << "UPDATE PEPTIDE SET DECOY = 1 WHERE ID IN " <<
-      "(SELECT PEPTIDE.ID FROM PRECURSOR " <<
-      "JOIN PRECURSOR_PEPTIDE_MAPPING ON PRECURSOR.ID = PRECURSOR_PEPTIDE_MAPPING.PRECURSOR_ID " <<
-      "JOIN PEPTIDE ON PRECURSOR_PEPTIDE_MAPPING.PEPTIDE_ID = PEPTIDE.ID WHERE PRECURSOR.DECOY = 1); ";
-    update_decoys_sql << "UPDATE COMPOUND SET DECOY = 1 WHERE ID IN " <<
-      "(SELECT COMPOUND.ID FROM PRECURSOR " <<
-      "JOIN PRECURSOR_COMPOUND_MAPPING ON PRECURSOR.ID = PRECURSOR_COMPOUND_MAPPING.PRECURSOR_ID " <<
-      "JOIN COMPOUND ON PRECURSOR_COMPOUND_MAPPING.COMPOUND_ID = COMPOUND.ID WHERE PRECURSOR.DECOY = 1); ";
-    update_decoys_sql << "UPDATE PROTEIN SET DECOY = 1 WHERE ID IN " <<
-      "(SELECT PROTEIN.ID FROM PEPTIDE " <<
-      "JOIN PEPTIDE_PROTEIN_MAPPING ON PEPTIDE.ID = PEPTIDE_PROTEIN_MAPPING.PEPTIDE_ID " <<
-      "JOIN PROTEIN ON PEPTIDE_PROTEIN_MAPPING.PROTEIN_ID = PROTEIN.ID WHERE PEPTIDE.DECOY = 1); ";
-    update_decoys_sql << "UPDATE GENE SET DECOY = 1 WHERE ID IN " <<
-      "(SELECT GENE.ID FROM PEPTIDE " <<
-      "JOIN PEPTIDE_GENE_MAPPING ON PEPTIDE.ID = PEPTIDE_GENE_MAPPING.PEPTIDE_ID " <<
-      "JOIN GENE ON PEPTIDE_GENE_MAPPING.GENE_ID = GENE.ID WHERE PEPTIDE.DECOY = 1); ";
 
     conn.executeStatement("BEGIN TRANSACTION");
 
@@ -1725,7 +1624,7 @@ namespace OpenMS
       }
     }
 
-    conn.executeStatement(update_decoys_sql.str());
+    conn.executeStatement(PQP_UPDATE_DECOYS_SQL_);
     conn.executeStatement("END TRANSACTION");
   }
 

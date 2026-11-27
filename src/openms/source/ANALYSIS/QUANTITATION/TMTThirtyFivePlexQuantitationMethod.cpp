@@ -36,7 +36,7 @@ namespace OpenMS{
     // channels. The shipped defaults (correction_matrix for the non-deuterated channels and
     // correction_matrix_deuterated for the deuterated channels) hold the CoA-derived percentages;
     // supplying all-NA matrices falls back to the identity (no correction).
-    static const std::array<std::array<int, 14>, 35> interaction_vector = {{
+    static const std::array<std::array<int, 14>, 35> tmt35plex_interaction_vector = {{
                                         {{ -1, -1, -1, -1, -1, -1, -1,  1,  2,  3,  4,  6,  5,  7 }},
                                         {{ -1, -1, -1, -1, -1, -1,  0, -1,  4,  6, -1, -1,  8, 10 }},
                                         {{ -1, -1, -1, -1, -1,  0, -1,  4,  5,  7,  8, 10,  9, 11 }},
@@ -91,7 +91,7 @@ namespace OpenMS{
         // Reporter ion masses from Thermo TMTpro documentation:
         // https://assets.thermofisher.com/TFS-Assets/LSG/manuals/MAN0018773_TMTproMassTagLabelingReagentsandKits_UG.pdf
         auto make_channel = [&](const std::string& name, int idx, double mass, int vec_idx){
-            return IsobaricChannelInformation(name, idx, "", mass, std::vector<int>(interaction_vector[vec_idx].begin(), interaction_vector[vec_idx].end()));
+            return IsobaricChannelInformation(name, idx, "", mass, std::vector<int>(tmt35plex_interaction_vector[vec_idx].begin(), tmt35plex_interaction_vector[vec_idx].end()));
         };
         for(size_t i =0; i<o_mass35.size(); i++){
             channels_.push_back(make_channel(channel_names_[i],i,o_mass35[i],i));

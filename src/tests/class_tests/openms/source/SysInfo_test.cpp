@@ -15,6 +15,9 @@
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <iostream>
 #include <thread>
+#ifdef _OPENMP
+  #include <omp.h>
+#endif
 
 ///////////////////////////
 
@@ -72,6 +75,52 @@ START_SECTION(static UInt getAvailablePhysicalCores())
   // no more cores than hardware threads, where these are known
   TEST_EQUAL(std::thread::hardware_concurrency() == 0 || cores <= std::thread::hardware_concurrency(), true)
   TEST_EQUAL(SysInfo::getAvailablePhysicalCores(), cores) // the same again
+}
+END_SECTION
+
+START_SECTION(static int ompThreadsOfThisThread())
+{
+  const int threads = SysInfo::ompThreadsOfThisThread();
+  TEST_EQUAL(threads >= 1, true)
+  // a number set on another thread stays there
+  int other = 0;
+  std::thread([&other]() { SysInfo::setOmpThreadsOfThisThread(3); other = SysInfo::ompThreadsOfThisThread(); }).join();
+  TEST_EQUAL(other, 3)
+  TEST_EQUAL(SysInfo::ompThreadsOfThisThread(), threads)
+}
+END_SECTION
+
+START_SECTION(static void setOmpThreadsOfThisThread(int threads))
+{
+  const int threads = SysInfo::ompThreadsOfThisThread();
+  SysInfo::setOmpThreadsOfThisThread(2);
+  TEST_EQUAL(SysInfo::ompThreadsOfThisThread(), 2)
+  SysInfo::setOmpThreadsOfThisThread(0); // back to the runtime's number
+  TEST_EQUAL(SysInfo::ompThreadsOfThisThread(), threads)
+  SysInfo::setOmpThreadsOfThisThread(-5); // like 0
+  TEST_EQUAL(SysInfo::ompThreadsOfThisThread(), threads)
+}
+END_SECTION
+
+START_SECTION(static bool ompThreadCountIsGlobal())
+{
+#ifdef _OPENMP
+  const int before = omp_get_max_threads();
+#endif
+  const bool global = SysInfo::ompThreadCountIsGlobal();
+  TEST_EQUAL(SysInfo::ompThreadCountIsGlobal(), global) // probed once
+#ifdef _OPENMP
+  TEST_EQUAL(omp_get_max_threads(), before) // the probe leaves the caller's number as it was
+  // what it says is what the runtime does: another thread's number reaches this thread only where the number is global
+  std::thread([before]() { omp_set_num_threads(before + 2); }).join();
+  TEST_EQUAL(omp_get_max_threads() != before, global)
+  omp_set_num_threads(before);
+  #if _OPENMP >= 200805
+  TEST_EQUAL(global, false) // OpenMP 3.0 runtimes keep the number per thread
+  #endif
+#else
+  TEST_EQUAL(global, false)
+#endif
 }
 END_SECTION
 

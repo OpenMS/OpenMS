@@ -71,12 +71,18 @@ namespace OpenMS
     // LOWESS defaults
     Param lowess_defaults;
     TransformationModelLowess::getDefaultParameters(lowess_defaults);
+    // Choose the span per map by cross-validation. The fixed default span (2/3) over-smooths curved RT drift,
+    // and the leftover drift then competes with the RT differences used to rank link candidates (e.g. isomers).
+    // (Set before tagging: overwriting an entry replaces its tags.)
+    lowess_defaults.setValue("auto_span", "true");
+    lowess_defaults.setValue("span", lowess_defaults.getValue("span"),
+                             lowess_defaults.getDescription("span") + " Only used if 'auto_span' is false.");
     for (Param::ParamIterator it = lowess_defaults.begin(); it != lowess_defaults.end(); ++it)
     {
       const_cast<Param::ParamEntry&>(*it).tags.insert("advanced");
     }
     defaults_.insert("LOWESS:", lowess_defaults);
-    defaults_.setSectionDescription("LOWESS", "LOWESS parameters for internal RT transformations (only relevant if 'warp:enabled' is set to 'true')");
+    defaults_.setSectionDescription("LOWESS", "LOWESS parameters for internal RT transformations (only relevant if 'warp:enabled' is set to 'true'). By default ('auto_span' true), the span is selected per map by cross-validation and 'span' is ignored.");
 
     defaultsToParam_();
     setLogType(CMD);
@@ -459,13 +465,16 @@ namespace OpenMS
     {
       const vector<Size>& candidates = it->second;
 
-      // choose a point j with minimal distance to center i
+      // choose a point j with minimal distance to center i; use the (possibly warped)
+      // RTs stored in kd_data, as in the neighborhood search, not the features' original RTs
       double min_dist = numeric_limits<double>::max();
       Size best_index = numeric_limits<Size>::max();
       for (vector<Size>::const_iterator c_it = candidates.begin(); c_it != candidates.end(); ++c_it)
       {
         double dist = const_cast<FeatureDistance&>(feature_distance_)(*(kd_data.feature(*c_it)),
-                                                                      *(kd_data.feature(i))).second;
+                                                                      *(kd_data.feature(i)),
+                                                                      kd_data.rt(*c_it),
+                                                                      kd_data.rt(i)).second;
 
         if (dist < min_dist)
         {

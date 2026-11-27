@@ -58,6 +58,7 @@ MsInspectFile.cpp
 MzDataFile.cpp
 MzIdentMLFile.cpp
 MzMLFile.cpp
+MzPeakFile.cpp
 MzQCFile.cpp
 MzTab.cpp
 MzTabBase.cpp
@@ -88,6 +89,8 @@ PercolatorOutfile.cpp
 ProtXMLFile.cpp
 SequestInfile.cpp
 SequestOutfile.cpp
+SearchEngineFileHelpers.cpp
+Sha1Helpers.cpp
 SpecArrayFile.cpp
 SqliteConnector.cpp
 SqMassFile.cpp
@@ -107,10 +110,6 @@ ZstdCompression.cpp
 MRMFile.cpp
 TargetedDataFileLoader.cpp
 )
-
-if (WITH_HDF5)
-  list(APPEND sources_list HDF5Connector.cpp)
-endif()
 
 list(APPEND sources_list ZipArchiveFile.cpp)
 list(APPEND sources_list ZipRandomAccessFile.cpp)
@@ -134,6 +133,7 @@ list(APPEND sources_list PSMArrowIO.cpp)
 list(APPEND sources_list ModificationDefinitionIO.cpp)
 list(APPEND sources_list ArrowSchemaRegistry.cpp)
 list(APPEND sources_list ArrowIOHelpers.cpp)
+list(APPEND sources_list ArrowFileIOHelpers.cpp)
 
 if (WITH_OPENTIMS)
   list(APPEND sources_list BrukerTimsFile.cpp)
@@ -157,3 +157,7 @@ set(OpenMS_sources ${OpenMS_sources} ${sources})
 
 ### source group definition
 source_group("Source Files\\FORMAT" FILES ${sources})
+
+list(APPEND OpenMS_private_headers ${directory}/ArrowFileIOHelpers.h)
+list(APPEND OpenMS_private_headers ${directory}/SearchEngineFileHelpers.h)
+list(APPEND OpenMS_private_headers ${directory}/Sha1Helpers.h)

@@ -7,6 +7,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/ClassTest.h>
+#include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/ANALYSIS/ID/BasicProteinInferenceAlgorithm.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/test_config.h>
@@ -90,7 +91,12 @@ START_TEST(BasicProteinInferenceAlgorithm, "$Id$")
       p.setValue("min_peptides_per_protein", 0);
       p.setValue("annotate_indistinguishable_groups", "true");
       bpia.setParameters(p);
+      // a group score cutoff recorded before applies to the old groups only
+      prots[0].setMetaValue(Constants::UserParam::PROTEIN_GROUP_SCORE_THRESHOLD, 0.95);
+      prots[0].setMetaValue(Constants::UserParam::PROTEIN_GROUP_SCORE_THRESHOLD_TYPE, prots[0].getScoreType());
       bpia.run(peps, prots);
+      TEST_EQUAL(prots[0].metaValueExists(Constants::UserParam::PROTEIN_GROUP_SCORE_THRESHOLD), false)
+      TEST_EQUAL(prots[0].metaValueExists(Constants::UserParam::PROTEIN_GROUP_SCORE_THRESHOLD_TYPE), false)
       TEST_EQUAL(prots[0].getHits()[0].getScore(), 0.6)
       TEST_EQUAL(prots[0].getHits()[1].getScore(), 0.6)
       TEST_EQUAL(prots[0].getHits()[2].getScore(), -std::numeric_limits<double>::infinity())
@@ -247,7 +253,7 @@ START_TEST(BasicProteinInferenceAlgorithm, "$Id$")
     START_SECTION(BasicProteinInferenceAlgorithm on ConsensusMap without PSMs)
     {
       // As above, for the features of a consensus map and its unassigned peptide identifications.
-      for (const auto& [group, resolve] : {std::pair{"true", "false"}, {"true", "true"}, {"false", "true"}})
+      for (const auto& [group, resolve] : {std::pair{"true", "false"}, {"true", "true"}, {"false", "true"}, {"false", "false"}})
       {
         vector<ProteinIdentification> prots;
         PeptideIdentificationList peps;
@@ -268,10 +274,50 @@ START_TEST(BasicProteinInferenceAlgorithm, "$Id$")
         p.setValue("annotate_indistinguishable_groups", group);
         p.setValue("greedy_group_resolution", resolve);
         bpia.setParameters(p);
+        cmap.getProteinIdentifications()[0].setMetaValue(Constants::UserParam::PROTEIN_GROUP_SCORE_THRESHOLD, 0.95);
         bpia.run(cmap, cmap.getProteinIdentifications()[0], true);
         const ProteinIdentification& run = cmap.getProteinIdentifications()[0];
+        // a group score cutoff applies to the old group scores only. Without groups, the only group scores are the
+        // protein scores (e.g. one group per protein in mzIdentML), which were recomputed.
+        TEST_EQUAL(run.metaValueExists(Constants::UserParam::PROTEIN_GROUP_SCORE_THRESHOLD), false)
         TEST_EQUAL(run.getHits().size(), std::string(resolve) == "true" ? 0 : 6)
         TEST_EQUAL(run.getIndistinguishableProteins().size(), 0)
+      }
+
+      // without grouping, the groups of the run keep their scores, and so their cutoff
+      {
+        vector<ProteinIdentification> prots;
+        PeptideIdentificationList peps;
+        IdXMLFile().load(OPENMS_GET_TEST_DATA_PATH("newMergerTest_out.idXML"), prots, peps);
+        ProteinIdentification::ProteinGroup group;
+        group.probability = 0.01;
+        group.accessions = {prots[0].getHits()[0].getAccession()};
+        prots[0].getIndistinguishableProteins() = {group};
+        prots[0].setScoreType("q-value"); // of the groups
+        prots[0].setHigherScoreBetter(false);
+        prots[0].setMetaValue(Constants::UserParam::PROTEIN_GROUP_SCORE_THRESHOLD, 0.05); // without a type: it belongs to the run's score type before inference
+        ConsensusMap cmap;
+        cmap.setProteinIdentifications(prots);
+        for (auto& pep : peps)
+        {
+          pep.getHits().clear();
+          ConsensusFeature feature;
+          feature.getPeptideIdentifications().push_back(pep);
+          cmap.push_back(feature);
+        }
+        BasicProteinInferenceAlgorithm bpia;
+        Param p = bpia.getParameters();
+        p.setValue("min_peptides_per_protein", 0);
+        p.setValue("annotate_indistinguishable_groups", "false");
+        p.setValue("greedy_group_resolution", "false");
+        bpia.setParameters(p);
+        bpia.run(cmap, cmap.getProteinIdentifications()[0], true);
+        const ProteinIdentification& run = cmap.getProteinIdentifications()[0];
+        ABORT_IF(run.getIndistinguishableProteins().size() != 1)
+        TEST_REAL_SIMILAR(run.getIndistinguishableProteins()[0].probability, 0.01)
+        TEST_REAL_SIMILAR(run.getMetaValue(Constants::UserParam::PROTEIN_GROUP_SCORE_THRESHOLD, 0.0), 0.05)
+        TEST_NOT_EQUAL(run.getScoreType(), "q-value") // the proteins have new scores
+        TEST_EQUAL(run.getMetaValue(Constants::UserParam::PROTEIN_GROUP_SCORE_THRESHOLD_TYPE, "").toString(), "q-value")
       }
     }
     END_SECTION
@@ -345,20 +391,25 @@ START_TEST(BasicProteinInferenceAlgorithm, "$Id$")
       TEST_EQUAL(proteins.getIndistinguishableProteins().size(), 0)
 
       // the groups replace those the run had, also from an earlier call, instead of adding to them
+      // (and a score cutoff recorded for the old groups does not apply to them)
       ProteinIdentification::ProteinGroup stale;
       stale.accessions = {"P3", "P1"};
       proteins = make_proteins();
       proteins.getIndistinguishableProteins().push_back(stale);
+      proteins.setMetaValue(Constants::UserParam::PROTEIN_GROUP_SCORE_THRESHOLD, 0.95);
       BasicProteinInferenceAlgorithm::annotateIndistinguishableGroups(proteins, peptides);
+      TEST_EQUAL(proteins.metaValueExists(Constants::UserParam::PROTEIN_GROUP_SCORE_THRESHOLD), false)
       BasicProteinInferenceAlgorithm::annotateIndistinguishableGroups(proteins, peptides);
       TEST_EQUAL(groups(proteins), "P1,P2|P3")
 
-      // on failure the run keeps its groups
+      // on failure the run keeps its groups (and their cutoff)
       proteins = make_proteins();
       proteins.getIndistinguishableProteins().push_back(stale);
+      proteins.setMetaValue(Constants::UserParam::PROTEIN_GROUP_SCORE_THRESHOLD, 0.95);
       TEST_EXCEPTION(Exception::MissingInformation,
                      BasicProteinInferenceAlgorithm::annotateIndistinguishableGroups(proteins, PeptideIdentificationList()))
       TEST_EQUAL(groups(proteins), "P1,P3")
+      TEST_EQUAL(proteins.metaValueExists(Constants::UserParam::PROTEIN_GROUP_SCORE_THRESHOLD), true)
     }
     END_SECTION
 

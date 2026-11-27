@@ -12,12 +12,14 @@
 ///////////////////////////
 
 #include <OpenMS/FORMAT/MzIdentMLFile.h>
+#include <OpenMS/FORMAT/IdXMLFile.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/FORMAT/TextFile.h>
 #include <OpenMS/CONCEPT/FuzzyStringComparator.h>
 #include <OpenMS/CHEMISTRY/CrossLinksDB.h>
 #include <OpenMS/CONCEPT/Constants.h>
 
-#include <OpenMS/FORMAT/HANDLERS/MzIdentMLDOMHandler.h>
+#include <OpenMS/FORMAT/HANDLERS/MzIdentMLSAXHandler.h>
 
 #include <set>
 #include <regex>
@@ -27,6 +29,120 @@
 
 using namespace OpenMS;
 using namespace std;
+
+// helpers for the protein group tests (issue #1105)
+
+// accessions of a protein group, for comparisons
+static std::vector<std::string> accessionsOf(const ProteinIdentification::ProteinGroup& group)
+{
+  return group.accessions;
+}
+
+// A protein inference run as written by Epifany: indistinguishable proteins A and B, protein C, decoy protein
+// DECOY_D, and a general protein group (cluster) of A, B and C. PSMs: PEPTIDEK (A, B, C), ELVISK (A, B), the
+// decoy GLYCINEK (DECOY_D), and a second-ranked hit SAMPLER (C) that is not used as evidence.
+static void makeInferenceRun(std::vector<ProteinIdentification>& proteins, PeptideIdentificationList& peptides)
+{
+  ProteinIdentification run;
+  run.setIdentifier("inference_run");
+  run.setSearchEngine("MS-GF+");
+  run.setSearchEngineVersion("2024.03.26");
+  ProteinIdentification::SearchParameters search_parameters;
+  search_parameters.db = "db.fasta";
+  run.setSearchParameters(search_parameters);
+  run.setInferenceEngine("Epifany"); // stored in the search parameters
+  run.setInferenceEngineVersion("3.6.0");
+  run.setMetaValue("spectra_data", StringList{"run.mzML"});
+  run.setScoreType("Posterior Probability");
+  run.setHigherScoreBetter(true);
+  auto add_hit = [&run](const std::string& acc, double score, const std::string& seq, bool decoy)
+  {
+    ProteinHit hit(score, 1, acc, seq);
+    hit.setTargetDecoyType(decoy ? ProteinHit::TargetDecoyType::DECOY : ProteinHit::TargetDecoyType::TARGET);
+    run.insertHit(hit);
+  };
+  add_hit("A", 0.98, "MPEPTIDEKELVISK", false);
+  add_hit("B", 0.98, "MPEPTIDEKELVISKR", false);
+  add_hit("C", 0.5, "MPEPTIDEKSAMPLER", false);
+  add_hit("DECOY_D", 0.3, "MGLYCINEK", true);
+  run.getHits()[0].setCoverage(93.3);
+  ProteinIdentification::ProteinGroup ab, c, d, abc;
+  ab.probability = 0.98;
+  ab.accessions = {"A", "B"};
+  c.probability = 0.5;
+  c.accessions = {"C"};
+  d.probability = 0.3;
+  d.accessions = {"DECOY_D"};
+  abc.probability = 0.99;
+  abc.accessions = {"A", "B", "C"};
+  run.insertIndistinguishableProteins(ab);
+  run.insertIndistinguishableProteins(c);
+  run.insertIndistinguishableProteins(d);
+  run.insertProteinGroup(abc);
+  proteins.push_back(run);
+
+  auto add_psm = [&peptides](const std::string& spectrum, const std::vector<std::pair<std::string, std::vector<std::string>>>& hits, bool decoy)
+  {
+    PeptideIdentification id;
+    id.setIdentifier("inference_run");
+    id.setScoreType("q-value");
+    id.setHigherScoreBetter(false);
+    id.setSpectrumReference(spectrum);
+    id.setRT(100.0);
+    id.setMZ(500.0);
+    double score = 0.001;
+    UInt rank = 0;
+    for (const auto& [sequence, accessions] : hits)
+    {
+      PeptideHit hit(score, rank++, 2, AASequence::fromString(sequence));
+      score *= 10;
+      for (const std::string& acc : accessions)
+      {
+        PeptideEvidence evidence;
+        evidence.setProteinAccession(acc);
+        hit.addPeptideEvidence(evidence);
+      }
+      hit.setMetaValue(Constants::UserParam::TARGET_DECOY, decoy ? "decoy" : "target");
+      id.insertHit(hit);
+    }
+    peptides.push_back(id);
+  };
+  add_psm("index=1", {{"PEPTIDEK", {"A", "B", "C"}}, {"SAMPLER", {"C"}}}, false);
+  add_psm("index=2", {{"ELVISK", {"A", "B"}}}, false);
+  add_psm("index=3", {{"GLYCINEK", {"DECOY_D"}}}, true);
+}
+
+static Size countOf(const std::string& text, const std::string& what)
+{
+  Size n = 0;
+  for (std::string::size_type pos = text.find(what); pos != std::string::npos; pos = text.find(what, pos + what.size()))
+  {
+    ++n;
+  }
+  return n;
+}
+
+static std::string readFile(const std::string& filename)
+{
+  std::ifstream in(filename);
+  std::stringstream buffer;
+  buffer << in.rdbuf();
+  return buffer.str();
+}
+
+// the first PeptideHit with the meta value @p key as @p value (the order of the runs in a written file follows their generated
+// ids, so a PSM is not always the first one after a round trip)
+static const PeptideHit* hitWith(const PeptideIdentificationList& ids, const std::string& key, const std::string& value)
+{
+  for (const PeptideIdentification& id : ids)
+  {
+    for (const PeptideHit& hit : id.getHits())
+    {
+      if (hit.metaValueExists(key) && hit.getMetaValue(key).toString() == value) return &hit;
+    }
+  }
+  return nullptr;
+}
 
 START_TEST(MzIdentMLFile, "$Id")
 
@@ -625,6 +741,17 @@ START_SECTION(([EXTRA] mzIdentML 1.3 noncovalent association))
     }
   }
   TEST_EQUAL(total_hits > 0, true)
+
+  // the ProteinDetectionList: each protein is listed once (it used to be added again for each
+  // ProteinDetectionHypothesis) and each ProteinAmbiguityGroup becomes a protein group
+  ABORT_IF(protein_ids.size() != 1)
+  std::set<std::string> accessions;
+  for (const ProteinHit& hit : protein_ids[0].getHits())
+  {
+    accessions.insert(hit.getAccession());
+  }
+  TEST_EQUAL(accessions.size(), protein_ids[0].getHits().size())
+  TEST_EQUAL(protein_ids[0].getIndistinguishableProteins().size(), 2)
 }
 END_SECTION
 
@@ -1016,6 +1143,45 @@ START_SECTION(([EXTRA] native DOM namespace Unicode entity and malformed-input r
     TEST_NOT_EQUAL(hit.getSequence(), "AAAAAAAA")
   }
 
+  // Undeclared prefixes stay part of the name, as in libxml2's tree: such elements and attributes are not mzIdentML.
+  save_xml(filename, original);
+  MzIdentMLFile().load(filename, proteins, peptides);
+  ABORT_IF(peptides.empty() || peptides[0].getHits().empty())
+  const double original_score = peptides[0].getHits()[0].getScore();
+  std::string undeclared = original;
+  StringUtils::substitute(undeclared, "<DBSequence accession=", "<DBSequence x:accession=\"POISON\" accession=");
+  const auto undeclared_item = undeclared.find("<SpectrumIdentificationItem ");
+  ABORT_IF(undeclared_item == std::string::npos)
+  undeclared.insert(undeclared.find('>', undeclared_item) + 1,
+    "<x:cvParam accession='MS:1001171' cvRef='PSI-MS' name='Mascot:score' value='999999'/>");
+  save_xml(filename, undeclared);
+  MzIdentMLFile().load(filename, proteins, peptides);
+  ABORT_IF(proteins.size() != 1 || peptides.empty() || peptides[0].getHits().empty())
+  TEST_REAL_SIMILAR(peptides[0].getHits()[0].getScore(), original_score)
+  for (const auto& hit : proteins[0].getHits())
+  {
+    TEST_NOT_EQUAL(hit.getAccession(), "POISON")
+  }
+
+  // Only the namespaces of mzIdentML 1.0 to 1.3 are mzIdentML.
+  for (const std::string version : {"1.0", "1.2", "1.3"})
+  {
+    std::string other = original;
+    StringUtils::substitute(other, "xmlns=\"http://psidev.info/psi/pi/mzIdentML/1.1\"",
+                            "xmlns=\"http://psidev.info/psi/pi/mzIdentML/" + version + "\"");
+    save_xml(filename, other);
+    MzIdentMLFile().load(filename, proteins, peptides);
+    TEST_EQUAL(peptides.size(), 3)
+  }
+  for (const std::string near_miss : {"1.", "1.4", "1.30", "2.1"})
+  {
+    std::string other = original;
+    StringUtils::substitute(other, "xmlns=\"http://psidev.info/psi/pi/mzIdentML/1.1\"",
+                            "xmlns=\"http://psidev.info/psi/pi/mzIdentML/" + near_miss + "\"");
+    save_xml(filename, other);
+    TEST_EXCEPTION(Exception::ParseError, MzIdentMLFile().load(filename, proteins, peptides))
+  }
+
   // An entity's declaration tree is not a second copy of its expanded content.
   std::string entity_wrapped = original;
   const auto sil_begin = entity_wrapped.find("<SpectrumIdentificationList ");
@@ -1051,6 +1217,16 @@ START_SECTION(([EXTRA] native DOM namespace Unicode entity and malformed-input r
       TEST_NOT_EQUAL(hit.getSequence(), "EXTERNAL_ENTITY_MUST_NOT_BE_READ")
     }
   }
+
+  // A default value that the DTD declares for an absent attribute is read.
+  std::string dtd_default = original;
+  dtd_default.insert(dtd_default.find("?>") + 2,
+    "\n<!DOCTYPE MzIdentML [<!ATTLIST PeptideEvidence start CDATA \"7\" end CDATA \"14\">]>");
+  save_xml(filename, dtd_default);
+  MzIdentMLFile().load(filename, proteins, peptides);
+  ABORT_IF(peptides.empty() || peptides[0].getHits().empty() || peptides[0].getHits()[0].getPeptideEvidences().empty())
+  TEST_EQUAL(peptides[0].getHits()[0].getPeptideEvidences()[0].getStart(), 7)
+  TEST_EQUAL(peptides[0].getHits()[0].getPeptideEvidences()[0].getEnd(), 14)
 
   // Large ordinary text and attributes remain readable. HUGE
   // relaxes the 10 MB node limit but must retain the explicit entity budget.
@@ -1132,9 +1308,12 @@ START_SECTION(([EXTRA] native DOM namespace Unicode entity and malformed-input r
   }
   TEST_TRUE(reported_location)
 
-  // Do not traverse a partial DOM after a malformed tail, invalid reference or UTF8.
+  // Do not traverse a partial DOM after a malformed tail, invalid reference or UTF8. Results read before the error
+  // are removed again.
   save_xml(filename, original.substr(0, original.rfind("</MzIdentML>")));
   TEST_EXCEPTION(Exception::ParseError, MzIdentMLFile().load(filename, proteins, peptides))
+  TEST_EQUAL(peptides.size(), 0)
+  TEST_EQUAL(proteins.size(), 0)
   std::string malformed = original;
   StringUtils::substitute(malformed, "accession=\"PROT1\"", "accession=\"bad&-\"");
   save_xml(filename, malformed);
@@ -1143,6 +1322,21 @@ START_SECTION(([EXTRA] native DOM namespace Unicode entity and malformed-input r
   StringUtils::substitute(malformed, "accession=\"PROT1\"", std::string("accession=\"bad") + char(0xff) + "\"");
   save_xml(filename, malformed);
   TEST_EXCEPTION(Exception::ParseError, MzIdentMLFile().load(filename, proteins, peptides))
+
+  // A section that has to come before the results is rejected after them
+  for (const std::string section : {"AnalysisSoftwareList", "SequenceCollection", "AnalysisCollection", "AnalysisProtocolCollection"})
+  {
+    const auto begin = original.find("<" + section);
+    const auto end = original.find("</" + section + ">");
+    ABORT_IF(begin == std::string::npos || end == std::string::npos)
+    const std::string block = original.substr(begin, end + section.size() + 3 - begin);
+    std::string moved = original;
+    moved.erase(begin, block.size());
+    moved.insert(moved.find("</DataCollection>") + std::string("</DataCollection>").size(), block);
+    save_xml(filename, moved);
+    TEST_EXCEPTION(Exception::ParseError, MzIdentMLFile().load(filename, proteins, peptides))
+    TEST_EQUAL(peptides.size(), 0)
+  }
 }
 END_SECTION
 
@@ -1158,7 +1352,7 @@ START_SECTION(([EXTRA] legacy DOM writer emits UTF8 namespaces and propagates ou
   const std::vector<ProteinIdentification> proteins{protein};
   const PeptideIdentificationList peptides;
   MzIdentMLFile logger;
-  Internal::MzIdentMLDOMHandler writer(proteins, peptides, "1.1.0", logger);
+  Internal::MzIdentMLSAXHandler writer(proteins, peptides, "1.1.0", logger);
   std::string filename;
   NEW_TMP_FILE(filename)
   writer.writeMzIdentMLFile(filename);
@@ -1198,7 +1392,7 @@ START_SECTION(([EXTRA] legacy DOM writer emits UTF8 namespaces and propagates ou
   // the real engine name and emit a nonempty fallback when no version is known.
   protein.setSearchEngineVersion("");
   const std::vector<ProteinIdentification> missing_version_proteins{protein};
-  Internal::MzIdentMLDOMHandler missing_version_writer(missing_version_proteins, peptides, "1.1.0", logger);
+  Internal::MzIdentMLSAXHandler missing_version_writer(missing_version_proteins, peptides, "1.1.0", logger);
   std::string missing_version_file;
   NEW_TMP_FILE(missing_version_file)
   missing_version_writer.writeMzIdentMLFile(missing_version_file);
@@ -1210,6 +1404,956 @@ START_SECTION(([EXTRA] legacy DOM writer emits UTF8 namespaces and propagates ou
 
   // An existing regular file cannot be used as the parent directory of an output.
   TEST_EXCEPTION(Exception::UnableToCreateFile, writer.writeMzIdentMLFile(filename + "/unwritable.mzid"))
+}
+END_SECTION
+
+// ---------------------------------------------------------------------------------------------------------------------
+// protein groups (ProteinDetectionList), issue #1105
+// ---------------------------------------------------------------------------------------------------------------------
+
+START_SECTION(([EXTRA] read protein groups from a ProteinDetectionList (issue #1105)))
+{
+  std::vector<ProteinIdentification> proteins;
+  PeptideIdentificationList peptides;
+  MzIdentMLFile().load(OPENMS_GET_TEST_DATA_PATH("MzIdentML_protein_groups.mzid"), proteins, peptides);
+  ABORT_IF(proteins.size() != 1)
+  const ProteinIdentification& run = proteins[0];
+  TEST_EQUAL(peptides.size(), 8)
+
+  // each protein once, with the score of its ProteinDetectionHypothesis
+  TEST_EQUAL(run.getHits().size(), 9)
+  std::map<std::string, const ProteinHit*> hits;
+  for (const ProteinHit& hit : run.getHits())
+  {
+    hits[hit.getAccession()] = &hit;
+  }
+  TEST_EQUAL(hits.size(), 9)
+  ABORT_IF(!hits.contains("A") || !hits.contains("C") || !hits.contains("E") || !hits.contains("G"))
+  TEST_EQUAL(run.getScoreType(), "Posterior Probability")
+  TEST_EQUAL(run.isHigherScoreBetter(), true)
+  TEST_REAL_SIMILAR(hits["A"]->getScore(), 0.98)
+  TEST_REAL_SIMILAR(hits["C"]->getScore(), 0.2)
+  TEST_REAL_SIMILAR(hits["G"]->getScore(), 0.1)
+  TEST_REAL_SIMILAR(hits["A"]->getCoverage(), 93.3)
+  TEST_EQUAL(run.getInferenceEngine(), "Epifany")
+  TEST_EQUAL(run.getInferenceEngineVersion(), "3.6.0")
+
+  // indistinguishable groups: the leading proteins (representative first) with the same evidence, or - without
+  // annotation (PAG_3) - the proteins with the most peptides
+  const auto& indist = run.getIndistinguishableProteins();
+  TEST_EQUAL(indist.size(), 5)
+  ABORT_IF(indist.size() != 5)
+  TEST_EQUAL(ListUtils::concatenate(accessionsOf(indist[0]), ","), "B,A")
+  TEST_REAL_SIMILAR(indist[0].probability, 0.97) // the group score of the PAG
+  TEST_EQUAL(ListUtils::concatenate(accessionsOf(indist[1]), ","), "D")
+  TEST_REAL_SIMILAR(indist[1].probability, 0.6)
+  TEST_EQUAL(ListUtils::concatenate(accessionsOf(indist[2]), ","), "E,F")
+  TEST_REAL_SIMILAR(indist[2].probability, 0.4) // no group score: the best protein score
+  // PAG_4: leading proteins with different peptides are not indistinguishable
+  TEST_EQUAL(ListUtils::concatenate(accessionsOf(indist[3]), ","), "H")
+  TEST_REAL_SIMILAR(indist[3].probability, 0.9)
+  TEST_EQUAL(ListUtils::concatenate(accessionsOf(indist[4]), ","), "I")
+  TEST_REAL_SIMILAR(indist[4].probability, 0.88)
+
+  // general groups: the unannotated PAG_3 (with its sub-set protein G), PAG_4 and cluster 1 (PAG_1 and PAG_2)
+  const auto& general = run.getProteinGroups();
+  TEST_EQUAL(general.size(), 3)
+  ABORT_IF(general.size() != 3)
+  TEST_EQUAL(ListUtils::concatenate(accessionsOf(general[0]), ","), "E,F,G")
+  TEST_EQUAL(ListUtils::concatenate(accessionsOf(general[1]), ","), "H,I")
+  TEST_REAL_SIMILAR(general[1].probability, 0.95) // the group score of the PAG
+  TEST_EQUAL(ListUtils::concatenate(accessionsOf(general[2]), ","), "B,A,C,D")
+  TEST_REAL_SIMILAR(general[2].probability, 0.97)
+
+  // PAG_3 does not pass the threshold
+  TEST_EQUAL(hits["E"]->getMetaValue("pass_threshold", "").toString(), "false")
+  TEST_EQUAL(hits["A"]->metaValueExists("pass_threshold"), false)
+  // the protein group-level FDR threshold
+  TEST_REAL_SIMILAR(double(run.getMetaValue(Constants::UserParam::PROTEIN_GROUP_SCORE_THRESHOLD)), 0.05)
+  TEST_EQUAL(run.getMetaValue(Constants::UserParam::PROTEIN_GROUP_SCORE_THRESHOLD_TYPE).toString(), "q-value")
+}
+END_SECTION
+
+START_SECTION(([EXTRA] several SequenceCollections, one inside a ProteinDetectionProtocol))
+{
+  std::ifstream source(OPENMS_GET_TEST_DATA_PATH("MzIdentML_protein_groups.mzid"));
+  std::string contents((std::istreambuf_iterator<char>(source)), std::istreambuf_iterator<char>());
+  const auto begin = contents.find("<SequenceCollection>");
+  const auto end = contents.find("</SequenceCollection>");
+  ABORT_IF(begin == std::string::npos || end == std::string::npos)
+  const std::string collection = contents.substr(begin, end + std::string("</SequenceCollection>").size() - begin);
+  contents.erase(begin, collection.size());
+  // a second, nested SequenceCollection that comes first: its children are freed with the other one's, and the
+  // ProteinDetectionProtocol is read at the end
+  const auto protocol = contents.find("<ProteinDetectionProtocol");
+  ABORT_IF(protocol == std::string::npos)
+  contents.insert(contents.find('>', protocol) + 1,
+    "<SequenceCollection><DBSequence id=\"DBSeq_X\" accession=\"X\" searchDatabase_ref=\"SDB_1\"><Seq>MK</Seq></DBSequence></SequenceCollection>");
+  contents.insert(contents.find("</AnalysisProtocolCollection>") + std::string("</AnalysisProtocolCollection>").size(), collection);
+  std::string filename;
+  NEW_TMP_FILE(filename)
+  {
+    std::ofstream output(filename, std::ios::binary);
+    output << contents;
+  }
+  std::vector<ProteinIdentification> proteins;
+  PeptideIdentificationList peptides;
+  MzIdentMLFile().load(filename, proteins, peptides);
+  ABORT_IF(proteins.size() != 1)
+  TEST_EQUAL(peptides.size(), 8)
+  TEST_EQUAL(proteins[0].getHits().size(), 9)
+  TEST_EQUAL(proteins[0].getIndistinguishableProteins().size(), 5)
+  TEST_EQUAL(proteins[0].getProteinGroups().size(), 3)
+  TEST_EQUAL(proteins[0].getInferenceEngine(), "Epifany")
+}
+END_SECTION
+
+START_SECTION(([EXTRA] store and load protein groups (issue #1105)))
+{
+  std::vector<ProteinIdentification> proteins;
+  PeptideIdentificationList peptides;
+  makeInferenceRun(proteins, peptides);
+
+  std::string filename;
+  NEW_TMP_FILE_EXT(filename, ".mzid")
+  MzIdentMLFile file;
+  file.store(filename, proteins, peptides);
+
+  // the file
+  const std::string text = readFile(filename);
+  TEST_EQUAL(countOf(text, "<ProteinDetectionList "), 1)
+  TEST_EQUAL(countOf(text, "<ProteinDetection "), 1)
+  TEST_EQUAL(countOf(text, "<ProteinDetectionProtocol "), 1)
+  TEST_EQUAL(countOf(text, "<ProteinAmbiguityGroup "), 3)
+  TEST_EQUAL(countOf(text, "<ProteinDetectionHypothesis "), 4)
+  TEST_EQUAL(countOf(text, "name=\"leading protein\""), 4)
+  TEST_EQUAL(countOf(text, "name=\"group representative\""), 3)
+  TEST_EQUAL(countOf(text, "name=\"sequence same-set protein\""), 2)
+  TEST_EQUAL(countOf(text, "name=\"EPIFANY:Protein posterior probability\""), 4)
+  TEST_EQUAL(countOf(text, "name=\"protein group-level probability\""), 3)
+  TEST_EQUAL(countOf(text, "name=\"EPIFANY\""), 1)
+  // the decoy group is not reported as identified
+  TEST_EQUAL(countOf(text, "name=\"protein group passes threshold\" value=\"true\""), 2)
+  TEST_EQUAL(countOf(text, "name=\"protein group passes threshold\" value=\"false\""), 1)
+  TEST_EQUAL(countOf(text, "name=\"count of identified proteins\" value=\"2\""), 1)
+  TEST_EQUAL(countOf(text, "name=\"no threshold\""), 2) // PSMs and proteins
+  // two clusters: A, B and C (with the score of the general group) and the decoy group
+  TEST_EQUAL(countOf(text, "name=\"cluster identifier\" value=\"1\""), 2)
+  TEST_EQUAL(countOf(text, "name=\"cluster identifier\" value=\"2\""), 1)
+  TEST_EQUAL(countOf(text, "<userParam name=\"cluster score\""), 2)
+  TEST_EQUAL(countOf(text, "name=\"count of identified clusters\" value=\"1\""), 1)
+  // evidence: the top hits only (6 PeptideHypotheses: PEPTIDEK for A, B, C; ELVISK for A, B; GLYCINEK for DECOY_D),
+  // not the second-ranked SAMPLER for C
+  TEST_EQUAL(countOf(text, "<PeptideHypothesis "), 6)
+
+  std::string version;
+  std::stringstream schema_errors;
+  TEST_EQUAL(file.isValid(filename, schema_errors, version), true)
+  TEST_EQUAL(schema_errors.str(), "")
+  // semantic validation (the mapping file has rules for the protein detection elements of mzIdentML 1.1+)
+  StringList errors, warnings;
+  TEST_EQUAL(file.isSemanticallyValid(filename, errors, warnings), true)
+  TEST_EQUAL(ListUtils::concatenate(errors, "\n"), "")
+  // ... which fails without the terms that mzIdentML 1.2 requires
+  {
+    std::string invalid;
+    std::istringstream lines(text);
+    for (std::string line; std::getline(lines, line);)
+    {
+      if (!StringUtils::hasSubstring(line, "name=\"protein group passes threshold\"") &&
+          !StringUtils::hasSubstring(line, "name=\"count of identified proteins\""))
+      {
+        invalid += line + "\n";
+      }
+    }
+    std::string invalid_file;
+    NEW_TMP_FILE_EXT(invalid_file, ".mzid")
+    std::ofstream(invalid_file) << invalid;
+    StringList errors2, warnings2;
+    TEST_EQUAL(file.isSemanticallyValid(invalid_file, errors2, warnings2), false)
+    const std::string all_errors = ListUtils::concatenate(errors2, "\n");
+    TEST_EQUAL(countOf(all_errors, "MzIdentML_ProteinAmbiguityGroupThreshold_rule"), 3) // once per group
+    TEST_EQUAL(countOf(all_errors, "MzIdentML_ProteinDetectionListCount_rule"), 1)
+
+    // proteins without a relationship to their group (leading protein etc.)
+    std::string no_relationship;
+    std::istringstream lines2(text);
+    for (std::string line; std::getline(lines2, line);)
+    {
+      if (!StringUtils::hasSubstring(line, "name=\"leading protein\"") && !StringUtils::hasSubstring(line, "name=\"group representative\"") &&
+          !StringUtils::hasSubstring(line, "name=\"sequence same-set protein\""))
+      {
+        no_relationship += line + "\n";
+      }
+    }
+    std::ofstream(invalid_file) << no_relationship;
+    StringList errors3, warnings3;
+    TEST_EQUAL(file.isSemanticallyValid(invalid_file, errors3, warnings3), false)
+    TEST_EQUAL(countOf(ListUtils::concatenate(errors3, "\n"), "MzIdentML_ProteinDetectionHypothesisRelationship_rule"), 4) // once per protein
+
+    // mzIdentML 1.1 did not require these terms
+    std::string version_1_1 = invalid;
+    StringUtils::substitute(version_1_1, "mzIdentML/1.3", "mzIdentML/1.1");
+    StringUtils::substitute(version_1_1, "version=\"1.3.0\"", "version=\"1.1.0\"");
+    // the version of the search engine (in the header, after the root element) is not the mzIdentML version
+    TEST_EQUAL(countOf(version_1_1, "version=\"2024.03.26\""), 1)
+    StringUtils::substitute(version_1_1, "version=\"2024.03.26\"", "version=\"1.3.0\"");
+    std::ofstream(invalid_file) << version_1_1;
+    TEST_EQUAL(file.detectVersion(invalid_file), "1.1.0")
+    StringList errors4, warnings4;
+    TEST_EQUAL(file.isSemanticallyValid(invalid_file, errors4, warnings4), true)
+    TEST_EQUAL(ListUtils::concatenate(errors4, "\n"), "")
+  }
+
+  // round trip
+  std::vector<ProteinIdentification> proteins2;
+  PeptideIdentificationList peptides2;
+  file.load(filename, proteins2, peptides2);
+  ABORT_IF(proteins2.size() != 1)
+  const ProteinIdentification& run = proteins[0];
+  const ProteinIdentification& run2 = proteins2[0];
+  TEST_EQUAL(run2.getHits().size(), 4) // no duplicates
+  TEST_EQUAL(run2.getScoreType(), "Posterior Probability")
+  TEST_EQUAL(run2.isHigherScoreBetter(), true)
+  TEST_EQUAL(run2.getInferenceEngine(), "Epifany")
+  TEST_EQUAL(run2.getInferenceEngineVersion(), "3.6.0")
+  std::map<std::string, const ProteinHit*> hits2;
+  for (const ProteinHit& hit : run2.getHits())
+  {
+    hits2[hit.getAccession()] = &hit;
+  }
+  ABORT_IF(!hits2.contains("A") || !hits2.contains("B") || !hits2.contains("C") || !hits2.contains("DECOY_D"))
+  for (const ProteinHit& hit : run.getHits())
+  {
+    TEST_REAL_SIMILAR(hits2[hit.getAccession()]->getScore(), hit.getScore())
+  }
+  TEST_REAL_SIMILAR(hits2["A"]->getCoverage(), 93.3)
+  TEST_EQUAL(hits2["DECOY_D"]->getMetaValue("target_decoy", "").toString(), "decoy")
+  TEST_EQUAL(hits2["DECOY_D"]->getMetaValue("pass_threshold", "").toString(), "false")
+  TEST_EQUAL(run2.getIndistinguishableProteins().size(), 3)
+  ABORT_IF(run2.getIndistinguishableProteins().size() != 3)
+  for (Size i = 0; i < 3; ++i)
+  {
+    TEST_EQUAL(ListUtils::concatenate(accessionsOf(run2.getIndistinguishableProteins()[i]), ","),
+               ListUtils::concatenate(accessionsOf(run.getIndistinguishableProteins()[i]), ","))
+    TEST_REAL_SIMILAR(run2.getIndistinguishableProteins()[i].probability, run.getIndistinguishableProteins()[i].probability)
+  }
+  TEST_EQUAL(run2.getProteinGroups().size(), 1)
+  ABORT_IF(run2.getProteinGroups().size() != 1)
+  TEST_EQUAL(ListUtils::concatenate(accessionsOf(run2.getProteinGroups()[0]), ","), "A,B,C")
+  TEST_REAL_SIMILAR(run2.getProteinGroups()[0].probability, 0.99)
+
+  // storing again gives the same protein groups
+  std::string filename2;
+  NEW_TMP_FILE_EXT(filename2, ".mzid")
+  file.store(filename2, proteins2, peptides2);
+  const std::string text2 = readFile(filename2);
+  TEST_EQUAL(countOf(text2, "<ProteinAmbiguityGroup "), 3)
+  TEST_EQUAL(countOf(text2, "name=\"protein group passes threshold\" value=\"true\""), 2)
+  TEST_EQUAL(countOf(text2, "<userParam name=\"cluster score\""), 2)
+}
+END_SECTION
+
+START_SECTION(([EXTRA] protein groups: score type aliases and group scores only (issue #1105)))
+{
+  // a score type alias ("qvalue" for "q-value") is written with the q-value terms and read back
+  std::vector<ProteinIdentification> proteins;
+  PeptideIdentificationList peptides;
+  makeInferenceRun(proteins, peptides);
+  ProteinIdentification& run = proteins[0];
+  run.setScoreType("qvalue");
+  run.setHigherScoreBetter(false);
+  for (Size i = 0; i < run.getHits().size(); ++i)
+  {
+    run.getHits()[i].setScore(0.001 * (i + 1));
+  }
+  for (Size i = 0; i < run.getIndistinguishableProteins().size(); ++i)
+  {
+    run.getIndistinguishableProteins()[i].probability = 0.01 * (i + 1);
+  }
+  run.setMetaValue(Constants::UserParam::PROTEIN_GROUP_SCORE_THRESHOLD, 0.025);
+  run.setMetaValue(Constants::UserParam::PROTEIN_GROUP_SCORE_THRESHOLD_TYPE, "q-value"); // another alias
+  std::string filename;
+  NEW_TMP_FILE_EXT(filename, ".mzid")
+  MzIdentMLFile().store(filename, proteins, peptides);
+  const std::string text = readFile(filename);
+  TEST_EQUAL(countOf(text, "name=\"protein-level q-value\""), 4)
+  TEST_EQUAL(countOf(text, "name=\"protein group-level q-value\""), 3)
+  TEST_EQUAL(countOf(text, "name=\"protein group-level global FDR\" value=\"0.025\""), 1)
+  TEST_EQUAL(countOf(text, "name=\"protein group passes threshold\" value=\"true\""), 2) // the decoy group fails
+
+  std::vector<ProteinIdentification> proteins2;
+  PeptideIdentificationList peptides2;
+  MzIdentMLFile().load(filename, proteins2, peptides2);
+  ABORT_IF(proteins2.size() != 1 || proteins2[0].getIndistinguishableProteins().size() != 3)
+  TEST_EQUAL(proteins2[0].getScoreType(), "qvalue")
+  TEST_EQUAL(proteins2[0].isHigherScoreBetter(), false)
+  for (const ProteinHit& hit : proteins2[0].getHits())
+  {
+    TEST_EQUAL(hit.getScore() > 0.0, true)
+  }
+  TEST_REAL_SIMILAR(proteins2[0].getIndistinguishableProteins()[1].probability, 0.02)
+  TEST_EQUAL(proteins2[0].getMetaValue(Constants::UserParam::PROTEIN_GROUP_SCORE_THRESHOLD_TYPE).toString(), "qvalue")
+
+  // a file that reports only group scores (no protein scores, no OpenMS AnalysisParams)
+  std::string group_scores_only;
+  std::istringstream lines(text);
+  for (std::string line; std::getline(lines, line);)
+  {
+    if (!StringUtils::hasSubstring(line, "name=\"protein-level q-value\"") && !StringUtils::hasSubstring(line, "userParam name=\"protein score type\"") &&
+        !StringUtils::hasSubstring(line, "userParam name=\"higher protein score better\""))
+    {
+      group_scores_only += line + "\n";
+    }
+  }
+  std::string filename2;
+  NEW_TMP_FILE_EXT(filename2, ".mzid")
+  std::ofstream(filename2) << group_scores_only;
+  std::vector<ProteinIdentification> proteins3;
+  PeptideIdentificationList peptides3;
+  MzIdentMLFile().load(filename2, proteins3, peptides3);
+  ABORT_IF(proteins3.size() != 1 || proteins3[0].getIndistinguishableProteins().size() != 3)
+  TEST_EQUAL(proteins3[0].getScoreType(), "q-value")
+  TEST_EQUAL(proteins3[0].isHigherScoreBetter(), false)
+  {
+    // group statistics without an order in the CV (here: e-values) are error measures: lower is better
+    std::string evalues_only = group_scores_only;
+    StringUtils::substitute(evalues_only, "accession=\"MS:1002373\" cvRef=\"PSI-MS\" name=\"protein group-level q-value\"",
+                            "accession=\"MS:1002372\" cvRef=\"PSI-MS\" name=\"protein group-level e-value\"");
+    std::string filename3;
+    NEW_TMP_FILE_EXT(filename3, ".mzid")
+    std::ofstream(filename3) << evalues_only;
+    std::vector<ProteinIdentification> proteins4;
+    PeptideIdentificationList peptides4;
+    MzIdentMLFile().load(filename3, proteins4, peptides4);
+    ABORT_IF(proteins4.size() != 1 || proteins4[0].getIndistinguishableProteins().size() != 3)
+    TEST_EQUAL(proteins4[0].getScoreType(), "protein group-level e-value")
+    TEST_EQUAL(proteins4[0].isHigherScoreBetter(), false)
+    TEST_REAL_SIMILAR(proteins4[0].getIndistinguishableProteins()[1].probability, 0.02)
+  }
+  TEST_EQUAL(proteins3[0].isHigherScoreBetter(), false)
+  for (Size i = 0; i < 3; ++i)
+  {
+    TEST_REAL_SIMILAR(proteins3[0].getIndistinguishableProteins()[i].probability, 0.01 * (i + 1))
+  }
+}
+END_SECTION
+
+START_SECTION(([EXTRA] read protein groups: clusters and leading proteins (issue #1105)))
+{
+  const std::string fixture = readFile(OPENMS_GET_TEST_DATA_PATH("MzIdentML_protein_groups.mzid"));
+  auto load = [](const std::string& text, std::vector<ProteinIdentification>& proteins)
+  {
+    std::string filename;
+    NEW_TMP_FILE_EXT(filename, ".mzid")
+    std::ofstream(filename) << text;
+    PeptideIdentificationList peptides;
+    MzIdentMLFile().load(filename, proteins, peptides);
+  };
+
+  // PAG_1 alone in its cluster: one indistinguishable group, but the cluster also holds the sub-set protein C
+  {
+    std::string text = fixture;
+    const std::string pag2_cluster = "<cvParam cvRef=\"PSI-MS\" accession=\"MS:1002407\" name=\"cluster identifier\" value=\"1\"/>\n        </ProteinAmbiguityGroup>\n        <ProteinAmbiguityGroup id=\"PAG_3\">";
+    ABORT_IF(text.find(pag2_cluster) == std::string::npos)
+    std::string pag2_cluster2 = pag2_cluster;
+    StringUtils::substitute(pag2_cluster2, "value=\"1\"", "value=\"2\"");
+    text.replace(text.find(pag2_cluster), pag2_cluster.size(), pag2_cluster2);
+    std::vector<ProteinIdentification> proteins;
+    load(text, proteins);
+    ABORT_IF(proteins.size() != 1)
+    std::vector<std::string> general;
+    for (const auto& group : proteins[0].getProteinGroups())
+    {
+      general.push_back(ListUtils::concatenate(accessionsOf(group), ","));
+    }
+    TEST_EQUAL(ListUtils::concatenate(general, ";"), "E,F,G;H,I;B,A,C") // cluster 2 (D alone) is no general group
+  }
+
+  // leading proteins annotated as same-set proteins form one indistinguishable group, even with different peptides
+  {
+    std::string text = fixture;
+    const std::string leading_i = "<cvParam cvRef=\"PSI-MS\" accession=\"MS:1002401\" name=\"leading protein\"/>\n            <cvParam cvRef=\"PSI-MS\" accession=\"MS:1003119\" name=\"EPIFANY:Protein posterior probability\" value=\"0.88\"/>";
+    ABORT_IF(text.find(leading_i) == std::string::npos)
+    text.replace(text.find(leading_i), leading_i.size(),
+      "<cvParam cvRef=\"PSI-MS\" accession=\"MS:1002401\" name=\"leading protein\"/>\n            <cvParam cvRef=\"PSI-MS\" accession=\"MS:1001594\" name=\"sequence same-set protein\" value=\"PDH_H\"/>\n            <cvParam cvRef=\"PSI-MS\" accession=\"MS:1003119\" name=\"EPIFANY:Protein posterior probability\" value=\"0.88\"/>");
+    std::vector<ProteinIdentification> proteins;
+    load(text, proteins);
+    ABORT_IF(proteins.size() != 1 || proteins[0].getIndistinguishableProteins().size() != 4)
+    TEST_EQUAL(ListUtils::concatenate(accessionsOf(proteins[0].getIndistinguishableProteins()[3]), ","), "H,I")
+    TEST_REAL_SIMILAR(proteins[0].getIndistinguishableProteins()[3].probability, 0.95) // the group score of the PAG
+  }
+
+  // the same-set term is optional: leading proteins without it are compared by their peptides, even if another
+  // leading protein of the group is annotated
+  {
+    std::string text = fixture;
+    for (const std::string& same_set : {std::string("\n            <cvParam cvRef=\"PSI-MS\" accession=\"MS:1001594\" name=\"sequence same-set protein\" value=\"PDH_B\"/>"),
+                                        std::string("\n            <cvParam cvRef=\"PSI-MS\" accession=\"MS:1001594\" name=\"sequence same-set protein\" value=\"PDH_A\"/>")})
+    {
+      ABORT_IF(text.find(same_set) == std::string::npos)
+      text.erase(text.find(same_set), same_set.size());
+    }
+    // C becomes a leading protein, annotated as same-set with a protein that is not in the group
+    const std::string c_roles = "<cvParam cvRef=\"PSI-MS\" accession=\"MS:1002402\" name=\"non-leading protein\"/>\n            <cvParam cvRef=\"PSI-MS\" accession=\"MS:1001596\" name=\"sequence sub-set protein\" value=\"PDH_A PDH_B\"/>";
+    ABORT_IF(text.find(c_roles) == std::string::npos)
+    text.replace(text.find(c_roles), c_roles.size(),
+      "<cvParam cvRef=\"PSI-MS\" accession=\"MS:1002401\" name=\"leading protein\"/>\n            <cvParam cvRef=\"PSI-MS\" accession=\"MS:1001594\" name=\"sequence same-set protein\" value=\"PDH_X\"/>");
+    std::vector<ProteinIdentification> proteins;
+    load(text, proteins);
+    ABORT_IF(proteins.size() != 1 || proteins[0].getIndistinguishableProteins().size() != 6)
+    TEST_EQUAL(ListUtils::concatenate(accessionsOf(proteins[0].getIndistinguishableProteins()[0]), ","), "B,A") // same peptides
+    TEST_EQUAL(ListUtils::concatenate(accessionsOf(proteins[0].getIndistinguishableProteins()[1]), ","), "C")
+  }
+
+  // an optional userParam whose value does not match its type does not stop the file from loading
+  {
+    std::string text = fixture;
+    const std::string pag4_end = "name=\"protein group-level probability\" value=\"0.95\"/>";
+    ABORT_IF(text.find(pag4_end) == std::string::npos)
+    text.insert(text.find(pag4_end) + pag4_end.size(), "\n          <userParam name=\"cluster score\" type=\"xsd:double\" value=\"unavailable\"/>");
+    std::vector<ProteinIdentification> proteins;
+    load(text, proteins);
+    ABORT_IF(proteins.size() != 1)
+    TEST_EQUAL(proteins[0].getIndistinguishableProteins().size(), 5)
+  }
+}
+END_SECTION
+
+START_SECTION(([EXTRA] store protein groups with a recorded group score threshold (issue #1105)))
+{
+  std::vector<ProteinIdentification> proteins;
+  PeptideIdentificationList peptides;
+  makeInferenceRun(proteins, peptides);
+  // as IDFilter -score:proteingroup 0.6: only the group of A and B has a better score
+  proteins[0].setMetaValue(Constants::UserParam::PROTEIN_GROUP_SCORE_THRESHOLD, 0.6);
+  proteins[0].setMetaValue(Constants::UserParam::PROTEIN_GROUP_SCORE_THRESHOLD_TYPE, "Posterior Probability");
+
+  std::string filename;
+  NEW_TMP_FILE_EXT(filename, ".mzid")
+  MzIdentMLFile().store(filename, proteins, peptides);
+  const std::string text = readFile(filename);
+  TEST_EQUAL(countOf(text, "name=\"protein group-level statistical threshold\" value=\"0.6\""), 1)
+  TEST_EQUAL(countOf(text, "name=\"no threshold\""), 1) // only for the PSMs
+  TEST_EQUAL(countOf(text, "name=\"protein group passes threshold\" value=\"true\""), 1)
+  TEST_EQUAL(countOf(text, "name=\"count of identified proteins\" value=\"1\""), 1)
+
+  std::vector<ProteinIdentification> proteins2;
+  PeptideIdentificationList peptides2;
+  MzIdentMLFile().load(filename, proteins2, peptides2);
+  ABORT_IF(proteins2.size() != 1)
+  TEST_REAL_SIMILAR(double(proteins2[0].getMetaValue(Constants::UserParam::PROTEIN_GROUP_SCORE_THRESHOLD)), 0.6)
+  TEST_EQUAL(proteins2[0].getMetaValue(Constants::UserParam::PROTEIN_GROUP_SCORE_THRESHOLD_TYPE).toString(), "Posterior Probability")
+
+  // a threshold on another score type is not used
+  proteins[0].setMetaValue(Constants::UserParam::PROTEIN_GROUP_SCORE_THRESHOLD_TYPE, "q-value");
+  MzIdentMLFile().store(filename, proteins, peptides);
+  const std::string text2 = readFile(filename);
+  TEST_EQUAL(countOf(text2, "name=\"no threshold\""), 2)
+  TEST_EQUAL(countOf(text2, "name=\"protein group passes threshold\" value=\"true\""), 2)
+
+  // nor is one for a run without indistinguishable groups (one group per protein): no group was filtered with it,
+  // and the protein scores may have been recalculated since
+  proteins[0].setMetaValue(Constants::UserParam::PROTEIN_GROUP_SCORE_THRESHOLD_TYPE, "Posterior Probability");
+  proteins[0].getIndistinguishableProteins().clear();
+  proteins[0].getProteinGroups().clear();
+  MzIdentMLFile().store(filename, proteins, peptides);
+  const std::string text3 = readFile(filename);
+  TEST_EQUAL(countOf(text3, "name=\"no threshold\""), 2)
+  TEST_EQUAL(countOf(text3, "<ProteinAmbiguityGroup "), 4) // A, B, C, DECOY_D
+  TEST_EQUAL(countOf(text3, "name=\"protein group passes threshold\" value=\"true\""), 3) // all but the decoy
+}
+END_SECTION
+
+START_SECTION(([EXTRA] store protein groups: only one run may have protein inference results (issue #1105)))
+{
+  std::vector<ProteinIdentification> proteins;
+  PeptideIdentificationList peptides;
+  makeInferenceRun(proteins, peptides);
+  makeInferenceRun(proteins, peptides);
+  proteins[1].setIdentifier("inference_run_2");
+  for (Size i = peptides.size() / 2; i < peptides.size(); ++i)
+  {
+    peptides[i].setIdentifier("inference_run_2");
+  }
+  std::string filename;
+  NEW_TMP_FILE_EXT(filename, ".mzid")
+  MzIdentMLFile().store(filename, proteins, peptides);
+  const std::string text = readFile(filename);
+  TEST_EQUAL(countOf(text, "<ProteinDetectionList "), 0) // two lists are not allowed: no protein groups are written
+  TEST_EQUAL(countOf(text, "<SpectrumIdentificationList "), 2) // but the PSMs are
+
+  // without protein inference, there are no protein results to write
+  std::vector<ProteinIdentification> search_only(1, proteins[0]);
+  search_only[0].getIndistinguishableProteins().clear();
+  search_only[0].getProteinGroups().clear();
+  search_only[0].getSearchParameters().removeMetaValue("InferenceEngine");
+  PeptideIdentificationList search_peptides(std::vector<PeptideIdentification>(peptides.begin(), peptides.begin() + peptides.size() / 2));
+  MzIdentMLFile().store(filename, search_only, search_peptides);
+  TEST_EQUAL(countOf(readFile(filename), "<ProteinDetectionList "), 0)
+
+  // protein inference without groups: every protein is a group of its own
+  std::vector<ProteinIdentification> ungrouped(1, proteins[0]);
+  ungrouped[0].getIndistinguishableProteins().clear();
+  ungrouped[0].getProteinGroups().clear();
+  MzIdentMLFile().store(filename, ungrouped, search_peptides);
+  const std::string text2 = readFile(filename);
+  TEST_EQUAL(countOf(text2, "<ProteinAmbiguityGroup "), 4)
+  TEST_EQUAL(countOf(text2, "name=\"cluster identifier\""), 0)
+  std::vector<ProteinIdentification> proteins2;
+  PeptideIdentificationList peptides2;
+  MzIdentMLFile().load(filename, proteins2, peptides2);
+  ABORT_IF(proteins2.size() != 1)
+  TEST_EQUAL(proteins2[0].getIndistinguishableProteins().size(), 4)
+  TEST_EQUAL(proteins2[0].getProteinGroups().size(), 0)
+}
+END_SECTION
+
+START_SECTION(std::string detectVersion(const std::string& filename) const)
+{
+  // only the root element declares the version (from its version attribute, or else from its namespace)
+  const std::vector<std::pair<std::string, std::string>> cases = {
+    // a comment with a root-like tag before the root
+    {"<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<!-- e.g. <MzIdentML version=\"1.3.0\"> -->\n"
+     "<MzIdentML xmlns=\"http://psidev.info/psi/pi/mzIdentML/1.1\" version=\"1.1.0\" id=\"x\"></MzIdentML>\n", "1.1.0"},
+    // '>' in an attribute value before the version
+    {"<MzIdentML name=\"A > B\" xmlns=\"http://psidev.info/psi/pi/mzIdentML/1.1\" version=\"1.1.0\" id=\"x\"></MzIdentML>\n", "1.1.0"},
+    // another element's version attribute
+    {"<MzIdentML xmlns=\"http://psidev.info/psi/pi/mzIdentML/1.1\" version=\"1.1.0\" id=\"x\">\n<AnalysisSoftwareList>"
+     "<AnalysisSoftware id=\"s\" version=\"1.3.0\"/></AnalysisSoftwareList></MzIdentML>\n", "1.1.0"},
+    // namespace of a prefixed root without version attribute
+    {"<mzid:MzIdentML xmlns:mzid=\"http://psidev.info/psi/pi/mzIdentML/1.2\" id=\"x\"></mzid:MzIdentML>\n", "1.2.0"},
+    // mzIdentML 1.0
+    {"<mzIdentML xmlns=\"http://psidev.info/psi/pi/mzIdentML/1.0\" version=\"1.0.0\" id=\"x\"></mzIdentML>\n", "1.0.0"},
+    // no version: the default
+    {"<MzIdentML id=\"x\"></MzIdentML>\n", "1.3.0"},
+    // not XML: the default
+    {"no XML\n", "1.3.0"}};
+  std::string filename;
+  NEW_TMP_FILE_EXT(filename, ".mzid")
+  for (const auto& [content, version] : cases)
+  {
+    std::ofstream(filename) << content;
+    TEST_EQUAL(MzIdentMLFile().detectVersion(filename), version)
+  }
+  TEST_EXCEPTION(Exception::FileNotFound, MzIdentMLFile().detectVersion("this_file_does_not_exist.mzid"))
+}
+END_SECTION
+
+START_SECTION(([EXTRA] store PeptideEvidences per evidence, also with several runs (issue #10983)))
+{
+  // two runs searched against different databases. Both identify PEPTIDEK: from P1 in run 1 and from P2 in run 2. Both
+  // runs also have the protein SHARED (with a different peptide), and run 1 identifies PEPTIDEK twice.
+  std::vector<ProteinIdentification> proteins;
+  PeptideIdentificationList peptides;
+  auto add_run = [&](const std::string& identifier, const std::string& db, const std::string& protein)
+  {
+    ProteinIdentification run;
+    run.setIdentifier(identifier);
+    run.setSearchEngine("MS-GF+");
+    ProteinIdentification::SearchParameters search_parameters;
+    search_parameters.db = db;
+    run.setSearchParameters(search_parameters);
+    run.setMetaValue("spectra_data", StringList{identifier + ".mzML"});
+    run.insertHit(ProteinHit(0.0, 1, protein, ""));
+    run.insertHit(ProteinHit(0.0, 1, "SHARED", ""));
+    proteins.push_back(run);
+  };
+  auto add_psm = [&](const std::string& identifier, const std::string& spectrum, const std::string& sequence, const PeptideEvidence& evidence)
+  {
+    PeptideIdentification id;
+    id.setIdentifier(identifier);
+    id.setScoreType("q-value");
+    id.setHigherScoreBetter(false);
+    id.setSpectrumReference(spectrum);
+    id.setRT(100.0);
+    id.setMZ(500.0);
+    PeptideHit hit(0.01, 0, 2, AASequence::fromString(sequence));
+    hit.addPeptideEvidence(evidence);
+    id.insertHit(hit);
+    peptides.push_back(id);
+  };
+  add_run("run_one", "db_one.fasta", "P1");
+  add_run("run_two", "db_two.fasta", "P2");
+  add_psm("run_one", "scan=1", "PEPTIDEK", PeptideEvidence("P1", 10, 17, 'K', 'A'));
+  add_psm("run_one", "scan=2", "PEPTIDEK", PeptideEvidence("P1", 10, 17, 'K', 'A'));
+  add_psm("run_one", "scan=3", "ELVISK", PeptideEvidence("SHARED", 0, 5, '[', 'G'));
+  add_psm("run_two", "scan=7", "PEPTIDEK", PeptideEvidence("P2", 40, 47, 'R', 'G'));
+  add_psm("run_two", "scan=8", "ELVISK", PeptideEvidence("SHARED", 0, 5, '[', 'G'));
+  // same peptide, protein and run, but one other field of the evidence each: position, flanking residue, decoy flag
+  add_psm("run_one", "scan=4", "PEPTIDEK", PeptideEvidence("P1", 20, 27, 'K', 'A'));
+  add_psm("run_one", "scan=5", "PEPTIDEK", PeptideEvidence("P1", 10, 17, 'R', 'A'));
+  add_psm("run_one", "scan=6", "PEPTIDEK", PeptideEvidence("P1", 10, 17, 'K', 'A'));
+  peptides.back().getHits()[0].setMetaValue(Constants::UserParam::TARGET_DECOY, "decoy");
+
+  std::string filename;
+  NEW_TMP_FILE_EXT(filename, ".mzid")
+  MzIdentMLFile().store(filename, proteins, peptides);
+  const std::string text = readFile(filename);
+  // one PeptideEvidence per evidence: P1 (shared by the first two PSMs of run 1, and three variants of it), P2, and SHARED
+  // in each database
+  TEST_EQUAL(countOf(text, "<PeptideEvidence "), 7)
+  // the PeptideEvidence that each spectrum references, as written
+  std::map<std::string, std::string> pev_attributes; // PeptideEvidence id -> its attributes
+  const std::regex pev_element(R"re(<PeptideEvidence id="([^"]*)"([^>]*)/>)re");
+  for (std::sregex_iterator m(text.begin(), text.end(), pev_element), end; m != end; ++m)
+  {
+    pev_attributes[(*m)[1]] = (*m)[2];
+  }
+  std::map<std::string, std::string> pev_of; // spectrum -> id of the PeptideEvidence it references
+  const std::regex pev_reference(R"re(spectrumID="([^"]*)"[^>]*>\s*<SpectrumIdentificationItem[^>]*>\s*<PeptideEvidenceRef peptideEvidence_ref="([^"]*)")re");
+  for (std::sregex_iterator m(text.begin(), text.end(), pev_reference), end; m != end; ++m)
+  {
+    pev_of[(*m)[1]] = (*m)[2];
+  }
+  TEST_EQUAL(pev_of.size(), 8)
+  TEST_EQUAL(pev_of["scan=1"], pev_of["scan=2"])
+  TEST_EQUAL(StringUtils::hasSubstring(pev_attributes[pev_of["scan=1"]], "post=\"A\" pre=\"K\" start=\"11\" end=\"18\""), true)
+  TEST_EQUAL(StringUtils::hasSubstring(pev_attributes[pev_of["scan=1"]], "isDecoy"), false)
+  TEST_EQUAL(StringUtils::hasSubstring(pev_attributes[pev_of["scan=4"]], "post=\"A\" pre=\"K\" start=\"21\" end=\"28\""), true)
+  TEST_EQUAL(StringUtils::hasSubstring(pev_attributes[pev_of["scan=5"]], "post=\"A\" pre=\"R\" start=\"11\" end=\"18\""), true)
+  TEST_EQUAL(StringUtils::hasSubstring(pev_attributes[pev_of["scan=6"]], "post=\"A\" pre=\"K\" start=\"11\" end=\"18\" isDecoy=\"1\""), true)
+  TEST_EQUAL(StringUtils::hasSubstring(pev_attributes[pev_of["scan=7"]], "post=\"G\" pre=\"R\" start=\"41\" end=\"48\""), true)
+  TEST_EQUAL(std::set<std::string>({pev_of["scan=1"], pev_of["scan=4"], pev_of["scan=5"], pev_of["scan=6"], pev_of["scan=7"]}).size(), 5)
+  TEST_EQUAL(countOf(text, "<Peptide "), 2)
+  // the protein of both runs has a DBSequence in each database
+  TEST_EQUAL(countOf(text, "<DBSequence accession=\"SHARED\""), 2)
+  TEST_EQUAL(countOf(text, "<DBSequence "), 4)
+
+  std::vector<ProteinIdentification> proteins2;
+  PeptideIdentificationList peptides2;
+  MzIdentMLFile().load(filename, proteins2, peptides2);
+  TEST_EQUAL(peptides2.size(), 8)
+  // each PSM has its own evidence (before the fix: the PSM of run 2 had the evidence of P1 from run 1)
+  std::map<std::string, std::string> evidence_of; // spectrum -> accession and flanking residues of its evidence
+  for (const PeptideIdentification& id : peptides2)
+  {
+    ABORT_IF(id.getHits().size() != 1 || id.getHits()[0].getPeptideEvidences().size() != 1)
+    const PeptideEvidence& evidence = id.getHits()[0].getPeptideEvidences()[0];
+    evidence_of[id.getSpectrumReference()] = evidence.getProteinAccession() + " " + evidence.getAABefore() + evidence.getAAAfter();
+  }
+  TEST_EQUAL(evidence_of["scan=1"], "P1 KA")
+  TEST_EQUAL(evidence_of["scan=2"], "P1 KA")
+  TEST_EQUAL(evidence_of["scan=7"], "P2 RG")
+  TEST_EQUAL(StringUtils::hasPrefix(evidence_of["scan=3"], "SHARED "), true)
+  TEST_EQUAL(StringUtils::hasPrefix(evidence_of["scan=8"], "SHARED "), true)
+  // ... and each run's proteins are in the database of the run
+  std::map<std::string, std::string> db_of;
+  for (const ProteinIdentification& run : proteins2)
+  {
+    for (const ProteinHit& hit : run.getHits())
+    {
+      db_of[run.getSearchParameters().db + " " + hit.getAccession()] = run.getIdentifier();
+    }
+  }
+  TEST_EQUAL(db_of.count("db_one.fasta SHARED"), 1)
+  TEST_EQUAL(db_of.count("db_two.fasta SHARED"), 1)
+  TEST_EQUAL(db_of.count("db_two.fasta P1"), 0)
+}
+END_SECTION
+
+START_SECTION(([EXTRA] store and load the units of CV-term meta values (issue #10981)))
+{
+  std::vector<ProteinIdentification> proteins;
+  PeptideIdentificationList peptides;
+  MzIdentMLFile().load(OPENMS_GET_TEST_DATA_PATH("MzIdentMLFile_msgf_mini.mzid"), proteins, peptides);
+  ABORT_IF(peptides.empty() || peptides[0].getHits().empty())
+  DataValue scan_start_time(2014.221);
+  scan_start_time.setUnit(10); // UO:0000010 second
+  scan_start_time.setUnitType(DataValue::UnitType::UNIT_ONTOLOGY);
+  peptides[0].getHits()[0].setMetaValue("MS:1000016", scan_start_time);
+  // a unit of the PSI-MS CV: its CV reference is the id of PSI-MS in the cvList of the document ("PSI-MS", not "MS")
+  DataValue selected_mz(500.25);
+  selected_mz.setUnit(1000040); // MS:1000040 m/z
+  selected_mz.setUnitType(DataValue::UnitType::MS_ONTOLOGY);
+  peptides[0].getHits()[0].setMetaValue("MS:1000744", selected_mz);
+
+  std::string filename;
+  NEW_TMP_FILE_EXT(filename, ".mzid")
+  MzIdentMLFile().store(filename, proteins, peptides);
+  const std::string text = readFile(filename);
+  TEST_EQUAL(countOf(text, "name=\"selected ion m/z\" value=\"500.25\" unitAccession=\"MS:1000040\" unitCvRef=\"PSI-MS\" unitName=\"m/z\"/>"), 1)
+  TEST_EQUAL(countOf(text, "unitCvRef=\"MS\""), 0)
+  std::string version;
+  std::stringstream schema_errors;
+  TEST_EQUAL(MzIdentMLFile().isValid(filename, schema_errors, version), true)
+  TEST_EQUAL(schema_errors.str(), "")
+  const std::regex with_unit(R"(name="scan start time" value="2014\.221[0-9]*" unitAccession="UO:0000010" unitCvRef="UO" unitName="second"/>)");
+  TEST_EQUAL(std::distance(std::sregex_iterator(text.begin(), text.end(), with_unit), std::sregex_iterator()), 1)
+
+  std::vector<ProteinIdentification> proteins2;
+  PeptideIdentificationList peptides2;
+  MzIdentMLFile().load(filename, proteins2, peptides2);
+  // the PSM with the values (the order of the runs in the file follows their generated ids)
+  const PeptideHit* hit = nullptr;
+  for (const PeptideIdentification& id : peptides2)
+  {
+    if (!id.getHits().empty() && id.getHits()[0].metaValueExists("MS:1000016")) hit = &id.getHits()[0];
+  }
+  ABORT_IF(hit == nullptr)
+  const DataValue& value = hit->getMetaValue("MS:1000016");
+  TEST_REAL_SIMILAR(double(value), 2014.221)
+  TEST_EQUAL(value.hasUnit(), true)
+  TEST_EQUAL(value.getUnit(), 10)
+  TEST_EQUAL(value.getUnitType() == DataValue::UnitType::UNIT_ONTOLOGY, true)
+  const DataValue& mz = hit->getMetaValue("MS:1000744");
+  TEST_REAL_SIMILAR(double(mz), 500.25)
+  TEST_EQUAL(mz.getUnit(), 1000040)
+  TEST_EQUAL(mz.getUnitType() == DataValue::UnitType::MS_ONTOLOGY, true)
+}
+END_SECTION
+
+START_SECTION(([EXTRA] read PeptideEvidenceRefs: listed twice, or to the evidence of another peptide (issue #10983)))
+{
+  // a file with PEPTIDEK (scan=1), ELVISK (scan=2), a modified PEPTIDEK (scan=3) and SAMPLER (scan=4), each from its own
+  // evidence; then the PeptideEvidenceRefs of the PSMs are changed as in faulty files
+  std::vector<ProteinIdentification> proteins(1);
+  proteins[0].setIdentifier("run");
+  proteins[0].setSearchEngine("MS-GF+");
+  ProteinIdentification::SearchParameters search_parameters;
+  search_parameters.db = "db.fasta";
+  proteins[0].setSearchParameters(search_parameters);
+  proteins[0].setMetaValue("spectra_data", StringList{"run.mzML"});
+  proteins[0].insertHit(ProteinHit(0.0, 1, "P1", ""));
+  proteins[0].insertHit(ProteinHit(0.0, 1, "P2", ""));
+  PeptideIdentificationList peptides;
+  auto add_psm = [&](const std::string& spectrum, const std::string& sequence, const PeptideEvidence& evidence)
+  {
+    PeptideIdentification id;
+    id.setIdentifier("run");
+    id.setScoreType("q-value");
+    id.setHigherScoreBetter(false);
+    id.setSpectrumReference(spectrum);
+    id.setRT(100.0);
+    id.setMZ(500.0);
+    PeptideHit hit(0.01, 0, 2, AASequence::fromString(sequence));
+    hit.addPeptideEvidence(evidence);
+    id.insertHit(hit);
+    peptides.push_back(id);
+  };
+  add_psm("scan=1", "PEPTIDEK", PeptideEvidence("P1", 10, 17, 'K', 'A'));
+  add_psm("scan=2", "ELVISK", PeptideEvidence("P2", 20, 25, 'K', 'G'));
+  add_psm("scan=3", "PEPTIDEK(Label:13C(6)15N(2))", PeptideEvidence("P2", 30, 37, 'R', 'L'));
+  add_psm("scan=4", "SAMPLER", PeptideEvidence("P2", 50, 56, 'K', 'A'));
+
+  std::string filename;
+  NEW_TMP_FILE_EXT(filename, ".mzid")
+  MzIdentMLFile().store(filename, proteins, peptides);
+  std::string text = readFile(filename);
+  TEST_EQUAL(countOf(text, "<Peptide "), 4)
+  std::map<std::string, std::string> pev_of; // spectrum -> id of the PeptideEvidence it references
+  const std::regex pev_reference(R"re(spectrumID="([^"]*)"[^>]*>\s*<SpectrumIdentificationItem[^>]*>\s*<PeptideEvidenceRef peptideEvidence_ref="([^"]*)")re");
+  for (std::sregex_iterator m(text.begin(), text.end(), pev_reference), end; m != end; ++m)
+  {
+    pev_of[(*m)[1]] = (*m)[2];
+  }
+  ABORT_IF(pev_of.size() != 4)
+  auto set_references = [&](const std::string& spectrum, const std::vector<std::string>& pev_ids)
+  {
+    const Size start = text.find("<PeptideEvidenceRef ", text.find("spectrumID=\"" + spectrum + "\""));
+    const Size end = text.find("/>", start) + 2;
+    std::string references;
+    for (const std::string& pev_id : pev_ids) references += "<PeptideEvidenceRef peptideEvidence_ref=\"" + pev_id + "\"/>";
+    text.replace(start, end - start, references);
+  };
+  // its own evidence twice, the evidence of ELVISK, and a PeptideEvidence that is not in the file
+  set_references("scan=1", {pev_of["scan=1"], pev_of["scan=1"], pev_of["scan=2"], "PEV_missing"});
+  // only the evidence of PEPTIDEK
+  set_references("scan=2", {pev_of["scan=1"]});
+  // the evidence of another Peptide element with the same sequence
+  set_references("scan=3", {pev_of["scan=1"]});
+  // only a PeptideEvidence that is not in the file
+  set_references("scan=4", {"PEV_missing"});
+  NEW_TMP_FILE_EXT(filename, ".mzid")
+  std::ofstream(filename) << text;
+
+  std::vector<ProteinIdentification> proteins2;
+  PeptideIdentificationList peptides2;
+  MzIdentMLFile().load(filename, proteins2, peptides2);
+  std::map<std::string, std::string> evidences_of; // spectrum -> accessions and flanking residues of its evidences
+  for (const PeptideIdentification& id : peptides2)
+  {
+    ABORT_IF(id.getHits().size() != 1)
+    for (const PeptideEvidence& evidence : id.getHits()[0].getPeptideEvidences())
+    {
+      evidences_of[id.getSpectrumReference()] += evidence.getProteinAccession() + " " + evidence.getAABefore() + evidence.getAAAfter() + ";";
+    }
+  }
+  TEST_EQUAL(evidences_of["scan=1"], "P1 KA;") // once, without the protein of ELVISK and without an empty evidence
+  TEST_EQUAL(evidences_of["scan=2"], "P2 KG;") // no usable reference: the evidence of its peptide
+  TEST_EQUAL(evidences_of["scan=3"], "P1 KA;")
+  TEST_EQUAL(evidences_of["scan=4"], "P2 KA;")
+}
+END_SECTION
+
+START_SECTION(([EXTRA] store and load integer score terms, e.g. MS-GF:RawScore (issue #10980)))
+{
+  std::vector<ProteinIdentification> proteins;
+  PeptideIdentificationList peptides;
+  MzIdentMLFile().load(OPENMS_GET_TEST_DATA_PATH("MzIdentMLFile_msgf_mini.mzid"), proteins, peptides);
+  ABORT_IF(peptides.empty() || peptides[0].getHits().empty())
+  TEST_EQUAL(peptides[0].getScoreType(), "MS-GF:RawScore")
+  // another term with integer values, as a double (e.g. as PercolatorFeatureSetHelper sets missing values)
+  peptides[0].getHits()[0].setMetaValue("MS:1002050", 230.0);
+
+  std::string filename;
+  NEW_TMP_FILE_EXT(filename, ".mzid")
+  MzIdentMLFile().store(filename, proteins, peptides);
+  const std::string text = readFile(filename);
+  // the main score: MS-GF:RawScore has integer values, so no decimals
+  TEST_EQUAL(countOf(text, "name=\"MS-GF:RawScore\" value=\"195\""), 1)
+  TEST_EQUAL(countOf(text, "name=\"MS-GF:RawScore\" value=\"195.0\""), 0)
+  // ... nor for other values of terms with integer values
+  TEST_EQUAL(countOf(text, "name=\"MS-GF:DeNovoScore\" value=\"230\""), 1)
+  TEST_EQUAL(countOf(text, "name=\"MS-GF:DeNovoScore\" value=\"230.0\""), 0)
+  std::vector<ProteinIdentification> proteins2;
+  PeptideIdentificationList peptides2;
+  MzIdentMLFile().load(filename, proteins2, peptides2);
+  const PeptideHit* read_hit = hitWith(peptides2, "MS:1002050", "230");
+  ABORT_IF(read_hit == nullptr)
+  TEST_REAL_SIMILAR(read_hit->getScore(), 195)
+  TEST_EQUAL(read_hit->getMetaValue("MS:1002049").valueType(), DataValue::INT_VALUE)
+  TEST_EQUAL(int(read_hit->getMetaValue("MS:1002049")), 195)
+
+  // files written by older versions have decimals: read as the integer
+  std::string legacy = text;
+  StringUtils::substitute(legacy, "name=\"MS-GF:RawScore\" value=\"195\"", "name=\"MS-GF:RawScore\" value=\"195.0\"");
+  // a value that does not fit the type of its term is kept as it is, not as an empty value (which breaks writing idXML)
+  StringUtils::substitute(legacy, "name=\"MS-GF:DeNovoScore\" value=\"230\"", "name=\"MS-GF:DeNovoScore\" value=\"many\"");
+  // ... also one that would only be a whole number after a conversion to double
+  StringUtils::substitute(legacy, "name=\"MS-GF:DeNovoScore\" value=\"204\"", "name=\"MS-GF:DeNovoScore\" value=\"0.99999999999999999\"");
+  TEST_EQUAL(countOf(legacy, "value=\"195.0\""), 1)
+  TEST_EQUAL(countOf(legacy, "value=\"many\""), 1)
+  TEST_EQUAL(countOf(legacy, "value=\"0.99999999999999999\""), 1)
+  std::string legacy_file;
+  NEW_TMP_FILE_EXT(legacy_file, ".mzid")
+  std::ofstream(legacy_file) << legacy;
+  MzIdentMLFile().load(legacy_file, proteins2, peptides2);
+  ABORT_IF(hitWith(peptides2, "MS:1002050", "many") == nullptr)
+  const PeptideHit& hit = *hitWith(peptides2, "MS:1002050", "many");
+  TEST_REAL_SIMILAR(hit.getScore(), 195)
+  TEST_EQUAL(hit.getMetaValue("MS:1002049").valueType(), DataValue::INT_VALUE)
+  TEST_EQUAL(int(hit.getMetaValue("MS:1002049")), 195)
+  TEST_EQUAL(hit.getMetaValue("MS:1002050").valueType(), DataValue::STRING_VALUE)
+  TEST_EQUAL(hit.getMetaValue("MS:1002050").toString(), "many")
+  Size not_whole = 0;
+  for (const PeptideIdentification& id : peptides2)
+  {
+    for (const PeptideHit& other : id.getHits())
+    {
+      if (other.getMetaValue("MS:1002050", "").toString() == "0.99999999999999999")
+      {
+        ++not_whole;
+        TEST_EQUAL(other.getMetaValue("MS:1002050").valueType(), DataValue::STRING_VALUE)
+      }
+    }
+  }
+  TEST_EQUAL(not_whole, 1)
+  std::string idxml_file;
+  NEW_TMP_FILE_EXT(idxml_file, ".idXML")
+  IdXMLFile().store(idxml_file, proteins2, peptides2);
+  TEST_EQUAL(countOf(readFile(idxml_file), "name=\"MS:1002050\" value=\"many\""), 1)
+}
+END_SECTION
+
+START_SECTION(([EXTRA] store and load the value types of userParams (issue #10982)))
+{
+  std::vector<ProteinIdentification> proteins;
+  PeptideIdentificationList peptides;
+  MzIdentMLFile().load(OPENMS_GET_TEST_DATA_PATH("MzIdentMLFile_msgf_mini.mzid"), proteins, peptides);
+  ABORT_IF(peptides.empty() || peptides[0].getHits().empty())
+  PeptideHit& hit = peptides[0].getHits()[0];
+  hit.setMetaValue("an integer", 7);
+  hit.setMetaValue("a double", 0.25);
+  hit.setMetaValue("a string", "text");
+
+  std::string filename;
+  NEW_TMP_FILE_EXT(filename, ".mzid")
+  MzIdentMLFile().store(filename, proteins, peptides);
+  const std::string text = readFile(filename);
+  // the value type is the 'type' of a userParam; 'unitName' is the name of a unit
+  TEST_EQUAL(countOf(text, "<userParam name=\"an integer\" type=\"xsd:integer\" value=\"7\"/>"), 1)
+  TEST_EQUAL(countOf(text, "<userParam name=\"a double\" type=\"xsd:double\" value=\"0.25\"/>"), 1)
+  TEST_EQUAL(countOf(text, "<userParam name=\"a string\" type=\"xsd:string\" value=\"text\"/>"), 1)
+  TEST_EQUAL(countOf(text, "unitName=\"xsd:"), 0)
+
+  auto check_types = [](const std::string& file)
+  {
+    std::vector<ProteinIdentification> proteins2;
+    PeptideIdentificationList peptides2;
+    MzIdentMLFile().load(file, proteins2, peptides2);
+    const PeptideHit* found = hitWith(peptides2, "a string", "text");
+    TEST_EQUAL(found == nullptr, false)
+    if (found == nullptr) return; // ABORT_IF does not work in a lambda
+    const PeptideHit& hit2 = *found;
+    TEST_EQUAL(hit2.getMetaValue("an integer").valueType(), DataValue::INT_VALUE)
+    TEST_EQUAL(int(hit2.getMetaValue("an integer")), 7)
+    TEST_EQUAL(hit2.getMetaValue("a double").valueType(), DataValue::DOUBLE_VALUE)
+    TEST_REAL_SIMILAR(double(hit2.getMetaValue("a double")), 0.25)
+    TEST_EQUAL(hit2.getMetaValue("a string").valueType(), DataValue::STRING_VALUE)
+    TEST_EQUAL(hit2.getMetaValue("a string").toString(), "text")
+  };
+  check_types(filename);
+
+  // files written by older versions have the value type in 'unitName'
+  std::string legacy = text;
+  StringUtils::substitute(legacy, " type=\"xsd:", " unitName=\"xsd:");
+  TEST_EQUAL(countOf(legacy, "unitName=\"xsd:integer\" value=\"7\""), 1)
+  std::string legacy_file;
+  NEW_TMP_FILE_EXT(legacy_file, ".mzid")
+  std::ofstream(legacy_file) << legacy;
+  check_types(legacy_file);
+
+  // a value that does not fit its type is kept as a string (and the file still loads)
+  StringUtils::substitute(legacy, "unitName=\"xsd:integer\" value=\"7\"", "unitName=\"xsd:integer\" value=\"none\"");
+  TEST_EQUAL(countOf(legacy, "value=\"none\""), 1)
+  std::ofstream(legacy_file) << legacy;
+  std::vector<ProteinIdentification> proteins3;
+  PeptideIdentificationList peptides3;
+  MzIdentMLFile().load(legacy_file, proteins3, peptides3);
+  const PeptideHit* hit3 = hitWith(peptides3, "an integer", "none");
+  ABORT_IF(hit3 == nullptr)
+  TEST_EQUAL(hit3->getMetaValue("an integer").valueType(), DataValue::STRING_VALUE)
+  TEST_EQUAL(hit3->getMetaValue("a double").valueType(), DataValue::DOUBLE_VALUE)
+}
+END_SECTION
+
+START_SECTION(([EXTRA] XL-MS userParams: value types from type or unitName, optional values (issue #10982)))
+{
+  // the cross-linking test file was written by an older version: value types in unitName
+  std::string text = readFile(OPENMS_GET_TEST_DATA_PATH("MzIdentML_XLMS_unlabelled.mzid"));
+  TEST_EQUAL(countOf(text, "<userParam name=\"isotope_error\" unitName=\"xsd:integer\""), 4)
+  // a userParam may have no value
+  const Size prescores = countOf(text, "<userParam name=\"OpenPepXL:prescore\" unitName=\"xsd:double\"");
+  TEST_EQUAL(prescores > 0, true)
+  text = std::regex_replace(text, std::regex(R"(<userParam name="OpenPepXL:prescore" unitName="xsd:double" value="[^"]*"/>)"),
+                            R"(<userParam name="OpenPepXL:prescore" type="xsd:double"/>)");
+  TEST_EQUAL(countOf(text, "<userParam name=\"OpenPepXL:prescore\" type=\"xsd:double\"/>"), prescores)
+  // a value that does not fit its type is kept as a string
+  text = std::regex_replace(text, std::regex(R"(<userParam name="isotope_error" unitName="xsd:integer" value="[^"]*"/>)"),
+                            R"(<userParam name="isotope_error" type="xsd:integer" value="none"/>)");
+  TEST_EQUAL(countOf(text, "<userParam name=\"isotope_error\" type=\"xsd:integer\" value=\"none\"/>"), 4)
+  std::string filename;
+  NEW_TMP_FILE_EXT(filename, ".mzid")
+  std::ofstream(filename) << text;
+  std::vector<ProteinIdentification> proteins;
+  PeptideIdentificationList peptides;
+  MzIdentMLFile().load(filename, proteins, peptides);
+  Size xl_hits = 0;
+  for (const PeptideIdentification& id : peptides)
+  {
+    for (const PeptideHit& hit : id.getHits())
+    {
+      if (!hit.metaValueExists("OpenPepXL:prescore")) continue;
+      ++xl_hits;
+      TEST_EQUAL(hit.getMetaValue("isotope_error").valueType(), DataValue::STRING_VALUE)
+      TEST_EQUAL(hit.getMetaValue("isotope_error").toString(), "none")
+      TEST_EQUAL(hit.getMetaValue("matched_xlink_alpha").valueType(), DataValue::INT_VALUE) // unitName="xsd:integer"
+      TEST_EQUAL(hit.getMetaValue("OpenPepXL:prescore").valueType(), DataValue::STRING_VALUE)
+      TEST_EQUAL(hit.getMetaValue("OpenPepXL:prescore").toString(), "")
+    }
+  }
+  TEST_EQUAL(xl_hits > 0, true)
 }
 END_SECTION
 

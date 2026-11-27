@@ -2,7 +2,8 @@ cmake_minimum_required(VERSION 3.24 FATAL_ERROR)
 
 ### Installed-consumer test of a core-only OpenMS installation: the install
 ### components library, OpenMS_headers, OpenSwathAlgo_headers, thirdparty_headers,
-### share and cmake, without the CLI and GUI layers (see cmake/install_macros.cmake).
+### share and cmake, without the CLI layer (see cmake/install_macros.cmake) and
+### without the GUI layer of OpenMS-TOPP-GUI.
 ### This is what the pyOpenMS wheels are built against. The package of such an
 ### installation has to work on its own and to report exactly what is installed.
 ### Driven by the TestExternalCodeCore_* tests of src/tests/CMakeLists.txt

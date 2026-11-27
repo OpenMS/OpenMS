@@ -334,9 +334,20 @@ protected:
                                 std::map<std::string, std::string>& pep_ids,
                                 const std::string& cv_ns, std::set<std::string>& sen_set,
                                 std::map<std::string, std::string>& sen_ids,
-                                std::map<std::string, std::vector<std::string> >& pep_evis,
                                 std::map<std::string, double>& pp_identifier_2_thresh,
-                                std::string& sidres);
+                                std::string& sidres, bool top_hit);
+
+      /**
+        @brief Builds the protein inference results (ProteinDetection, ProteinDetectionProtocol, ProteinDetectionList and the AnalysisSoftware of the inference engine)
+
+        Writes the indistinguishable protein groups of the (only) identification run that has protein inference results
+        as ProteinAmbiguityGroups, see MzIdentMLProteinDetection. Must be called after the PSMs were written
+        (writePeptideHit()), since the groups reference their SpectrumIdentificationItems. The strings stay empty if
+        there is nothing to write.
+      */
+      void writeProteinDetection_(const std::string& cv_ns, const std::map<std::string, std::string>& sen_ids,
+                                  const std::map<std::string, std::string>& sof_ids,
+                                  std::string& software, std::string& detection, std::string& protocol, std::string& list) const;
 
       /// Abstraction of PeptideHit loop for XL-MS data from OpenPepXL
       void writeXLMSPeptideHit(const PeptideHit& hit,
@@ -344,11 +355,28 @@ protected:
                                 const std::string& ppxl_linkid, std::map<std::string, std::string>& pep_ids,
                                 const std::string& cv_ns, std::set<std::string>& sen_set,
                                 std::map<std::string, std::string>& sen_ids,
-                                std::map<std::string, std::vector<std::string> >& pep_evis,
                                 std::map<std::string, double>& pp_identifier_2_thresh,
                                 double ppxl_crosslink_mass,
                                 std::map<std::string, std::string>& ppxl_specref_2_element,
                                 std::string& sid, bool alpha_peptide);
+
+      /**
+        @brief The id of the PeptideEvidence with @p attributes (all of its attributes but the id); a new one is written to @p sen_set
+
+        A PeptideEvidence is shared by the hits with the same evidence (peptide, protein entry, flanking residues, position and
+        decoy flag), not by all hits of a peptide: those may have other proteins, e.g. in another identification run.
+      */
+      std::string peptideEvidenceId_(const std::string& attributes, const std::string& accession, std::set<std::string>& sen_set);
+
+      /**
+        @brief The id of the DBSequence of the protein @p accession in the search database of the identification run @p run_identifier
+
+        @p sen_ids holds the DBSequences by search database and accession, and the first one of each accession also by the
+        accession alone. That one is used if the search database of the run has none (e.g. a protein of another run).
+        Returns nullptr if there is no DBSequence of @p accession.
+      */
+      const std::string* findDBSequence_(const std::map<std::string, std::string>& sen_ids, const std::string& run_identifier,
+                                         const std::string& accession) const;
 
 private:
       MzIdentMLHandler();
@@ -363,6 +391,10 @@ private:
       std::map<std::string, std::string> sil_2_sdat_; ///< mapping spectrumidentificationlist to the search input
       std::map<std::string, std::string> ph_2_sdat_; ///< mapping identification runs (mapping PeptideIdentifications and ProteinIdentifications via .getIdentifier()) to spectra data
       std::map<std::string, std::string> sil_2_sip_; ///< mapping spectrumidentificationlist to the search protocol (where the params are at)
+      std::map<std::string, std::string> pev_2_acc_; ///< mapping PeptideEvidence id to protein accession (for the ProteinDetectionList)
+      std::map<std::string, std::string> pev_ids_; ///< mapping the attributes of a PeptideEvidence (all but its id) to its id
+      /// mapping identification run identifier -> PeptideEvidence id -> SpectrumIdentificationItems referencing it: SII id and whether it is the top hit of its spectrum (for the ProteinDetectionList)
+      std::map<std::string, std::map<std::string, std::vector<std::pair<std::string, bool>>>> run_pev_2_sii_;
       AASequence actual_peptide_;
       Int current_mod_location_;
       ProteinHit actual_protein_;
