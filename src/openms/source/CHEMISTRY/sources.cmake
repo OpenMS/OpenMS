@@ -39,6 +39,7 @@ ResidueDB.cpp
 ResidueModification.cpp
 RNaseDB.cpp
 RNaseDigestion.cpp
+RNAProductShuffler.cpp
 Ribonucleotide.cpp
 RibonucleotideDB.cpp
 RibonucleotideTSVDataProvider.cpp

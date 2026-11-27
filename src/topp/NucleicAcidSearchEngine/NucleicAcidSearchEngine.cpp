@@ -37,6 +37,7 @@
 // digestion enzymes
 #include <OpenMS/CHEMISTRY/RNaseDigestion.h>
 #include <OpenMS/CHEMISTRY/RNaseDB.h>
+#include <OpenMS/CHEMISTRY/RNAProductShuffler.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/SYSTEM/SysInfo.h>
 
@@ -52,7 +53,6 @@
 #include "RNARouteScorer.h"
 #include "RNARouteCandidateGenerator.h"
 #include "RNARescoringFeatures.h"
-#include "RNABackgroundDatabase.h"
 #include <OpenMS/CHEMISTRY/NASequence.h>
 
 // preprocessing and filtering of spectra
@@ -1914,11 +1914,11 @@ protected:
 
     The background comes from 'background:database' or the built-in human background. Its accessions get the prefix 'BG_'
     if they lack it. Decoy oligos of @p fasta_db (by @p decoy_pattern) that equal an oligo of a target or background
-    sequence are reshuffled in place (RNABackgroundDatabase: per digestion product, cleavage residues and the 3' residue stay),
+    sequence are reshuffled in place (RNAProductShuffler: per digestion product, cleavage residues and the 3' residue stay),
     since a decoy that is a real molecule would collect that molecule's spectra. With @p decoy_pattern, each background
     sequence gets a decoy (accession: @p decoy_pattern + accession), every product of at least @p min_length residues
     reshuffled so that it equals no target, background or decoy oligo. Both checks cover the searchable oligos, i.e. also
-    combinations of up to @p missed_cleavages + 1 consecutive products (RNABackgroundDatabase::rewrite()).
+    combinations of up to @p missed_cleavages + 1 consecutive products (RNAProductShuffler::rewrite()).
 
     @return The background sequences and their decoys, for registration as parent sequences with BACKGROUND_META_
   */
@@ -1942,7 +1942,7 @@ protected:
       return !decoy_pattern.empty() && StringUtils::hasSubstring(accession, decoy_pattern);
     };
     // the seeds are fixed: the same inputs always give the same decoys
-    RNABackgroundDatabase decoy_fix(*rnase, min_length, 1);
+    RNAProductShuffler decoy_fix(*rnase, min_length, 1);
     std::set<std::string> target_keys, background_keys, decoy_keys;
     for (const auto& entry : fasta_db)
     {
@@ -1979,8 +1979,8 @@ protected:
       for (Size i = 0; i < decoy_entries.size(); ++i) fasta_db[decoy_entries[i]].sequence = decoy_sequences[i];
       OPENMS_LOG_INFO << "Background: reshuffled " << decoy_fix.rewritten() << " decoy oligos that equal a target or background oligo"
                       << (decoy_fix.failed() ? " (" + std::to_string(decoy_fix.failed()) + " could not be reshuffled)" : std::string())
-                      << (decoy_fix.failedCombinations() ? "; " + std::to_string(decoy_fix.failedCombinations()) +
-                                                             " missed-cleavage decoy oligos still equal one"
+                      << (decoy_fix.failedCombinations() ? "; " + std::to_string(decoy_fix.failedCombinations())
+                                                             + " searchable decoy oligos still collide with a real or distinct decoy product"
                                                          : std::string())
                       << endl;
     }
@@ -1993,7 +1993,7 @@ protected:
     vector<FASTAFile::FASTAEntry> result = background;
     if (!decoy_pattern.empty())
     {
-      RNABackgroundDatabase background_decoys(*rnase, min_length, 2);
+      RNAProductShuffler background_decoys(*rnase, min_length, 2);
       auto all = [](const std::string&) { return true; };
       auto taken = [&](const std::string& key) { return real(key) || decoy_keys.count(key); };
       vector<std::string> sequences;
@@ -2012,8 +2012,8 @@ protected:
                       << (background_decoys.failed() ? " (" + std::to_string(background_decoys.failed()) +
                                                          " background oligos could not be shuffled into a new decoy)"
                                                      : std::string())
-                      << (background_decoys.failedCombinations() ? "; " + std::to_string(background_decoys.failedCombinations()) +
-                                                                     " missed-cleavage decoy oligos equal a real or decoy oligo"
+                      << (background_decoys.failedCombinations() ? "; " + std::to_string(background_decoys.failedCombinations())
+                                                                     + " searchable decoy oligos equal a real or distinct decoy product"
                                                                  : std::string())
                       << endl;
     }
