@@ -17,10 +17,79 @@
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/CONCEPT/RAIICleanup.h>
 
+#include <array>
+
 using namespace std;
 
 namespace OpenMS
 {
+  namespace
+  {
+    /// A side-chain loss of a satellite ion: its mzPAF subtype label, formula and monoisotopic mass
+    struct SatelliteLoss
+    {
+      std::string label; ///< 'a' or 'b' for the two d and w ions of Ile and Thr ('a' is the heavier ion), else empty
+      EmpiricalFormula formula;
+      double mass;
+    };
+    using SatelliteLosses = std::vector<SatelliteLoss>;
+
+    /// The losses of a cleavage residue: none (no peak), one, or for the d and w ions of Ile and Thr two
+    SatelliteLosses computeSatelliteLosses(const Residue& residue, bool v_ion)
+    {
+      SatelliteLosses out;
+      if (v_ion)
+      {
+        if (residue.hasVLoss())
+        {
+          const EmpiricalFormula loss = residue.getVLossFormula();
+          out.push_back({"", loss, loss.getMonoWeight()});
+        }
+        return out;
+      }
+      if (!residue.hasSatelliteLoss()) return out;
+      const EmpiricalFormula loss_a = residue.getSatelliteLossFormula('a');
+      const EmpiricalFormula loss_b = residue.getSatelliteLossFormula('b');
+      if (loss_a == loss_b)
+      {
+        out.push_back({"", loss_a, loss_a.getMonoWeight()});
+      }
+      else
+      {
+        out.push_back({"a", loss_a, loss_a.getMonoWeight()});
+        out.push_back({"b", loss_b, loss_b.getMonoWeight()});
+      }
+      return out;
+    }
+
+    /// The losses of a cleavage residue, computed once for the unmodified residues of ResidueDB (the residues of
+    /// unmodified positions in an AASequence) and on the fly, into @p scratch, for any other residue
+    const SatelliteLosses& satelliteLosses(const Residue& residue, bool v_ion, SatelliteLosses& scratch)
+    {
+      struct Entry
+      {
+        const Residue* residue = nullptr;
+        SatelliteLosses d_w;
+        SatelliteLosses v;
+      };
+      static const std::array<Entry, 128> cache = []
+      {
+        std::array<Entry, 128> entries;
+        const ResidueDB* db = ResidueDB::getInstance();
+        for (unsigned char code = 1; code < 128; ++code)
+        {
+          const Residue* r = db->getResidue(code);
+          if (r != nullptr) entries[code] = {r, computeSatelliteLosses(*r, false), computeSatelliteLosses(*r, true)};
+        }
+        return entries;
+      }();
+      const std::string& code = residue.getOneLetterCode();
+      const unsigned char key = code.empty() ? 0 : static_cast<unsigned char>(code[0]);
+      if (key < 128 && cache[key].residue == &residue) return v_ion ? cache[key].v : cache[key].d_w;
+      scratch = computeSatelliteLosses(residue, v_ion); // modified or user-defined residue
+      return scratch;
+    }
+  }
 
   TheoreticalSpectrumGenerator::TheoreticalSpectrumGenerator() :
     DefaultParamHandler("TheoreticalSpectrumGenerator")
@@ -1184,61 +1253,42 @@ namespace OpenMS
   {
     // A satellite ion is its parent ion (d: a, v: y, w: z+1) after losing (part of) the side chain of the residue at the
     // cleavage site: the last residue of a d ion, the first residue of a v or w ion. Same formulas as Residue::getFormula().
+    static const EmpiricalFormula hydrogen("H");
+    static const EmpiricalFormula nothing;
+    static const double offset_d = (Residue::getInternalToAIon() + hydrogen).getMonoWeight();
+    static const double offset_v = Residue::getInternalToYIon().getMonoWeight();
+    static const double offset_w = Residue::getInternalToZp1Ion().getMonoWeight();
     Residue::ResidueType parent_type = Residue::AIon;
-    EmpiricalFormula internal_to_parent;
-    EmpiricalFormula parent_to_ion; // what the satellite ion has in addition to its parent, apart from the loss
+    const EmpiricalFormula* parent_to_ion = &nothing; // what the satellite ion has in addition to its parent, apart from the loss
+    double offset = 0.0; // from the internal residues to the satellite ion, apart from the loss
     double intensity = 1.0;
     switch (res_type)
     {
       case Residue::DIon:
         parent_type = Residue::AIon;
-        internal_to_parent = Residue::getInternalToAIon();
-        parent_to_ion = EmpiricalFormula("H");
+        parent_to_ion = &hydrogen;
+        offset = offset_d;
         intensity = d_intensity_;
         break;
       case Residue::VIon:
         parent_type = Residue::YIon;
-        internal_to_parent = Residue::getInternalToYIon();
+        offset = offset_v;
         intensity = v_intensity_;
         break;
       case Residue::WIon:
         parent_type = Residue::Zp1Ion;
-        internal_to_parent = Residue::getInternalToZp1Ion();
+        offset = offset_w;
         intensity = w_intensity_;
         break;
       default:
         throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Not a satellite ion type.", Residue::getResidueTypeName(res_type));
     }
     const bool prefix = (res_type == Residue::DIon);
+    const bool v_ion = (res_type == Residue::VIon);
     const Size n = peptide.size();
     const std::string ion_letter(Residue::residueTypeToIonLetter(res_type));
     const std::string charge_str((Size)abs(charge), '+');
-    const double offset = (internal_to_parent + parent_to_ion).getMonoWeight();
-
-    // The losses of a cleavage residue with their mzPAF subtype label: none (no peak), one, or for the d and w ions of
-    // Ile and Thr two ('a' is the heavier ion).
-    std::vector<std::pair<std::string, EmpiricalFormula>> losses;
-    auto setLosses = [&losses, res_type](const Residue& residue)
-    {
-      losses.clear();
-      if (res_type == Residue::VIon)
-      {
-        if (residue.hasVLoss()) losses.emplace_back("", residue.getVLossFormula());
-        return;
-      }
-      if (!residue.hasSatelliteLoss()) return;
-      const EmpiricalFormula loss_a = residue.getSatelliteLossFormula('a');
-      const EmpiricalFormula loss_b = residue.getSatelliteLossFormula('b');
-      if (loss_a == loss_b)
-      {
-        losses.emplace_back("", loss_a);
-      }
-      else
-      {
-        losses.emplace_back("a", loss_a);
-        losses.emplace_back("b", loss_b);
-      }
-    };
+    SatelliteLosses scratch; // the losses of a residue that is not in the cache
 
     // running mass of the fragment, as in addPeaks_()
     double mono_weight(Constants::PROTON_MASS_U * charge);
@@ -1258,21 +1308,20 @@ namespace OpenMS
       mono_weight += cleavage_residue.getMonoWeight(Residue::Internal);
       if (prefix && ordinal == 1 && !add_first_prefix_ion_) continue;
 
-      setLosses(cleavage_residue);
-      for (const auto& [label, loss] : losses)
+      for (const SatelliteLoss& loss : satelliteLosses(cleavage_residue, v_ion, scratch))
       {
-        const std::string ion_name = ion_letter + label + StringUtils::toStr(ordinal);
         if (add_isotopes_)
         {
           const AASequence fragment = prefix ? peptide.getPrefix(ordinal) : peptide.getSuffix(ordinal);
-          addIsotopeCluster_(spectrum, fragment.getFormula(parent_type, charge) + parent_to_ion - loss, ion_name, ion_names, charges, charge, intensity);
+          addIsotopeCluster_(spectrum, fragment.getFormula(parent_type, charge) + *parent_to_ion - loss.formula,
+                             ion_letter + loss.label + StringUtils::toStr(ordinal), ion_names, charges, charge, intensity);
         }
         else
         {
-          spectrum.emplace_back((mono_weight + offset - loss.getMonoWeight()) / charge, static_cast<float>(intensity));
+          spectrum.emplace_back((mono_weight + offset - loss.mass) / charge, static_cast<float>(intensity));
           if (add_metainfo_)
           {
-            ion_names.push_back(ion_name + charge_str);
+            ion_names.push_back(ion_letter + loss.label + StringUtils::toStr(ordinal) + charge_str);
             charges.push_back(charge);
           }
         }

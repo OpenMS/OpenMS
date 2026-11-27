@@ -16,6 +16,7 @@
 #include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
+#include <OpenMS/CHEMISTRY/MzPAF.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/CONCEPT/Constants.h>
@@ -26,6 +27,7 @@
 #include <cstring>
 #include <algorithm>
 #include <limits>
+#include <optional>
 
 ///////////////////////////
 
@@ -1209,30 +1211,69 @@ START_SECTION(([EXTRA] satellite ions d, v and w))
 
   // Isotope clusters are computed from the formulas: their first peaks are the ions above. As for the other ion
   // types (addIsotopeCluster_()), the charge is added as H atoms, so these masses include the electron mass.
-  p.setValue("add_d_ions", "false");
+  p.setValue("add_v_ions", "true");
   p.setValue("isotope_model", "coarse");
   p.setValue("max_isotope", 2);
   generator.setParameters(p);
   spec.clear(true);
   generator.getSpectrum(spec, peptide, 1, 1);
-  TEST_EQUAL(spec.size(), 12)
+  TEST_EQUAL(spec.size(), 32) // 5 d, 5 v and 6 w ions with two isotope peaks each
   TEST_TRUE(spec.isSorted())
   ABORT_IF(spec.getStringDataArrays().empty())
-  for (const auto& [name, mz] : cases[2].ions)
+  for (const auto& c : cases)
   {
-    double first = std::numeric_limits<double>::max();
-    Size count = 0;
-    for (Size i = 0; i < spec.size(); ++i)
+    for (const auto& [name, mz] : c.ions)
     {
-      if (spec.getStringDataArrays()[0][i] != name) continue;
-      first = std::min(first, spec[i].getMZ());
-      ++count;
+      double first = std::numeric_limits<double>::max();
+      Size count = 0;
+      for (Size i = 0; i < spec.size(); ++i)
+      {
+        if (spec.getStringDataArrays()[0][i] != name) continue;
+        first = std::min(first, spec[i].getMZ());
+        ++count;
+      }
+      TEST_EQUAL(count, 2)
+      TEST_REAL_SIMILAR(first, mz + Constants::ELECTRON_MASS_U)
     }
-    TEST_EQUAL(count, 2)
-    TEST_REAL_SIMILAR(first, mz + Constants::ELECTRON_MASS_U)
   }
   TOLERANCE_ABSOLUTE(1e-5)
   TOLERANCE_RELATIVE(1.0 + 1e-5)
+}
+END_SECTION
+
+START_SECTION(([EXTRA] satellite ions agree with MzPAF::calculateTheoreticalMZ))
+{
+  // Every d, v and w peak equals the m/z MzPAF computes for its name, here with both terminal modifications, modified
+  // residues (no satellite ion), first prefix ions and charges up to 3.
+  TOLERANCE_ABSOLUTE(1e-6)
+  TheoreticalSpectrumGenerator generator;
+  Param p(generator.getParameters());
+  p.setValue("add_b_ions", "false");
+  p.setValue("add_y_ions", "false");
+  for (const std::string option : {"add_d_ions", "add_v_ions", "add_w_ions", "add_first_prefix_ion", "add_metainfo"})
+  {
+    p.setValue(option, "true");
+  }
+  generator.setParameters(p);
+  const AASequence peptide = AASequence::fromString(".(Acetyl)TIVLM(Oxidation)C(Carbamidomethyl)DEK.(Amidated)");
+  PeakSpectrum spec;
+  generator.getSpectrum(spec, peptide, 1, 3);
+  TEST_EQUAL(spec.size(), 63) // per charge: 8 d (two each for Thr and Ile), 6 v and 7 w (two for Ile); none at M, C
+  ABORT_IF(spec.getStringDataArrays().empty())
+  for (Size i = 0; i < spec.size(); ++i)
+  {
+    std::string name = spec.getStringDataArrays()[0][i]; // e.g. "da1++" -> mzPAF "da1^2"
+    const Size charge = std::count(name.begin(), name.end(), '+');
+    name.erase(name.find('+'));
+    if (charge > 1) name += "^" + std::to_string(charge);
+    const std::optional<double> mz = MzPAF::calculateTheoreticalMZ(MzPAF::parse(name), peptide);
+    TEST_TRUE(mz.has_value())
+    if (mz.has_value())
+    {
+      TEST_REAL_SIMILAR(spec[i].getMZ(), *mz)
+    }
+  }
+  TOLERANCE_ABSOLUTE(1e-5)
 }
 END_SECTION
 
