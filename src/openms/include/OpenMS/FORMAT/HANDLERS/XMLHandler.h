@@ -204,7 +204,7 @@ public:
          @param[in] name The name from the 'name' attribute of the \<cvParam\>
          @param[in] value The value from the 'value' attribute of the \<cvParam\>
          @param[in] unit_accession The unit_accession from the 'unitAccession' attribute of the \<cvParam\>
-         @return DataValue::EMPTY if a conversion error occured (e.g. if @p value could not be converted to an integer for an @p accession which requires an integer) or the DataValue upon success
+         @return DataValue::EMPTY if a conversion error occurred (e.g. if @p value could not be converted to an integer for an @p accession which requires an integer) or the DataValue upon success
       */
       DataValue cvParamToValue(const ControlledVocabulary& cv, const std::string& parent_tag, 
                                const std::string& accession, const std::string& name, const std::string& value,
@@ -215,8 +215,8 @@ public:
                 the type stored in the CV (usually PSI-MS CV), as well as set its unit.
 
          @param[in] cv A CV, usually the PSI-MS CV, see ControlledVocabulary::getPSIMSCV()
-         @param[in] raw_term Represenation of the raw data (i.e. all strings) from a \<cvParam ...\> without the conversion to a specific value type
-         @return DataValue::EMPTY if a conversion error occured (e.g. if @p value could not be converted to an integer for an @p accession which requires an integer) or the DataValue upon success
+         @param[in] raw_term Representation of the raw data (i.e. all strings) from a \<cvParam ...\> without the conversion to a specific value type
+         @return DataValue::EMPTY if a conversion error occurred (e.g. if @p value could not be converted to an integer for an @p accession which requires an integer) or the DataValue upon success
       */
       DataValue cvParamToValue(const ControlledVocabulary& cv, const CVTerm& raw_term) const;
 
