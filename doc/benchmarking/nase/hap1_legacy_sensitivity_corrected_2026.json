@@ -1,0 +1,348 @@
+{
+  "description": "Exploratory legacy HAP1 route-search profile with corrected t6A and m6t6A catalogs. Fixed diagnostic m/z values preserve the declared paper-comparison recipe; numerical agreement does not identify the authors unpublished settings.",
+  "dataset": "PXD016328, nine HAP1 tRNA files",
+  "input_ms2": 95021,
+  "core_runtime": "OpenMS3.7.0-pre 2287ee5",
+  "code_checkpoint": "755c7c6b7c4a48afb012013e7741ce71da989a1f",
+  "chemistry": "OpenMS data with t6A and m6t6A corrections. This differs from both the pinned older catalog and literal published-formula overlay.",
+  "decoys": {
+    "method": "OpenMS DecoyDatabase RNA whole-parent shuffle",
+    "seed": 1,
+    "fasta_sha256": "73b4f3d399758fecef83ba7a88810eccc0f21e721a1a216c37f161cc012d8fc4",
+    "unique_target_parents": 255,
+    "unique_decoy_parents": 255
+  },
+  "parameters": {
+    "candidates:method": "graph_routes",
+    "scoring:method": "route",
+    "scoring:route_base_loss": "true",
+    "scoring:route_mass_accuracy_tolerance": "5",
+    "scoring:route_local_radius": "50.0",
+    "scoring:route_local_peaks": "10",
+    "scoring:route_min_nodes": "2",
+    "precursor:correct_with_flash": "true",
+    "precursor:use_avg_mass": "false",
+    "precursor:use_adducts": "false",
+    "precursor:min_charge": "-1",
+    "precursor:max_charge": "-20",
+    "precursor:include_unknown_charge": "true",
+    "precursor:mass_tolerance": "20",
+    "precursor:mass_tolerance_unit": "ppm",
+    "precursor:isotopes": [
+      "-1",
+      "0",
+      "1",
+      "2",
+      "3"
+    ],
+    "fragment:mass_tolerance": "20",
+    "fragment:mass_tolerance_unit": "ppm",
+    "fragment:ions": [
+      "a-B",
+      "a",
+      "b",
+      "c",
+      "d",
+      "w",
+      "x",
+      "y",
+      "z"
+    ],
+    "decharge_ms2": "false",
+    "preprocessing:deisotoping": "legacy",
+    "preprocessing:legacy:min_isopeaks": "2",
+    "preprocessing:legacy:mass_tolerance": "10",
+    "preprocessing:legacy:sum_intensities": "true",
+    "preprocessing:legacy:unknown_max_charge": "4",
+    "preprocessing:filter_window_mower": "true",
+    "preprocessing:window_mower:windowsize": "100",
+    "preprocessing:window_mower:peakcount": "50",
+    "preprocessing:window_mower:movetype": "slide",
+    "preprocessing:filter_nlargest": "true",
+    "preprocessing:nlargest:n": "1000",
+    "preprocessing:remove_precursor_peak": "false",
+    "oligo:enzyme": "RNase_T1",
+    "oligo:missed_cleavages": "5",
+    "oligo:min_size": "5",
+    "oligo:max_size": "25",
+    "oligo:cleavage_model": "canonical",
+    "modifications:variable": [
+      "m5U",
+      "m22G",
+      "D",
+      "m6t6A",
+      "tm5U",
+      "m1I",
+      "mcm5U",
+      "yW",
+      "f5C",
+      "gluQ",
+      "ncm5U",
+      "cmnm5s2U",
+      "ms2i6A",
+      "i6A",
+      "Q",
+      "mcm5s2U",
+      "acp3U",
+      "mcm5Um",
+      "ac4C",
+      "m1A",
+      "Cm",
+      "mchm5U",
+      "galQ",
+      "tm5s2U",
+      "s2U",
+      "mnm5s2U",
+      "I",
+      "m7G",
+      "hm5C",
+      "mnm5U",
+      "t6A",
+      "ct6A",
+      "hm5Cm"
+    ],
+    "modifications:fixed": [],
+    "modifications:variable_max_per_oligo": "25",
+    "diagnostic:filter": "true",
+    "diagnostic:filter_scope": "all",
+    "diagnostic:fixed_ions": [
+      "m6t6A=280.06819",
+      "t6A=279.08418",
+      "ct6A=262.05763"
+    ],
+    "diagnostic:min_relative_intensity": "0.0",
+    "diagnostic:max_charge": "1",
+    "graph:max_charge": "1",
+    "routes:completion": "bounded_labile",
+    "routes:max_unanchored_modifications": "2",
+    "routes:max_length": "25",
+    "routes:max_peaks": "200",
+    "routes:max_states": "1000000",
+    "routes:max_completion_nodes": "1000000000",
+    "routes:max_candidates": "5000000",
+    "routes:max_supports": "20000000",
+    "routes:min_nodes": "2",
+    "routes:precursor_index": "true",
+    "routes:allow_full_length": "true",
+    "routes:terminal_states": "all",
+    "report:require_coverage": "0.0",
+    "fdr:cutoff": "1",
+    "fdr:remove_decoys": "false",
+    "scoring:labile_scaffolds": "false"
+  },
+  "counts_native": {
+    "0.01": 15432,
+    "0.05": 21254,
+    "0.1": 23682
+  },
+  "counts_paper_formula": {
+    "0.01": 15285,
+    "0.05": 21358,
+    "0.1": 24072
+  },
+  "three_seed_counts": {
+    "1": {
+      "native": {
+        "0.01": 15432,
+        "0.05": 21254,
+        "0.1": 23682
+      },
+      "paper_formula": {
+        "0.01": 15285,
+        "0.05": 21358,
+        "0.1": 24072
+      }
+    },
+    "2": {
+      "native": {
+        "0.01": 11989,
+        "0.05": 21327,
+        "0.1": 23765
+      },
+      "paper_formula": {
+        "0.01": 11454,
+        "0.05": 21467,
+        "0.1": 24218
+      }
+    },
+    "3": {
+      "native": {
+        "0.01": 13841,
+        "0.05": 21199,
+        "0.1": 24482
+      },
+      "paper_formula": {
+        "0.01": 13642,
+        "0.05": 21450,
+        "0.1": 24937
+      }
+    }
+  },
+  "notes": [
+    "20 ppm is the precursor/fragment search window; 10 ppm applies only to legacy isotope spacing; 5 ppm applies only to Gaussian route intensity weights.",
+    "The unsupported placement budget 2 is not a global modification cap: 1,063 accepted native 1% PSMs have more than 2 modifications.",
+    "Native q-values and (D+1)/(T+D) q-values are calculated separately per file. Tied alternatives without an own q-value are not additional PSMs.",
+    "Seed variation is substantial. At 10% native counts remain below the phases1-2 reversed-decoy reference.",
+    "The exported audit profile retains all decoys and q-values. Reporting thresholds are applied during analysis.",
+    "The MS1 on/off and native-scoring controls used a separately pinned older catalog. Those exploratory controls and formula-derived diagnostic alternatives are not part of this recipe."
+  ],
+  "runtime_catalog_sha256": {
+    "Modomics.json": "c9fdc7c3356d491022de8e1e4d09c69d6517bd5a6e5ad1fd6f767c02a34dacd2",
+    "Custom_RNA_modifications.tsv": "918c90a00ef0ef686886a2ad9e3924d29117c83b5a7b732eac0a0028758a0281",
+    "Enzymes_RNA.xml": "b631e276a210e1839cea1beeaee4894292ed21915045299f9b6689690e2e826e"
+  },
+  "modomics_semantic_sha256": "668dd40882cc018c53bf5d14e28d05d32f67111a08e4b2a89524dd98931e31dc",
+  "repeated_seed_extension": "Seeds4\u201310 were declared after the initial3 showed substantial variation. All90 file searches completed, with fixed source, target space, preprocessing, chemistry, diagnostics and scoring. No seed selection or result-set union.",
+  "ten_seed_counts": {
+    "1": {
+      "native": {
+        "0.01": 15432,
+        "0.05": 21254,
+        "0.1": 23682
+      },
+      "paper_formula": {
+        "0.01": 15285,
+        "0.05": 21358,
+        "0.1": 24072
+      }
+    },
+    "2": {
+      "native": {
+        "0.01": 11989,
+        "0.05": 21327,
+        "0.1": 23765
+      },
+      "paper_formula": {
+        "0.01": 11454,
+        "0.05": 21467,
+        "0.1": 24218
+      }
+    },
+    "3": {
+      "native": {
+        "0.01": 13841,
+        "0.05": 21199,
+        "0.1": 24482
+      },
+      "paper_formula": {
+        "0.01": 13642,
+        "0.05": 21450,
+        "0.1": 24937
+      }
+    },
+    "4": {
+      "native": {
+        "0.01": 8947,
+        "0.05": 20754,
+        "0.1": 24089
+      },
+      "paper_formula": {
+        "0.01": 6530,
+        "0.05": 20899,
+        "0.1": 24525
+      }
+    },
+    "5": {
+      "native": {
+        "0.01": 6369,
+        "0.05": 19924,
+        "0.1": 23454
+      },
+      "paper_formula": {
+        "0.01": 5797,
+        "0.05": 20176,
+        "0.1": 24008
+      }
+    },
+    "6": {
+      "native": {
+        "0.01": 15548,
+        "0.05": 21342,
+        "0.1": 23948
+      },
+      "paper_formula": {
+        "0.01": 15217,
+        "0.05": 21457,
+        "0.1": 24501
+      }
+    },
+    "7": {
+      "native": {
+        "0.01": 13312,
+        "0.05": 21591,
+        "0.1": 24921
+      },
+      "paper_formula": {
+        "0.01": 12993,
+        "0.05": 21809,
+        "0.1": 25514
+      }
+    },
+    "8": {
+      "native": {
+        "0.01": 14277,
+        "0.05": 21595,
+        "0.1": 24292
+      },
+      "paper_formula": {
+        "0.01": 14060,
+        "0.05": 21779,
+        "0.1": 24740
+      }
+    },
+    "9": {
+      "native": {
+        "0.01": 14809,
+        "0.05": 21149,
+        "0.1": 24272
+      },
+      "paper_formula": {
+        "0.01": 14701,
+        "0.05": 21323,
+        "0.1": 24714
+      }
+    },
+    "10": {
+      "native": {
+        "0.01": 9500,
+        "0.05": 21648,
+        "0.1": 25001
+      },
+      "paper_formula": {
+        "0.01": 9448,
+        "0.05": 21834,
+        "0.1": 25529
+      }
+    }
+  },
+  "ten_seed_descriptive_1percent": {
+    "native": {
+      "mean": 12402.4,
+      "median": 13576.5,
+      "sample_SD": 3130.7187034289745,
+      "min": 6369,
+      "max": 15548
+    },
+    "paper_formula": {
+      "mean": 11912.7,
+      "median": 13317.5,
+      "sample_SD": 3519.6944958965464,
+      "min": 5797,
+      "max": 15285
+    }
+  },
+  "additional_decoy_fasta_sha256": {
+    "4": "64b1fdda11d77b097843d413cacf793627ba8d8463ab84715ffde05e12be9f11",
+    "5": "de8bb76ffe28f18267b423cc17c5c64c92d029df77d6f8b397a975ce01b0f23c",
+    "6": "582757f6a0cb171203eff4b8c1901bee02a47e288877f3ee340b80ded7fedaaf",
+    "7": "a245ac34f220e572d48144f2d03c3e38f34492c2fb44fac4c53c822b2a05d842",
+    "8": "f58ea83deb16fd175da19f7ba767d09fe37951135344d3fce3b486384f213a82",
+    "9": "09407d836145544c9679030ecad9aa9770228902ff8653c713f2b3ff8b3b3f06",
+    "10": "bb8d5c6c7936ce9ed95bcc9d22469a3ebbb9f1e072e981a2d8523ab9d01ab2db"
+  },
+  "terminal_state_quality_check": {
+    "internal_double_phosphate_PSMs_native_1percent": 259,
+    "accepted_native_1percent": 15432,
+    "note": "Putative conflicts under intact mature-tRNA/RNase assumptions; all mapped supplied target origins internal. Descriptive quality flag, not a normalized overall FDR estimate."
+  }
+}

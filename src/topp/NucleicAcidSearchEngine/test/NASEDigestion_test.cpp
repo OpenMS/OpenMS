@@ -36,6 +36,11 @@ public:
   using NucleicAcidSearchEngine::PrecursorInfo;
   using NucleicAcidSearchEngine::retainTopHit_;
   using NucleicAcidSearchEngine::sortHitsByValue_;
+  using NucleicAcidSearchEngine::isDecoyHit_;
+  using NucleicAcidSearchEngine::resolvedDecoyLabels_;
+  using NucleicAcidSearchEngine::registerHitOligos_;
+  using NucleicAcidSearchEngine::nativeReportCutoff_;
+  using NucleicAcidSearchEngine::rescoringThreads_;
   using NucleicAcidSearchEngine::generateLFQInput_;
   void enableAmbiguities() { resolve_ambiguous_mods_ = true; }
   bool ambiguitiesEnabled() const { return resolve_ambiguous_mods_; }
@@ -182,6 +187,367 @@ const MSSpectrum::IntegerDataArray* legacyCharges(const MSSpectrum& spectrum)
 }
 
 START_TEST(NASEDigestion, "$Id$")
+
+START_SECTION(([EXTRA] Percolator uses the resolved thread count within its supported bounds))
+{
+  const auto parameters = Percolator().getParameters();
+#ifdef _OPENMP
+  SysInfo::setOmpThreadsOfThisThread(192);
+  TEST_EQUAL(TestNASE::rescoringThreads_(parameters), parameters.getEntry("num_threads").max_int)
+  SysInfo::setOmpThreadsOfThisThread(7);
+  TEST_EQUAL(TestNASE::rescoringThreads_(parameters), 7)
+  SysInfo::setOmpThreadsOfThisThread(0);
+#endif
+  const Int old_threads = SysInfo::ompThreadsOfThisThread();
+  TOPPBase::setMaxNumberOfThreads(0);
+  const Int resolved = SysInfo::ompThreadsOfThisThread();
+  TEST_EQUAL(TestNASE::rescoringThreads_(parameters), std::clamp(resolved, 1, parameters.getEntry("num_threads").max_int))
+  TOPPBase::setMaxNumberOfThreads(old_threads);
+}
+END_SECTION
+
+START_SECTION(([EXTRA] resolved training labels include target parents from another scaffold))
+{
+  IdentificationData data;
+  IdentificationData::ParentSequence decoy("DECOY", IdentificationData::MoleculeType::RNA, "AACGU");
+  decoy.is_decoy = true;
+  const auto d = data.registerParentSequence(decoy);
+  const auto t = data.registerParentSequence(IdentificationData::ParentSequence("TARGET", IdentificationData::MoleculeType::RNA, "[mA]ACGU"));
+  IdentificationData::IdentifiedOligo unmodified(NASequence::fromString("AACGU"));
+  unmodified.parent_matches[d].insert(IdentificationData::ParentMatch(0, 4));
+  IdentificationData::IdentifiedOligo modified(NASequence::fromString("[mA]ACGU"));
+  modified.parent_matches[t].insert(IdentificationData::ParentMatch(0, 4));
+  TestNASE::AnnotatedHit first, second;
+  first.oligo_ref = data.registerIdentifiedOligo(unmodified);
+  second.oligo_ref = data.registerIdentifiedOligo(modified);
+  first.sequence = second.sequence = modified.sequence;
+  TEST_TRUE(TestNASE::isDecoyHit_(first))
+  std::vector<TestNASE::HitsByScore> hits(1);
+  hits[0].emplace(10, first);
+  hits[0].emplace(10, second);
+  TestNASE::registerHitOligos_(hits, data, {10});
+  for (const auto& [score, hit] : hits[0])
+  {
+    TEST_FALSE(TestNASE::isDecoyHit_(hit))
+    TEST_EQUAL((*hit.registered_oligo)->parent_matches.size(), 2)
+    TEST_FALSE((*hit.registered_oligo)->allParentsAreDecoys())
+  }
+}
+END_SECTION
+
+START_SECTION(([EXTRA] Cross spectrum runner up parents resolve training labels independently of native reporting))
+{
+  for (Size report_top_hits : {Size(1), Size(2)})
+  {
+    for (bool rescored : {false, true})
+    {
+      IdentificationData data;
+      IdentificationData::ParentSequence decoy("DECOY", IdentificationData::MoleculeType::RNA, "[mA]ACGU");
+      decoy.is_decoy = true;
+      const auto d = data.registerParentSequence(decoy);
+      const auto t = data.registerParentSequence(IdentificationData::ParentSequence("TARGET", IdentificationData::MoleculeType::RNA, "AACGU"));
+      IdentificationData::IdentifiedOligo premodified(NASequence::fromString("[mA]ACGU"));
+      premodified.parent_matches[d].insert(IdentificationData::ParentMatch(0, 4));
+      IdentificationData::IdentifiedOligo scaffold(NASequence::fromString("AACGU"));
+      scaffold.parent_matches[t].insert(IdentificationData::ParentMatch(0, 4));
+      TestNASE::AnnotatedHit decoy_winner, target_runner, target_winner;
+      decoy_winner.oligo_ref = data.registerIdentifiedOligo(premodified);
+      decoy_winner.sequence = premodified.sequence;
+      target_runner.oligo_ref = target_winner.oligo_ref = data.registerIdentifiedOligo(scaffold);
+      target_runner.parent_override = scaffold;
+      target_runner.sequence = premodified.sequence;
+      target_winner.sequence = NASequence::fromString("A[mA]CGU");
+      std::vector<TestNASE::HitsByScore> hits(2);
+      hits[0].emplace(10, decoy_winner);
+      hits[1].emplace(10, target_winner);
+      hits[1].emplace(9, target_runner);
+      const std::vector<double> cutoffs {TestNASE::nativeReportCutoff_(hits[0], report_top_hits),
+                                         TestNASE::nativeReportCutoff_(hits[1], report_top_hits)};
+      const auto labels = TestNASE::resolvedDecoyLabels_(hits, data);
+      TEST_EQUAL(labels.size(), 2)
+      TEST_FALSE(labels.at(premodified.sequence))
+      TEST_FALSE(labels.at(target_winner.sequence))
+      // Label resolution must not change the native registry if rescoring falls back.
+      TEST_TRUE(TestNASE::isDecoyHit_(hits[0].begin()->second))
+      TestNASE::registerHitOligos_(hits, data, rescored ? std::vector<double>() : cutoffs);
+      const auto& winner = hits[0].begin()->second;
+      TEST_EQUAL(TestNASE::isDecoyHit_(winner), ! rescored && report_top_hits == 1)
+      TEST_EQUAL((*winner.registered_oligo)->parent_matches.size(), rescored || report_top_hits == 2 ? 2 : 1)
+      if (rescored) { TEST_EQUAL(TestNASE::isDecoyHit_(winner), labels.at(winner.sequence)) }
+      for (Size scan = 0; scan < hits.size(); ++scan)
+      {
+        hits[scan].erase(hits[scan].upper_bound(cutoffs[scan]), hits[scan].end());
+        TEST_EQUAL(hits[scan].size(), scan == 0 ? 1 : report_top_hits)
+      }
+    }
+  }
+}
+END_SECTION
+
+START_SECTION(([EXTRA] native reporting cutoff survives ambiguity merging in a larger feature pool))
+{
+  TestNASE tool;
+  tool.enableAmbiguities();
+  tool.getModifications_({"mA?"});
+  IdentificationData data;
+  const auto ref = data.registerIdentifiedOligo(IdentificationData::IdentifiedOligo(NASequence::fromString("AUCAGp")));
+  TestNASE::PrecursorInfo precursor {0, -2, 0, nullopt};
+  std::vector<TestNASE::HitsByScore> hits(1);
+  for (const auto& label : {"AUC[Am]Gp", "AUC[mA]Gp", "AUCAGp"})
+  {
+    TestNASE::AnnotatedHit hit;
+    hit.oligo_ref = ref;
+    hit.precursor_ref = &precursor;
+    hit.sequence = NASequence::fromString(label);
+    hits[0].emplace(std::string(label) == "AUCAGp" ? 9.0 : 10.0, hit);
+  }
+  const double cutoff = TestNASE::nativeReportCutoff_(hits[0], 2);
+  TEST_REAL_SIMILAR(cutoff, 10)
+  tool.sortHitsByValue_(hits[0]);
+  tool.resolveAmbiguousMods_(hits[0]);
+  TEST_EQUAL(hits[0].size(), 2)
+  TestNASE::registerHitOligos_(hits, data, {cutoff});
+  TEST_FALSE(hits[0].rbegin()->second.registered_oligo.has_value())
+  hits[0].erase(hits[0].upper_bound(cutoff), hits[0].end());
+  TEST_EQUAL(hits[0].size(), 1)
+  TEST_STRING_EQUAL(hits[0].begin()->second.sequence.toString(), "AUC[mA?]Gp")
+}
+END_SECTION
+
+START_SECTION(([EXTRA] route - feature rescoring retains assigned legacy fragment charges))
+{
+  std::string mzml, fasta, output, processed;
+  NEW_TMP_FILE(mzml)
+  NEW_TMP_FILE(fasta)
+  NEW_TMP_FILE(output)
+  NEW_TMP_FILE(processed)
+  mzml += ".mzML";
+  fasta += ".fasta";
+  output += ".mzTab";
+  processed += ".mzML";
+  MSExperiment experiment;
+  experiment.addSpectrum(isotopeSpectrum(2));
+  MzMLFile().store(mzml, experiment);
+  FASTAFile().store(fasta, {{"TARGET", "", "ACGUACGU"}, {"DECOY_TARGET", "", "UGCAUGCA"}});
+  for (const auto& report : {"3", "0"})
+  {
+    TEST_EQUAL(
+      runSearch({"-in", mzml, "-database", fasta, "-out", output, "-rescoring:enable", "-report:top_hits", report, "-rescoring:top_hits", "2"}),
+      TOPPBase::ILLEGAL_PARAMETERS)
+  }
+  TEST_EQUAL(
+    runSearch({"-in", mzml, "-database", fasta, "-out", output, "-out_preprocessed", processed, "-oligo:enzyme", "no cleavage", "-fdr:decoy_pattern",
+               "DECOY_", "-threads", "1", "-rescoring:enable", "-rescoring:route_features", "-preprocessing:legacy:min_isopeaks", "2"}),
+    0)
+  MSExperiment imported;
+  MzMLFile().load(processed, imported);
+  TEST_EQUAL(imported.size(), 1)
+  const auto* charges = RNASpectrumGraph::legacyCharges(imported[0]);
+  TEST_NOT_EQUAL(charges, nullptr)
+  if (charges)
+  {
+    TEST_EQUAL(charges->size(), 1)
+    TEST_EQUAL(charges->at(0), 2)
+  }
+}
+END_SECTION
+
+START_SECTION(([EXTRA] excluded precursor charges do not consume the graph cache budget))
+{
+  std::string mzml, fasta, output, graph_output;
+  NEW_TMP_FILE(mzml)
+  NEW_TMP_FILE(fasta)
+  NEW_TMP_FILE(output)
+  NEW_TMP_FILE(graph_output)
+  mzml += ".mzML";
+  fasta += ".fasta";
+  output += ".idXML";
+  graph_output += ".tsv";
+  const auto candidate = NASequence::fromString("ACGUAC");
+  NucleicAcidSpectrumGenerator generator;
+  auto params = generator.getParameters();
+  for (const auto& code : {"a-B", "a", "b", "c", "d", "w", "x", "y", "z"})
+  {
+    params.setValue("add_" + std::string(code) + "_ions", std::string(code) == "c" ? "true" : "false");
+  }
+  params.setValue("add_first_prefix_ion", "true");
+  generator.setParameters(params);
+  MSSpectrum model;
+  generator.getSpectrum(model, candidate, -1, -1);
+  MSExperiment experiment;
+  const double increment = RibonucleotideDB::getInstance()->getRibonucleotide("G")->getMonoMass() + EmpiricalFormula("H-1PO2").getMonoWeight();
+  for (Size scan = 0; scan < 3; ++scan)
+  {
+    MSSpectrum spectrum;
+    spectrum.setMSLevel(2);
+    spectrum.setRT(scan);
+    spectrum.setNativeID("scan=" + StringUtils::toStr(scan + 1));
+    Precursor precursor;
+    precursor.setMZ(candidate.getMonoWeight(NASequence::Full, -1));
+    precursor.setCharge(scan < 2 ? 2 : 1);
+    spectrum.setPrecursors({precursor});
+    if (scan < 2)
+    {
+      for (Size step = 0; step < 3; ++step)
+      {
+        spectrum.emplace_back(100 + step * increment, 1);
+      }
+    }
+    else
+    {
+      spectrum.push_back(model[0]);
+      spectrum.push_back(model[2]);
+      spectrum.push_back(model[4]);
+    }
+    experiment.addSpectrum(spectrum);
+  }
+  MzMLFile().store(mzml, experiment);
+  FASTAFile().store(fasta, {{"TARGET", "", "ACGUAC"}, {"DECOY_TARGET", "", "GGGGGG"}});
+  TEST_EQUAL(runSearch({"-in",
+                        mzml,
+                        "-database",
+                        fasta,
+                        "-out",
+                        output + ".mzTab",
+                        "-id_out",
+                        output,
+                        "-out_graph",
+                        graph_output,
+                        "-candidates:method",
+                        "graph",
+                        "-graph:max_total_edges",
+                        "1",
+                        "-graph:max_step",
+                        "1",
+                        "-precursor:min_charge",
+                        "-1",
+                        "-precursor:max_charge",
+                        "-1",
+                        "-oligo:enzyme",
+                        "no cleavage",
+                        "-oligo:min_size",
+                        "1",
+                        "-fragment:ions",
+                        "c",
+                        "-preprocessing:deisotoping",
+                        "none",
+                        "-fdr:decoy_pattern",
+                        "DECOY_",
+                        "-threads",
+                        "1"}),
+             0)
+  TEST_EQUAL(hitCount(output), 1)
+  Size skipped = 0;
+  for (const auto& line : TextFile(graph_output))
+  {
+    skipped += line.find("not_searched_no_precursor") != std::string::npos;
+  }
+  TEST_EQUAL(skipped, 2)
+}
+END_SECTION
+
+START_SECTION(([EXTRA] blacklisted charge layers keep the theoretical graph fallback))
+{
+  const auto candidate = NASequence::fromString("ACUGCAGUp");
+  NucleicAcidSpectrumGenerator generator;
+  auto params = generator.getParameters();
+  for (const auto& code : {"a-B", "a", "b", "c", "d", "w", "x", "y", "z"})
+  {
+    params.setValue("add_" + std::string(code) + "_ions", std::string(code) == "c" ? "true" : "false");
+  }
+  params.setValue("add_first_prefix_ion", "true");
+  params.setValue("add_metainfo", "true");
+  generator.setParameters(params);
+  MSSpectrum model;
+  generator.getSpectrum(model, candidate, -1, -2);
+  StringList blacklist;
+  std::vector<Size> charged;
+  for (Size i = 0; i < model.size(); ++i)
+  {
+    if (std::abs(model.getIntegerDataArrays()[0][i]) == 1) { blacklist.push_back(StringUtils::toStr(model[i].getMZ())); }
+    else
+    {
+      charged.push_back(i);
+    }
+  }
+  model.select(charged);
+  MSSpectrum observed = model;
+  observed.getStringDataArrays().clear();
+  observed.getIntegerDataArrays().clear();
+  const double increment = RibonucleotideDB::getInstance()->getRibonucleotide("G")->getMonoMass() + EmpiricalFormula("H-1PO2").getMonoWeight();
+  // Keep the incompatible G ladder far from genuine peaks, preventing cross-ladder edges.
+  for (Size i = 0; i < 4; ++i)
+  {
+    observed.emplace_back(5000 + increment * i, 2);
+  }
+  observed.sortByPosition();
+  RNASpectrumGraph::Options options;
+  options.tolerance = 20;
+  options.max_charge = 1;
+  std::set<const Ribonucleotide*> alphabet;
+  for (const auto& code : {"A", "C", "G", "U"})
+  {
+    alphabet.insert(RibonucleotideDB::getInstance()->getRibonucleotide(code));
+  }
+  const auto graph = RNASpectrumGraph(alphabet, options).build(observed, 2);
+  TEST_FALSE(RNATagCandidateFilter::isCompatible(candidate, graph, {"c"}, 2))
+  TEST_STRING_EQUAL(RNATagCandidateFilter::match(candidate, graph, observed, model, {"c"}, 20, true).fallback_reason, "no_tags_for_charge")
+  std::string fasta, mzml;
+  NEW_TMP_FILE(fasta)
+  NEW_TMP_FILE(mzml)
+  fasta += ".fasta";
+  mzml += ".mzML";
+  FASTAFile().store(fasta, {{"TARGET", "", candidate.toString()}, {"DECOY_TARGET", "", "UUUUAAAAGp"}});
+  observed.setMSLevel(2);
+  observed.setNativeID("scan=1");
+  observed.setRT(20);
+  Precursor precursor;
+  precursor.setMZ(candidate.getMonoWeight(NASequence::Full, -2) / 2);
+  precursor.setCharge(2);
+  observed.setPrecursors({precursor});
+  MSExperiment experiment;
+  experiment.addSpectrum(observed);
+  MzMLFile().store(mzml, experiment);
+  for (const auto& mode : {"enumeration", "graph", "graph_generate"})
+  {
+    std::string output;
+    NEW_TMP_FILE(output)
+    output += ".idXML";
+    std::vector<std::string> args {"-in",
+                                   mzml,
+                                   "-database",
+                                   fasta,
+                                   "-out",
+                                   output + ".mzTab",
+                                   "-id_out",
+                                   output,
+                                   "-oligo:enzyme",
+                                   "no cleavage",
+                                   "-fragment:ions",
+                                   "c",
+                                   "-fragment:mass_tolerance",
+                                   "20",
+                                   "-precursor:min_charge",
+                                   "-2",
+                                   "-precursor:max_charge",
+                                   "-2",
+                                   "-preprocessing:deisotoping",
+                                   "none",
+                                   "-candidates:method",
+                                   mode,
+                                   "-graph:max_charge",
+                                   "1",
+                                   "-fdr:decoy_pattern",
+                                   "DECOY_",
+                                   "-threads",
+                                   "1",
+                                   "-scoring:blacklist_mz"};
+    args.insert(args.end(), blacklist.begin(), blacklist.end());
+    TEST_EQUAL(runSearch(args), 0)
+    TEST_EQUAL(hitCount(output), 1)
+  }
+}
+END_SECTION
 
 START_SECTION(([EXTRA] variable-only ambiguity setup preserves terminal hypotheses))
 {
@@ -426,6 +792,25 @@ START_SECTION(([EXTRA] searchable RNA candidates and cached digest provenance))
   TEST_EQUAL(runSearch(args), 0)
   TEST_EQUAL(hitCount(output), 1)
 
+  // A selected ion below the monoisotopic mass needs a signed -1 offset in
+  // both the search hypothesis and its exported metadata.
+  MSExperiment negative_offset_input;
+  MzMLFile().load(mzml, negative_offset_input);
+  auto& shifted_precursor = negative_offset_input[0].getPrecursors()[0];
+  shifted_precursor.setMZ(shifted_precursor.getMZ() - Constants::C13C12_MASSDIFF_U / 2);
+  MzMLFile().store(mzml, negative_offset_input);
+  auto negative_args = arguments();
+  negative_args.insert(negative_args.end(), {"-precursor:isotopes", "-1"});
+  TEST_EQUAL(runSearch(negative_args), 0)
+  vector<ProteinIdentification> negative_proteins;
+  PeptideIdentificationList negative_peptides;
+  IdXMLFile().load(output, negative_proteins, negative_peptides);
+  TEST_EQUAL(negative_peptides.size(), 1)
+  ABORT_IF(negative_peptides.empty())
+  TEST_EQUAL(Int(negative_peptides[0].getHits()[0].getMetaValue("isotope_offset")), -1)
+  fixture("ACGUAC", "ACGUAC", 2);
+  TEST_EQUAL(runSearch(args), 0)
+
   // A later-sorting filename distinguishes current input from cached provenance.
   const std::string replay_mzml = mzml + ".z.mzML";
   {
@@ -466,7 +851,7 @@ START_SECTION(([EXTRA] searchable RNA candidates and cached digest provenance))
   TEST_TRUE(current_identification)
 
   // A digest produced by a different scorer must not replace this run's primary score.
-  for (const std::string method : {"hyperscore", "mvh"})
+  for (const std::string method : {"hyperscore", "mvh", "route"})
   {
     auto fresh_arguments = arguments();
     fresh_arguments.insert(fresh_arguments.end(), {"-scoring:method", method});
@@ -485,6 +870,24 @@ START_SECTION(([EXTRA] searchable RNA candidates and cached digest provenance))
     ABORT_IF(peptides.empty())
     TEST_STRING_EQUAL(peptides[0].getScoreType(), expected_type)
     TEST_REAL_SIMILAR(peptides[0].getHits()[0].getScore(), expected_score)
+    if (method == "route")
+    {
+      // Enumeration also uses the route scorer. Its OpenMP workers must report
+      // an exhausted exact search instead of returning partial identifications.
+      std::string incomplete_output;
+      NEW_TMP_FILE(incomplete_output)
+      incomplete_output += ".idXML";
+      auto limited = cached_arguments;
+      for (Size i = 0; i + 1 < limited.size(); ++i)
+      {
+        if (limited[i] == "-id_out") { limited[i + 1] = incomplete_output; }
+        if (limited[i] == "-out") { limited[i + 1] = incomplete_output + ".mzTab"; }
+      }
+      limited.insert(limited.end(), {"-routes:max_states", "1"});
+      TEST_EQUAL(runSearch(limited), TOPPBase::UNEXPECTED_RESULT)
+      TEST_FALSE(File::exists(incomplete_output))
+      TEST_FALSE(File::exists(incomplete_output + ".mzTab"))
+    }
   }
 
   for (const std::string credit : {"true", "false"})
@@ -1884,5 +2287,925 @@ START_SECTION((NASE directed deconvolution preserves ordinary FLASH and clears q
 }
 END_SECTION
 
+START_SECTION(([EXTRA] graph audit and fallback preserve scoring with FLASH MS1 and legacy MS2))
+{
+  std::string mzml, fasta;
+  NEW_TMP_FILE(mzml)
+  NEW_TMP_FILE(fasta)
+  mzml += ".mzML";
+  fasta += ".fasta";
+  std::ofstream(fasta) << ">TARGET\nACGUAC\n>DECOY_TEST\nAGCUAC\n";
+  NucleicAcidSpectrumGenerator generator;
+  auto parameters = generator.getParameters();
+  for (const auto& ion : {"a", "b", "c", "d", "w", "x", "y", "z", "a-B"})
+  {
+    parameters.setValue("add_" + std::string(ion) + "_ions", std::string(ion) == "b" ? "true" : "false");
+  }
+  parameters.setValue("add_first_prefix_ion", "true");
+  generator.setParameters(parameters);
+  const auto fixture = [&](const std::vector<std::string>& sequences) {
+    MSExperiment experiment;
+    Size number = 0;
+    for (const auto& text : sequences)
+    {
+      auto parent = survey(false, text);
+      parent.setNativeID("scan=" + std::to_string(++number));
+      parent.setRT(number * 10.0);
+      MSSpectrum fragments;
+      generator.getSpectrum(fragments, NASequence::fromString(text), -1, -1);
+      fragments.setMSLevel(2);
+      fragments.setNativeID("scan=" + std::to_string(++number));
+      fragments.setRT(parent.getRT() + 1.0);
+      Precursor precursor;
+      precursor.setMZ(parent[1].getMZ());
+      precursor.setCharge(2);
+      precursor.setMetaValue("spectrum_ref", parent.getNativeID());
+      fragments.setPrecursors({precursor});
+      experiment.addSpectrum(parent);
+      experiment.addSpectrum(fragments);
+    }
+    MzMLFile().store(mzml, experiment);
+  };
+  fixture({"ACGUAC", "AGCUAC"});
+  using Key = std::tuple<std::string, std::string, Int>;
+  const auto search = [&](const std::string& method, bool force_fallback, bool modified = false, bool post_digest_mods = false) {
+    std::string output;
+    NEW_TMP_FILE(output)
+    output += ".idXML";
+    std::vector<std::string> arguments {"-in",
+                                        mzml,
+                                        "-database",
+                                        fasta,
+                                        "-out",
+                                        output + ".mzTab",
+                                        "-id_out",
+                                        output,
+                                        "-oligo:enzyme",
+                                        modified ? "RNase_T1" : "no cleavage",
+                                        "-oligo:min_size",
+                                        "1",
+                                        "-precursor:max_charge",
+                                        "-5",
+                                        "-precursor:correct_with_flash",
+                                        "-preprocessing:deisotoping",
+                                        "legacy",
+                                        "-fragment:ions",
+                                        "b",
+                                        "-fdr:decoy_pattern",
+                                        "DECOY_",
+                                        "-threads",
+                                        "2",
+                                        "-candidates:method",
+                                        method,
+                                        "-graph:max_step",
+                                        "1"};
+    if (force_fallback) { arguments.insert(arguments.end(), {"-graph:max_edges", "1"}); }
+    if (modified) { arguments.insert(arguments.end(), {"-modifications:variable", "m22G", "-modifications:variable_max_per_oligo", "1"}); }
+    if (post_digest_mods)
+    {
+      arguments.insert(arguments.end(), {"-modifications:variable", "Am", "m5C", "-modifications:variable_max_per_oligo", "2"});
+    }
+    if (force_fallback && method.starts_with("graph_generate")) { arguments.insert(arguments.end(), {"-graph:max_placement_nodes", "1"}); }
+    if (method != "enumeration") { arguments.push_back("-graph:verify_matches"); }
+    TEST_EQUAL(runSearch(arguments), 0)
+    std::vector<ProteinIdentification> proteins;
+    PeptideIdentificationList peptides;
+    IdXMLFile().load(output, proteins, peptides);
+    std::map<Key, std::pair<double, double>> hits;
+    for (const auto& peptide : peptides)
+    {
+      for (const auto& hit : peptide.getHits())
+      {
+        const std::string label = hit.metaValueExists("label") ? hit.getMetaValue("label").toString() : hit.getSequence().toString();
+        hits[{peptide.getMetaValue("spectrum_reference").toString(), label, hit.getCharge()}]
+          = {hit.getScore(), double(hit.getMetaValue("PSM-level q-value"))};
+        TEST_STRING_EQUAL(hit.getMetaValue("flash_precursor_status").toString(), "corrected")
+        if (method != "enumeration")
+        {
+          TEST_TRUE(hit.metaValueExists("graph_candidate_status"))
+          TEST_STRING_EQUAL(hit.getMetaValue("graph_candidate_status").toString(), force_fallback ? "fallback:edge_limit" : "supported")
+        }
+      }
+    }
+    return hits;
+  };
+  const auto baseline = search("enumeration", false);
+  TEST_EQUAL(baseline.size(), 2)
+  TEST_TRUE(search("graph_audit", false) == baseline)
+  TEST_TRUE(search("graph", false) == baseline)
+  TEST_TRUE(search("graph", true) == baseline)
+  TEST_TRUE(search("graph_generate_audit", false) == baseline)
+  TEST_TRUE(search("graph_generate", false) == baseline)
+  TEST_TRUE(search("graph_generate", true) == baseline)
+  const auto rejects_without_results = [&](const std::string& method, const std::vector<std::string>& extra) {
+    std::string output;
+    NEW_TMP_FILE(output)
+    output += ".idXML";
+    std::vector<std::string> arguments {"-in",      mzml,      "-database",          fasta,           "-out",        output + ".mzTab", "-id_out",
+                                        output,     "-db_out", output + ".oms",      "-oligo:enzyme", "no cleavage", "-oligo:min_size", "1",
+                                        "-threads", "2",       "-candidates:method", method};
+    arguments.insert(arguments.end(), extra.begin(), extra.end());
+    TEST_EQUAL(runSearch(arguments), TOPPBase::ILLEGAL_PARAMETERS)
+    TEST_FALSE(File::exists(output))
+    TEST_FALSE(File::exists(output + ".mzTab"))
+    TEST_FALSE(File::exists(output + ".oms"))
+  };
+  // The fixture above has usable tags. Global cache exhaustion must abort in
+  // every graph mode, rather than silently enumerate the remaining spectra.
+  for (const std::string method : {"graph", "graph_audit", "graph_generate", "graph_generate_audit"})
+  {
+    rejects_without_results(method, {"-graph:max_total_edges", "1"});
+  }
+  // Reject helper-incompatible tolerances before writing either early output.
+  std::string early_digest, early_spectra;
+  NEW_TMP_FILE(early_digest)
+  NEW_TMP_FILE(early_spectra)
+  early_digest += ".oms";
+  early_spectra += ".mzML";
+  File::remove(early_digest);
+  File::remove(early_spectra);
+  for (const auto& backend : {"routes_precursor", "routes_fragment", "route_score", "diagnostics", "route_features"})
+  {
+    std::vector<std::string> extra {"-digest_out", early_digest, "-out_preprocessed", early_spectra};
+    const bool route = std::string(backend).starts_with("routes_");
+    extra.insert(extra.end(), {std::string(backend) == "routes_precursor" ? "-precursor:mass_tolerance" : "-fragment:mass_tolerance", "0"});
+    if (std::string(backend) == "route_score") { extra.insert(extra.end(), {"-scoring:method", "route"}); }
+    if (std::string(backend) == "diagnostics") { extra.push_back("-diagnostic:filter"); }
+    if (std::string(backend) == "route_features")
+    {
+      extra.insert(extra.end(), {"-rescoring:enable", "-rescoring:route_features", "-fdr:decoy_pattern", "DECOY_"});
+    }
+    rejects_without_results(route ? "graph_routes" : "enumeration", extra);
+    TEST_FALSE(File::exists(early_digest))
+    TEST_FALSE(File::exists(early_spectra))
+  }
+  // The same route-feature invocation reaches input processing at positive tolerance.
+  std::string valid_route_features;
+  NEW_TMP_FILE(valid_route_features)
+  valid_route_features += ".mzTab";
+  TEST_EQUAL(runSearch({"-in",
+                        mzml,
+                        "-database",
+                        fasta,
+                        "-out",
+                        valid_route_features,
+                        "-oligo:enzyme",
+                        "no cleavage",
+                        "-oligo:min_size",
+                        "1",
+                        "-rescoring:enable",
+                        "-rescoring:route_features",
+                        "-fdr:decoy_pattern",
+                        "DECOY_",
+                        "-fragment:mass_tolerance",
+                        "10",
+                        "-digest_out",
+                        early_digest,
+                        "-out_preprocessed",
+                        early_spectra,
+                        "-threads",
+                        "2"}),
+             0)
+  TEST_TRUE(File::exists(valid_route_features))
+  TEST_TRUE(File::exists(early_digest))
+  TEST_TRUE(File::exists(early_spectra))
+  File::remove(early_digest);
+  File::remove(early_spectra);
+  // Parse the entire enabled adduct list before either early output is written.
+  for (const auto& adduct : {"Na", "Na:+-", "NotAnElement:+"})
+  {
+    rejects_without_results("graph_routes", {"-precursor:use_adducts", "-precursor:potential_adducts", "Na:+", adduct, "-digest_out", early_digest,
+                                             "-out_preprocessed", early_spectra});
+    TEST_FALSE(File::exists(early_digest))
+    TEST_FALSE(File::exists(early_spectra))
+  }
+  // Invalid parameters must not replace existing output files, either.
+  std::ofstream(early_digest) << "existing digest";
+  std::ofstream(early_spectra) << "existing spectra";
+  rejects_without_results("graph_routes", {"-precursor:use_adducts", "-precursor:potential_adducts", "Na", "-digest_out", early_digest,
+                                           "-out_preprocessed", early_spectra});
+  const TextFile retained_digest(early_digest), retained_spectra(early_spectra);
+  TEST_EQUAL(std::distance(retained_digest.begin(), retained_digest.end()), 1)
+  TEST_EQUAL(std::distance(retained_spectra.begin(), retained_spectra.end()), 1)
+  TEST_STRING_EQUAL(*retained_digest.begin(), "existing digest")
+  TEST_STRING_EQUAL(*retained_spectra.begin(), "existing spectra")
+  File::remove(early_digest);
+  File::remove(early_spectra);
+  // Graph-only options and invalid bounds fail before starting a search.
+  std::string graph_output;
+  NEW_TMP_FILE(graph_output)
+  graph_output += ".tsv";
+  rejects_without_results("enumeration", {"-out_graph", graph_output});
+  TEST_FALSE(File::exists(graph_output))
+  rejects_without_results("enumeration", {"-graph:verify_matches"});
+  rejects_without_results("graph", {"-graph:min_tag_length", "3", "-graph:max_tag_length", "2"});
+  rejects_without_results("graph", {"-fragment:mass_tolerance", "0"});
+  // Cleavage-sensitive m22G consumes the sole modification budget before placement.
+  fixture({"AC[m2,2G]UAC", "A[m2,2G]CUAC"});
+  const auto modified_baseline = search("enumeration", false, true);
+  TEST_EQUAL(modified_baseline.size(), 2)
+  TEST_TRUE(search("graph", false, true) == modified_baseline)
+  TEST_TRUE(search("graph_generate_audit", false, true) == modified_baseline)
+  TEST_TRUE(search("graph_generate", false, true) == modified_baseline)
+  TEST_TRUE(search("graph_generate", true, true) == modified_baseline)
+  // These non-cleavage-sensitive modifications require post-digest placement,
+  // including branches with two modified residues and isobaric alternatives.
+  fixture({"[Am]CGU[Am]C", "[Am]GCU[Am]C"});
+  const auto placement_baseline = search("enumeration", false, false, true);
+  TEST_EQUAL(placement_baseline.size(), 2)
+  TEST_TRUE(search("graph", false, false, true) == placement_baseline)
+  TEST_TRUE(search("graph_generate_audit", false, false, true) == placement_baseline)
+  TEST_TRUE(search("graph_generate", false, false, true) == placement_baseline)
+  TEST_TRUE(search("graph_generate", true, false, true) == placement_baseline)
+}
+END_SECTION
+
+START_SECTION(([EXTRA] route placement, diagnostics, terminal states, native FDR and FLASH MS1 run end to end))
+{
+  std::string fasta, mzml, digest;
+  NEW_TMP_FILE(fasta)
+  NEW_TMP_FILE(mzml)
+  NEW_TMP_FILE(digest)
+  fasta += ".fasta";
+  mzml += ".mzML";
+  digest += ".oms";
+  FASTAFile().store(fasta, {{"target", "", "ACUACUAG"}, {"DECOY_target", "", "UACACUAG"}});
+  const std::string label = "p[mA][mC][mU][mA]C[mU]AGp";
+  const auto sequence = NASequence::fromString(label);
+  auto parent = survey(false, label);
+  NucleicAcidSpectrumGenerator generator;
+  auto parameters = generator.getParameters();
+  for (const auto& ion : {"a", "b", "c", "d", "w", "x", "y", "z", "a-B"})
+  {
+    parameters.setValue("add_" + std::string(ion) + "_ions", std::string(ion) == "c" || std::string(ion) == "y" ? "true" : "false");
+  }
+  parameters.setValue("add_first_prefix_ion", "true");
+  generator.setParameters(parameters);
+  MSSpectrum fragments;
+  generator.getSpectrum(fragments, sequence, -1, -2);
+  fragments.getStringDataArrays().clear();
+  fragments.getIntegerDataArrays().clear();
+  for (const auto& code : {"mA", "mC", "mU"})
+  {
+    NASequence single({RibonucleotideDB::getInstance()->getRibonucleotide(code)}, nullptr, nullptr);
+    fragments.emplace_back(single.getMonoWeight(NASequence::CIon, -1), 0.5);
+  }
+  fragments.sortByPosition();
+  fragments.setMSLevel(2);
+  fragments.setNativeID("scan=3");
+  fragments.setRT(12);
+  Precursor precursor;
+  precursor.setMZ(parent[1].getMZ());
+  precursor.setCharge(2);
+  precursor.setMetaValue("spectrum_ref", parent.getNativeID());
+  fragments.setPrecursors({precursor});
+  MSExperiment experiment;
+  experiment.setSpectra({parent, fragments});
+  MzMLFile().store(mzml, experiment);
+  using Key = std::tuple<std::string, double, double>;
+  // The target carries phosphates at both ends of a complete parent. RNase T1
+  // cannot produce it, so it is reachable only with all terminal assignments.
+  const auto search = [&](bool cached, const std::string& cleavage_model, const std::string& terminal_states = "all") {
+    std::string output;
+    NEW_TMP_FILE(output)
+    output += ".idXML";
+    std::vector<std::string> arguments {"-in",
+                                        mzml,
+                                        "-out",
+                                        output + ".mzTab",
+                                        "-id_out",
+                                        output,
+                                        "-oligo:enzyme",
+                                        "RNase_T1",
+                                        "-oligo:min_size",
+                                        "5",
+                                        "-oligo:max_size",
+                                        "25",
+                                        "-oligo:missed_cleavages",
+                                        "5",
+                                        "-oligo:cleavage_model",
+                                        cleavage_model,
+                                        "-routes:terminal_states",
+                                        terminal_states,
+                                        "-precursor:max_charge",
+                                        "-5",
+                                        "-precursor:correct_with_flash",
+                                        "-preprocessing:deisotoping",
+                                        "legacy",
+                                        "-fragment:ions",
+                                        "c",
+                                        "y",
+                                        "-fdr:decoy_pattern",
+                                        "DECOY_",
+                                        "-threads",
+                                        "2",
+                                        "-candidates:method",
+                                        "graph_routes",
+                                        "-scoring:method",
+                                        "route",
+                                        "-diagnostic:filter",
+                                        "-modifications:variable",
+                                        "mA",
+                                        "mC",
+                                        "mU",
+                                        "-modifications:variable_max_per_oligo",
+                                        "8"};
+    if (cached) { arguments.insert(arguments.end(), {"-digest", digest}); }
+    else
+    {
+      arguments.insert(arguments.end(), {"-database", fasta, "-digest_out", digest});
+    }
+    TEST_EQUAL(runSearch(arguments), 0)
+    std::vector<ProteinIdentification> proteins;
+    PeptideIdentificationList peptides;
+    IdXMLFile().load(output, proteins, peptides);
+    std::set<Key> hits;
+    bool found = false;
+    for (const auto& peptide : peptides)
+    {
+      TEST_STRING_EQUAL(peptide.getScoreType(), "RNA route score")
+      for (const auto& hit : peptide.getHits())
+      {
+        const auto text = hit.getMetaValue("label").toString();
+        found |= text == label;
+        TEST_TRUE(hit.metaValueExists("route_unique_nodes"))
+        TEST_TRUE(hit.metaValueExists("diagnostic_allowed_mods"))
+        TEST_STRING_EQUAL(hit.getMetaValue("candidate_method").toString(), "graph_routes")
+        TEST_STRING_EQUAL(hit.getMetaValue("flash_precursor_status").toString(), "corrected")
+        hits.emplace(text, hit.getScore(), double(hit.getMetaValue("PSM-level q-value")));
+      }
+    }
+    TEST_EQUAL(found, terminal_states == "all")
+    return hits;
+  };
+  const auto fresh = search(false, "canonical");
+  TEST_TRUE(search(true, "canonical") == fresh)
+  const auto reject_enumeration_cache = [&]() {
+    std::string output;
+    NEW_TMP_FILE(output)
+    return runSearch({"-in", mzml, "-digest", digest, "-out", output + ".mzTab", "-candidates:method", "enumeration"});
+  };
+  // Route digests have not enumerated cleavage-sensitive placements. Reusing
+  // them in enumeration would silently search the wrong digestion products.
+  TEST_EQUAL(reject_enumeration_cache(), TOPPBase::ILLEGAL_PARAMETERS)
+  TEST_TRUE(search(false, "modification_aware") == fresh)
+  TEST_EQUAL(reject_enumeration_cache(), TOPPBase::ILLEGAL_PARAMETERS)
+  // Enzyme-consistent termini (the default) exclude the phosphorylated parent ends.
+  for (const auto& model : {"canonical", "modification_aware"})
+  {
+    for (const auto& [text, score, qvalue] : search(false, model, "enzyme"))
+    {
+      const auto hit = NASequence::fromString(text);
+      TEST_TRUE(! hit.hasFivePrimeMod() && ! hit.hasThreePrimeMod())
+    }
+  }
+}
+END_SECTION
+
+START_SECTION(([EXTRA] route products follow RNase termini with missed cleavages, cached digests and fixed terminal modifications))
+{
+  std::string fasta, mzml, digest;
+  NEW_TMP_FILE(fasta)
+  NEW_TMP_FILE(mzml)
+  NEW_TMP_FILE(digest)
+  fasta += ".fasta";
+  mzml += ".mzML";
+  digest += ".oms";
+  // RNase T1 products: ACUG | AUCAG | UUACC. The decoy has no product of these compositions.
+  FASTAFile().store(fasta, {{"target", "", "ACUGAUCAGUUACC"}, {"DECOY_target", "", "CCAUUGACUAGUCA"}});
+  NucleicAcidSpectrumGenerator generator;
+  auto parameters = generator.getParameters();
+  for (const auto& ion : {"a", "b", "c", "d", "w", "x", "y", "z", "a-B"})
+  {
+    parameters.setValue("add_" + std::string(ion) + "_ions", std::string(ion) == "c" || std::string(ion) == "y" ? "true" : "false");
+  }
+  parameters.setValue("add_first_prefix_ion", "true");
+  generator.setParameters(parameters);
+  const auto fixture = [&](const std::string& label, Size peak_limit = 0, double mass_shift = 0.0) {
+    auto parent = survey(false, label);
+    MSSpectrum fragments;
+    generator.getSpectrum(fragments, NASequence::fromString(label), -1, -2);
+    fragments.getStringDataArrays().clear();
+    fragments.getIntegerDataArrays().clear();
+    fragments.sortByPosition();
+    if (peak_limit && fragments.size() > peak_limit) { fragments.resize(peak_limit); }
+    fragments.setMetaValue("diagnostic_allowed_mods", StringList {"stale"});
+    fragments.setMSLevel(2);
+    fragments.setNativeID("scan=3");
+    fragments.setRT(12);
+    Precursor precursor;
+    precursor.setMZ(parent[1].getMZ() + mass_shift / 2);
+    precursor.setCharge(2);
+    precursor.setMetaValue("spectrum_ref", parent.getNativeID());
+    fragments.setPrecursors({precursor});
+    MSExperiment experiment;
+    experiment.setSpectra({parent, fragments});
+    MzMLFile().store(mzml, experiment);
+  };
+  const auto search = [&](const std::string& method, bool cached, const std::string& fixed, const std::string& terminal_states = "enzyme",
+                          const std::string& enzyme = "RNase_T1", const std::string& cleavage_model = "modification_aware", bool sodium = false) {
+    std::string output;
+    NEW_TMP_FILE(output)
+    output += ".idXML";
+    std::vector<std::string> arguments {"-in",
+                                        mzml,
+                                        "-out",
+                                        output + ".mzTab",
+                                        "-id_out",
+                                        output,
+                                        "-oligo:enzyme",
+                                        enzyme,
+                                        "-oligo:cleavage_model",
+                                        cleavage_model,
+                                        "-routes:terminal_states",
+                                        terminal_states,
+                                        "-oligo:missed_cleavages",
+                                        "1",
+                                        "-precursor:max_charge",
+                                        "-5",
+                                        "-preprocessing:deisotoping",
+                                        "legacy",
+                                        "-fragment:ions",
+                                        "c",
+                                        "y",
+                                        "-fdr:decoy_pattern",
+                                        "DECOY_",
+                                        "-threads",
+                                        "2",
+                                        "-candidates:method",
+                                        method};
+    if (sodium) { arguments.insert(arguments.end(), {"-precursor:use_adducts"}); }
+    else
+    {
+      arguments.push_back("-precursor:correct_with_flash");
+    }
+    if (method == "graph_routes")
+    {
+      arguments.insert(arguments.end(), {"-exp_ms2_out", output + ".exp.mzML", "-theo_ms2_out", output + ".theo.mzML"});
+    }
+    if (cached) { arguments.insert(arguments.end(), {"-digest", digest}); }
+    else
+    {
+      arguments.insert(arguments.end(), {"-database", fasta, "-digest_out", digest, "-oligo:min_size", "4"});
+    }
+    if (! fixed.empty()) { arguments.insert(arguments.end(), {"-modifications:fixed", fixed}); }
+    TEST_EQUAL(runSearch(arguments), 0)
+    std::vector<ProteinIdentification> proteins;
+    PeptideIdentificationList peptides;
+    IdXMLFile().load(output, proteins, peptides);
+    std::set<std::string> labels;
+    for (const auto& peptide : peptides)
+    {
+      for (const auto& hit : peptide.getHits())
+      {
+        if (method == "enumeration") { TEST_FALSE(hit.metaValueExists("diagnostic_allowed_mods")) }
+        labels.insert(hit.metaValueExists("label") ? hit.getMetaValue("label").toString() : hit.getSequence().toString());
+      }
+    }
+    if (method == "graph_routes" && ! labels.empty())
+    {
+      MSExperiment experimental, theoretical;
+      MzMLFile().load(output + ".exp.mzML", experimental);
+      MzMLFile().load(output + ".theo.mzML", theoretical);
+      TEST_FALSE(experimental.empty())
+      TEST_FALSE(theoretical.empty())
+      for (const auto& model : theoretical)
+      {
+        TEST_TRUE(model.metaValueExists("spectrum title"))
+        TEST_FALSE(model.getMetaValue("spectrum title").toString().empty())
+        TEST_REAL_SIMILAR(model.getRT(), 12)
+      }
+    }
+    return labels;
+  };
+  // An interior product spanning one missed cleavage, with the 3' phosphate gained from RNase T1.
+  const std::string missed = "AUCAGUUACC", interior = "ACUGAUCAGp";
+  fixture(interior);
+  TEST_TRUE(search("enumeration", false, "").contains(interior))
+  const auto fresh = search("graph_routes", false, "");
+  TEST_TRUE(fresh.contains(interior))
+  // The cached digest keeps its missed-cleavage budget for modification-aware validation.
+  TEST_TRUE(search("graph_routes", true, "") == fresh)
+  fixture(missed);
+  TEST_TRUE(search("graph_routes", false, "").contains(missed))
+  TEST_TRUE(search("graph_routes", true, "").contains(missed))
+  // A fixed 5' phosphate fills the 5' end; the 3' end keeps the group gained from the RNase.
+  const std::string fixed_interior = "pAUCAGp";
+  fixture(fixed_interior);
+  TEST_TRUE(search("enumeration", false, "5'-p").contains(fixed_interior))
+  const auto fixed_fresh = search("graph_routes", false, "5'-p");
+  TEST_TRUE(fixed_fresh.contains(fixed_interior))
+  TEST_TRUE(search("graph_routes", true, "5'-p") == fixed_fresh)
+  // A cached min_size=4 must govern the four-peak scan even when the CLI uses its default of 5.
+  fixture("ACUGp", 4);
+  const auto short_fresh = search("graph_routes", false, "");
+  TEST_TRUE(short_fresh.contains("ACUGp"))
+  TEST_TRUE(search("graph_routes", true, "") == short_fresh)
+  // Sodium references must survive scaffold cleanup for both fresh and cached digests.
+  const double sodium_shift = AdductInfo("Na:+", EmpiricalFormula("Na"), 1).getMassShift(false);
+  fixture(interior, 0, sodium_shift);
+  TEST_TRUE(search("graph_routes", false, "", "enzyme", "RNase_T1", "modification_aware", true).contains(interior))
+  TEST_TRUE(search("graph_routes", true, "", "enzyme", "RNase_T1", "modification_aware", true).contains(interior))
+  // Canonical coordinates ignore Um's cleavage blocking, while the modification-aware path retains it.
+  FASTAFile().store(fasta, {{"target", "", "AAAAUAAAAA"}, {"DECOY_target", "", "CCCCCCCCCC"}});
+  fixture("AAAA[Um]p");
+  TEST_TRUE(search("graph_routes", false, "Um", "enzyme", "RNase_A", "canonical").contains("AAAA[Um]p"))
+  TEST_FALSE(search("graph_routes", false, "Um", "enzyme", "RNase_A").contains("AAAA[Um]p"))
+  // All termini extend enzyme-compatible assignments, including an internal phosphate replacing fixed cyclic P.
+  fixture("AAAAUp");
+  TEST_TRUE(search("graph_routes", false, "3'-c", "enzyme", "RNase_A", "canonical").contains("AAAAUp"))
+  TEST_TRUE(search("graph_routes", false, "3'-c", "all", "RNase_A", "canonical").contains("AAAAUp"))
+  // All mode combines an unconstrained 5' phosphate with the enzyme-replaced 3' end.
+  fixture("pAAAAUp");
+  TEST_FALSE(search("graph_routes", false, "3'-c", "enzyme", "RNase_A", "canonical").contains("pAAAAUp"))
+  const auto both_phosphates = search("graph_routes", false, "3'-c", "all", "RNase_A", "canonical");
+  TEST_TRUE(both_phosphates.contains("pAAAAUp"))
+  TEST_TRUE(search("graph_routes", true, "3'-c", "all", "RNase_A", "canonical") == both_phosphates)
+  TEST_TRUE(search("graph_routes", false, "3'-c", "all", "RNase_A").contains("pAAAAUp"))
+  fixture("pAAAAU");
+  TEST_TRUE(search("graph_routes", false, "3'-c", "all", "RNase_A", "canonical").contains("pAAAAU"))
+  // The original parent end still has its explicit cyclic-phosphate constraint.
+  fixture("AAAAAp");
+  TEST_FALSE(search("graph_routes", false, "3'-c", "all", "RNase_A", "canonical").contains("AAAAAp"))
+  fixture("pAAAAAp");
+  TEST_FALSE(search("graph_routes", false, "3'-c", "all", "RNase_A", "canonical").contains("pAAAAAp"))
+  fixture("pAAAAAc");
+  TEST_TRUE(search("graph_routes", false, "3'-c", "all", "RNase_A", "canonical").contains("pAAAAAc"))
+}
+END_SECTION
+
+START_SECTION(([EXTRA] default route completion searches uncovered modifications without diagnostic reporters))
+{
+  std::string fasta, mzml, output;
+  NEW_TMP_FILE(fasta)
+  NEW_TMP_FILE(mzml)
+  NEW_TMP_FILE(output)
+  fasta += ".fasta";
+  mzml += ".mzML";
+  output += ".idXML";
+  FASTAFile().store(fasta, {{"target", "", "ACUACUAGUUACC"}, {"DECOY_target", "", "UACACUAGUUACC"}});
+  const auto sequence = NASequence::fromString("ACUACU[t6A]Gp");
+  NucleicAcidSpectrumGenerator generator;
+  auto parameters = generator.getParameters();
+  parameters.setValue("add_first_prefix_ion", "true");
+  parameters.setValue("add_metainfo", "true");
+  parameters.setValue("add_c_ions", "true");
+  generator.setParameters(parameters);
+  MSSpectrum fragments;
+  generator.getSpectrum(fragments, sequence, -1, -1);
+  std::vector<Size> selected;
+  for (Size i = 0; i < fragments.size(); ++i)
+  {
+    const auto& name = fragments.getStringDataArrays()[0][i];
+    if (name == "c1" || name == "c2" || name == "c3" || name == "c4") { selected.push_back(i); }
+  }
+  TEST_EQUAL(selected.size(), 4)
+  fragments.select(selected);
+  fragments.getStringDataArrays().clear();
+  fragments.getIntegerDataArrays().clear();
+  // Only the unmodified prefix is observed, plus unrelated background peaks.
+  // Completion must retain the configured modification outside that prefix.
+  for (double mz : {110.0, 170.0, 230.0})
+  {
+    fragments.emplace_back(mz, 0.1);
+  }
+  fragments.sortByPosition();
+  fragments.setMSLevel(2);
+  fragments.setNativeID("scan=3");
+  fragments.setRT(12);
+  Precursor precursor;
+  precursor.setMZ(sequence.getMonoWeight(NASequence::Full, -2) / 2);
+  precursor.setCharge(2);
+  fragments.setPrecursors({precursor});
+  MSExperiment experiment;
+  experiment.addSpectrum(fragments);
+  MzMLFile().store(mzml, experiment);
+  // No completion, resource-limit or diagnostic option is supplied.
+  TEST_EQUAL(runSearch({"-in",
+                        mzml,
+                        "-database",
+                        fasta,
+                        "-out",
+                        output + ".mzTab",
+                        "-id_out",
+                        output,
+                        "-oligo:enzyme",
+                        "RNase_T1",
+                        "-oligo:min_size",
+                        "5",
+                        "-oligo:missed_cleavages",
+                        "0",
+                        "-precursor:max_charge",
+                        "-2",
+                        "-precursor:isotopes",
+                        "0",
+                        "-fragment:ions",
+                        "c",
+                        "y",
+                        "-preprocessing:deisotoping",
+                        "none",
+                        "-fdr:decoy_pattern",
+                        "DECOY_",
+                        "-threads",
+                        "2",
+                        "-modifications:variable",
+                        "t6A",
+                        "-candidates:method",
+                        "graph_routes"}),
+             0)
+  std::vector<ProteinIdentification> proteins;
+  PeptideIdentificationList peptides;
+  IdXMLFile().load(output, proteins, peptides);
+  bool found = false;
+  for (const auto& peptide : peptides)
+  {
+    for (const auto& hit : peptide.getHits())
+    {
+      found |= hit.getMetaValue("label").toString() == sequence.toString();
+    }
+  }
+  TEST_TRUE(found)
+}
+END_SECTION
+
+START_SECTION(([EXTRA] route export keeps terminally incompatible target and decoy parents separate))
+{
+  std::string fasta, mzml, digest;
+  NEW_TMP_FILE(fasta)
+  NEW_TMP_FILE(mzml)
+  NEW_TMP_FILE(digest)
+  fasta += ".fasta";
+  mzml += ".mzML";
+  digest += ".oms";
+  const auto sequence = NASequence::fromString("ACUACUAG");
+  NucleicAcidSpectrumGenerator generator;
+  auto parameters = generator.getParameters();
+  for (const auto& ion : {"a", "b", "c", "d", "w", "x", "y", "z", "a-B"})
+  {
+    parameters.setValue("add_" + std::string(ion) + "_ions", std::string(ion) == "c" || std::string(ion) == "y" ? "true" : "false");
+  }
+  parameters.setValue("add_first_prefix_ion", "true");
+  generator.setParameters(parameters);
+  auto parent = survey(false, sequence.toString());
+  MSSpectrum fragments;
+  generator.getSpectrum(fragments, sequence, -1, -2);
+  fragments.getStringDataArrays().clear();
+  fragments.getIntegerDataArrays().clear();
+  fragments.setMSLevel(2);
+  fragments.setNativeID("scan=3");
+  fragments.setRT(12);
+  Precursor precursor;
+  precursor.setMZ(parent[0].getMZ());
+  precursor.setCharge(2);
+  fragments.setPrecursors({precursor});
+  MSExperiment experiment;
+  experiment.setSpectra({parent, fragments});
+  MzMLFile().store(mzml, experiment);
+  for (bool terminal_decoy : {true, false})
+  {
+    // The same nucleotide sequence is a terminal OH product in one parent,
+    // but an interior phosphate product in the other. Only one may match.
+    const std::string terminal = terminal_decoy ? "DECOY_target" : "target";
+    const std::string interior = terminal_decoy ? "target" : "DECOY_target";
+    FASTAFile().store(fasta, {{terminal, "", sequence.toString()}, {interior, "", sequence.toString() + "UUACC"}});
+    for (bool cached : {false, true})
+    {
+      std::string output;
+      NEW_TMP_FILE(output)
+      output += ".idXML";
+      std::vector<std::string> arguments {"-in",
+                                          mzml,
+                                          "-out",
+                                          output + ".mzTab",
+                                          "-id_out",
+                                          output,
+                                          "-db_out",
+                                          output + ".oms",
+                                          "-oligo:enzyme",
+                                          "RNase_T1",
+                                          "-oligo:min_size",
+                                          "5",
+                                          "-oligo:missed_cleavages",
+                                          "0",
+                                          "-precursor:max_charge",
+                                          "-2",
+                                          "-precursor:isotopes",
+                                          "0",
+                                          "-fragment:ions",
+                                          "c",
+                                          "y",
+                                          "-preprocessing:deisotoping",
+                                          "none",
+                                          "-fdr:decoy_pattern",
+                                          "DECOY_",
+                                          "-threads",
+                                          "2",
+                                          "-candidates:method",
+                                          "graph_routes"};
+      if (cached) { arguments.insert(arguments.end(), {"-digest", digest}); }
+      else
+      {
+        arguments.insert(arguments.end(), {"-database", fasta, "-digest_out", digest});
+      }
+      TEST_EQUAL(runSearch(arguments), 0)
+      std::vector<ProteinIdentification> proteins;
+      PeptideIdentificationList peptides;
+      IdXMLFile().load(output, proteins, peptides);
+      bool found = false;
+      for (const auto& peptide : peptides)
+      {
+        for (const auto& hit : peptide.getHits())
+        {
+          if (hit.getMetaValue("label").toString() != sequence.toString()) { continue; }
+          found = true;
+          TEST_EQUAL(hit.getPeptideEvidences().size(), 1)
+          for (const auto& evidence : hit.getPeptideEvidences())
+          {
+            TEST_STRING_EQUAL(evidence.getProteinAccession(), terminal)
+          }
+        }
+      }
+      TEST_TRUE(found)
+      IdentificationData data;
+      OMSFile().load(output + ".oms", data);
+      bool found_oligo = false;
+      for (const auto& oligo : data.getIdentifiedOligos())
+      {
+        if (oligo.sequence != sequence) { continue; }
+        found_oligo = true;
+        TEST_EQUAL(oligo.parent_matches.size(), 1)
+        TEST_EQUAL(oligo.allParentsAreDecoys(), terminal_decoy)
+      }
+      TEST_TRUE(found_oligo)
+      // Search results are not an unmatched sequence digest and cannot safely
+      // seed a new output molecule store.
+      TEST_EQUAL(runSearch({"-in", mzml, "-digest", output + ".oms", "-out", output + ".rejected.mzTab", "-candidates:method", "graph_routes"}),
+                 TOPPBase::ILLEGAL_PARAMETERS)
+    }
+  }
+}
+END_SECTION
+
+START_SECTION(([EXTRA] diagnostic - labile completion keeps its scored route scaffolds in exported evidence))
+{
+  std::string fasta, mzml, output;
+  NEW_TMP_FILE(fasta)
+  NEW_TMP_FILE(mzml)
+  NEW_TMP_FILE(output)
+  fasta += ".fasta";
+  mzml += ".mzML";
+  output += ".idXML";
+  FASTAFile().store(fasta, {{"target", "", "ACUACUAG"}, {"DECOY_target", "", "UACACUAG"}});
+  const auto scaffold = NASequence::fromString("ACUACUAGp");
+  const auto target = NASequence::fromString("ACU[t6A]CUAGp");
+  auto parent = survey(false, target.toString());
+  NucleicAcidSpectrumGenerator generator;
+  auto parameters = generator.getParameters();
+  for (const auto& ion : {"a", "b", "c", "d", "w", "x", "y", "z", "a-B"})
+  {
+    parameters.setValue("add_" + std::string(ion) + "_ions", std::string(ion) == "c" || std::string(ion) == "y" ? "true" : "false");
+  }
+  parameters.setValue("add_first_prefix_ion", "true");
+  generator.setParameters(parameters);
+  MSSpectrum fragments;
+  generator.getSpectrum(fragments, scaffold, -1, -2);
+  fragments.getStringDataArrays().clear();
+  fragments.getIntegerDataArrays().clear();
+  fragments.emplace_back(279.08418, 0.5);
+  fragments.sortByPosition();
+  fragments.setMSLevel(2);
+  fragments.setNativeID("scan=3");
+  fragments.setRT(12);
+  Precursor precursor;
+  precursor.setMZ(parent[1].getMZ());
+  precursor.setCharge(2);
+  precursor.setMetaValue("spectrum_ref", parent.getNativeID());
+  fragments.setPrecursors({precursor});
+  MSExperiment experiment;
+  experiment.setSpectra({parent, fragments});
+  MzMLFile().store(mzml, experiment);
+  std::vector<std::string> last_arguments;
+  for (bool filtering : {true, false})
+  {
+    std::vector<std::string> arguments {"-in",
+                                        mzml,
+                                        "-database",
+                                        fasta,
+                                        "-out",
+                                        output + ".mzTab",
+                                        "-id_out",
+                                        output,
+                                        "-oligo:enzyme",
+                                        "RNase_T1",
+                                        "-oligo:min_size",
+                                        "5",
+                                        "-oligo:max_size",
+                                        "25",
+                                        "-oligo:missed_cleavages",
+                                        "5",
+                                        "-oligo:cleavage_model",
+                                        "canonical",
+                                        "-precursor:max_charge",
+                                        "-5",
+                                        "-precursor:correct_with_flash",
+                                        "-preprocessing:deisotoping",
+                                        "legacy",
+                                        "-fragment:ions",
+                                        "c",
+                                        "y",
+                                        "-threads",
+                                        "2",
+                                        "-candidates:method",
+                                        "graph_routes",
+                                        // The scaffold keeps a 3' phosphate at the parent end, which RNase T1 does not produce.
+                                        "-routes:terminal_states",
+                                        "all",
+                                        "-scoring:method",
+                                        "route",
+                                        "-diagnostic:fixed_ions",
+                                        "t6A=279.08418",
+                                        "-modifications:variable",
+                                        "t6A",
+                                        "-modifications:variable_max_per_oligo",
+                                        "1",
+                                        "-graph:max_charge",
+                                        "1",
+                                        "-routes:verify_candidates"};
+    if (filtering) { arguments.push_back("-diagnostic:filter"); }
+    last_arguments = arguments;
+    TEST_EQUAL(runSearch(arguments), 0)
+    std::vector<ProteinIdentification> proteins;
+    PeptideIdentificationList peptides;
+    IdXMLFile().load(output, proteins, peptides);
+    bool found = false;
+    for (const auto& peptide : peptides)
+    {
+      for (const auto& hit : peptide.getHits())
+      {
+        if (hit.getMetaValue("label").toString() != target.toString()) { continue; }
+        found = true;
+        TEST_STRING_EQUAL(hit.getMetaValue("route_prefix_scaffold").toString(), scaffold.toString())
+        TEST_STRING_EQUAL(hit.getMetaValue("route_suffix_scaffold").toString(), scaffold.toString())
+        TEST_TRUE(int(hit.getMetaValue("route_unique_nodes")) >= 10)
+        TEST_STRING_EQUAL(hit.getMetaValue("flash_precursor_status").toString(), "corrected")
+      }
+    }
+    TEST_TRUE(found)
+  }
+  for (const std::string method : {"mvh", "hyperscore"})
+  {
+    double intact_score = -1;
+    for (bool use_scaffold : {false, true})
+    {
+      auto arguments = last_arguments;
+      for (Size i = 0; i + 1 < arguments.size(); ++i)
+      {
+        if (arguments[i] == "-scoring:method") { arguments[i + 1] = method; }
+      }
+      arguments.insert(arguments.end(), {"-fdr:decoy_pattern", "DECOY_", "-fdr:cutoff", "1"});
+      if (use_scaffold) { arguments.push_back("-scoring:labile_scaffolds"); }
+      TEST_EQUAL(runSearch(arguments), 0)
+      std::vector<ProteinIdentification> proteins;
+      PeptideIdentificationList peptides;
+      IdXMLFile().load(output, proteins, peptides);
+      bool found = false;
+      for (const auto& peptide : peptides)
+      {
+        TEST_STRING_EQUAL(peptide.getScoreType(), method == "mvh" ? "MVH score" : "hyperscore")
+        TEST_TRUE(
+          std::any_of(peptide.getHits().begin(), peptide.getHits().end(), [](const auto& hit) { return hit.metaValueExists("PSM-level q-value"); }))
+        for (const auto& hit : peptide.getHits())
+        {
+          if (hit.getMetaValue("label").toString() != target.toString()) { continue; }
+          found = true;
+          TEST_EQUAL(hit.metaValueExists("native_scoring_scaffold"), use_scaffold)
+          if (use_scaffold)
+          {
+            TEST_STRING_EQUAL(hit.getMetaValue("native_scoring_scaffold").toString(), scaffold.toString())
+            TEST_TRUE(hit.getScore() > intact_score)
+          }
+          else
+          {
+            intact_score = hit.getScore();
+          }
+        }
+      }
+      TEST_TRUE(found)
+    }
+  }
+  std::string failed_output;
+  NEW_TMP_FILE(failed_output)
+  failed_output += ".idXML";
+  for (Size i = 0; i + 1 < last_arguments.size(); ++i)
+  {
+    if (last_arguments[i] == "-id_out") { last_arguments[i + 1] = failed_output; }
+    if (last_arguments[i] == "-out") { last_arguments[i + 1] = failed_output + ".mzTab"; }
+  }
+  last_arguments.insert(last_arguments.end(), {"-routes:max_states", "1"});
+  TEST_NOT_EQUAL(runSearch(last_arguments), 0)
+  TEST_FALSE(File::exists(failed_output))
+  TEST_FALSE(File::exists(failed_output + ".mzTab"))
+}
+END_SECTION
 
 END_TEST
