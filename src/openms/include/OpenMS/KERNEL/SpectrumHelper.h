@@ -145,6 +145,7 @@ namespace OpenMS
    * If one of them was the ion mobility array of a spectrum (or the spectrum is marked as
    * IMFormat::IM_PEAK), its IM format and IM peak type are reset to UNKNOWN, so that
    * IMTypes::determineIMFormat() infers the format from the remaining data (e.g. the drift time).
+   * The ranges are recomputed from the merged peaks.
    *
    * @param[in] p The peak container to be manipulated.
    * @param[in] m The method for determining peak intensity from peaks with same position (median, mean, sum, min, max).
@@ -210,6 +211,7 @@ namespace OpenMS
     p_new.push_back(peak_new);
 
     std::swap(p_new, p);
+    p.updateRanges();
   }
 
   /**
