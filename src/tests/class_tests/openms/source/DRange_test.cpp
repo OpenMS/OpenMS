@@ -373,6 +373,26 @@ START_SECTION(DRange united(const DRange<D>& other_range) const)
 	r4.setMax(r3.maxPosition());
 	TEST_EQUAL(r2.united(r3) == r4, true);
 	TEST_EQUAL(r3.united(r2) == r4, true);
+
+	// uniting two empty ranges must stay empty, not become the universal range
+	DRange<2> r_empty1;
+	DRange<2> r_empty2;
+	TEST_EQUAL(r_empty1.isEmpty(), true)
+	TEST_EQUAL(r_empty2.isEmpty(), true)
+	TEST_EQUAL(r_empty1.united(r_empty2).isEmpty(), true)
+
+	// uniting an empty range with a real one must yield the real one, unchanged
+	TEST_EQUAL(r_empty1.united(r2) == r2, true)
+	TEST_EQUAL(r2.united(r_empty1) == r2, true)
+
+	// a range that is empty in only one dimension must keep that dimension empty
+	DRange<2> rx1, rx2;
+	rx1.setMinX(1.0); rx1.setMaxX(2.0);
+	rx2.setMinX(3.0); rx2.setMaxX(4.0);
+	DRange<2> rx = rx1.united(rx2);
+	TEST_EQUAL(rx.isEmpty(1), true)
+	TEST_REAL_SIMILAR(rx.minX(), 1.0)
+	TEST_REAL_SIMILAR(rx.maxX(), 4.0)
 END_SECTION
 
 
