@@ -2436,7 +2436,7 @@ namespace OpenMS
       // scoreSpectraAgainstIndex_), so the results of the other files depend neither on whether
       // the index holds them nor on the input order, and no file has to be read in advance.
       // A single file is the only search of the context: its index holds only the peptides that the
-      // spectra (read before) can reach.
+      // spectra (read before) can reach, and so does its rebuild with c and z+1 ions, as in search(file).
       auto prepare_context = [&](bool electron_ions, const std::function<const PeakMap*(Size)>& searched_spectra)
       {
         if (ctx_built && (ctx.electron_ions || !electron_ions)) { return; }
@@ -2445,8 +2445,7 @@ namespace OpenMS
         {
           startProgress(0, 1, "Building fragment index with c and z+1 ions...");
           ctx.fragment_index.clear();
-          ctx.fragment_index.setParameters(fragmentIndexParameters_(true));
-          ctx.fragment_index.build(ctx.db);
+          buildFragmentIndex_(ctx, fragmentIndexParameters_(true), searched_spectra);
           ctx.electron_ions = true;
           endProgress();
         }
@@ -2477,11 +2476,13 @@ namespace OpenMS
         // and reused across all files.
         mfres.shared.chunked = false;
         mfres.shared.seconds_index_build += sw_idx.getClockTime();
+        // Those of the index searched: the rebuild of a single file's index can hold other peptides than the first build,
+        // which is restricted to the spectra only if they were read in time.
         mfres.shared.indexed_fragments = ctx.fragment_index.getNumFragments();
-        if (ctx_built) { return; } // a rebuild: same database and peptides
-        ctx_built = true;
         mfres.shared.indexed_peptides = ctx.fragment_index.getPeptides().size();
         mfres.shared.peptide_mass_mode = ctx.fragment_index.isPeptideMassMode();
+        if (ctx_built) { return; } // a rebuild: same database
+        ctx_built = true;
         // (counted by the resolved decoy marker, as in the chunk-major path)
         mfres.shared.db_decoy_proteins = strategy.have_decoys ? countDecoyEntries_(ctx.db, strategy.decoy_string, strategy.is_prefix) : 0;
         mfres.shared.db_target_proteins = ctx.db.size() - mfres.shared.db_decoy_proteins;

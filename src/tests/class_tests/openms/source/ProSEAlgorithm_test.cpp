@@ -46,13 +46,16 @@
 #include <algorithm>
 #include <array>
 #include <cmath>
+#include <fstream>
 #include <functional>
+#include <iterator>
 #include <limits>
 #include <map>
 #include <numeric>
 #include <random>
 #include <set>
 #include <sstream>
+#include <string_view>
 #include <iomanip>
 #include <cerrno>
 #include <cstdio>
@@ -2501,6 +2504,125 @@ START_SECTION(([EXTRA] ions:by_activation gives each file of a multi-file search
     test_same_top_hit(etd_first.per_file[1].peptide_ids, hcd_alone);
     test_same_top_hit(hcd_first.per_file[1].peptide_ids, etd_alone);
     test_same_top_hit(etd_first.per_file[0].peptide_ids, etd_alone);
+  }
+}
+END_SECTION
+
+START_SECTION(([EXTRA] ions:by_activation rebuilds the index of a single file with the peptides its spectra reach))
+{
+  // One mzML file whose only electron-activated spectrum lies beyond the first 8 MiB, which the search of a single file
+  // scans for an electron-based activation before it builds the index while the file is read (with more than one
+  // thread). The index is then built without c and z+1 ions and rebuilt with them once the spectra are read. As the
+  // single build at one thread, the rebuild holds only the peptides that the spectra reach, and the summary counts the
+  // peptides and the fragments of the index that is searched (#11002). At 2 threads the first build does not wait for
+  // the spectra (it holds every peptide), at 8 it does (it holds the peptides they reach).
+  const vector<FASTAFile::FASTAEntry> fasta_db = {
+    {"P01", "Test", "MSDEREKTHQPSANLDIKCMYKWTERNDSIQLHTAPKWEAGR"},
+    {"P02", "Test", "MSDEREKVLGFHQRMPNASTICYWDLKEGFVR"},
+  };
+  // HCD spectra of noise at the precursor of THQPSANLDIK, stored uncompressed (the default; 16 bytes of base64 per peak),
+  // then the ETD spectrum of VLGFHQR
+  PeakMap spectra;
+  std::mt19937 rng(11002);
+  std::uniform_real_distribution<double> noise_mz(150.0, 1500.0);
+  const double hcd_precursor_mz = AASequence::fromString("THQPSANLDIK").getMZ(2);
+  for (Size s = 0; s < 600; ++s)
+  {
+    MSSpectrum spec;
+    for (Size i = 0; i < 1000; ++i) { spec.emplace_back(noise_mz(rng), 0.5f); }
+    spec.sortByPosition();
+    spec.setMSLevel(2);
+    spec.setRT(1.0 + static_cast<double>(s));
+    Precursor prec;
+    prec.setMZ(hcd_precursor_mz);
+    prec.setCharge(2);
+    prec.setActivationMethods({Precursor::ActivationMethod::HCD});
+    spec.setPrecursors({prec});
+    spec.setNativeID("spectrum=" + StringUtils::toStr(s));
+    spectra.addSpectrum(std::move(spec));
+  }
+  MSSpectrum etd = build_etd_hcd_spectra_()[0];
+  etd.setRT(1000.0);
+  etd.setNativeID("spectrum=etd");
+  spectra.addSpectrum(std::move(etd));
+  std::string file;
+  NEW_TMP_FILE_EXT(file, ".mzML") // registers the name with its extension: the 10 MB file is removed at the end
+  FileHandler().storeExperiment(file, spectra, {FileTypes::MZML});
+  // the preconditions: the first 8 MiB name no electron-based activation (the terms that ProSE looks for), the file does
+  {
+    const Size head_bytes = Size(8) << 20;
+    TEST_TRUE(File::fileSize(file) > head_bytes)
+    std::ifstream in(file, std::ios::binary);
+    std::string text((std::istreambuf_iterator<char>(in)), std::istreambuf_iterator<char>());
+    const auto names_electron_activation = [](std::string_view part)
+    {
+      return part.find("MS:1000250") != std::string_view::npos || part.find("MS:1000598") != std::string_view::npos
+             || part.find("MS:1003182") != std::string_view::npos || part.find("MS:1002631") != std::string_view::npos;
+    };
+    TEST_FALSE(names_electron_activation(std::string_view(text).substr(0, head_bytes)))
+    TEST_TRUE(names_electron_activation(text))
+  }
+
+  ProSEAlgorithm algo;
+  configure_by_activation_params_(algo, true);
+  Param p = algo.getParameters();
+  p.setValue("rescore", "false");
+  algo.setParameters(p);
+  // the peptides of the database, against which the restriction shows
+  const Size all_peptides = algo.prepareContext(fasta_db, true).fragment_index.getPeptides().size();
+
+  struct IndexedSearch
+  {
+    Size peptides = 0;
+    Size fragments = 0;
+    Size rebuilds = 0; // of the index, with c and z+1 ions
+    std::map<std::string, PeptideHit> hits;
+  };
+  const auto search_file = [&](int threads)
+  {
+    IndexedSearch result;
+    std::vector<ProgressEvent> events;
+    algo.setLogger(new RecordingProgressLogger(events));
+    {
+      ScopedOpenMPThreads scoped(threads);
+      ProSEAlgorithm::MultiFileSearchResult res = algo.searchWithModificationAnalysis(vector<std::string>{file}, fasta_db, vector<std::string>{}, "", false);
+      TEST_EQUAL(res.per_file.size(), 1)
+      if (res.per_file.size() == 1)
+      {
+        TEST_TRUE(res.per_file[0].exit_code == ProSEAlgorithm::ExitCodes::EXECUTION_OK)
+        result.hits = top_hits_by_spectrum_(res.per_file[0].peptide_ids);
+      }
+      TEST_FALSE(res.shared.chunked)
+      result.peptides = res.shared.indexed_peptides;
+      result.fragments = res.shared.indexed_fragments;
+    }
+    algo.setLogType(ProgressLogger::NONE); // the events end here
+    result.rebuilds = static_cast<Size>(std::count_if(events.begin(), events.end(), [](const ProgressEvent& e)
+      { return e.kind == 's' && e.label == "Building fragment index with c and z+1 ions..."; }));
+    return result;
+  };
+
+  // one thread: the spectra are read first, and one index is built, with c and z+1 ions, of the peptides they reach
+  const IndexedSearch one_thread = search_file(1);
+  TEST_EQUAL(one_thread.rebuilds, 0)
+  TEST_TRUE(one_thread.peptides > 0 && one_thread.peptides < all_peptides)
+  ABORT_IF(one_thread.hits.count("spectrum=etd") != 1)
+  const PeptideHit& etd_hit = one_thread.hits.at("spectrum=etd");
+  TEST_STRING_EQUAL(etd_hit.getSequence().toUnmodifiedString(), "VLGFHQR")
+  TEST_EQUAL(count_annotations_(etd_hit, "z."), 6)
+
+  for (int threads : {2, 8})
+  {
+    const IndexedSearch threaded = search_file(threads);
+    // The background read usually takes longer than the steps before the build; if it ends first, the index is built
+    // once, as at one thread.
+    STATUS("threads " << threads << ": " << threaded.rebuilds << " rebuild(s) of the index with c and z+1 ions")
+    TEST_TRUE(threaded.rebuilds <= 1)
+    TEST_EQUAL(threaded.peptides, one_thread.peptides)
+    TEST_EQUAL(threaded.fragments, one_thread.fragments)
+    ABORT_IF(threaded.hits.count("spectrum=etd") != 1)
+    TEST_EQUAL(threaded.hits.at("spectrum=etd").getSequence(), etd_hit.getSequence())
+    TEST_REAL_SIMILAR(threaded.hits.at("spectrum=etd").getScore(), etd_hit.getScore())
   }
 }
 END_SECTION
