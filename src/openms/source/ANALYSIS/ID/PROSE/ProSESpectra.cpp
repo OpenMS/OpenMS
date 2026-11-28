@@ -306,7 +306,8 @@ namespace OpenMS
                                           FragmentIonLikelihoodModel::PeakLists* ion_evidence,
                                           bool ion_evidence_scored_peaks,
                                           PeakMap* evidence_spectra,
-                                          PeakMap* query_spectra)
+                                          PeakMap* query_spectra,
+                                          PeakCharges_* charges)
   {
     // Intensity threshold + normalization used to run here as two extra SERIAL full-map
     // passes. Both are strictly per-spectrum: ThresholdMower::filterPeakMap and
@@ -342,6 +343,12 @@ namespace OpenMS
     {
       query_spectra->clear(true);
       resizeWithParallelFaults(query_spectra->getSpectra(), exp.size());
+    }
+    if (charges != nullptr)
+    {
+      *charges = PeakCharges_();
+      charges->searched.resize(exp.size());
+      if (evidence_spectra != nullptr || (ion_evidence != nullptr && !ion_evidence_scored_peaks)) { charges->deisotoped.resize(exp.size()); }
     }
 
     // filter settings: the most intense peaks_window_top peaks per 100 Th window (jumping windows as WindowMower's,
@@ -383,6 +390,7 @@ namespace OpenMS
     // low-resolution warning are handled once, in updateMembers_.
     const bool do_deisotope = deisotope_requested &&
       Deisotoper::isToleranceSupported(fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm);
+    // (without deisotoping no peak changes its charge: the lists stay empty, every peak as measured)
 
     // The per-thread copies of the filters are made here: copied on entry to the parallel region (firstprivate), they
     // were outside any exception handling, and an exception from a copy (std::bad_alloc) terminated the process.
@@ -400,7 +408,7 @@ namespace OpenMS
     std::exception_ptr preprocessing_error;
     std::atomic<bool> preprocessing_failed{false};
     // (static: freeInParallel() frees the copies made here in the same parts, each in its own thread's arena)
-#pragma omp parallel for schedule(static) default(none) shared(exp, evidence_spectra, query_spectra, do_deisotope, fragment_mass_tolerance, \
+#pragma omp parallel for schedule(static) default(none) shared(exp, evidence_spectra, query_spectra, charges, do_deisotope, fragment_mass_tolerance, \
                                                 fragment_mass_tolerance_unit_ppm, full_window_quota, peaks_window_top, \
                                                 deisotoping, ion_evidence, ion_evidence_scored_peaks, \
                                                 threshold_mower_filters, normalizers, nlargest_filters, \
@@ -455,11 +463,31 @@ namespace OpenMS
           false,  // keep only deisotoped
           deisotoping.min_peaks, 10,  // min / max isopeaks
           true,   // convert fragment m/z to mono-charge
-          false,  // annotate charge
+          charges != nullptr,  // annotate charge (calibration:recalibrate curve)
           false,  // annotate isotopic peak counts
           true,   // decreasing isotope intensities
           1,      // start the intensity check at the monoisotopic peak
           deisotoping.sum_intensity);  // the monoisotopic peak carries the envelope's intensity
+      }
+      // the charges, taken out of the spectrum again (the searched spectra stay as without them); kept only for spectra
+      // with a charge-reduced peak
+      std::vector<std::uint8_t> peak_z;
+      std::vector<double> deisotoped_mz; // (to find the charges of the peaks the filters below keep)
+      if (charges != nullptr)
+      {
+        auto& arrays = exp[exp_index].getIntegerDataArrays();
+        if (!arrays.empty() && arrays.back().getName() == "charge")
+        {
+          if (std::any_of(arrays.back().begin(), arrays.back().end(), [](Int z) { return z > 1; }))
+          {
+            peak_z.reserve(arrays.back().size());
+            for (Int z : arrays.back()) { peak_z.push_back(static_cast<std::uint8_t>(std::clamp<Int>(z, 0, 255))); }
+            deisotoped_mz.reserve(exp[exp_index].size());
+            for (const Peak1D& peak : exp[exp_index]) { deisotoped_mz.push_back(peak.getMZ()); }
+          }
+          arrays.pop_back();
+        }
+        if (!charges->deisotoped.empty()) { charges->deisotoped[exp_index] = peak_z; }
       }
 
       // ion priors: every peak after deisotoping, before the window and top-N filters
@@ -476,6 +504,20 @@ namespace OpenMS
 
       // sort (nlargest changes order)
       exp[exp_index].sortByPosition();
+
+      // the charges of the kept peaks: these are deisotoped peaks with their m/z unchanged, both lists in m/z order
+      if (!peak_z.empty())
+      {
+        std::vector<std::uint8_t>& kept = charges->searched[exp_index];
+        kept.assign(exp[exp_index].size(), 1);
+        Size d = 0;
+        for (Size k = 0; k < exp[exp_index].size(); ++k)
+        {
+          const double mz = exp[exp_index][k].getMZ();
+          while (d < deisotoped_mz.size() && deisotoped_mz[d] < mz) { ++d; }
+          if (d < deisotoped_mz.size() && deisotoped_mz[d] == mz) { kept[k] = peak_z[d]; }
+        }
+      }
 
       // ion priors on the scored peaks
       if (ion_evidence != nullptr && ion_evidence_scored_peaks) { ion_evidence->assign(exp_index, exp[exp_index]); }

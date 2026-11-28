@@ -32,6 +32,8 @@
 #include <OpenMS/PROCESSING/CALIBRATION/MZTrafoModel.h>
 #include <OpenMS/METADATA/SpectrumSettings.h>
 
+#include <Eigen/Dense>
+
 #include <algorithm>
 #include <atomic>
 #include <cmath>
@@ -58,6 +60,25 @@ using namespace std;
 namespace OpenMS
 {
   using namespace Internal::ProSEAlgorithmHelpers;
+
+  namespace
+  {
+    // The peaks of @p s corrected by @p model (an MzRecalibration_::AtRT), each at the m/z it was measured at: a deisotoped
+    // peak of charge z > 1 (@p charges, aligned with the peaks; empty: every peak as measured) holds the m/z of its singly
+    // charged ion, z mz - (z - 1) proton (Deisotoper::deisotopeAndSingleCharge()), and keeps it
+    template <class Model>
+    void correctAtMeasuredMZ(MSSpectrum& s, const Model& model, const std::vector<std::uint8_t>& charges)
+    {
+      const double proton = Constants::PROTON_MASS_U;
+      for (Size k = 0; k < s.size(); ++k)
+      {
+        const double z = charges.empty() ? 1.0 : static_cast<double>(std::max<std::uint8_t>(1, charges[k]));
+        const double mz = s[k].getMZ();
+        s[k].setMZ(z == 1.0 ? model.correct(mz) : model.correct((mz + (z - 1.0) * proton) / z) * z - (z - 1.0) * proton);
+      }
+      if (!s.isSorted()) { s.sortByPosition(); } // (peaks of different charge may change places)
+    }
+  }
 
   // =====================================================================
   // Helper: decoy-marker membership test (prefix/suffix), pure std::string.
@@ -562,8 +583,15 @@ namespace OpenMS
 
   void ProSEAlgorithm::preprocessSearchedSpectra_(PeakMap& spectra, const std::string& input,
                                                    FragmentIonLikelihoodModel::PeakLists& ion_evidence,
-                                                   PeakMap* evidence_spectra, PeakMap* query_spectra) const
+                                                   PeakMap* evidence_spectra, PeakMap* query_spectra,
+                                                   PeakCharges_* charges) const
   {
+    // the charges only for a 'curve' recalibration, which corrects the peaks with them (applyRecalibration_())
+    if (charges != nullptr) { *charges = PeakCharges_(); }
+    if (!(calibration_enabled_ && calibration_recalibrate_ == "curve" && query_spectra != nullptr && fragment_mass_tolerance_unit_ == "ppm"))
+    {
+      charges = nullptr;
+    }
     const SpectraCounts_ counts = countSpectra_(spectra);
     const std::string of = input.empty() ? std::string() : " of '" + input + "'";
     if (counts.ms2 == 0)
@@ -589,7 +617,7 @@ namespace OpenMS
     preprocessSpectra_(spectra, fragment_mass_tolerance_, fragment_mass_tolerance_unit_ == "ppm", deisotope_requested_,
                        peaks_keep_n_, peaks_window_top_, peaks_window_type_, deisotoping_,
                        self_trained_ion_priors_ ? &ion_evidence : nullptr, ion_prior_scored_peaks_, evidence_spectra,
-                       query_spectra);
+                       query_spectra, charges);
   }
 
   void ProSEAlgorithm::collectRunStatistics_(
@@ -633,6 +661,15 @@ namespace OpenMS
       stats.prec_err_mad = mad;
       stats.prec_err_recommended = recommended_tolerance(med, mad);
       stats.prec_tol_valid = true;
+    }
+    // With a 'curve' model the fragment annotations report the m/z as searched (corrected; see
+    // appliedFragmentRecalibration()), so the fragment errors are those after the curve
+    stats.frag_err_after_curve = false;
+    if (!protein_ids.empty())
+    {
+      const ProteinIdentification::SearchParameters& sp = protein_ids[0].getSearchParameters();
+      stats.frag_err_after_curve = sp.getMetaValue("calibration:recalibrate", DataValue("")).toString() == "curve"
+                                   && sp.getMetaValue("calibration:fragment_model", DataValue("")).toString().find("cubic") != std::string::npos;
     }
     if (fragment_errors_psms >= min_psms_for_estimation)
     {
@@ -689,18 +726,151 @@ namespace OpenMS
   // =====================================================================
     /// The signed errors (ppm, or Da) of the peaks of @p spec closest to the theoretical peaks of @p theo within
     /// @p tolerance (unmatched theoretical peaks contribute nothing); both spectra sorted by m/z. With @p mzs, the
-    /// theoretical m/z of each matched peak, aligned with @p errors.
+    /// theoretical m/z of each matched peak, aligned with @p errors. With @p all, every peak within @p tolerance of a
+    /// theoretical peak instead of the closest one (calibration:recalibrate curve).
     void matchedFragmentErrors(const MSSpectrum& spec, const PeakSpectrum& theo, double tolerance, bool ppm, std::vector<float>& errors,
-                               std::vector<float>* mzs = nullptr)
+                               std::vector<float>* mzs = nullptr, bool all = false)
     {
       for (const Peak1D& t : theo)
       {
-        const Int i = spec.findNearest(t.getMZ(), ppm ? t.getMZ() * tolerance * 1e-6 : tolerance);
+        const double tol = ppm ? t.getMZ() * tolerance * 1e-6 : tolerance;
+        if (all)
+        {
+          for (auto it = spec.MZBegin(t.getMZ() - tol); it != spec.end() && it->getMZ() <= t.getMZ() + tol; ++it)
+          {
+            const double e = it->getMZ() - t.getMZ();
+            errors.push_back(static_cast<float>(ppm ? e / t.getMZ() * 1e6 : e));
+            if (mzs != nullptr) mzs->push_back(static_cast<float>(t.getMZ()));
+          }
+          continue;
+        }
+        const Int i = spec.findNearest(t.getMZ(), tol);
         if (i < 0) continue;
         const double e = spec[i].getMZ() - t.getMZ();
         errors.push_back(static_cast<float>(ppm ? e / t.getMZ() * 1e6 : e));
         if (mzs != nullptr) mzs->push_back(static_cast<float>(t.getMZ()));
       }
+    }
+
+    /// A cubic polynomial in t, the position of s in [lo, hi] scaled to [-1, 1] (the abscissae of its fit)
+    struct Cubic
+    {
+      double c[4]{0.0, 0.0, 0.0, 0.0};
+      double lo{0.0}, hi{0.0};
+      double operator()(double s) const
+      {
+        const double t = 2.0 * (s - lo) / (hi - lo) - 1.0;
+        return c[0] + t * (c[1] + t * (c[2] + t * c[3]));
+      }
+    };
+
+    /// The least-squares cubic through the points (s, y); false when it cannot be fitted
+    bool fitCubic(const std::vector<double>& s, const std::vector<double>& y, Cubic& out)
+    {
+      if (s.size() < 4) return false;
+      const auto [lo, hi] = std::minmax_element(s.begin(), s.end());
+      if (!(*hi > *lo)) return false;
+      Cubic f;
+      f.lo = *lo;
+      f.hi = *hi;
+      Eigen::Matrix4d a = Eigen::Matrix4d::Zero();
+      Eigen::Vector4d b = Eigen::Vector4d::Zero();
+      for (Size i = 0; i < s.size(); ++i)
+      {
+        const double t = 2.0 * (s[i] - f.lo) / (f.hi - f.lo) - 1.0;
+        const Eigen::Vector4d p(1.0, t, t * t, t * t * t);
+        a += p * p.transpose();
+        b += p * y[i];
+      }
+      const Eigen::LDLT<Eigen::Matrix4d> ldlt(a);
+      if (ldlt.info() != Eigen::Success || !ldlt.isPositive() || ldlt.rcond() < 1e-12) return false; // (m/z at fewer than 4 places)
+      const Eigen::Vector4d c = ldlt.solve(b);
+      if (!c.allFinite()) return false;
+      for (int k = 0; k < 4; ++k) f.c[k] = c[k];
+      out = f;
+      return true;
+    }
+
+    /// The error curve of the fragment peaks of one RT chunk (calibration:recalibrate curve). @p errors (ppm) holds
+    /// every peak within the collection window of a theoretical fragment at @p mzs, most of them random matches: the
+    /// mode of the errors in up to 20 m/z bins gives a first cubic in sqrt(m/z), which is refitted three times to the
+    /// peaks near it. False when there are too few peaks; @p points: the peaks of the last fit.
+    bool fitErrorCurve(const std::vector<double>& errors, const std::vector<double>& mzs, Cubic& curve, Size& points)
+    {
+      const Size n = errors.size();
+      const Size n_bins = std::min<Size>(20, n / 30);
+      if (n_bins < 4) return false;
+      std::vector<Size> order(n);
+      std::iota(order.begin(), order.end(), Size(0));
+      std::sort(order.begin(), order.end(), [&mzs](Size x, Size y) { return mzs[x] < mzs[y]; });
+      if (!(mzs[order.front()] > 0.0)) return false; // (sqrt)
+      std::vector<double> bin_s, bin_mode;
+      for (Size bin = 0; bin < n_bins; ++bin)
+      {
+        const Size begin = n * bin / n_bins, end = n * (bin + 1) / n_bins;
+        double lo = errors[order[begin]], hi = lo;
+        for (Size i = begin; i < end; ++i)
+        {
+          lo = std::min(lo, errors[order[i]]);
+          hi = std::max(hi, errors[order[i]]);
+        }
+        lo = std::floor(lo);
+        if (!(hi - lo < 1e5)) return false; // (not the errors of a ppm window)
+        std::vector<Size> hist(static_cast<Size>(hi - lo) + 1, 0); // 1 ppm per bin
+        for (Size i = begin; i < end; ++i) ++hist[static_cast<Size>(errors[order[i]] - lo)];
+        Size best = 0, best_count = 0;
+        for (Size k = 0; k < hist.size(); ++k) // the (first) maximum of the histogram summed over 5 ppm
+        {
+          Size count = 0;
+          for (Size j = (k < 2 ? 0 : k - 2); j < std::min(hist.size(), k + 3); ++j) count += hist[j];
+          if (count > best_count) { best_count = count; best = k; }
+        }
+        bin_s.push_back(std::sqrt(mzs[order[(begin + end) / 2]]));
+        bin_mode.push_back(lo + static_cast<double>(best) + 0.5);
+      }
+      Cubic f;
+      if (!fitCubic(bin_s, bin_mode, f)) return false;
+      {
+        // a bin whose mode is a cluster of random matches lies far from the curve of the others: fitted once more without
+        // ponytail: one round, and a third of the bins off the curve still bends it; RANSAC over the bins if that is seen
+        std::vector<double> off(n_bins);
+        for (Size k = 0; k < n_bins; ++k) off[k] = std::fabs(bin_mode[k] - f(bin_s[k]));
+        std::vector<double> sorted_off = off;
+        const double limit = std::max(15.0, 3.0 * 1.4826 * medianAndMADBySelection(sorted_off).first);
+        std::vector<double> kept_s, kept_mode;
+        for (Size k = 0; k < n_bins; ++k)
+        {
+          if (off[k] > limit) continue;
+          kept_s.push_back(bin_s[k]);
+          kept_mode.push_back(bin_mode[k]);
+        }
+        if (kept_s.size() < n_bins && kept_s.size() >= 4) fitCubic(kept_s, kept_mode, f); // (f stays if this fails)
+      }
+      // ponytail: the cut follows the spread of the peaks near the curve (3 robust sigma, 2 to 15 ppm), starting at
+      // 15 ppm; no model of the random matches, which lie on both sides of the curve
+      double cut = 15.0;
+      std::vector<double> s, e, residuals;
+      for (int round = 0; round < 3; ++round)
+      {
+        s.clear();
+        e.clear();
+        residuals.clear();
+        for (Size i = 0; i < n; ++i)
+        {
+          const double si = std::sqrt(mzs[i]);
+          const double r = errors[i] - f(si);
+          if (std::fabs(r) > cut) continue;
+          s.push_back(si);
+          e.push_back(errors[i]);
+          residuals.push_back(r);
+        }
+        if (!fitCubic(s, e, f)) return false;
+        for (Size i = 0; i < s.size(); ++i) residuals[i] = e[i] - f(s[i]); // about the new curve
+        cut = std::clamp(3.0 * 1.4826 * medianAndMADBySelection(residuals).second, 2.0, 15.0);
+      }
+      curve = f;
+      points = s.size();
+      return true;
     }
   }
 
@@ -711,7 +881,8 @@ namespace OpenMS
       const std::vector<FASTAFile::FASTAEntry>& db,
       const PeakMap* query_spectra,
       const std::string& decoy_string,
-      bool decoy_is_prefix) const
+      bool decoy_is_prefix,
+      const PeakCharges_* charges) const
   {
     CalibrationResult_ result;
 
@@ -724,6 +895,15 @@ namespace OpenMS
     const double pass_lower = calibrationPassWindow_(precursor_mass_tolerance_lower_, precursor_ppm);
     const double pass_upper = calibrationPassWindow_(precursor_mass_tolerance_upper_, precursor_ppm);
     const double pass_fragment = calibrationPassWindow_(fragment_mass_tolerance_, fragment_mass_tolerance_unit_ppm);
+    // calibration:recalibrate curve: an error that varies with m/z by more than the pass window is cut off by it, so
+    // every peak within 150 ppm of a fragment is collected and the peaks near the fitted curve are kept (below)
+    const bool curve = calibration_recalibrate_ == "curve" && fragment_mass_tolerance_unit_ppm && query_spectra != nullptr;
+    if (calibration_recalibrate_ == "curve" && !curve)
+    {
+      OPENMS_LOG_WARN << "[ProSE] Calibration: calibration:recalibrate curve needs a ppm fragment tolerance and the peaks as measured "
+                         "(fragment:query_spectrum raw); a line in m/z is fitted instead." << std::endl;
+    }
+    const double collect_fragment = curve ? std::max(pass_fragment, 150.0) : pass_fragment;
     const Param fi_params_saved = fragment_index.getParameters();
     {
       Param p = fi_params_saved;
@@ -760,6 +940,9 @@ namespace OpenMS
         for (Size i = begin; i < begin + take; ++i) { subset.push_back(tic_index[i].second); }
       }
     }
+    // ('curve': in acquisition order, as the passes of its first version scored it; otherwise as upstream, which
+    // only decides between hits of the same score at the cut below)
+    if (curve) { std::sort(subset.begin(), subset.end()); }
     const Size subset_size = subset.size();
     // Scored in the order of the precursor mass, as the main search (scoringOrder_()): neighbouring iterations probe the
     // same precursor-window slices of the fragment index, which stay in the caches. The hits are collected in the order
@@ -789,188 +972,306 @@ namespace OpenMS
     // decoy: the best hit is a peptide of a decoy protein, which marks the RT chunks of the precursor model whose PSMs are
     // mostly false matches)
     struct CalHit { double score; double prec_error; std::vector<float> frag_errors; double rt; double prec_mz; std::vector<float> frag_mzs; bool decoy; };
-    // At most one hit per spectrum of the subset, in its slot (written by one iteration only): collected in subset order
-    // after the loop
-    vector<CalHit> slots(subset_size);
-    std::vector<unsigned char> filled(subset_size, 0);
-
-    // Parallelize over the calibration subset, mirroring the main scoring loop
-    // (scoreSpectraAgainstIndex_). Each iteration is independent: querySpectrum and
-    // the shared TheoreticalSpectrumGenerators expose const, thread-safe methods (the
-    // main loop already calls them concurrently), and every working variable below is
-    // loop-local. The only cross-thread write is the push into cal_hits, guarded by a
-    // critical section. Without this the calibration pass ran single-threaded: on a
-    // many-core machine the 10% subset took about as long as the entire parallel
-    // search, roughly doubling wall time for no extra useful work. Downstream is
-    // order-independent — cal_hits is sorted by score and the error vectors are sorted
-    // before quantiles — so parallel insertion order does not change the result.
-    // An exception on a worker thread (a modification AASequence rejects, a scorer's parameter check, ...) must not
-    // leave the parallel region, which would terminate the process: the first one is rethrown after the loop.
-    std::exception_ptr calibration_error;
-    std::atomic<bool> calibration_failed{false};
-    // Runs of neighbouring masses per core, at least 8 chunks per thread; one spectrum per chunk in peptide-mass mode
-    // (as the main loop)
-#ifdef _OPENMP
-    const int cal_chunk = fragment_index.isPeptideMassMode() ? 1 : static_cast<int>(std::clamp<SignedSize>(
-      static_cast<SignedSize>(subset_size) / (SignedSize(8) * std::max(1, omp_get_max_threads())), 1, 64));
-#else
-    [[maybe_unused]] const int cal_chunk = 1; // (only the OpenMP directive uses it)
-#endif
-#pragma omp parallel for schedule(dynamic, cal_chunk)
-    for (SignedSize oi = 0; oi < (SignedSize)subset_size; ++oi)
-    {
-      if (calibration_failed.load(std::memory_order_relaxed)) continue;
-      try
-      {
-      const Size si = order[oi];
-      const Size scan_idx = subset[si];
-      const MSSpectrum& spec = spectra[scan_idx];
-      const TheoreticalSpectrumGenerator& tsg = generators.forSpectrum(spec);
-
-      // The per-thread containers of the main loop (scoreSpectraAgainstIndex_()): the candidates and the theoretical
-      // spectrum keep the capacity the thread's largest spectrum needed instead of taking fresh buffers per spectrum
-      ScoringScratch_& scratch = scoringScratch_();
-      FragmentIndex::SpectrumMatchesTopN& top_sms = scratch.top_sms;
-      top_sms.clear();
-      const MSSpectrum& query = query_spectra != nullptr ? (*query_spectra)[scan_idx] : spec;
-      fragment_index.querySpectrum(query, db, top_sms, generators.electronIons(spec));
-
-      // Find the best-scoring hit for this spectrum
-      double best_score = 0;
-      AASequence best_seq;
-      int best_isotope_error = 0;
-      uint16_t best_charge = 0;
-      UInt32 best_protein = 0; // the protein the fragment index records for the peptide of the best hit
-
-      PeakSpectrum& theo = scratch.theo_spectrum;
-      std::vector<uint8_t>& theo_ion_series = scratch.theo_ion_series;
-
-      for (const auto& sms : top_sms.hits_)
-      {
-        const FragmentIndex::Peptide& peptide = fragment_index.getPeptides()[sms.peptide_idx_];
-        AASequence seq = fragment_index.isPeptideMassMode()
-          ? fragment_index.reconstructRealizedSubSequence(peptide, db, sms.realized_length_, sms.subset_bitmask_)
-          : fragment_index.reconstructModifiedSequence(peptide, db);
-
-        // The calibration PSMs are selected with the search's own score (upstream 825c33bb). The mass-accuracy score
-        // favours PSMs with small fragment errors, so it narrows the fragment tolerance estimated from them below
-        // (2-10% narrower than with HyperScore on 12 of 14 ppm runs); selecting by HyperScore instead did not
-        // change the yield measurably.
-        // The peaks of getSpectrum() with the ion series per peak instead of the ion names (no strings, no data
-        // arrays), as the main loop: the same scores. The string path only when the generator cannot (losses, ...).
-        HyperScore::PSMDetail detail;
-        double score;
-        if (tsg.getIonSeriesSpectrum(theo, theo_ion_series, seq, 1, scoringMaxCharge_(sms.precursor_charge_)))
-        {
-          score = mass_accuracy_score_
-            ? HyperScore::computeMassAccuracy(pass_fragment, fragment_mass_tolerance_unit_ppm, spec, theo, theo_ion_series, mass_error_sd_ppm_, detail)
-            : HyperScore::computeWithDetail(pass_fragment, fragment_mass_tolerance_unit_ppm, spec, theo, theo_ion_series, detail);
-        }
-        else
-        {
-          theo.clear(false); // peaks and data arrays; getSpectrum appends, its output is sorted with add_metainfo=true
-          theo.getPrecursors().clear(); // (clear(false) keeps the meta data; getSpectrum() appends a precursor per call)
-          tsg.getSpectrum(theo, seq, 1, scoringMaxCharge_(sms.precursor_charge_));
-          score = mass_accuracy_score_
-            ? HyperScore::computeMassAccuracy(pass_fragment, fragment_mass_tolerance_unit_ppm, spec, theo, mass_error_sd_ppm_, detail)
-            : HyperScore::computeWithDetail(pass_fragment, fragment_mass_tolerance_unit_ppm, spec, theo, detail);
-        }
-
-        if (score > best_score)
-        {
-          best_score = score;
-          best_seq = std::move(seq);
-          best_isotope_error = sms.isotope_error_;
-          best_charge = sms.precursor_charge_;
-          best_protein = peptide.protein_idx;
-        }
-      }
-
-      if (best_score == 0 || best_seq.empty()) continue;
-
-      // Skip PSMs matched at a non-zero isotope offset. Their precursor m/z carries
-      // an extra source of uncertainty (the +1/+2 isotope peak can be ambiguous in
-      // the MS1 precursor picking), which inflates the variance of the calibration
-      // quantile estimate. iso_err=0 PSMs are the gold-standard "true monoisotopic
-      // peak picked" subset — the right population for estimating instrument bias.
-      if (best_isotope_error != 0) continue;
-
-      // Compute precursor error (signed), isotope-corrected. FragmentIndex searches
-      // shifted_mass = precursor_mass + isotope_error * C13C12, so M_theo ≈ N_obs +
-      // isotope_error * C13C12; the observed-to-monoiso m/z correction is
-      //   corrected_mz = observed_mz + isotope_error * C13C12 / charge
-      // Matches the sign used by postProcessHits_'s PRECURSOR_ERROR_PPM annotation.
-      double exp_mz = spec.getPrecursors()[0].getMZ();
-      double theo_mz = best_seq.getMZ(best_charge);
-      double corrected_exp_mz = monoisotopicPrecursorMZ(exp_mz, best_isotope_error, static_cast<double>(best_charge));
-      double prec_err = (precursor_mass_tolerance_unit_ == "ppm")
-                          ? Math::getPPM(corrected_exp_mz, theo_mz)
-                          : (corrected_exp_mz - theo_mz);
-
-      // The signed errors of the fragment peaks the best hit explains, within the pass window
-      std::vector<float> frag_errors, frag_mzs;
-      if (!tsg.getIonSeriesSpectrum(theo, theo_ion_series, best_seq, 1, scoringMaxCharge_(best_charge))) // (the same peaks)
-      {
-        theo.clear(false);
-        theo.getPrecursors().clear();
-        tsg.getSpectrum(theo, best_seq, 1, scoringMaxCharge_(best_charge));
-      }
-      matchedFragmentErrors(spec, theo, pass_fragment, fragment_mass_tolerance_unit_ppm, frag_errors, &frag_mzs);
-
-      const bool decoy = !decoy_string.empty() && best_protein < db.size()
-        && (decoy_is_prefix ? StringUtils::hasPrefix(db[best_protein].identifier, decoy_string)
-                            : StringUtils::hasSuffix(db[best_protein].identifier, decoy_string));
-      slots[si] = CalHit{best_score, prec_err, std::move(frag_errors), spec.getRT(), theo_mz, std::move(frag_mzs), decoy};
-      filled[si] = 1;
-      }
-      catch (...)
-      {
-#pragma omp critical (ProSEAlgorithm_calibration_error)
-        {
-          if (!calibration_error) calibration_error = std::current_exception();
-        }
-        calibration_failed.store(true, std::memory_order_relaxed);
-      }
-    }
-    if (calibration_error) std::rethrow_exception(calibration_error);
-    vector<CalHit> cal_hits;
-    cal_hits.reserve(static_cast<Size>(std::count(filled.begin(), filled.end(), 1)));
-    for (Size k = 0; k < subset_size; ++k) { if (filled[k]) cal_hits.push_back(std::move(slots[k])); }
-    vector<CalHit>().swap(slots);
-
-    // The confident half: the top 50 % by score (random matches inflate the tails), if that leaves calibration_min_psms_
-    Size cal_hits_total = cal_hits.size();
-    std::sort(cal_hits.begin(), cal_hits.end(),
-              [](const CalHit& a, const CalHit& b) { return a.score > b.score; });
-    Size keep = cal_hits.size() / 2;
-    if (keep >= calibration_min_psms_ && keep < cal_hits.size())
-    {
-      cal_hits.resize(keep);
-    }
-
-    // The hits the pass window delivers: the signed error e = observed - theoretical lies in [-upper, +lower] (the
-    // mass-space window is [observed - lower, observed + upper]; the bounds flip for asymmetric windows)
+    // calibration:recalibrate curve scores the subset again as corrected by the last curve until the curve is stable (below)
+    Size cal_hits_total = 0;
     vector<double> precursor_errors, precursor_mzs, precursor_rts;
     vector<char> precursor_decoys;
     vector<double> fragment_errors, fragment_mzs, fragment_rts;
-    for (const auto& h : cal_hits)
+    MzRecalibration_ fragment_curve, previous_curve;
+    // 'curve': the first pass only has to give the curve that the next pass corrects the subset with, so it scores an
+    // evenly spaced sample of about 10000 spectra of the subset; again all of them if that sample fails. Each later pass
+    // scores the whole subset as corrected by the last curve and fits the curve again (to the errors as measured), until
+    // it moves by at most curve_tolerance ppm where the fragments are, or after max_passes.
+    // ponytail: fixed sample size, tolerance and pass limit; parameters if runs need others
+    constexpr Size first_pass_sample = 10000;
+    constexpr double curve_tolerance = 2.0; // ppm (the residual spread of a timsTOF run is about 6 ppm)
+    constexpr int max_passes = 3;
+    Size sample = curve && subset_size > first_pass_sample ? first_pass_sample : 0; // (0: all)
+    // The later passes score each spectrum of the subset as corrected by the last curve (correcting; inactive in the first
+    // pass): the searched peaks at the m/z they were measured at (with the charges of the deisotoper) and the peaks as
+    // measured, in copies of this thread; the spectra stay as measured, and the errors are read from them.
+    const bool later_passes = curve && charges != nullptr && charges->searched.size() == spectra.size();
+    MzRecalibration_ correcting;
+    for (int pass = 0; ; ++pass)
     {
-      if (h.prec_error < -pass_upper || h.prec_error > pass_lower) continue; // wrong match
-      precursor_errors.push_back(h.prec_error);
-      precursor_mzs.push_back(h.prec_mz);
-      precursor_rts.push_back(h.rt);
-      precursor_decoys.push_back(h.decoy);
-      fragment_errors.insert(fragment_errors.end(), h.frag_errors.begin(), h.frag_errors.end());
-      fragment_mzs.insert(fragment_mzs.end(), h.frag_mzs.begin(), h.frag_mzs.end());
-      fragment_rts.insert(fragment_rts.end(), h.frag_errors.size(), h.rt);
-    }
+      const Size pass_sample = pass == 0 ? sample : 0;
+      // At most one hit per spectrum of the subset, in its slot (written by one iteration only): collected in subset order
+      // after the loop
+      vector<CalHit> slots(subset_size);
+      std::vector<unsigned char> filled(subset_size, 0);
 
-    if (precursor_errors.size() < calibration_min_psms_)
+      // Parallelize over the calibration subset, mirroring the main scoring loop
+      // (scoreSpectraAgainstIndex_). Each iteration is independent: querySpectrum and
+      // the shared TheoreticalSpectrumGenerators expose const, thread-safe methods (the
+      // main loop already calls them concurrently), and every working variable below is
+      // loop-local. The only cross-thread write is the push into cal_hits, guarded by a
+      // critical section. Without this the calibration pass ran single-threaded: on a
+      // many-core machine the 10% subset took about as long as the entire parallel
+      // search, roughly doubling wall time for no extra useful work. Downstream is
+      // order-independent — cal_hits is sorted by score and the error vectors are sorted
+      // before quantiles — so parallel insertion order does not change the result.
+      // An exception on a worker thread (a modification AASequence rejects, a scorer's parameter check, ...) must not
+      // leave the parallel region, which would terminate the process: the first one is rethrown after the loop.
+      std::exception_ptr calibration_error;
+      std::atomic<bool> calibration_failed{false};
+      // Runs of neighbouring masses per core, at least 8 chunks per thread; one spectrum per chunk in peptide-mass mode
+      // (as the main loop)
+#ifdef _OPENMP
+      const int cal_chunk = fragment_index.isPeptideMassMode() ? 1 : static_cast<int>(std::clamp<SignedSize>(
+        static_cast<SignedSize>(subset_size) / (SignedSize(8) * std::max(1, omp_get_max_threads())), 1, 64));
+#else
+      [[maybe_unused]] const int cal_chunk = 1; // (only the OpenMP directive uses it)
+#endif
+#pragma omp parallel for schedule(dynamic, cal_chunk)
+      for (SignedSize oi = 0; oi < (SignedSize)subset_size; ++oi)
+      {
+        if (calibration_failed.load(std::memory_order_relaxed)) continue;
+        if (pass_sample > 0 && order[oi] * pass_sample / subset_size == (order[oi] + 1) * pass_sample / subset_size) continue;
+        try
+        {
+        const Size si = order[oi];
+        const Size scan_idx = subset[si];
+        // (the peaks as measured: the errors of every pass are read from them)
+        const MSSpectrum& measured = query_spectra != nullptr ? (*query_spectra)[scan_idx] : spectra[scan_idx];
+        thread_local MSSpectrum corrected_spectrum, corrected_query; // (a later pass: this thread's copies, reused)
+        if (correcting.active())
+        {
+          const MzRecalibration_::AtRT model = correcting.at(spectra[scan_idx].getRT());
+          corrected_spectrum = spectra[scan_idx];
+          correctAtMeasuredMZ(corrected_spectrum, model, charges->searched[scan_idx]);
+          corrected_query = measured;
+          correctAtMeasuredMZ(corrected_query, model, {});
+        }
+        const MSSpectrum& spec = correcting.active() ? corrected_spectrum : spectra[scan_idx];
+        const MSSpectrum& query = correcting.active() ? corrected_query : measured;
+        const TheoreticalSpectrumGenerator& tsg = generators.forSpectrum(spec);
+
+        // The per-thread containers of the main loop (scoreSpectraAgainstIndex_()): the candidates and the theoretical
+        // spectrum keep the capacity the thread's largest spectrum needed instead of taking fresh buffers per spectrum
+        ScoringScratch_& scratch = scoringScratch_();
+        FragmentIndex::SpectrumMatchesTopN& top_sms = scratch.top_sms;
+        top_sms.clear();
+        fragment_index.querySpectrum(query, db, top_sms, generators.electronIons(spec));
+
+        // Find the best-scoring hit for this spectrum
+        double best_score = 0;
+        AASequence best_seq;
+        int best_isotope_error = 0;
+        uint16_t best_charge = 0;
+        UInt32 best_protein = 0; // the protein the fragment index records for the peptide of the best hit
+
+        PeakSpectrum& theo = scratch.theo_spectrum;
+        std::vector<uint8_t>& theo_ion_series = scratch.theo_ion_series;
+
+        for (const auto& sms : top_sms.hits_)
+        {
+          const FragmentIndex::Peptide& peptide = fragment_index.getPeptides()[sms.peptide_idx_];
+          AASequence seq = fragment_index.isPeptideMassMode()
+            ? fragment_index.reconstructRealizedSubSequence(peptide, db, sms.realized_length_, sms.subset_bitmask_)
+            : fragment_index.reconstructModifiedSequence(peptide, db);
+
+          // The calibration PSMs are selected with the search's own score (upstream 825c33bb). The mass-accuracy score
+          // favours PSMs with small fragment errors, so it narrows the fragment tolerance estimated from them below
+          // (2-10% narrower than with HyperScore on 12 of 14 ppm runs); selecting by HyperScore instead did not
+          // change the yield measurably.
+          // The peaks of getSpectrum() with the ion series per peak instead of the ion names (no strings, no data
+          // arrays), as the main loop: the same scores. The string path only when the generator cannot (losses, ...).
+          HyperScore::PSMDetail detail;
+          double score;
+          if (tsg.getIonSeriesSpectrum(theo, theo_ion_series, seq, 1, scoringMaxCharge_(sms.precursor_charge_)))
+          {
+            score = mass_accuracy_score_
+              ? HyperScore::computeMassAccuracy(pass_fragment, fragment_mass_tolerance_unit_ppm, spec, theo, theo_ion_series, mass_error_sd_ppm_, detail)
+              : HyperScore::computeWithDetail(pass_fragment, fragment_mass_tolerance_unit_ppm, spec, theo, theo_ion_series, detail);
+          }
+          else
+          {
+            theo.clear(false); // peaks and data arrays; getSpectrum appends, its output is sorted with add_metainfo=true
+            theo.getPrecursors().clear(); // (clear(false) keeps the meta data; getSpectrum() appends a precursor per call)
+            tsg.getSpectrum(theo, seq, 1, scoringMaxCharge_(sms.precursor_charge_));
+            score = mass_accuracy_score_
+              ? HyperScore::computeMassAccuracy(pass_fragment, fragment_mass_tolerance_unit_ppm, spec, theo, mass_error_sd_ppm_, detail)
+              : HyperScore::computeWithDetail(pass_fragment, fragment_mass_tolerance_unit_ppm, spec, theo, detail);
+          }
+
+          if (score > best_score)
+          {
+            best_score = score;
+            best_seq = std::move(seq);
+            best_isotope_error = sms.isotope_error_;
+            best_charge = sms.precursor_charge_;
+            best_protein = peptide.protein_idx;
+          }
+        }
+
+        if (best_score == 0 || best_seq.empty()) continue;
+
+        // Skip PSMs matched at a non-zero isotope offset. Their precursor m/z carries
+        // an extra source of uncertainty (the +1/+2 isotope peak can be ambiguous in
+        // the MS1 precursor picking), which inflates the variance of the calibration
+        // quantile estimate. iso_err=0 PSMs are the gold-standard "true monoisotopic
+        // peak picked" subset — the right population for estimating instrument bias.
+        if (best_isotope_error != 0) continue;
+
+        // Compute precursor error (signed), isotope-corrected. FragmentIndex searches
+        // shifted_mass = precursor_mass + isotope_error * C13C12, so M_theo ≈ N_obs +
+        // isotope_error * C13C12; the observed-to-monoiso m/z correction is
+        //   corrected_mz = observed_mz + isotope_error * C13C12 / charge
+        // Matches the sign used by postProcessHits_'s PRECURSOR_ERROR_PPM annotation.
+        double exp_mz = spec.getPrecursors()[0].getMZ();
+        double theo_mz = best_seq.getMZ(best_charge);
+        double corrected_exp_mz = monoisotopicPrecursorMZ(exp_mz, best_isotope_error, static_cast<double>(best_charge));
+        double prec_err = (precursor_mass_tolerance_unit_ == "ppm")
+                            ? Math::getPPM(corrected_exp_mz, theo_mz)
+                            : (corrected_exp_mz - theo_mz);
+
+        // The signed errors of the fragment peaks the best hit explains, within the pass window ('curve': of all peaks
+        // within the collection window)
+        std::vector<float> frag_errors, frag_mzs;
+        if (!tsg.getIonSeriesSpectrum(theo, theo_ion_series, best_seq, 1, scoringMaxCharge_(best_charge))) // (the same peaks)
+        {
+          theo.clear(false);
+          theo.getPrecursors().clear();
+          tsg.getSpectrum(theo, best_seq, 1, scoringMaxCharge_(best_charge));
+        }
+        // 'curve' models the error at the m/z a peak was measured at: read it from the peaks as measured where they are
+        // at hand (a deisotoped peak has the m/z of the singly charged ion)
+        matchedFragmentErrors(curve ? measured : spec, theo, collect_fragment, fragment_mass_tolerance_unit_ppm, frag_errors, &frag_mzs, curve);
+
+        const bool decoy = !decoy_string.empty() && best_protein < db.size()
+          && (decoy_is_prefix ? StringUtils::hasPrefix(db[best_protein].identifier, decoy_string)
+                              : StringUtils::hasSuffix(db[best_protein].identifier, decoy_string));
+        slots[si] = CalHit{best_score, prec_err, std::move(frag_errors), spec.getRT(), theo_mz, std::move(frag_mzs), decoy};
+        filled[si] = 1;
+        }
+        catch (...)
+        {
+#pragma omp critical (ProSEAlgorithm_calibration_error)
+          {
+            if (!calibration_error) calibration_error = std::current_exception();
+          }
+          calibration_failed.store(true, std::memory_order_relaxed);
+        }
+      }
+      if (calibration_error) std::rethrow_exception(calibration_error);
+      vector<CalHit> cal_hits;
+      cal_hits.reserve(static_cast<Size>(std::count(filled.begin(), filled.end(), 1)));
+      for (Size k = 0; k < subset_size; ++k) { if (filled[k]) cal_hits.push_back(std::move(slots[k])); }
+      vector<CalHit>().swap(slots);
+
+      // The confident half: the top 50 % by score (random matches inflate the tails), if that leaves calibration_min_psms_
+      cal_hits_total = cal_hits.size();
+      std::sort(cal_hits.begin(), cal_hits.end(),
+                [](const CalHit& a, const CalHit& b) { return a.score > b.score; });
+      Size keep = cal_hits.size() / 2;
+      if (keep >= calibration_min_psms_ && keep < cal_hits.size())
+      {
+        cal_hits.resize(keep);
+      }
+
+      // The hits the pass window delivers: the signed error e = observed - theoretical lies in [-upper, +lower] (the
+      // mass-space window is [observed - lower, observed + upper]; the bounds flip for asymmetric windows)
+      for (auto* v : {&precursor_errors, &precursor_mzs, &precursor_rts, &fragment_errors, &fragment_mzs, &fragment_rts}) { v->clear(); }
+      precursor_decoys.clear();
+      for (const auto& h : cal_hits)
+      {
+        if (h.prec_error < -pass_upper || h.prec_error > pass_lower) continue; // wrong match
+        precursor_errors.push_back(h.prec_error);
+        precursor_mzs.push_back(h.prec_mz);
+        precursor_rts.push_back(h.rt);
+        precursor_decoys.push_back(h.decoy);
+        fragment_errors.insert(fragment_errors.end(), h.frag_errors.begin(), h.frag_errors.end());
+        fragment_mzs.insert(fragment_mzs.end(), h.frag_mzs.begin(), h.frag_mzs.end());
+        fragment_rts.insert(fragment_rts.end(), h.frag_errors.size(), h.rt);
+      }
+
+      if (precursor_errors.size() < calibration_min_psms_ && pass_sample > 0)
+      {
+        sample = 0; // (the sample was too small: all spectra of the subset)
+        pass = -1;
+        continue;
+      }
+      if (precursor_errors.size() < calibration_min_psms_)
+      {
+        OPENMS_LOG_WARN << "[ProSE] Calibration: insufficient PSMs (" << precursor_errors.size()
+                        << " < " << calibration_min_psms_
+                        << "), using configured tolerances." << std::endl;
+        return result; // success=false
+      }
+
+      // calibration:recalibrate curve: fit the fragment model to all collected peaks, then keep per theoretical fragment
+      // (consecutive entries of one m/z and RT) the peak closest to the model, if within the pass window: the errors of
+      // the matched peaks, as the other modes measure them
+      fragment_curve = MzRecalibration_();
+      if (curve)
+      {
+        if (fragment_errors.size() >= calibration_min_psms_)
+        {
+          const Size min_peaks = calibration_min_psms_ * fragment_errors.size() / precursor_errors.size();
+          // ponytail: one curve per run (a tenth of the peaks does not pin the ends of a cubic: ten curves cost
+          // identifications on the validation run); curves per RT chunk with a shared shape if a run's curve drifts
+          fragment_curve = MzRecalibration_::fit(fragment_errors, fragment_mzs, fragment_rts, 1, min_peaks, false, true, nullptr, true);
+        }
+        if (pass == 0 && !fragment_curve.active() && pass_sample > 0)
+        {
+          sample = 0; // (no curve from the sample: from all spectra of the subset)
+          pass = -1;
+          continue;
+        }
+        // (a pass after the first that fits no curve keeps the last one)
+        if (pass > 0 && !fragment_curve.active()) { fragment_curve = previous_curve; }
+        double moved = std::numeric_limits<double>::infinity();
+        if (pass > 0 && fragment_curve.active() && previous_curve.active())
+        {
+          moved = MzRecalibration_::curveDistance(previous_curve, fragment_curve, fragment_mzs);
+          OPENMS_LOG_INFO << "[ProSE] Calibration: pass " << pass + 1 << ", the fragment error curve moved by "
+                          << moved << " ppm (95th percentile at the fragments)" << std::endl;
+        }
+        const bool stable = moved <= curve_tolerance;
+        if (fragment_curve.active() && !stable && pass + 1 < max_passes && later_passes)
+        {
+          // A pass identifies and scores the spectra with the pass window on the errors it sees: the first one on the errors
+          // as measured, which holds only the fragments of the best-calibrated m/z range, so fewer and poorer calibration
+          // PSMs and a curve that nothing measures again. So the subset is corrected by the last curve, scored again, and
+          // the curve is fitted again to the peaks as measured of the PSMs of that pass.
+          previous_curve = fragment_curve;
+          OPENMS_LOG_INFO << "[ProSE] Calibration: pass " << pass + 2 << " over the subset, corrected by " << fragment_curve.toString() << std::endl;
+          correcting = fragment_curve;
+          continue;
+        }
+        else if (pass > 0 && fragment_curve.active())
+        {
+          OPENMS_LOG_INFO << "[ProSE] Calibration: fragment error curve " << (stable ? "stable" : "not stable") << " after " << pass + 1
+                          << " passes" << (stable ? "" : " (the limit)") << std::endl;
+        }
+        Size kept = 0;
+        for (Size i = 0; i < fragment_errors.size();)
+        {
+          Size j = i, best = i;
+          double best_distance = std::numeric_limits<double>::max();
+          for (; j < fragment_errors.size() && fragment_mzs[j] == fragment_mzs[i] && fragment_rts[j] == fragment_rts[i]; ++j)
+          {
+            const double distance = std::fabs(fragment_errors[j] - fragment_curve.error(fragment_mzs[j], fragment_rts[j]));
+            if (distance < best_distance) { best_distance = distance; best = j; }
+          }
+          if (best_distance <= pass_fragment)
+          {
+            fragment_errors[kept] = fragment_errors[best];
+            fragment_mzs[kept] = fragment_mzs[i];
+            fragment_rts[kept] = fragment_rts[i];
+            ++kept;
+          }
+          i = j;
+        }
+        fragment_errors.resize(kept);
+        fragment_mzs.resize(kept);
+        fragment_rts.resize(kept);
+      }
+      break;
+    }
+    if (curve && !fragment_curve.active())
     {
-      OPENMS_LOG_WARN << "[ProSE] Calibration: insufficient PSMs (" << precursor_errors.size()
-                      << " < " << calibration_min_psms_
-                      << "), using configured tolerances." << std::endl;
-      return result; // success=false
+      OPENMS_LOG_WARN << "[ProSE] Calibration: no fragment error curve could be fitted (calibration:recalibrate curve); the fragment m/z are not corrected." << std::endl;
     }
 
     // The share of the errors as measured (before a recalibration) that the measured error recordRecalibration_()
@@ -1014,8 +1315,9 @@ namespace OpenMS
         std::tie(result.fragment_raw_shift, result.fragment_raw_sigma) = robust(fragment_errors);
         // chunks of as many PSMs as the precursor model's: the peaks of calibration:min_psms PSMs at least
         const Size min_peaks = calibration_min_psms_ * fragment_errors.size() / precursor_errors.size();
-        result.fragment_recalibration = MzRecalibration_::fit(fragment_errors, fragment_mzs, fragment_rts,
-          calibration_recalibrate_rt_chunks_, min_peaks, linear, fragment_mass_tolerance_unit_ppm);
+        // ('curve' without a ppm tolerance or the peaks as measured: the line)
+        result.fragment_recalibration = curve ? fragment_curve : MzRecalibration_::fit(fragment_errors, fragment_mzs, fragment_rts,
+          calibration_recalibrate_rt_chunks_, min_peaks, linear || calibration_recalibrate_ == "curve", fragment_mass_tolerance_unit_ppm);
         for (Size i = 0; i < fragment_errors.size(); ++i)
         {
           fragment_errors[i] -= result.fragment_recalibration.error(fragment_mzs[i], fragment_rts[i]);
@@ -1123,8 +1425,10 @@ namespace OpenMS
       const double p_sigma = recalibrate ? result.precursor_raw_sigma : result.precursor_sigma;
       const bool p_censored = p_off + 4.0 * p_sigma >= pass_lower || p_off - 4.0 * p_sigma <= -pass_upper;
       result.precursor_measurement_trusted = !p_censored && result.precursor_measured_coverage >= min_coverage_precursor;
-      const double f_off = recalibrate ? result.fragment_raw_shift : result.fragment_shift;
-      const double f_sigma = recalibrate ? result.fragment_raw_sigma : result.fragment_sigma;
+      // ('curve': the errors as measured spread over the curve's range and were collected in a wider window; the pass
+      // window cuts their distances to the curve, the residual errors)
+      const double f_off = recalibrate && !curve ? result.fragment_raw_shift : result.fragment_shift;
+      const double f_sigma = recalibrate && !curve ? result.fragment_raw_sigma : result.fragment_sigma;
       const bool f_censored = measuredError_(f_off, f_sigma) >= pass_fragment;
       result.fragment_measurement_trusted = fragment_errors.size() >= calibration_min_psms_ && !f_censored
                                             && result.fragment_measured_coverage >= min_coverage_fragment;
@@ -1240,7 +1544,7 @@ namespace OpenMS
     if (chunks.empty()) return corrected;
     // correct() maps mz to mz (1 - e(mz) 1e-6), or mz - e(mz) in Da: iterate mz = corrected / (1 - e(mz) 1e-6). Exact
     // after one step for 'offset' (its error does not depend on m/z); for a line in m/z each step shrinks the
-    // remaining difference by a factor of about slope * mz * 1e-6, so three steps suffice.
+    // remaining difference by a factor of about slope * mz * 1e-6 (a curve: its slope), so three steps suffice.
     double mz = corrected;
     for (int step = 0; step < 3; ++step)
     {
@@ -1252,6 +1556,19 @@ namespace OpenMS
     return mz;
   }
 
+  double ProSEAlgorithm::MzRecalibration_::curveDistance(const MzRecalibration_& a, const MzRecalibration_& b,
+                                                         const std::vector<double>& mzs)
+  {
+    if (!a.curve() || !b.curve() || mzs.empty()) return std::numeric_limits<double>::infinity();
+    const Chunk& ca = a.chunks.front();
+    const Chunk& cb = b.chunks.front();
+    std::vector<double> differences(mzs.size());
+    for (Size k = 0; k < mzs.size(); ++k) { differences[k] = std::fabs(ca.error(mzs[k]) - cb.error(mzs[k])); }
+    const auto q95 = differences.begin() + static_cast<std::ptrdiff_t>(0.95 * static_cast<double>(differences.size() - 1));
+    std::nth_element(differences.begin(), q95, differences.end());
+    return *q95;
+  }
+
   std::string ProSEAlgorithm::MzRecalibration_::toString() const
   {
     if (chunks.empty()) return "";
@@ -1260,7 +1577,14 @@ namespace OpenMS
     s << (ppm ? "ppm" : "Da");
     for (const Chunk& c : chunks)
     {
-      s << "; rt " << std::fixed << std::setprecision(1) << c.rt << ": " << std::setprecision(4) << c.intercept;
+      s << "; rt " << std::fixed << std::setprecision(1) << c.rt << ": ";
+      if (c.s_hi > 0.0)
+      {
+        s << "cubic in t = sqrt(mz) scaled from [" << std::setprecision(4) << c.s_lo << ", " << c.s_hi << "] to [-1, 1]: "
+          << c.intercept << " " << c.slope << " " << c.c2 << " " << c.c3 << " (" << c.points << ")";
+        continue;
+      }
+      s << std::setprecision(4) << c.intercept;
       if (c.slope != 0.0) { s << (c.slope < 0 ? " - " : " + ") << std::scientific << std::setprecision(3) << std::fabs(c.slope) << " mz"; }
       s << " (" << c.points;
       if (c.from_neighbours) { s << ", " << c.decoys << " decoys: mostly false matches"; }
@@ -1270,17 +1594,21 @@ namespace OpenMS
   }
 
   ProSEAlgorithm::MzRecalibration_ ProSEAlgorithm::MzRecalibration_::fit(const std::vector<double>& errors, const std::vector<double>& mzs,
-    const std::vector<double>& rts, Size n_chunks, Size min_points, bool linear, bool ppm, const std::vector<char>* decoys)
+    const std::vector<double>& rts, Size n_chunks, Size min_points, bool linear, bool ppm, const std::vector<char>* decoys, bool curve)
   {
     MzRecalibration_ model;
     model.ppm = ppm;
     const Size n = errors.size();
     if (n == 0 || mzs.size() != n || rts.size() != n || (decoys != nullptr && decoys->size() != n)) return model;
+    for (Size i = 0; i < n; ++i) // (values that are not numbers break the orderings below and the histograms of fitErrorCurve())
+    {
+      if (!std::isfinite(errors[i]) || !std::isfinite(mzs[i]) || !std::isfinite(rts[i])) return model;
+    }
     std::vector<Size> order(n);
     std::iota(order.begin(), order.end(), Size(0));
     std::stable_sort(order.begin(), order.end(), [&rts](Size a, Size b) { return rts[a] < rts[b]; });
     n_chunks = std::max<Size>(1, std::min(n_chunks, n / std::max<Size>(1, min_points)));
-    std::vector<char> mostly_false(n_chunks, 0);
+    std::vector<char> mostly_false(n_chunks, 0); // (with decoys only; never with curve, whose chunk may be left out)
     for (Size c = 0; c < n_chunks; ++c)
     {
       const Size begin = n * c / n_chunks, end = n * (c + 1) / n_chunks;
@@ -1296,7 +1624,23 @@ namespace OpenMS
         for (Size i = begin; i < end; ++i) { chunk.decoys += (*decoys)[order[i]] != 0; }
         mostly_false[c] = 4 * chunk.decoys > end - begin; // estimated false matches (2 * decoys) > half of the points
       }
-      if (linear)
+      if (curve && ppm)
+      {
+        Cubic f;
+        Size points = 0;
+        if (fitErrorCurve(e, x, f, points))
+        {
+          chunk.intercept = f.c[0];
+          chunk.slope = f.c[1];
+          chunk.c2 = f.c[2];
+          chunk.c3 = f.c[3];
+          chunk.s_lo = f.lo;
+          chunk.s_hi = f.hi;
+          chunk.points = points;
+        }
+        else { continue; } // no chunk: the median of all peaks within the collection window is no calibration
+      }
+      else if (linear || curve)
       {
         // the least-squares line through the points within 3 sigma of the median (the false matches among the PSMs)
         const double cut = 3.0 * 1.4826 * mad;
@@ -1355,7 +1699,8 @@ namespace OpenMS
   }
 
   void ProSEAlgorithm::applyRecalibration_(const CalibrationResult_& cal, PeakMap& spectra, PeakMap* query_spectra,
-                                           PeakMap* evidence_spectra) const
+                                           PeakMap* evidence_spectra, FragmentIonLikelihoodModel::PeakLists* ion_evidence,
+                                           PeakCharges_* charges) const
   {
     if (!cal.success || !cal.recalibrated()) return;
     const MzRecalibration_& precursor_model = cal.precursor_recalibration;
@@ -1372,6 +1717,21 @@ namespace OpenMS
     {
       for (Peak1D& p : s) { p.setMZ(model.correct(p.getMZ())); } // (monotone for any sane model: the order stays)
     };
+    // 'curve' gives the error at the m/z a peak was measured at, which a deisotoped peak no longer has (its m/z is that
+    // of the singly charged ion): each peak is corrected at its measured m/z (in place, below), or, without the charges
+    // of the peaks, the searched spectra are made again from the corrected peaks as measured (fragment:query_spectrum
+    // raw; a curve is only fitted with these peaks at hand).
+    const bool curve = fragment_model.curve() && query_spectra != nullptr;
+    // In place with the charges of the deisotoped peaks: each peak at the m/z it was measured at, (m + (z - 1) proton) / z,
+    // then moved back to its singly charged ion (as Deisotoper::deisotopeAndSingleCharge()). The ion priors of all peaks
+    // are taken from the corrected fragment-evidence copies, which hold the same peaks; without these copies, rebuilt.
+    // (the ion priors' lists exist with annotate:self_trained_ion_priors only, as preprocessSpectra_() fills them)
+    FragmentIonLikelihoodModel::PeakLists* const ion_lists
+      = self_trained_ion_priors_ && ion_evidence != nullptr && ion_evidence->size() == spectra.size() ? ion_evidence : nullptr;
+    const bool in_place = curve && charges != nullptr && charges->searched.size() == spectra.size()
+                          && (evidence_spectra == nullptr || charges->deisotoped.size() == spectra.size())
+                          && (ion_lists == nullptr || ion_prior_scored_peaks_ || evidence_spectra != nullptr);
+    const bool rebuild = curve && !in_place;
     Size precursors = 0, coisolated = 0, peaks = 0;
 #pragma omp parallel for schedule(static) reduction(+: precursors, coisolated, peaks)
     for (SignedSize i = 0; i < static_cast<SignedSize>(spectra.size()); ++i)
@@ -1399,12 +1759,37 @@ namespace OpenMS
       if (fragment_model.active())
       {
         const MzRecalibration_::AtRT model = fragment_model.at(rt);
-        correct_peaks(s, model);
         if (query_spectra != nullptr) { correct_peaks((*query_spectra)[i], model); }
-        if (evidence_spectra != nullptr) { correct_peaks((*evidence_spectra)[i], model); }
+        if (in_place)
+        {
+          correctAtMeasuredMZ(s, model, charges->searched[i]);
+          if (evidence_spectra != nullptr) { correctAtMeasuredMZ((*evidence_spectra)[i], model, charges->deisotoped[i]); }
+          if (ion_lists != nullptr) { ion_lists->assign(i, ion_prior_scored_peaks_ ? s : (*evidence_spectra)[i]); }
+        }
+        else if (rebuild)
+        {
+          const MSSpectrum& measured = (*query_spectra)[i];
+          // ponytail: clear() drops the data arrays too; those preprocessSpectra_() makes are made again, arrays of the
+          // input carried along (e.g. ion mobility) are lost: copy them from the measured spectrum if a later step reads them
+          s.clear(false); // the peaks; the settings (RT, precursors) stay
+          s.insert(s.end(), measured.begin(), measured.end());
+        }
+        else
+        {
+          correct_peaks(s, model);
+          if (evidence_spectra != nullptr) { correct_peaks((*evidence_spectra)[i], model); }
+        }
         peaks += s.size();
       }
     }
+    if (rebuild) // (the copies are made again with the spectra)
+    {
+      preprocessSpectra_(spectra, fragment_mass_tolerance_, fragment_mass_tolerance_unit_ == "ppm", deisotope_requested_,
+                         peaks_keep_n_, peaks_window_top_, peaks_window_type_, deisotoping_,
+                         self_trained_ion_priors_ ? ion_evidence : nullptr, ion_prior_scored_peaks_, evidence_spectra,
+                         query_spectra);
+    }
+    if (charges != nullptr) { *charges = PeakCharges_(); } // (only needed here)
     OPENMS_LOG_INFO << "[ProSE] Recalibration (" << calibration_recalibrate_ << "): corrected the precursor m/z of " << precursors
                     << " spectra" << (coisolated > 0 ? " and of " + std::to_string(coisolated) + " co-isolated precursors" : std::string())
                     << " and " << peaks << " fragment peaks in place (the PSMs report the observed m/z)" << std::endl;
@@ -1595,7 +1980,8 @@ namespace OpenMS
         y << "      valid: " << bol(st.frag_tol_valid) << "\n";
         y << "      median_ppm: " << num(st.frag_err_median) << "\n";
         y << "      mad_ppm: " << num(st.frag_err_mad) << "\n";
-        y << "      recommended_ppm: " << num(st.frag_err_recommended) << "\n";
+        if (st.frag_err_after_curve) { y << "      after_curve: true\n"; } // (only then: the other reports stay as they were)
+        y << "      recommended_ppm: " << (st.frag_err_after_curve ? std::string("null") : num(st.frag_err_recommended)) << "\n";
         y << "    timing_seconds:\n";
         y << "      calibration: " << num(st.seconds_calibration) << "\n";
         y << "      search: " << num(st.seconds_search) << "\n";
@@ -1835,8 +2221,9 @@ namespace OpenMS
       }
       if (s.frag_tol_valid)
       {
-        os << "[ProSE] Fragment     : median " << std::fixed << std::setprecision(2) << s.frag_err_median
-           << " ppm, MAD " << s.frag_err_mad << "  -> recommend " << static_cast<int>(s.frag_err_recommended) << " ppm\n";
+        os << "[ProSE] Fragment     : median " << std::fixed << std::setprecision(2) << s.frag_err_median << " ppm, MAD " << s.frag_err_mad;
+        if (s.frag_err_after_curve) { os << " (after the curve; the errors as measured: calibration:fragment_error_offset/sigma)\n"; }
+        else { os << "  -> recommend " << static_cast<int>(s.frag_err_recommended) << " ppm\n"; }
       }
     }
 
