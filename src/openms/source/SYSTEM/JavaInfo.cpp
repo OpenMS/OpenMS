@@ -12,6 +12,9 @@
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/SYSTEM/PathUtils.h>
 
+// A WebAssembly module cannot start other programs: there, the functions below report
+// that instead of using Boost.Process (which does not support Emscripten).
+#ifndef __EMSCRIPTEN__
 #include <boost/version.hpp>
 
 // Boost.Process v1 compatibility shims removed in Boost 1.88; use v1/ prefix for 1.88+
@@ -35,12 +38,20 @@ namespace bp = boost::process::v1;
 #else
 namespace bp = boost::process;
 #endif
+#endif // __EMSCRIPTEN__
 
 namespace OpenMS
 {
 
   bool JavaInfo::canRun(const std::string& java_executable, bool verbose_on_error)
   {
+#ifdef __EMSCRIPTEN__
+    if (verbose_on_error)
+    {
+      OPENMS_LOG_ERROR << "Java-Check:\n  Cannot run '" << java_executable << "': WebAssembly does not support running external programs." << std::endl;
+    }
+    return false;
+#else
     try
     {
       bp::ipstream pipe_out;
@@ -112,6 +123,7 @@ namespace OpenMS
       }
       return false;
     }
+#endif
   }
 
 } // namespace OpenMS

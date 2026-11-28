@@ -1,0 +1,36 @@
+{
+  "name": "@OPENMS_WASM_PACKAGE_NAME@",
+  "version": "@OPENMS_PACKAGE_VERSION@",
+  "description": "@OPENMS_WASM_PACKAGE_DESCRIPTION@",
+  "keywords": ["mass-spectrometry", "proteomics", "metabolomics", "webassembly", "openms"],
+  "homepage": "https://www.openms.org",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/OpenMS/OpenMS.git",
+    "directory": "src/openms_wasm"
+  },
+  "license": "BSD-3-Clause",
+  "type": "module",
+  "main": "./openms.mjs",
+  "types": "./openms.d.ts",
+  "exports": {
+    ".": {
+      "types": "./openms.d.ts",
+      "default": "./openms.mjs"
+    },
+    "./openms.wasm": "./openms.wasm",
+    "./openms.data": "./openms.data"
+  },
+  "files": [
+    "openms.mjs",
+    "openms.wasm",
+    "openms.data",
+    "openms.d.ts",
+    "README.md",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "sideEffects": false
+}

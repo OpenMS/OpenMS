@@ -11,6 +11,8 @@
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopePatternGenerator.h>
 #ifdef _MSC_VER
 using uint = unsigned int; // POSIX uint not available on MSVC; was provided transitively via Qt
+#else
+#include <sys/types.h> // POSIX uint; glibc's and Apple's C++ headers include it transitively, Emscripten's (musl) do not
 #endif
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/IsotopeDistribution.h>
 #include <OpenMS/CONCEPT/Constants.h>

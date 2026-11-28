@@ -15,7 +15,9 @@
 #include <OpenMS/FORMAT/DecompressingInputStream.h>
 #include <OpenMS/SYSTEM/CurlInit.h>
 
+#ifdef WITH_CURL
 #include <curl/curl.h>
+#endif
 
 #include <algorithm>
 #include <atomic>
@@ -31,6 +33,7 @@ namespace OpenMS
 {
   namespace
   {
+#ifdef WITH_CURL
 #if LIBCURL_VERSION_NUM >= 0x075500 // 7.85.0
     // The protocols of @p wanted that this libcurl supports, comma-separated (CURLOPT_PROTOCOLS_STR rejects others)
     std::string supportedProtocols(std::initializer_list<const char*> wanted)
@@ -51,6 +54,7 @@ namespace OpenMS
       return list;
     }
 #endif
+#endif // WITH_CURL
 
     // @p text with its %XX escapes decoded
     std::string percentDecoded(std::string_view text)
@@ -71,6 +75,7 @@ namespace OpenMS
       return result;
     }
 
+#ifdef WITH_CURL
     // The options all transfers share; false if the URL or the protocol restriction cannot be set (the transfer must not
     // start then). @p error receives libcurl's error messages.
     bool setUpTransfer(CURL* easy, const std::string& url, char* error)
@@ -568,6 +573,15 @@ private:
       }
       return size;
     }
+#else
+    // Without libcurl (WITH_CURL=OFF, e.g. the WebAssembly build): no transfers
+    [[noreturn]] void throwNoCurl(const std::string& url)
+    {
+      const std::string name = HTTPInputSource::redactURL(url);
+      OPENMS_LOG_ERROR << "Error reading " << name << ": OpenMS was built without network support (WITH_CURL=OFF)" << std::endl;
+      throw Exception::IOException(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, name);
+    }
+#endif // WITH_CURL
   } // namespace
 
   HTTPInputSource::HTTPInputSource(const std::string& url) :
@@ -581,6 +595,9 @@ private:
 
   std::unique_ptr<InputStream> HTTPInputSource::makeStream() const
   {
+#ifndef WITH_CURL
+    throwNoCurl(url_);
+#else
     const std::string name = redactURL(url_);
     auto stream = std::make_unique<CurlInputStream>(url_);
     const auto format = compression(stream->peek(3)); // the response headers are in with its first bytes
@@ -592,11 +609,15 @@ private:
     }
     // a gzip or bzip2 compressed resource (e.g. .mzML.gz), as for a local file
     return decompressed(std::move(stream), name);
+#endif
   }
 
   Int64 HTTPInputSource::objectSize(const std::string& url)
   {
     const HTTPInputSource source(url);
+#ifndef WITH_CURL
+    throwNoCurl(url);
+#else
     const curl_off_t size = StringUtils::hasPrefix(url, "http") ? sizeFromFirstByte(url) : sizeWithoutBody(url);
     if (size < 0)
     {
@@ -605,12 +626,17 @@ private:
       throw Exception::IOException(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, name);
     }
     return static_cast<Int64>(size);
+#endif
   }
 
   std::string HTTPInputSource::readRange(const std::string& url, Int64 offset, Int64 length)
   {
     const HTTPInputSource source(url);
     if (length <= 0) { return {}; }
+#ifndef WITH_CURL
+    (void)offset;
+    throwNoCurl(url);
+#else
     Request request(url);
     RangeCollector collector;
     collector.easy = request.easy();
@@ -623,6 +649,7 @@ private:
     // CURLE_WRITE_ERROR: RangeCollector stopped the transfer once it had all bytes
     request.perform([&](CURLcode result) { return result == CURLE_WRITE_ERROR && static_cast<Int64>(collector.bytes.size()) == length; });
     return collector.bytes;
+#endif
   }
 
   bool HTTPInputSource::isURL(const std::string& url)
