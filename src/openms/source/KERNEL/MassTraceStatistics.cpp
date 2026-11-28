@@ -271,7 +271,8 @@ namespace OpenMS::MassTraceStatistics
     {
       double w_i = peak.getIntensity();
       total_weight += w_i;
-      weighted_sum += w_i * std::exp(2 * std::log(std::abs(peak.getMZ() - centroid_mz)));
+      const double d = peak.getMZ() - centroid_mz;
+      weighted_sum += w_i * (d * d); // not exp(2 * log|d|): + and * give the same bits on every platform
     }
 
     if (total_weight < std::numeric_limits<double>::epsilon())

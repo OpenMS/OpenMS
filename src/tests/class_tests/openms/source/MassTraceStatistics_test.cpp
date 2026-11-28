@@ -16,6 +16,8 @@
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/KERNEL/MassTrace.h>
 
+#include <cstdint>
+#include <cstring>
 #include <vector>
 
 ///////////////////////////
@@ -90,6 +92,37 @@ START_SECTION((double weightedMZsd(PeakRange peaks, double centroid_mz)))
   TEST_REAL_SIMILAR(MassTraceStatistics::weightedMZsd(center, 100.2), 0.0707106781)
   TEST_EXCEPTION(Exception::InvalidValue, MassTraceStatistics::weightedMZsd(no_peaks, 100.2))
   TEST_EXCEPTION(Exception::InvalidValue, MassTraceStatistics::weightedMZsd(MassTraceStatistics::PeakRange(peaks).first(1), 100.2))
+}
+END_SECTION
+
+START_SECTION([EXTRA] weightedMZsd(): the same bits on every platform)
+{
+  // weightedMZsd() and weightedMeanMZ() use + * / and sqrt only. IEEE 754 rounds these correctly, so their results
+  // have to be bit-identical on every platform. The platform exp/log are not (glibc, Apple's libm and the Windows UCRT
+  // differ in the last bit), and an FMA contraction rounds differently too. So a different hash on one platform means
+  // that a libm function or a contraction got into them, e.g. a build without -ffp-contract=off.
+  std::uint64_t state = 1;
+  auto next = [&state]() { state = state * 6364136223846793005ULL + 1442695040888963407ULL; return state; };
+  std::uint64_t hash = 14695981039346656037ULL; // FNV-1a over the bits of the 1000 results
+  for (Size t = 0; t < 1000; ++t)
+  {
+    vector<Peak2D> trace(5 + next() % 16); // short traces: one result reflects few roundings
+    for (Size i = 0; i < trace.size(); ++i)
+    {
+      const std::uint64_t r = next(); // integer generator: the same inputs everywhere
+      trace[i].setRT(static_cast<double>(i));
+      trace[i].setMZ(500.0 + (static_cast<double>((r >> 33) % 20001) - 10000.0) * 1e-6); // 500 +- 0.01
+      trace[i].setIntensity(static_cast<Peak2D::IntensityType>(1 + (r >> 44)));          // 1 .. 2^20, exact in float
+    }
+    const double sd = MassTraceStatistics::weightedMZsd(trace, MassTraceStatistics::weightedMeanMZ(trace));
+    std::uint64_t bits;
+    std::memcpy(&bits, &sd, sizeof(bits));
+    for (int byte = 0; byte < 8; ++byte)
+    {
+      hash = (hash ^ ((bits >> (8 * byte)) & 0xffULL)) * 1099511628211ULL;
+    }
+  }
+  TEST_EQUAL(hash, 12490999780712422169ULL)
 }
 END_SECTION
 
