@@ -309,19 +309,29 @@ START_SECTION(void makePeakPositionUnique(PeakContainerT& p, const int m) )
   TEST_REAL_SIMILAR(c[3].getIntensity(), 7)
   
   s = s_template;
+  s.updateRanges();
   makePeakPositionUnique(s, IntensityAveragingMethod::SUM);
   TEST_REAL_SIMILAR(s[0].getIntensity(), 1)
   TEST_REAL_SIMILAR(s[1].getIntensity(), (4+8+10))
   TEST_REAL_SIMILAR(s[2].getIntensity(), 9)
   TEST_REAL_SIMILAR(s[3].getIntensity(), 7)
-  
+  // the ranges describe the merged peaks (the summed intensity exceeds every input intensity)
+  TEST_REAL_SIMILAR(s.getMinMZ(), 1)
+  TEST_REAL_SIMILAR(s.getMaxMZ(), 4)
+  TEST_REAL_SIMILAR(s.getMinIntensity(), 1)
+  TEST_REAL_SIMILAR(s.getMaxIntensity(), (4+8+10))
+
   c = c_template;
+  c.updateRanges();
   makePeakPositionUnique(c, IntensityAveragingMethod::SUM);
   TEST_REAL_SIMILAR(c[0].getIntensity(), 1)
   TEST_REAL_SIMILAR(c[1].getIntensity(), (4+8+10))
   TEST_REAL_SIMILAR(c[2].getIntensity(), 9)
   TEST_REAL_SIMILAR(c[3].getIntensity(), 7)
-  
+  TEST_REAL_SIMILAR(c.getMinRT(), 1)
+  TEST_REAL_SIMILAR(c.getMaxRT(), 4)
+  TEST_REAL_SIMILAR(c.getMaxIntensity(), (4+8+10))
+
   s = s_template;
   makePeakPositionUnique(s, IntensityAveragingMethod::MIN);
   TEST_REAL_SIMILAR(s[0].getIntensity(), 1)
@@ -390,6 +400,7 @@ START_SECTION(void makePeakPositionUnique(PeakContainerT& p, const int m) )
   TEST_EQUAL(s.getIMFormat() == IMFormat::UNKNOWN, true)
   TEST_EQUAL(IMTypes::determineIMFormat(s) == IMFormat::NONE, true)
   TEST_EQUAL(s.getIMPeakType() == IMPeakType::UNKNOWN, true)
+  TEST_TRUE(s.RangeMobility::isEmpty())
 
   s = im_template;
   s.setDriftTime(1.1);
@@ -398,6 +409,8 @@ START_SECTION(void makePeakPositionUnique(PeakContainerT& p, const int m) )
   TEST_EQUAL(s.size(), 2)
   TEST_REAL_SIMILAR(s.getDriftTime(), 1.1)
   TEST_EQUAL(IMTypes::determineIMFormat(s) == IMFormat::IM_SPECTRUM, true)
+  TEST_REAL_SIMILAR(s.getMinMobility(), 1.1)
+  TEST_REAL_SIMILAR(s.getMaxMobility(), 1.1)
 
   // without an ion mobility array, an explicit spectrum-level IM annotation is kept
   s = s_template;
@@ -423,6 +436,9 @@ START_SECTION(void makePeakPositionUnique(PeakContainerT& p, const int m) )
   TEST_REAL_SIMILAR(mb[1].getIntensity(), 5.0)
   TEST_REAL_SIMILAR(mb.getRT(), 42.0)
   TEST_EQUAL(mb.getDriftTimeUnit() == DriftTimeUnit::VSSC, true)
+  TEST_REAL_SIMILAR(mb.getMinMobility(), 0.9)
+  TEST_REAL_SIMILAR(mb.getMaxMobility(), 1.0)
+  TEST_REAL_SIMILAR(mb.getMaxIntensity(), 5.0)
 
   MSSpectrum s_empty;
   makePeakPositionUnique(s_empty);
@@ -431,6 +447,23 @@ START_SECTION(void makePeakPositionUnique(PeakContainerT& p, const int m) )
   MSChromatogram c_empty;
   makePeakPositionUnique(c_empty);
   TEST_EQUAL(c_empty.size(), 0)
+
+  // an emptied container does not keep the ranges of its former peaks
+  s = s_template;
+  s.updateRanges();
+  s.resize(0);
+  makePeakPositionUnique(s);
+  TEST_EQUAL(s.size(), 0)
+  TEST_TRUE(s.RangeMZ::isEmpty())
+  TEST_TRUE(s.RangeIntensity::isEmpty())
+
+  c = c_template;
+  c.updateRanges();
+  c.resize(0);
+  makePeakPositionUnique(c);
+  TEST_EQUAL(c.size(), 0)
+  TEST_TRUE(c.RangeRT::isEmpty())
+  TEST_TRUE(c.RangeIntensity::isEmpty())
 }
 END_SECTION
 

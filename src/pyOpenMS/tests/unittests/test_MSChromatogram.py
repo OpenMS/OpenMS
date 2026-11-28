@@ -24,6 +24,11 @@ def test_mschromatogram_copy_meta_data_from():
 
     target = MSChromatogram()
     target.set_peaks([[5.0, 6.0], [30.0, 40.0]])
+    target_fda = FloatDataArray()
+    target_fda.setName("target")
+    target_fda.push_back(7.0)
+    target_fda.push_back(8.0)
+    target.setFloatDataArrays([target_fda])
 
     target.copyMetaDataFrom(source)
 
@@ -36,7 +41,10 @@ def test_mschromatogram_copy_meta_data_from():
     rt, intensity = target.get_peaks()
     assert list(rt) == pytest.approx([5.0, 6.0])
     assert list(intensity) == pytest.approx([30.0, 40.0])
-    assert len(target.getFloatDataArrays()) == 0
+    target_fdas = target.getFloatDataArrays()
+    assert len(target_fdas) == 1
+    assert target_fdas[0].getName() == "target"
+    assert list(target_fdas[0].get_data()) == pytest.approx([7.0, 8.0])
 
     assert source.size() == 1
     assert len(source.getFloatDataArrays()) == 1
