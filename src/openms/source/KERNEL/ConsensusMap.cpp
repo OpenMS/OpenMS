@@ -566,14 +566,24 @@ namespace OpenMS
   {
     StringList ms_path;
     e.getPrimaryMSRunPath(ms_path);
-    if (ms_path.size() == 1 && StringUtils::hasSuffix(ms_path[0], "mzML") && File::exists(ms_path[0]))
+    if (ms_path.size() == 1 && StringUtils::hasSuffix(ms_path[0], "mzML"))
     {
-      setPrimaryMSRunPath(ms_path);
+      const std::string local_path = File::localPath(ms_path[0]);
+      // ms_path[0] comes from the mzML's own, unauthenticated source metadata;
+      // never probe a remote share's authority it may name. A single path also
+      // can't fill several existing columns, so leave that case to the fallback
+      // list below rather than letting setPrimaryMSRunPath() throw on it. Also
+      // require the same file name as the fallback, so tools that match runs
+      // by name (e.g. IDMapper) keep seeing the name they already expect.
+      if (!File::isRemoteAuthorityPath(local_path) && File::exists(local_path) &&
+          column_description_.size() <= 1 &&
+          (s.empty() || File::basename(local_path) == File::basename(s[0])))
+      {
+        setPrimaryMSRunPath(StringList{local_path});
+        return;
+      }
     }
-    else
-    {
-      setPrimaryMSRunPath(s);
-    }
+    setPrimaryMSRunPath(s);
   }
 
   void ConsensusMap::getPrimaryMSRunPath(StringList& toFill) const
