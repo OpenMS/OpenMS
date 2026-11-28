@@ -560,8 +560,9 @@ namespace OpenMS
 
   double FeatureFindingMetabo::traceMZVariance_(const MassTrace& mt) const
   {
-    // historic: spread of the peaks (exp/log form kept so results stay identical)
-    double spread_variance(std::exp(2 * std::log(mt.getCentroidSD())));
+    // spread of the peaks (a plain product, not exp(2 * log(sd)): + * and sqrt give the same bits on every platform)
+    const double centroid_sd(mt.getCentroidSD());
+    double spread_variance(centroid_sd * centroid_sd);
     if (!mz_scoring_trace_se_)
     {
       return spread_variance;
@@ -628,9 +629,8 @@ namespace OpenMS
     double mz_score(0.0);
 
     //standard deviation including the estimated isotope deviation
-    double score_sigma(std::sqrt(std::exp(2 * std::log(sd)) + mt_variances));
-
-    // std::cout << std::setprecision(15) << "old " << score_sigma_old << " new " << score_sigma << '\n';
+    // (iso_pos >= 1, so sd > 0)
+    double score_sigma(std::sqrt(sd * sd + mt_variances));
 
     if ((diff_mz < mu + sigma_mult * score_sigma) && (diff_mz > mu - sigma_mult * score_sigma))
     {
@@ -902,7 +902,7 @@ namespace OpenMS
           double total_pair_score(0.0);
           if (rt_score > 0.0 && mz_score > 0.0 && int_score > 0.0)
           {
-            total_pair_score = std::exp(std::log(rt_score) + log(mz_score) + log(int_score));
+            total_pair_score = rt_score * mz_score * int_score;
           }
           if (total_pair_score > best_so_far)
           {
