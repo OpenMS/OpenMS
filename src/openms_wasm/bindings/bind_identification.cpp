@@ -97,6 +97,18 @@ namespace OpenMS::WASM
     void hitSetSequenceString(PeptideHit& h, const std::string& s) { h.setSequence(AASequence::fromString(s)); }
     void hitSetCharge(PeptideHit& h, int charge) { h.setCharge(charge); }
     JS::StringArray hitProteinAccessions(const PeptideHit& h) { return toArray(h.extractProteinAccessionsSet()); }
+    /// The fragment ions matched to peaks of the (preprocessed) spectrum, as the search engine annotated them
+    JS::PeakAnnotations hitPeakAnnotations(const PeptideHit& h)
+    {
+      return toArray(h.getPeakAnnotations(), [](const PeptideHit::PeakAnnotation& a) {
+        val o = val::object();
+        o.set("mz", a.mz);
+        o.set("intensity", a.intensity);
+        o.set("annotation", a.annotation);
+        o.set("charge", a.charge);
+        return o;
+      });
+    }
 
     //------------------------------------------------------------------------------
     // PeptideIdentification
@@ -179,6 +191,7 @@ EMSCRIPTEN_BINDINGS(openms_identification)
     .function("setRank", OMS_METHOD(PeptideHit, &PeptideHit::setRank))
     .function("isDecoy", OMS_METHOD(PeptideHit, &PeptideHit::isDecoy))
     .function("getProteinAccessions", OMS_FN(&hitProteinAccessions))
+    .function("getPeakAnnotations", OMS_FN(&hitPeakAnnotations))
     .function("getMetaValue", OMS_FN(&metaValue<PeptideHit>))
     .function("setMetaValue", OMS_FN(&setMetaValue<PeptideHit>))
     .function("getMetaValues", OMS_FN(&metaValuesToObject<PeptideHit>))

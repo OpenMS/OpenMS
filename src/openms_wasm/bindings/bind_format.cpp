@@ -6,9 +6,9 @@
 // $Authors: Timo Sachsenberg $
 // --------------------------------------------------------------------------
 
-// Reading and writing files (FORMAT/). Paths refer to Emscripten's virtual file system
-// (OpenMS.FS): write a file there first (FS.writeFile) or mount a directory (Node.js:
-// NODEFS, browser workers: WORKERFS). MzMLFile also reads and writes strings directly.
+// Reading and writing files (FORMAT/). Paths refer to the module's virtual file system
+// (OpenMS.FS, WasmFS): write a file there first (FS.writeFile) or, in Node.js, mount a
+// directory of the host (mountHostDirectory). MzMLFile also reads and writes strings directly.
 
 #include "binding_utils.h"
 

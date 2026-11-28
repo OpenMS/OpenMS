@@ -11,7 +11,9 @@
 // one without. Each scenario loads the module on the page or in a Web Worker and checks:
 // that it starts (a threaded module with a fixed worker pool would hang on a page that is
 // not isolated), the threads it reports, and the results of feature finding and a database
-// search. --benchmark adds a larger search at 1, 2 and 4 threads and prints the timings.
+// search; some also search two files with searchFiles() file by file (provideFile, in a Web Worker with
+// FileReaderSync), which has to give the results of the search with both files there, or 12 files at once.
+// --benchmark adds a larger search at 1, 2 and 4 threads and prints the timings.
 //
 // Environment: PLAYWRIGHT_MODULE  the playwright or playwright-core package (path or name;
 //                                 default: playwright)
@@ -46,7 +48,10 @@ const roots = {
   "/data/topp/": path.join(sourceRoot, "src/tests/topp"),
   "/data/examples/": path.join(sourceRoot, "share/OpenMS/examples/TOPPAS/data"),
 };
-const types = { ".html": "text/html", ".mjs": "text/javascript", ".js": "text/javascript", ".wasm": "application/wasm" };
+const types = {
+  ".html": "text/html", ".mjs": "text/javascript", ".js": "text/javascript", ".wasm": "application/wasm",
+  ".css": "text/css", ".json": "application/json",
+};
 
 function serve(isolated) {
   const server = http.createServer((request, response) => {
@@ -75,13 +80,13 @@ function serve(isolated) {
 const expectedPeptides = ["DFASSGGYVLHLHR", "IALSRPNVEVVALNDPFITNDYAAYM(Oxidation)FK", "RPGADSDIGGFGGLFDLAQAGFR"];
 
 const scenarios = [
-  { isolated: false, host: "worker", numThreads: 4 },
+  { isolated: false, host: "worker", numThreads: 4, files: true },
   { isolated: false, host: "window" },
-  { isolated: true, host: "worker" },
+  { isolated: true, host: "worker", files: true },
   { isolated: true, host: "worker", numThreads: 1 },
-  { isolated: true, host: "window", numThreads: 2 },
+  { isolated: true, host: "window", numThreads: 2, files: true },
 ];
-if (withThreads) scenarios.push({ isolated: true, host: "worker", numThreads: 4 });
+if (withThreads) scenarios.push({ isolated: true, host: "worker", numThreads: 4, manyFiles: 12 });
 if (benchmark) {
   for (const n of withThreads ? [1, 2, 4] : [1]) {
     scenarios.push({ isolated: true, host: "worker", numThreads: n, benchmark: true });
@@ -111,7 +116,8 @@ console.log(`${packageName}${assembled ? " (assembled, loader)" : ""} in ${brows
 let failures = 0;
 let reference;
 for (const s of scenarios) {
-  const name = `${s.isolated ? "isolated" : "not isolated"}, ${s.host}, numThreads ${s.numThreads ?? "default"}${s.benchmark ? ", benchmark" : ""}`;
+  const name = `${s.isolated ? "isolated" : "not isolated"}, ${s.host}, numThreads ${s.numThreads ?? "default"}${s.files ? ", files" : ""}` +
+    `${s.manyFiles ? `, ${s.manyFiles} files` : ""}${s.benchmark ? ", benchmark" : ""}`;
   const problems = [];
   const context = await browser.newContext();
   const page = await context.newPage();
@@ -119,6 +125,8 @@ for (const s of scenarios) {
   const query = new URLSearchParams({ module: assembled ? "/pkg/index.mjs" : "/pkg/openms.mjs", host: s.host });
   if (s.numThreads) query.set("numThreads", s.numThreads);
   if (s.benchmark) query.set("benchmark", "1");
+  if (s.files) query.set("fileByFile", "1");
+  if (s.manyFiles) query.set("manyFiles", s.manyFiles);
   const port = servers[s.isolated].address().port;
   let outcome;
   try {
@@ -148,20 +156,123 @@ for (const s of scenarios) {
     if (r.search.status !== "EXECUTION_OK" || JSON.stringify(peptides) !== JSON.stringify(expectedPeptides)) {
       problems.push(`search: ${r.search.status}, ${JSON.stringify(peptides)}`);
     }
+    if (r.prose.status !== "EXECUTION_OK" || JSON.stringify(r.prose.hits) !== JSON.stringify(expectedPeptides)) {
+      problems.push(`ProSE: ${r.prose.status}, ${JSON.stringify(r.prose.hits)}`);
+    }
+    if (!r.prose.progressLabels.includes("Building fragment index...")) {
+      problems.push(`ProSE progress: ${JSON.stringify(r.prose.progressLabels)}`);
+    }
+    if (s.files) {
+      const f = r.files;
+      if (!f || f.psms === 0 || !f.equal) problems.push(`searchFiles file by file: ${JSON.stringify(f)} (results equal to those with all files there: ${f?.equal})`);
+      if (f && JSON.stringify(f.calls) !== JSON.stringify(["provide 0", "release 0", "provide 1", "release 1"])) problems.push(`searchFiles file by file: calls ${JSON.stringify(f.calls)}`);
+      if (f && f.left.length) problems.push(`searchFiles file by file: files left ${JSON.stringify(f.left)}`);
+      if (f && f.fileReaderSync !== (s.host === "worker")) problems.push(`searchFiles file by file: FileReaderSync ${f.fileReaderSync} on the ${s.host}`);
+    }
+    if (s.manyFiles && (r.manyFiles?.files !== s.manyFiles || !(r.manyFiles.psms > 0))) {
+      problems.push(`searchFiles of ${s.manyFiles} files: ${JSON.stringify(r.manyFiles)}`);
+    }
     // in a Web Worker, OpenMS must not block the page (the window host blocks it by design)
     if (s.host === "worker" && outcome.maxStallMs > 500) problems.push(`page blocked for ${outcome.maxStallMs} ms`);
   }
 
   failures += problems.length ? 1 : 0;
   const t = r?.timings ?? {};
-  const details = r ? `threads ${r.info.numThreads}; start ${t.start} ms, features ${t.featureFinding} ms, search ${t.search} ms` +
+  const details = r ? `threads ${r.info.numThreads}; start ${t.start} ms, features ${t.featureFinding} ms, search ${t.search} ms, ProSE ${t.prose} ms` +
+    (r.files ? `, searchFiles file by file ${t.files} ms (${r.files.psms} PSMs)` : "") +
+    (r.manyFiles ? `, searchFiles of ${r.manyFiles.files} files ${t.manyFiles} ms (${r.manyFiles.psms} PSMs)` : "") +
     (r.benchmark ? `, benchmark search ${t.benchmarkSearch} ms (${r.benchmark.psms} PSMs)` : "") +
     `; page blocked at most ${outcome.maxStallMs} ms` : "";
   console.log(`${problems.length ? "FAIL" : "ok  "} ${name}: ${details}`);
   for (const p of problems) console.log(`       ${p}`);
 }
 
+// The demo application (examples/browser, not in the assembled package) with its service worker
+// (examples/sw.js) on the server without isolation headers: the worker has to serve the page, make
+// it cross-origin isolated (threads), and keep serving it on a second visit (the module from its store).
+// Also:
+// - The worker is registered once, with its own directory (examples/) as scope, not the page's.
+// - On the first visit, the worker claims the page before navigator.serviceWorker.ready resolves
+//   (forced here; it happens by chance otherwise). The page has a controller then, but the worker
+//   did not serve it: the page has to reload all the same.
+// - The worker drops its own stores of another version, and no other stores of the origin (e.g.
+//   those of another application on the same site).
+let total = scenarios.length;
+if (fs.existsSync(path.join(packageDir, "examples/browser/index.html"))) {
+  ++total;
+  const port = servers[false].address().port;
+  const origin = `http://127.0.0.1:${port}`;
+  const context = await browser.newContext();
+  const problems = [];
+  let status = "";
+  const foreignStores = ["prose-app-0123456789ab", "openms-module-0123456789ab", "another-app"];
+  const oldStore = "openms-module-0.0.1";
+  {
+    const page = await context.newPage();
+    await page.goto(`${origin}/pkg/package.json`); // any document of the origin
+    await page.evaluate((names) => Promise.all(names.map((name) => caches.open(name))), [...foreignStores, oldStore]);
+    await page.close();
+  }
+  for (let visit = 1; visit <= 2; ++visit) {
+    const page = await context.newPage();
+    page.on("pageerror", (e) => problems.push(`visit ${visit}: page error: ${e.message}`));
+    if (visit === 1) {
+      await page.addInitScript(() => {
+        // navigator.serviceWorker.ready resolves only once the worker controls the page
+        const container = navigator.serviceWorker;
+        if (!container) return;
+        const ready = Object.getOwnPropertyDescriptor(Object.getPrototypeOf(container), "ready").get;
+        Object.defineProperty(container, "ready", {
+          get: () => ready.call(container).then((registration) => container.controller ? registration :
+            new Promise((resolve) => container.addEventListener("controllerchange", () => resolve(registration), { once: true }))),
+        });
+      });
+    }
+    try {
+      await page.goto(`http://127.0.0.1:${port}/pkg/examples/browser/index.html`); // (the server serves files only)
+      // (the page reloads itself once on the first visit: poll instead of waiting on one document)
+      const deadline = Date.now() + 180000;
+      let state = null;
+      while (Date.now() < deadline) {
+        try {
+          state = await page.evaluate(() => ({
+            status: document.getElementById("status").textContent,
+            isolated: crossOriginIsolated,
+            controlled: !!navigator.serviceWorker.controller,
+          }));
+          if (/is ready|could not|failed/i.test(state.status)) break;
+        } catch {
+          // navigating
+        }
+        await page.waitForTimeout(250);
+      }
+      status = state?.status ?? "(no status)";
+      if (!state?.controlled) problems.push(`visit ${visit}: the service worker does not serve the page`);
+      if (!state?.isolated) problems.push(`visit ${visit}: the page is not cross-origin isolated`);
+      if (!/is ready/.test(status)) problems.push(`visit ${visit}: ${status}`);
+      const scopes = await page.evaluate(async () => (await navigator.serviceWorker.getRegistrations()).map((r) => r.scope));
+      if (JSON.stringify(scopes) !== JSON.stringify([`${origin}/pkg/examples/`])) {
+        problems.push(`visit ${visit}: service worker scopes ${JSON.stringify(scopes)}, expected one: ${origin}/pkg/examples/`);
+      }
+      const stores = await page.evaluate(() => caches.keys());
+      const missing = foreignStores.filter((name) => !stores.includes(name));
+      if (missing.length) problems.push(`visit ${visit}: the worker dropped stores not its own: ${JSON.stringify(missing)}`);
+      if (stores.includes(oldStore)) problems.push(`visit ${visit}: the worker kept its store of another version (${oldStore})`);
+      if (!stores.some((name) => /^openms-module-\d/.test(name) && name !== oldStore)) {
+        problems.push(`visit ${visit}: no module store: ${JSON.stringify(stores)}`);
+      }
+    } catch (e) {
+      problems.push(`visit ${visit}: ${e.message.split("\n")[0]}`);
+    }
+    await page.close();
+  }
+  await context.close();
+  failures += problems.length ? 1 : 0;
+  console.log(`${problems.length ? "FAIL" : "ok  "} demo application with its service worker, not isolated server: ${status}`);
+  for (const p of problems) console.log(`       ${p}`);
+}
+
 await browser.close();
 for (const server of Object.values(servers)) server.close();
-console.log(failures ? `${failures} of ${scenarios.length} scenarios failed` : `all ${scenarios.length} scenarios passed`);
+console.log(failures ? `${failures} of ${total} scenarios failed` : `all ${total} scenarios passed`);
 process.exit(failures ? 1 : 0);

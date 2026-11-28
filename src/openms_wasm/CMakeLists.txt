@@ -81,6 +81,8 @@ add_executable(openms_wasm
   bindings/bind_kernel.cpp
   bindings/bind_misc.cpp
   bindings/bind_processing.cpp
+  bindings/bind_prose.cpp
+  bindings/bind_prose_tables.cpp
   bindings/js_types.cpp
 )
 target_link_libraries(openms_wasm PRIVATE OpenMS)
@@ -105,10 +107,22 @@ target_link_options(openms_wasm PRIVATE
   "-sEXPORT_ES6=1"
   "-sEXPORT_NAME=createOpenMS"
   "-sENVIRONMENT=web,worker,node"
-  # the virtual file system, with Node.js directories (NODEFS) and browser File objects (WORKERFS) as mountable backends
+  # The virtual file system: WasmFS, the file system implemented in C++ inside the module, not
+  # the JavaScript one. In the threaded build, the JavaScript file system lives on the main
+  # thread and every file read of another thread waits for it; ProSE reads the spectra on a
+  # helper thread while the main thread's team builds the index, and so got them too late to
+  # restrict the index (a search against the human proteome took 8.7 s instead of 5.8 s). With
+  # WasmFS, threads read directly. Directories of the host (Node.js) are mounted with
+  # mountHostDirectory() (bindings/bind_misc.cpp); files of a browser are written to it.
+  "-sWASMFS=1"
   "-sFORCE_FILESYSTEM=1"
-  "-lnodefs.js"
-  "-lworkerfs.js"
+  # Host files (mountHostDirectory()): an open or a close that fails reports its error with the sign
+  # the backend expects. Emscripten's took the errno of an open for a file descriptor of the Node.js
+  # process (wasmfs_node.js). SHELL: like the --pre-js below, so that CMake cannot drop it as a duplicate.
+  "SHELL:--js-library \"${CMAKE_CURRENT_SOURCE_DIR}/wasmfs_node.js\""
+  # FS.writeFile(), FS.write() and FS.read() throw ENOMEM where the memory cannot hold their buffer (Emscripten's
+  # wrote the data from address 0 then), and FS.write() copies its data in one piece (wasmfs_fs.js)
+  "SHELL:--js-library \"${CMAKE_CURRENT_SOURCE_DIR}/wasmfs_fs.js\""
   "-sEXPORTED_RUNTIME_METHODS=FS,ENV"
   # A library module: keep the runtime alive between calls.
   "-sEXIT_RUNTIME=0"
@@ -120,7 +134,8 @@ elseif(OPENMS_WASM_SHARE STREQUAL "PRELOAD")
   target_link_options(openms_wasm PRIVATE "--preload-file" "${_share_stage}@/share/OpenMS")
 endif()
 # Relink when the data or the link options change.
-set_property(TARGET openms_wasm APPEND PROPERTY LINK_DEPENDS "${_share_stamp}")
+set_property(TARGET openms_wasm APPEND PROPERTY LINK_DEPENDS "${_share_stamp}" "${CMAKE_CURRENT_SOURCE_DIR}/wasmfs_node.js"
+             "${CMAKE_CURRENT_SOURCE_DIR}/wasmfs_fs.js")
 
 ## Threads: threads.js chooses the number of threads (Module.numThreads, OMP_NUM_THREADS)
 ## and the number of Web Workers started with the module (openmsThreadPoolSize): none
@@ -128,9 +143,18 @@ set_property(TARGET openms_wasm APPEND PROPERTY LINK_DEPENDS "${_share_stamp}")
 ## memory (not cross-origin isolated), where the module then runs single-threaded. A
 ## fixed pool size would make the module hang at startup on such pages.
 if(OPENMS_WASM_THREADS)
+  ## ONNX Runtime starts a pool of threads of its own (onnx.js; before threads.js, which counts them).
+  ## SHELL: CMake would drop the second "--pre-js" as a duplicate option
+  if(WITH_ONNX)
+    target_link_options(openms_wasm PRIVATE "SHELL:--pre-js \"${CMAKE_CURRENT_SOURCE_DIR}/onnx.js\"")
+    set_property(TARGET openms_wasm APPEND PROPERTY LINK_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/onnx.js")
+  endif()
   target_link_options(openms_wasm PRIVATE
     "--pre-js" "${CMAKE_CURRENT_SOURCE_DIR}/threads.js"
-    "-sPTHREAD_POOL_SIZE=openmsThreadPoolSize")
+    "-sPTHREAD_POOL_SIZE=openmsThreadPoolSize"
+    # threads.js starts the Workers of the threads from a Blob (Module.mainScriptUrlOrBlob), which
+    # the module only reads if named here (Emscripten's default list plus that one)
+    "-sINCOMING_MODULE_JS_API=ENVIRONMENT,arguments,canvas,dynamicLibraries,elementPointerLock,instantiateWasm,locateFile,monitorRunDependencies,noExitRuntime,noInitialRun,onAbort,onExit,onRuntimeInitialized,postRun,preInit,preRun,print,printErr,setStatus,statusMessage,stderr,stdin,stdout,thisProgram,wasm,websocket,mainScriptUrlOrBlob")
   set_property(TARGET openms_wasm APPEND PROPERTY LINK_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/threads.js")
   set(OPENMS_WASM_PACKAGE_NAME "@openms/openms-wasm-mt")
   set(OPENMS_WASM_PACKAGE_DESCRIPTION "OpenMS, the C++ library for computational mass spectrometry, compiled to multi-threaded WebAssembly (OpenMP) for web applications and Node.js")
@@ -149,6 +173,13 @@ add_custom_command(TARGET openms_wasm POST_BUILD
   # the demo web application (not part of the npm package: see "files" in package.json)
   COMMAND ${CMAKE_COMMAND} -E copy_directory "${CMAKE_CURRENT_SOURCE_DIR}/examples" "${OPENMS_WASM_PACKAGE_DIR}/examples"
   VERBATIM)
+## ONNX Runtime: the PeptDeep models next to the module (models/, not part of the npm package
+## either), for applications to load when needed: 22 MB that most uses of the module do not need.
+if(WITH_ONNX)
+  add_custom_command(TARGET openms_wasm POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_directory "${OPENMS_PEPTDEEP_MODEL_DIR}" "${OPENMS_WASM_PACKAGE_DIR}/models"
+    VERBATIM)
+endif()
 
 #------------------------------------------------------------------------------
 # Tests: the bindings, run with Node.js (node --test)

@@ -21,6 +21,8 @@
 #include <emscripten/val.h>
 
 #include <cstdint>
+#include <new>
+#include <stdexcept>
 #include <string>
 #include <type_traits>
 #include <utility>
@@ -49,6 +51,15 @@ namespace OpenMS::WASM
     {
       return std::string(e.getName()) + ": " + e.what();
     }
+    // Memory: a wasm32 module addresses at most 4 GB (and its memory does not shrink again)
+    catch (const std::bad_alloc&)
+    {
+      return "OutOfMemory: an allocation failed (a WebAssembly module can address at most 4 GB)";
+    }
+    catch (const std::length_error& e)
+    {
+      return std::string("OutOfMemory: ") + e.what() + ": a container would exceed what a 32-bit WebAssembly module can address";
+    }
     catch (const std::exception& e)
     {
       return e.what();
@@ -57,6 +68,27 @@ namespace OpenMS::WASM
     {
       return "unknown C++ exception";
     }
+  }
+
+  /// A fatal error of the module that a JavaScript callback raised (a WebAssembly.RuntimeError of an abort, or a raw
+  /// WebAssembly.Exception), carried through the C++ frames of the call that ran the callback so that they unwind as
+  /// for any C++ exception. Guard<> rethrows @c error to JavaScript unchanged: a caller has to see that the module is
+  /// broken (terminate its Worker, start a new module) instead of an ordinary Error.
+  struct JSFatalError
+  {
+    val error;
+  };
+
+  /// Whether @p e, what a JavaScript callback threw, is a fatal error of the module (JSFatalError)
+  inline bool isFatalJSError(const val& e)
+  {
+    const val wasm = val::global("WebAssembly");
+    for (const char* type : {"RuntimeError", "Exception"})
+    {
+      const val constructor = wasm[type];
+      if (constructor.typeOf().as<std::string>() == "function" && e.instanceof(constructor)) return true;
+    }
+    return false;
   }
 
   /// Throws a JavaScript Error with @p message. Never call it inside a C++ catch block:
@@ -74,14 +106,22 @@ namespace OpenMS::WASM
 
 #define OPENMS_WASM_GUARD_CALL(...)                     \
   std::string message;                                  \
+  val fatal = val::undefined();                         \
+  bool is_fatal = false;                                \
   try                                                   \
   {                                                     \
     return __VA_ARGS__;                                 \
+  }                                                     \
+  catch (const JSFatalError& e)                         \
+  {                                                     \
+    fatal = e.error;                                    \
+    is_fatal = true;                                    \
   }                                                     \
   catch (...)                                           \
   {                                                     \
     message = currentExceptionMessage();                \
   }                                                     \
+  if (is_fatal) fatal.throw_();                         \
   throwJSError(message);
 
   template <auto F, typename R, typename... A>
@@ -165,6 +205,8 @@ namespace OpenMS::WASM
   template <> struct TypedArrayName<double> { static constexpr const char* value = "Float64Array"; };
   template <> struct TypedArrayName<float> { static constexpr const char* value = "Float32Array"; };
   template <> struct TypedArrayName<int32_t> { static constexpr const char* value = "Int32Array"; };
+  template <> struct TypedArrayName<uint16_t> { static constexpr const char* value = "Uint16Array"; };
+  template <> struct TypedArrayName<int16_t> { static constexpr const char* value = "Int16Array"; };
   template <> struct TypedArrayName<uint32_t> { static constexpr const char* value = "Uint32Array"; };
   template <> struct TypedArrayName<int8_t> { static constexpr const char* value = "Int8Array"; };
   template <> struct TypedArrayName<uint8_t> { static constexpr const char* value = "Uint8Array"; };
