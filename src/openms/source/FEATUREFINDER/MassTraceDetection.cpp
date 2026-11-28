@@ -182,9 +182,11 @@ namespace OpenMS
 
     void updateWeightedSDEstimateRobust(const MassTrace::PeakType& p, const double& mean_t1, double& sd_t, double& last_weights_sum)
     {
-      double denom1 = std::log(last_weights_sum) + 2 * std::log(sd_t);
-      double denom2 = std::log(p.getIntensity()) + 2 * std::log(std::abs(p.getMZ() - mean_t1));
-      double denom = std::sqrt(std::exp(denom1) + std::exp(denom2));
+      // sqrt(w * sd^2 + I * d^2) with + * and sqrt only: IEEE-754 rounds these correctly, so every platform gets the
+      // same bits (exp and log are not: glibc, Apple's libm and the Windows UCRT differ in the last bit, which moved
+      // the +-3 sd trace windows and gave different mass traces per platform)
+      const double d = p.getMZ() - mean_t1;
+      double denom = std::sqrt(last_weights_sum * sd_t * sd_t + p.getIntensity() * d * d);
       double weights_sum = last_weights_sum + p.getIntensity();
       double tmp_sd = denom / std::sqrt(weights_sum);
 
