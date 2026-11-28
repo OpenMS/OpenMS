@@ -12,6 +12,45 @@ test("version and shared data", () => {
   assert.equal(OpenMS.getOpenMSDataPath(), "/share/OpenMS");
 });
 
+test("sizes and indices are numbers; an index has to be an integer within range", () => {
+  // size_t (Size) is 64 bits in the wasm64 build, where Embind would pass it as BigInt: the bindings take and return
+  // it as number in both builds (bindings/binding_utils.h), and check that an argument is an integer within range.
+  using([OpenMS.AASequence.fromString("PEPTIDEK"), new OpenMS.CoarseIsotopePatternGenerator(3),
+         new OpenMS.CoarseIsotopePatternGenerator(4, true)], (seq, generator, rounding) => {
+    assert.strictEqual(seq.size(), 8);
+    assert.strictEqual(generator.getMaxIsotope(), 3);
+    assert.strictEqual(rounding.getMaxIsotope(), 4);
+    generator.setMaxIsotope(5);
+    assert.strictEqual(generator.getMaxIsotope(), 5);
+    using([seq.getPrefix(3), seq.getSuffix(2)], (prefix, suffix) => {
+      assert.equal(prefix.toString(), "PEP");
+      assert.equal(suffix.toString(), "EK");
+    });
+    for (const bad of [1.5, -1, NaN, Infinity, 2 ** 53, undefined]) {
+      assert.throws(() => seq.getPrefix(bad), /InvalidValue: the value '.*' was used but is not valid; a size or an index has to be an integer from 0 to \d+/,
+                    `getPrefix(${bad})`);
+    }
+    assert.throws(() => new OpenMS.CoarseIsotopePatternGenerator(-2), /the value '-2' was used but is not valid; a size or an index has to be an integer/);
+  });
+});
+
+test("integer arguments (int, unsigned) have to be integers within range", () => {
+  // Embind would truncate them silently (1.5 to 1, -1 to 4294967295 for unsigned, 2^31 to -2^31 for int, NaN to 0);
+  // the bindings check them (bindings/binding_utils.h)
+  using([OpenMS.AASequence.fromString("PEPTIDEK")], (seq) => {
+    assertClose(assert, seq.getMZ(2), (seq.getMonoWeight(OpenMS.ResidueType.Full, 0) + 2 * 1.007276) / 2, 1e-6, "getMZ(2)");
+    const intArgument = /InvalidValue: the value '.*' was used but is not valid; an integer argument has to be an integer from -2147483648 to 2147483647/;
+    for (const bad of [1.5, 2 ** 31, -(2 ** 31) - 1, NaN, Infinity, undefined]) {
+      assert.throws(() => seq.getMZ(bad), intArgument, `getMZ(${bad}) (int)`);
+    }
+    using([seq.getSubsequence(1, 3)], (sub) => assert.equal(sub.toString(), "EPT"));
+    const unsignedArgument = /an integer argument has to be an integer from 0 to 4294967295/;
+    for (const bad of [-1, 1.5, 2 ** 32, NaN]) {
+      assert.throws(() => seq.getSubsequence(1, bad), unsignedArgument, `getSubsequence(1, ${bad}) (UInt)`);
+    }
+  });
+});
+
 test("AASequence masses", () => {
   using([OpenMS.AASequence.fromString("DFPIANGER")], (seq) => {
     assert.equal(seq.size(), 9);

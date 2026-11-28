@@ -114,7 +114,7 @@ namespace OpenMS::WASM
     // PeptideIdentification
 
     JS::PeptideHitList pepIdGetHits(const PeptideIdentification& id) { return toArray(id.getHits()); }
-    void pepIdSetHits(PeptideIdentification& id, const JS::PeptideHitList& hits) { id.setHits(vecFromJSArray<PeptideHit>(hits)); }
+    void pepIdSetHits(PeptideIdentification& id, const JS::PeptideHitList& hits) { id.setHits(vectorFromJS<PeptideHit>(hits)); }
     void pepIdInsertHit(PeptideIdentification& id, const PeptideHit& h) { id.insertHit(h); }
     double pepIdHitCount(const PeptideIdentification& id) { return static_cast<double>(id.getHits().size()); }
     std::string pepIdScoreType(const PeptideIdentification& id) { return id.getScoreType(); }
@@ -138,7 +138,7 @@ namespace OpenMS::WASM
     void protHitSetSequence(ProteinHit& h, const std::string& s) { h.setSequence(s); }
 
     JS::ProteinHitList protIdGetHits(const ProteinIdentification& id) { return toArray(id.getHits()); }
-    void protIdSetHits(ProteinIdentification& id, const JS::ProteinHitList& hits) { id.setHits(vecFromJSArray<ProteinHit>(hits)); }
+    void protIdSetHits(ProteinIdentification& id, const JS::ProteinHitList& hits) { id.setHits(vectorFromJS<ProteinHit>(hits)); }
     void protIdInsertHit(ProteinIdentification& id, const ProteinHit& h) { id.insertHit(h); }
     double protIdHitCount(const ProteinIdentification& id) { return static_cast<double>(id.getHits().size()); }
     std::string protIdIdentifier(const ProteinIdentification& id) { return id.getIdentifier(); }

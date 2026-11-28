@@ -30,7 +30,7 @@
     "LICENSE"
   ],
   "engines": {
-    "node": ">=18"
+    "node": "@OPENMS_WASM_NODE_ENGINE@"
   },
   "sideEffects": false
 }

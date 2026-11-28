@@ -833,7 +833,7 @@ namespace OpenMS::WASM
     template <typename T>
     val toTypedArray(const BlockVector<T>& v)
     {
-      val result = val::global(TypedArrayName<T>::value).new_(v.size);
+      val result = val::global(TypedArrayName<T>::value).new_(static_cast<double>(v.size)); // not the BigInt of a wasm64 size_t
       std::size_t at = 0;
       for (const std::vector<T>& block : v.blocks)
       {

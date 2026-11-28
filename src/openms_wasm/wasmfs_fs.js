@@ -4,8 +4,9 @@
 // (ALLOW_MEMORY_GROWTH, hence ABORTING_MALLOC=0): where the memory cannot hold that buffer, e.g. a file larger than
 // the memory has left, malloc returns 0, and the data was written from address 0 over the module's memory (FS.read():
 // read from there). Here, they throw an FS.ErrnoError with ENOMEM (errno 48) instead, and the module stays usable.
-// FS.write() also copies a typed array of bytes with one set instead of byte by byte (about 25 MB/s in Chrome), and
-// FS.write() and FS.read() throw EINVAL (errno 28) for a range beyond their buffer.
+// FS.write() also copies a typed array of bytes with one set instead of byte by byte (about 25 MB/s in Chrome),
+// FS.write() and FS.read() throw EINVAL (errno 28) for a range beyond their buffer, and they transfer 2 GiB or more
+// (wasm64) in parts, as WasmFS returns the count as int.
 //
 // FS.write() and FS.read() are methods of the FS object, which this file cannot redefine: openmsWasmfsGuards replaces
 // them when the module starts (__postset). FS_writeFile depends on it, so that it is linked whenever FS is.
@@ -45,6 +46,24 @@ addToLibrary({
         throw new FS.ErrnoError({{{ cDefs.EINVAL }}});
       }
     };
+    // _wasmfs_read/_pread/_write/_pwrite return the count as int: a call of 2 GiB or more (wasm64) got a wrong one back
+    // (a read of 2.5 GiB failed with errno 1610612736, one of 4 GiB + 4096 bytes returned 4096). So they get at most
+    // 1 GiB at a time, until the length or a short count (the end of the file) is reached. call(address, bytes, position)
+    // returns a count or a negative errno; an error after a part was transferred gives the count of that part.
+    var piece = 1 << 30;
+    var inPieces = (call, dataBuffer, length, position) => {
+      var done = 0;
+      do {
+        var part = Math.min(length - done, piece);
+        var count = call(dataBuffer + done, part, position === undefined ? undefined : position + done);
+        if (count < 0) {
+          return done > 0 ? done : count;
+        }
+        done += count;
+        if (count < part) break;
+      } while (done < length);
+      return done;
+    };
     FS.read = (stream, buffer, offset, length, position) => {
       checkRange(buffer, offset, length);
       var seeking = typeof position != 'undefined';
@@ -53,12 +72,9 @@ addToLibrary({
         throw new FS.ErrnoError({{{ cDefs.ENOMEM }}});
       }
       try {
-        var bytesRead;
-        if (seeking) {
-          bytesRead = __wasmfs_pread(stream.fd, dataBuffer, length, {{{ splitI64('position') }}});
-        } else {
-          bytesRead = __wasmfs_read(stream.fd, dataBuffer, length);
-        }
+        var bytesRead = inPieces((address, bytes, at) => seeking
+          ? __wasmfs_pread(stream.fd, address, bytes, {{{ splitI64('at') }}})
+          : __wasmfs_read(stream.fd, address, bytes), dataBuffer, length, seeking ? position : undefined);
         if (bytesRead > 0) {
           buffer.set(HEAPU8.subarray(dataBuffer, dataBuffer + bytesRead), offset);
         }
@@ -84,12 +100,9 @@ addToLibrary({
             {{{ makeSetValue('dataBuffer', 'i', 'buffer[offset + i]', 'i8') }}};
           }
         }
-        var bytesWritten;
-        if (seeking) {
-          bytesWritten = __wasmfs_pwrite(stream.fd, dataBuffer, length, {{{ splitI64('position') }}});
-        } else {
-          bytesWritten = __wasmfs_write(stream.fd, dataBuffer, length);
-        }
+        var bytesWritten = inPieces((address, bytes, at) => seeking
+          ? __wasmfs_pwrite(stream.fd, address, bytes, {{{ splitI64('at') }}})
+          : __wasmfs_write(stream.fd, address, bytes), dataBuffer, length, seeking ? position : undefined);
       } finally {
         _free(dataBuffer);
       }
